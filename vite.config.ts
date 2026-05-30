@@ -34,10 +34,15 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
     // Same-origin proxy so the frontend can hit the headless server's API
-    // (`yarn serve`, default port 3000) in browser dev.
+    // (`yarn serve`, default port 3000) in browser dev. `/ws` proxies the
+    // OSC-bridge WebSocket (ws: true), so `yarn dev` tunnels it to the server.
     proxy: {
       "/api": {
         target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
+      },
+      "/ws": {
+        target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
+        ws: true,
       },
     },
   },

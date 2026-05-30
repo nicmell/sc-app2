@@ -31,11 +31,13 @@ command -v sclang  >/dev/null 2>&1 || die "sclang not found in PATH"
 check_port() {
   local port="$1"
   if command -v lsof >/dev/null 2>&1; then
-    local occ; occ="$(lsof -nP -iUDP:"$port" 2>/dev/null | awk 'NR>1 && $9 !~ /->/ {print; exit}')"
+    # `|| true`: when the port is free, lsof exits non-zero, which under
+    # `set -euo pipefail` would otherwise abort the whole script here.
+    local occ; occ="$(lsof -nP -iUDP:"$port" 2>/dev/null | awk 'NR>1 && $9 !~ /->/ {print; exit}')" || true
     if [ -n "$occ" ]; then
       local pid; pid="$(printf '%s' "$occ" | awk '{print $2}')"
       local cmd; cmd="$(printf '%s' "$occ" | awk '{print $1}')"
-      die "UDP port $port already bound by $cmd (pid $pid). Kill it first: kill $pid"
+      die "UDP port $port already bound by $cmd (pid $pid). Kill it first: kill -9 $pid"
     fi
   fi
 }

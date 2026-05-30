@@ -28,8 +28,8 @@ const RECV_BUF: usize = 64 * 1024;
 pub struct Peer {
     pub name: String,
     pub target: SocketAddr,
-    /// OSC-address regex for this peer. Validated at connect; unused for now.
-    #[allow(dead_code)]
+    /// OSC-address regex: an outbound packet is routed here when its address
+    /// matches (see [`route_for`]).
     pub pattern: Regex,
     pub socket: Arc<UdpSocket>,
     /// Inbound datagrams, for future routing consumers.
@@ -124,6 +124,37 @@ pub async fn connect_all(routes: &[Route]) -> Vec<Arc<Peer>> {
     peers
 }
 
+/// Pick the peer an OSC `address` routes to: the first whose `pattern`
+/// matches. `None` means no peer wants it (the bridge drops the packet).
+pub fn route_for<'a>(peers: &'a [Arc<Peer>], address: &str) -> Option<&'a Arc<Peer>> {
+    peers.iter().find(|p| p.pattern.is_match(address))
+}
+
+/// Read the OSC address from a packet without fully decoding it.
+///
+/// A bare message starts with its NUL-terminated address string. A bundle
+/// starts with `#bundle\0` (8B) + a timetag (8B) + the first element's size
+/// (4B) = 20 bytes, after which the first element begins; we recurse into it
+/// so a bundle routes by its first message's address. Returns `None` for a
+/// malformed/empty packet.
+pub fn peek_osc_address(bytes: &[u8]) -> Option<&str> {
+    let mut current = bytes;
+    loop {
+        if current.starts_with(b"#bundle\0") {
+            if current.len() < 20 {
+                return None;
+            }
+            current = &current[20..];
+            continue;
+        }
+        let nul = current.iter().position(|&b| b == 0)?;
+        if nul == 0 {
+            return None;
+        }
+        return std::str::from_utf8(&current[..nul]).ok();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,6 +203,55 @@ mod tests {
     #[tokio::test]
     async fn invalid_regex_errors() {
         assert!(Peer::connect(&route("bad", "(", "127.0.0.1:1")).await.is_err());
+    }
+
+    /// Encode a minimal OSC message: NUL-terminated, 4-byte-padded address
+    /// (no type tags needed — `peek_osc_address` only reads the address).
+    fn osc_msg(address: &str) -> Vec<u8> {
+        let mut v = address.as_bytes().to_vec();
+        v.push(0);
+        while v.len() % 4 != 0 {
+            v.push(0);
+        }
+        v
+    }
+
+    #[test]
+    fn peek_reads_message_address() {
+        let pkt = osc_msg("/dirt/play");
+        assert_eq!(peek_osc_address(&pkt), Some("/dirt/play"));
+    }
+
+    #[test]
+    fn peek_reads_first_address_in_bundle() {
+        // #bundle\0 (8) + timetag (8) + element size (4) + element.
+        let element = osc_msg("/dirt/play");
+        let mut pkt = b"#bundle\0".to_vec();
+        pkt.extend_from_slice(&[0u8; 8]); // timetag
+        pkt.extend_from_slice(&(element.len() as u32).to_be_bytes());
+        pkt.extend_from_slice(&element);
+        assert_eq!(peek_osc_address(&pkt), Some("/dirt/play"));
+    }
+
+    #[test]
+    fn peek_rejects_empty_or_truncated() {
+        assert_eq!(peek_osc_address(b""), None);
+        assert_eq!(peek_osc_address(b"#bundle\0short"), None);
+    }
+
+    #[tokio::test]
+    async fn route_for_matches_by_pattern() {
+        let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        let addr = remote.local_addr().unwrap().to_string();
+        let peers = connect_all(&[
+            route("scsynth", r"^/(s_new|notify|status)", &addr),
+            route("strudel", r"^/(dirt|clock)(/|$)", &addr),
+        ])
+        .await;
+
+        assert_eq!(route_for(&peers, "/dirt/play").map(|p| p.name.as_str()), Some("strudel"));
+        assert_eq!(route_for(&peers, "/s_new").map(|p| p.name.as_str()), Some("scsynth"));
+        assert!(route_for(&peers, "/nonsense").is_none());
     }
 
     #[tokio::test]

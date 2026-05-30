@@ -16,6 +16,7 @@ mod config;
 mod logger;
 mod peer;
 mod server;
+mod session;
 
 use std::path::PathBuf;
 

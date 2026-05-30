@@ -29,9 +29,12 @@ dirs = "6"
 # CLI + HTTP server shared by `serve` (headless) and GUI mode.
 clap = { version = "4", features = ["derive", "env"] }
 tokio = { version = "1", features = ["full"] }
-axum = "0.8"
+# `ws` adds the WebSocket extractor for the OSC bridge (/ws).
+axum = { version = "0.8", features = ["ws"] }
 # Content-type guessing for served frontend assets.
 mime_guess = "2"
+# Session ids minted by /api/session and validated on the WS upgrade.
+uuid = { version = "1", features = ["v4", "serde"] }
 
 # Structured logging: stderr always, optional daily-rotated JSON file.
 tracing = "0.1"

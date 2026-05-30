@@ -1,0 +1,3 @@
+[submodule "sc-app"]
+	path = sc-app
+	url = git@github.com:nicmell/sc-app.git

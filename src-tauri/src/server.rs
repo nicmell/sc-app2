@@ -1,18 +1,10 @@
 //! The HTTP server.
 //!
-//! A [`Server`] owns HTTP routing and backend resources. It always serves
-//! `/api/config`; when an [`AssetResolver`] is supplied it also serves the
-//! frontend. The two run modes fetch assets from different places but
-//! through the same trait, so the serving logic is identical:
-//!
-//! - **serve** → [`from_context`]: reads the assets embedded in the
-//!   `tauri::Context`.
-//! - **GUI** → [`from_app`]: reads the same bytes through the running app's
-//!   resolver (the context having been moved into the Tauri builder), so
-//!   external HTTP clients get the UI too.
-//!
-//! In dev neither resolver is installed (Vite serves the UI) and the
-//! server is API-only. No request is cross-origin, so there's no CORS.
+//! A [`Server`] owns HTTP routing. It always serves `/api/config`; when an
+//! [`AssetResolver`] is supplied it also serves the frontend. See
+//! [`crate::asset_resolver`] for how each run mode obtains one (`None` in
+//! dev, where Vite serves the UI and the server is API-only). No request is
+//! cross-origin, so there's no CORS.
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -24,45 +16,8 @@ use axum::response::{IntoResponse, Response};
 use axum::{routing::get, Json, Router};
 use tokio::net::TcpListener;
 
+use crate::asset_resolver::AssetResolver;
 use crate::config::AppConfig;
-
-/// Resolves a frontend path (`index.html`, `assets/app.js`) to its bytes.
-/// One trait, two implementations kept in lockstep — so the server serves
-/// assets the same way regardless of where they come from.
-pub trait AssetResolver: Send + Sync + 'static {
-    fn get(&self, path: &str) -> Option<Bytes>;
-}
-
-/// serve: assets embedded in the `tauri::Context`.
-struct ContextAssets(tauri::Context);
-
-impl AssetResolver for ContextAssets {
-    fn get(&self, path: &str) -> Option<Bytes> {
-        self.0
-            .assets()
-            .get(&path.into())
-            .map(|b| Bytes::from(b.into_owned()))
-    }
-}
-
-/// GUI: the same embedded assets, reached through the running app.
-struct AppAssets(tauri::AssetResolver<tauri::Wry>);
-
-impl AssetResolver for AppAssets {
-    fn get(&self, path: &str) -> Option<Bytes> {
-        self.0.get(path.to_string()).map(|a| Bytes::from(a.bytes))
-    }
-}
-
-/// Asset resolver backed by the embedded context (headless serve).
-pub fn from_context(context: tauri::Context) -> Arc<dyn AssetResolver> {
-    Arc::new(ContextAssets(context))
-}
-
-/// Asset resolver backed by the running app (GUI, for external clients).
-pub fn from_app(app: &tauri::App) -> Arc<dyn AssetResolver> {
-    Arc::new(AppAssets(app.asset_resolver()))
-}
 
 /// Owns HTTP routing and backend resources. Passed to both run modes.
 pub struct Server {
@@ -113,9 +68,12 @@ async fn serve_static(req: Request, assets: Arc<dyn AssetResolver>) -> Response 
     if let Some(bytes) = assets.get(key) {
         return asset(key, bytes);
     }
-    let asset_shaped =
-        key.starts_with("assets/") || key.rsplit('/').next().is_some_and(|s| s.contains('.'));
-    if asset_shaped {
+    // Misses that should 404 rather than render the SPA shell: API routes
+    // and real files (under assets/, or anything with an extension).
+    let not_a_route = key.starts_with("api/")
+        || key.starts_with("assets/")
+        || key.rsplit('/').next().is_some_and(|s| s.contains('.'));
+    if not_a_route {
         return (StatusCode::NOT_FOUND, format!("not found: /{key}\n")).into_response();
     }
     match assets.get("index.html") {
@@ -137,8 +95,8 @@ mod tests {
 
     use axum::body::Body;
 
-    /// A third [`AssetResolver`] impl, map-backed, for testing the serving
-    /// logic without a Tauri context or app.
+    /// A map-backed [`AssetResolver`] for testing the serving logic without
+    /// a Tauri context or app.
     struct MapAssets(HashMap<String, Bytes>);
 
     impl AssetResolver for MapAssets {
@@ -192,5 +150,12 @@ mod tests {
         let res = serve_static(req("/some/client/route"), assets()).await;
         assert_eq!(res.status(), StatusCode::OK);
         assert!(content_type(&res).contains("text/html"));
+    }
+
+    #[tokio::test]
+    async fn unknown_api_route_is_404_not_html() {
+        let res = serve_static(req("/api/nope"), assets()).await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+        assert!(!content_type(&res).contains("text/html"));
     }
 }

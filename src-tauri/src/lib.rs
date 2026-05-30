@@ -4,12 +4,14 @@
 //! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
 //!   which also runs the HTTP server (API + frontend) for external clients.
 //!
-//! Both modes serve the frontend through an [`server::AssetResolver`],
-//! built per mode ([`server::from_context`] for serve, [`server::from_app`]
+//! Both modes serve the frontend through an
+//! [`asset_resolver::AssetResolver`], built per mode
+//! ([`asset_resolver::from_context`] for serve, [`asset_resolver::from_app`]
 //! for the GUI). The frontend gets its config via the
 //! [`config::get_config`] command (GUI webview, over IPC) or the server's
 //! `/api/config` route (browsers).
 
+mod asset_resolver;
 mod config;
 mod server;
 
@@ -55,8 +57,7 @@ pub fn run() {
 
 /// Headless mode: bind and serve on the main thread until the process exits.
 fn run_serve(config: AppConfig, context: tauri::Context) {
-    let assets = (!cfg!(dev)).then(move || server::from_context(context));
-    let server = Server::new(config, assets);
+    let server = Server::new(config, asset_resolver::from_context(context));
     tauri::async_runtime::block_on(async move {
         let (listener, _addr) = server.listen().await.expect("failed to bind server");
         if let Err(e) = server.serve(listener).await {
@@ -73,8 +74,7 @@ fn run_gui(config: AppConfig, context: tauri::Context) {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![config::get_config])
         .setup(move |app| {
-            let assets = (!cfg!(dev)).then(|| server::from_app(app));
-            let server = Server::new(config, assets);
+            let server = Server::new(config, asset_resolver::from_app(app));
             let (listener, _addr) = tauri::async_runtime::block_on(server.listen())
                 .map_err(|e| format!("server bind: {e}"))?;
             tauri::async_runtime::spawn(async move {

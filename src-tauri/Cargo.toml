@@ -33,3 +33,12 @@ axum = "0.8"
 # Content-type guessing for served frontend assets.
 mime_guess = "2"
 
+# Structured logging: stderr always, optional daily-rotated JSON file.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+# Compile/validate route patterns at boot (routing is future work).
+regex = "1"
+# Ergonomic error propagation for peer connection.
+anyhow = "1"
+

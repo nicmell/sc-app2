@@ -18,16 +18,51 @@ use tokio::net::TcpListener;
 
 use crate::asset_resolver::AssetResolver;
 use crate::config::AppConfig;
+use crate::logger::Logger;
+use crate::peer::Peer;
 
 /// Owns HTTP routing and backend resources. Passed to both run modes.
 pub struct Server {
     config: AppConfig,
     assets: Option<Arc<dyn AssetResolver>>,
+    /// Connected audio-backend peers (scsynth, strudel, …); read via
+    /// [`peers`](Self::peers) once routing/forwarding lands.
+    #[allow(dead_code)]
+    peers: Vec<Arc<Peer>>,
+    /// Owns the logging guard (keeping the file appender alive); exposed via
+    /// [`logger`](Self::logger) for future handlers.
+    #[allow(dead_code)]
+    logger: Arc<Logger>,
 }
 
 impl Server {
-    pub fn new(config: AppConfig, assets: Option<Arc<dyn AssetResolver>>) -> Self {
-        Self { config, assets }
+    /// Connect the configured peers, then build the server. Async because
+    /// peer connection binds UDP sockets and resolves targets. Holding the
+    /// `Logger` keeps the file-appender guard alive for the server's life.
+    pub async fn new(
+        config: AppConfig,
+        assets: Option<Arc<dyn AssetResolver>>,
+        logger: Arc<Logger>,
+    ) -> Self {
+        let peers = crate::peer::connect_all(&config.routes).await;
+        Self {
+            config,
+            assets,
+            peers,
+            logger,
+        }
+    }
+
+    /// The connected peers (for future routing/forwarding).
+    #[allow(dead_code)]
+    pub fn peers(&self) -> &[Arc<Peer>] {
+        &self.peers
+    }
+
+    /// The logger handle (for future handlers).
+    #[allow(dead_code)]
+    pub fn logger(&self) -> &Arc<Logger> {
+        &self.logger
     }
 
     /// Bind a localhost listener and log its address. Separate from
@@ -36,7 +71,7 @@ impl Server {
     pub async fn listen(&self) -> std::io::Result<(TcpListener, SocketAddr)> {
         let listener = TcpListener::bind(("127.0.0.1", self.config.port)).await?;
         let addr = listener.local_addr()?;
-        println!("sc-app2 server listening on http://{addr}");
+        tracing::info!(%addr, "sc-app2 server listening");
         Ok((listener, addr))
     }
 

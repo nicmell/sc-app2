@@ -1,16 +1,19 @@
 //! The HTTP server.
 //!
-//! A [`Server`] owns HTTP routing and backend resources, used by both run
-//! modes. It serves `/api/config` (and future API endpoints) plus the
-//! frontend. The frontend assets are **snapshotted from the embedded
-//! `tauri::Context`** at construction (decompressed into an owned map) so
-//! the context stays free for the GUI's Tauri builder. In dev the
-//! snapshot is empty (Vite serves the UI) and the server is API-only.
+//! A [`Server`] owns HTTP routing and backend resources. It always serves
+//! `/api/config`; when an [`AssetResolver`] is supplied it also serves the
+//! frontend. The two run modes fetch assets from different places but
+//! through the same trait, so the serving logic is identical:
 //!
-//! The server never makes cross-origin calls and the GUI webview reaches
-//! the backend over IPC, so no CORS is involved.
+//! - **serve** → [`from_context`]: reads the assets embedded in the
+//!   `tauri::Context`.
+//! - **GUI** → [`from_app`]: reads the same bytes through the running app's
+//!   resolver (the context having been moved into the Tauri builder), so
+//!   external HTTP clients get the UI too.
+//!
+//! In dev neither resolver is installed (Vite serves the UI) and the
+//! server is API-only. No request is cross-origin, so there's no CORS.
 
-use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -23,25 +26,53 @@ use tokio::net::TcpListener;
 
 use crate::config::AppConfig;
 
-/// Frontend assets keyed by relative path (`index.html`, `assets/app.js`).
-/// `Bytes` so handing a copy to each response is a cheap refcount bump.
-type Assets = Arc<HashMap<String, Bytes>>;
+/// Resolves a frontend path (`index.html`, `assets/app.js`) to its bytes.
+/// One trait, two implementations kept in lockstep — so the server serves
+/// assets the same way regardless of where they come from.
+pub trait AssetResolver: Send + Sync + 'static {
+    fn get(&self, path: &str) -> Option<Bytes>;
+}
+
+/// serve: assets embedded in the `tauri::Context`.
+struct ContextAssets(tauri::Context);
+
+impl AssetResolver for ContextAssets {
+    fn get(&self, path: &str) -> Option<Bytes> {
+        self.0
+            .assets()
+            .get(&path.into())
+            .map(|b| Bytes::from(b.into_owned()))
+    }
+}
+
+/// GUI: the same embedded assets, reached through the running app.
+struct AppAssets(tauri::AssetResolver<tauri::Wry>);
+
+impl AssetResolver for AppAssets {
+    fn get(&self, path: &str) -> Option<Bytes> {
+        self.0.get(path.to_string()).map(|a| Bytes::from(a.bytes))
+    }
+}
+
+/// Asset resolver backed by the embedded context (headless serve).
+pub fn from_context(context: tauri::Context) -> Arc<dyn AssetResolver> {
+    Arc::new(ContextAssets(context))
+}
+
+/// Asset resolver backed by the running app (GUI, for external clients).
+pub fn from_app(app: &tauri::App) -> Arc<dyn AssetResolver> {
+    Arc::new(AppAssets(app.asset_resolver()))
+}
 
 /// Owns HTTP routing and backend resources. Passed to both run modes.
 pub struct Server {
     config: AppConfig,
-    assets: Assets,
+    assets: Option<Arc<dyn AssetResolver>>,
 }
 
 impl Server {
-    /// Build a server. Snapshots the frontend assets embedded in `context`
-    /// (empty in dev, where Vite serves the UI) into an owned map, taking
-    /// `context` by reference so it remains usable by the GUI builder.
-    pub fn new(config: AppConfig, context: &tauri::Context) -> Self {
-        Self {
-            config,
-            assets: Arc::new(snapshot_assets(context)),
-        }
+    pub fn new(config: AppConfig, assets: Option<Arc<dyn AssetResolver>>) -> Self {
+        Self { config, assets }
     }
 
     /// Bind a localhost listener and log its address. Separate from
@@ -63,42 +94,24 @@ impl Server {
         let config = self.config.clone();
         let mut app =
             Router::new().route("/api/config", get(move || async move { Json(config.clone()) }));
-        // Serve the frontend when assets are present (production); stay
-        // API-only otherwise (dev — Vite serves the UI).
-        if !self.assets.is_empty() {
-            let assets = self.assets.clone();
+        // Serve the frontend when a resolver is installed (production);
+        // stay API-only otherwise (dev — Vite serves the UI).
+        if let Some(assets) = self.assets.clone() {
             app = app.fallback(move |req: Request| serve_static(req, assets.clone()));
         }
         app
     }
 }
 
-/// Snapshot the embedded frontend into an owned map. `iter` yields raw
-/// (brotli-compressed) bytes, so each entry is re-fetched via `get`, which
-/// decompresses. Keys are normalised to be relative (no leading `/`).
-/// Empty in dev, where nothing is embedded.
-fn snapshot_assets(context: &tauri::Context) -> HashMap<String, Bytes> {
-    let assets = context.assets();
-    assets
-        .iter()
-        .filter_map(|(key, _)| {
-            let key = key.trim_start_matches('/').to_string();
-            assets
-                .get(&key.as_str().into())
-                .map(|b| (key, Bytes::from(b.into_owned())))
-        })
-        .collect()
-}
-
 /// Serve an asset, falling back to `index.html` for client-side routes.
 /// Asset-shaped paths that miss get a loud 404 (so a stale build reference
 /// doesn't masquerade as HTML).
-async fn serve_static(req: Request, assets: Assets) -> Response {
+async fn serve_static(req: Request, assets: Arc<dyn AssetResolver>) -> Response {
     let path = req.uri().path().trim_start_matches('/');
     let key = if path.is_empty() { "index.html" } else { path };
 
     if let Some(bytes) = assets.get(key) {
-        return asset(key, bytes.clone());
+        return asset(key, bytes);
     }
     let asset_shaped =
         key.starts_with("assets/") || key.rsplit('/').next().is_some_and(|s| s.contains('.'));
@@ -106,7 +119,7 @@ async fn serve_static(req: Request, assets: Assets) -> Response {
         return (StatusCode::NOT_FOUND, format!("not found: /{key}\n")).into_response();
     }
     match assets.get("index.html") {
-        Some(bytes) => asset("index.html", bytes.clone()),
+        Some(bytes) => asset("index.html", bytes),
         None => (StatusCode::NOT_FOUND, "index.html missing\n").into_response(),
     }
 }
@@ -120,13 +133,25 @@ fn asset(key: &str, bytes: Bytes) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+
     use axum::body::Body;
 
-    fn assets() -> Assets {
-        Arc::new(HashMap::from([
+    /// A third [`AssetResolver`] impl, map-backed, for testing the serving
+    /// logic without a Tauri context or app.
+    struct MapAssets(HashMap<String, Bytes>);
+
+    impl AssetResolver for MapAssets {
+        fn get(&self, path: &str) -> Option<Bytes> {
+            self.0.get(path).cloned()
+        }
+    }
+
+    fn assets() -> Arc<dyn AssetResolver> {
+        Arc::new(MapAssets(HashMap::from([
             ("index.html".to_string(), Bytes::from_static(b"<html>root</html>")),
             ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
-        ]))
+        ])))
     }
 
     fn req(path: &str) -> Request {

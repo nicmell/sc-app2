@@ -8,6 +8,11 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  build: {
+    // Emit a manifest mapping source files to their hashed build outputs.
+    manifest: "manifest.json",
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
@@ -27,6 +32,13 @@ export default defineConfig(async () => ({
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
+    },
+    // Same-origin proxy so the frontend can hit the headless server
+    // (`yarn serve`, default port 3000) without CORS or an env var.
+    proxy: {
+      "/api": {
+        target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
+      },
     },
   },
 }));

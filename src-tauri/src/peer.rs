@@ -111,11 +111,13 @@ pub async fn connect_all(routes: &[Route]) -> Vec<Arc<Peer>> {
     for route in routes {
         match Peer::connect(route).await {
             Ok(peer) => {
-                tracing::info!(peer = %peer.name, target = %peer.target, "peer connected");
+                // UDP is connectionless: the socket is bound + pointed at the
+                // target, but nothing has confirmed the target is actually up.
+                tracing::info!(peer = %peer.name, target = %peer.target, "peer socket ready");
                 peers.push(peer);
             }
             Err(e) => {
-                tracing::warn!(route = %route.name, error = %format!("{e:#}"), "peer connect failed; skipping");
+                tracing::warn!(route = %route.name, error = %format!("{e:#}"), "peer setup failed; skipping");
             }
         }
     }

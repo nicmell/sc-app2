@@ -1,27 +1,36 @@
 import { useState } from "react";
+import { isTauri, invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-function App() {
-  const [serverMsg, setServerMsg] = useState("");
+interface AppConfig {
+  port: number;
+}
 
-  async function pingServer() {
-    // Hits the HTTP server (Vite proxies /api to it in dev).
+function App() {
+  const [config, setConfig] = useState<AppConfig | null>(null);
+  const [error, setError] = useState("");
+
+  async function loadConfig() {
+    // GUI (Tauri): over IPC. Browser/serve: over HTTP, same-origin.
+    setError("");
     try {
-      const res = await fetch("/api/hello");
-      const { message } = (await res.json()) as { message: string };
-      setServerMsg(message);
+      const cfg: AppConfig = isTauri()
+        ? await invoke("get_config")
+        : await (await fetch("/api/config")).json();
+      setConfig(cfg);
     } catch (err) {
-      setServerMsg(`Request failed: ${String(err)}`);
+      setError(`Failed to load config: ${String(err)}`);
     }
   }
 
   return (
     <main className="container">
       <h1>sc-app2</h1>
-      <button type="button" onClick={pingServer}>
-        Ping server
+      <button type="button" onClick={loadConfig}>
+        Load config
       </button>
-      <p>{serverMsg}</p>
+      {config && <pre>{JSON.stringify(config, null, 2)}</pre>}
+      {error && <p>{error}</p>}
     </main>
   );
 }

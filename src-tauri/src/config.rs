@@ -1,68 +1,96 @@
-//! Startup resolution — the things needed to build the [`Server`], all
-//! resolved **without** a Tauri `AppHandle` so headless `serve` and GUI
-//! mode share one path:
+//! App configuration: the contents of `config.json`, read from an explicit
+//! path or the canonical app config dir (e.g. macOS
+//! `~/Library/Application Support/com.nicmell.scapp/config.json`).
 //!
-//! * [`resolve_port`] — port from flag / env / `config.json` (the latter
-//!   read from the app data dir, e.g. macOS
-//!   `~/Library/Application Support/com.nicmell.scapp/config.json`).
-//! * [`frontend_dir`] — the bundled `dist/` to serve (production), via
-//!   Tauri's platform resource-dir logic; `None` in dev (Vite serves it).
-//!
-//! [`Server`]: crate::server::Server
+//! Handed to the frontend two ways over one core ([`load`]): the
+//! [`get_config`] Tauri command (GUI webview, over IPC) and the server's
+//! `/config.json` route (browsers).
 
 use std::path::PathBuf;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-/// Bundle identifier — also the app data dir name (matches tauri.conf.json).
+/// Bundle identifier — also the app config dir name (matches tauri.conf.json).
 const IDENTIFIER: &str = "com.nicmell.scapp";
 const DEFAULT_PORT: u16 = 3000;
 
-/// Subset of `config.json` we currently read.
-#[derive(Deserialize, Default)]
-struct Config {
-    port: Option<u16>,
+/// Contents of `config.json`, shared with the frontend.
+#[derive(Deserialize, Serialize, Clone)]
+pub struct AppConfig {
+    #[serde(default = "default_port")]
+    pub port: u16,
 }
 
-/// Load `config.json` from the app data dir, tolerating a missing or
-/// malformed file (falls back to defaults; a parse error is logged).
-fn load() -> Config {
-    let Some(dir) = dirs::data_dir() else {
-        return Config::default();
-    };
-    let path = dir.join(IDENTIFIER).join("config.json");
-    match std::fs::read_to_string(&path) {
-        Ok(s) => serde_json::from_str(&s).unwrap_or_else(|e| {
-            eprintln!("[config] ignoring {}: {e}", path.display());
-            Config::default()
-        }),
-        Err(_) => Config::default(),
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self { port: DEFAULT_PORT }
     }
 }
 
-/// Resolve the port: explicit flag > `SC_PORT` env > config.json > default.
-pub fn resolve_port(flag: Option<u16>) -> u16 {
-    flag.or_else(|| std::env::var("SC_PORT").ok().and_then(|s| s.parse().ok()))
-        .or_else(|| load().port)
-        .unwrap_or(DEFAULT_PORT)
+fn default_port() -> u16 {
+    DEFAULT_PORT
 }
 
-/// Directory to serve the frontend from: the bundled `dist/` in
-/// production (via Tauri's platform resource-dir logic — no `AppHandle`,
-/// so both run modes share it), or `None` in dev where Vite serves the UI.
-pub fn frontend_dir() -> Option<PathBuf> {
-    if cfg!(dev) {
-        None
-    } else {
-        let pkg = tauri::utils::PackageInfo {
-            name: env!("CARGO_PKG_NAME").into(),
-            version: env!("CARGO_PKG_VERSION").parse().expect("valid semver"),
-            authors: env!("CARGO_PKG_AUTHORS"),
-            description: env!("CARGO_PKG_DESCRIPTION"),
-            crate_name: env!("CARGO_PKG_NAME"),
-        };
-        tauri::utils::platform::resource_dir(&pkg, &tauri::Env::default())
-            .ok()
-            .map(|d| d.join("dist"))
+/// `<app config dir>/config.json`.
+fn canonical_path() -> Option<PathBuf> {
+    dirs::config_dir().map(|d| d.join(IDENTIFIER).join("config.json"))
+}
+
+/// Load config from an explicit path (serve `--config`) or the canonical
+/// location, tolerating a missing or malformed file (logs and defaults).
+pub fn load(path: Option<PathBuf>) -> AppConfig {
+    let Some(path) = path.or_else(canonical_path) else {
+        return AppConfig::default();
+    };
+    match std::fs::read_to_string(&path) {
+        Ok(s) => serde_json::from_str(&s).unwrap_or_else(|e| {
+            eprintln!("[config] ignoring {}: {e}", path.display());
+            AppConfig::default()
+        }),
+        Err(_) => AppConfig::default(),
+    }
+}
+
+/// The app config, for the GUI webview (over IPC).
+#[tauri::command]
+pub fn get_config() -> AppConfig {
+    load(None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tmp(name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("sc-app2-test-{name}.json"))
+    }
+
+    #[test]
+    fn loads_port_from_file() {
+        let path = tmp("valid");
+        std::fs::write(&path, r#"{ "port": 1234 }"#).unwrap();
+        assert_eq!(load(Some(path.clone())).port, 1234);
+        std::fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn empty_object_uses_default_port() {
+        let path = tmp("empty");
+        std::fs::write(&path, "{}").unwrap();
+        assert_eq!(load(Some(path.clone())).port, DEFAULT_PORT);
+        std::fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn malformed_falls_back_to_default() {
+        let path = tmp("malformed");
+        std::fs::write(&path, "not json").unwrap();
+        assert_eq!(load(Some(path.clone())).port, DEFAULT_PORT);
+        std::fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn missing_file_falls_back_to_default() {
+        assert_eq!(load(Some(tmp("does-not-exist"))).port, DEFAULT_PORT);
     }
 }

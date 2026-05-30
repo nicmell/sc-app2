@@ -1,17 +1,19 @@
 //! sc-app2 entry point.
 //!
-//! * `serve` subcommand → headless HTTP server on localhost.
-//! * no subcommand → native GUI whose webview is just an HTTP client
-//!   of that same server (Vite in dev, the bundled frontend in
-//!   production).
+//! * `serve [--config <path>]` → headless HTTP server on localhost.
+//! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
+//!   which also runs the HTTP server for any external clients.
 //!
-//! One [`Server`] is built here (with the resolved frontend `dist/`
-//! path) and handed to whichever mode runs. The only remaining
-//! difference: headless blocks on the server, while the GUI spawns it
-//! and continues to open the window.
+//! One [`Server`] is built from the config + embedded context (assets
+//! snapshotted by reference, so the context still drives the GUI builder)
+//! and handed to whichever mode runs. The frontend gets its config via
+//! the [`config::get_config`] command (GUI webview, IPC) or the server's
+//! `/config.json` route (browsers).
 
 mod config;
 mod server;
+
+use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
@@ -26,27 +28,29 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Run the HTTP server headlessly on localhost (no GUI). In dev,
-    /// run `yarn dev` for the UI; production serves the bundled frontend.
+    /// Run the HTTP server headlessly on localhost (no GUI).
     Serve {
-        /// Port to bind on 127.0.0.1. Falls back to `SC_PORT`, then
-        /// config.json, then 3000.
-        #[arg(short, long)]
-        port: Option<u16>,
+        /// Path to config.json. Defaults to the canonical app config dir.
+        #[arg(long)]
+        config: Option<PathBuf>,
     },
 }
 
 pub fn run() {
     let command = Cli::parse().command;
-    let port_flag = match &command {
-        Some(Command::Serve { port }) => *port,
+    // serve reads --config; GUI uses the canonical location.
+    let config_path = match &command {
+        Some(Command::Serve { config }) => config.clone(),
         None => None,
     };
-    let server = Server::new(config::resolve_port(port_flag), config::frontend_dir());
+    let config = config::load(config_path);
+    let context = tauri::generate_context!();
+    // Built by reference, so `context` remains available for the GUI builder.
+    let server = Server::new(config, &context);
 
     match command {
         Some(Command::Serve { .. }) => run_serve(server),
-        None => run_gui(server),
+        None => run_gui(server, context),
     }
 }
 
@@ -60,34 +64,22 @@ fn run_serve(server: Server) {
     });
 }
 
-/// Native GUI: runs the server in-process and points the webview at it.
-fn run_gui(server: Server) {
+/// Native GUI: stock Tauri (window from tauri.conf.json, `tauri://` assets,
+/// `get_config` over IPC) plus the HTTP server running for external clients.
+fn run_gui(server: Server, context: tauri::Context) {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .setup(move |app| {
-            // Bind synchronously so the webview URL is valid before it
-            // loads, then serve in the background.
-            let (listener, addr) = tauri::async_runtime::block_on(server.listen())
+        .invoke_handler(tauri::generate_handler![config::get_config])
+        .setup(move |_app| {
+            let (listener, _addr) = tauri::async_runtime::block_on(server.listen())
                 .map_err(|e| format!("server bind: {e}"))?;
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = server.serve(listener).await {
                     eprintln!("server error: {e}");
                 }
             });
-
-            // Dev: load Vite's devUrl (it serves the assets). Production:
-            // load our server, which serves the bundled frontend.
-            let url = if cfg!(dev) {
-                tauri::WebviewUrl::default()
-            } else {
-                tauri::WebviewUrl::External(format!("http://{addr}/").parse().unwrap())
-            };
-            tauri::WebviewWindowBuilder::new(app, "main", url)
-                .title("sc-app2")
-                .inner_size(800.0, 600.0)
-                .build()?;
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }

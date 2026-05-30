@@ -33,8 +33,8 @@ export default defineConfig(async () => ({
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
-    // Same-origin proxy so the frontend can hit the headless server
-    // (`yarn serve`, default port 3000) without CORS or an env var.
+    // Same-origin proxy so the frontend can hit the headless server's API
+    // (`yarn serve`, default port 3000) in browser dev.
     proxy: {
       "/api": {
         target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",

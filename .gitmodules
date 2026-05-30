@@ -1,3 +1,6 @@
 [submodule "sc-app"]
 	path = sc-app
 	url = git@github.com:nicmell/sc-app.git
+[submodule "strudeldirt"]
+	path = strudeldirt
+	url = https://github.com/daslyfe/StrudelDirt.git

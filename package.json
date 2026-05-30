@@ -9,7 +9,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "serve": "cargo run --manifest-path src-tauri/Cargo.toml -- serve --config ./config.json --log-dir ./logs"
+    "serve": "cargo run --manifest-path src-tauri/Cargo.toml -- serve --config ./config.json --log-dir ./logs",
+    "deps": "./scripts/setup-deps.sh",
+    "osc": "./scripts/start-osc.sh",
+    "strudeldirt": "./scripts/start-strudeldirt.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

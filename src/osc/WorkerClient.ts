@@ -2,16 +2,18 @@
 // them as bytes, and fans decoded inbound replies out to listeners. One client
 // owns one worker, which owns one WebSocket — created per session.
 
-import { encode, type OscPacket } from "@sc-app/server-commands";
+import { encode, type DecodedScopeChunk, type OscPacket } from "@sc-app/server-commands";
 import type { MainToWorker, OscReply, WorkerToMain } from "./protocol";
 
 export type ReplyListener = (reply: OscReply) => void;
 export type ErrorListener = (message: string) => void;
+export type ScopeChunkListener = (chunk: DecodedScopeChunk) => void;
 
 export class WorkerClient {
   private readonly worker: Worker;
   private readonly replyListeners = new Set<ReplyListener>();
   private readonly errorListeners = new Set<ErrorListener>();
+  private readonly scopeChunkListeners = new Set<ScopeChunkListener>();
 
   /** Resolves once the worker's WebSocket is open; rejects if it fails to open. */
   readonly ready: Promise<void>;
@@ -59,18 +61,29 @@ export class WorkerClient {
     return () => this.errorListeners.delete(cb) as unknown as void;
   }
 
+  /** Subscribe to decoded `/scope/chunk` frames (the worker transfers each
+   *  chunk's Float32Array, so a listener must consume `data` synchronously). */
+  onScopeChunk(cb: ScopeChunkListener): () => void {
+    this.scopeChunkListeners.add(cb);
+    return () => this.scopeChunkListeners.delete(cb) as unknown as void;
+  }
+
   /** Tear down: close the WS and terminate the worker. */
   dispose(): void {
     this.post({ type: "disconnect" });
     this.worker.terminate();
     this.replyListeners.clear();
     this.errorListeners.clear();
+    this.scopeChunkListeners.clear();
   }
 
   private handle(msg: WorkerToMain): void {
     switch (msg.type) {
       case "reply":
         for (const cb of this.replyListeners) cb(msg.reply);
+        return;
+      case "scopeChunk":
+        for (const cb of this.scopeChunkListeners) cb(msg.chunk);
         return;
       case "error":
         for (const cb of this.errorListeners) cb(msg.message);

@@ -3090,6 +3090,7 @@ dependencies = [
  "bytes",
  "clap",
  "dirs",
+ "libc",
  "mime_guess",
  "regex",
  "rosc",

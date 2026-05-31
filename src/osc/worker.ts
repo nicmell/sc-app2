@@ -5,21 +5,29 @@
 // before @sc-app/server-commands (which pulls in osc-js) is evaluated.
 
 import { setWorkerMessageHandler } from "./workerBootstrap";
-import { decode } from "@sc-app/server-commands";
+import { decode, isMessage, parseScopeChunkArgs, SCOPE_CHUNK_ADDRESS } from "@sc-app/server-commands";
 import { flattenPacket } from "./flatten";
 import { createOscTransport, type OscTransport } from "./transport";
 import type { MainToWorker, WorkerToMain } from "./protocol";
 
 let transport: OscTransport | null = null;
 
-function post(msg: WorkerToMain): void {
-  self.postMessage(msg);
+function post(msg: WorkerToMain, transfer?: Transferable[]): void {
+  self.postMessage(msg, transfer ?? []);
 }
 
-/** Decode an inbound frame and post each message as a `reply` (bundles flattened). */
+/** Decode an inbound frame and dispatch it. `/scope/chunk` is parsed into a
+ *  fresh Float32Array and posted (transferred) as `scopeChunk`; everything else
+ *  is flattened and posted as `reply`s. */
 function handleInbound(bytes: Uint8Array): void {
   try {
-    for (const reply of flattenPacket(decode(bytes))) {
+    const packet = decode(bytes);
+    if (isMessage(packet) && packet.address === SCOPE_CHUNK_ADDRESS) {
+      const chunk = parseScopeChunkArgs(packet.args as unknown[]);
+      post({ type: "scopeChunk", chunk }, [chunk.data.buffer]);
+      return;
+    }
+    for (const reply of flattenPacket(packet)) {
       post({ type: "reply", reply });
     }
   } catch (err) {

@@ -62,7 +62,9 @@ fn default_peers() -> Vec<PeerConfig> {
         },
         PeerConfig {
             name: "strudel".into(),
-            pattern: r"^/(dirt|clock|scope)(/|$)".into(),
+            // `/scope/*` is bridge-internal (intercepted in the WS pump for the
+            // SHM scope), so it's deliberately not routed to a peer here.
+            pattern: r"^/(dirt|clock)(/|$)".into(),
             target: "127.0.0.1:57120".into(),
         },
     ]

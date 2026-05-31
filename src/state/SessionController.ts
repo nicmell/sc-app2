@@ -6,6 +6,7 @@ import type { OscPacket } from "@sc-app/server-commands";
 import { createStore, type ReadonlyStore } from "../util/reactiveStore";
 import { WorkerClient } from "../osc/WorkerClient";
 import { flattenPacket } from "../osc/flatten";
+import { ScopeController } from "../scope/ScopeController";
 import { bootstrapSession } from "../strudel/session";
 
 export type ConnStatus = "connecting" | "connected" | "error";
@@ -28,6 +29,7 @@ export class SessionController {
   private readonly statusStore = createStore<ConnStatus>("connecting");
   private readonly logStore = createStore<LoggedEntry[]>([]);
   private client: WorkerClient | null = null;
+  private scopeController: ScopeController | null = null;
   private nextId = 0;
   private disposed = false;
 
@@ -37,6 +39,11 @@ export class SessionController {
 
   get log(): ReadonlyStore<LoggedEntry[]> {
     return this.logStore;
+  }
+
+  /** The master-out scope, available once connected. */
+  get scope(): ScopeController | null {
+    return this.scopeController;
   }
 
   /** Bootstrap the session, spin up the worker, and wire its events into the
@@ -58,6 +65,9 @@ export class SessionController {
         return;
       }
       this.client = client;
+      // Start the master-out scope tap + subscription now that we're connected.
+      this.scopeController = new ScopeController(client);
+      this.scopeController.start();
       this.statusStore.set("connected");
     } catch {
       if (!this.disposed) this.statusStore.set("error");
@@ -73,6 +83,8 @@ export class SessionController {
 
   dispose(): void {
     this.disposed = true;
+    this.scopeController?.dispose();
+    this.scopeController = null;
     this.client?.dispose();
     this.client = null;
   }

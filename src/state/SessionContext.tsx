@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
+import type { DecodedScopeChunk } from "@sc-app/server-commands";
 import {
   SessionController,
   type ConnStatus,
@@ -43,4 +44,12 @@ export function useStatus(): ConnStatus {
 export function useOscLog(): LoggedEntry[] {
   const { log } = useSession();
   return useSyncExternalStore(log.subscribe, log.get);
+}
+
+/** The master-out scope's latest-chunk ref, or `null` until connected.
+ *  Re-evaluates when the connection status changes (scope starts on connect). */
+export function useScopeChunkRef(): { current: DecodedScopeChunk | null } | null {
+  const session = useSession();
+  const status = useStatus();
+  return status === "connected" ? session.scope?.chunkRef ?? null : null;
 }

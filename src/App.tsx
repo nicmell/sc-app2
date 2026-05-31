@@ -1,15 +1,25 @@
 import StrudelConsole from "./strudel/StrudelConsole";
 import OscConsole from "./strudel/OscConsole";
-import { SessionProvider } from "./state/SessionContext";
+import ScopeView from "./scope/ScopeView";
+import { SessionProvider, useScopeChunkRef } from "./state/SessionContext";
 import "./App.css";
+
+/** Master-out waveform strip; renders the canvas once the scope is live. */
+function ScopeStrip() {
+  const chunkRef = useScopeChunkRef();
+  return (
+    <section className="scope-strip">{chunkRef && <ScopeView chunkRef={chunkRef} />}</section>
+  );
+}
 
 function App() {
   // The session (worker connection + reactive stores) is owned by the provider;
-  // the two consoles read status / log / send through the session context.
+  // the consoles + scope read status / log / chunks through the session context.
   return (
     <SessionProvider>
       <div className="app">
         <StrudelConsole />
+        <ScopeStrip />
         <OscConsole />
       </div>
     </SessionProvider>

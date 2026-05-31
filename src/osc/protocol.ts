@@ -4,7 +4,7 @@
 // outbound packets and reads decoded replies. `postMessage` structured-clones
 // these, so payloads are plain POJOs (no class instances / methods survive).
 
-import type { OscArg } from "@sc-app/server-commands";
+import type { DecodedScopeChunk, OscArg } from "@sc-app/server-commands";
 
 /** One decoded inbound OSC message (a bundle is flattened to these). */
 export interface OscReply {
@@ -21,4 +21,5 @@ export type WorkerToMain =
   | { type: "ready" }
   | { type: "error"; message: string }
   | { type: "reply"; reply: OscReply }
+  | { type: "scopeChunk"; chunk: DecodedScopeChunk }
   | { type: "closed" };

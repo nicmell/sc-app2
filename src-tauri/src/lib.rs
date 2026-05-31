@@ -17,6 +17,7 @@ mod config;
 mod core;
 mod logger;
 mod router;
+mod scope;
 
 use std::path::PathBuf;
 use std::sync::Arc;

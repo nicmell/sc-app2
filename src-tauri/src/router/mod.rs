@@ -28,6 +28,7 @@ use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
 use crate::core::scsynth::Scsynth;
 use crate::logger::Logger;
+use crate::scope::ScopeShm;
 use assets::AssetResolver;
 use session::SessionStore;
 
@@ -46,6 +47,9 @@ struct Inner {
     assets: Option<Arc<dyn AssetResolver>>,
     /// Held only to keep the log file-appender's flush guard alive (never read).
     _logger: Arc<Logger>,
+    /// Lazily-opened mmap of scsynth's SHM scope buffers, shared across all WS
+    /// connections. `None` once we've tried and failed (cached, not retried).
+    scope_shm: tokio::sync::OnceCell<Option<Arc<ScopeShm>>>,
 }
 
 impl Server {
@@ -66,6 +70,7 @@ impl Server {
                 scsynth,
                 assets,
                 _logger: logger,
+                scope_shm: tokio::sync::OnceCell::new(),
             }),
         }
     }
@@ -95,6 +100,37 @@ impl Server {
     /// path does this itself on its shutdown signal).
     pub(crate) async fn unregister_scsynth(&self) {
         self.inner.scsynth.unregister().await;
+    }
+
+    /// The lazily-opened mmap of scsynth's SHM scope buffers, shared across WS
+    /// connections. Opens (and locates the scope-buffer vector) on first call;
+    /// caches `None` on failure so a missing/unreadable segment isn't retried.
+    pub(crate) async fn scope_shm(&self) -> Option<Arc<ScopeShm>> {
+        self.inner
+            .scope_shm
+            .get_or_init(|| async {
+                let port = self.scsynth_port()?;
+                match ScopeShm::open(port) {
+                    Ok(shm) => Some(Arc::new(shm)),
+                    Err(e) => {
+                        tracing::warn!(error = %e, "scope SHM unavailable");
+                        None
+                    }
+                }
+            })
+            .await
+            .clone()
+    }
+
+    /// UDP port of the `scsynth` peer (its SHM segment is named after it).
+    fn scsynth_port(&self) -> Option<u16> {
+        self.inner
+            .config
+            .peers
+            .iter()
+            .find(|p| p.name == "scsynth")
+            .and_then(|p| p.target.parse::<SocketAddr>().ok())
+            .map(|addr| addr.port())
     }
 
     fn router(&self) -> Router {

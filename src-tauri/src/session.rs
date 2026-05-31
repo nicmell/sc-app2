@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
 /// Live session ids. Cheap to clone (shared inner set), so it lives in the
-/// server's `AppState`.
+/// server's shared state.
 #[derive(Clone, Default)]
 pub struct SessionStore {
     inner: Arc<Mutex<HashSet<Uuid>>>,

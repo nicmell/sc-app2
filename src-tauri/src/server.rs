@@ -1,26 +1,16 @@
-//! The HTTP server + OSC bridge.
+//! The HTTP server.
 //!
-//! [`Server`] is the shared, cheap-to-clone core (everything lives behind an
-//! `Arc`), so it doubles as the axum `State`. It owns HTTP routing plus the
-//! connected UDP [`Peer`]s and bridges OSC in two directions:
-//!
-//! * [`Server::dispatch_command`] — an outbound packet from a WebSocket client
-//!   is routed to the peer whose address `pattern` matches (`/dirt/play` →
-//!   strudel, `/notify` → scsynth).
-//! * [`Server::dispatch_reply`] — an inbound packet from any peer is handled
-//!   and fanned out to every connected client.
-//!
-//! Receiving is decoupled from the scsynth registration: one pump task per peer
-//! drains its inbound into `dispatch_reply` (→ a single `clients` broadcast that
-//! every WS subscribes to), while `/notify` is just an outbound
-//! `dispatch_command` whose `/done` reply arrives back through `dispatch_reply`
-//! like any other message.
+//! [`Server`] is the web layer: HTTP routing, the session API, frontend asset
+//! serving, and the per-WebSocket pump. It's cheap to clone (Arc-backed) so it
+//! doubles as the axum `State`. OSC is delegated to the [`Bridge`](crate::bridge)
+//! it owns: a WebSocket's binary frames go to [`Bridge::dispatch_command`], and
+//! peer replies arrive on the bridge's `clients` broadcast (one `subscribe` per
+//! socket).
 //!
 //! All traffic is same-origin (or `tauri://` with CSP off), so there's no CORS.
 
 use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::sync::Arc;
 
 use axum::body::Bytes;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -35,25 +25,13 @@ use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::asset_resolver::AssetResolver;
+use crate::bridge::Bridge;
 use crate::config::AppConfig;
 use crate::logger::Logger;
-use crate::osc;
-use crate::peer::{self, Peer};
 use crate::session::SessionStore;
 
-/// Capacity of the client-reply broadcast (peer datagrams fanned to all WS).
-const CLIENTS_CAPACITY: usize = 256;
-/// scsynth `/status` heartbeat poll interval.
-const STATUS_INTERVAL: Duration = Duration::from_secs(2);
-/// Consecutive missed `/status.reply`s before scsynth is considered down.
-const MAX_STATUS_MISSES: u32 = 3;
-/// Delay between reconnection attempts while scsynth is unreachable.
-const RETRY_INTERVAL: Duration = Duration::from_secs(2);
-/// How long to wait for a `/done /notify` or `/version.reply`.
-const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
-
-/// The shared server core: HTTP routing + the OSC bridge. Cheap to clone
-/// (Arc-backed), so it doubles as the axum `State`.
+/// The shared web-server core. Cheap to clone (Arc-backed), so it doubles as
+/// the axum `State`.
 #[derive(Clone)]
 pub struct Server {
     inner: Arc<Inner>,
@@ -62,61 +40,31 @@ pub struct Server {
 struct Inner {
     config: AppConfig,
     sessions: SessionStore,
-    peers: Vec<Arc<Peer>>,
-    /// Peer replies, fanned out to every connected WebSocket client.
-    clients: broadcast::Sender<Bytes>,
-    /// scsynth registration state, filled by `dispatch_reply` from the
-    /// `/done /notify` + `/version.reply` responses. Also the signal
-    /// `register_scsynth` waits on (a populated `client_id` = ack received).
-    scsynth: Mutex<ScsynthState>,
+    bridge: Bridge,
     assets: Option<Arc<dyn AssetResolver>>,
-    /// Keeps the file-appender guard alive for the server's lifetime.
-    #[allow(dead_code)]
-    logger: Arc<Logger>,
-}
-
-/// What scsynth tells us, filled by `dispatch_reply`. The bridge is "running"
-/// once both the client id (`/done /notify`) and the version (`/version.reply`)
-/// are in; `alive` then tracks the `/status` heartbeat.
-#[derive(Default)]
-struct ScsynthState {
-    client_id: Option<i32>,
-    version: Option<osc::ScsynthVersion>,
-    /// Set true (and logged once) when both fields are first present.
-    running: bool,
-    /// Whether scsynth is currently responding to the `/status` heartbeat.
-    alive: bool,
-    /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
-    status_replies: u64,
+    /// Held only to keep the log file-appender's flush guard alive for the
+    /// server's lifetime (never read).
+    _logger: Arc<Logger>,
 }
 
 impl Server {
-    /// Connect the configured peers, start the per-peer receive pumps, and
-    /// register with scsynth. Async because peer connection binds UDP sockets.
+    /// Connect the OSC [`Bridge`] (peers + scsynth supervisor) and build the
+    /// web server. Async because peer connection binds UDP sockets.
     pub async fn new(
         config: AppConfig,
         assets: Option<Arc<dyn AssetResolver>>,
         logger: Arc<Logger>,
     ) -> Self {
-        let peers = peer::connect_all(&config.routes).await;
-        let (clients, _rx) = broadcast::channel(CLIENTS_CAPACITY);
-        let server = Self {
+        let bridge = Bridge::connect(&config.routes).await;
+        Self {
             inner: Arc::new(Inner {
                 config,
                 sessions: SessionStore::default(),
-                peers,
-                clients,
-                scsynth: Mutex::new(ScsynthState::default()),
+                bridge,
                 assets,
-                logger,
+                _logger: logger,
             }),
-        };
-        server.spawn_reply_pumps(); // receive: peers → dispatch_reply → clients
-        // Supervise the scsynth connection (register → poll /status → reconnect)
-        // in the background, so it never blocks boot.
-        let bg = server.clone();
-        tokio::spawn(async move { bg.supervise_scsynth().await });
-        server
+        }
     }
 
     /// Bind a localhost listener and log its address. Separate from
@@ -132,13 +80,18 @@ impl Server {
     /// Serve on a bound listener until a shutdown signal (SIGINT/SIGTERM), then
     /// unregister from scsynth (`/notify 0`) so we don't leak a client slot.
     pub async fn serve(self, listener: TcpListener) -> std::io::Result<()> {
-        let router = self.router();
-        axum::serve(listener, router)
+        axum::serve(listener, self.router())
             .with_graceful_shutdown(shutdown_signal())
             .await?;
         tracing::info!("shutdown signal received; unregistering from scsynth");
-        self.unregister_scsynth().await;
+        self.inner.bridge.unregister_scsynth().await;
         Ok(())
+    }
+
+    /// Release the scsynth client slot — used by the GUI exit hook (the serve
+    /// path does this itself on its shutdown signal).
+    pub(crate) async fn unregister_scsynth(&self) {
+        self.inner.bridge.unregister_scsynth().await;
     }
 
     fn router(&self) -> Router {
@@ -156,183 +109,16 @@ impl Server {
         app
     }
 
-    // ── OSC bridge ──────────────────────────────────────────────────────
-
-    /// Route an outbound OSC packet to the peer whose `pattern` matches its
-    /// address, and send it. Returns the chosen peer, or `None` if the packet
-    /// has no address or no peer matches (in which case it's dropped + warned).
-    async fn dispatch_command(&self, bytes: &[u8]) -> Option<Arc<Peer>> {
-        let Some(address) = peer::peek_osc_address(bytes) else {
-            tracing::warn!("outbound packet has no OSC address; dropping");
-            return None;
-        };
-        let Some(peer) = peer::route_for(&self.inner.peers, address) else {
-            tracing::warn!(address, "no peer for OSC address; dropping");
-            return None;
-        };
-        if let Err(e) = peer.socket.send(bytes).await {
-            tracing::warn!(peer = %peer.name, error = %e, "udp send failed");
-        }
-        Some(peer.clone())
-    }
-
-    /// Handle one inbound OSC packet from `peer`: tap the bridge-relevant
-    /// replies for state, then fan every packet out to all clients verbatim.
-    fn dispatch_reply(&self, _peer: &Peer, bytes: Bytes) {
-        if let Some(cid) = osc::parse_done_notify(&bytes) {
-            self.record_scsynth(|s| s.client_id = Some(cid));
-        } else if let Some(version) = osc::parse_version_reply(&bytes) {
-            self.record_scsynth(|s| s.version = Some(version));
-        } else if osc::is_status_reply(&bytes) {
-            // Heartbeat: bump the counter the poller watches for liveness.
-            self.inner.scsynth.lock().unwrap().status_replies += 1;
-        }
-        // No connected clients is fine; ignore the send error.
-        let _ = self.inner.clients.send(bytes);
-    }
-
-    /// Apply an update to the scsynth state; once both the client id and the
-    /// version are present, flag the bridge running and log it once.
-    fn record_scsynth(&self, update: impl FnOnce(&mut ScsynthState)) {
-        let mut s = self.inner.scsynth.lock().unwrap();
-        update(&mut s);
-        if !s.running && s.client_id.is_some() && s.version.is_some() {
-            s.running = true;
-            let client_id = s.client_id.unwrap();
-            let version = s.version.as_ref().unwrap();
-            tracing::info!(client_id, %version, "scsynth running");
-        }
-    }
-
-    /// Receive side: one task per peer drains its inbound datagrams into
-    /// [`dispatch_reply`]. Subscriptions are registered synchronously (before
-    /// any `/notify` is sent) so an early reply can't be missed.
-    fn spawn_reply_pumps(&self) {
-        for peer in &self.inner.peers {
-            let mut inbound = peer.inbound.subscribe();
-            let server = self.clone();
-            let peer = peer.clone();
-            tokio::spawn(async move {
-                loop {
-                    match inbound.recv().await {
-                        Ok(bytes) => server.dispatch_reply(&peer, Bytes::from(bytes)),
-                        // Dropped some replies under load — keep going.
-                        Err(broadcast::error::RecvError::Lagged(_)) => continue,
-                        Err(broadcast::error::RecvError::Closed) => break,
-                    }
-                }
-            });
-        }
-    }
-
-    /// Supervise the scsynth connection: (re)register, then poll `/status`
-    /// until it stops answering, then reconnect. Reuses [`register_scsynth`]
-    /// for both first connect and reconnect; owns the transition logging so
-    /// retries don't spam. Bails if no peer handles `/notify`.
-    async fn supervise_scsynth(&self) {
-        if peer::route_for(&self.inner.peers, "/notify").is_none() {
-            tracing::warn!("no peer matches /notify; scsynth supervision disabled");
-            return;
-        }
-        // `down` = the current outage has already been logged (avoids spam).
-        let mut down = false;
-        loop {
-            self.reset_scsynth();
-            if self.register_scsynth().await {
-                // Connected — `dispatch_reply` logged "scsynth running …".
-                down = false;
-                self.set_alive(true);
-                self.poll_status_until_dead().await; // blocks until scsynth dies
-                self.set_alive(false);
-            }
-            // Not connected (registration failed, or the heartbeat just died).
-            if !down {
-                tracing::warn!(
-                    "scsynth not responding; retrying every {}s",
-                    RETRY_INTERVAL.as_secs()
-                );
-                down = true;
-            }
-            tokio::time::sleep(RETRY_INTERVAL).await;
-        }
-    }
-
-    /// One registration attempt, in order: `/notify 1` → wait for the
-    /// `/done /notify` ack (so the version round-trip runs against a registered
-    /// client) → `/version` → wait until [`dispatch_reply`] flags running.
-    /// Returns whether registration completed. Quiet — the supervisor logs.
-    async fn register_scsynth(&self) -> bool {
-        self.dispatch_command(&osc::notify_packet(true)).await;
-        // (clientID 0 is valid, so the ack test is "populated", not "> 0".)
-        if !self.await_state(REPLY_TIMEOUT, |s| s.client_id.is_some()).await {
-            return false;
-        }
-        self.dispatch_command(&osc::version_packet()).await;
-        self.await_state(REPLY_TIMEOUT, |s| s.running).await
-    }
-
-    /// Poll `/status` until scsynth misses [`MAX_STATUS_MISSES`] consecutive
-    /// replies (it died); returns so the supervisor can reconnect.
-    async fn poll_status_until_dead(&self) {
-        let mut misses = 0u32;
-        loop {
-            let before = self.inner.scsynth.lock().unwrap().status_replies;
-            self.dispatch_command(&osc::status_packet()).await;
-            tokio::time::sleep(STATUS_INTERVAL).await;
-            if self.inner.scsynth.lock().unwrap().status_replies > before {
-                misses = 0;
-            } else {
-                misses += 1;
-                if misses >= MAX_STATUS_MISSES {
-                    return;
-                }
-            }
-        }
-    }
-
-    /// Tell scsynth to drop our client registration (`/notify 0`) on shutdown.
-    /// Called by `serve`'s graceful-shutdown path and the GUI exit hook.
-    pub(crate) async fn unregister_scsynth(&self) {
-        if peer::route_for(&self.inner.peers, "/notify").is_some() {
-            self.dispatch_command(&osc::notify_packet(false)).await;
-            tracing::info!("sent /notify 0 (unregistered from scsynth)");
-        }
-    }
-
-    /// Poll the scsynth state until `pred` holds or `timeout` elapses.
-    async fn await_state(&self, timeout: Duration, pred: impl Fn(&ScsynthState) -> bool) -> bool {
-        tokio::time::timeout(timeout, async {
-            while !pred(&self.inner.scsynth.lock().unwrap()) {
-                tokio::time::sleep(Duration::from_millis(25)).await;
-            }
-        })
-        .await
-        .is_ok()
-    }
-
-    /// Clear the registration fields for a fresh (re)connect attempt. Keeps the
-    /// monotonic `status_replies` counter and the `alive` flag (supervisor-owned).
-    fn reset_scsynth(&self) {
-        let mut s = self.inner.scsynth.lock().unwrap();
-        s.client_id = None;
-        s.version = None;
-        s.running = false;
-    }
-
-    fn set_alive(&self, alive: bool) {
-        self.inner.scsynth.lock().unwrap().alive = alive;
-    }
-
-    /// Bridge one WebSocket for its lifetime: uplink binary frames go to
-    /// [`dispatch_command`]; peer replies (from the shared `clients` broadcast)
-    /// are written back. A single task owns the socket — no split needed.
-    async fn bridge(&self, mut socket: WebSocket) {
-        let mut replies = self.inner.clients.subscribe();
+    /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
+    /// [`Bridge`]; peer replies (from its `clients` broadcast) are written back.
+    /// A single task owns the socket — no split needed.
+    async fn run_ws(&self, mut socket: WebSocket) {
+        let mut replies = self.inner.bridge.subscribe();
         loop {
             tokio::select! {
                 msg = socket.recv() => match msg {
                     Some(Ok(Message::Binary(bytes))) => {
-                        self.dispatch_command(bytes.as_ref()).await;
+                        self.inner.bridge.dispatch_command(bytes.as_ref()).await;
                     }
                     Some(Ok(Message::Close(_))) | None => break,
                     // Text / ping / pong: nothing to route.
@@ -414,7 +200,7 @@ async fn ws_handler(
         )
             .into_response();
     }
-    ws.on_upgrade(move |socket| async move { server.bridge(socket).await })
+    ws.on_upgrade(move |socket| async move { server.run_ws(socket).await })
 }
 
 /// Resolve when the process receives SIGINT (Ctrl-C) or, on unix, SIGTERM —

@@ -12,6 +12,7 @@
 //! `/api/config` route (browsers).
 
 mod asset_resolver;
+mod bridge;
 mod config;
 mod logger;
 mod osc;

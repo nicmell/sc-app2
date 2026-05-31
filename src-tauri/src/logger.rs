@@ -4,19 +4,16 @@
 //! plus a daily-rotated JSON file when a `log_dir` is given) and returns a
 //! [`Logger`] that **owns the file appender's flush guard**. The `Server`
 //! holds the returned `Arc<Logger>`, so the guard lives for the server's
-//! lifetime in both run modes.
-//!
-//! The `Logger`'s methods are a convenience handle for handlers; they
-//! delegate to the same global pipeline as the `tracing::` macros (which
-//! internal/startup code uses directly for richer structured fields).
+//! lifetime in both run modes. All logging goes through the `tracing::`
+//! macros directly (for structured fields); this type is purely the RAII
+//! owner of the flush guard.
 
 use std::path::Path;
 use std::sync::Arc;
 
 use tracing_appender::non_blocking::WorkerGuard;
 
-/// Owns the file-appender flush guard (if file logging is active) and is a
-/// handle handlers can log through.
+/// Owns the file-appender flush guard (when file logging is active).
 pub struct Logger {
     _guard: Option<WorkerGuard>,
 }
@@ -27,27 +24,6 @@ impl Logger {
         Arc::new(Logger {
             _guard: init_tracing(log_dir),
         })
-    }
-}
-
-/// Convenience handle for handlers — unused until handlers land (they'll
-/// reach it via `Server::logger`).
-#[allow(dead_code)]
-impl Logger {
-    pub fn info(&self, msg: &str) {
-        tracing::info!("{msg}");
-    }
-
-    pub fn warn(&self, msg: &str) {
-        tracing::warn!("{msg}");
-    }
-
-    pub fn error(&self, msg: &str) {
-        tracing::error!("{msg}");
-    }
-
-    pub fn debug(&self, msg: &str) {
-        tracing::debug!("{msg}");
     }
 }
 

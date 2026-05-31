@@ -31,7 +31,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
-use tokio::sync::{broadcast, Notify};
+use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::asset_resolver::AssetResolver;
@@ -58,11 +58,9 @@ struct Inner {
     /// Peer replies, fanned out to every connected WebSocket client.
     clients: broadcast::Sender<Bytes>,
     /// scsynth registration state, filled by `dispatch_reply` from the
-    /// `/done /notify` + `/version.reply` responses.
+    /// `/done /notify` + `/version.reply` responses. Also the signal
+    /// `register_scsynth` waits on (a populated `client_id` = ack received).
     scsynth: Mutex<ScsynthState>,
-    /// Fired by `dispatch_reply` when the `/notify` ack (client id) lands, so
-    /// `register_scsynth` can then send `/version`.
-    notify_acked: Notify,
     assets: Option<Arc<dyn AssetResolver>>,
     /// Keeps the file-appender guard alive for the server's lifetime.
     #[allow(dead_code)]
@@ -97,7 +95,6 @@ impl Server {
                 peers,
                 clients,
                 scsynth: Mutex::new(ScsynthState::default()),
-                notify_acked: Notify::new(),
                 assets,
                 logger,
             }),
@@ -167,7 +164,6 @@ impl Server {
         // Capture the scsynth registration responses; everything is forwarded.
         if let Some(cid) = osc::parse_done_notify(&bytes) {
             self.record_scsynth(|s| s.client_id = Some(cid));
-            self.inner.notify_acked.notify_one(); // unblock register_scsynth → /version
         } else if let Some(version) = osc::parse_version_reply(&bytes) {
             self.record_scsynth(|s| s.version = Some(version));
         }
@@ -220,10 +216,15 @@ impl Server {
             tracing::warn!("no peer matched /notify; skipping scsynth registration");
             return;
         }
-        if tokio::time::timeout(Duration::from_secs(2), self.inner.notify_acked.notified())
-            .await
-            .is_err()
-        {
+        // Wait for the ack: `dispatch_reply` populates `client_id` from the
+        // `/done /notify`. (clientID 0 is valid, so the test is "populated".)
+        let acked = tokio::time::timeout(Duration::from_secs(2), async {
+            while self.inner.scsynth.lock().unwrap().client_id.is_none() {
+                tokio::time::sleep(Duration::from_millis(25)).await;
+            }
+        })
+        .await;
+        if acked.is_err() {
             tracing::warn!("no /done /notify within 2s (is scsynth running?)");
             return;
         }

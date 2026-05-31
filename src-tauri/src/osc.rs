@@ -34,8 +34,70 @@ pub fn parse_done_notify(bytes: &[u8]) -> Option<i32> {
     if first != Some("/notify") {
         return None;
     }
-    match msg.args.get(1) {
-        Some(OscType::Int(id)) => Some(*id),
+    osc_int(msg.args.get(1)?)
+}
+
+/// scsynth version, from a `/version.reply` (the SC server-command protocol:
+/// `progName major:int minor:int patch:str branch:str commitHash:str`).
+#[derive(Debug, Clone)]
+pub struct ScsynthVersion {
+    pub prog_name: String,
+    pub major: i32,
+    pub minor: i32,
+    /// SC reports the patch as a string (e.g. `".0"`) — kept verbatim.
+    pub patch: String,
+    pub branch: String,
+    pub commit_hash: String,
+}
+
+impl std::fmt::Display for ScsynthVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}.{}{}", self.prog_name, self.major, self.minor, self.patch)?;
+        if !self.branch.is_empty() || !self.commit_hash.is_empty() {
+            write!(f, " ({}@{})", self.branch, self.commit_hash)?;
+        }
+        Ok(())
+    }
+}
+
+/// Encode `/version` — scsynth replies with `/version.reply` (see
+/// [`parse_version_reply`]).
+pub fn version_packet() -> Vec<u8> {
+    let packet = OscPacket::Message(OscMessage {
+        addr: "/version".into(),
+        args: vec![],
+    });
+    rosc::encoder::encode(&packet).expect("encode /version")
+}
+
+/// Parse a `/version.reply` message; `None` if it isn't that shape.
+pub fn parse_version_reply(bytes: &[u8]) -> Option<ScsynthVersion> {
+    let msg = match rosc::decoder::decode_udp(bytes).ok()?.1 {
+        OscPacket::Message(m) => m,
+        _ => return None,
+    };
+    if msg.addr != "/version.reply" {
+        return None;
+    }
+    let string_at = |i: usize, default: &str| match msg.args.get(i) {
+        Some(OscType::String(s)) => s.clone(),
+        _ => default.to_string(),
+    };
+    Some(ScsynthVersion {
+        prog_name: string_at(0, "scsynth"),
+        major: osc_int(msg.args.get(1)?)?,
+        minor: osc_int(msg.args.get(2)?)?,
+        patch: string_at(3, ""),
+        branch: string_at(4, ""),
+        commit_hash: string_at(5, ""),
+    })
+}
+
+/// An OSC int argument as `i32` (accepts both `Int` and `Long`).
+fn osc_int(arg: &OscType) -> Option<i32> {
+    match arg {
+        OscType::Int(v) => Some(*v),
+        OscType::Long(v) => Some(*v as i32),
         _ => None,
     }
 }
@@ -73,5 +135,44 @@ mod tests {
         });
         let bytes = rosc::encoder::encode(&other).unwrap();
         assert_eq!(parse_done_notify(&bytes), None);
+    }
+
+    #[test]
+    fn version_packet_decodes_to_version() {
+        match rosc::decoder::decode_udp(&version_packet()).unwrap().1 {
+            OscPacket::Message(m) => {
+                assert_eq!(m.addr, "/version");
+                assert!(m.args.is_empty());
+            }
+            _ => panic!("expected a message"),
+        }
+    }
+
+    #[test]
+    fn parses_version_reply() {
+        let reply = OscPacket::Message(OscMessage {
+            addr: "/version.reply".into(),
+            args: vec![
+                OscType::String("scsynth".into()),
+                OscType::Int(3),
+                OscType::Int(13),
+                OscType::String(".0".into()),
+                OscType::String("main".into()),
+                OscType::String("abc1234".into()),
+            ],
+        });
+        let bytes = rosc::encoder::encode(&reply).unwrap();
+        let v = parse_version_reply(&bytes).expect("parse");
+        assert_eq!(v.prog_name, "scsynth");
+        assert_eq!((v.major, v.minor), (3, 13));
+        assert_eq!(v.patch, ".0");
+        assert_eq!(v.to_string(), "scsynth 3.13.0 (main@abc1234)");
+        // Wrong address → None.
+        let other = rosc::encoder::encode(&OscPacket::Message(OscMessage {
+            addr: "/status.reply".into(),
+            args: vec![],
+        }))
+        .unwrap();
+        assert!(parse_version_reply(&other).is_none());
     }
 }

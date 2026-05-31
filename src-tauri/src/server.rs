@@ -19,8 +19,7 @@
 //! All traffic is same-origin (or `tauri://` with CSP off), so there's no CORS.
 
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use axum::body::Bytes;
@@ -32,7 +31,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, Notify};
 use uuid::Uuid;
 
 use crate::asset_resolver::AssetResolver;
@@ -58,13 +57,27 @@ struct Inner {
     peers: Vec<Arc<Peer>>,
     /// Peer replies, fanned out to every connected WebSocket client.
     clients: broadcast::Sender<Bytes>,
-    /// Flipped by `dispatch_reply` on the scsynth `/done /notify`; watched by
-    /// `register_scsynth` to warn if scsynth never confirms.
-    scsynth_registered: AtomicBool,
+    /// scsynth registration state, filled by `dispatch_reply` from the
+    /// `/done /notify` + `/version.reply` responses.
+    scsynth: Mutex<ScsynthState>,
+    /// Fired by `dispatch_reply` when the `/notify` ack (client id) lands, so
+    /// `register_scsynth` can then send `/version`.
+    notify_acked: Notify,
     assets: Option<Arc<dyn AssetResolver>>,
     /// Keeps the file-appender guard alive for the server's lifetime.
     #[allow(dead_code)]
     logger: Arc<Logger>,
+}
+
+/// What scsynth tells us during registration. The bridge is "running" once
+/// both the client id (`/done /notify`) and the version (`/version.reply`) are
+/// in.
+#[derive(Default)]
+struct ScsynthState {
+    client_id: Option<i32>,
+    version: Option<osc::ScsynthVersion>,
+    /// Set true (and logged once) when both fields are first present.
+    running: bool,
 }
 
 impl Server {
@@ -83,13 +96,17 @@ impl Server {
                 sessions: SessionStore::default(),
                 peers,
                 clients,
-                scsynth_registered: AtomicBool::new(false),
+                scsynth: Mutex::new(ScsynthState::default()),
+                notify_acked: Notify::new(),
                 assets,
                 logger,
             }),
         };
         server.spawn_reply_pumps(); // receive: peers → dispatch_reply → clients
-        server.register_scsynth().await; // send: /notify (reply handled by dispatch_reply)
+        // Registration waits on scsynth's replies, so run it in the background
+        // — it never blocks boot.
+        let bg = server.clone();
+        tokio::spawn(async move { bg.register_scsynth().await });
         server
     }
 
@@ -146,13 +163,29 @@ impl Server {
     /// Handle one inbound OSC packet from `peer`: decide what to do with it,
     /// then fan it out to every connected client. (Currently: log the scsynth
     /// registration when it arrives, and forward everything verbatim.)
-    fn dispatch_reply(&self, peer: &Peer, bytes: Bytes) {
+    fn dispatch_reply(&self, _peer: &Peer, bytes: Bytes) {
+        // Capture the scsynth registration responses; everything is forwarded.
         if let Some(cid) = osc::parse_done_notify(&bytes) {
-            self.inner.scsynth_registered.store(true, Ordering::Relaxed);
-            tracing::info!(peer = %peer.name, client_id = cid, "scsynth /notify confirmed");
+            self.record_scsynth(|s| s.client_id = Some(cid));
+            self.inner.notify_acked.notify_one(); // unblock register_scsynth → /version
+        } else if let Some(version) = osc::parse_version_reply(&bytes) {
+            self.record_scsynth(|s| s.version = Some(version));
         }
         // No connected clients is fine; ignore the send error.
         let _ = self.inner.clients.send(bytes);
+    }
+
+    /// Apply an update to the scsynth state; once both the client id and the
+    /// version are present, flag the bridge running and log it once.
+    fn record_scsynth(&self, update: impl FnOnce(&mut ScsynthState)) {
+        let mut s = self.inner.scsynth.lock().unwrap();
+        update(&mut s);
+        if !s.running && s.client_id.is_some() && s.version.is_some() {
+            s.running = true;
+            let client_id = s.client_id.unwrap();
+            let version = s.version.as_ref().unwrap();
+            tracing::info!(client_id, %version, "scsynth running");
+        }
     }
 
     /// Receive side: one task per peer drains its inbound datagrams into
@@ -176,25 +209,31 @@ impl Server {
         }
     }
 
-    /// Register the bridge with scsynth: dispatch `/notify 1` (routed by regex
-    /// to the scsynth peer — the only one whose pattern matches). Fire-and-
-    /// forget; the `/done /notify` reply comes back through [`dispatch_reply`]
-    /// like any other inbound message.
+    /// Register the bridge with scsynth, in order: dispatch `/notify 1`, wait
+    /// for the `/done /notify` ack (so the version round-trip runs against a
+    /// registered client), then dispatch `/version`. The two responses are
+    /// recorded by [`dispatch_reply`], which flags the bridge running once both
+    /// are in. Runs in a background task (it awaits scsynth) so boot isn't
+    /// blocked.
     async fn register_scsynth(&self) {
         if self.dispatch_command(&osc::notify_packet()).await.is_none() {
             tracing::warn!("no peer matched /notify; skipping scsynth registration");
             return;
         }
-        // Watchdog, decoupled from the receive path: warn if scsynth hasn't
-        // confirmed within 2 s. `dispatch_reply` flips the flag when `/done`
-        // arrives. Spawned, so it never blocks boot.
-        let server = self.clone();
-        tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_secs(2)).await;
-            if !server.inner.scsynth_registered.load(Ordering::Relaxed) {
-                tracing::warn!("no /done /notify within 2s (is scsynth running?)");
-            }
-        });
+        if tokio::time::timeout(Duration::from_secs(2), self.inner.notify_acked.notified())
+            .await
+            .is_err()
+        {
+            tracing::warn!("no /done /notify within 2s (is scsynth running?)");
+            return;
+        }
+        // Registered — now ask for the version. `dispatch_reply` logs
+        // "scsynth running" once the reply records it.
+        self.dispatch_command(&osc::version_packet()).await;
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        if !self.inner.scsynth.lock().unwrap().running {
+            tracing::warn!("no /version.reply within 2s (registered, but version unknown)");
+        }
     }
 
     /// Bridge one WebSocket for its lifetime: uplink binary frames go to

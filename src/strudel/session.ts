@@ -51,9 +51,7 @@ async function createSession(base: string): Promise<string> {
   return sessionId;
 }
 
-/** Reuse a stored, still-live session id, else mint and store a new one.
- *  Returns the id and the WS URL to open for it. */
-export async function bootstrapSession(): Promise<{ sessionId: string; wsUrl: string }> {
+async function doBootstrap(): Promise<{ sessionId: string; wsUrl: string }> {
   const base = await httpBase();
   const stored = window.sessionStorage.getItem(STORAGE_KEY);
   let sessionId = stored && (await sessionExists(base, stored)) ? stored : null;
@@ -62,4 +60,22 @@ export async function bootstrapSession(): Promise<{ sessionId: string; wsUrl: st
     window.sessionStorage.setItem(STORAGE_KEY, sessionId);
   }
   return { sessionId, wsUrl: await wsUrlFor(sessionId) };
+}
+
+/** Reuse a stored, still-live session id, else mint and store a new one.
+ *  Returns the id and the WS URL to open for it.
+ *
+ *  The in-flight promise is cached so concurrent callers share one `POST` —
+ *  notably React StrictMode (dev) mounts effects twice, and without this the
+ *  two async runs would both miss the not-yet-written id and mint two sessions. */
+let inFlight: Promise<{ sessionId: string; wsUrl: string }> | null = null;
+
+export function bootstrapSession(): Promise<{ sessionId: string; wsUrl: string }> {
+  if (!inFlight) {
+    inFlight = doBootstrap().catch((err) => {
+      inFlight = null; // let a later mount retry after a failure
+      throw err;
+    });
+  }
+  return inFlight;
 }

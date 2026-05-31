@@ -14,6 +14,7 @@
 mod asset_resolver;
 mod config;
 mod logger;
+mod osc;
 mod peer;
 mod server;
 mod session;

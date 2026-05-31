@@ -40,8 +40,10 @@ uuid = { version = "1", features = ["v4", "serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
-# Compile/validate route patterns at boot (routing is future work).
+# Compile/validate route patterns at boot, and route OSC by address.
 regex = "1"
+# Encode the /notify handshake and decode OSC packets for the console log.
+rosc = "0.11"
 # Ergonomic error propagation for peer connection.
 anyhow = "1"
 

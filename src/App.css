@@ -13,11 +13,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.container {
+/* Whole app: Strudel console fills the top, OSC console sits below. */
+.app {
   margin: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
+}
+
+.strudel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .strudel-header {
@@ -67,6 +75,80 @@
   font-size: 0.85rem;
   color: #e5534b;
   border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* OSC console — a scrolling log pinned to the bottom. */
+.osc-console {
+  flex: 0 0 35vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 2px solid rgba(0, 0, 0, 0.25);
+  background: #1b1b1b;
+  color: #e6e6e6;
+}
+
+.osc-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.osc-header h2 {
+  font-size: 0.85rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.osc-count {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.osc-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.25rem 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.osc-empty {
+  opacity: 0.5;
+  padding: 0.5rem;
+}
+
+.osc-row {
+  display: grid;
+  grid-template-columns: 7.5em 2.5em 14em 1fr;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+.osc-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.osc-time {
+  opacity: 0.5;
+}
+.osc-dir {
+  font-weight: 600;
+}
+.osc-tx .osc-dir {
+  color: #8ab4f8; /* sent */
+}
+.osc-rx .osc-dir {
+  color: #96f2a7; /* received */
+}
+.osc-addr {
+  color: #e6e6e6;
+}
+.osc-args {
+  opacity: 0.85;
+  white-space: pre;
 }
 
 button {

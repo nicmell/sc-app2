@@ -3,10 +3,9 @@
 //!
 //! At startup [`connect_all`] opens one connected `UdpSocket` per configured
 //! [`Route`] and spawns a receive task that logs inbound datagrams and
-//! socket errors tagged by the peer's `name`. Inbound bytes are republished
-//! on a `broadcast` channel for future routing consumers. The `pattern`
-//! regex is validated here but not yet used (forwarding is future work);
-//! no OSC handshake is performed.
+//! republishes the raw bytes on a `broadcast` channel — consumed by the bridge
+//! (forwarded verbatim to the WebSocket) and by the `/notify` handshake. The
+//! `pattern` regex routes outbound messages to this peer (see [`route_for`]).
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -32,7 +31,7 @@ pub struct Peer {
     /// matches (see [`route_for`]).
     pub pattern: Regex,
     pub socket: Arc<UdpSocket>,
-    /// Inbound datagrams, for future routing consumers.
+    /// Inbound datagrams, fanned out to the bridge + the `/notify` handshake.
     pub inbound: broadcast::Sender<Vec<u8>>,
 }
 
@@ -81,7 +80,8 @@ async fn resolve(target: &str) -> Result<SocketAddr> {
         .with_context(|| format!("no addresses for {target}"))
 }
 
-/// Read datagrams, log them, and republish on the inbound channel.
+/// Read datagrams, log them, and republish the raw bytes on the inbound
+/// channel (consumed by the bridge forwarder and the `/notify` handshake).
 fn spawn_recv(peer: Arc<Peer>) {
     tokio::spawn(async move {
         let mut buf = vec![0u8; RECV_BUF];
@@ -89,12 +89,11 @@ fn spawn_recv(peer: Arc<Peer>) {
             match peer.socket.recv(&mut buf).await {
                 Ok(n) => {
                     tracing::debug!(peer = %peer.name, bytes = n, "inbound datagram");
-                    // No consumers yet is fine; ignore the send error.
+                    // No consumers is fine; ignore the send error.
                     let _ = peer.inbound.send(buf[..n].to_vec());
                 }
-                // We don't send yet, so `recv` normally just blocks. Once we
-                // start sending, a connected-UDP ECONNREFUSED can surface
-                // here; stopping the task is acceptable for now.
+                // A connected-UDP ECONNREFUSED can surface here once we send;
+                // stopping the task is acceptable for now.
                 Err(e) => {
                     tracing::warn!(peer = %peer.name, target = %peer.target, error = %e, "recv error; peer task stopping");
                     break;
@@ -105,7 +104,7 @@ fn spawn_recv(peer: Arc<Peer>) {
 }
 
 /// Connect every route, logging each by `name`. Failures are skipped (a
-/// typo'd route shouldn't block boot — peers have no functional effect yet).
+/// typo'd route shouldn't block boot).
 pub async fn connect_all(routes: &[Route]) -> Vec<Arc<Peer>> {
     let mut peers = Vec::with_capacity(routes.len());
     for route in routes {
@@ -205,8 +204,7 @@ mod tests {
         assert!(Peer::connect(&route("bad", "(", "127.0.0.1:1")).await.is_err());
     }
 
-    /// Encode a minimal OSC message: NUL-terminated, 4-byte-padded address
-    /// (no type tags needed — `peek_osc_address` only reads the address).
+    /// Encode a minimal OSC message: NUL-terminated, 4-byte-padded address.
     fn osc_msg(address: &str) -> Vec<u8> {
         let mut v = address.as_bytes().to_vec();
         v.push(0);
@@ -218,13 +216,11 @@ mod tests {
 
     #[test]
     fn peek_reads_message_address() {
-        let pkt = osc_msg("/dirt/play");
-        assert_eq!(peek_osc_address(&pkt), Some("/dirt/play"));
+        assert_eq!(peek_osc_address(&osc_msg("/dirt/play")), Some("/dirt/play"));
     }
 
     #[test]
     fn peek_reads_first_address_in_bundle() {
-        // #bundle\0 (8) + timetag (8) + element size (4) + element.
         let element = osc_msg("/dirt/play");
         let mut pkt = b"#bundle\0".to_vec();
         pkt.extend_from_slice(&[0u8; 8]); // timetag

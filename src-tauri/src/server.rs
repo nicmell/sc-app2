@@ -1,14 +1,20 @@
-//! The HTTP server.
+//! The HTTP server + OSC bridge.
 //!
-//! A [`Server`] owns HTTP routing plus the backend it bridges to. It serves:
-//! * `/api/config` — the frontend config,
-//! * `/api/session` (POST) + `/api/session/{id}` (GET/DELETE) — mint/look-up/
-//!   drop a [session](crate::session) id,
-//! * `/ws?session=<uuid>` — a WebSocket the frontend uses to send OSC; binary
-//!   frames are routed (by address regex) to the matching [`Peer`]'s UDP
-//!   socket, and peer replies fan back to the WS,
-//! * everything else — the frontend, when an [`AssetResolver`] is supplied
-//!   (production); API-only otherwise (dev — Vite serves the UI).
+//! [`Server`] is the shared, cheap-to-clone core (everything lives behind an
+//! `Arc`), so it doubles as the axum `State`. It owns HTTP routing plus the
+//! connected UDP [`Peer`]s and bridges OSC in two directions:
+//!
+//! * [`Server::dispatch_command`] — an outbound packet from a WebSocket client
+//!   is routed to the peer whose address `pattern` matches (`/dirt/play` →
+//!   strudel, `/notify` → scsynth).
+//! * [`Server::dispatch_reply`] — an inbound packet from any peer is handled
+//!   and fanned out to every connected client.
+//!
+//! Receiving is decoupled from the scsynth registration: one pump task per peer
+//! drains its inbound into `dispatch_reply` (→ a single `clients` broadcast that
+//! every WS subscribes to), while `/notify` is just an outbound
+//! `dispatch_command` whose `/done` reply arrives back through `dispatch_reply`
+//! like any other message.
 //!
 //! All traffic is same-origin (or `tauri://` with CSP off), so there's no CORS.
 
@@ -24,60 +30,68 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::asset_resolver::AssetResolver;
 use crate::config::AppConfig;
 use crate::logger::Logger;
+use crate::osc;
 use crate::peer::{self, Peer};
 use crate::session::SessionStore;
 
-/// Shared, cheap-to-clone state handed to every route handler.
+/// Capacity of the client-reply broadcast (peer datagrams fanned to all WS).
+const CLIENTS_CAPACITY: usize = 256;
+
+/// The shared server core: HTTP routing + the OSC bridge. Cheap to clone
+/// (Arc-backed), so it doubles as the axum `State`.
 #[derive(Clone)]
-struct AppState {
-    config: AppConfig,
-    sessions: SessionStore,
-    peers: Arc<Vec<Arc<Peer>>>,
+pub struct Server {
+    inner: Arc<Inner>,
 }
 
-/// Owns HTTP routing and backend resources. Passed to both run modes.
-pub struct Server {
+struct Inner {
+    config: AppConfig,
+    sessions: SessionStore,
+    peers: Vec<Arc<Peer>>,
+    /// Peer replies, fanned out to every connected WebSocket client.
+    clients: broadcast::Sender<Bytes>,
     assets: Option<Arc<dyn AssetResolver>>,
-    state: AppState,
-    /// Owns the logging guard (keeping the file appender alive for the
-    /// server's lifetime).
+    /// Keeps the file-appender guard alive for the server's lifetime.
     #[allow(dead_code)]
     logger: Arc<Logger>,
 }
 
 impl Server {
-    /// Connect the configured peers, then build the server. Async because
-    /// peer connection binds UDP sockets and resolves targets. Holding the
-    /// `Logger` keeps the file-appender guard alive for the server's life.
+    /// Connect the configured peers, start the per-peer receive pumps, and
+    /// register with scsynth. Async because peer connection binds UDP sockets.
     pub async fn new(
         config: AppConfig,
         assets: Option<Arc<dyn AssetResolver>>,
         logger: Arc<Logger>,
     ) -> Self {
         let peers = peer::connect_all(&config.routes).await;
-        let state = AppState {
-            config,
-            sessions: SessionStore::default(),
-            peers: Arc::new(peers),
+        let (clients, _rx) = broadcast::channel(CLIENTS_CAPACITY);
+        let server = Self {
+            inner: Arc::new(Inner {
+                config,
+                sessions: SessionStore::default(),
+                peers,
+                clients,
+                assets,
+                logger,
+            }),
         };
-        Self {
-            assets,
-            state,
-            logger,
-        }
+        server.spawn_reply_pumps(); // receive: peers → dispatch_reply → clients
+        server.register_scsynth().await; // send: /notify (reply handled by dispatch_reply)
+        server
     }
 
     /// Bind a localhost listener and log its address. Separate from
-    /// [`serve`](Self::serve) so GUI mode can bind synchronously then
-    /// serve on a spawned task.
+    /// [`serve`](Self::serve) so GUI mode can bind synchronously then serve on
+    /// a spawned task.
     pub async fn listen(&self) -> std::io::Result<(TcpListener, SocketAddr)> {
-        let listener = TcpListener::bind(("127.0.0.1", self.state.config.port)).await?;
+        let listener = TcpListener::bind(("127.0.0.1", self.inner.config.port)).await?;
         let addr = listener.local_addr()?;
         tracing::info!(%addr, "sc-app2 server listening");
         Ok((listener, addr))
@@ -94,18 +108,112 @@ impl Server {
             .route("/api/session", post(post_session))
             .route("/api/session/{id}", get(get_session).delete(delete_session))
             .route("/ws", get(ws_handler))
-            .with_state(self.state.clone());
+            .with_state(self.clone());
         // Serve the frontend when a resolver is installed (production);
         // stay API-only otherwise (dev — Vite serves the UI).
-        if let Some(assets) = self.assets.clone() {
+        if let Some(assets) = self.inner.assets.clone() {
             app = app.fallback(move |req: Request| serve_static(req, assets.clone()));
         }
         app
     }
+
+    // ── OSC bridge ──────────────────────────────────────────────────────
+
+    /// Route an outbound OSC packet to the peer whose `pattern` matches its
+    /// address, and send it. Returns the chosen peer, or `None` if the packet
+    /// has no address or no peer matches (in which case it's dropped + warned).
+    async fn dispatch_command(&self, bytes: &[u8]) -> Option<Arc<Peer>> {
+        let Some(address) = peer::peek_osc_address(bytes) else {
+            tracing::warn!("outbound packet has no OSC address; dropping");
+            return None;
+        };
+        let Some(peer) = peer::route_for(&self.inner.peers, address) else {
+            tracing::warn!(address, "no peer for OSC address; dropping");
+            return None;
+        };
+        if let Err(e) = peer.socket.send(bytes).await {
+            tracing::warn!(peer = %peer.name, error = %e, "udp send failed");
+        }
+        Some(peer.clone())
+    }
+
+    /// Handle one inbound OSC packet from `peer`: decide what to do with it,
+    /// then fan it out to every connected client. (Currently: log the scsynth
+    /// registration when it arrives, and forward everything verbatim.)
+    fn dispatch_reply(&self, peer: &Peer, bytes: Bytes) {
+        if let Some(cid) = osc::parse_done_notify(&bytes) {
+            tracing::info!(peer = %peer.name, client_id = cid, "scsynth /notify confirmed");
+        }
+        // No connected clients is fine; ignore the send error.
+        let _ = self.inner.clients.send(bytes);
+    }
+
+    /// Receive side: one task per peer drains its inbound datagrams into
+    /// [`dispatch_reply`]. Subscriptions are registered synchronously (before
+    /// any `/notify` is sent) so an early reply can't be missed.
+    fn spawn_reply_pumps(&self) {
+        for peer in &self.inner.peers {
+            let mut inbound = peer.inbound.subscribe();
+            let server = self.clone();
+            let peer = peer.clone();
+            tokio::spawn(async move {
+                loop {
+                    match inbound.recv().await {
+                        Ok(bytes) => server.dispatch_reply(&peer, Bytes::from(bytes)),
+                        // Dropped some replies under load — keep going.
+                        Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                        Err(broadcast::error::RecvError::Closed) => break,
+                    }
+                }
+            });
+        }
+    }
+
+    /// Register the bridge with scsynth: dispatch `/notify 1` (routed by regex
+    /// to the scsynth peer — the only one whose pattern matches). Fire-and-
+    /// forget; the `/done /notify` reply comes back through [`dispatch_reply`]
+    /// like any other inbound message.
+    async fn register_scsynth(&self) {
+        if self.dispatch_command(&osc::notify_packet()).await.is_none() {
+            tracing::warn!("no peer matched /notify; skipping scsynth registration");
+        }
+    }
+
+    /// Bridge one WebSocket for its lifetime: uplink binary frames go to
+    /// [`dispatch_command`]; peer replies (from the shared `clients` broadcast)
+    /// are written back. A single task owns the socket — no split needed.
+    async fn bridge(&self, mut socket: WebSocket) {
+        let mut replies = self.inner.clients.subscribe();
+        loop {
+            tokio::select! {
+                msg = socket.recv() => match msg {
+                    Some(Ok(Message::Binary(bytes))) => {
+                        self.dispatch_command(bytes.as_ref()).await;
+                    }
+                    Some(Ok(Message::Close(_))) | None => break,
+                    // Text / ping / pong: nothing to route.
+                    Some(Ok(_)) => {}
+                    Some(Err(e)) => {
+                        tracing::warn!(error = %e, "ws recv error");
+                        break;
+                    }
+                },
+                reply = replies.recv() => match reply {
+                    Ok(bytes) => {
+                        if socket.send(Message::Binary(bytes)).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Closed) => break,
+                },
+            }
+        }
+    }
 }
 
-async fn get_config(State(state): State<AppState>) -> Json<AppConfig> {
-    Json(state.config.clone())
+async fn get_config(State(server): State<Server>) -> Json<AppConfig> {
+    Json(server.inner.config.clone())
 }
 
 /// What `/api/session` returns. `routes`/`log_dir` stay server-side.
@@ -115,22 +223,22 @@ struct SessionInfo {
     session_id: Uuid,
 }
 
-async fn post_session(State(state): State<AppState>) -> Response {
-    let id = state.sessions.create();
+async fn post_session(State(server): State<Server>) -> Response {
+    let id = server.inner.sessions.create();
     tracing::info!(session = %id, "session created");
     (StatusCode::CREATED, Json(SessionInfo { session_id: id })).into_response()
 }
 
-async fn get_session(State(state): State<AppState>, Path(id): Path<Uuid>) -> Response {
-    if state.sessions.contains(&id) {
+async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
+    if server.inner.sessions.contains(&id) {
         Json(SessionInfo { session_id: id }).into_response()
     } else {
         (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response()
     }
 }
 
-async fn delete_session(State(state): State<AppState>, Path(id): Path<Uuid>) -> Response {
-    if state.sessions.remove(&id) {
+async fn delete_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
+    if server.inner.sessions.remove(&id) {
         StatusCode::NO_CONTENT.into_response()
     } else {
         (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response()
@@ -145,7 +253,7 @@ struct WsQuery {
 /// Upgrade `/ws?session=<uuid>` to the OSC bridge after validating the session.
 async fn ws_handler(
     ws: WebSocketUpgrade,
-    State(state): State<AppState>,
+    State(server): State<Server>,
     Query(query): Query<WsQuery>,
 ) -> Response {
     let Some(id) = query.session else {
@@ -155,85 +263,14 @@ async fn ws_handler(
         )
             .into_response();
     };
-    if !state.sessions.contains(&id) {
+    if !server.inner.sessions.contains(&id) {
         return (
             StatusCode::NOT_FOUND,
             format!("session {id} not found (expired or never created)\n"),
         )
             .into_response();
     }
-    let peers = state.peers.clone();
-    ws.on_upgrade(move |socket| bridge(socket, peers))
-}
-
-/// Bridge one WebSocket to the UDP peers for its lifetime.
-///
-/// One spawned forwarder per peer drains that peer's inbound `broadcast` into
-/// a shared `mpsc`; the main `select!` loop then both reads client frames
-/// (→ route to a peer's UDP socket) and writes merged replies back to the WS.
-/// A single task owns the socket — no split / shared sink needed.
-async fn bridge(mut socket: WebSocket, peers: Arc<Vec<Arc<Peer>>>) {
-    let (reply_tx, mut reply_rx) = mpsc::channel::<Vec<u8>>(256);
-    let mut forwarders = Vec::with_capacity(peers.len());
-    for peer in peers.iter() {
-        let mut sub = peer.inbound.subscribe();
-        let tx = reply_tx.clone();
-        forwarders.push(tokio::spawn(async move {
-            loop {
-                match sub.recv().await {
-                    Ok(bytes) => {
-                        if tx.send(bytes).await.is_err() {
-                            break; // WS writer gone
-                        }
-                    }
-                    // Dropped some replies under load — keep going.
-                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
-                    Err(broadcast::error::RecvError::Closed) => break,
-                }
-            }
-        }));
-    }
-    drop(reply_tx); // only the forwarders hold senders now
-
-    loop {
-        tokio::select! {
-            msg = socket.recv() => match msg {
-                Some(Ok(Message::Binary(bytes))) => route_outbound(bytes.as_ref(), &peers).await,
-                Some(Ok(Message::Close(_))) | None => break,
-                // Text / ping / pong: nothing to route.
-                Some(Ok(_)) => {}
-                Some(Err(e)) => {
-                    tracing::warn!(error = %e, "ws recv error");
-                    break;
-                }
-            },
-            Some(reply) = reply_rx.recv() => {
-                if socket.send(Message::Binary(reply.into())).await.is_err() {
-                    break;
-                }
-            }
-        }
-    }
-
-    for f in forwarders {
-        f.abort();
-    }
-}
-
-/// Route one client OSC packet to its peer's UDP socket (or drop + warn).
-async fn route_outbound(bytes: &[u8], peers: &[Arc<Peer>]) {
-    let Some(address) = peer::peek_osc_address(bytes) else {
-        tracing::warn!("outbound packet has no OSC address; dropping");
-        return;
-    };
-    match peer::route_for(peers, address) {
-        Some(peer) => {
-            if let Err(e) = peer.socket.send(bytes).await {
-                tracing::warn!(peer = %peer.name, error = %e, "udp send failed");
-            }
-        }
-        None => tracing::warn!(address, "no peer for OSC address; dropping"),
-    }
+    ws.on_upgrade(move |socket| async move { server.bridge(socket).await })
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.

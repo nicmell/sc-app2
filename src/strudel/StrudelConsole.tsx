@@ -20,6 +20,13 @@ const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the 
 // Edit, then press Play (or Ctrl+Enter). Stop with the button (or Ctrl+.).
 s("bd hh*2 sd hh")`;
 
+// Map the connection status onto a ui-foundation status-pill variant.
+const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
+  connecting: "warn",
+  connected: "ok",
+  error: "error",
+};
+
 export default function StrudelConsole({
   osc,
   status,
@@ -86,7 +93,9 @@ export default function StrudelConsole({
     <section className="strudel">
       <header className="strudel-header">
         <h1>sc-app2 · strudel</h1>
-        <span className={`status status-${status}`}>{status}</span>
+        <span className="status-pill" data-variant={STATUS_VARIANT[status]}>
+          {status}
+        </span>
         <button
           type="button"
           onClick={() => mirrorRef.current?.evaluate()}
@@ -94,7 +103,12 @@ export default function StrudelConsole({
         >
           {playing ? "Update" : "Play"}
         </button>
-        <button type="button" onClick={() => mirrorRef.current?.stop()} disabled={!playing}>
+        <button
+          type="button"
+          data-variant="secondary"
+          onClick={() => mirrorRef.current?.stop()}
+          disabled={!playing}
+        >
           Stop
         </button>
       </header>

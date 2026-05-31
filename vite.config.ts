@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -7,6 +8,16 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+
+  resolve: {
+    alias: {
+      // Resolve the source-only workspace package to its TS entry so Vite
+      // doesn't try to pre-bundle it as a dependency.
+      "@sc-app/server-commands": fileURLToPath(
+        new URL("./packages/server-commands/src/index.ts", import.meta.url),
+      ),
+    },
+  },
 
   build: {
     // Emit a manifest mapping source files to their hashed build outputs.

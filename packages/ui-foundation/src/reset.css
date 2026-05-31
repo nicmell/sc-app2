@@ -1,0 +1,28 @@
+/**
+ * Minimal reset. Two universally-useful rules:
+ *   1. Border-box sizing for everything (matches modern habits;
+ *      no surprises when adding padding to a sized box).
+ *   2. Form elements inherit the surrounding font + colour so
+ *      the user's text doesn't suddenly switch to the browser
+ *      default sans inside an <input>.
+ *
+ * Doesn't touch html/body — those are styled in
+ * base/elements.css so a consumer importing only the reset
+ * (`@sc-app/ui-foundation/reset`) doesn't get coloured
+ * automatically. Importable independently for plugins that
+ * want just the box-sizing baseline.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}

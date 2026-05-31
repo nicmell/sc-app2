@@ -5,7 +5,15 @@
 // directions, so we decode each frame here (osc-js) into a log entry — `tx` for
 // what we send, `rx` for what we receive.
 
-import OSC from "osc-js";
+import {
+  OSC,
+  encode,
+  decode,
+  isBundle,
+  isMessage,
+  atDate,
+  type OscPacket,
+} from "@sc-app/server-commands";
 
 /** A SuperDirt event: a flat bag of params (`s`, `n`, `gain`, `note`, …). */
 export type DirtEvent = Record<string, string | number>;
@@ -34,21 +42,18 @@ function decodeOsc(data: ArrayBuffer | Uint8Array): Array<{ address: string; arg
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
   const out: Array<{ address: string; args: string[] }> = [];
   try {
-    const packet = new OSC.Packet();
-    packet.unpack(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength));
-    flatten(packet.value, out);
+    flatten(decode(bytes), out);
   } catch {
     // non-OSC / malformed frame — skip
   }
   return out;
 }
 
-function flatten(value: OSC.Message | OSC.Bundle, out: Array<{ address: string; args: string[] }>) {
-  const v = value as { bundleElements?: unknown[]; address?: string; args?: unknown[] };
-  if (Array.isArray(v.bundleElements)) {
-    for (const el of v.bundleElements) flatten(el as OSC.Message | OSC.Bundle, out);
-  } else if (typeof v.address === "string") {
-    out.push({ address: v.address, args: (v.args ?? []).map((a) => String(a)) });
+function flatten(packet: OscPacket, out: Array<{ address: string; args: string[] }>) {
+  if (isBundle(packet)) {
+    for (const el of packet.bundleElements) flatten(el as OscPacket, out);
+  } else if (isMessage(packet)) {
+    out.push({ address: packet.address, args: (packet.args ?? []).map((a) => String(a)) });
   }
 }
 
@@ -88,6 +93,6 @@ export function dirtPlayBytes(event: DirtEvent, timetagMs: number): Uint8Array {
   const args: Array<string | number> = [];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
   const message = new OSC.Message("/dirt/play", ...args);
-  const bundle = new OSC.Bundle([message], timetagMs);
-  return bundle.pack();
+  const bundle = new OSC.Bundle([message], atDate(timetagMs));
+  return encode(bundle);
 }

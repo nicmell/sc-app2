@@ -19,7 +19,9 @@
 //! All traffic is same-origin (or `tauri://` with CSP off), so there's no CORS.
 
 use std::net::SocketAddr;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::body::Bytes;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -56,6 +58,9 @@ struct Inner {
     peers: Vec<Arc<Peer>>,
     /// Peer replies, fanned out to every connected WebSocket client.
     clients: broadcast::Sender<Bytes>,
+    /// Flipped by `dispatch_reply` on the scsynth `/done /notify`; watched by
+    /// `register_scsynth` to warn if scsynth never confirms.
+    scsynth_registered: AtomicBool,
     assets: Option<Arc<dyn AssetResolver>>,
     /// Keeps the file-appender guard alive for the server's lifetime.
     #[allow(dead_code)]
@@ -78,6 +83,7 @@ impl Server {
                 sessions: SessionStore::default(),
                 peers,
                 clients,
+                scsynth_registered: AtomicBool::new(false),
                 assets,
                 logger,
             }),
@@ -142,6 +148,7 @@ impl Server {
     /// registration when it arrives, and forward everything verbatim.)
     fn dispatch_reply(&self, peer: &Peer, bytes: Bytes) {
         if let Some(cid) = osc::parse_done_notify(&bytes) {
+            self.inner.scsynth_registered.store(true, Ordering::Relaxed);
             tracing::info!(peer = %peer.name, client_id = cid, "scsynth /notify confirmed");
         }
         // No connected clients is fine; ignore the send error.
@@ -176,7 +183,18 @@ impl Server {
     async fn register_scsynth(&self) {
         if self.dispatch_command(&osc::notify_packet()).await.is_none() {
             tracing::warn!("no peer matched /notify; skipping scsynth registration");
+            return;
         }
+        // Watchdog, decoupled from the receive path: warn if scsynth hasn't
+        // confirmed within 2 s. `dispatch_reply` flips the flag when `/done`
+        // arrives. Spawned, so it never blocks boot.
+        let server = self.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            if !server.inner.scsynth_registered.load(Ordering::Relaxed) {
+                tracing::warn!("no /done /notify within 2s (is scsynth running?)");
+            }
+        });
     }
 
     /// Bridge one WebSocket for its lifetime: uplink binary frames go to

@@ -1,9 +1,9 @@
-//! Peers — the audio backends (scsynth, strudel/SuperDirt, …) the server
+//! Peers — the audio backends (scsynth, strudel/SuperDirt, …) the bridge
 //! talks to over UDP.
 //!
 //! At startup [`connect_all`] opens one connected `UdpSocket` per configured
-//! [`Route`] and spawns a receive task that republishes inbound datagrams on a
-//! `broadcast` channel — consumed by the bridge (forwarded verbatim to the
+//! [`PeerConfig`] and spawns a receive task that republishes inbound datagrams
+//! on a `broadcast` channel — consumed by the bridge (forwarded verbatim to the
 //! WebSocket) and by the scsynth supervisor. The task keeps receiving across
 //! transient errors (e.g. a connected-UDP `ECONNREFUSED` when scsynth is down)
 //! so the bridge recovers when the peer returns. The `pattern` regex routes
@@ -18,14 +18,14 @@ use regex::Regex;
 use tokio::net::{lookup_host, UdpSocket};
 use tokio::sync::broadcast;
 
-use crate::config::Route;
+use crate::config::PeerConfig;
 
 /// Capacity of each peer's inbound broadcast channel.
 const INBOUND_CAPACITY: usize = 256;
 /// Max datagram size read per `recv`.
 const RECV_BUF: usize = 64 * 1024;
 
-/// A connected peer: a UDP socket bound locally and connected to the route's
+/// A connected peer: a UDP socket bound locally and connected to the configured
 /// target, plus the inbound broadcast channel.
 pub struct Peer {
     pub name: String,
@@ -42,25 +42,25 @@ impl Peer {
     /// Compile the pattern, resolve the target, bind+connect a UDP socket,
     /// and spawn the receive task. Fails on invalid regex, unresolvable
     /// target, or socket bind/connect errors.
-    pub async fn connect(route: &Route) -> Result<Arc<Peer>> {
-        let pattern = Regex::new(&route.pattern)
-            .with_context(|| format!("invalid regex for peer '{}': {}", route.name, route.pattern))?;
+    pub async fn connect(config: &PeerConfig) -> Result<Arc<Peer>> {
+        let pattern = Regex::new(&config.pattern)
+            .with_context(|| format!("invalid regex for peer '{}': {}", config.name, config.pattern))?;
 
-        let target = resolve(&route.target)
+        let target = resolve(&config.target)
             .await
-            .with_context(|| format!("resolving target for peer '{}': {}", route.name, route.target))?;
+            .with_context(|| format!("resolving target for peer '{}': {}", config.name, config.target))?;
 
         let socket = UdpSocket::bind("0.0.0.0:0")
             .await
-            .with_context(|| format!("binding socket for peer '{}'", route.name))?;
+            .with_context(|| format!("binding socket for peer '{}'", config.name))?;
         socket
             .connect(target)
             .await
-            .with_context(|| format!("connecting peer '{}' to {target}", route.name))?;
+            .with_context(|| format!("connecting peer '{}' to {target}", config.name))?;
 
         let (inbound, _rx) = broadcast::channel(INBOUND_CAPACITY);
         let peer = Arc::new(Peer {
-            name: route.name.clone(),
+            name: config.name.clone(),
             target,
             pattern,
             socket: Arc::new(socket),
@@ -107,12 +107,12 @@ fn spawn_recv(peer: Arc<Peer>) {
     });
 }
 
-/// Connect every route, logging each by `name`. Failures are skipped (a
-/// typo'd route shouldn't block boot).
-pub async fn connect_all(routes: &[Route]) -> Vec<Arc<Peer>> {
-    let mut peers = Vec::with_capacity(routes.len());
-    for route in routes {
-        match Peer::connect(route).await {
+/// Connect every configured peer, logging each by `name`. Failures are skipped
+/// (a typo'd peer shouldn't block boot).
+pub async fn connect_all(configs: &[PeerConfig]) -> Vec<Arc<Peer>> {
+    let mut peers = Vec::with_capacity(configs.len());
+    for config in configs {
+        match Peer::connect(config).await {
             Ok(peer) => {
                 // UDP is connectionless: the socket is bound + pointed at the
                 // target, but nothing has confirmed the target is actually up.
@@ -120,7 +120,7 @@ pub async fn connect_all(routes: &[Route]) -> Vec<Arc<Peer>> {
                 peers.push(peer);
             }
             Err(e) => {
-                tracing::warn!(route = %route.name, error = %format!("{e:#}"), "peer setup failed; skipping");
+                tracing::warn!(peer = %config.name, error = %format!("{e:#}"), "peer setup failed; skipping");
             }
         }
     }
@@ -133,37 +133,12 @@ pub fn route_for<'a>(peers: &'a [Arc<Peer>], address: &str) -> Option<&'a Arc<Pe
     peers.iter().find(|p| p.pattern.is_match(address))
 }
 
-/// Read the OSC address from a packet without fully decoding it.
-///
-/// A bare message starts with its NUL-terminated address string. A bundle
-/// starts with `#bundle\0` (8B) + a timetag (8B) + the first element's size
-/// (4B) = 20 bytes, after which the first element begins; we recurse into it
-/// so a bundle routes by its first message's address. Returns `None` for a
-/// malformed/empty packet.
-pub fn peek_osc_address(bytes: &[u8]) -> Option<&str> {
-    let mut current = bytes;
-    loop {
-        if current.starts_with(b"#bundle\0") {
-            if current.len() < 20 {
-                return None;
-            }
-            current = &current[20..];
-            continue;
-        }
-        let nul = current.iter().position(|&b| b == 0)?;
-        if nul == 0 {
-            return None;
-        }
-        return std::str::from_utf8(&current[..nul]).ok();
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn route(name: &str, pattern: &str, target: &str) -> Route {
-        Route {
+    fn peer_config(name: &str, pattern: &str, target: &str) -> PeerConfig {
+        PeerConfig {
             name: name.into(),
             pattern: pattern.into(),
             target: target.into(),
@@ -176,7 +151,7 @@ mod tests {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let remote_addr = remote.local_addr().unwrap();
 
-        let peer = Peer::connect(&route("test", "^/x", &remote_addr.to_string()))
+        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()))
             .await
             .expect("connect");
         assert_eq!(peer.target, remote_addr);
@@ -187,7 +162,7 @@ mod tests {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let remote_addr = remote.local_addr().unwrap();
 
-        let peer = Peer::connect(&route("test", "^/x", &remote_addr.to_string()))
+        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()))
             .await
             .expect("connect");
         let mut rx = peer.inbound.subscribe();
@@ -205,38 +180,7 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_regex_errors() {
-        assert!(Peer::connect(&route("bad", "(", "127.0.0.1:1")).await.is_err());
-    }
-
-    /// Encode a minimal OSC message: NUL-terminated, 4-byte-padded address.
-    fn osc_msg(address: &str) -> Vec<u8> {
-        let mut v = address.as_bytes().to_vec();
-        v.push(0);
-        while v.len() % 4 != 0 {
-            v.push(0);
-        }
-        v
-    }
-
-    #[test]
-    fn peek_reads_message_address() {
-        assert_eq!(peek_osc_address(&osc_msg("/dirt/play")), Some("/dirt/play"));
-    }
-
-    #[test]
-    fn peek_reads_first_address_in_bundle() {
-        let element = osc_msg("/dirt/play");
-        let mut pkt = b"#bundle\0".to_vec();
-        pkt.extend_from_slice(&[0u8; 8]); // timetag
-        pkt.extend_from_slice(&(element.len() as u32).to_be_bytes());
-        pkt.extend_from_slice(&element);
-        assert_eq!(peek_osc_address(&pkt), Some("/dirt/play"));
-    }
-
-    #[test]
-    fn peek_rejects_empty_or_truncated() {
-        assert_eq!(peek_osc_address(b""), None);
-        assert_eq!(peek_osc_address(b"#bundle\0short"), None);
+        assert!(Peer::connect(&peer_config("bad", "(", "127.0.0.1:1")).await.is_err());
     }
 
     #[tokio::test]
@@ -244,8 +188,8 @@ mod tests {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let addr = remote.local_addr().unwrap().to_string();
         let peers = connect_all(&[
-            route("scsynth", r"^/(s_new|notify|status)", &addr),
-            route("strudel", r"^/(dirt|clock)(/|$)", &addr),
+            peer_config("scsynth", r"^/(s_new|notify|status)", &addr),
+            peer_config("strudel", r"^/(dirt|clock)(/|$)", &addr),
         ])
         .await;
 
@@ -257,11 +201,11 @@ mod tests {
     #[tokio::test]
     async fn connect_all_skips_failures() {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
-        let routes = vec![
-            route("ok", "^/x", &remote.local_addr().unwrap().to_string()),
-            route("bad-regex", "(", "127.0.0.1:1"),
+        let configs = vec![
+            peer_config("ok", "^/x", &remote.local_addr().unwrap().to_string()),
+            peer_config("bad-regex", "(", "127.0.0.1:1"),
         ];
-        let peers = connect_all(&routes).await;
+        let peers = connect_all(&configs).await;
         assert_eq!(peers.len(), 1);
         assert_eq!(peers[0].name, "ok");
     }

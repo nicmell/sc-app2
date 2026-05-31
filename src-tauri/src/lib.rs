@@ -4,9 +4,12 @@
 //! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
 //!   which also runs the HTTP server (API + frontend) for external clients.
 //!
-//! `run_serve`/`run_gui` are the composition root: they connect the OSC
-//! [`core::bridge::Bridge`], start the [`core::scsynth::Scsynth`] supervisor on
-//! top of it, and hand both to the web-layer [`router::Server`]. The frontend
+//! [`run`] does the work common to both modes (parse CLI, load config,
+//! initialize logging), then dispatches. [`start`] is the shared composition
+//! root: it connects the OSC [`core::bridge::Bridge`], starts the
+//! [`core::scsynth::Scsynth`] supervisor on top of it, builds the web-layer
+//! [`router::Server`], and binds its listener. The two run modes differ only in
+//! where the frontend assets come from and how/when they serve. The frontend
 //! gets its config via the [`config::get_config`] command (GUI webview, over
 //! IPC) or the server's `/api/config` route (browsers).
 
@@ -16,13 +19,17 @@ mod logger;
 mod router;
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use clap::{Parser, Subcommand};
 use tauri::Manager;
+use tokio::net::TcpListener;
 
 use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
 use crate::core::scsynth::Scsynth;
+use crate::logger::Logger;
+use crate::router::assets::AssetResolver;
 use crate::router::Server;
 
 #[derive(Parser)]
@@ -56,23 +63,38 @@ pub fn run() {
     let context = tauri::generate_context!();
     // Effective log dir: --log-dir flag (serve only) > config `log_dir`.
     let log_dir = cli_log_dir.or_else(|| config.log_dir.clone());
+    // Initialize logging once, up front, so both run modes log identically.
+    let logger = logger::Logger::init(log_dir.as_deref());
 
     match command {
-        Some(Command::Serve { .. }) => run_serve(config, context, log_dir),
-        None => run_gui(config, context, log_dir),
+        Some(Command::Serve { .. }) => run_serve(config, context, logger),
+        None => run_gui(config, context, logger),
     }
 }
 
-/// Headless mode: connect the bridge + scsynth supervisor, then bind and serve
-/// on the main thread until a shutdown signal.
-fn run_serve(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>) {
-    let logger = logger::Logger::init(log_dir.as_deref());
+/// Connect the OSC bridge, start the scsynth supervisor on top of it, build the
+/// [`Server`], and bind its listener. The shared composition root for both run
+/// modes — the only per-mode input is where the frontend `assets` come from.
+async fn start(
+    config: AppConfig,
+    assets: Option<Arc<dyn AssetResolver>>,
+    logger: Arc<Logger>,
+) -> std::io::Result<(Server, TcpListener)> {
+    let bridge = Bridge::connect(&config.peers).await;
+    let scsynth = Scsynth::supervise(bridge.clone());
+    let server = Server::new(config, bridge, scsynth, assets, logger);
+    let (listener, _addr) = server.listen().await?;
+    Ok((server, listener))
+}
+
+/// Headless mode: build everything and serve on the main thread until a
+/// shutdown signal.
+fn run_serve(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     tauri::async_runtime::block_on(async move {
         let assets = router::assets::from_context(context);
-        let bridge = Bridge::connect(&config.routes).await;
-        let scsynth = Scsynth::supervise(bridge.clone());
-        let server = Server::new(config, bridge, scsynth, assets, logger);
-        let (listener, _addr) = server.listen().await.expect("failed to bind server");
+        let (server, listener) = start(config, assets, logger)
+            .await
+            .expect("failed to bind server");
         if let Err(e) = server.serve(listener).await {
             tracing::error!(error = %e, "server error");
         }
@@ -82,23 +104,16 @@ fn run_serve(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf
 /// Native GUI: stock Tauri (window from tauri.conf.json, `tauri://` assets,
 /// `get_config` over IPC) plus the HTTP server for external clients, which
 /// serves the frontend through the running app's asset resolver.
-fn run_gui(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>) {
-    let logger = logger::Logger::init(log_dir.as_deref());
+fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![config::get_config])
         .setup(move |app| {
-            // Connect the bridge + supervisor + bind in one async step (Server
-            // owns the logger, keeping the log guard alive for the app's life).
-            let (server, listener) = tauri::async_runtime::block_on(async {
-                let assets = router::assets::from_app(app);
-                let bridge = Bridge::connect(&config.routes).await;
-                let scsynth = Scsynth::supervise(bridge.clone());
-                let server = Server::new(config, bridge, scsynth, assets, logger);
-                let (listener, _addr) = server.listen().await?;
-                Ok::<_, std::io::Error>((server, listener))
-            })
-            .map_err(|e| format!("server bind: {e}"))?;
+            // Same build+bind as serve (Server owns the logger, keeping the log
+            // guard alive for the app's life); only the asset source differs.
+            let assets = router::assets::from_app(app);
+            let (server, listener) = tauri::async_runtime::block_on(start(config, assets, logger))
+                .map_err(|e| format!("server bind: {e}"))?;
             // Keep a handle for the exit hook (unregister from scsynth on close).
             app.manage(server.clone());
             tauri::async_runtime::spawn(async move {

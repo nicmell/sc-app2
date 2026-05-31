@@ -11,8 +11,9 @@ use std::sync::Arc;
 use bytes::Bytes;
 use tokio::sync::broadcast;
 
+use super::osc;
 use super::peer::{self, Peer};
-use crate::config::Route;
+use crate::config::PeerConfig;
 
 /// Capacity of the inbound fan-out broadcast.
 const INBOUND_CAPACITY: usize = 256;
@@ -32,8 +33,8 @@ struct Inner {
 impl Bridge {
     /// Connect the configured peers and start one pump task per peer
     /// (peer socket → the shared `inbound` fan-out). Never blocks.
-    pub async fn connect(routes: &[Route]) -> Self {
-        let peers = peer::connect_all(routes).await;
+    pub async fn connect(configs: &[PeerConfig]) -> Self {
+        let peers = peer::connect_all(configs).await;
         let (inbound, _rx) = broadcast::channel(INBOUND_CAPACITY);
         let bridge = Self {
             inner: Arc::new(Inner { peers, inbound }),
@@ -51,7 +52,7 @@ impl Bridge {
     /// Route an outbound OSC packet to the peer whose `pattern` matches its
     /// address, and send it. Drops + warns if it has no address or no match.
     pub async fn dispatch_command(&self, bytes: &[u8]) {
-        let Some(address) = peer::peek_osc_address(bytes) else {
+        let Some(address) = osc::peek_address(bytes) else {
             tracing::warn!("outbound packet has no OSC address; dropping");
             return;
         };

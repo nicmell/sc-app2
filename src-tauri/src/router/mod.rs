@@ -7,23 +7,22 @@
 //! peer replies arrive on the bridge's fan-out, one `subscribe` per socket),
 //! and unregisters via the [`Scsynth`](crate::core::scsynth) supervisor on
 //! shutdown. All traffic is same-origin (or `tauri://` with CSP off) — no CORS.
+//!
+//! Routes are assembled in [`Server::router`] from per-feature sub-routers
+//! ([`session`], [`ws`]) merged onto the bare `/api/config` route, so adding a
+//! new feature is a new `mod` + a `.merge(its::routes())`.
 
 pub mod assets;
 mod session;
+mod ws;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::extract::{Path, Query, Request, State};
-use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use axum::routing::{get, post};
+use axum::extract::{Request, State};
+use axum::routing::get;
 use axum::{Json, Router};
-use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
-use tokio::sync::broadcast;
-use uuid::Uuid;
 
 use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
@@ -101,9 +100,8 @@ impl Server {
     fn router(&self) -> Router {
         let mut app = Router::new()
             .route("/api/config", get(get_config))
-            .route("/api/session", post(post_session))
-            .route("/api/session/{id}", get(get_session).delete(delete_session))
-            .route("/ws", get(ws_handler))
+            .merge(session::routes())
+            .merge(ws::routes())
             .with_state(self.clone());
         // Serve the frontend when a resolver is installed (production);
         // stay API-only otherwise (dev — Vite serves the UI).
@@ -112,99 +110,10 @@ impl Server {
         }
         app
     }
-
-    /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
-    /// [`Bridge`]; peer replies (from its fan-out) are written back. A single
-    /// task owns the socket — no split needed.
-    async fn run_ws(&self, mut socket: WebSocket) {
-        let mut replies = self.inner.bridge.subscribe();
-        loop {
-            tokio::select! {
-                msg = socket.recv() => match msg {
-                    Some(Ok(Message::Binary(bytes))) => {
-                        self.inner.bridge.dispatch_command(bytes.as_ref()).await;
-                    }
-                    Some(Ok(Message::Close(_))) | None => break,
-                    // Text / ping / pong: nothing to route.
-                    Some(Ok(_)) => {}
-                    Some(Err(e)) => {
-                        tracing::warn!(error = %e, "ws recv error");
-                        break;
-                    }
-                },
-                reply = replies.recv() => match reply {
-                    Ok(bytes) => {
-                        if socket.send(Message::Binary(bytes)).await.is_err() {
-                            break;
-                        }
-                    }
-                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
-                    Err(broadcast::error::RecvError::Closed) => break,
-                },
-            }
-        }
-    }
 }
 
 async fn get_config(State(server): State<Server>) -> Json<AppConfig> {
     Json(server.inner.config.clone())
-}
-
-/// What `/api/session` returns. `routes`/`log_dir` stay server-side.
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct SessionInfo {
-    session_id: Uuid,
-}
-
-async fn post_session(State(server): State<Server>) -> Response {
-    let id = server.inner.sessions.create();
-    tracing::info!(session = %id, "session created");
-    (StatusCode::CREATED, Json(SessionInfo { session_id: id })).into_response()
-}
-
-async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
-    if server.inner.sessions.contains(&id) {
-        Json(SessionInfo { session_id: id }).into_response()
-    } else {
-        (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response()
-    }
-}
-
-async fn delete_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
-    if server.inner.sessions.remove(&id) {
-        StatusCode::NO_CONTENT.into_response()
-    } else {
-        (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response()
-    }
-}
-
-#[derive(Deserialize)]
-struct WsQuery {
-    session: Option<Uuid>,
-}
-
-/// Upgrade `/ws?session=<uuid>` to the OSC bridge after validating the session.
-async fn ws_handler(
-    ws: WebSocketUpgrade,
-    State(server): State<Server>,
-    Query(query): Query<WsQuery>,
-) -> Response {
-    let Some(id) = query.session else {
-        return (
-            StatusCode::BAD_REQUEST,
-            "WS upgrade requires ?session=<uuid> — POST /api/session first\n",
-        )
-            .into_response();
-    };
-    if !server.inner.sessions.contains(&id) {
-        return (
-            StatusCode::NOT_FOUND,
-            format!("session {id} not found (expired or never created)\n"),
-        )
-            .into_response();
-    }
-    ws.on_upgrade(move |socket| async move { server.run_ws(socket).await })
 }
 
 /// Resolve when the process receives SIGINT (Ctrl-C) or, on unix, SIGTERM —

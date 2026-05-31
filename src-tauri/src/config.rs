@@ -2,10 +2,10 @@
 //! path or the canonical app config dir (e.g. macOS
 //! `~/Library/Application Support/com.nicmell.scapp/config.json`).
 //!
-//! `AppConfig` is handed to the frontend two ways over one core ([`load`]):
-//! the [`get_config`] Tauri command (GUI webview, over IPC) and the
-//! server's `/api/config` route (browsers). It also carries the `routes`
-//! (peers the server connects to at startup) and an optional `log_dir`.
+//! `AppConfig` reaches the frontend two ways over one core ([`load`]): the
+//! [`get_config`] Tauri command (GUI webview, over IPC) and the server's
+//! `/api/config` route (browsers). It also carries the `peers` the bridge
+//! connects to at startup and an optional `log_dir`.
 
 use std::path::PathBuf;
 
@@ -15,24 +15,23 @@ use serde::{Deserialize, Serialize};
 const IDENTIFIER: &str = "com.nicmell.scapp";
 const DEFAULT_PORT: u16 = 3000;
 
-/// A peer the server connects to at startup. `pattern` is the OSC-address
-/// regex used to route messages to this peer (validated at boot; not yet
-/// used for forwarding); `name` identifies it in logs.
+/// A peer the bridge connects to at startup. `pattern` is the OSC-address regex
+/// that routes outbound messages to this peer; `name` identifies it in logs.
 #[derive(Deserialize, Serialize, Clone)]
-pub struct Route {
+pub struct PeerConfig {
     pub name: String,
     pub pattern: String,
     pub target: String,
 }
 
-/// Contents of `config.json`. `port` is shared with the frontend; `routes`
-/// and `log_dir` drive the server (peers + file logging).
+/// Contents of `config.json`. `port` is shared with the frontend; `peers` and
+/// `log_dir` drive the server (UDP peers + file logging).
 #[derive(Deserialize, Serialize, Clone)]
 pub struct AppConfig {
     #[serde(default = "default_port")]
     pub port: u16,
-    #[serde(default = "default_routes")]
-    pub routes: Vec<Route>,
+    #[serde(default = "default_peers")]
+    pub peers: Vec<PeerConfig>,
     #[serde(default)]
     pub log_dir: Option<PathBuf>,
 }
@@ -41,7 +40,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             port: DEFAULT_PORT,
-            routes: default_routes(),
+            peers: default_peers(),
             log_dir: None,
         }
     }
@@ -51,17 +50,17 @@ fn default_port() -> u16 {
     DEFAULT_PORT
 }
 
-/// Starter peers, seeded when `config.json` declares no routes: scsynth
-/// (its command surface) and strudel/SuperDirt (dirt/clock/scope).
-fn default_routes() -> Vec<Route> {
+/// Starter peers, seeded when `config.json` declares none: scsynth (its command
+/// surface) and strudel/SuperDirt (dirt/clock/scope).
+fn default_peers() -> Vec<PeerConfig> {
     vec![
-        Route {
+        PeerConfig {
             name: "scsynth".into(),
             pattern: r"^/([sngbcdpu]_|notify|status|sync|cmd|dumpOSC|clearSched|error|quit|version)"
                 .into(),
             target: "127.0.0.1:57110".into(),
         },
-        Route {
+        PeerConfig {
             name: "strudel".into(),
             pattern: r"^/(dirt|clock|scope)(/|$)".into(),
             target: "127.0.0.1:57120".into(),
@@ -89,9 +88,9 @@ pub fn load(path: Option<PathBuf>) -> AppConfig {
         }),
         Err(_) => AppConfig::default(),
     };
-    // Seed starter peers when routes are missing or explicitly empty.
-    if config.routes.is_empty() {
-        config.routes = default_routes();
+    // Seed starter peers when missing or explicitly empty.
+    if config.peers.is_empty() {
+        config.peers = default_peers();
     }
     config
 }
@@ -140,48 +139,48 @@ mod tests {
     }
 
     #[test]
-    fn loads_routes_from_file() {
-        let path = tmp("routes");
+    fn loads_peers_from_file() {
+        let path = tmp("peers");
         std::fs::write(
             &path,
-            r#"{ "routes": [{ "name": "a", "pattern": "^/x", "target": "127.0.0.1:1" }] }"#,
+            r#"{ "peers": [{ "name": "a", "pattern": "^/x", "target": "127.0.0.1:1" }] }"#,
         )
         .unwrap();
         let cfg = load(Some(path.clone()));
-        assert_eq!(cfg.routes.len(), 1);
-        assert_eq!(cfg.routes[0].name, "a");
+        assert_eq!(cfg.peers.len(), 1);
+        assert_eq!(cfg.peers[0].name, "a");
         std::fs::remove_file(path).ok();
     }
 
     #[test]
-    fn missing_routes_seeds_defaults() {
-        let path = tmp("no-routes");
+    fn missing_peers_seeds_defaults() {
+        let path = tmp("no-peers");
         std::fs::write(&path, "{}").unwrap();
         let names: Vec<_> = load(Some(path.clone()))
-            .routes
+            .peers
             .iter()
-            .map(|r| r.name.clone())
+            .map(|p| p.name.clone())
             .collect();
         assert_eq!(names, vec!["scsynth", "strudel"]);
         std::fs::remove_file(path).ok();
     }
 
     #[test]
-    fn empty_routes_seeds_defaults() {
-        let path = tmp("empty-routes");
-        std::fs::write(&path, r#"{ "routes": [] }"#).unwrap();
-        assert_eq!(load(Some(path.clone())).routes.len(), 2);
+    fn empty_peers_seeds_defaults() {
+        let path = tmp("empty-peers");
+        std::fs::write(&path, r#"{ "peers": [] }"#).unwrap();
+        assert_eq!(load(Some(path.clone())).peers.len(), 2);
         std::fs::remove_file(path).ok();
     }
 
     #[test]
-    fn default_routes_are_valid() {
-        for r in default_routes() {
-            assert!(regex::Regex::new(&r.pattern).is_ok(), "bad regex: {}", r.pattern);
+    fn default_peers_are_valid() {
+        for p in default_peers() {
+            assert!(regex::Regex::new(&p.pattern).is_ok(), "bad regex: {}", p.pattern);
             assert!(
-                r.target.parse::<std::net::SocketAddr>().is_ok(),
+                p.target.parse::<std::net::SocketAddr>().is_ok(),
                 "bad target: {}",
-                r.target
+                p.target
             );
         }
     }

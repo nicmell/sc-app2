@@ -1,21 +1,21 @@
 //! scsynth: the SuperCollider server-command protocol plus a supervisor that
 //! keeps the bridge registered with a live scsynth.
 //!
-//! The protocol half encodes `/notify`, `/status`, `/version` and classifies
-//! the replies ([`classify_reply`]). The supervisor half ([`Scsynth`]) rides on
-//! a generic [`Bridge`](super::bridge::Bridge): it subscribes to inbound
-//! datagrams to track scsynth's state, and sends commands via the bridge. It
-//! registers (`/notify` → `/version`), polls `/status` as a heartbeat,
-//! reconnects when scsynth stops answering, and unregisters (`/notify 0`) on
-//! shutdown.
+//! The protocol half encodes `/notify`, `/status`, `/version` (via the generic
+//! [`osc`](super::osc) helpers) and classifies the replies ([`classify_reply`]).
+//! The supervisor half ([`Scsynth`]) rides on a generic
+//! [`Bridge`](super::bridge::Bridge): it subscribes to inbound datagrams to
+//! track scsynth's state, and sends commands via the bridge. It registers
+//! (`/notify` → `/version`), polls `/status` as a heartbeat, reconnects when
+//! scsynth stops answering, and unregisters (`/notify 0`) on shutdown.
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use rosc::{OscMessage, OscPacket, OscType};
 use tokio::sync::broadcast;
 
 use super::bridge::Bridge;
+use super::osc::{self, OscMessage, OscType};
 
 /// scsynth `/status` heartbeat poll interval.
 const STATUS_INTERVAL: Duration = Duration::from_secs(2);
@@ -30,23 +30,17 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
 
 /// Encode `/notify <1|0>` — register (`true`) or unregister (`false`).
 fn notify_packet(register: bool) -> Vec<u8> {
-    encode("/notify", vec![OscType::Int(register as i32)])
+    osc::encode("/notify", vec![OscType::Int(register as i32)])
 }
 
 /// Encode `/status` — scsynth replies `/status.reply` (the heartbeat).
 fn status_packet() -> Vec<u8> {
-    encode("/status", vec![])
+    osc::encode("/status", vec![])
 }
 
 /// Encode `/version` — scsynth replies `/version.reply`.
 fn version_packet() -> Vec<u8> {
-    encode("/version", vec![])
-}
-
-fn encode(addr: &str, args: Vec<OscType>) -> Vec<u8> {
-    let packet = OscPacket::Message(OscMessage { addr: addr.into(), args });
-    // Fixed, valid messages — encoding cannot fail in practice.
-    rosc::encoder::encode(&packet).expect("encode OSC message")
+    osc::encode("/version", vec![])
 }
 
 /// scsynth version from a `/version.reply` (SC protocol:
@@ -87,14 +81,14 @@ enum Reply {
 
 /// Decode a peer packet **once** and classify it.
 fn classify_reply(bytes: &[u8]) -> Reply {
-    let Ok((_, OscPacket::Message(msg))) = rosc::decoder::decode_udp(bytes) else {
+    let Some(msg) = osc::decode_message(bytes) else {
         return Reply::Other;
     };
     match msg.addr.as_str() {
         "/done" => {
             let is_notify = matches!(msg.args.first(), Some(OscType::String(s)) if s == "/notify");
             match msg.args.get(1) {
-                Some(arg) if is_notify => osc_int(arg).map_or(Reply::Other, Reply::DoneNotify),
+                Some(arg) if is_notify => osc::int_arg(arg).map_or(Reply::Other, Reply::DoneNotify),
                 _ => Reply::Other,
             }
         }
@@ -111,21 +105,12 @@ fn version_from(msg: &OscMessage) -> Option<Version> {
     };
     Some(Version {
         prog_name: string_at(0, "scsynth"),
-        major: osc_int(msg.args.get(1)?)?,
-        minor: osc_int(msg.args.get(2)?)?,
+        major: osc::int_arg(msg.args.get(1)?)?,
+        minor: osc::int_arg(msg.args.get(2)?)?,
         patch: string_at(3, ""),
         branch: string_at(4, ""),
         commit_hash: string_at(5, ""),
     })
-}
-
-/// An OSC int argument as `i32` (accepts both `Int` and `Long`).
-fn osc_int(arg: &OscType) -> Option<i32> {
-    match arg {
-        OscType::Int(v) => Some(*v),
-        OscType::Long(v) => Some(*v as i32),
-        _ => None,
-    }
 }
 
 // ── supervisor ──────────────────────────────────────────────────────────
@@ -304,10 +289,7 @@ mod tests {
     use super::*;
 
     fn message_of(bytes: &[u8]) -> OscMessage {
-        match rosc::decoder::decode_udp(bytes).unwrap().1 {
-            OscPacket::Message(m) => m,
-            _ => panic!("expected a message"),
-        }
+        osc::decode_message(bytes).expect("expected a message")
     }
 
     #[test]
@@ -320,15 +302,15 @@ mod tests {
 
     #[test]
     fn classifies_done_notify() {
-        let ok = encode("/done", vec![OscType::String("/notify".into()), OscType::Int(7)]);
+        let ok = osc::encode("/done", vec![OscType::String("/notify".into()), OscType::Int(7)]);
         assert!(matches!(classify_reply(&ok), Reply::DoneNotify(7)));
-        let other = encode("/done", vec![OscType::String("/quit".into())]);
+        let other = osc::encode("/done", vec![OscType::String("/quit".into())]);
         assert!(matches!(classify_reply(&other), Reply::Other));
     }
 
     #[test]
     fn classifies_version_reply() {
-        let bytes = encode(
+        let bytes = osc::encode(
             "/version.reply",
             vec![
                 OscType::String("scsynth".into()),
@@ -350,8 +332,8 @@ mod tests {
 
     #[test]
     fn classifies_status_and_other() {
-        assert!(matches!(classify_reply(&encode("/status.reply", vec![OscType::Int(1)])), Reply::Status));
-        assert!(matches!(classify_reply(&encode("/n_go", vec![])), Reply::Other));
+        assert!(matches!(classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])), Reply::Status));
+        assert!(matches!(classify_reply(&osc::encode("/n_go", vec![])), Reply::Other));
         assert!(matches!(classify_reply(b"garbage"), Reply::Other));
     }
 }

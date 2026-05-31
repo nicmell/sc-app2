@@ -1,6 +1,6 @@
 {
   "port": 3000,
-  "routes": [
+  "peers": [
     {
       "name": "scsynth",
       "pattern": "^/([sngbcdpu]_|notify|status|sync|cmd|dumpOSC|clearSched|error|quit|version)",

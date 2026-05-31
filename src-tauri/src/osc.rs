@@ -7,15 +7,33 @@
 
 use rosc::{OscMessage, OscPacket, OscType};
 
-/// Encode `/notify 1` — registers the bridge with scsynth, which replies
-/// `/done /notify <clientId>`.
-pub fn notify_packet() -> Vec<u8> {
+/// Encode `/notify <1|0>` — register (`true`) or unregister (`false`) the
+/// bridge with scsynth. Registering replies `/done /notify <clientId>`.
+pub fn notify_packet(register: bool) -> Vec<u8> {
     let packet = OscPacket::Message(OscMessage {
         addr: "/notify".into(),
-        args: vec![OscType::Int(1)],
+        args: vec![OscType::Int(register as i32)],
     });
     // A fixed, valid message — encoding cannot fail in practice.
     rosc::encoder::encode(&packet).expect("encode /notify")
+}
+
+/// Encode `/status` — scsynth replies with `/status.reply` (used as a liveness
+/// heartbeat; see [`is_status_reply`]).
+pub fn status_packet() -> Vec<u8> {
+    let packet = OscPacket::Message(OscMessage {
+        addr: "/status".into(),
+        args: vec![],
+    });
+    rosc::encoder::encode(&packet).expect("encode /status")
+}
+
+/// Whether `bytes` is a `/status.reply` message (the heartbeat response).
+pub fn is_status_reply(bytes: &[u8]) -> bool {
+    matches!(
+        rosc::decoder::decode_udp(bytes),
+        Ok((_, OscPacket::Message(m))) if m.addr == "/status.reply"
+    )
 }
 
 /// Parse a `/done /notify <clientId>` reply; `None` if it isn't that shape.
@@ -106,15 +124,36 @@ fn osc_int(arg: &OscType) -> Option<i32> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn notify_packet_decodes_to_notify_1() {
-        match rosc::decoder::decode_udp(&notify_packet()).unwrap().1 {
-            OscPacket::Message(m) => {
-                assert_eq!(m.addr, "/notify");
-                assert_eq!(m.args, vec![OscType::Int(1)]);
-            }
+    fn message_of(bytes: &[u8]) -> OscMessage {
+        match rosc::decoder::decode_udp(bytes).unwrap().1 {
+            OscPacket::Message(m) => m,
             _ => panic!("expected a message"),
         }
+    }
+
+    #[test]
+    fn notify_packet_carries_register_flag() {
+        let on = message_of(&notify_packet(true));
+        assert_eq!(on.addr, "/notify");
+        assert_eq!(on.args, vec![OscType::Int(1)]);
+        let off = message_of(&notify_packet(false));
+        assert_eq!(off.args, vec![OscType::Int(0)]);
+    }
+
+    #[test]
+    fn status_packet_and_reply_detection() {
+        let m = message_of(&status_packet());
+        assert_eq!(m.addr, "/status");
+        assert!(m.args.is_empty());
+
+        let reply = rosc::encoder::encode(&OscPacket::Message(OscMessage {
+            addr: "/status.reply".into(),
+            args: vec![OscType::Int(1), OscType::Int(0)],
+        }))
+        .unwrap();
+        assert!(is_status_reply(&reply));
+        assert!(!is_status_reply(&status_packet())); // /status is not /status.reply
+        assert!(!is_status_reply(b"garbage"));
     }
 
     #[test]

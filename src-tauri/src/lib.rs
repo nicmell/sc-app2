@@ -22,6 +22,7 @@ mod session;
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
+use tauri::Manager;
 
 use config::AppConfig;
 use server::Server;
@@ -82,7 +83,7 @@ fn run_serve(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf
 /// serves the frontend through the running app's asset resolver.
 fn run_gui(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>) {
     let logger = logger::Logger::init(log_dir.as_deref());
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![config::get_config])
         .setup(move |app| {
@@ -94,6 +95,8 @@ fn run_gui(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>)
                 Ok::<_, std::io::Error>((server, listener))
             })
             .map_err(|e| format!("server bind: {e}"))?;
+            // Keep a handle for the exit hook (unregister from scsynth on close).
+            app.manage(server.clone());
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = server.serve(listener).await {
                     tracing::error!(error = %e, "server error");
@@ -101,6 +104,16 @@ fn run_gui(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>)
             });
             Ok(())
         })
-        .run(context)
-        .expect("error while running tauri application");
+        .build(context)
+        .expect("error while building tauri application");
+
+    // On window close / app exit, release our scsynth client slot before the
+    // process goes away (the spawned `serve` task's signal handler only fires
+    // on SIGINT/SIGTERM, not on a GUI window close).
+    app.run(|app_handle, event| {
+        if let tauri::RunEvent::ExitRequested { .. } = event {
+            let server = app_handle.state::<Server>();
+            tauri::async_runtime::block_on(server.unregister_scsynth());
+        }
+    });
 }

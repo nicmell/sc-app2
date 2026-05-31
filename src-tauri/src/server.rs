@@ -43,6 +43,14 @@ use crate::session::SessionStore;
 
 /// Capacity of the client-reply broadcast (peer datagrams fanned to all WS).
 const CLIENTS_CAPACITY: usize = 256;
+/// scsynth `/status` heartbeat poll interval.
+const STATUS_INTERVAL: Duration = Duration::from_secs(2);
+/// Consecutive missed `/status.reply`s before scsynth is considered down.
+const MAX_STATUS_MISSES: u32 = 3;
+/// Delay between reconnection attempts while scsynth is unreachable.
+const RETRY_INTERVAL: Duration = Duration::from_secs(2);
+/// How long to wait for a `/done /notify` or `/version.reply`.
+const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
 
 /// The shared server core: HTTP routing + the OSC bridge. Cheap to clone
 /// (Arc-backed), so it doubles as the axum `State`.
@@ -67,15 +75,19 @@ struct Inner {
     logger: Arc<Logger>,
 }
 
-/// What scsynth tells us during registration. The bridge is "running" once
-/// both the client id (`/done /notify`) and the version (`/version.reply`) are
-/// in.
+/// What scsynth tells us, filled by `dispatch_reply`. The bridge is "running"
+/// once both the client id (`/done /notify`) and the version (`/version.reply`)
+/// are in; `alive` then tracks the `/status` heartbeat.
 #[derive(Default)]
 struct ScsynthState {
     client_id: Option<i32>,
     version: Option<osc::ScsynthVersion>,
     /// Set true (and logged once) when both fields are first present.
     running: bool,
+    /// Whether scsynth is currently responding to the `/status` heartbeat.
+    alive: bool,
+    /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
+    status_replies: u64,
 }
 
 impl Server {
@@ -100,10 +112,10 @@ impl Server {
             }),
         };
         server.spawn_reply_pumps(); // receive: peers → dispatch_reply → clients
-        // Registration waits on scsynth's replies, so run it in the background
-        // — it never blocks boot.
+        // Supervise the scsynth connection (register → poll /status → reconnect)
+        // in the background, so it never blocks boot.
         let bg = server.clone();
-        tokio::spawn(async move { bg.register_scsynth().await });
+        tokio::spawn(async move { bg.supervise_scsynth().await });
         server
     }
 
@@ -117,9 +129,16 @@ impl Server {
         Ok((listener, addr))
     }
 
-    /// Serve on a bound listener until the process exits.
+    /// Serve on a bound listener until a shutdown signal (SIGINT/SIGTERM), then
+    /// unregister from scsynth (`/notify 0`) so we don't leak a client slot.
     pub async fn serve(self, listener: TcpListener) -> std::io::Result<()> {
-        axum::serve(listener, self.router()).await
+        let router = self.router();
+        axum::serve(listener, router)
+            .with_graceful_shutdown(shutdown_signal())
+            .await?;
+        tracing::info!("shutdown signal received; unregistering from scsynth");
+        self.unregister_scsynth().await;
+        Ok(())
     }
 
     fn router(&self) -> Router {
@@ -157,15 +176,16 @@ impl Server {
         Some(peer.clone())
     }
 
-    /// Handle one inbound OSC packet from `peer`: decide what to do with it,
-    /// then fan it out to every connected client. (Currently: log the scsynth
-    /// registration when it arrives, and forward everything verbatim.)
+    /// Handle one inbound OSC packet from `peer`: tap the bridge-relevant
+    /// replies for state, then fan every packet out to all clients verbatim.
     fn dispatch_reply(&self, _peer: &Peer, bytes: Bytes) {
-        // Capture the scsynth registration responses; everything is forwarded.
         if let Some(cid) = osc::parse_done_notify(&bytes) {
             self.record_scsynth(|s| s.client_id = Some(cid));
         } else if let Some(version) = osc::parse_version_reply(&bytes) {
             self.record_scsynth(|s| s.version = Some(version));
+        } else if osc::is_status_reply(&bytes) {
+            // Heartbeat: bump the counter the poller watches for liveness.
+            self.inner.scsynth.lock().unwrap().status_replies += 1;
         }
         // No connected clients is fine; ignore the send error.
         let _ = self.inner.clients.send(bytes);
@@ -205,36 +225,102 @@ impl Server {
         }
     }
 
-    /// Register the bridge with scsynth, in order: dispatch `/notify 1`, wait
-    /// for the `/done /notify` ack (so the version round-trip runs against a
-    /// registered client), then dispatch `/version`. The two responses are
-    /// recorded by [`dispatch_reply`], which flags the bridge running once both
-    /// are in. Runs in a background task (it awaits scsynth) so boot isn't
-    /// blocked.
-    async fn register_scsynth(&self) {
-        if self.dispatch_command(&osc::notify_packet()).await.is_none() {
-            tracing::warn!("no peer matched /notify; skipping scsynth registration");
+    /// Supervise the scsynth connection: (re)register, then poll `/status`
+    /// until it stops answering, then reconnect. Reuses [`register_scsynth`]
+    /// for both first connect and reconnect; owns the transition logging so
+    /// retries don't spam. Bails if no peer handles `/notify`.
+    async fn supervise_scsynth(&self) {
+        if peer::route_for(&self.inner.peers, "/notify").is_none() {
+            tracing::warn!("no peer matches /notify; scsynth supervision disabled");
             return;
         }
-        // Wait for the ack: `dispatch_reply` populates `client_id` from the
-        // `/done /notify`. (clientID 0 is valid, so the test is "populated".)
-        let acked = tokio::time::timeout(Duration::from_secs(2), async {
-            while self.inner.scsynth.lock().unwrap().client_id.is_none() {
+        // `down` = the current outage has already been logged (avoids spam).
+        let mut down = false;
+        loop {
+            self.reset_scsynth();
+            if self.register_scsynth().await {
+                // Connected — `dispatch_reply` logged "scsynth running …".
+                down = false;
+                self.set_alive(true);
+                self.poll_status_until_dead().await; // blocks until scsynth dies
+                self.set_alive(false);
+            }
+            // Not connected (registration failed, or the heartbeat just died).
+            if !down {
+                tracing::warn!(
+                    "scsynth not responding; retrying every {}s",
+                    RETRY_INTERVAL.as_secs()
+                );
+                down = true;
+            }
+            tokio::time::sleep(RETRY_INTERVAL).await;
+        }
+    }
+
+    /// One registration attempt, in order: `/notify 1` → wait for the
+    /// `/done /notify` ack (so the version round-trip runs against a registered
+    /// client) → `/version` → wait until [`dispatch_reply`] flags running.
+    /// Returns whether registration completed. Quiet — the supervisor logs.
+    async fn register_scsynth(&self) -> bool {
+        self.dispatch_command(&osc::notify_packet(true)).await;
+        // (clientID 0 is valid, so the ack test is "populated", not "> 0".)
+        if !self.await_state(REPLY_TIMEOUT, |s| s.client_id.is_some()).await {
+            return false;
+        }
+        self.dispatch_command(&osc::version_packet()).await;
+        self.await_state(REPLY_TIMEOUT, |s| s.running).await
+    }
+
+    /// Poll `/status` until scsynth misses [`MAX_STATUS_MISSES`] consecutive
+    /// replies (it died); returns so the supervisor can reconnect.
+    async fn poll_status_until_dead(&self) {
+        let mut misses = 0u32;
+        loop {
+            let before = self.inner.scsynth.lock().unwrap().status_replies;
+            self.dispatch_command(&osc::status_packet()).await;
+            tokio::time::sleep(STATUS_INTERVAL).await;
+            if self.inner.scsynth.lock().unwrap().status_replies > before {
+                misses = 0;
+            } else {
+                misses += 1;
+                if misses >= MAX_STATUS_MISSES {
+                    return;
+                }
+            }
+        }
+    }
+
+    /// Tell scsynth to drop our client registration (`/notify 0`) on shutdown.
+    /// Called by `serve`'s graceful-shutdown path and the GUI exit hook.
+    pub(crate) async fn unregister_scsynth(&self) {
+        if peer::route_for(&self.inner.peers, "/notify").is_some() {
+            self.dispatch_command(&osc::notify_packet(false)).await;
+            tracing::info!("sent /notify 0 (unregistered from scsynth)");
+        }
+    }
+
+    /// Poll the scsynth state until `pred` holds or `timeout` elapses.
+    async fn await_state(&self, timeout: Duration, pred: impl Fn(&ScsynthState) -> bool) -> bool {
+        tokio::time::timeout(timeout, async {
+            while !pred(&self.inner.scsynth.lock().unwrap()) {
                 tokio::time::sleep(Duration::from_millis(25)).await;
             }
         })
-        .await;
-        if acked.is_err() {
-            tracing::warn!("no /done /notify within 2s (is scsynth running?)");
-            return;
-        }
-        // Registered — now ask for the version. `dispatch_reply` logs
-        // "scsynth running" once the reply records it.
-        self.dispatch_command(&osc::version_packet()).await;
-        tokio::time::sleep(Duration::from_secs(2)).await;
-        if !self.inner.scsynth.lock().unwrap().running {
-            tracing::warn!("no /version.reply within 2s (registered, but version unknown)");
-        }
+        .await
+        .is_ok()
+    }
+
+    /// Clear the registration fields for a fresh (re)connect attempt. Keeps the
+    /// monotonic `status_replies` counter and the `alive` flag (supervisor-owned).
+    fn reset_scsynth(&self) {
+        let mut s = self.inner.scsynth.lock().unwrap();
+        s.client_id = None;
+        s.version = None;
+        s.running = false;
+    }
+
+    fn set_alive(&self, alive: bool) {
+        self.inner.scsynth.lock().unwrap().alive = alive;
     }
 
     /// Bridge one WebSocket for its lifetime: uplink binary frames go to
@@ -329,6 +415,33 @@ async fn ws_handler(
             .into_response();
     }
     ws.on_upgrade(move |socket| async move { server.bridge(socket).await })
+}
+
+/// Resolve when the process receives SIGINT (Ctrl-C) or, on unix, SIGTERM —
+/// the signal that drives graceful shutdown + scsynth unregistration.
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sig) => {
+                sig.recv().await;
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, "SIGTERM handler unavailable");
+                std::future::pending::<()>().await;
+            }
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {}
+        _ = terminate => {}
+    }
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.

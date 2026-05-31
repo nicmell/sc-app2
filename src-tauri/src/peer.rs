@@ -2,13 +2,16 @@
 //! talks to over UDP.
 //!
 //! At startup [`connect_all`] opens one connected `UdpSocket` per configured
-//! [`Route`] and spawns a receive task that logs inbound datagrams and
-//! republishes the raw bytes on a `broadcast` channel — consumed by the bridge
-//! (forwarded verbatim to the WebSocket) and by the `/notify` handshake. The
-//! `pattern` regex routes outbound messages to this peer (see [`route_for`]).
+//! [`Route`] and spawns a receive task that republishes inbound datagrams on a
+//! `broadcast` channel — consumed by the bridge (forwarded verbatim to the
+//! WebSocket) and by the scsynth supervisor. The task keeps receiving across
+//! transient errors (e.g. a connected-UDP `ECONNREFUSED` when scsynth is down)
+//! so the bridge recovers when the peer returns. The `pattern` regex routes
+//! outbound messages to this peer (see [`route_for`]).
 
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::{Context, Result};
 use regex::Regex;
@@ -92,11 +95,12 @@ fn spawn_recv(peer: Arc<Peer>) {
                     // No consumers is fine; ignore the send error.
                     let _ = peer.inbound.send(buf[..n].to_vec());
                 }
-                // A connected-UDP ECONNREFUSED can surface here once we send;
-                // stopping the task is acceptable for now.
+                // Sending to a down peer surfaces ECONNREFUSED here on the
+                // connected UDP socket. Keep the task alive (so we recover when
+                // the peer returns) and back off briefly to avoid a hot loop.
                 Err(e) => {
-                    tracing::warn!(peer = %peer.name, target = %peer.target, error = %e, "recv error; peer task stopping");
-                    break;
+                    tracing::debug!(peer = %peer.name, target = %peer.target, error = %e, "recv error; retrying");
+                    tokio::time::sleep(Duration::from_millis(200)).await;
                 }
             }
         }

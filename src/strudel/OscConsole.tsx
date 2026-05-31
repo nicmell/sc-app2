@@ -1,8 +1,8 @@
-// OSC console — displays the bridge's OSC log (sent + received), streamed from
-// the server over the WebSocket. Pure presentational: App owns the entries.
+// OSC console — displays the OSC log (sent + received) from the session store,
+// streamed via the worker over the WebSocket. Pure presentational.
 
 import { useEffect, useRef } from "react";
-import type { LoggedEntry } from "../App";
+import { useOscLog } from "../state/SessionContext";
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);
@@ -10,7 +10,8 @@ function fmtTime(ms: number): string {
   return `${hms}.${String(d.getMilliseconds()).padStart(3, "0")}`;
 }
 
-export default function OscConsole({ entries }: { entries: LoggedEntry[] }) {
+export default function OscConsole() {
+  const entries = useOscLog();
   const endRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll to the newest entry, like a terminal.

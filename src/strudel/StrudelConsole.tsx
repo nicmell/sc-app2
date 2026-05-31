@@ -1,16 +1,17 @@
 // The Strudel console — the app's primary panel.
 //
 // Mounts a StrudelMirror editor whose evaluated patterns are emitted as
-// `/dirt/play` OSC bundles over the bridge WebSocket → StrudelDirt. The WS
-// connection is owned by App and passed in via `osc`; scheduling uses a plain
-// monotonic clock (`performance.now()`) with a +200 ms safety lookahead.
+// `/dirt/play` OSC bundles through the session (worker → bridge WebSocket →
+// StrudelDirt). Scheduling uses a plain monotonic clock (`performance.now()`)
+// with a +200 ms safety lookahead.
 
 import { useEffect, useRef, useState } from "react";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "./prebake";
-import { dirtPlayBytes, type DirtEvent, type OscConnection } from "./osc";
-import type { ConnStatus } from "../App";
+import { dirtPlayBundle, type DirtEvent } from "./dirt";
+import { useSession, useStatus } from "../state/SessionContext";
+import type { ConnStatus } from "../state/SessionController";
 
 // SuperDirt schedules by the bundle's NTP timetag; give it a little headroom
 // so events land just in the future rather than in the (already-played) past.
@@ -27,23 +28,18 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   error: "error",
 };
 
-export default function StrudelConsole({
-  osc,
-  status,
-}: {
-  osc: OscConnection | null;
-  status: ConnStatus;
-}) {
+export default function StrudelConsole() {
+  const session = useSession();
+  const status = useStatus();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mirrorRef = useRef<InstanceType<typeof StrudelMirror> | null>(null);
   const [detail, setDetail] = useState("");
   const [playing, setPlaying] = useState(false);
 
-  // Mount the editor once the WS connection is available.
+  // Mount the editor once the session is connected.
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || !osc) return;
-    const connection = osc;
+    if (!root || status !== "connected") return;
 
     // Each Hap onset → a /dirt/play bundle. `targetTimeSecs` is in the
     // getTime() timebase (performance.now seconds); re-anchor to wall clock.
@@ -64,7 +60,7 @@ export default function StrudelConsole({
       const timetag = Math.round(
         Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );
-      connection.send(dirtPlayBytes(event, timetag));
+      session.send(dirtPlayBundle(event, timetag));
     };
 
     const mirror = new StrudelMirror({
@@ -87,7 +83,7 @@ export default function StrudelConsole({
       mirror.clear();
       mirrorRef.current = null;
     };
-  }, [osc]);
+  }, [session, status]);
 
   return (
     <section className="strudel">

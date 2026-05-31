@@ -4,29 +4,26 @@
 //! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
 //!   which also runs the HTTP server (API + frontend) for external clients.
 //!
-//! Both modes serve the frontend through an
-//! [`asset_resolver::AssetResolver`], built per mode
-//! ([`asset_resolver::from_context`] for serve, [`asset_resolver::from_app`]
-//! for the GUI). The frontend gets its config via the
-//! [`config::get_config`] command (GUI webview, over IPC) or the server's
-//! `/api/config` route (browsers).
+//! `run_serve`/`run_gui` are the composition root: they connect the OSC
+//! [`core::bridge::Bridge`], start the [`core::scsynth::Scsynth`] supervisor on
+//! top of it, and hand both to the web-layer [`router::Server`]. The frontend
+//! gets its config via the [`config::get_config`] command (GUI webview, over
+//! IPC) or the server's `/api/config` route (browsers).
 
-mod asset_resolver;
-mod bridge;
 mod config;
+mod core;
 mod logger;
-mod osc;
-mod peer;
-mod server;
-mod session;
+mod router;
 
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use tauri::Manager;
 
-use config::AppConfig;
-use server::Server;
+use crate::config::AppConfig;
+use crate::core::bridge::Bridge;
+use crate::core::scsynth::Scsynth;
+use crate::router::Server;
 
 #[derive(Parser)]
 #[command(name = "sc-app2", version, about = "SCSynth controller")]
@@ -66,12 +63,15 @@ pub fn run() {
     }
 }
 
-/// Headless mode: init logging, connect peers, bind and serve on the main
-/// thread until the process exits.
+/// Headless mode: connect the bridge + scsynth supervisor, then bind and serve
+/// on the main thread until a shutdown signal.
 fn run_serve(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>) {
     let logger = logger::Logger::init(log_dir.as_deref());
     tauri::async_runtime::block_on(async move {
-        let server = Server::new(config, asset_resolver::from_context(context), logger).await;
+        let assets = router::assets::from_context(context);
+        let bridge = Bridge::connect(&config.routes).await;
+        let scsynth = Scsynth::supervise(bridge.clone());
+        let server = Server::new(config, bridge, scsynth, assets, logger);
         let (listener, _addr) = server.listen().await.expect("failed to bind server");
         if let Err(e) = server.serve(listener).await {
             tracing::error!(error = %e, "server error");
@@ -88,10 +88,13 @@ fn run_gui(config: AppConfig, context: tauri::Context, log_dir: Option<PathBuf>)
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![config::get_config])
         .setup(move |app| {
-            // Connect peers + bind in one async step (Server owns the logger,
-            // keeping the log guard alive for the app's lifetime).
+            // Connect the bridge + supervisor + bind in one async step (Server
+            // owns the logger, keeping the log guard alive for the app's life).
             let (server, listener) = tauri::async_runtime::block_on(async {
-                let server = Server::new(config, asset_resolver::from_app(app), logger).await;
+                let assets = router::assets::from_app(app);
+                let bridge = Bridge::connect(&config.routes).await;
+                let scsynth = Scsynth::supervise(bridge.clone());
+                let server = Server::new(config, bridge, scsynth, assets, logger);
                 let (listener, _addr) = server.listen().await?;
                 Ok::<_, std::io::Error>((server, listener))
             })

@@ -33,6 +33,8 @@ tokio = { version = "1", features = ["full"] }
 axum = { version = "0.8", features = ["ws"] }
 # Content-type guessing for served frontend assets.
 mime_guess = "2"
+# Cheap-clone byte buffers fanned out to WS clients (re-exported by axum too).
+bytes = "1"
 # Session ids minted by /api/session and validated on the WS upgrade.
 uuid = { version = "1", features = ["v4", "serde"] }
 

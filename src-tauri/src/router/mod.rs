@@ -1,21 +1,22 @@
-//! The HTTP server.
+//! The web layer: HTTP routing, the session API, frontend asset serving, and
+//! the per-WebSocket pump.
 //!
-//! [`Server`] is the web layer: HTTP routing, the session API, frontend asset
-//! serving, and the per-WebSocket pump. It's cheap to clone (Arc-backed) so it
-//! doubles as the axum `State`. OSC is delegated to the [`Bridge`](crate::bridge)
-//! it owns: a WebSocket's binary frames go to [`Bridge::dispatch_command`], and
-//! peer replies arrive on the bridge's `clients` broadcast (one `subscribe` per
-//! socket).
-//!
-//! All traffic is same-origin (or `tauri://` with CSP off), so there's no CORS.
+//! [`Server`] is the axum `State`. It delegates OSC to the generic
+//! [`Bridge`](crate::core::bridge) it holds (a WebSocket's binary frames go to
+//! [`Bridge::dispatch_command`](crate::core::bridge::Bridge::dispatch_command);
+//! peer replies arrive on the bridge's fan-out, one `subscribe` per socket),
+//! and unregisters via the [`Scsynth`](crate::core::scsynth) supervisor on
+//! shutdown. All traffic is same-origin (or `tauri://` with CSP off) — no CORS.
+
+pub mod assets;
+mod session;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::body::Bytes;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Path, Query, Request, State};
-use axum::http::{header, StatusCode};
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -24,11 +25,12 @@ use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-use crate::asset_resolver::AssetResolver;
-use crate::bridge::Bridge;
 use crate::config::AppConfig;
+use crate::core::bridge::Bridge;
+use crate::core::scsynth::Scsynth;
 use crate::logger::Logger;
-use crate::session::SessionStore;
+use assets::AssetResolver;
+use session::SessionStore;
 
 /// The shared web-server core. Cheap to clone (Arc-backed), so it doubles as
 /// the axum `State`.
@@ -41,26 +43,28 @@ struct Inner {
     config: AppConfig,
     sessions: SessionStore,
     bridge: Bridge,
+    scsynth: Scsynth,
     assets: Option<Arc<dyn AssetResolver>>,
-    /// Held only to keep the log file-appender's flush guard alive for the
-    /// server's lifetime (never read).
+    /// Held only to keep the log file-appender's flush guard alive (never read).
     _logger: Arc<Logger>,
 }
 
 impl Server {
-    /// Connect the OSC [`Bridge`] (peers + scsynth supervisor) and build the
-    /// web server. Async because peer connection binds UDP sockets.
-    pub async fn new(
+    /// Assemble the web server over an already-built OSC [`Bridge`] + scsynth
+    /// [`Scsynth`] supervisor (composed in `lib.rs`).
+    pub fn new(
         config: AppConfig,
+        bridge: Bridge,
+        scsynth: Scsynth,
         assets: Option<Arc<dyn AssetResolver>>,
         logger: Arc<Logger>,
     ) -> Self {
-        let bridge = Bridge::connect(&config.routes).await;
         Self {
             inner: Arc::new(Inner {
                 config,
                 sessions: SessionStore::default(),
                 bridge,
+                scsynth,
                 assets,
                 _logger: logger,
             }),
@@ -84,14 +88,14 @@ impl Server {
             .with_graceful_shutdown(shutdown_signal())
             .await?;
         tracing::info!("shutdown signal received; unregistering from scsynth");
-        self.inner.bridge.unregister_scsynth().await;
+        self.inner.scsynth.unregister().await;
         Ok(())
     }
 
     /// Release the scsynth client slot — used by the GUI exit hook (the serve
     /// path does this itself on its shutdown signal).
     pub(crate) async fn unregister_scsynth(&self) {
-        self.inner.bridge.unregister_scsynth().await;
+        self.inner.scsynth.unregister().await;
     }
 
     fn router(&self) -> Router {
@@ -104,14 +108,14 @@ impl Server {
         // Serve the frontend when a resolver is installed (production);
         // stay API-only otherwise (dev — Vite serves the UI).
         if let Some(assets) = self.inner.assets.clone() {
-            app = app.fallback(move |req: Request| serve_static(req, assets.clone()));
+            app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
         }
         app
     }
 
     /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
-    /// [`Bridge`]; peer replies (from its `clients` broadcast) are written back.
-    /// A single task owns the socket — no split needed.
+    /// [`Bridge`]; peer replies (from its fan-out) are written back. A single
+    /// task owns the socket — no split needed.
     async fn run_ws(&self, mut socket: WebSocket) {
         let mut replies = self.inner.bridge.subscribe();
         loop {
@@ -227,107 +231,5 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {}
         _ = terminate => {}
-    }
-}
-
-/// Serve an asset, falling back to `index.html` for client-side routes.
-/// Asset-shaped paths that miss get a loud 404 (so a stale build reference
-/// doesn't masquerade as HTML).
-async fn serve_static(req: Request, assets: Arc<dyn AssetResolver>) -> Response {
-    let path = req.uri().path().trim_start_matches('/');
-    let key = if path.is_empty() { "index.html" } else { path };
-
-    if let Some(bytes) = assets.get(key) {
-        return asset(key, bytes);
-    }
-    // Misses that should 404 rather than render the SPA shell: API routes
-    // and real files (under assets/, or anything with an extension).
-    let not_a_route = key.starts_with("api/")
-        || key.starts_with("assets/")
-        || key.rsplit('/').next().is_some_and(|s| s.contains('.'));
-    if not_a_route {
-        return (StatusCode::NOT_FOUND, format!("not found: /{key}\n")).into_response();
-    }
-    match assets.get("index.html") {
-        Some(bytes) => asset("index.html", bytes),
-        None => (StatusCode::NOT_FOUND, "index.html missing\n").into_response(),
-    }
-}
-
-/// Wrap asset bytes in a response with a content type guessed from the key.
-fn asset(key: &str, bytes: Bytes) -> Response {
-    let mime = mime_guess::from_path(key).first_or_octet_stream();
-    ([(header::CONTENT_TYPE, mime.as_ref())], bytes).into_response()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::HashMap;
-
-    use axum::body::Body;
-
-    /// A map-backed [`AssetResolver`] for testing the serving logic without
-    /// a Tauri context or app.
-    struct MapAssets(HashMap<String, Bytes>);
-
-    impl AssetResolver for MapAssets {
-        fn get(&self, path: &str) -> Option<Bytes> {
-            self.0.get(path).cloned()
-        }
-    }
-
-    fn assets() -> Arc<dyn AssetResolver> {
-        Arc::new(MapAssets(HashMap::from([
-            ("index.html".to_string(), Bytes::from_static(b"<html>root</html>")),
-            ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
-        ])))
-    }
-
-    fn req(path: &str) -> Request {
-        Request::builder().uri(path).body(Body::empty()).unwrap()
-    }
-
-    fn content_type(res: &Response) -> String {
-        res.headers()
-            .get(header::CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or_default()
-            .to_string()
-    }
-
-    #[tokio::test]
-    async fn root_serves_index_html() {
-        let res = serve_static(req("/"), assets()).await;
-        assert_eq!(res.status(), StatusCode::OK);
-        assert!(content_type(&res).contains("text/html"));
-    }
-
-    #[tokio::test]
-    async fn known_asset_served_with_its_mime() {
-        let res = serve_static(req("/assets/app.js"), assets()).await;
-        assert_eq!(res.status(), StatusCode::OK);
-        assert!(content_type(&res).contains("javascript"));
-    }
-
-    #[tokio::test]
-    async fn missing_asset_is_404_not_html() {
-        let res = serve_static(req("/assets/missing.js"), assets()).await;
-        assert_eq!(res.status(), StatusCode::NOT_FOUND);
-        assert!(!content_type(&res).contains("text/html"));
-    }
-
-    #[tokio::test]
-    async fn client_route_falls_back_to_index() {
-        let res = serve_static(req("/some/client/route"), assets()).await;
-        assert_eq!(res.status(), StatusCode::OK);
-        assert!(content_type(&res).contains("text/html"));
-    }
-
-    #[tokio::test]
-    async fn unknown_api_route_is_404_not_html() {
-        let res = serve_static(req("/api/nope"), assets()).await;
-        assert_eq!(res.status(), StatusCode::NOT_FOUND);
-        assert!(!content_type(&res).contains("text/html"));
     }
 }

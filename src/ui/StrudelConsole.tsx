@@ -8,8 +8,8 @@
 import { useEffect, useRef, useState } from "react";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
-import { ensureStrudelGlobals } from "./prebake";
-import { dirtPlayBundle, type DirtEvent } from "./dirt";
+import { ensureStrudelGlobals } from "../strudel/prebake";
+import { dirtPlayBundle, type DirtEvent } from "../osc/dirt";
 import { useSession, useStatus } from "../state/SessionContext";
 import type { ConnStatus } from "../state/SessionController";
 

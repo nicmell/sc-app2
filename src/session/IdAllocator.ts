@@ -1,6 +1,11 @@
 // Monotonic node-id allocator over a server-assigned range. Each session is
-// handed `[base, base + count)` (see src-tauri core::ids); synths allocate from
-// it so ids never collide across sessions or scsynth clients.
+// handed `[base, base + count)` from the bootstrap response; synths allocate
+// from it so ids never collide across sessions or scsynth clients.
+//
+// The partitioning scheme (clientID<<26 blocks, per-session sub-blocks) is
+// owned entirely by the server (`src-tauri/src/server.rs`). The frontend is
+// told only its `nodeIdBase`/`nodeIdCount` and stays scheme-agnostic — do NOT
+// re-derive or hardcode the block math here.
 
 export class IdAllocator {
   private next: number;

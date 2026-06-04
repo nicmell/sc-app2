@@ -5,10 +5,10 @@
 import type { OscPacket } from "@sc-app/server-commands";
 import { createStore, type ReadonlyStore } from "../util/reactiveStore";
 import { WorkerClient } from "../osc/WorkerClient";
-import { IdAllocator } from "../osc/IdAllocator";
+import { IdAllocator } from "../session/IdAllocator";
 import { flattenPacket } from "../osc/flatten";
 import { ScopeController } from "../scope/ScopeController";
-import { bootstrapSession } from "../strudel/session";
+import { bootstrapSession } from "../session/bootstrap";
 
 export type ConnStatus = "connecting" | "connected" | "error";
 

@@ -5,10 +5,14 @@
 //! * [`bridge`] — a generic OSC switch: routes outbound packets to peers by
 //!   address and fans inbound datagrams out to subscribers. Protocol-agnostic.
 //! * [`scsynth`] — the scsynth protocol + a supervisor (register / poll
-//!   `/status` / reconnect / unregister) that sits on top of a [`bridge::Bridge`].
+//!   `/status` / reconnect / unregister), plus the node-id partitioning scheme
+//!   and group messaging, on top of a [`bridge::Bridge`].
+//! * [`sessions`] — per-client session store: node-id sub-block allocation +
+//!   liveness bookkeeping (the data structure; the reaper that drives eviction
+//!   lives in [`crate::server`]).
 
 pub mod bridge;
-pub mod ids;
 pub mod osc;
 pub mod peer;
 pub mod scsynth;
+pub mod sessions;

@@ -3,16 +3,28 @@
 //!
 //! This is the SHM-only, single-scope slice of upstream sc-app's scope system:
 //! no OSC `/b_getn` fallback, no per-bus ref-counting, no scope-buffer
-//! allocator, and no `/clock/tick` dependency — the WS task polls SHM directly
-//! (see [`crate::router::ws`]). [`shm`] is the byte-level reader; this module
-//! adds the mmap handle, the `/scope/*` wire helpers, and the address constants.
+//! allocator, and no `/clock/tick` dependency — the WS pump just polls a
+//! [`ScopeSubscription`] on a timer (see [`crate::router::ws`]). [`shm`] is the
+//! byte-level reader; this module owns the subscription, the `/scope/*` wire
+//! helpers, and the address constants.
+//!
+//! ## Wire contract (must match the TS worker)
+//!
+//! These addresses + the `/scope/chunk` arg layout are the cross-language
+//! contract. The TypeScript side is `packages/server-commands/src/commands/
+//! scope.ts` (`SCOPE_*_ADDRESS`, `scopeSubscribe`, `parseScopeChunkArgs`,
+//! `decodeBlobFloatsBE`). Keep the two in sync; the `encode_scope_chunk` golden
+//! test below pins the wire bytes (subId/tickIndex/isGap/channels + a
+//! big-endian float32 blob) against drift.
 
 pub mod shm;
+
+use std::sync::Arc;
 
 use rosc::{OscMessage, OscPacket, OscType};
 
 use crate::core::osc::int_arg;
-use shm::{find_scope_buffer_array, shm_path, MmapRegion, ScopeBufferLayout};
+use shm::{find_scope_buffer_array, shm_path, MmapRegion, ScopeBufferLayout, ScopeReadResult};
 
 /// OSC address the frontend sends to (de)register the master-out scope.
 pub const SCOPE_SUBSCRIBE: &str = "/scope/subscribe";
@@ -76,4 +88,90 @@ pub fn encode_scope_chunk(
         ],
     };
     rosc::encoder::encode(&OscPacket::Message(msg)).expect("encode /scope/chunk")
+}
+
+/// One WebSocket's master-out scope subscription: the SHM mapping + the
+/// triple-buffer cursor. The WS pump polls [`poll`](Self::poll) on a timer and
+/// forwards whatever bytes it returns.
+pub struct ScopeSubscription {
+    sub_id: i32,
+    scope_idx: usize,
+    /// `_stage` of the last slot we emitted; `-1` until the first frame.
+    last_stage: i32,
+    /// Monotonic chunk counter, echoed to the worker for ordering/diagnostics.
+    tick: u32,
+    /// The shared SHM mmap (cached at subscribe; `None` if unavailable).
+    shm: Option<Arc<ScopeShm>>,
+}
+
+impl ScopeSubscription {
+    pub fn new(sub_id: i32, scope_idx: usize, shm: Option<Arc<ScopeShm>>) -> Self {
+        Self {
+            sub_id,
+            scope_idx,
+            last_stage: -1,
+            tick: 0,
+            shm,
+        }
+    }
+
+    /// If a new SHM slot is ready, encode the `/scope/chunk` frame to send.
+    /// `None` when there's no SHM or no fresh slot since the last poll (the
+    /// common case — a cheap `_stage` peek before any data copy).
+    pub fn poll(&mut self) -> Option<Vec<u8>> {
+        let shm = self.shm.as_ref()?;
+        let stage = shm::read_scope_stage(&shm.region, &shm.layout, self.scope_idx)?;
+        if stage == self.last_stage {
+            return None;
+        }
+        match shm::read_scope_slot(&shm.region, &shm.layout, self.scope_idx) {
+            Ok(ScopeReadResult::Data { floats, channels, stage, .. }) => {
+                self.last_stage = stage as i32;
+                self.tick = self.tick.wrapping_add(1);
+                Some(encode_scope_chunk(
+                    self.sub_id as u32,
+                    self.tick,
+                    false,
+                    channels as u32,
+                    &floats,
+                ))
+            }
+            // NotInitialized / NoData: leave `last_stage` so we retry next poll.
+            Ok(_) => None,
+            Err(e) => {
+                tracing::debug!(error = %e, "scope slot read failed");
+                None
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args
+    /// (subId, tickIndex, isGap, channels, blob) and a **big-endian** float32
+    /// blob (`1.0` → `3F 80 00 00`), matched by `parseScopeChunkArgs` /
+    /// `decodeBlobFloatsBE` in `packages/server-commands/src/commands/scope.ts`.
+    #[test]
+    fn encode_scope_chunk_round_trips_with_be_blob() {
+        let bytes = encode_scope_chunk(7, 3, false, 2, &[1.0, -1.0]);
+        let (_, packet) = rosc::decoder::decode_udp(&bytes).expect("decode");
+        let OscPacket::Message(msg) = packet else {
+            panic!("expected a message");
+        };
+        assert_eq!(msg.addr, SCOPE_CHUNK);
+        assert_eq!(int_arg(&msg.args[0]), Some(7)); // subId
+        assert_eq!(int_arg(&msg.args[1]), Some(3)); // tickIndex
+        assert_eq!(int_arg(&msg.args[2]), Some(0)); // isGap
+        assert_eq!(int_arg(&msg.args[3]), Some(2)); // channels
+        let OscType::Blob(blob) = &msg.args[4] else {
+            panic!("expected a blob");
+        };
+        // 2 floats × 4 bytes, big-endian.
+        assert_eq!(blob.len(), 8);
+        assert_eq!(&blob[0..4], &[0x3F, 0x80, 0x00, 0x00]); // 1.0 BE
+        assert_eq!(&blob[4..8], &[0xBF, 0x80, 0x00, 0x00]); // -1.0 BE
+    }
 }

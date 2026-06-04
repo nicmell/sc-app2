@@ -15,11 +15,7 @@ use std::time::Duration;
 use tokio::sync::broadcast;
 
 use super::bridge::Bridge;
-use super::ids::root_group_id;
 use super::osc::{self, OscMessage, OscType};
-
-/// `/g_new` add-action: add the new group to the tail of the target group.
-const ADD_TO_TAIL: i32 = 1;
 
 /// scsynth `/status` heartbeat poll interval.
 const STATUS_INTERVAL: Duration = Duration::from_secs(2);
@@ -29,6 +25,69 @@ const MAX_STATUS_MISSES: u32 = 3;
 const RETRY_INTERVAL: Duration = Duration::from_secs(2);
 /// How long to wait for a `/done /notify` or `/version.reply`.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
+
+// ── node-id partitioning ─────────────────────────────────────────────────
+//
+// scsynth partitions the node-ID space by client: client `cid` owns
+// `[cid << 26, (cid+1) << 26)`. We carve our slice into a per-client root group
+// (`base + 1`) plus fixed-size per-session sub-blocks (`base + index*SPAN`), so
+// every synth a session creates has a server-assigned id that can't collide
+// with another session, another scsynth client (sclang/SuperDirt at clientID
+// 0), or the default groups. The app layer ([`crate::server`]) allocates the
+// per-session `index`; the scheme itself lives here, with scsynth's protocol.
+
+/// `/g_new` add-action: add the new group to the tail of the target group.
+const ADD_TO_TAIL: i32 = 1;
+/// Bits a client's node-ID block occupies — matches SuperCollider's allocator.
+const ID_SHIFT: u32 = 26;
+/// Node IDs reserved per session (group id + this many synth ids). 2^16 →
+/// 1024 sessions per client within the 2^26 block.
+const SESSION_SPAN: i32 = 1 << 16;
+
+/// A session's allocated slice: its group id and the contiguous synth-id range
+/// the frontend allocates from.
+#[derive(Debug, Clone, Copy)]
+pub struct SessionBlock {
+    /// Group id for this session (also the start of its sub-block).
+    pub group_id: i32,
+    /// First synth node id the frontend may allocate.
+    pub node_base: i32,
+    /// How many synth node ids the frontend may allocate.
+    pub node_count: i32,
+}
+
+/// The per-client root group id (reserved at `base + 1`, clear of the session
+/// sub-blocks which start at `base + SPAN`).
+pub fn root_group_id(cid: i32) -> i32 {
+    (cid << ID_SHIFT) + 1
+}
+
+/// The [`SessionBlock`] for session `index` (1-based) of client `cid`.
+pub fn session_block(cid: i32, index: u32) -> SessionBlock {
+    let group_id = (cid << ID_SHIFT) + (index as i32) * SESSION_SPAN;
+    SessionBlock {
+        group_id,
+        node_base: group_id + 1,
+        node_count: SESSION_SPAN - 1,
+    }
+}
+
+// ── group-command packet builders ─────────────────────────────────────────
+
+fn g_new_packet(group_id: i32, add_action: i32, target_id: i32) -> Vec<u8> {
+    osc::encode(
+        "/g_new",
+        vec![OscType::Int(group_id), OscType::Int(add_action), OscType::Int(target_id)],
+    )
+}
+
+fn g_free_all_packet(group_id: i32) -> Vec<u8> {
+    osc::encode("/g_freeAll", vec![OscType::Int(group_id)])
+}
+
+fn n_free_packet(node_id: i32) -> Vec<u8> {
+    osc::encode("/n_free", vec![OscType::Int(node_id)])
+}
 
 // ── protocol ────────────────────────────────────────────────────────────
 
@@ -173,10 +232,39 @@ impl Scsynth {
         scsynth
     }
 
-    /// The scsynth-assigned client id, once registered. Sessions derive their
-    /// node-id block and group ids from it (see [`super::ids`]).
+    /// The scsynth-assigned client id, once registered. The app turns it into
+    /// session blocks via [`session_block`] / [`root_group_id`].
     pub fn client_id(&self) -> Option<i32> {
         self.inner.state.lock().unwrap().client_id
+    }
+
+    /// Poll for the clientID until registered or `timeout` elapses (a session
+    /// created right after boot may arrive before `/notify` completes).
+    pub async fn await_client_id(&self, timeout: Duration) -> Option<i32> {
+        tokio::time::timeout(timeout, async {
+            loop {
+                if let Some(cid) = self.client_id() {
+                    return cid;
+                }
+                tokio::time::sleep(Duration::from_millis(50)).await;
+            }
+        })
+        .await
+        .ok()
+    }
+
+    /// `/g_new <group_id>` at the tail of `target_id`.
+    pub async fn new_group(&self, group_id: i32, target_id: i32) {
+        self.inner
+            .bridge
+            .dispatch_command(&g_new_packet(group_id, ADD_TO_TAIL, target_id))
+            .await;
+    }
+
+    /// Free a group and everything in it (`/g_freeAll` + `/n_free`).
+    pub async fn free_group(&self, group_id: i32) {
+        self.inner.bridge.dispatch_command(&g_free_all_packet(group_id)).await;
+        self.inner.bridge.dispatch_command(&n_free_packet(group_id)).await;
     }
 
     /// Free the per-client root group (and everything in it) then release our
@@ -186,25 +274,17 @@ impl Scsynth {
             return;
         }
         if let Some(cid) = self.client_id() {
-            let root = root_group_id(cid);
-            self.inner
-                .bridge
-                .dispatch_command(&osc::encode("/g_freeAll", vec![OscType::Int(root)]))
-                .await;
-            self.inner
-                .bridge
-                .dispatch_command(&osc::encode("/n_free", vec![OscType::Int(root)]))
-                .await;
-            tracing::info!(root_group = root, "freed bridge root group");
+            self.free_group(root_group_id(cid)).await;
+            tracing::info!(root_group = root_group_id(cid), "freed bridge root group");
         }
         self.inner.bridge.dispatch_command(&notify_packet(false)).await;
         tracing::info!("sent /notify 0 (unregistered from scsynth)");
     }
 
-    /// Create the per-client root group under scsynth's root group (AddToTail of
-    /// group 0, so it runs after sclang/SuperDirt). Every session group nests in
-    /// it, and shutdown frees it wholesale. Idempotent-ish: a second `/g_new`
-    /// with the same id is rejected by scsynth with a harmless `/fail`.
+    /// (Re)create the per-client root group under scsynth's root group (AddToTail
+    /// of group 0, so it runs after sclang/SuperDirt). Session groups nest in it;
+    /// shutdown frees it wholesale. A second `/g_new` with the same id is
+    /// rejected by scsynth with a harmless `/fail`.
     async fn create_root_group(&self) {
         let Some(cid) = self.client_id() else {
             return;
@@ -216,11 +296,7 @@ impl Scsynth {
             );
         }
         let root = root_group_id(cid);
-        let pkt = osc::encode(
-            "/g_new",
-            vec![OscType::Int(root), OscType::Int(ADD_TO_TAIL), OscType::Int(0)],
-        );
-        self.inner.bridge.dispatch_command(&pkt).await;
+        self.new_group(root, 0).await;
         tracing::info!(client_id = cid, root_group = root, "created bridge root group");
     }
 
@@ -261,7 +337,7 @@ impl Scsynth {
             if self.register().await {
                 // Connected — `record` logged "scsynth running …".
                 down = false;
-                // (Re)create our root group; session groups nest under it.
+                // (Re)create our per-client root group; session groups nest in it.
                 self.create_root_group().await;
                 self.set_alive(true);
                 self.poll_status_until_dead().await; // blocks until scsynth dies
@@ -384,5 +460,27 @@ mod tests {
         assert!(matches!(classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])), Reply::Status));
         assert!(matches!(classify_reply(&osc::encode("/n_go", vec![])), Reply::Other));
         assert!(matches!(classify_reply(b"garbage"), Reply::Other));
+    }
+
+    #[test]
+    fn root_group_sits_just_above_the_block_base() {
+        assert_eq!(root_group_id(1), (1 << 26) + 1);
+        assert_eq!(root_group_id(0), 1);
+    }
+
+    #[test]
+    fn session_blocks_are_disjoint_and_clear_of_root() {
+        let root = root_group_id(1);
+        let a = session_block(1, 1);
+        let b = session_block(1, 2);
+        assert!(a.group_id > root);
+        assert!(a.node_base + a.node_count <= b.group_id);
+        assert_eq!(b.group_id - a.group_id, SESSION_SPAN);
+    }
+
+    #[test]
+    fn different_clients_never_overlap() {
+        let last0 = session_block(0, 1023);
+        assert!(last0.node_base + last0.node_count <= (1 << 26));
     }
 }

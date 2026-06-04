@@ -1,15 +1,15 @@
-//! The per-WebSocket OSC pump.
+//! The per-WebSocket OSC pump — pure transport.
 //!
 //! `/ws?session=<uuid>` validates the session, then upgrades to a bridge
 //! between one browser/webview and the OSC [`Bridge`](crate::core::bridge):
-//! uplink binary frames are dispatched to the matching peer; peer replies
-//! (from the bridge's fan-out) are written back. A single task owns the socket
-//! for its lifetime — no split needed.
+//! uplink binary frames are dispatched to the matching peer; peer replies (from
+//! the bridge's fan-out) are written back. `/scope/*` frames are claimed by the
+//! scope subscription instead of routed; all SHM/scope logic lives in
+//! [`crate::scope`] — this loop only ferries bytes.
 //!
 //! [`routes`] is the `/ws` sub-router, merged into the app in
-//! [`Server::router`](super::Server).
+//! [`router`](super::router).
 
-use std::sync::Arc;
 use std::time::Duration;
 
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -22,26 +22,14 @@ use serde::Deserialize;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-use super::Server;
 use crate::core::osc::{decode_message, peek_address};
-use crate::scope::{self, shm, ScopeShm};
+use crate::scope::{self, ScopeSubscription};
+use crate::server::Server;
 
 /// How often the WS task polls SHM for a new scope slot. A `_stage`-only peek
-/// each tick; the ~8 KB data copy happens only when a new frame is ready
+/// each tick; the data copy happens only when a new frame is ready
 /// (~chunkSize/sampleRate ≈ 47 Hz at 1024/48k), so over-polling is cheap.
 const SCOPE_POLL: Duration = Duration::from_millis(5);
-
-/// Per-WS scope subscription: the fixed master-out tap the frontend registered.
-struct WsScope {
-    sub_id: i32,
-    scope_idx: usize,
-    /// `_stage` of the last slot we emitted; `-1` until the first frame.
-    last_stage: i32,
-    /// Monotonic chunk counter, echoed to the worker for ordering/diagnostics.
-    tick: u32,
-    /// The shared SHM mmap (cached at subscribe; `None` if unavailable).
-    shm: Option<Arc<ScopeShm>>,
-}
 
 /// The `/ws` route.
 pub fn routes() -> Router<Server> {
@@ -66,7 +54,7 @@ async fn ws_handler(
         )
             .into_response();
     };
-    if !server.inner.sessions.contains(&id) {
+    if !server.sessions().contains(&id) {
         return (
             StatusCode::NOT_FOUND,
             format!("session {id} not found (expired or never created)\n"),
@@ -76,25 +64,25 @@ async fn ws_handler(
     ws.on_upgrade(move |socket| async move {
         // Refcount the live connection so the reaper never evicts an attached
         // session; detach on close starts the grace window.
-        server.inner.sessions.attach(&id);
+        server.sessions().attach(&id);
         run_ws(&server, socket).await;
-        server.inner.sessions.detach(&id);
+        server.sessions().detach(&id);
     })
 }
 
 /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
-/// [`Bridge`](crate::core::bridge); peer replies (from its fan-out) are written
-/// back.
+/// [`Bridge`](crate::core::bridge) (or the scope subscription); peer replies
+/// (from its fan-out) and scope chunks are written back.
 async fn run_ws(server: &Server, mut socket: WebSocket) {
-    let mut replies = server.inner.bridge.subscribe();
+    let mut replies = server.bridge().subscribe();
     // The master-out scope subscription for this socket, if the frontend asked
-    // for one. `/scope/*` is bridge-internal — intercepted below, never routed.
-    let mut scope: Option<WsScope> = None;
+    // for one. `/scope/*` is bridge-internal — claimed below, never routed.
+    let mut scope: Option<ScopeSubscription> = None;
     let mut poll = tokio::time::interval(SCOPE_POLL);
     loop {
         tokio::select! {
             _ = poll.tick() => {
-                if let Some(chunk) = poll_scope_chunk(scope.as_mut()) {
+                if let Some(chunk) = scope.as_mut().and_then(ScopeSubscription::poll) {
                     if socket.send(Message::Binary(chunk.into())).await.is_err() {
                         break;
                     }
@@ -109,7 +97,7 @@ async fn run_ws(server: &Server, mut socket: WebSocket) {
                         Some(scope::SCOPE_UNSUBSCRIBE) => {
                             scope = None;
                         }
-                        _ => server.inner.bridge.dispatch_command(bytes.as_ref()).await,
+                        _ => server.bridge().dispatch_command(bytes.as_ref()).await,
                     }
                 }
                 Some(Ok(Message::Close(_))) | None => break,
@@ -134,47 +122,10 @@ async fn run_ws(server: &Server, mut socket: WebSocket) {
 }
 
 /// Parse a `/scope/subscribe` and open (or reuse) the shared SHM mapping.
-async fn subscribe_scope(server: &Server, bytes: &[u8]) -> Option<WsScope> {
+async fn subscribe_scope(server: &Server, bytes: &[u8]) -> Option<ScopeSubscription> {
     let msg = decode_message(bytes)?;
     let (sub_id, scope_idx) = scope::parse_subscribe(&msg)?;
     let shm = server.scope_shm().await;
     tracing::debug!(sub_id, scope_idx, have_shm = shm.is_some(), "scope subscribe");
-    Some(WsScope {
-        sub_id,
-        scope_idx,
-        last_stage: -1,
-        tick: 0,
-        shm,
-    })
-}
-
-/// If a new SHM slot is ready for this subscription, encode the `/scope/chunk`
-/// frame to send. Returns `None` when there's no subscription, no SHM, or no
-/// fresh slot since the last poll (the common case — a cheap `_stage` peek).
-fn poll_scope_chunk(scope: Option<&mut WsScope>) -> Option<Vec<u8>> {
-    let sub = scope?;
-    let shm = sub.shm.as_ref()?;
-    let stage = shm::read_scope_stage(&shm.region, &shm.layout, sub.scope_idx)?;
-    if stage == sub.last_stage {
-        return None;
-    }
-    match shm::read_scope_slot(&shm.region, &shm.layout, sub.scope_idx) {
-        Ok(shm::ScopeReadResult::Data { floats, channels, stage, .. }) => {
-            sub.last_stage = stage as i32;
-            sub.tick = sub.tick.wrapping_add(1);
-            Some(scope::encode_scope_chunk(
-                sub.sub_id as u32,
-                sub.tick,
-                false,
-                channels as u32,
-                &floats,
-            ))
-        }
-        // NotInitialized / NoData: leave `last_stage` so we retry next poll.
-        Ok(_) => None,
-        Err(e) => {
-            tracing::debug!(error = %e, "scope slot read failed");
-            None
-        }
-    }
+    Some(ScopeSubscription::new(sub_id, scope_idx, shm))
 }

@@ -1,16 +1,11 @@
-//! The web layer: HTTP routing, the session API, frontend asset serving, and
-//! the per-WebSocket pump.
+//! The HTTP layer: route assembly, listener binding, serving, and the
+//! per-WebSocket pump. Pure transport — all app logic lives on
+//! [`Server`](crate::server::Server), which this layer holds as axum `State`
+//! and drives through its public API (`router → server → core`).
 //!
-//! [`Server`] is the axum `State`. It delegates OSC to the generic
-//! [`Bridge`](crate::core::bridge) it holds (a WebSocket's binary frames go to
-//! [`Bridge::dispatch_command`](crate::core::bridge::Bridge::dispatch_command);
-//! peer replies arrive on the bridge's fan-out, one `subscribe` per socket),
-//! and unregisters via the [`Scsynth`](crate::core::scsynth) supervisor on
-//! shutdown. All traffic is same-origin (or `tauri://` with CSP off) — no CORS.
-//!
-//! Routes are assembled in [`Server::router`] from per-feature sub-routers
-//! ([`session`], [`ws`]) merged onto the bare `/api/config` route, so adding a
-//! new feature is a new `mod` + a `.merge(its::routes())`.
+//! Routes are assembled in [`router`] from per-feature sub-routers ([`session`],
+//! [`ws`]) merged onto the bare `/api/config` route, so adding a new feature is
+//! a new `mod` + a `.merge(its::routes())`.
 
 pub mod assets;
 mod session;
@@ -25,167 +20,55 @@ use axum::{Json, Router};
 use tokio::net::TcpListener;
 
 use crate::config::AppConfig;
-use crate::core::bridge::Bridge;
-use crate::core::scsynth::Scsynth;
-use crate::logger::Logger;
-use crate::scope::ScopeShm;
+use crate::server::Server;
 use assets::AssetResolver;
-use session::SessionStore;
 
-/// The shared web-server core. Cheap to clone (Arc-backed), so it doubles as
-/// the axum `State`.
-#[derive(Clone)]
-pub struct Server {
-    inner: Arc<Inner>,
+/// Bind a localhost listener on the server's configured port and log its
+/// address. Separate from [`serve`] so GUI mode can bind synchronously then
+/// serve on a spawned task.
+pub async fn listen(server: &Server) -> std::io::Result<(TcpListener, SocketAddr)> {
+    let listener = TcpListener::bind(("127.0.0.1", server.port())).await?;
+    let addr = listener.local_addr()?;
+    tracing::info!(%addr, "sc-app2 server listening");
+    Ok((listener, addr))
 }
 
-struct Inner {
-    config: AppConfig,
-    sessions: SessionStore,
-    bridge: Bridge,
-    scsynth: Scsynth,
+/// Serve on a bound listener until a shutdown signal (SIGINT/SIGTERM), then
+/// free the root group + unregister from scsynth so we don't leak server state.
+pub async fn serve(
+    server: Server,
+    listener: TcpListener,
     assets: Option<Arc<dyn AssetResolver>>,
-    /// Held only to keep the log file-appender's flush guard alive (never read).
-    _logger: Arc<Logger>,
-    /// Lazily-opened mmap of scsynth's SHM scope buffers, shared across all WS
-    /// connections. `None` once we've tried and failed (cached, not retried).
-    scope_shm: tokio::sync::OnceCell<Option<Arc<ScopeShm>>>,
+) -> std::io::Result<()> {
+    axum::serve(listener, router(server.clone(), assets))
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+    tracing::info!("shutdown signal received; tearing down scsynth state");
+    server.unregister().await;
+    Ok(())
 }
 
-impl Server {
-    /// Assemble the web server over an already-built OSC [`Bridge`] + scsynth
-    /// [`Scsynth`] supervisor (composed in `lib.rs`).
-    pub fn new(
-        config: AppConfig,
-        bridge: Bridge,
-        scsynth: Scsynth,
-        assets: Option<Arc<dyn AssetResolver>>,
-        logger: Arc<Logger>,
-    ) -> Self {
-        Self {
-            inner: Arc::new(Inner {
-                config,
-                sessions: SessionStore::default(),
-                bridge,
-                scsynth,
-                assets,
-                _logger: logger,
-                scope_shm: tokio::sync::OnceCell::new(),
-            }),
-        }
+/// Assemble the app router: `/api/config` + the session and ws sub-routers, plus
+/// the static-asset fallback when a resolver is installed (production); API-only
+/// otherwise (dev — Vite serves the UI).
+pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router {
+    let mut app = Router::new()
+        .route("/api/config", get(get_config))
+        .merge(session::routes())
+        .merge(ws::routes())
+        .with_state(server);
+    if let Some(assets) = assets {
+        app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
     }
-
-    /// Bind a localhost listener and log its address. Separate from
-    /// [`serve`](Self::serve) so GUI mode can bind synchronously then serve on
-    /// a spawned task.
-    pub async fn listen(&self) -> std::io::Result<(TcpListener, SocketAddr)> {
-        let listener = TcpListener::bind(("127.0.0.1", self.inner.config.port)).await?;
-        let addr = listener.local_addr()?;
-        tracing::info!(%addr, "sc-app2 server listening");
-        Ok((listener, addr))
-    }
-
-    /// Serve on a bound listener until a shutdown signal (SIGINT/SIGTERM), then
-    /// unregister from scsynth (`/notify 0`) so we don't leak a client slot.
-    pub async fn serve(self, listener: TcpListener) -> std::io::Result<()> {
-        axum::serve(listener, self.router())
-            .with_graceful_shutdown(shutdown_signal())
-            .await?;
-        tracing::info!("shutdown signal received; unregistering from scsynth");
-        self.inner.scsynth.unregister().await;
-        Ok(())
-    }
-
-    /// Release the scsynth client slot — used by the GUI exit hook (the serve
-    /// path does this itself on its shutdown signal).
-    pub(crate) async fn unregister_scsynth(&self) {
-        self.inner.scsynth.unregister().await;
-    }
-
-    /// The lazily-opened mmap of scsynth's SHM scope buffers, shared across WS
-    /// connections. Opens (and locates the scope-buffer vector) on first call;
-    /// caches `None` on failure so a missing/unreadable segment isn't retried.
-    pub(crate) async fn scope_shm(&self) -> Option<Arc<ScopeShm>> {
-        self.inner
-            .scope_shm
-            .get_or_init(|| async {
-                let port = self.scsynth_port()?;
-                match ScopeShm::open(port) {
-                    Ok(shm) => Some(Arc::new(shm)),
-                    Err(e) => {
-                        tracing::warn!(error = %e, "scope SHM unavailable");
-                        None
-                    }
-                }
-            })
-            .await
-            .clone()
-    }
-
-    /// Free a session's scsynth group and everything in it (`/g_freeAll` +
-    /// `/n_free`). Used by DELETE and the idle reaper.
-    async fn free_session_group(&self, group_id: i32) {
-        use crate::core::osc::{self, OscType};
-        self.inner
-            .bridge
-            .dispatch_command(&osc::encode("/g_freeAll", vec![OscType::Int(group_id)]))
-            .await;
-        self.inner
-            .bridge
-            .dispatch_command(&osc::encode("/n_free", vec![OscType::Int(group_id)]))
-            .await;
-    }
-
-    /// Spawn the background reaper: every ~15 s, evict sessions whose WebSocket
-    /// has been gone past `session_ttl_seconds`, freeing each one's group.
-    pub(crate) fn spawn_session_reaper(&self) {
-        let server = self.clone();
-        let grace = std::time::Duration::from_secs(self.inner.config.session_ttl_seconds);
-        let sweep = std::cmp::min(grace / 4, std::time::Duration::from_secs(15)).max(std::time::Duration::from_secs(1));
-        tokio::spawn(async move {
-            let mut ticker = tokio::time::interval(sweep);
-            loop {
-                ticker.tick().await;
-                for (id, block) in server.inner.sessions.evict_idle(grace) {
-                    tracing::info!(session = %id, group = block.group_id, "session evicted (idle past TTL)");
-                    server.free_session_group(block.group_id).await;
-                }
-            }
-        });
-    }
-
-    /// UDP port of the `scsynth` peer (its SHM segment is named after it).
-    fn scsynth_port(&self) -> Option<u16> {
-        self.inner
-            .config
-            .peers
-            .iter()
-            .find(|p| p.name == "scsynth")
-            .and_then(|p| p.target.parse::<SocketAddr>().ok())
-            .map(|addr| addr.port())
-    }
-
-    fn router(&self) -> Router {
-        let mut app = Router::new()
-            .route("/api/config", get(get_config))
-            .merge(session::routes())
-            .merge(ws::routes())
-            .with_state(self.clone());
-        // Serve the frontend when a resolver is installed (production);
-        // stay API-only otherwise (dev — Vite serves the UI).
-        if let Some(assets) = self.inner.assets.clone() {
-            app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
-        }
-        app
-    }
+    app
 }
 
 async fn get_config(State(server): State<Server>) -> Json<AppConfig> {
-    Json(server.inner.config.clone())
+    Json(server.config().clone())
 }
 
 /// Resolve when the process receives SIGINT (Ctrl-C) or, on unix, SIGTERM —
-/// the signal that drives graceful shutdown + scsynth unregistration.
+/// the signal that drives graceful shutdown + scsynth teardown.
 async fn shutdown_signal() {
     let ctrl_c = async {
         let _ = tokio::signal::ctrl_c().await;

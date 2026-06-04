@@ -22,7 +22,7 @@ import {
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
 import type { WorkerClient } from "../osc/WorkerClient";
-import type { IdAllocator } from "../osc/IdAllocator";
+import type { IdAllocator } from "../session/IdAllocator";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "../synthdefs/scopeTapSynthDef";
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */

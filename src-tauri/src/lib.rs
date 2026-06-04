@@ -18,6 +18,7 @@ mod core;
 mod logger;
 mod router;
 mod scope;
+mod server;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -30,8 +31,7 @@ use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
 use crate::core::scsynth::Scsynth;
 use crate::logger::Logger;
-use crate::router::assets::AssetResolver;
-use crate::router::Server;
+use crate::server::Server;
 
 #[derive(Parser)]
 #[command(name = "sc-app2", version, about = "SCSynth controller")]
@@ -73,19 +73,18 @@ pub fn run() {
     }
 }
 
-/// Connect the OSC bridge, start the scsynth supervisor on top of it, build the
-/// [`Server`], and bind its listener. The shared composition root for both run
-/// modes — the only per-mode input is where the frontend `assets` come from.
-async fn start(
-    config: AppConfig,
-    assets: Option<Arc<dyn AssetResolver>>,
-    logger: Arc<Logger>,
-) -> std::io::Result<(Server, TcpListener)> {
+/// Connect the OSC bridge, build the [`Server`] over a fresh scsynth supervisor,
+/// wire the root-group registration hook, start supervision + the reaper, and
+/// bind the listener. The composition root for both run modes — `assets` (the
+/// per-mode input) is handed to [`router::serve`] by the caller, not stored here.
+async fn start(config: AppConfig, logger: Arc<Logger>) -> std::io::Result<(Server, TcpListener)> {
     let bridge = Bridge::connect(&config.peers).await;
+    // The supervisor owns the scsynth side — it (re)creates its per-client root
+    // group on every registration itself.
     let scsynth = Scsynth::supervise(bridge.clone());
-    let server = Server::new(config, bridge, scsynth, assets, logger);
+    let server = Server::new(config, bridge, scsynth, logger);
     server.spawn_session_reaper();
-    let (listener, _addr) = server.listen().await?;
+    let (listener, _addr) = router::listen(&server).await?;
     Ok((server, listener))
 }
 
@@ -94,10 +93,8 @@ async fn start(
 fn run_serve(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     tauri::async_runtime::block_on(async move {
         let assets = router::assets::from_context(context);
-        let (server, listener) = start(config, assets, logger)
-            .await
-            .expect("failed to bind server");
-        if let Err(e) = server.serve(listener).await {
+        let (server, listener) = start(config, logger).await.expect("failed to bind server");
+        if let Err(e) = router::serve(server, listener, assets).await {
             tracing::error!(error = %e, "server error");
         }
     });
@@ -111,15 +108,14 @@ fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![config::get_config])
         .setup(move |app| {
-            // Same build+bind as serve (Server owns the logger, keeping the log
-            // guard alive for the app's life); only the asset source differs.
+            // Same build+bind as serve; only the asset source differs.
             let assets = router::assets::from_app(app);
-            let (server, listener) = tauri::async_runtime::block_on(start(config, assets, logger))
+            let (server, listener) = tauri::async_runtime::block_on(start(config, logger))
                 .map_err(|e| format!("server bind: {e}"))?;
-            // Keep a handle for the exit hook (unregister from scsynth on close).
+            // Keep a handle for the exit hook (tear down scsynth state on close).
             app.manage(server.clone());
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = server.serve(listener).await {
+                if let Err(e) = router::serve(server, listener, assets).await {
                     tracing::error!(error = %e, "server error");
                 }
             });
@@ -128,13 +124,13 @@ fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
         .build(context)
         .expect("error while building tauri application");
 
-    // On window close / app exit, release our scsynth client slot before the
-    // process goes away (the spawned `serve` task's signal handler only fires
-    // on SIGINT/SIGTERM, not on a GUI window close).
+    // On window close / app exit, free the root group + release our scsynth
+    // client slot before the process goes away (the spawned `serve` task's
+    // signal handler only fires on SIGINT/SIGTERM, not on a GUI window close).
     app.run(|app_handle, event| {
         if let tauri::RunEvent::ExitRequested { .. } = event {
             let server = app_handle.state::<Server>();
-            tauri::async_runtime::block_on(server.unregister_scsynth());
+            tauri::async_runtime::block_on(server.unregister());
         }
     });
 }

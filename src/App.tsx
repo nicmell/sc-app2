@@ -1,6 +1,6 @@
-import StrudelConsole from "./strudel/StrudelConsole";
-import OscConsole from "./strudel/OscConsole";
-import ScopeView from "./scope/ScopeView";
+import StrudelConsole from "./ui/StrudelConsole";
+import OscConsole from "./ui/OscConsole";
+import ScopeView from "./ui/ScopeView";
 import { SessionProvider, useScopeChunkRef } from "./state/SessionContext";
 import "./App.css";
 

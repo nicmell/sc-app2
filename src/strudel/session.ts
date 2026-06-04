@@ -1,18 +1,32 @@
 // Session bootstrap + URL helpers.
 //
-// The bridge gates the WebSocket on a session id (see src-tauri/src/session.rs):
-// `POST /api/session` mints one, `/ws?session=<id>` validates it. We reuse a
-// stored id across reloads when it's still live, else mint a fresh one.
+// The bridge gates the WebSocket on a session id (see src-tauri router/session):
+// `POST /api/session` mints one — allocating a scsynth group + node-id range for
+// this session — and `/ws?session=<id>` validates it. We reuse a stored id
+// across reloads when it's still live (the server keeps the same group/range),
+// else mint a fresh one.
 //
 // In a browser the API + WS are same-origin (production serve) or proxied
 // (Vite dev), so relative URLs work. Inside the Tauri webview the origin is
 // `tauri://localhost`, so we target the HTTP server explicitly on
-// `127.0.0.1:<port>` (port from the `get_config` IPC command; CSP is null,
-// so cross-origin fetch/WS to localhost is allowed).
+// `127.0.0.1:<port>` (port from the `get_config` IPC command).
 
 import { isTauri, invoke } from "@tauri-apps/api/core";
 
 const STORAGE_KEY = "sc.session";
+
+/** The server-assigned session identity + node-id allocation. */
+export interface SessionInfo {
+  sessionId: string;
+  /** scsynth group this session's synths must live under. */
+  sessionGroupId: number;
+  /** First node id the frontend may allocate for this session. */
+  nodeIdBase: number;
+  /** How many node ids the frontend may allocate. */
+  nodeIdCount: number;
+}
+
+export type BootstrapResult = SessionInfo & { wsUrl: string };
 
 /** `http://127.0.0.1:<port>` in Tauri, `""` (relative) in a browser. */
 async function httpBase(): Promise<string> {
@@ -35,42 +49,47 @@ async function wsUrlFor(sessionId: string): Promise<string> {
   return url.href;
 }
 
-async function sessionExists(base: string, id: string): Promise<boolean> {
+/** Fetch a stored session's info, or `null` if it's gone (404 / network). */
+async function fetchSession(base: string, id: string): Promise<SessionInfo | null> {
   try {
     const res = await fetch(`${base}/api/session/${id}`);
-    return res.ok;
+    return res.ok ? ((await res.json()) as SessionInfo) : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-async function createSession(base: string): Promise<string> {
-  const res = await fetch(`${base}/api/session`, { method: "POST" });
-  if (!res.ok) throw new Error(`POST /api/session → ${res.status}`);
-  const { sessionId } = (await res.json()) as { sessionId: string };
-  return sessionId;
+/** Mint a fresh session. The server allocates the group + node range; it can
+ *  briefly return 503 if scsynth hasn't finished registering, so retry. */
+async function createSession(base: string): Promise<SessionInfo> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(`${base}/api/session`, { method: "POST" });
+    if (res.ok) return (await res.json()) as SessionInfo;
+    if (res.status !== 503) throw new Error(`POST /api/session → ${res.status}`);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error("POST /api/session → 503 (scsynth not registered)");
 }
 
-async function doBootstrap(): Promise<{ sessionId: string; wsUrl: string }> {
+async function doBootstrap(): Promise<BootstrapResult> {
   const base = await httpBase();
   const stored = window.sessionStorage.getItem(STORAGE_KEY);
-  let sessionId = stored && (await sessionExists(base, stored)) ? stored : null;
-  if (!sessionId) {
-    sessionId = await createSession(base);
-    window.sessionStorage.setItem(STORAGE_KEY, sessionId);
+  let info = stored ? await fetchSession(base, stored) : null;
+  if (!info) {
+    info = await createSession(base);
+    window.sessionStorage.setItem(STORAGE_KEY, info.sessionId);
   }
-  return { sessionId, wsUrl: await wsUrlFor(sessionId) };
+  return { ...info, wsUrl: await wsUrlFor(info.sessionId) };
 }
 
 /** Reuse a stored, still-live session id, else mint and store a new one.
- *  Returns the id and the WS URL to open for it.
+ *  Returns the session info + the WS URL to open for it.
  *
- *  The in-flight promise is cached so concurrent callers share one `POST` —
- *  notably React StrictMode (dev) mounts effects twice, and without this the
- *  two async runs would both miss the not-yet-written id and mint two sessions. */
-let inFlight: Promise<{ sessionId: string; wsUrl: string }> | null = null;
+ *  The in-flight promise is cached so concurrent callers share one bootstrap —
+ *  notably React StrictMode (dev) mounts effects twice. */
+let inFlight: Promise<BootstrapResult> | null = null;
 
-export function bootstrapSession(): Promise<{ sessionId: string; wsUrl: string }> {
+export function bootstrapSession(): Promise<BootstrapResult> {
   if (!inFlight) {
     inFlight = doBootstrap().catch((err) => {
       inFlight = null; // let a later mount retry after a failure

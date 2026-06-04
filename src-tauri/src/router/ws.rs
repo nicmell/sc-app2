@@ -73,13 +73,19 @@ async fn ws_handler(
         )
             .into_response();
     }
-    ws.on_upgrade(move |socket| async move { run_ws(server, socket).await })
+    ws.on_upgrade(move |socket| async move {
+        // Refcount the live connection so the reaper never evicts an attached
+        // session; detach on close starts the grace window.
+        server.inner.sessions.attach(&id);
+        run_ws(&server, socket).await;
+        server.inner.sessions.detach(&id);
+    })
 }
 
 /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
 /// [`Bridge`](crate::core::bridge); peer replies (from its fan-out) are written
 /// back.
-async fn run_ws(server: Server, mut socket: WebSocket) {
+async fn run_ws(server: &Server, mut socket: WebSocket) {
     let mut replies = server.inner.bridge.subscribe();
     // The master-out scope subscription for this socket, if the frontend asked
     // for one. `/scope/*` is bridge-internal — intercepted below, never routed.
@@ -98,7 +104,7 @@ async fn run_ws(server: Server, mut socket: WebSocket) {
                 Some(Ok(Message::Binary(bytes))) => {
                     match peek_address(bytes.as_ref()) {
                         Some(scope::SCOPE_SUBSCRIBE) => {
-                            scope = subscribe_scope(&server, bytes.as_ref()).await;
+                            scope = subscribe_scope(server, bytes.as_ref()).await;
                         }
                         Some(scope::SCOPE_UNSUBSCRIBE) => {
                             scope = None;

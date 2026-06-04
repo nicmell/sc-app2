@@ -84,6 +84,7 @@ async fn start(
     let bridge = Bridge::connect(&config.peers).await;
     let scsynth = Scsynth::supervise(bridge.clone());
     let server = Server::new(config, bridge, scsynth, assets, logger);
+    server.spawn_session_reaper();
     let (listener, _addr) = server.listen().await?;
     Ok((server, listener))
 }

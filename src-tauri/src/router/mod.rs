@@ -122,6 +122,38 @@ impl Server {
             .clone()
     }
 
+    /// Free a session's scsynth group and everything in it (`/g_freeAll` +
+    /// `/n_free`). Used by DELETE and the idle reaper.
+    async fn free_session_group(&self, group_id: i32) {
+        use crate::core::osc::{self, OscType};
+        self.inner
+            .bridge
+            .dispatch_command(&osc::encode("/g_freeAll", vec![OscType::Int(group_id)]))
+            .await;
+        self.inner
+            .bridge
+            .dispatch_command(&osc::encode("/n_free", vec![OscType::Int(group_id)]))
+            .await;
+    }
+
+    /// Spawn the background reaper: every ~15 s, evict sessions whose WebSocket
+    /// has been gone past `session_ttl_seconds`, freeing each one's group.
+    pub(crate) fn spawn_session_reaper(&self) {
+        let server = self.clone();
+        let grace = std::time::Duration::from_secs(self.inner.config.session_ttl_seconds);
+        let sweep = std::cmp::min(grace / 4, std::time::Duration::from_secs(15)).max(std::time::Duration::from_secs(1));
+        tokio::spawn(async move {
+            let mut ticker = tokio::time::interval(sweep);
+            loop {
+                ticker.tick().await;
+                for (id, block) in server.inner.sessions.evict_idle(grace) {
+                    tracing::info!(session = %id, group = block.group_id, "session evicted (idle past TTL)");
+                    server.free_session_group(block.group_id).await;
+                }
+            }
+        });
+    }
+
     /// UDP port of the `scsynth` peer (its SHM segment is named after it).
     fn scsynth_port(&self) -> Option<u16> {
         self.inner

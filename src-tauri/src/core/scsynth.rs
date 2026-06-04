@@ -15,7 +15,11 @@ use std::time::Duration;
 use tokio::sync::broadcast;
 
 use super::bridge::Bridge;
+use super::ids::root_group_id;
 use super::osc::{self, OscMessage, OscType};
+
+/// `/g_new` add-action: add the new group to the tail of the target group.
+const ADD_TO_TAIL: i32 = 1;
 
 /// scsynth `/status` heartbeat poll interval.
 const STATUS_INTERVAL: Duration = Duration::from_secs(2);
@@ -169,12 +173,55 @@ impl Scsynth {
         scsynth
     }
 
-    /// Release our client slot on scsynth (`/notify 0`) — for shutdown.
+    /// The scsynth-assigned client id, once registered. Sessions derive their
+    /// node-id block and group ids from it (see [`super::ids`]).
+    pub fn client_id(&self) -> Option<i32> {
+        self.inner.state.lock().unwrap().client_id
+    }
+
+    /// Free the per-client root group (and everything in it) then release our
+    /// client slot on scsynth (`/notify 0`) — for shutdown.
     pub async fn unregister(&self) {
-        if self.inner.bridge.has_route("/notify") {
-            self.inner.bridge.dispatch_command(&notify_packet(false)).await;
-            tracing::info!("sent /notify 0 (unregistered from scsynth)");
+        if !self.inner.bridge.has_route("/notify") {
+            return;
         }
+        if let Some(cid) = self.client_id() {
+            let root = root_group_id(cid);
+            self.inner
+                .bridge
+                .dispatch_command(&osc::encode("/g_freeAll", vec![OscType::Int(root)]))
+                .await;
+            self.inner
+                .bridge
+                .dispatch_command(&osc::encode("/n_free", vec![OscType::Int(root)]))
+                .await;
+            tracing::info!(root_group = root, "freed bridge root group");
+        }
+        self.inner.bridge.dispatch_command(&notify_packet(false)).await;
+        tracing::info!("sent /notify 0 (unregistered from scsynth)");
+    }
+
+    /// Create the per-client root group under scsynth's root group (AddToTail of
+    /// group 0, so it runs after sclang/SuperDirt). Every session group nests in
+    /// it, and shutdown frees it wholesale. Idempotent-ish: a second `/g_new`
+    /// with the same id is rejected by scsynth with a harmless `/fail`.
+    async fn create_root_group(&self) {
+        let Some(cid) = self.client_id() else {
+            return;
+        };
+        if cid == 0 && self.inner.bridge.has_route("/dirt") {
+            tracing::warn!(
+                "scsynth assigned clientID 0 while a separate sclang/SuperDirt peer exists; \
+                 boot scsynth with -maxLogins ≥ 2 so node-id blocks don't overlap"
+            );
+        }
+        let root = root_group_id(cid);
+        let pkt = osc::encode(
+            "/g_new",
+            vec![OscType::Int(root), OscType::Int(ADD_TO_TAIL), OscType::Int(0)],
+        );
+        self.inner.bridge.dispatch_command(&pkt).await;
+        tracing::info!(client_id = cid, root_group = root, "created bridge root group");
     }
 
     /// Classify one inbound packet and record what it tells us about scsynth.
@@ -214,6 +261,8 @@ impl Scsynth {
             if self.register().await {
                 // Connected — `record` logged "scsynth running …".
                 down = false;
+                // (Re)create our root group; session groups nest under it.
+                self.create_root_group().await;
                 self.set_alive(true);
                 self.poll_status_until_dead().await; // blocks until scsynth dies
                 self.set_alive(false);

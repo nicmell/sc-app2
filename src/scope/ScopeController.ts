@@ -1,12 +1,15 @@
 // A single fixed scope: taps scsynth's stereo master out (bus 0) into a SHM
-// scope buffer and streams it back for the waveform display. No allocator, no
-// global clock — the bridge polls SHM on a timer (see src-tauri router/ws.rs).
+// scope buffer and streams it back for the waveform display. No global clock —
+// the bridge polls SHM on a timer (see src-tauri router/ws.rs).
 //
-// On start it: clears any stale tap (a previous mount), /d_recv's the tap
-// SynthDef with the /s_new riding as the completion message (atomic, no /sync),
-// subscribes to /scope/chunk, then sends /scope/subscribe so the bridge begins
-// polling. The latest chunk is written to `chunkRef`, which ScopeView's RAF
-// loop reads — never React state (chunks arrive ~47 Hz).
+// On start it: allocates a node id from the session block and clears any stale
+// tap at that id (a previous mount), /d_recv's the tap SynthDef with the /s_new
+// riding as the completion message (atomic, no /sync), subscribes to
+// /scope/chunk, then sends /scope/subscribe so the bridge begins polling. The
+// tap is created inside the session's group (under the bridge root group at the
+// tail of scsynth's root, so it still reads the post-SuperDirt master out). The
+// latest chunk is written to `chunkRef`, which ScopeView's RAF loop reads —
+// never React state (chunks arrive ~47 Hz).
 
 import {
   AddToTail,
@@ -19,6 +22,7 @@ import {
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
 import type { WorkerClient } from "../osc/WorkerClient";
+import type { IdAllocator } from "../osc/IdAllocator";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "../synthdefs/scopeTapSynthDef";
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */
@@ -30,20 +34,23 @@ const CHUNK_SIZE = 1024;
 const SCOPE_INDEX = 0;
 /** Fixed subscription id (single subscription). */
 const SUB_ID = 1;
-/** High, collision-safe node id for the tap synth (clear of SuperDirt's nodes). */
-const TAP_NODE_ID = 9_990_000;
 
 export class ScopeController {
   /** Latest decoded chunk; ScopeView reads this in its RAF loop. */
   readonly chunkRef: { current: DecodedScopeChunk | null } = { current: null };
 
   private readonly client: WorkerClient;
+  private readonly groupId: number;
+  private readonly ids: IdAllocator;
+  private tapNodeId: number | null = null;
   private offChunk: (() => void) | null = null;
   private started = false;
   private disposed = false;
 
-  constructor(client: WorkerClient) {
+  constructor(client: WorkerClient, sessionGroupId: number, ids: IdAllocator) {
     this.client = client;
+    this.groupId = sessionGroupId;
+    this.ids = ids;
   }
 
   start(): void {
@@ -52,13 +59,16 @@ export class ScopeController {
 
     const name = scopeTapSynthDefName(CHANNELS, CHUNK_SIZE);
     const tapBytes = compileScopeTapSynthDef(CHANNELS, CHUNK_SIZE);
-
-    // Drop a stale tap from a previous mount so the /s_new below can't collide.
-    this.client.sendCommand(nFree(TAP_NODE_ID));
+    // Allocation is deterministic per connect, so a reload reuses the same id;
+    // free a stale tap at that id before re-creating it (the session group may
+    // still hold one within the reconnect grace window).
+    const nodeId = this.ids.alloc();
+    this.tapNodeId = nodeId;
+    this.client.sendCommand(nFree(nodeId));
 
     // /d_recv the tap def; its completion message /s_new's the tap at the tail
-    // of the root group (after SuperDirt) so it reads the post-mix master out.
-    const sNewMsg = sNew(name, TAP_NODE_ID, AddToTail, 0, {
+    // of this session's group so it reads the post-mix master out.
+    const sNewMsg = sNew(name, nodeId, AddToTail, this.groupId, {
       inBus: INPUT_BUS,
       scopeNum: SCOPE_INDEX,
     });
@@ -81,6 +91,6 @@ export class ScopeController {
     this.chunkRef.current = null;
     // Stop bridge polling, then free the tap synth.
     this.client.sendCommand(scopeUnsubscribe(SUB_ID));
-    this.client.sendCommand(nFree(TAP_NODE_ID));
+    if (this.tapNodeId !== null) this.client.sendCommand(nFree(this.tapNodeId));
   }
 }

@@ -8,6 +8,7 @@
 //!   `/status` / reconnect / unregister) that sits on top of a [`bridge::Bridge`].
 
 pub mod bridge;
+pub mod ids;
 pub mod osc;
 pub mod peer;
 pub mod scsynth;

@@ -5,6 +5,7 @@
 import type { OscPacket } from "@sc-app/server-commands";
 import { createStore, type ReadonlyStore } from "../util/reactiveStore";
 import { WorkerClient } from "../osc/WorkerClient";
+import { IdAllocator } from "../osc/IdAllocator";
 import { flattenPacket } from "../osc/flatten";
 import { ScopeController } from "../scope/ScopeController";
 import { bootstrapSession } from "../strudel/session";
@@ -50,7 +51,7 @@ export class SessionController {
    *  stores. Safe to call once per controller. */
   async start(): Promise<void> {
     try {
-      const { wsUrl } = await bootstrapSession();
+      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount } = await bootstrapSession();
       if (this.disposed) return;
       const client = new WorkerClient(wsUrl);
       client.onReply((reply) =>
@@ -65,8 +66,11 @@ export class SessionController {
         return;
       }
       this.client = client;
+      // Synths this session creates live in its server-assigned group, with
+      // node ids drawn from its server-assigned block.
+      const ids = new IdAllocator(nodeIdBase, nodeIdCount);
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(client);
+      this.scopeController = new ScopeController(client, sessionGroupId, ids);
       this.scopeController.start();
       this.statusStore.set("connected");
     } catch {

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Header } from "./components/Header";
 import { Dashboard } from "./components/Dashboard";
 import { Drawer } from "./components/Drawer";
 import { refreshPlugins } from "./state/plugins";
@@ -15,8 +14,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header onToggleDrawer={() => setDrawerOpen((open) => !open)} />
-      <Dashboard />
+      <Dashboard onToggleDrawer={() => setDrawerOpen((open) => !open)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   );

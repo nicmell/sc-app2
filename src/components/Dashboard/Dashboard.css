@@ -1,0 +1,151 @@
+/* Dashboard shell + grid, restyled from upstream Dashboard.scss onto
+   ui-foundation tokens. react-grid-layout owns positioning (inline styles +
+   its own css); this file owns the look. */
+
+/* Snappy reposition: kill the grid item's move/resize transition. */
+.react-grid-item {
+  transition: none;
+}
+
+/* The default resize grip is drawn with a near-black border — invisible on a
+   dark surface. Repaint it with a foreground token so the corner is grabbable. */
+.react-grid-item > .react-resizable-handle::after {
+  border-right-color: var(--color-text-dim);
+  border-bottom-color: var(--color-text-dim);
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ── header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  height: 42px;
+  background: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+/* ── grid ── */
+.dashboard-grid-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.dashboard-grid-container {
+  position: relative;
+}
+
+.add-box-placeholder {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-mute);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+.add-box-placeholder:hover {
+  border-color: var(--color-text-dim);
+  color: var(--color-text);
+  background: var(--color-surface-1);
+}
+
+/* ── panel ── */
+.dashboard-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  cursor: grab;
+  user-select: none;
+}
+.dashboard-panel-header:active {
+  cursor: grabbing;
+}
+
+.dashboard-panel-title {
+  flex: 1;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--font-size-xs);
+}
+
+.dashboard-panel-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard-panel-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--color-text-mute);
+  font-size: var(--font-size-sm);
+}
+
+/* ── footer ── */
+.footer {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+  height: 42px;
+  background: var(--color-surface-1);
+}
+
+.server-address,
+.server-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+  font-family: var(--font-mono);
+}
+.server-status {
+  margin-left: auto;
+}

@@ -2,12 +2,27 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+
+  // react-grid-layout bundles react-draggable, whose drag-start logger reads
+  // `process.env.DRAGGABLE_DEBUG` — `process` is undefined in the browser, so it
+  // throws on the first drag/resize. Replace the expression with a constant.
+  define: {
+    "process.env.DRAGGABLE_DEBUG": "false",
+  },
+  // …and again for the dependency pre-bundle, which esbuild optimizes separately
+  // from app source.
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        "process.env": "false",
+      },
+    },
+  },
 
   resolve: {
     alias: {
@@ -49,9 +64,6 @@ export default defineConfig(async () => ({
     // OSC-bridge WebSocket (ws: true), so `yarn dev` tunnels it to the server.
     proxy: {
       "/api": {
-        target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
-      },
-      "/plugins": {
         target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
       },
       "/ws": {

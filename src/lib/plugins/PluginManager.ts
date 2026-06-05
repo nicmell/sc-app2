@@ -1,4 +1,4 @@
-// Plugin CRUD against the Rust HTTP router (`/plugins…`). Always HTTP — even
+// Plugin CRUD against the Rust HTTP router (`/api/plugins…`). Always HTTP — even
 // under Tauri we go through the bundled server (never Tauri IPC), per the
 // `httpBase()` helper shared with session bootstrap. A plugin's entry is a
 // validated XHTML doc using our `sc-*` elements; loading just injects its body
@@ -21,19 +21,19 @@ export interface PluginInfo {
 }
 
 async function pluginsBase(): Promise<string> {
-  return `${await httpBase()}/plugins`;
+  return `${await httpBase()}/api/plugins`;
 }
 
 export async function listPlugins(): Promise<PluginInfo[]> {
   const res = await fetch(await pluginsBase());
-  if (!res.ok) throw new Error(`GET /plugins → ${res.status}`);
+  if (!res.ok) throw new Error(`GET /api/plugins → ${res.status}`);
   return res.json();
 }
 
 export async function addPlugin(file: File): Promise<PluginInfo> {
   const buf = await file.arrayBuffer();
   const res = await fetch(await pluginsBase(), { method: "POST", body: new Uint8Array(buf) });
-  if (!res.ok) throw new Error((await res.text()) || `POST /plugins → ${res.status}`);
+  if (!res.ok) throw new Error((await res.text()) || `POST /api/plugins → ${res.status}`);
   return res.json();
 }
 

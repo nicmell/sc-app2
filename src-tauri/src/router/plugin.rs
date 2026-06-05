@@ -1,6 +1,6 @@
-//! The `/plugins` HTTP routes: list / add / remove + serving plugin files out of
-//! their zip bundles. Thin axum wrappers over [`crate::plugin::manager`]; the
-//! validation + storage logic is framework-agnostic and stateless w.r.t.
+//! The `/api/plugins` HTTP routes: list / add / remove + serving plugin files
+//! out of their zip bundles. Thin axum wrappers over [`crate::plugin::manager`];
+//! the validation + storage logic is framework-agnostic and stateless w.r.t.
 //! [`Server`](crate::server::Server) (it reads the app data dir directly).
 
 use axum::body::Bytes;
@@ -13,12 +13,12 @@ use axum::{Json, Router};
 use crate::plugin::manager;
 use crate::server::Server;
 
-/// The `/plugins` routes (list / add / remove / serve file).
+/// The `/api/plugins` routes (list / add / remove / serve file).
 pub fn routes() -> Router<Server> {
     Router::new()
-        .route("/plugins", get(list).post(add))
-        .route("/plugins/{id}", delete(remove))
-        .route("/plugins/{id}/{*file}", get(serve_file))
+        .route("/api/plugins", get(list).post(add))
+        .route("/api/plugins/{id}", delete(remove))
+        .route("/api/plugins/{id}/{*file}", get(serve_file))
 }
 
 async fn list() -> Response {

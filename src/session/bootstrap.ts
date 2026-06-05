@@ -39,6 +39,27 @@ export async function httpBase(): Promise<string> {
   return "";
 }
 
+/** A bridge peer as reported by `/api/config` (e.g. scsynth, strudel). */
+export interface ServerPeer {
+  name: string;
+  pattern: string;
+  target: string;
+}
+
+/** The subset of `AppConfig` the frontend reads. */
+export interface ServerConfig {
+  port: number;
+  peers: ServerPeer[];
+}
+
+/** Fetch the server config from the Rust router (`/api/config`). The footer
+ *  uses it to show scsynth's address. */
+export async function fetchConfig(): Promise<ServerConfig> {
+  const res = await fetch(`${await httpBase()}/api/config`);
+  if (!res.ok) throw new Error(`GET /api/config → ${res.status}`);
+  return res.json();
+}
+
 /** Build the `/ws?session=` URL for the current environment. */
 async function wsUrlFor(sessionId: string): Promise<string> {
   if (isTauri()) {

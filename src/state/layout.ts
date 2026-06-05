@@ -36,20 +36,19 @@ store.subscribe((items) => {
 
 export const layout: ReadonlyStore<BoxItem[]> = store;
 
-/** Replace geometry from a react-grid-layout callback, preserving `plugin`. */
-export function syncGeometry(next: ReadonlyArray<{ i: string; x: number; y: number; w: number; h: number }>): void {
-  const byId = new Map(store.get().map((b) => [b.i, b]));
-  store.set(
-    next.map(({ i, x, y, w, h }) => ({ plugin: byId.get(i)?.plugin, i, x, y, w, h })),
-  );
+/** A short, collision-unlikely id for a fresh box. */
+export function randomId(): string {
+  return `box-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
 }
 
-export function addBox(): void {
-  const items = store.get();
-  const id = `box-${Date.now().toString(36)}`;
-  // Drop a 4x3 cell at the next free row.
-  const y = items.reduce((max, b) => Math.max(max, b.y + b.h), 0);
-  store.update((list) => [...list, { i: id, x: 0, y, w: 4, h: 3 }]);
+/** Replace the whole layout (geometry already merged with plugin ids). */
+export function setLayout(items: BoxItem[]): void {
+  store.set(items);
+}
+
+/** Append a new box (geometry + optional plugin). */
+export function addBox(box: BoxItem): void {
+  store.update((list) => [...list, box]);
 }
 
 export function removeBox(i: string): void {

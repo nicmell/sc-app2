@@ -3,11 +3,12 @@
 //! [`Server`](crate::server::Server), which this layer holds as axum `State`
 //! and drives through its public API (`router → server → core`).
 //!
-//! Routes are assembled in [`router`] from per-feature sub-routers ([`session`],
-//! [`ws`]) merged onto the bare `/api/config` route, so adding a new feature is
-//! a new `mod` + a `.merge(its::routes())`.
+//! Routes are assembled in [`router`] from per-feature sub-routers ([`config`],
+//! [`session`], [`ws`], [`plugin`]), so adding a new feature is a new `mod` + a
+//! `.merge(its::routes())`.
 
 pub mod assets;
+mod config;
 mod plugin;
 mod session;
 mod ws;
@@ -15,12 +16,10 @@ mod ws;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::extract::{Request, State};
-use axum::routing::get;
-use axum::{Json, Router};
+use axum::extract::Request;
+use axum::Router;
 use tokio::net::TcpListener;
 
-use crate::config::AppConfig;
 use crate::server::Server;
 use assets::AssetResolver;
 
@@ -49,12 +48,12 @@ pub async fn serve(
     Ok(())
 }
 
-/// Assemble the app router: `/api/config` + the session and ws sub-routers, plus
-/// the static-asset fallback when a resolver is installed (production); API-only
-/// otherwise (dev — Vite serves the UI).
+/// Assemble the app router from the per-feature `/api` sub-routers (config,
+/// session, ws, plugins), plus the static-asset fallback when a resolver is
+/// installed (production); API-only otherwise (dev — Vite serves the UI).
 pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router {
     let mut app = Router::new()
-        .route("/api/config", get(get_config))
+        .merge(config::routes())
         .merge(session::routes())
         .merge(ws::routes())
         .merge(plugin::routes())
@@ -63,10 +62,6 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
     }
     app
-}
-
-async fn get_config(State(server): State<Server>) -> Json<AppConfig> {
-    Json(server.config().clone())
 }
 
 /// Resolve when the process receives SIGINT (Ctrl-C) or, on unix, SIGTERM —

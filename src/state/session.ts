@@ -9,6 +9,7 @@ import {
   SessionController,
   type ConnStatus,
   type LoggedEntry,
+  type ScsynthStatus,
 } from "./SessionController";
 
 export const session = new SessionController();
@@ -30,4 +31,9 @@ export function useStatus(): ConnStatus {
 /** Subscribe a React component to the bounded OSC log. */
 export function useOscLog(): LoggedEntry[] {
   return useSyncExternalStore(session.log.subscribe, session.log.get);
+}
+
+/** Subscribe a React component to scsynth's reported load (CPU + sample rate). */
+export function useScsynthStatus(): ScsynthStatus | null {
+  return useSyncExternalStore(session.scsynthStatus.subscribe, session.scsynthStatus.get);
 }

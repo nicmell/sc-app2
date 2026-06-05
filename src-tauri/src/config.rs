@@ -86,6 +86,26 @@ fn canonical_path() -> Option<PathBuf> {
     dirs::config_dir().map(|d| d.join(IDENTIFIER).join("config.json"))
 }
 
+/// The app's data directory (`<config dir>/com.nicmell.scapp`), where the
+/// plugin registry + zip bundles live. Falls back to `./<identifier>` if the
+/// platform config dir can't be resolved (headless/CI).
+pub fn data_dir() -> PathBuf {
+    dirs::config_dir()
+        .map(|d| d.join(IDENTIFIER))
+        .unwrap_or_else(|| PathBuf::from(IDENTIFIER))
+}
+
+/// Directory holding installed plugin zip bundles.
+pub fn plugins_dir() -> PathBuf {
+    data_dir().join("plugins")
+}
+
+/// The plugin registry file (`PluginInfo[]` as JSON), kept separate from the
+/// typed `config.json` so the plugin system owns its own persistence.
+pub fn plugins_registry_path() -> PathBuf {
+    data_dir().join("plugins.json")
+}
+
 /// Load config from an explicit path (serve `--config`) or the canonical
 /// location, tolerating a missing or malformed file (logs and defaults).
 pub fn load(path: Option<PathBuf>) -> AppConfig {

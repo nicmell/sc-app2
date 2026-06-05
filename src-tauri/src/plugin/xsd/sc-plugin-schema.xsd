@@ -1,0 +1,117 @@
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.w3.org/1999/xhtml"
+    xmlns="http://www.w3.org/1999/xhtml"
+    elementFormDefault="qualified">
+
+  <!-- Minimal sc-plugin schema: a basic XHTML wrapper containing simple layout
+       HTML plus our three custom elements (sc-console, sc-scope, sc-strudel).
+       Attribute-light for now; element customization comes later. -->
+
+  <xs:attributeGroup name="commonAttrs">
+    <xs:attribute name="id" type="xs:string" use="optional"/>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+    <xs:attribute name="title" type="xs:string" use="optional"/>
+    <xs:attribute name="style" type="xs:string" use="optional"/>
+  </xs:attributeGroup>
+
+  <!-- ==================== Element declarations ==================== -->
+
+  <!-- Layout HTML -->
+  <xs:element name="div" type="blockType"/>
+  <xs:element name="p" type="inlineType"/>
+  <xs:element name="label" type="inlineType"/>
+  <xs:element name="span" type="inlineType"/>
+  <xs:element name="strong" type="inlineType"/>
+  <xs:element name="em" type="inlineType"/>
+  <xs:element name="h1" type="inlineType"/>
+  <xs:element name="h2" type="inlineType"/>
+  <xs:element name="h3" type="inlineType"/>
+  <xs:element name="h4" type="inlineType"/>
+  <xs:element name="h5" type="inlineType"/>
+  <xs:element name="h6" type="inlineType"/>
+  <xs:element name="hr"/>
+  <xs:element name="br"/>
+
+  <!-- sc-* elements (our three) -->
+  <xs:element name="sc-console" type="scLeafType"/>
+  <xs:element name="sc-scope" type="scLeafType"/>
+  <xs:element name="sc-strudel" type="scLeafType"/>
+
+  <!-- ==================== Content model groups ==================== -->
+
+  <xs:group name="blockContent">
+    <xs:choice>
+      <xs:element ref="div"/>
+      <xs:element ref="p"/>
+      <xs:element ref="label"/>
+      <xs:element ref="span"/>
+      <xs:element ref="strong"/>
+      <xs:element ref="em"/>
+      <xs:element ref="h1"/>
+      <xs:element ref="h2"/>
+      <xs:element ref="h3"/>
+      <xs:element ref="h4"/>
+      <xs:element ref="h5"/>
+      <xs:element ref="h6"/>
+      <xs:element ref="hr"/>
+      <xs:element ref="br"/>
+      <xs:element ref="sc-console"/>
+      <xs:element ref="sc-scope"/>
+      <xs:element ref="sc-strudel"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="inlineContent">
+    <xs:choice>
+      <xs:element ref="span"/>
+      <xs:element ref="strong"/>
+      <xs:element ref="em"/>
+      <xs:element ref="br"/>
+    </xs:choice>
+  </xs:group>
+
+  <!-- ==================== Root ==================== -->
+
+  <xs:element name="title" type="xs:string"/>
+  <xs:element name="head">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="title"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="body" type="blockType"/>
+
+  <xs:element name="html">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="head"/>
+        <xs:element ref="body"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ==================== Complex types ==================== -->
+
+  <xs:complexType name="blockType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="blockContent"/>
+    </xs:choice>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="inlineType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="inlineContent"/>
+    </xs:choice>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- The three custom elements: empty leaves for now (no custom attrs yet). -->
+  <xs:complexType name="scLeafType">
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+</xs:schema>

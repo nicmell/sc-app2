@@ -16,6 +16,7 @@
 mod config;
 mod core;
 mod logger;
+mod plugin;
 mod router;
 mod scope;
 mod server;

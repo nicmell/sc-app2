@@ -8,6 +8,7 @@
 //! a new `mod` + a `.merge(its::routes())`.
 
 pub mod assets;
+mod plugin;
 mod session;
 mod ws;
 
@@ -56,6 +57,7 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         .route("/api/config", get(get_config))
         .merge(session::routes())
         .merge(ws::routes())
+        .merge(plugin::routes())
         .with_state(server);
     if let Some(assets) = assets {
         app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));

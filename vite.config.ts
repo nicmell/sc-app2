@@ -51,6 +51,9 @@ export default defineConfig(async () => ({
       "/api": {
         target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
       },
+      "/plugins": {
+        target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
+      },
       "/ws": {
         target: process.env.SC_SERVER_URL || "http://127.0.0.1:3000",
         ws: true,

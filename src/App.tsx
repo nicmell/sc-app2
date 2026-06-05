@@ -1,28 +1,24 @@
-import StrudelConsole from "./ui/StrudelConsole";
-import OscConsole from "./ui/OscConsole";
-import ScopeView from "./ui/ScopeView";
-import { SessionProvider, useScopeChunkRef } from "./state/SessionContext";
+import { useEffect, useState } from "react";
+import { Header } from "./components/Header";
+import { Dashboard } from "./components/Dashboard";
+import { Drawer } from "./components/Drawer";
+import { refreshPlugins } from "./state/plugins";
 import "./App.css";
 
-/** Master-out waveform strip; renders the canvas once the scope is live. */
-function ScopeStrip() {
-  const chunkRef = useScopeChunkRef();
-  return (
-    <section className="scope-strip">{chunkRef && <ScopeView chunkRef={chunkRef} />}</section>
-  );
-}
-
 function App() {
-  // The session (worker connection + reactive stores) is owned by the provider;
-  // the consoles + scope read status / log / chunks through the session context.
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Load the installed-plugin registry from the Rust router on mount.
+  useEffect(() => {
+    void refreshPlugins();
+  }, []);
+
   return (
-    <SessionProvider>
-      <div className="app">
-        <StrudelConsole />
-        <ScopeStrip />
-        <OscConsole />
-      </div>
-    </SessionProvider>
+    <div className="app">
+      <Header onToggleDrawer={() => setDrawerOpen((open) => !open)} />
+      <Dashboard />
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </div>
   );
 }
 

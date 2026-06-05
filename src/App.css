@@ -1,8 +1,7 @@
-/* App layout. Palette, buttons, status pills, and base element styles come
-   from @sc-app/ui-foundation (imported in main.tsx); this file only owns the
-   app-specific layout and references foundation tokens — no hardcoded hex. */
+/* App layout. Palette, buttons, status pills, panels, modals come from
+   @sc-app/ui-foundation (imported in main.tsx); this file owns the dashboard
+   shell + the three sc-elements' internal layout, all on foundation tokens. */
 
-/* Whole app: Strudel console fills the top, OSC console sits below. */
 .app {
   margin: 0;
   display: flex;
@@ -10,13 +9,169 @@
   height: 100vh;
 }
 
-.strudel {
+/* ── header ── */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-1);
+}
+.app-title {
+  font-size: var(--font-size-md);
+  margin: 0;
+}
+.app-header-spacer {
+  margin-left: auto;
+}
+
+/* ── dashboard grid ── */
+.dashboard {
   flex: 1 1 auto;
   min-height: 0;
+  overflow: auto;
+  padding: var(--space-sm);
+  position: relative;
+  background: var(--color-bg);
+}
+.dashboard-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.grid-cell {
+  height: 100%;
+}
+
+/* The plugin cell: a foundation .panel that fills its grid item. */
+.dashboard-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  cursor: move;
+  user-select: none;
+}
+.panel-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  margin-right: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.panel-actions {
+  cursor: default;
+}
+.dashboard-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.dashboard-panel-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plugin-host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── drawer ── */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 90vw;
+  background: var(--color-surface-1);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform var(--transition-base);
+  z-index: 60;
   display: flex;
   flex-direction: column;
 }
+.drawer[data-open="true"] {
+  transform: translateX(0);
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+.drawer-header h2 {
+  font-size: var(--font-size-md);
+  margin: 0;
+}
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-md);
+}
 
+/* ── plugin list rows ── */
+.plugin-row {
+  justify-content: space-between;
+  width: 100%;
+}
+.plugin-pick {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  gap: var(--space-xs);
+  align-items: baseline;
+}
+.plugin-info {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: baseline;
+}
+.plugin-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+}
+.modal-actions {
+  justify-content: flex-end;
+}
+
+/* ── <sc-strudel> ── */
+sc-strudel {
+  display: block;
+  height: 100%;
+}
+.strudel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .strudel-header {
   display: flex;
   align-items: center;
@@ -24,20 +179,19 @@
   padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
 }
-
 .strudel-header h1 {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   margin: 0;
   margin-right: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-
 .strudel-editor {
   flex: 1;
   min-height: 0;
   overflow: auto;
   text-align: left;
 }
-
 .strudel-detail {
   margin: 0;
   padding: var(--space-2xs) var(--space-sm);
@@ -47,31 +201,31 @@
   border-top: 1px solid var(--color-border);
 }
 
-/* Master-out waveform strip, between the editor and the OSC console. */
-.scope-strip {
-  flex: 0 0 12vh;
-  min-height: 0;
-  display: flex;
-  border-top: 1px solid var(--color-border);
+/* ── <sc-scope> ── */
+sc-scope {
+  display: block;
+  height: 100%;
+  min-height: 80px;
   background: var(--color-surface-2);
 }
-.scope-canvas {
+.sc-scope-canvas {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-/* OSC console — a scrolling log pinned to the bottom. */
+/* ── <sc-console> ── */
+sc-console {
+  display: block;
+  height: 100%;
+}
 .osc-console {
-  flex: 0 0 35vh;
-  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  border-top: 2px solid var(--color-border-strong);
   background: var(--color-surface-2);
   color: var(--color-text);
 }
-
 .osc-header {
   display: flex;
   align-items: baseline;
@@ -89,7 +243,6 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
 }
-
 .osc-log {
   flex: 1;
   min-height: 0;
@@ -99,12 +252,10 @@
   font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
 }
-
 .osc-empty {
   color: var(--color-text-mute);
   padding: var(--space-xs);
 }
-
 .osc-row {
   display: grid;
   grid-template-columns: 7.5em 2.5em 14em 1fr;
@@ -122,10 +273,10 @@
   font-weight: var(--font-weight-medium);
 }
 .osc-tx .osc-dir {
-  color: var(--color-tx); /* sent */
+  color: var(--color-tx);
 }
 .osc-rx .osc-dir {
-  color: var(--color-rx); /* received */
+  color: var(--color-rx);
 }
 .osc-addr {
   color: var(--color-text);

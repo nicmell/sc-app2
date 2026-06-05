@@ -28,8 +28,10 @@ export interface SessionInfo {
 
 export type BootstrapResult = SessionInfo & { wsUrl: string };
 
-/** `http://127.0.0.1:<port>` in Tauri, `""` (relative) in a browser. */
-async function httpBase(): Promise<string> {
+/** `http://127.0.0.1:<port>` in Tauri, `""` (relative) in a browser. Shared by
+ *  the plugin loader so plugins are always fetched from the Rust HTTP router
+ *  (never Tauri IPC). */
+export async function httpBase(): Promise<string> {
   if (isTauri()) {
     const { port } = await invoke<{ port: number }>("get_config");
     return `http://127.0.0.1:${port}`;

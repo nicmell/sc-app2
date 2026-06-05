@@ -1,6 +1,6 @@
 // Owns the per-session OSC worker connection and the reactive state the UI
-// reads: connection status and a bounded log of OSC traffic (tx + rx). Created
-// once by SessionProvider, started on mount, disposed on unmount.
+// reads: connection status and a bounded log of OSC traffic (tx + rx). Held as
+// a module singleton (see state/session.ts), started once at app boot.
 
 import type { OscPacket } from "@sc-app/server-commands";
 import { createStore, type ReadonlyStore } from "../util/reactiveStore";

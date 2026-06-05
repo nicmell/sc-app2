@@ -1,0 +1,7 @@
+{
+  "name": "default-dashboard",
+  "author": "sc-app2",
+  "version": "0.1.0",
+  "entry": "entry.html",
+  "assets": []
+}

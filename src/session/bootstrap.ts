@@ -1,4 +1,4 @@
-// Session bootstrap + URL helpers.
+// Session bootstrap.
 //
 // The bridge gates the WebSocket on a session id (see src-tauri router/session):
 // `POST /api/session` mints one — allocating a scsynth group + node-id range for
@@ -6,28 +6,15 @@
 // across reloads when it's still live (the server keeps the same group/range),
 // else mint a fresh one.
 //
-// In a browser the API + WS are same-origin (production serve) or proxied
-// (Vite dev), so relative URLs work. Inside the Tauri webview the origin is
-// `tauri://localhost`, so we target the HTTP server explicitly on
-// `127.0.0.1:<port>` (port from the `get_config` IPC command).
+// All URLs are built from the resolved base in `env.ts` (relative in a browser,
+// `http://127.0.0.1:<port>` in the Tauri webview).
 
-import { isTauri, invoke } from "@tauri-apps/api/core";
+import { httpBase, wsUrl } from "../env";
 import type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
 
 export type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
 
 const STORAGE_KEY = "sc.session";
-
-/** `http://127.0.0.1:<port>` in Tauri, `""` (relative) in a browser. Shared by
- *  the plugin loader so plugins are always fetched from the Rust HTTP router
- *  (never Tauri IPC). */
-export async function httpBase(): Promise<string> {
-  if (isTauri()) {
-    const { port } = await invoke<{ port: number }>("get_config");
-    return `http://127.0.0.1:${port}`;
-  }
-  return "";
-}
 
 /** A bridge peer as reported by `/api/config` (e.g. scsynth, strudel). */
 export interface ServerPeer {
@@ -45,21 +32,9 @@ export interface ServerConfig {
 /** Fetch the server config from the Rust router (`/api/config`). The footer
  *  uses it to show scsynth's address. */
 export async function fetchConfig(): Promise<ServerConfig> {
-  const res = await fetch(`${await httpBase()}/api/config`);
+  const res = await fetch(`${httpBase()}/api/config`);
   if (!res.ok) throw new Error(`GET /api/config → ${res.status}`);
   return res.json();
-}
-
-/** Build the `/ws?session=` URL for the current environment. */
-async function wsUrlFor(sessionId: string): Promise<string> {
-  if (isTauri()) {
-    const { port } = await invoke<{ port: number }>("get_config");
-    return `ws://127.0.0.1:${port}/ws?session=${sessionId}`;
-  }
-  const url = new URL("/ws", window.location.origin);
-  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.searchParams.set("session", sessionId);
-  return url.href;
 }
 
 /** Fetch a stored session's info, or `null` if it's gone (404 / network). */
@@ -85,14 +60,14 @@ async function createSession(base: string): Promise<SessionInfo> {
 }
 
 async function doBootstrap(): Promise<BootstrapResult> {
-  const base = await httpBase();
+  const base = httpBase();
   const stored = window.sessionStorage.getItem(STORAGE_KEY);
   let info = stored ? await fetchSession(base, stored) : null;
   if (!info) {
     info = await createSession(base);
     window.sessionStorage.setItem(STORAGE_KEY, info.sessionId);
   }
-  return { ...info, wsUrl: await wsUrlFor(info.sessionId) };
+  return { ...info, wsUrl: wsUrl(`/ws?session=${info.sessionId}`) };
 }
 
 /** Reuse a stored, still-live session id, else mint and store a new one.

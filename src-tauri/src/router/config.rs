@@ -1,8 +1,6 @@
-//! The `/api/config` HTTP route: the app config for browser frontends.
-//!
-//! `AppConfig` also reaches the Tauri webview over IPC (the
-//! [`get_config`](crate::config::get_config) command); this is the browser path,
-//! serving the same struct as JSON. Thin transport over
+//! The `/api/config` HTTP route: the full app config for frontends (the footer's
+//! scsynth address comes from here). The GUI webview only needs the server port,
+//! which it gets via the `get_env` command instead. Thin transport over
 //! [`Server::config`](crate::server::Server::config).
 
 use axum::extract::State;

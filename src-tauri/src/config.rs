@@ -2,10 +2,10 @@
 //! path or the canonical app config dir (e.g. macOS
 //! `~/Library/Application Support/com.nicmell.scapp/config.json`).
 //!
-//! `AppConfig` reaches the frontend two ways over one core ([`load`]): the
-//! [`get_config`] Tauri command (GUI webview, over IPC) and the server's
-//! `/api/config` route (browsers). It also carries the `peers` the bridge
-//! connects to at startup and an optional `log_dir`.
+//! `AppConfig` reaches browser frontends over the server's `/api/config` route
+//! ([`crate::router::config`]); the GUI webview only needs the server port, via
+//! the `get_env` command in [`crate::run`]. It also carries the `peers` the
+//! bridge connects to at startup and an optional `log_dir`.
 
 use std::path::PathBuf;
 
@@ -126,12 +126,6 @@ pub fn load(path: Option<PathBuf>) -> AppConfig {
         config.peers = default_peers();
     }
     config
-}
-
-/// The app config, for the GUI webview (over IPC).
-#[tauri::command]
-pub fn get_config() -> AppConfig {
-    load(None)
 }
 
 #[cfg(test)]

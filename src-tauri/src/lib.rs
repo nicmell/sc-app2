@@ -9,9 +9,9 @@
 //! root: it connects the OSC [`core::bridge::Bridge`], starts the
 //! [`core::scsynth::Scsynth`] supervisor on top of it, builds the web-layer
 //! [`router::Server`], and binds its listener. The two run modes differ only in
-//! where the frontend assets come from and how/when they serve. The frontend
-//! gets its config via the [`config::get_config`] command (GUI webview, over
-//! IPC) or the server's `/api/config` route (browsers).
+//! where the frontend assets come from and how/when they serve. The GUI webview
+//! learns the server port via the `get_env` command; browsers are same-origin
+//! and read full config from the server's `/api/config` route.
 
 mod config;
 mod core;
@@ -101,13 +101,29 @@ fn run_serve(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     });
 }
 
+/// What the GUI webview needs to reach the embedded HTTP server: its port. The
+/// webview's origin is `tauri://localhost`, not the server, so it targets
+/// `http://127.0.0.1:<port>`; the frontend resolves this once via `get_env`
+/// (see `src/env.ts`). Browsers don't use this — they're same-origin.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct EnvInfo {
+    port: u16,
+}
+
+/// The runtime environment for the GUI webview (the server port it should call).
+#[tauri::command]
+fn get_env(server: tauri::State<Server>) -> EnvInfo {
+    EnvInfo { port: server.port() }
+}
+
 /// Native GUI: stock Tauri (window from tauri.conf.json, `tauri://` assets,
-/// `get_config` over IPC) plus the HTTP server for external clients, which
-/// serves the frontend through the running app's asset resolver.
+/// `get_env` over IPC for the server port) plus the HTTP server for external
+/// clients, which serves the frontend through the running app's asset resolver.
 fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![config::get_config])
+        .invoke_handler(tauri::generate_handler![get_env])
         .setup(move |app| {
             // Same build+bind as serve; only the asset source differs.
             let assets = router::assets::from_app(app);

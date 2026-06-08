@@ -1,10 +1,10 @@
 // Plugin CRUD against the Rust HTTP router (`/api/plugins…`). Always HTTP — even
-// under Tauri we go through the bundled server (never Tauri IPC), per the
-// `httpBase()` helper shared with session bootstrap. A plugin's entry is a
-// validated XHTML doc using our `sc-*` elements; loading just injects its body
-// and lets the custom elements upgrade themselves (no runtime/bind pipeline).
+// under Tauri we go through the bundled server (never Tauri IPC), via the
+// `httpBase()` helper from env. A plugin's entry is a validated XHTML doc using
+// our `sc-*` elements; loading just injects its body and lets the custom elements
+// upgrade themselves (no runtime/bind pipeline).
 
-import { httpBase } from "../../session/bootstrap";
+import { httpBase } from "../../env";
 
 export interface PluginAsset {
   path: string;
@@ -21,7 +21,7 @@ export interface PluginInfo {
 }
 
 async function pluginsBase(): Promise<string> {
-  return `${await httpBase()}/api/plugins`;
+  return `${httpBase()}/api/plugins`;
 }
 
 export async function listPlugins(): Promise<PluginInfo[]> {

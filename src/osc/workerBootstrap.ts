@@ -24,7 +24,7 @@
  * order guarantees it runs before everything else in the worker.
  */
 
-import type { MainToWorker } from "./protocol";
+import type { MainToWorker } from "@sc-app/session-core";
 
 if (typeof (globalThis as { window?: unknown }).window === "undefined") {
   (globalThis as { window?: unknown }).window = globalThis;

@@ -1,4 +1,4 @@
-import { installDebugLog } from "./util/debugLog";
+import { installDebugLog } from "./utils/debugLog";
 import "@sc-app/ui-foundation";
 import React from "react";
 import ReactDOM from "react-dom/client";

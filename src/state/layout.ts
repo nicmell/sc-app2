@@ -1,8 +1,7 @@
-// Dashboard grid layout: which plugin sits in which cell, plus geometry. Held
-// in a reactiveStore and persisted to localStorage so the dashboard survives
-// reloads (the plugin registry itself is server-side; this is just placement).
+// Dashboard grid layout: which plugin sits in which cell, plus geometry. A slice
+// of the single app store (`store.ts`), which owns the localStorage persistence.
 
-import { createStore, type ReadonlyStore } from "../util/reactiveStore";
+import { appStore } from "./store";
 
 /** A grid cell: react-grid-layout geometry + the assigned plugin id. */
 export interface BoxItem {
@@ -14,27 +13,9 @@ export interface BoxItem {
   plugin?: string;
 }
 
-const KEY = "sc.dashboard.layout";
+const store = appStore.slice("layout");
 
-function load(): BoxItem[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as BoxItem[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-const store = createStore<BoxItem[]>(load());
-store.subscribe((items) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(items));
-  } catch {
-    /* storage full / unavailable — non-fatal */
-  }
-});
-
-export const layout: ReadonlyStore<BoxItem[]> = store;
+export const layout = store;
 
 /** A short, collision-unlikely id for a fresh box. */
 export function randomId(): string {

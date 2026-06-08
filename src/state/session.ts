@@ -1,4 +1,4 @@
-// The session singleton: one SessionController for the whole app, owning the
+// The session singleton: one SessionManager for the whole app, owning the
 // OSC worker connection + status/log stores + the scope tap. It's a module
 // singleton (not React-context-scoped) so the Lit `sc-*` elements — which live
 // in injected plugin HTML, outside React's tree — can reach it directly. The
@@ -6,14 +6,32 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  SessionController,
+  SessionManager,
   type ConnStatus,
   type LoggedEntry,
   type ScsynthStatus,
   type ScsynthError,
-} from "./SessionController";
+} from "../lib/sessions/SessionManager";
+import { WorkerClient } from "../osc/WorkerClient";
+import { bootstrapSession } from "../session/bootstrap";
 
-export const session = new SessionController();
+// Re-export the controller types so existing app imports keep working.
+export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../lib/sessions/SessionManager";
+
+const scopeFlag = (key: string) =>
+  typeof localStorage !== "undefined" && !!localStorage.getItem(key);
+
+/** The one session for the whole app. Wires the browser environment — a Vite
+ *  Web Worker client + the Tauri/HTTP bootstrap — into the env-agnostic
+ *  controller; the `sc-*` Lit elements read this singleton directly. */
+export const session = new SessionManager({
+  createClient: (wsUrl) => new WorkerClient(wsUrl),
+  bootstrap: bootstrapSession,
+  scopeOptions: {
+    debug: scopeFlag("sc.scopeDebug"),
+    testTone: scopeFlag("sc.scopeTestTone"),
+  },
+});
 
 let started = false;
 

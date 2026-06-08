@@ -23,10 +23,10 @@ import {
   scopeUnsubscribe,
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
-import type { WorkerClient } from "../osc/WorkerClient";
+import type { OscClient } from "../client/OscClient";
 import type { IdAllocator } from "../session/IdAllocator";
-import { compileScopeTapSynthDef, scopeTapSynthDefName } from "../synthdefs/scopeTapSynthDef";
-import { compileTestToneSynthDef, testToneSynthDefName } from "../synthdefs/testToneSynthDef";
+import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
+import { compileTestToneSynthDef, testToneSynthDefName } from "./testToneSynthDef";
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */
 const INPUT_BUS = 0;
@@ -36,11 +36,20 @@ const CHUNK_SIZE = 1024;
 /** Fixed subscription id (one subscription per WS connection). */
 const SUB_ID = 1;
 
+/** Diagnostics, injected so the package needs no `localStorage`. The app reads
+ *  the `sc.scopeDebug` / `sc.scopeTestTone` localStorage flags and passes them. */
+export interface ScopeOptions {
+  /** Log chunk stats (~1×/sec) to the console. */
+  debug?: boolean;
+  /** Inject a 220 Hz sine onto the tapped bus (proves the pipeline). */
+  testTone?: boolean;
+}
+
 export class ScopeController {
   /** Latest decoded chunk; ScopeView reads this in its RAF loop. */
   readonly chunkRef: { current: DecodedScopeChunk | null } = { current: null };
 
-  private readonly client: WorkerClient;
+  private readonly client: OscClient;
   private readonly groupId: number;
   private readonly ids: IdAllocator;
   /** Per-session SHM scope-buffer index (server-assigned) so concurrent
@@ -50,22 +59,24 @@ export class ScopeController {
   private offChunk: (() => void) | null = null;
   private started = false;
   private disposed = false;
-  /** Diagnostics: total chunks received + whether to log stats to the console
-   *  (debug-console drawer). Enable with `localStorage.setItem('sc.scopeDebug','1')`. */
+  /** Diagnostics: total chunks received + console-logging / test-tone flags. */
   private chunkCount = 0;
-  private readonly debug =
-    typeof localStorage !== "undefined" && !!localStorage.getItem("sc.scopeDebug");
-  /** Diagnostics: inject a 220 Hz sine onto the tapped bus so a working scope
-   *  shows it (and it's audible) — isolates the pipeline from SuperDirt.
-   *  Enable with `localStorage.setItem('sc.scopeTestTone','1')`. */
-  private readonly testTone =
-    typeof localStorage !== "undefined" && !!localStorage.getItem("sc.scopeTestTone");
+  private readonly debug: boolean;
+  private readonly testTone: boolean;
 
-  constructor(client: WorkerClient, sessionGroupId: number, ids: IdAllocator, scopeIndex: number) {
+  constructor(
+    client: OscClient,
+    sessionGroupId: number,
+    ids: IdAllocator,
+    scopeIndex: number,
+    options: ScopeOptions = {},
+  ) {
     this.client = client;
     this.groupId = sessionGroupId;
     this.ids = ids;
     this.scopeIndex = scopeIndex;
+    this.debug = options.debug ?? false;
+    this.testTone = options.testTone ?? false;
   }
 
   start(): void {

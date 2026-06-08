@@ -4,12 +4,12 @@
 // the viewport *below* the bar — a drawer that hovers the dashboard without
 // shrinking it. The panel is portaled to <body> so the footer's lift transform
 // doesn't become its containing block (transform traps position:fixed children).
-// Reads the console-mirror ring buffer from util/debugLog. Ported from the old
+// Reads the console-mirror ring buffer from utils/debugLog. Ported from the old
 // sc-app's DebugLog (console-mirror core; the scsynth /fail section is omitted).
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useStore } from "../../state/useStore";
-import { clearDebugLog, debugLog, type DebugEntry } from "../../util/debugLog";
+import { clearDebugLog, debugLog, type DebugEntry } from "../../utils/debugLog";
 
 function formatEntries(entries: ReadonlyArray<DebugEntry>): string {
   return (

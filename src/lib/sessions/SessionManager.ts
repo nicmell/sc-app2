@@ -1,15 +1,35 @@
-// Owns the per-session OSC worker connection and the reactive state the UI
-// reads: connection status and a bounded log of OSC traffic (tx + rx). Held as
-// a module singleton (see state/session.ts), started once at app boot.
+// Owns the per-session OSC connection and the UI-facing reactive state:
+// connection status, a bounded OSC log (tx + rx), scsynth load, and error
+// banners. The OSC client (browser Worker / in-process / worker_threads) and the
+// session bootstrap are injected via SessionDeps.
+//
+// State lives in the single app store (`src/state/store.ts`) under its `session`
+// slice; the public `status`/`log`/`scsynthStatus`/`scsynthErrors` are `select`
+// views off that slice, so each notifies independently and the React hooks read
+// them via useSyncExternalStore.
 
 import type { OscArg, OscPacket } from "@sc-app/server-commands";
-import { createStore, type ReadonlyStore } from "../util/reactiveStore";
-import { WorkerClient } from "../osc/WorkerClient";
-import type { OscReply } from "../osc/protocol";
-import { IdAllocator } from "../session/IdAllocator";
-import { flattenPacket } from "../osc/flatten";
-import { ScopeController } from "../scope/ScopeController";
-import { bootstrapSession } from "../session/bootstrap";
+import {
+  IdAllocator,
+  ScopeController,
+  flattenPacket,
+  type Bootstrap,
+  type OscClient,
+  type OscClientFactory,
+  type OscReply,
+  type ScopeOptions,
+} from "@sc-app/session-core";
+import { appStore } from "../../state/store";
+
+/** What SessionManager needs from its environment. */
+export interface SessionDeps {
+  /** Create the OSC client for a WS URL (WorkerOscClient / InProcess / NodeWorker). */
+  createClient: OscClientFactory;
+  /** Mint/reuse a session and return its connection info. */
+  bootstrap: Bootstrap;
+  /** Scope diagnostics (the app maps localStorage flags to these). */
+  scopeOptions?: ScopeOptions;
+}
 
 export type ConnStatus = "connecting" | "connected" | "error";
 
@@ -32,9 +52,6 @@ export interface ScsynthStatus {
   sampleRate: number;
 }
 
-/** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
-const STATUS_REPLY = "/status.reply";
-
 /** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
  *  surfaced to the user as a toast banner. Repeated identical failures coalesce
  *  into one entry with a bumped `count`. */
@@ -47,6 +64,25 @@ export interface ScsynthError {
   count: number;
   ts: number;
 }
+
+/** The session slice of the app store. */
+export interface SessionState {
+  status: ConnStatus;
+  log: LoggedEntry[];
+  scsynthStatus: ScsynthStatus | null;
+  errors: ScsynthError[];
+}
+
+/** Initial session slice, shared with the app store's root state. */
+export const initialSessionState: SessionState = {
+  status: "connecting",
+  log: [],
+  scsynthStatus: null,
+  errors: [],
+};
+
+/** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
+const STATUS_REPLY = "/status.reply";
 
 /** Max coalesced error banners kept (oldest dropped). */
 const MAX_ERRORS = 20;
@@ -64,43 +100,32 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
-export class SessionController {
-  private readonly statusStore = createStore<ConnStatus>("connecting");
-  private readonly logStore = createStore<LoggedEntry[]>([]);
-  private readonly scsynthStore = createStore<ScsynthStatus | null>(null);
-  private readonly errorStore = createStore<ScsynthError[]>([]);
-  private client: WorkerClient | null = null;
+export class SessionManager {
+  /** This session's slice of the single app store. */
+  private readonly state = appStore.slice("session");
+  readonly status = this.state.select((s) => s.status);
+  readonly log = this.state.select((s) => s.log);
+  readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
+  readonly scsynthErrors = this.state.select((s) => s.errors);
+
+  private readonly deps: SessionDeps;
+  private client: OscClient | null = null;
   private scopeController: ScopeController | null = null;
   private nextId = 0;
   private disposed = false;
 
-  get status(): ReadonlyStore<ConnStatus> {
-    return this.statusStore;
-  }
-
-  get log(): ReadonlyStore<LoggedEntry[]> {
-    return this.logStore;
-  }
-
-  /** scsynth's last reported load (CPU + sample rate), or `null` until the
-   *  first `/status.reply` arrives. */
-  get scsynthStatus(): ReadonlyStore<ScsynthStatus | null> {
-    return this.scsynthStore;
-  }
-
-  /** Active scsynth error/warning banners (coalesced). */
-  get scsynthErrors(): ReadonlyStore<ScsynthError[]> {
-    return this.errorStore;
+  constructor(deps: SessionDeps) {
+    this.deps = deps;
   }
 
   /** Dismiss one banner by id (the toast's × / auto-dismiss timer). */
   dismissError(id: number): void {
-    this.errorStore.update((prev) => prev.filter((e) => e.id !== id));
+    this.state.update((s) => ({ ...s, errors: s.errors.filter((e) => e.id !== id) }));
   }
 
   /** Drop every banner. */
   clearErrors(): void {
-    this.errorStore.set([]);
+    this.state.update((s) => ({ ...s, errors: [] }));
   }
 
   /** The master-out scope, available once connected. */
@@ -109,15 +134,15 @@ export class SessionController {
   }
 
   /** Bootstrap the session, spin up the worker, and wire its events into the
-   *  stores. Safe to call once per controller. */
+   *  store. Safe to call once per controller. */
   async start(): Promise<void> {
     try {
-      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await bootstrapSession();
+      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await this.deps.bootstrap();
       if (this.disposed) return;
-      const client = new WorkerClient(wsUrl);
+      const client = this.deps.createClient(wsUrl);
       client.onReply((reply) => this.handleReply(reply));
       client.onError(() => {
-        if (!this.disposed) this.statusStore.set("error");
+        if (!this.disposed) this.setStatus("error");
       });
       await client.ready;
       if (this.disposed) {
@@ -129,11 +154,11 @@ export class SessionController {
       // node ids drawn from its server-assigned block.
       const ids = new IdAllocator(nodeIdBase, nodeIdCount);
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(client, sessionGroupId, ids, scopeIndex);
+      this.scopeController = new ScopeController(client, sessionGroupId, ids, scopeIndex, this.deps.scopeOptions);
       this.scopeController.start();
-      this.statusStore.set("connected");
+      this.setStatus("connected");
     } catch {
-      if (!this.disposed) this.statusStore.set("error");
+      if (!this.disposed) this.setStatus("error");
     }
   }
 
@@ -152,18 +177,23 @@ export class SessionController {
     this.client = null;
   }
 
-  /** Route an inbound reply: `/status.reply` updates the scsynth-status store
+  private setStatus(status: ConnStatus): void {
+    this.state.update((s) => ({ ...s, status }));
+  }
+
+  /** Route an inbound reply: `/status.reply` updates the scsynth-status slice
    *  (and is kept out of the console); `/fail` and `/late` additionally raise a
    *  banner; everything (except `/status.reply`) is still logged as `rx`. */
   private handleReply(reply: OscReply): void {
     if (reply.address === STATUS_REPLY) {
-      this.scsynthStore.set(parseStatus(reply.args));
+      const next = parseStatus(reply.args);
+      this.state.update((s) => ({ ...s, scsynthStatus: next }));
       return;
     }
     // `/fail <command> <error> [extras…]` and `/late <seconds>` are mirrored to
     // the debug console (the footer drawer, via console.*) so every failure is
-    // visible there, and — unless benign — also raise a toast banner. Either way
-    // they still fall through to the OSC console as the full history.
+    // visible there, and also raise a toast banner. Either way they still fall
+    // through to the OSC console as the full history.
     if (reply.address === "/fail") {
       const command = String(reply.args[0] ?? "?");
       const message = String(reply.args[1] ?? "(no message)");
@@ -181,28 +211,21 @@ export class SessionController {
   /** Add a banner, coalescing an identical (address + message) one into a
    *  bumped count + refreshed timestamp (which restarts its auto-dismiss). */
   private pushError(address: string, message: string, variant: "error" | "warn"): void {
-    this.errorStore.update((prev) => {
-      const existing = prev.find((e) => e.address === address && e.message === message);
-      if (existing) {
-        return prev.map((e) =>
-          e === existing ? { ...e, count: e.count + 1, ts: Date.now() } : e,
-        );
-      }
-      const entry: ScsynthError = {
-        id: this.nextId++,
-        address,
-        message,
-        variant,
-        count: 1,
-        ts: Date.now(),
-      };
-      return [...prev, entry].slice(-MAX_ERRORS);
+    this.state.update((s) => {
+      const existing = s.errors.find((e) => e.address === address && e.message === message);
+      const errors = existing
+        ? s.errors.map((e) => (e === existing ? { ...e, count: e.count + 1, ts: Date.now() } : e))
+        : [...s.errors, { id: this.nextId++, address, message, variant, count: 1, ts: Date.now() }].slice(
+            -MAX_ERRORS,
+          );
+      return { ...s, errors };
     });
   }
 
   private append(dir: "tx" | "rx", address: string, args: string[]): void {
-    this.logStore.update((prev) =>
-      [...prev, { ts: Date.now(), dir, address, args, id: this.nextId++ }].slice(-MAX_LOG),
-    );
+    this.state.update((s) => ({
+      ...s,
+      log: [...s.log, { ts: Date.now(), dir, address, args, id: this.nextId++ }].slice(-MAX_LOG),
+    }));
   }
 }

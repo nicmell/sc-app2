@@ -12,24 +12,11 @@
 // `127.0.0.1:<port>` (port from the `get_config` IPC command).
 
 import { isTauri, invoke } from "@tauri-apps/api/core";
+import type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
+
+export type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
 
 const STORAGE_KEY = "sc.session";
-
-/** The server-assigned session identity + node-id allocation. */
-export interface SessionInfo {
-  sessionId: string;
-  /** scsynth group this session's synths must live under. */
-  sessionGroupId: number;
-  /** First node id the frontend may allocate for this session. */
-  nodeIdBase: number;
-  /** How many node ids the frontend may allocate. */
-  nodeIdCount: number;
-  /** scsynth scope-buffer index this session's master-out tap uses — distinct
-   *  per session so concurrent windows don't stomp the same SHM scope buffer. */
-  scopeIndex: number;
-}
-
-export type BootstrapResult = SessionInfo & { wsUrl: string };
 
 /** `http://127.0.0.1:<port>` in Tauri, `""` (relative) in a browser. Shared by
  *  the plugin loader so plugins are always fetched from the Rust HTTP router

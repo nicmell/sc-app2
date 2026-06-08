@@ -1,5 +1,6 @@
-// Installed-plugin registry, mirrored in a reactiveStore from the Rust router.
-import { createStore, type ReadonlyStore } from "../util/reactiveStore";
+// Installed-plugin registry, mirrored from the Rust router. A slice of the
+// single app store (`store.ts`).
+import { appStore } from "./store";
 import {
   addPlugin,
   listPlugins,
@@ -7,9 +8,9 @@ import {
   type PluginInfo,
 } from "../lib/plugins/PluginManager";
 
-const store = createStore<PluginInfo[]>([]);
+const store = appStore.slice("plugins");
 
-export const plugins: ReadonlyStore<PluginInfo[]> = store;
+export const plugins = store;
 
 /** Re-fetch the installed plugins from the server. */
 export async function refreshPlugins(): Promise<void> {

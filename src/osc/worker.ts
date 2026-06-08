@@ -1,75 +1,49 @@
 /// <reference lib="webworker" />
-// OSC worker entry point. Owns the bridge WebSocket and all OSC decode: the
-// main thread posts encoded bytes to send, and we post decoded inbound replies
-// back. workerBootstrap MUST be imported first — it shims `window` for osc-js
-// before @sc-app/server-commands (which pulls in osc-js) is evaluated.
+// OSC worker entry point (browser). Bridges `self` postMessages ↔ the shared
+// bridge core in @sc-app/session-core (which owns the WebSocket + OSC decode).
+// `workerBootstrap` MUST be imported first — it shims `window` for osc-js before
+// @sc-app/server-commands (which createOscBridge pulls in) is evaluated.
 
 import { setWorkerMessageHandler } from "./workerBootstrap";
-import { decode, isMessage, parseScopeChunkArgs, SCOPE_CHUNK_ADDRESS } from "@sc-app/server-commands";
-import { flattenPacket } from "./flatten";
-import { createOscTransport, type OscTransport } from "./transport";
-import type { MainToWorker, WorkerToMain } from "./protocol";
+import { createOscBridge, type OscBridge } from "@sc-app/session-core";
+import type { MainToWorker, WorkerToMain } from "@sc-app/session-core";
 
-let transport: OscTransport | null = null;
+let bridge: OscBridge | null = null;
 
 function post(msg: WorkerToMain, transfer?: Transferable[]): void {
   self.postMessage(msg, transfer ?? []);
 }
 
-/** Decode an inbound frame and dispatch it. `/scope/chunk` is parsed into a
- *  fresh Float32Array and posted (transferred) as `scopeChunk`; everything else
- *  is flattened and posted as `reply`s. */
-function handleInbound(bytes: Uint8Array): void {
-  try {
-    const packet = decode(bytes);
-    if (isMessage(packet) && packet.address === SCOPE_CHUNK_ADDRESS) {
-      const chunk = parseScopeChunkArgs(packet.args as unknown[]);
-      post({ type: "scopeChunk", chunk }, [chunk.data.buffer]);
-      return;
-    }
-    for (const reply of flattenPacket(packet)) {
-      post({ type: "reply", reply });
-    }
-  } catch (err) {
-    console.error("[sc:worker] decode failed", err, bytes);
-    post({
-      type: "error",
-      message: `decode failed: ${err instanceof Error ? err.message : String(err)}`,
-    });
-  }
-}
-
 async function handle(msg: MainToWorker): Promise<void> {
   switch (msg.type) {
     case "connect": {
-      const t = createOscTransport(msg.url);
-      transport = t;
-      t.onMessage(handleInbound);
-      t.onError(() => post({ type: "error", message: "websocket error" }));
-      t.onClose(() => post({ type: "closed" }));
+      bridge = createOscBridge(msg.url, {
+        onReply: (reply) => post({ type: "reply", reply }),
+        // Transfer the chunk's buffer so the main thread owns it zero-copy.
+        onScopeChunk: (chunk) => post({ type: "scopeChunk", chunk }, [chunk.data.buffer]),
+        onError: (message) => post({ type: "error", message }),
+        onClose: () => post({ type: "closed" }),
+      });
       try {
-        await t.ready;
+        await bridge.ready;
         post({ type: "ready" });
       } catch (err) {
-        post({
-          type: "error",
-          message: err instanceof Error ? err.message : String(err),
-        });
+        post({ type: "error", message: err instanceof Error ? err.message : String(err) });
       }
       return;
     }
     case "send": {
-      if (!transport) {
+      if (!bridge) {
         post({ type: "error", message: "send before connect" });
         return;
       }
-      transport.send(msg.bytes);
+      bridge.send(msg.bytes);
       return;
     }
     case "disconnect": {
-      if (transport) {
-        await transport.close();
-        transport = null;
+      if (bridge) {
+        await bridge.close();
+        bridge = null;
       }
       return;
     }

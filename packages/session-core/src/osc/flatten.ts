@@ -1,6 +1,6 @@
 // Flatten an OSC packet into per-message `(address, args)` entries — a bundle
 // recurses to its inner messages. Shared by the worker (decoding inbound rx)
-// and the SessionController (logging outbound tx, where it already holds the
+// and the app's SessionManager (logging outbound tx, where it already holds the
 // packet so there's no need to re-decode bytes).
 
 import { isBundle, isMessage, type OscPacket } from "@sc-app/server-commands";

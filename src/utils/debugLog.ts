@@ -4,11 +4,11 @@
  * (without the `devtools` feature), or a browser with the console hidden.
  *
  * We don't replace console; we monkey-patch the four levels (log/info/warn/error)
- * to push into the buffer as a *side effect* of the normal call. The original
- * console behaviour is preserved verbatim. Ported from the old sc-app.
+ * to push into the buffer as a *side effect* of the normal call. The buffer is
+ * the `debug` slice of the single app store (`src/state/store.ts`).
  */
 
-import { createStore, type ReadonlyStore } from "./reactiveStore";
+import { appStore } from "../state/store";
 
 export type DebugLevel = "log" | "info" | "warn" | "error";
 
@@ -21,7 +21,7 @@ export interface DebugEntry {
 
 const MAX_ENTRIES = 500;
 
-const store = createStore<DebugEntry[]>([]);
+const store = appStore.slice("debug");
 let nextId = 0;
 
 function render(args: unknown[]): string {
@@ -45,10 +45,9 @@ function push(level: DebugLevel, args: unknown[]): void {
     level,
     text: render(args),
   };
-  const prev = store.get();
-  const next =
-    prev.length >= MAX_ENTRIES ? [...prev.slice(-(MAX_ENTRIES - 1)), entry] : [...prev, entry];
-  store.set(next);
+  store.update((prev) =>
+    prev.length >= MAX_ENTRIES ? [...prev.slice(-(MAX_ENTRIES - 1)), entry] : [...prev, entry],
+  );
 }
 
 let installed = false;
@@ -83,7 +82,8 @@ export function installDebugLog(): void {
   console.log("[sc:debugLog] installed");
 }
 
-export const debugLog: ReadonlyStore<DebugEntry[]> = store;
+/** Read-only view of the debug ring buffer (the footer drawer subscribes). */
+export const debugLog = store.select((entries) => entries);
 
 export function clearDebugLog(): void {
   store.set([]);

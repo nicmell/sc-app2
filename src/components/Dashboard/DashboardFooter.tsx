@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useStatus, useScsynthStatus } from "../../state/session";
 import type { ScsynthStatus } from "../../state/SessionController";
 import { fetchConfig } from "../../session/bootstrap";
+import { DebugLog } from "./DebugLog";
 
 function formatStatus(s: ScsynthStatus): string {
   return `CPU: ${s.avgCpu.toFixed(1)}% / ${s.peakCpu.toFixed(1)}% | SR: ${s.sampleRate.toFixed(0)} Hz`;
@@ -16,6 +17,7 @@ export function DashboardFooter() {
   const conn = useStatus();
   const scsynth = useScsynthStatus();
   const [address, setAddress] = useState("");
+  const [debugOpen, setDebugOpen] = useState(false);
 
   useEffect(() => {
     fetchConfig()
@@ -29,8 +31,9 @@ export function DashboardFooter() {
   }, []);
 
   return (
-    <footer className="footer">
+    <footer className="footer" data-debug-open={debugOpen}>
       <span className="server-address">{address}</span>
+      <DebugLog open={debugOpen} onToggle={() => setDebugOpen((o) => !o)} />
       <span className="server-status">{scsynth ? formatStatus(scsynth) : conn}</span>
     </footer>
   );

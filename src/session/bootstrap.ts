@@ -24,6 +24,9 @@ export interface SessionInfo {
   nodeIdBase: number;
   /** How many node ids the frontend may allocate. */
   nodeIdCount: number;
+  /** scsynth scope-buffer index this session's master-out tap uses — distinct
+   *  per session so concurrent windows don't stomp the same SHM scope buffer. */
+  scopeIndex: number;
 }
 
 export type BootstrapResult = SessionInfo & { wsUrl: string };

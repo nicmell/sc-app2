@@ -34,6 +34,9 @@ struct SessionInfo {
     session_group_id: i32,
     node_id_base: i32,
     node_id_count: i32,
+    /// scsynth scope-buffer index for this session's master-out tap (so
+    /// concurrent windows don't write the same SHM scope buffer).
+    scope_index: i32,
 }
 
 impl SessionInfo {
@@ -43,6 +46,7 @@ impl SessionInfo {
             session_group_id: block.group_id,
             node_id_base: block.node_base,
             node_id_count: block.node_count,
+            scope_index: block.scope_index,
         }
     }
 }

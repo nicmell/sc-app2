@@ -112,7 +112,7 @@ export class SessionController {
    *  stores. Safe to call once per controller. */
   async start(): Promise<void> {
     try {
-      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount } = await bootstrapSession();
+      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await bootstrapSession();
       if (this.disposed) return;
       const client = new WorkerClient(wsUrl);
       client.onReply((reply) => this.handleReply(reply));
@@ -129,7 +129,7 @@ export class SessionController {
       // node ids drawn from its server-assigned block.
       const ids = new IdAllocator(nodeIdBase, nodeIdCount);
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(client, sessionGroupId, ids);
+      this.scopeController = new ScopeController(client, sessionGroupId, ids, scopeIndex);
       this.scopeController.start();
       this.statusStore.set("connected");
     } catch {

@@ -94,6 +94,10 @@ impl Server {
         let cid = self.inner.scsynth.await_client_id(CLIENT_ID_WAIT).await?;
         let (id, block) = self.inner.sessions.create(|index| session_block(cid, index));
         self.inner.scsynth.new_group(block.group_id, root_group_id(cid)).await;
+        // Keep our root group last in scsynth's root group so this session's
+        // scope tap reads bus 0 after SuperDirt's output (which may have booted
+        // after us, landing earlier in the node order).
+        self.inner.scsynth.order_root_to_tail().await;
         Some((id, block))
     }
 

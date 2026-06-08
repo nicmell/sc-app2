@@ -102,6 +102,10 @@ pub struct ScopeSubscription {
     tick: u32,
     /// The shared SHM mmap (cached at subscribe; `None` if unavailable).
     shm: Option<Arc<ScopeShm>>,
+    /// Consecutive polls where the slot had no fresh data (diagnostics only).
+    idle_polls: u32,
+    /// Whether `SC_SCOPE_DEBUG` is set (read once at subscribe).
+    debug: bool,
 }
 
 impl ScopeSubscription {
@@ -112,6 +116,8 @@ impl ScopeSubscription {
             last_stage: -1,
             tick: 0,
             shm,
+            idle_polls: 0,
+            debug: std::env::var_os("SC_SCOPE_DEBUG").is_some(),
         }
     }
 
@@ -125,9 +131,30 @@ impl ScopeSubscription {
             return None;
         }
         match shm::read_scope_slot(&shm.region, &shm.layout, self.scope_idx) {
-            Ok(ScopeReadResult::Data { floats, channels, stage, .. }) => {
+            Ok(ScopeReadResult::Data { floats, channels, stage, frames }) => {
                 self.last_stage = stage as i32;
                 self.tick = self.tick.wrapping_add(1);
+                self.idle_polls = 0;
+                // Ground-truth probe: is scsynth actually writing audio into the
+                // SHM slot? Gated on SC_SCOPE_DEBUG, sampled ~1×/sec, logs the
+                // slot's min/max so a flat-zero scope can be traced to the source.
+                if self.debug && self.tick % 50 == 1 {
+                    let (mut min, mut max) = (f32::INFINITY, f32::NEG_INFINITY);
+                    for &f in &floats {
+                        min = min.min(f);
+                        max = max.max(f);
+                    }
+                    tracing::info!(
+                        scope = self.scope_idx,
+                        tick = self.tick,
+                        channels,
+                        frames,
+                        stage,
+                        min,
+                        max,
+                        "scope SHM slot"
+                    );
+                }
                 Some(encode_scope_chunk(
                     self.sub_id as u32,
                     self.tick,
@@ -137,7 +164,25 @@ impl ScopeSubscription {
                 ))
             }
             // NotInitialized / NoData: leave `last_stage` so we retry next poll.
-            Ok(_) => None,
+            // Under SC_SCOPE_DEBUG, surface the stuck state ~1×/sec so "no chunks
+            // at all" (tap not writing / buffer never initialized) is visible.
+            Ok(result) => {
+                self.idle_polls = self.idle_polls.wrapping_add(1);
+                if self.debug && self.idle_polls % 200 == 1 {
+                    let state = match result {
+                        ScopeReadResult::NotInitialized => "not-initialized (ScopeOut2 hasn't run)",
+                        ScopeReadResult::NoData => "no-data (no slot pushed yet)",
+                        ScopeReadResult::Data { .. } => "data",
+                    };
+                    tracing::info!(
+                        scope = self.scope_idx,
+                        idle_polls = self.idle_polls,
+                        state,
+                        "scope slot has no fresh data"
+                    );
+                }
+                None
+            }
             Err(e) => {
                 tracing::debug!(error = %e, "scope slot read failed");
                 None

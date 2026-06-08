@@ -54,7 +54,15 @@ pub struct SessionBlock {
     pub node_base: i32,
     /// How many synth node ids the frontend may allocate.
     pub node_count: i32,
+    /// scsynth scope-buffer index this session's master-out tap writes to (and
+    /// the frontend subscribes to). Per-session so concurrent windows don't
+    /// stomp the same SHM scope buffer; see [`SCOPE_BUFFER_COUNT`].
+    pub scope_index: i32,
 }
+
+/// scsynth allocates this many scope buffers at boot — the per-session scope
+/// index wraps within this range (mirrors the SHM reader's expectation).
+pub const SCOPE_BUFFER_COUNT: u32 = 128;
 
 /// The per-client root group id (reserved at `base + 1`, clear of the session
 /// sub-blocks which start at `base + SPAN`).
@@ -69,6 +77,8 @@ pub fn session_block(cid: i32, index: u32) -> SessionBlock {
         group_id,
         node_base: group_id + 1,
         node_count: SESSION_SPAN - 1,
+        // 1-based index → 0-based scope buffer, wrapped into scsynth's pool.
+        scope_index: (index.saturating_sub(1) % SCOPE_BUFFER_COUNT) as i32,
     }
 }
 
@@ -87,6 +97,15 @@ fn g_free_all_packet(group_id: i32) -> Vec<u8> {
 
 fn n_free_packet(node_id: i32) -> Vec<u8> {
     osc::encode("/n_free", vec![OscType::Int(node_id)])
+}
+
+/// `/n_order <addAction> <targetId> <nodeId>` — reposition `node` (addAction 1 =
+/// to the tail of the target group).
+fn n_order_packet(add_action: i32, target_id: i32, node_id: i32) -> Vec<u8> {
+    osc::encode(
+        "/n_order",
+        vec![OscType::Int(add_action), OscType::Int(target_id), OscType::Int(node_id)],
+    )
 }
 
 // ── protocol ────────────────────────────────────────────────────────────
@@ -220,6 +239,11 @@ struct State {
     alive: bool,
     /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
     status_replies: u64,
+    /// The client id we last created a root group for. On a transient reconnect
+    /// (same id, scsynth never restarted) the group still exists, so we free it
+    /// before re-creating — avoiding a duplicate-id `/g_new` failure. Preserved
+    /// across `reset()` (it tracks across reconnects).
+    root_group_cid: Option<i32>,
 }
 
 /// Keeps the bridge registered with a live scsynth. Cheap to clone (Arc-backed).
@@ -290,6 +314,23 @@ impl Scsynth {
             .await;
     }
 
+    /// Move our per-client root group to the **tail** of scsynth's root group
+    /// (group 0). The master-out scope tap lives (nested) in here and reads bus
+    /// 0 with `In.ar`, so it must run *after* SuperDirt's output monitors. Node
+    /// order in group 0 depends on who booted first; re-tailing when a session
+    /// is created (a frontend is about to tap) guarantees the tap samples bus 0
+    /// after SuperDirt has written it — otherwise the scope reads pre-mix
+    /// silence even though the audio is audible.
+    pub async fn order_root_to_tail(&self) {
+        let Some(cid) = self.client_id() else {
+            return;
+        };
+        self.inner
+            .bridge
+            .dispatch_command(&n_order_packet(ADD_TO_TAIL, 0, root_group_id(cid)))
+            .await;
+    }
+
     /// Free a group and everything in it (`/g_freeAll` + `/n_free`).
     pub async fn free_group(&self, group_id: i32) {
         self.inner.bridge.dispatch_command(&g_free_all_packet(group_id)).await;
@@ -310,10 +351,15 @@ impl Scsynth {
         tracing::info!("sent /notify 0 (unregistered from scsynth)");
     }
 
-    /// (Re)create the per-client root group under scsynth's root group (AddToTail
-    /// of group 0, so it runs after sclang/SuperDirt). Session groups nest in it;
-    /// shutdown frees it wholesale. A second `/g_new` with the same id is
-    /// rejected by scsynth with a harmless `/fail`.
+    /// Create the per-client root group under scsynth's root group (AddToTail of
+    /// group 0, so it runs after sclang/SuperDirt). Session groups nest in it;
+    /// shutdown frees it wholesale.
+    ///
+    /// Non-destructive: if we already created this client's root group (a
+    /// transient reconnect where scsynth stayed up), the group — and every live
+    /// session group + scope tap inside it — still exists, so we leave it alone.
+    /// Re-creating (or freeing first) would either duplicate-`/g_new` or destroy
+    /// live audio. Only a genuinely new client id (or first boot) creates one.
     async fn create_root_group(&self) {
         let Some(cid) = self.client_id() else {
             return;
@@ -324,8 +370,13 @@ impl Scsynth {
                  boot scsynth with -maxLogins ≥ 2 so node-id blocks don't overlap"
             );
         }
+        if self.inner.state.lock().unwrap().root_group_cid == Some(cid) {
+            tracing::debug!(client_id = cid, "root group already present; not re-creating");
+            return;
+        }
         let root = root_group_id(cid);
         self.new_group(root, 0).await;
+        self.inner.state.lock().unwrap().root_group_cid = Some(cid);
         tracing::info!(client_id = cid, root_group = root, "created bridge root group");
     }
 

@@ -35,6 +35,22 @@ export interface ScsynthStatus {
 /** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
 const STATUS_REPLY = "/status.reply";
 
+/** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
+ *  surfaced to the user as a toast banner. Repeated identical failures coalesce
+ *  into one entry with a bumped `count`. */
+export interface ScsynthError {
+  id: number;
+  /** The failed command address (e.g. `/s_new`) — empty for `/late`. */
+  address: string;
+  message: string;
+  variant: "error" | "warn";
+  count: number;
+  ts: number;
+}
+
+/** Max coalesced error banners kept (oldest dropped). */
+const MAX_ERRORS = 20;
+
 /** Parse a `/status.reply`'s args. Layout (scsynth):
  *  `[1, ugens, synths, groups, defs, avgCpu, peakCpu, srNominal, srActual]`. */
 function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
@@ -52,6 +68,7 @@ export class SessionController {
   private readonly statusStore = createStore<ConnStatus>("connecting");
   private readonly logStore = createStore<LoggedEntry[]>([]);
   private readonly scsynthStore = createStore<ScsynthStatus | null>(null);
+  private readonly errorStore = createStore<ScsynthError[]>([]);
   private client: WorkerClient | null = null;
   private scopeController: ScopeController | null = null;
   private nextId = 0;
@@ -69,6 +86,21 @@ export class SessionController {
    *  first `/status.reply` arrives. */
   get scsynthStatus(): ReadonlyStore<ScsynthStatus | null> {
     return this.scsynthStore;
+  }
+
+  /** Active scsynth error/warning banners (coalesced). */
+  get scsynthErrors(): ReadonlyStore<ScsynthError[]> {
+    return this.errorStore;
+  }
+
+  /** Dismiss one banner by id (the toast's × / auto-dismiss timer). */
+  dismissError(id: number): void {
+    this.errorStore.update((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  /** Drop every banner. */
+  clearErrors(): void {
+    this.errorStore.set([]);
   }
 
   /** The master-out scope, available once connected. */
@@ -121,13 +153,51 @@ export class SessionController {
   }
 
   /** Route an inbound reply: `/status.reply` updates the scsynth-status store
-   *  (and is kept out of the console); everything else is logged as `rx`. */
+   *  (and is kept out of the console); `/fail` and `/late` additionally raise a
+   *  banner; everything (except `/status.reply`) is still logged as `rx`. */
   private handleReply(reply: OscReply): void {
     if (reply.address === STATUS_REPLY) {
       this.scsynthStore.set(parseStatus(reply.args));
       return;
     }
+    // `/fail <command> <error> [extras…]` and `/late <seconds>` are mirrored to
+    // the debug console (the footer drawer, via console.*) so every failure is
+    // visible there, and — unless benign — also raise a toast banner. Either way
+    // they still fall through to the OSC console as the full history.
+    if (reply.address === "/fail") {
+      const command = String(reply.args[0] ?? "?");
+      const message = String(reply.args[1] ?? "(no message)");
+      console.error(`[scsynth] ${command}: ${message}`);
+      this.pushError(command, message, "error");
+    } else if (reply.address === "/late") {
+      const seconds = Number(reply.args[0]) || 0;
+      const message = `bundle ran ${seconds.toFixed(3)}s late`;
+      console.warn(`[scsynth] /late: ${message}`);
+      this.pushError("/late", message, "warn");
+    }
     this.append("rx", reply.address, reply.args.map((a) => String(a)));
+  }
+
+  /** Add a banner, coalescing an identical (address + message) one into a
+   *  bumped count + refreshed timestamp (which restarts its auto-dismiss). */
+  private pushError(address: string, message: string, variant: "error" | "warn"): void {
+    this.errorStore.update((prev) => {
+      const existing = prev.find((e) => e.address === address && e.message === message);
+      if (existing) {
+        return prev.map((e) =>
+          e === existing ? { ...e, count: e.count + 1, ts: Date.now() } : e,
+        );
+      }
+      const entry: ScsynthError = {
+        id: this.nextId++,
+        address,
+        message,
+        variant,
+        count: 1,
+        ts: Date.now(),
+      };
+      return [...prev, entry].slice(-MAX_ERRORS);
+    });
   }
 
   private append(dir: "tx" | "rx", address: string, args: string[]): void {

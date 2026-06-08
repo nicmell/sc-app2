@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { Drawer } from "./components/Drawer";
+import { ToastStack } from "./components/ToastStack";
 import { refreshPlugins } from "./state/plugins";
 import "./App.css";
 
@@ -16,6 +17,7 @@ function App() {
     <div className="app">
       <Dashboard onToggleDrawer={() => setDrawerOpen((open) => !open)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <ToastStack />
     </div>
   );
 }

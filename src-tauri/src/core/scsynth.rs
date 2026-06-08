@@ -130,7 +130,8 @@ impl std::fmt::Display for Version {
 }
 
 /// A scsynth reply the supervisor acts on (everything is still forwarded to
-/// clients by the bridge; these variants only drive registration + liveness).
+/// clients by the bridge; these variants only drive registration + liveness,
+/// or — for `Fail`/`Late` — get logged).
 enum Reply {
     /// `/done /notify <clientId>` — the registration ack.
     DoneNotify(i32),
@@ -138,8 +139,25 @@ enum Reply {
     Version(Version),
     /// `/status.reply …` — heartbeat.
     Status,
+    /// `/fail <command:str> <error:str> [extras:int…]` — a command failed. Sent
+    /// only to the originating client (our bridge), forwarded to all frontends.
+    Fail {
+        command: String,
+        message: String,
+        extras: Vec<i32>,
+    },
+    /// `/late <seconds:float>` — a bundle ran late (mostly dormant in scsynth).
+    Late(f32),
     /// Anything else.
     Other,
+}
+
+/// Read an OSC arg as a string, or `None` if absent/not a string.
+fn string_arg(arg: Option<&OscType>) -> Option<String> {
+    match arg {
+        Some(OscType::String(s)) => Some(s.clone()),
+        _ => None,
+    }
 }
 
 /// Decode a peer packet **once** and classify it.
@@ -157,6 +175,17 @@ fn classify_reply(bytes: &[u8]) -> Reply {
         }
         "/version.reply" => version_from(&msg).map_or(Reply::Other, Reply::Version),
         "/status.reply" => Reply::Status,
+        "/fail" => Reply::Fail {
+            // SC protocol: /fail <commandAddress:str> <errorString:str> [extras…].
+            command: string_arg(msg.args.first()).unwrap_or_else(|| "?".into()),
+            message: string_arg(msg.args.get(1)).unwrap_or_else(|| "(no message)".into()),
+            extras: msg.args.iter().skip(2).filter_map(osc::int_arg).collect(),
+        },
+        "/late" => match msg.args.first() {
+            Some(OscType::Float(s)) => Reply::Late(*s),
+            Some(OscType::Double(s)) => Reply::Late(*s as f32),
+            _ => Reply::Late(0.0),
+        },
         _ => Reply::Other,
     }
 }
@@ -306,6 +335,10 @@ impl Scsynth {
             Reply::DoneNotify(cid) => self.record(|s| s.client_id = Some(cid)),
             Reply::Version(v) => self.record(|s| s.version = Some(v)),
             Reply::Status => self.inner.state.lock().unwrap().status_replies += 1,
+            Reply::Fail { command, message, extras } => {
+                tracing::warn!(%command, %message, ?extras, "scsynth /fail");
+            }
+            Reply::Late(seconds) => tracing::warn!(seconds, "scsynth /late bundle"),
             Reply::Other => {}
         }
     }
@@ -460,6 +493,50 @@ mod tests {
         assert!(matches!(classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])), Reply::Status));
         assert!(matches!(classify_reply(&osc::encode("/n_go", vec![])), Reply::Other));
         assert!(matches!(classify_reply(b"garbage"), Reply::Other));
+    }
+
+    #[test]
+    fn classifies_fail() {
+        // /fail <command> <error> — the common 2-arg form.
+        let bytes = osc::encode(
+            "/fail",
+            vec![
+                OscType::String("/s_new".into()),
+                OscType::String("SynthDef not found".into()),
+            ],
+        );
+        match classify_reply(&bytes) {
+            Reply::Fail { command, message, extras } => {
+                assert_eq!(command, "/s_new");
+                assert_eq!(message, "SynthDef not found");
+                assert!(extras.is_empty());
+            }
+            _ => panic!("expected Fail"),
+        }
+        // 3-arg form: a trailing buffer index is captured as an extra.
+        let with_extra = osc::encode(
+            "/fail",
+            vec![
+                OscType::String("/b_read".into()),
+                OscType::String("File could not be opened".into()),
+                OscType::Int(4),
+            ],
+        );
+        match classify_reply(&with_extra) {
+            Reply::Fail { command, extras, .. } => {
+                assert_eq!(command, "/b_read");
+                assert_eq!(extras, vec![4]);
+            }
+            _ => panic!("expected Fail"),
+        }
+    }
+
+    #[test]
+    fn classifies_late() {
+        assert!(matches!(
+            classify_reply(&osc::encode("/late", vec![OscType::Float(0.02)])),
+            Reply::Late(_)
+        ));
     }
 
     #[test]

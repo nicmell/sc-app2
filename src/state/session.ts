@@ -10,6 +10,7 @@ import {
   type ConnStatus,
   type LoggedEntry,
   type ScsynthStatus,
+  type ScsynthError,
 } from "./SessionController";
 
 export const session = new SessionController();
@@ -36,4 +37,9 @@ export function useOscLog(): LoggedEntry[] {
 /** Subscribe a React component to scsynth's reported load (CPU + sample rate). */
 export function useScsynthStatus(): ScsynthStatus | null {
   return useSyncExternalStore(session.scsynthStatus.subscribe, session.scsynthStatus.get);
+}
+
+/** Subscribe a React component to the active scsynth error banners. */
+export function useScsynthErrors(): ScsynthError[] {
+  return useSyncExternalStore(session.scsynthErrors.subscribe, session.scsynthErrors.get);
 }

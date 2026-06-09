@@ -1,16 +1,8 @@
-// Message protocol between the main thread and the OSC worker.
-//
-// The worker owns the WebSocket and all OSC decode; the main thread encodes
-// outbound packets and reads decoded replies. `postMessage` structured-clones
-// these, so payloads are plain POJOs (no class instances / methods survive).
-
-import type { DecodedScopeChunk, OscArg } from "@sc-app/server-commands";
-
-/** One decoded inbound OSC message (a bundle is flattened to these). */
-export interface OscReply {
-  address: string;
-  args: ReadonlyArray<OscArg>;
-}
+// The raw byte-transport protocol between the main thread and the worker. The
+// worker is a generic relay — it knows nothing about OSC; it connects/sends/
+// receives bytes. All OSC encode/decode lives on the main thread (in the
+// OscClient + decodeFrame). `postMessage` structured-clones these, so payloads
+// are plain POJOs.
 
 export type MainToWorker =
   | { type: "connect"; url: string }
@@ -18,8 +10,7 @@ export type MainToWorker =
   | { type: "send"; bytes: Uint8Array };
 
 export type WorkerToMain =
-  | { type: "ready" }
+  | { type: "open" }
+  | { type: "message"; bytes: Uint8Array }
   | { type: "error"; message: string }
-  | { type: "reply"; reply: OscReply }
-  | { type: "scopeChunk"; chunk: DecodedScopeChunk }
   | { type: "closed" };

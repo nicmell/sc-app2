@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
 import { ScopeController } from "../src/scope/ScopeController";
 import { IdAllocator } from "../src/session/IdAllocator";
 import type { OscClient } from "../src/osc/OscClient";
-import type { OscReply } from "../src/types/protocol";
+import type { OscReply } from "../src/osc/decodeFrame";
 import { createNodeWorkerClient } from "./clients/nodeWorkerClient";
 import { MockBridge } from "./fixtures/mockBridge";
 

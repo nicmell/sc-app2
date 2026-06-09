@@ -1,17 +1,10 @@
 /// <reference lib="webworker" />
 // OSC worker entry point (browser): build a MessageEndpoint over `self` and run
-// the shared worker runtime.
+// the shared transport relay. No osc-js here — the worker only moves bytes; all
+// OSC encode/decode lives on the main thread.
 
-import { runOscWorker } from "./oscWorkerMain";
+import { runTransportWorker } from "./transportWorker";
 import { fromEventTarget } from "./messageEndpoint";
 import type { MainToWorker, WorkerToMain } from "../types/protocol";
 
-// osc-js (lib/osc.js:204) reads `typeof global !== 'undefined' ? global : window`
-// at decode time; in a Worker both are undefined, so alias `window` to the global
-// scope. Only needed before the first decode (a later task), so inlining here —
-// after the osc-js import, which itself touches only `globalThis` — is in time.
-if (typeof (globalThis as { window?: unknown }).window === "undefined") {
-  (globalThis as { window?: unknown }).window = globalThis;
-}
-
-runOscWorker(fromEventTarget<WorkerToMain, MainToWorker>(self));
+runTransportWorker(fromEventTarget<WorkerToMain, MainToWorker>(self));

@@ -10,7 +10,7 @@
 
 import { flattenPacket, type OscArg, type OscPacket } from "@sc-app/server-commands";
 import type { OscClient, OscClientFactory } from "../osc/OscClient";
-import type { OscReply } from "../types/protocol";
+import type { OscReply } from "../osc/decodeFrame";
 import { ScopeController, type ScopeOptions } from "../scope/ScopeController";
 import { IdAllocator } from "./IdAllocator";
 import type { Bootstrap } from "./bootstrapTypes";

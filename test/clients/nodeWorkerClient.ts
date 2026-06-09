@@ -4,21 +4,15 @@
 // genuinely async). The worker runs `nodeWorkerEntry.ts` under a tsx loader (via
 // the .mjs bootstrap) so it can import the app's TypeScript directly.
 
-import {Worker, Transferable} from "node:worker_threads";
-import {WorkerOscClient} from "../../src/osc/WorkerOscClient";
+import { Worker } from "node:worker_threads";
+import { WorkerOscClient } from "../../src/osc/WorkerOscClient";
+import { fromEventEmitter } from "./fromEventEmitter";
+import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 
 export function createNodeWorkerClient(wsUrl: string): WorkerOscClient {
     const w = new Worker(new URL("./nodeWorkerBootstrap.mjs", import.meta.url));
     return new WorkerOscClient(wsUrl, {
-        // main→worker never transfers; the values are ArrayBuffers when they do,
-        // which node's transferList accepts (avoids the deprecated TransferListItem).
-        postMessage: (m, t = []) => w.postMessage(m, t as Transferable[]),
-        onMessage: (h) => {
-            w.on("message", h);
-            return () => {
-                w.off("message", h);
-            };
-        },
+        ...fromEventEmitter<MainToWorker, WorkerToMain>(w),
         onError: (h) => {
             w.on("error", h);
             return () => {

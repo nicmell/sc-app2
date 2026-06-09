@@ -8,7 +8,7 @@
 import { encode, type OscPacket } from "@sc-app/server-commands";
 import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
 import type { MainToWorker, WorkerToMain } from "../types/protocol";
-import type { WorkerHandle, Unsubscribe } from "./messageEndpoint";
+import { fromEventTarget, type WorkerHandle, type Unsubscribe } from "./messageEndpoint";
 
 export class WorkerOscClient implements OscClient {
   private readonly worker: WorkerHandle<MainToWorker, WorkerToMain>;
@@ -112,12 +112,7 @@ export class WorkerOscClient implements OscClient {
 export function createBrowserWorkerClient(wsUrl: string): WorkerOscClient {
   const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
   return new WorkerOscClient(wsUrl, {
-    postMessage: (m, t = []) => w.postMessage(m, t),
-    onMessage: (h) => {
-      const l = (e: MessageEvent) => h(e.data as WorkerToMain);
-      w.addEventListener("message", l);
-      return () => w.removeEventListener("message", l);
-    },
+    ...fromEventTarget<MainToWorker, WorkerToMain>(w),
     onError: (h) => {
       const l = (e: ErrorEvent) => h(e.error ?? new Error(e.message));
       w.addEventListener("error", l);

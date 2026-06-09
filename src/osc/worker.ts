@@ -3,6 +3,8 @@
 // the shared worker runtime.
 
 import { runOscWorker } from "./oscWorkerMain";
+import { fromEventTarget } from "./messageEndpoint";
+import type { MainToWorker, WorkerToMain } from "../types/protocol";
 
 // osc-js (lib/osc.js:204) reads `typeof global !== 'undefined' ? global : window`
 // at decode time; in a Worker both are undefined, so alias `window` to the global
@@ -12,11 +14,4 @@ if (typeof (globalThis as { window?: unknown }).window === "undefined") {
   (globalThis as { window?: unknown }).window = globalThis;
 }
 
-runOscWorker({
-  postMessage: (msg, transfer) => self.postMessage(msg, transfer ?? []),
-  onMessage: (handler) => {
-    const l = (e: MessageEvent) => handler(e.data);
-    self.addEventListener("message", l);
-    return () => self.removeEventListener("message", l);
-  },
-});
+runOscWorker(fromEventTarget<WorkerToMain, MainToWorker>(self));

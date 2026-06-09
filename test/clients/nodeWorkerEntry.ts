@@ -6,20 +6,11 @@
 
 import { parentPort } from "node:worker_threads";
 import { runOscWorker } from "../../src/osc/oscWorkerMain";
+import { fromEventEmitter } from "./fromEventEmitter";
+import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 
 if (!parentPort) {
   throw new Error("nodeWorkerEntry.ts must run inside a worker_threads Worker");
 }
-const port = parentPort;
 
-runOscWorker({
-  // The only transferred value is a scope chunk's ArrayBuffer, which node's
-  // transferList accepts directly (avoids the deprecated TransferListItem type).
-  postMessage: (msg, transfer = []) => port.postMessage(msg, transfer as ArrayBuffer[]),
-  onMessage: (handler) => {
-    port.on("message", handler);
-    return () => {
-      port.off("message", handler);
-    };
-  },
-});
+runOscWorker(fromEventEmitter<WorkerToMain, MainToWorker>(parentPort));

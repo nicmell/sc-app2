@@ -5,7 +5,7 @@
 // to the connection state.
 import { useEffect, useState } from "react";
 import { useStatus, useScsynthStatus } from "../../state/session";
-import type { ScsynthStatus } from "../../lib/sessions/SessionManager";
+import type { ScsynthStatus } from "../../session/SessionManager";
 import { fetchConfig } from "../../session/bootstrap";
 import { DebugLog } from "./DebugLog";
 

@@ -4,7 +4,7 @@
 // our `sc-*` elements; loading just injects its body and lets the custom elements
 // upgrade themselves (no runtime/bind pipeline).
 
-import { httpBase } from "../../env";
+import { httpBase } from "../env";
 
 export interface PluginAsset {
   path: string;

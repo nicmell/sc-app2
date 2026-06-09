@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { session, useScsynthErrors } from "../state/session";
-import type { ScsynthError } from "../lib/sessions/SessionManager";
+import type { ScsynthError } from "../session/SessionManager";
 
 /** How long a banner lingers before auto-dismissing. */
 const DISMISS_MS = 8000;

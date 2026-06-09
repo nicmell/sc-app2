@@ -8,7 +8,7 @@ import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "../strudel/prebake";
 import { dirtPlayBundle, type DirtEvent } from "../osc/dirt";
-import type { ConnStatus } from "../lib/sessions/SessionManager";
+import type { ConnStatus } from "../session/SessionManager";
 import { session } from "../state/session";
 
 const SAFETY_LOOKAHEAD_MS = 200;

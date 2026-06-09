@@ -3,7 +3,7 @@
 // transport play/stop, clock indicator and settings drawer — we have no per-node
 // runtime or clock service here).
 import { useStatus } from "../../state/session";
-import type { ConnStatus } from "../../lib/sessions/SessionManager";
+import type { ConnStatus } from "../../session/SessionManager";
 
 const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   connecting: "warn",

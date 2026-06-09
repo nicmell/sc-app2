@@ -8,9 +8,9 @@
 // slice modules can import `appStore` as a value without a runtime cycle.
 
 import { createStore } from "../utils/reactiveStore";
-import { initialSessionState, type SessionState } from "../lib/sessions/SessionManager";
+import { initialSessionState, type SessionState } from "../session/SessionManager";
 import type { BoxItem } from "./layout";
-import type { PluginInfo } from "../lib/plugins/PluginManager";
+import type { PluginInfo } from "../plugins/PluginManager";
 import type { DebugEntry } from "../utils/debugLog";
 
 export interface AppState {

@@ -11,12 +11,12 @@ import {
   type LoggedEntry,
   type ScsynthStatus,
   type ScsynthError,
-} from "../lib/sessions/SessionManager";
+} from "../session/SessionManager";
 import { WorkerClient } from "../osc/WorkerClient";
 import { bootstrapSession } from "../session/bootstrap";
 
 // Re-export the controller types so existing app imports keep working.
-export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../lib/sessions/SessionManager";
+export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../session/SessionManager";
 
 const scopeFlag = (key: string) =>
   typeof localStorage !== "undefined" && !!localStorage.getItem(key);

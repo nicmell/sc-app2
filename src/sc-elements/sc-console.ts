@@ -4,7 +4,7 @@
 
 import { LitElement, html } from "lit";
 import { session } from "../state/session";
-import type { LoggedEntry } from "../lib/sessions/SessionManager";
+import type { LoggedEntry } from "../session/SessionManager";
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);

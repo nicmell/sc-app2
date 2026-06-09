@@ -3,7 +3,7 @@
 // the session singleton) — there is no runtime/bind pipeline. Replaces upstream's
 // `<sc-plugin>` element with our HTTP-fetched innerHTML loader.
 import { useEffect, useRef } from "react";
-import { loadPluginInto, type PluginInfo } from "../../lib/plugins/PluginManager";
+import { loadPluginInto, type PluginInfo } from "../../plugins/PluginManager";
 
 export function PluginHost({ plugin }: { plugin: PluginInfo }) {
   const hostRef = useRef<HTMLDivElement>(null);

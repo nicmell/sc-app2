@@ -13,7 +13,7 @@ import "react-resizable/css/styles.css";
 import { useStore } from "../../state/useStore";
 import { layout, setLayout, addBox, removeBox, setBoxPlugin, randomId, type BoxItem } from "../../state/layout";
 import { plugins } from "../../state/plugins";
-import type { PluginInfo } from "../../lib/plugins/PluginManager";
+import type { PluginInfo } from "../../plugins/PluginManager";
 import { computePlaceholders, isPlaceholder, MARGIN } from "./utils";
 import { DashboardPanel } from "./DashboardPanel";
 import { DashboardHeader } from "./DashboardHeader";

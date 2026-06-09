@@ -6,7 +6,7 @@
 
 import { parentPort } from "node:worker_threads";
 import { runOscWorker } from "../../src/osc/oscWorkerMain";
-import { fromEventEmitter } from "./fromEventEmitter";
+import { fromEventEmitter } from "../../src/osc/messageEndpoint";
 import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 
 if (!parentPort) {

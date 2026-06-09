@@ -1,8 +1,10 @@
 // Tiny channel interfaces that hide the EventTarget-vs-EventEmitter asymmetry
 // between a browser `Worker` and a Node `worker_threads` Worker, so the worker
-// client + worker runtime are each written once. `fromEventTarget` (here) and
-// `fromEventEmitter` (test harness) adapt the two kinds of source; call sites add
-// `onError`/`terminate` when they need a full WorkerHandle.
+// client + worker runtime are each written once. `fromEventTarget` /
+// `fromEventEmitter` adapt the two kinds of source; call sites add
+// `onError`/`terminate` when they need a full WorkerHandle. (fromEventEmitter is
+// used only by the Node test harness — it's structurally typed, no node import,
+// and tree-shaken from the browser bundle.)
 
 export type Unsubscribe = () => void;
 
@@ -39,6 +41,28 @@ export function fromEventTarget<Send, Receive>(target: MessageTarget): MessageEn
       const listener = (ev: MessageEvent) => handler(ev.data as Receive);
       target.addEventListener("message", listener);
       return () => target.removeEventListener("message", listener);
+    },
+  };
+}
+
+/** An EventEmitter-style message source — both a node `Worker` (main thread) and
+ *  `parentPort` (worker side) satisfy it. Structural, so no `node:worker_threads`
+ *  import is needed; the transfer-list typing is loose to bridge DOM↔node naming. */
+interface MessageEmitter {
+  postMessage(message: unknown, transfer?: readonly unknown[]): void;
+  on(event: "message", listener: (message: unknown) => void): void;
+  off(event: "message", listener: (message: unknown) => void): void;
+}
+
+/** Adapt an EventEmitter-style source to a MessageEndpoint (handler already
+ *  receives the data). Callers needing a WorkerHandle add `onError`/`terminate`. */
+export function fromEventEmitter<Send, Receive>(emitter: MessageEmitter): MessageEndpoint<Send, Receive> {
+  return {
+    postMessage: (message, transfer = []) => emitter.postMessage(message, transfer),
+    onMessage: (handler) => {
+      const listener = (message: unknown) => handler(message as Receive);
+      emitter.on("message", listener);
+      return () => emitter.off("message", listener);
     },
   };
 }

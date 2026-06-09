@@ -6,7 +6,7 @@
 
 import { Worker } from "node:worker_threads";
 import { WorkerOscClient } from "../../src/osc/WorkerOscClient";
-import { fromEventEmitter } from "./fromEventEmitter";
+import { fromEventEmitter } from "../../src/osc/messageEndpoint";
 import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 
 export function createNodeWorkerClient(wsUrl: string): WorkerOscClient {

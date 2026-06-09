@@ -3,23 +3,17 @@
 // bridge: inbound MainToWorker commands drive connect/send/disconnect; the
 // bridge's callbacks are posted back as WorkerToMain.
 //
-// The message channel is abstracted as an OscWorkerPort so the browser
+// The channel is a MessageEndpoint with the params flipped from the client's
+// WorkerHandle (it posts WorkerToMain and receives MainToWorker), so the browser
 // (`self`) and Node (`parentPort`) entries differ only in a ~10-line inline
-// port — the mirror of the main-thread UniversalWorker split.
+// endpoint.
 
 import { createOscBridge, type OscBridge } from "./bridge";
 import type { MainToWorker, WorkerToMain } from "../types/protocol";
+import type { MessageEndpoint } from "./messageEndpoint";
 
-/** The worker side of the message channel (the dual of UniversalWorker: it posts
- *  WorkerToMain and receives MainToWorker; no terminate — a worker can't end
- *  itself). */
-export interface OscWorkerPort {
-  postMessage(message: WorkerToMain, transfer?: Transferable[]): void;
-  onMessage(handler: (message: MainToWorker) => void): void;
-}
-
-/** Wire a worker port to a fresh OSC bridge. Call once at worker entry. */
-export function runOscWorker(port: OscWorkerPort): void {
+/** Wire a worker endpoint to a fresh OSC bridge. Call once at worker entry. */
+export function runOscWorker(port: MessageEndpoint<WorkerToMain, MainToWorker>): void {
   let bridge: OscBridge | null = null;
   const post = (msg: WorkerToMain, transfer?: Transferable[]) => port.postMessage(msg, transfer);
 

@@ -46,13 +46,17 @@ self.addEventListener("message", (ev: MessageEvent<MainToWorker>) => {
 /**
  * Install the real message handler and replay any messages that
  * arrived while the worker was still loading. Call exactly once
- * from the main worker module after initialisation.
+ * from the main worker module after initialisation. Returns an
+ * unsubscribe that detaches the handler (messages buffer again).
  */
-export function setWorkerMessageHandler(handler: Handler): void {
+export function setWorkerMessageHandler(handler: Handler): () => void {
   realHandler = handler;
   if (buffer.length > 0) {
     console.log(`[sc:worker] draining ${buffer.length} buffered message(s)`);
   }
   const drained = buffer.splice(0);
   for (const msg of drained) handler(msg);
+  return () => {
+    if (realHandler === handler) realHandler = null;
+  };
 }

@@ -1,5 +1,5 @@
 // A worker_threads-backed OscClient for the headless test harness — the Node
-// analogue of createBrowserWorkerClient. The UniversalWorker is an inline object
+// analogue of createBrowserWorkerClient. The WorkerHandle is an inline object
 // over the EventEmitter side (handler already receives the data; `terminate` is
 // genuinely async). The worker runs `nodeWorkerEntry.ts` under a tsx loader (via
 // the .mjs bootstrap) so it can import the app's TypeScript directly.

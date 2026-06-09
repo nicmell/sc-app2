@@ -1,17 +1,17 @@
 // Main-thread handle to the OSC worker, written once for every environment.
 // Encodes outbound packets, forwards them as bytes, and fans decoded inbound
-// replies out to listeners. The Worker handle is abstracted as a UniversalWorker,
-// so the browser and Node sides differ only in a ~10-line inline implementation
-// (see createBrowserWorkerClient below / createNodeWorkerClient in the test
-// harness). One client owns one worker, which owns one WebSocket.
+// replies out to listeners. The worker is reached through a WorkerHandle, so the
+// browser and Node sides differ only in a ~10-line inline implementation (see
+// createBrowserWorkerClient below / createNodeWorkerClient in the test harness).
+// One client owns one worker, which owns one WebSocket.
 
 import { encode, type OscPacket } from "@sc-app/server-commands";
 import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
 import type { MainToWorker, WorkerToMain } from "../types/protocol";
-import type { UniversalWorker, Unsubscribe } from "./universalWorker";
+import type { WorkerHandle, Unsubscribe } from "./messageEndpoint";
 
 export class WorkerOscClient implements OscClient {
-  private readonly worker: UniversalWorker<MainToWorker, WorkerToMain>;
+  private readonly worker: WorkerHandle<MainToWorker, WorkerToMain>;
   private readonly replyListeners = new Set<ReplyListener>();
   private readonly errorListeners = new Set<ErrorListener>();
   private readonly scopeChunkListeners = new Set<ScopeChunkListener>();
@@ -20,7 +20,7 @@ export class WorkerOscClient implements OscClient {
   /** Resolves once the worker's WebSocket is open; rejects if it fails to open. */
   readonly ready: Promise<void>;
 
-  constructor(wsUrl: string, worker: UniversalWorker<MainToWorker, WorkerToMain>) {
+  constructor(wsUrl: string, worker: WorkerHandle<MainToWorker, WorkerToMain>) {
     this.worker = worker;
 
     this.ready = new Promise<void>((resolve, reject) => {
@@ -107,7 +107,7 @@ export class WorkerOscClient implements OscClient {
 }
 
 /** Browser OscClient: spawns the Vite Web Worker (the literal `new Worker(new
- *  URL(...))` must stay here so Vite bundles it) behind an inline UniversalWorker
+ *  URL(...))` must stay here so Vite bundles it) behind an inline WorkerHandle
  *  that unwraps `MessageEvent.data`. */
 export function createBrowserWorkerClient(wsUrl: string): WorkerOscClient {
   const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });

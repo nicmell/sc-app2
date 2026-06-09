@@ -1,4 +1,4 @@
-// worker_threads entry (Node): build an OscWorkerPort over `parentPort` and run
+// worker_threads entry (Node): build a MessageEndpoint over `parentPort` and run
 // the shared worker runtime — the EventEmitter mirror of the browser worker.ts.
 // Spawned by createNodeWorkerClient under a tsx loader (via the .mjs bootstrap)
 // so it can import the app's TypeScript directly. No `window` shim needed — in
@@ -18,5 +18,8 @@ runOscWorker({
   postMessage: (msg, transfer = []) => port.postMessage(msg, transfer as ArrayBuffer[]),
   onMessage: (handler) => {
     port.on("message", handler);
+    return () => {
+      port.off("message", handler);
+    };
   },
 });

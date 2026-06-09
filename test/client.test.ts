@@ -1,22 +1,19 @@
-// Hermetic integration test for the package's reusable layer: each Node OscClient
-// (in-process + worker_threads) connecting to an in-process mock bridge, plus a
-// ScopeController landing a scripted /scope/chunk in its chunkRef. No Rust, no
-// scsynth. Running both clients also pins the worker_threads postMessage +
-// ArrayBuffer-transfer path (NodeWorkerOscClient).
+// Hermetic integration test: the worker_threads OscClient connecting to an
+// in-process mock bridge, plus a ScopeController landing a scripted /scope/chunk
+// in its chunkRef. No Rust, no scsynth. Pins the worker_threads postMessage +
+// ArrayBuffer-transfer path that the browser client mirrors.
 
 import { describe, it, expect } from "vitest";
 import { ScopeController } from "../src/scope/ScopeController";
 import { IdAllocator } from "../src/session/IdAllocator";
 import type { OscClient } from "../src/osc/OscClient";
 import type { OscReply } from "../src/types/protocol";
-import { InProcessOscClient } from "./clients/InProcessOscClient";
 import { createNodeWorkerClient } from "./clients/nodeWorkerClient";
 import { MockBridge } from "./fixtures/mockBridge";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const clients: Array<{ name: string; make: (url: string) => OscClient }> = [
-  { name: "InProcessOscClient", make: (u) => new InProcessOscClient(u) },
   { name: "NodeWorkerClient", make: (u) => createNodeWorkerClient(u) },
 ];
 

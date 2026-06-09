@@ -1,7 +1,6 @@
 // The transport seam the controllers depend on — the public surface of the OSC
-// worker, abstracted so it can be backed by a browser Web Worker (the app's
-// WorkerOscClient), an in-process bridge (InProcessOscClient), or a Node
-// worker_threads worker (NodeWorkerOscClient). The controllers never know which.
+// worker, abstracted so it can be backed by a browser Web Worker or a Node
+// worker_threads worker (both via WorkerOscClient). The controllers never know which.
 
 import type { DecodedScopeChunk, OscPacket } from "@sc-app/server-commands";
 import type { OscReply } from "../types/protocol";

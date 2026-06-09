@@ -6,7 +6,7 @@
 //   SC_BASE=http://127.0.0.1:3000 npx tsx scenarios/scope-tone.ts
 import { ScopeController } from "../../src/scope/ScopeController";
 import { IdAllocator } from "../../src/session/IdAllocator";
-import { InProcessOscClient } from "../clients/InProcessOscClient";
+import { createNodeWorkerClient } from "../clients/nodeWorkerClient";
 import { delay, httpBootstrap, ok, waitForServe } from "./lib.ts";
 
 const base = process.env.SC_BASE ?? "http://127.0.0.1:3000";
@@ -14,7 +14,7 @@ const base = process.env.SC_BASE ?? "http://127.0.0.1:3000";
 async function main() {
   await waitForServe(base, 5000);
   const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await httpBootstrap(base)();
-  const client = new InProcessOscClient(wsUrl);
+  const client = createNodeWorkerClient(wsUrl);
   await client.ready;
   ok(true, "connected");
 

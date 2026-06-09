@@ -1,16 +1,21 @@
 // Owns the per-session OSC connection and the UI-facing reactive state:
 // connection status, a bounded OSC log (tx + rx), scsynth load, and error
-// banners. The OSC client (browser Worker / in-process / worker_threads) and the
-// session bootstrap are injected via SessionDeps.
+// banners. Talks to the bridge through the global `oscClient`; the session
+// bootstrap is injected via SessionDeps.
 //
 // State lives in the single app store (`src/state/store.ts`) under its `session`
 // slice; the public `status`/`log`/`scsynthStatus`/`scsynthErrors` are `select`
 // views off that slice, so each notifies independently and the React hooks read
 // them via useSyncExternalStore.
 
-import { flattenPacket, type OscArg, type OscPacket } from "@sc-app/server-commands";
-import type { OscClient, OscClientFactory } from "../osc/OscClient";
-import type { OscReply } from "../osc/decodeFrame";
+import OSC from "osc-js";
+import {
+  flattenPacket,
+  SCOPE_CHUNK_ADDRESS,
+  type OscArg,
+  type OscPacket,
+} from "@sc-app/server-commands";
+import { oscClient } from "../osc/OscClient";
 import { ScopeController, type ScopeOptions } from "../scope/ScopeController";
 import { IdAllocator } from "./IdAllocator";
 import type { Bootstrap } from "./bootstrapTypes";
@@ -18,8 +23,6 @@ import { appStore } from "../state/store";
 
 /** What SessionManager needs from its environment. */
 export interface SessionDeps {
-  /** Create the OSC client for a WS URL (WorkerOscClient / InProcess / NodeWorker). */
-  createClient: OscClientFactory;
   /** Mint/reuse a session and return its connection info. */
   bootstrap: Bootstrap;
   /** Scope diagnostics (the app maps localStorage flags to these). */
@@ -104,7 +107,9 @@ export class SessionManager {
   readonly scsynthErrors = this.state.select((s) => s.errors);
 
   private readonly deps: SessionDeps;
-  private client: OscClient | null = null;
+  private connected = false;
+  /** (event, id) pairs of our oscClient subscriptions, for dispose(). */
+  private subscriptions: Array<[string, number]> = [];
   private scopeController: ScopeController | null = null;
   private nextId = 0;
   private disposed = false;
@@ -128,28 +133,31 @@ export class SessionManager {
     return this.scopeController;
   }
 
-  /** Bootstrap the session, spin up the worker, and wire its events into the
-   *  store. Safe to call once per controller. */
+  /** Bootstrap the session, connect the global OSC client, and wire its events
+   *  into the store. Safe to call once per controller. */
   async start(): Promise<void> {
     try {
       const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await this.deps.bootstrap();
       if (this.disposed) return;
-      const client = this.deps.createClient(wsUrl);
-      client.onReply((reply) => this.handleReply(reply));
-      client.onError(() => {
-        if (!this.disposed) this.setStatus("error");
-      });
-      await client.ready;
+      await oscClient.connect(wsUrl);
       if (this.disposed) {
-        client.dispose();
+        oscClient.close();
         return;
       }
-      this.client = client;
+      this.connected = true;
+      this.subscribe("*", (msg: OSC.Message) => this.handleReply(msg));
+      // A transport error or an unexpected close both surface as "error".
+      this.subscribe("error", () => {
+        if (!this.disposed) this.setStatus("error");
+      });
+      this.subscribe("close", () => {
+        if (!this.disposed) this.setStatus("error");
+      });
       // Synths this session creates live in its server-assigned group, with
       // node ids drawn from its server-assigned block.
       const ids = new IdAllocator(nodeIdBase, nodeIdCount);
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(client, sessionGroupId, ids, scopeIndex, this.deps.scopeOptions);
+      this.scopeController = new ScopeController(oscClient, sessionGroupId, ids, scopeIndex, this.deps.scopeOptions);
       this.scopeController.start();
       this.setStatus("connected");
     } catch {
@@ -159,17 +167,27 @@ export class SessionManager {
 
   /** Send an OSC packet over the bridge, logging it as `tx`. */
   send(packet: OscPacket): void {
-    if (!this.client) return;
+    if (!this.connected) return;
     for (const { address, args } of flattenPacket(packet)) this.append("tx", address, args);
-    this.client.sendCommand(packet);
+    oscClient.send(packet);
   }
 
   dispose(): void {
     this.disposed = true;
     this.scopeController?.dispose();
     this.scopeController = null;
-    this.client?.dispose();
-    this.client = null;
+    // Drop our subscriptions before closing so the intentional close doesn't
+    // read as an error.
+    for (const [event, id] of this.subscriptions) oscClient.off(event, id);
+    this.subscriptions = [];
+    if (this.connected) {
+      this.connected = false;
+      oscClient.close();
+    }
+  }
+
+  private subscribe(event: string, cb: (...args: any[]) => void): void {
+    this.subscriptions.push([event, oscClient.on(event, cb)]);
   }
 
   private setStatus(status: ConnStatus): void {
@@ -177,11 +195,14 @@ export class SessionManager {
   }
 
   /** Route an inbound reply: `/status.reply` updates the scsynth-status slice
-   *  (and is kept out of the console); `/fail` and `/late` additionally raise a
-   *  banner; everything (except `/status.reply`) is still logged as `rx`. */
-  private handleReply(reply: OscReply): void {
+   *  (and is kept out of the console); `/scope/chunk` streams at ~47 Hz and is
+   *  consumed by the ScopeController's own subscription, so it's skipped here;
+   *  `/fail` and `/late` additionally raise a banner; everything else is
+   *  logged as `rx`. */
+  private handleReply(reply: OSC.Message): void {
+    if (reply.address === SCOPE_CHUNK_ADDRESS) return;
     if (reply.address === STATUS_REPLY) {
-      const next = parseStatus(reply.args);
+      const next = parseStatus(reply.args as ReadonlyArray<OscArg>);
       this.state.update((s) => ({ ...s, scsynthStatus: next }));
       return;
     }

@@ -12,7 +12,6 @@ import {
   type ScsynthStatus,
   type ScsynthError,
 } from "../session/SessionManager";
-import { createBrowserWorkerClient } from "../osc/WorkerOscClient";
 import { bootstrapSession } from "../session/bootstrap";
 
 // Re-export the controller types so existing app imports keep working.
@@ -21,11 +20,10 @@ export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../se
 const scopeFlag = (key: string) =>
   typeof localStorage !== "undefined" && !!localStorage.getItem(key);
 
-/** The one session for the whole app. Wires the browser environment — a Vite
- *  Web Worker client + the Tauri/HTTP bootstrap — into the env-agnostic
- *  controller; the `sc-*` Lit elements read this singleton directly. */
+/** The one session for the whole app. It drives the global `oscClient`
+ *  (src/osc/OscClient.ts) and is fed the Tauri/HTTP bootstrap; the `sc-*` Lit
+ *  elements read this singleton directly. */
 export const session = new SessionManager({
-  createClient: createBrowserWorkerClient,
   bootstrap: bootstrapSession,
   scopeOptions: {
     debug: scopeFlag("sc.scopeDebug"),

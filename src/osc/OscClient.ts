@@ -1,29 +1,72 @@
-// The transport seam the controllers depend on — the public surface of the OSC
-// worker, abstracted so it can be backed by a browser Web Worker or a Node
-// worker_threads worker (both via WorkerOscClient). The controllers never know which.
+// The app's OSC client: composes osc-js's OSC class with the
+// WebsocketWorkerPlugin, so all encode/decode/dispatch is osc-js and the
+// WebSocket runs in a Web Worker. The interface mirrors the OSC class
+// (open/close/send/on/off/status), plus a promise-returning `connect(url)`.
+//
+// One global instance (`oscClient`) serves the whole frontend — the
+// SessionManager starts the connection once the bootstrap yields the WS URL,
+// and consumers (ScopeController, …) subscribe to addresses directly.
 
-import type { DecodedScopeChunk, OscPacket } from "@sc-app/server-commands";
-import type { OscReply } from "./decodeFrame";
+import OSC from "osc-js";
+import type { OscPacket } from "@sc-app/server-commands";
+import { WebsocketWorkerPlugin } from "./WebsocketWorkerPlugin";
 
-export type ReplyListener = (reply: OscReply) => void;
-export type ErrorListener = (message: string) => void;
-export type ScopeChunkListener = (chunk: DecodedScopeChunk) => void;
+export class OscClient {
+  private readonly osc = new OSC({ plugin: new WebsocketWorkerPlugin() });
 
-export interface OscClient {
-  /** Resolves once the underlying WebSocket is open; rejects if it fails. */
-  readonly ready: Promise<void>;
-  /** Encode an OSC packet and send it over the bridge. */
-  sendCommand(packet: OscPacket): void;
-  /** Subscribe to decoded inbound OSC messages (bundles arrive flattened). */
-  onReply(cb: ReplyListener): () => void;
-  /** Subscribe to transport/decode errors (and unexpected WS close). */
-  onError(cb: ErrorListener): () => void;
-  /** Subscribe to decoded `/scope/chunk` frames. */
-  onScopeChunk(cb: ScopeChunkListener): () => void;
-  /** Tear down the transport. */
-  dispose(): void;
+  /** Open the WebSocket (via the worker) to `url`. Resolves once the socket is
+   *  open; rejects on an error or close before that. */
+  connect(url: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const offAll = () => {
+        this.off("open", onOpen);
+        this.off("error", onError);
+        this.off("close", onClose);
+      };
+      const onOpen = this.on("open", () => {
+        offAll();
+        resolve();
+      });
+      const onError = this.on("error", (err: unknown) => {
+        offAll();
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+      const onClose = this.on("close", () => {
+        offAll();
+        reject(new Error("websocket closed before open"));
+      });
+      this.osc.open({ url });
+    });
+  }
+
+  /** Close the connection (and the worker behind it). */
+  close(): void {
+    this.osc.close();
+  }
+
+  /** Pack and send an OSC message/bundle over the worker's WebSocket. */
+  send(packet: OscPacket): void {
+    this.osc.send(packet);
+  }
+
+  /** Subscribe to an OSC address pattern (wildcards supported, `*` for every
+   *  message) or a connection event ('open' | 'close' | 'error'). Returns a
+   *  subscription id for `off`. */
+  on(event: string, callback: (...args: any[]) => void): number {
+    return this.osc.on(event, callback);
+  }
+
+  /** Remove a subscription made with `on`. */
+  off(event: string, subscriptionId: number): boolean {
+    return this.osc.off(event, subscriptionId);
+  }
+
+  /** Connection status (an `OSC.STATUS` value). */
+  status(): number {
+    return this.osc.status();
+  }
 }
 
-/** Factory the app's SessionManager is constructed with — the app passes a
- *  WorkerOscClient factory; Node tests pass an in-process / worker_threads one. */
-export type OscClientFactory = (wsUrl: string) => OscClient;
+/** The one OSC client for the whole frontend. The worker/WebSocket only spin
+ *  up on the first `connect`, so creating this at import time is free. */
+export const oscClient = new OscClient();

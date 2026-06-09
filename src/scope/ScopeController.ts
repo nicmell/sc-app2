@@ -11,6 +11,7 @@
 // latest chunk is written to `chunkRef`, which ScopeView's RAF loop reads —
 // never React state (chunks arrive ~47 Hz).
 
+import OSC from "osc-js";
 import {
   AddToHead,
   AddToTail,
@@ -18,6 +19,8 @@ import {
   encode,
   gFreeAll,
   nFree,
+  parseScopeChunkArgs,
+  SCOPE_CHUNK_ADDRESS,
   sNew,
   scopeSubscribe,
   scopeUnsubscribe,
@@ -56,7 +59,7 @@ export class ScopeController {
    *  windows tap into distinct buffers instead of stomping a shared one. */
   private readonly scopeIndex: number;
   private tapNodeId: number | null = null;
-  private offChunk: (() => void) | null = null;
+  private chunkSubId: number | null = null;
   private started = false;
   private disposed = false;
   /** Diagnostics: total chunks received + console-logging / test-tone flags. */
@@ -92,7 +95,7 @@ export class ScopeController {
     // clears the tap left behind within the reconnect grace window.
     const nodeId = this.ids.alloc();
     this.tapNodeId = nodeId;
-    this.client.sendCommand(gFreeAll(this.groupId));
+    this.client.send(gFreeAll(this.groupId));
 
     // /d_recv the tap def; its completion message /s_new's the tap at the tail
     // of this session's group so it reads the post-mix master out.
@@ -100,7 +103,7 @@ export class ScopeController {
       inBus: INPUT_BUS,
       scopeNum: this.scopeIndex,
     });
-    this.client.sendCommand(dRecv(tapBytes, encode(sNewMsg)));
+    this.client.send(dRecv(tapBytes, encode(sNewMsg)));
 
     // Diagnostic: a known sine onto the tapped bus, at the HEAD of the session
     // group so it runs before the tap reads the bus. If the scope shows this
@@ -111,17 +114,25 @@ export class ScopeController {
         freq: 220,
         amp: 0.2,
       });
-      this.client.sendCommand(dRecv(compileTestToneSynthDef(), encode(toneMsg)));
+      this.client.send(dRecv(compileTestToneSynthDef(), encode(toneMsg)));
       console.log(`[scope] TEST TONE: 220Hz → bus ${INPUT_BUS} (expect an audible sine + waveform)`);
     }
 
     // Stream the slot the tap writes; the bridge intercepts this subscribe.
-    this.offChunk = this.client.onScopeChunk((chunk) => {
+    // `/scope/chunk` is an ordinary OSC message — subscribe to its address.
+    this.chunkSubId = this.client.on(SCOPE_CHUNK_ADDRESS, (msg: OSC.Message) => {
+      let chunk: DecodedScopeChunk;
+      try {
+        chunk = parseScopeChunkArgs(msg.args as unknown[]);
+      } catch (err) {
+        console.error("[scope] bad /scope/chunk:", err);
+        return;
+      }
       if (chunk.subId !== SUB_ID) return;
       this.chunkRef.current = chunk;
       if (this.debug) this.logChunk(chunk);
     });
-    this.client.sendCommand(
+    this.client.send(
       scopeSubscribe({ subId: SUB_ID, scope: this.scopeIndex, channels: CHANNELS, chunkSize: CHUNK_SIZE }),
     );
     if (this.debug) {
@@ -150,11 +161,11 @@ export class ScopeController {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.offChunk?.();
-    this.offChunk = null;
+    if (this.chunkSubId !== null) this.client.off(SCOPE_CHUNK_ADDRESS, this.chunkSubId);
+    this.chunkSubId = null;
     this.chunkRef.current = null;
     // Stop bridge polling, then free the tap synth.
-    this.client.sendCommand(scopeUnsubscribe(SUB_ID));
-    if (this.tapNodeId !== null) this.client.sendCommand(nFree(this.tapNodeId));
+    this.client.send(scopeUnsubscribe(SUB_ID));
+    if (this.tapNodeId !== null) this.client.send(nFree(this.tapNodeId));
   }
 }

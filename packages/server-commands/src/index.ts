@@ -22,6 +22,9 @@ export { default as OSC } from 'osc-js';
 // Binary <-> osc-js.
 export { encode, decode, isBundle, isMessage, type OscPacket } from './encode';
 
+// Flatten a packet/bundle into per-message (address, args) entries.
+export { flattenPacket, type FlatOsc } from './flatten';
+
 // Timetag helpers.
 export * as timetag from './timetag';
 export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } from './timetag';

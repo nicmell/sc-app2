@@ -1,9 +1,8 @@
 // Flatten an OSC packet into per-message `(address, args)` entries — a bundle
-// recurses to its inner messages. Shared by the worker (decoding inbound rx)
-// and the app's SessionManager (logging outbound tx, where it already holds the
-// packet so there's no need to re-decode bytes).
+// recurses to its inner messages. Useful for decoding inbound rx and for logging
+// outbound tx (where the caller already holds the packet, no need to re-decode).
 
-import { isBundle, isMessage, type OscPacket } from "@sc-app/server-commands";
+import { isBundle, isMessage, type OscPacket } from './encode';
 
 export interface FlatOsc {
   address: string;

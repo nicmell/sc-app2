@@ -4,7 +4,7 @@
 
 import { encode, type OscPacket } from "@sc-app/server-commands";
 import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
-import type { MainToWorker, WorkerToMain } from "./protocol";
+import type { MainToWorker, WorkerToMain } from "../types/protocol";
 
 /** Browser OscClient: spawns the Vite Web Worker (the only bundler-specific
  *  piece) and bridges its postMessages to the controllers' OscClient surface. */

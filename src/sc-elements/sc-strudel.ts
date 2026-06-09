@@ -7,11 +7,23 @@ import { LitElement, html } from "lit";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "../strudel/prebake";
-import { dirtPlayBundle, type DirtEvent } from "../osc/dirt";
+import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "../session/SessionManager";
 import { session } from "../state/session";
 
 const SAFETY_LOOKAHEAD_MS = 200;
+
+/** A SuperDirt event: a flat bag of params (`s`, `n`, `gain`, `note`, …). */
+type DirtEvent = Record<string, string | number>;
+
+/** Build a `/dirt/play` bundle: flat `[key, value, …]` args, scheduled at
+ *  `timetagMs` (a wall-clock ms timestamp — osc-js converts it to NTP). */
+function dirtPlayBundle(event: DirtEvent, timetagMs: number): OscPacket {
+  const args: Array<string | number> = [];
+  for (const [k, v] of Object.entries(event)) args.push(k, v);
+  const message = new OSC.Message("/dirt/play", ...args);
+  return new OSC.Bundle([message], atDate(timetagMs));
+}
 
 const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the OSC bridge.
 // Edit, then press Play (or Ctrl+Enter). Stop with the button (or Ctrl+.).

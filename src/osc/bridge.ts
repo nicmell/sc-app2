@@ -6,14 +6,14 @@
 
 import {
   decode,
+  flattenPacket,
   isMessage,
   parseScopeChunkArgs,
   SCOPE_CHUNK_ADDRESS,
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
-import { flattenPacket } from "./flatten";
 import { createOscTransport } from "./transport";
-import type { OscReply } from "./protocol";
+import type { OscReply } from "../types/protocol";
 
 export interface OscBridgeCallbacks {
   onReply(reply: OscReply): void;

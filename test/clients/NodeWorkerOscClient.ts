@@ -6,7 +6,7 @@
 
 import { Worker } from "node:worker_threads";
 import { encode, type OscPacket } from "@sc-app/server-commands";
-import type { MainToWorker, WorkerToMain } from "../../src/osc/protocol";
+import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 import type {
   ErrorListener,
   OscClient,

@@ -4,7 +4,7 @@
 // worker_threads worker (NodeWorkerOscClient). The controllers never know which.
 
 import type { DecodedScopeChunk, OscPacket } from "@sc-app/server-commands";
-import type { OscReply } from "./protocol";
+import type { OscReply } from "../types/protocol";
 
 export type ReplyListener = (reply: OscReply) => void;
 export type ErrorListener = (message: string) => void;

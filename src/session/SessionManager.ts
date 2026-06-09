@@ -8,10 +8,9 @@
 // views off that slice, so each notifies independently and the React hooks read
 // them via useSyncExternalStore.
 
-import type { OscArg, OscPacket } from "@sc-app/server-commands";
-import { flattenPacket } from "../osc/flatten";
+import { flattenPacket, type OscArg, type OscPacket } from "@sc-app/server-commands";
 import type { OscClient, OscClientFactory } from "../osc/OscClient";
-import type { OscReply } from "../osc/protocol";
+import type { OscReply } from "../types/protocol";
 import { ScopeController, type ScopeOptions } from "../scope/ScopeController";
 import { IdAllocator } from "./IdAllocator";
 import type { Bootstrap } from "./bootstrapTypes";

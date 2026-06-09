@@ -6,7 +6,7 @@
 
 import { setWorkerMessageHandler } from "./workerBootstrap";
 import { createOscBridge, type OscBridge } from "./bridge";
-import type { MainToWorker, WorkerToMain } from "./protocol";
+import type { MainToWorker, WorkerToMain } from "../types/protocol";
 
 let bridge: OscBridge | null = null;
 

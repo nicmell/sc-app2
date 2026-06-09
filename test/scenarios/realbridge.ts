@@ -7,7 +7,7 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { writeFileSync } from "node:fs";
-import type { OscReply } from "../../src/osc/protocol";
+import type { OscReply } from "../../src/types/protocol";
 import { InProcessOscClient } from "../clients/InProcessOscClient";
 import { startFakeScsynth } from "../fixtures/fakeScsynth.ts";
 import { delay, httpBootstrap, ok, waitForServe } from "./lib.ts";

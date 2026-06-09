@@ -5,7 +5,7 @@
 
 import { parentPort } from "node:worker_threads";
 import { createOscBridge, type OscBridge } from "../../src/osc/bridge";
-import type { MainToWorker, WorkerToMain } from "../../src/osc/protocol";
+import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
 
 if (!parentPort) {
   throw new Error("nodeWorkerEntry.ts must run inside a worker_threads Worker");

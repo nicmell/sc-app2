@@ -10,8 +10,9 @@
 //! [`core::scsynth::Scsynth`] supervisor on top of it, builds the web-layer
 //! [`router::Server`], and binds its listener. The two run modes differ only in
 //! where the frontend assets come from and how/when they serve. The GUI webview
-//! learns the server port via the `get_env` command; browsers are same-origin
-//! and read full config from the server's `/api/config` route.
+//! learns the server's base URL through an injected `window.HTTP_BASE_URL`
+//! (its window is built after the listener binds, with an initialization
+//! script); browsers are same-origin.
 
 mod config;
 mod core;
@@ -101,29 +102,14 @@ fn run_serve(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     });
 }
 
-/// What the GUI webview needs to reach the embedded HTTP server: its port. The
-/// webview's origin is `tauri://localhost`, not the server, so it targets
-/// `http://127.0.0.1:<port>`; the frontend resolves this once via `get_env`
-/// (see `src/env.ts`). Browsers don't use this — they're same-origin.
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-struct EnvInfo {
-    port: u16,
-}
-
-/// The runtime environment for the GUI webview (the server port it should call).
-#[tauri::command]
-fn get_env(server: tauri::State<Server>) -> EnvInfo {
-    EnvInfo { port: server.port() }
-}
-
-/// Native GUI: stock Tauri (window from tauri.conf.json, `tauri://` assets,
-/// `get_env` over IPC for the server port) plus the HTTP server for external
-/// clients, which serves the frontend through the running app's asset resolver.
+/// Native GUI: Tauri with the window built programmatically (so the embedded
+/// server can bind first and its base URL be injected as `window.HTTP_BASE_URL`
+/// via an initialization script — the webview's origin is `tauri://localhost`,
+/// not the server), plus the HTTP server for external clients, which serves the
+/// frontend through the running app's asset resolver.
 fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_env])
         .setup(move |app| {
             // Same build+bind as serve; only the asset source differs.
             let assets = router::assets::from_app(app);
@@ -131,6 +117,17 @@ fn run_gui(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
                 .map_err(|e| format!("server bind: {e}"))?;
             // Keep a handle for the exit hook (tear down scsynth state on close).
             app.manage(server.clone());
+            // The window is created here (not tauri.conf.json) so the injected
+            // base URL can carry the just-bound server port. The script runs
+            // before any frontend code, so `src/http` reads it synchronously.
+            tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::default())
+                .title("sc-app2")
+                .inner_size(800.0, 600.0)
+                .initialization_script(format!(
+                    "window.HTTP_BASE_URL = \"http://127.0.0.1:{}\";",
+                    server.port()
+                ))
+                .build()?;
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = router::serve(server, listener, assets).await {
                     tracing::error!(error = %e, "server error");

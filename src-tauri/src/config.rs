@@ -2,14 +2,13 @@
 //! path or the canonical app config dir (e.g. macOS
 //! `~/Library/Application Support/com.nicmell.scapp/config.json`).
 //!
-//! `AppConfig` reaches browser frontends over the server's `/api/config` route
-//! ([`crate::router::config`]); the GUI webview only needs the server port, via
-//! the `get_env` command in [`crate::run`]. It also carries the `peers` the
-//! bridge connects to at startup and an optional `log_dir`.
+//! `AppConfig` is server-side only: the listen `port` (which the GUI webview
+//! learns through the injected `window.HTTP_BASE_URL`), the `peers` the bridge
+//! connects to at startup, and an optional `log_dir`.
 
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /// Bundle identifier — also the app config dir name (matches tauri.conf.json).
 const IDENTIFIER: &str = "com.nicmell.scapp";
@@ -19,16 +18,16 @@ const DEFAULT_SESSION_TTL_SECONDS: u64 = 60;
 
 /// A peer the bridge connects to at startup. `pattern` is the OSC-address regex
 /// that routes outbound messages to this peer; `name` identifies it in logs.
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct PeerConfig {
     pub name: String,
     pub pattern: String,
     pub target: String,
 }
 
-/// Contents of `config.json`. `port` is shared with the frontend; `peers` and
-/// `log_dir` drive the server (UDP peers + file logging).
-#[derive(Deserialize, Serialize, Clone)]
+/// Contents of `config.json`: the listen `port`, the UDP `peers`, and file
+/// logging via `log_dir`.
+#[derive(Deserialize, Clone)]
 pub struct AppConfig {
     #[serde(default = "default_port")]
     pub port: u16,

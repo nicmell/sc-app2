@@ -1319,13 +1319,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tauri-apps/api@npm:^2, @tauri-apps/api@npm:^2.11.0":
-  version: 2.11.0
-  resolution: "@tauri-apps/api@npm:2.11.0"
-  checksum: 10c0/70c9f692d14ef7a5f69aa56d474e993f2c25f393e30a26099cca198040ccd33724e4978cefd455c73ecb169b36ca9b7ee010db88b05b0a8bd4a85801caa317d6
-  languageName: node
-  linkType: hard
-
 "@tauri-apps/cli-darwin-arm64@npm:2.11.2":
   version: 2.11.2
   resolution: "@tauri-apps/cli-darwin-arm64@npm:2.11.2"
@@ -1444,15 +1437,6 @@ __metadata:
   bin:
     tauri: tauri.js
   checksum: 10c0/8596dd46f2846e94885aa7ec355f43d3e163c97d52e310e22557a5c756eceb1b644b58e05e138481eef9f7bfe3753576e84d41d44798906dd744d02a02c60641
-  languageName: node
-  linkType: hard
-
-"@tauri-apps/plugin-opener@npm:^2":
-  version: 2.5.4
-  resolution: "@tauri-apps/plugin-opener@npm:2.5.4"
-  dependencies:
-    "@tauri-apps/api": "npm:^2.11.0"
-  checksum: 10c0/9d5b8893680e776d4ae91f2be8ba9a49c56a3163307b4ad10ff71ffdaf67d07f7a7d4335c465cf32f499582d4589a04d9a66064de117e761b2588254b5202d53
   languageName: node
   linkType: hard
 
@@ -3474,9 +3458,7 @@ __metadata:
     "@strudel/mini": "npm:^1.2.6"
     "@strudel/tonal": "npm:^1.2.6"
     "@strudel/transpiler": "npm:^1.2.6"
-    "@tauri-apps/api": "npm:^2"
     "@tauri-apps/cli": "npm:^2"
-    "@tauri-apps/plugin-opener": "npm:^2"
     "@types/node": "npm:^22"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"

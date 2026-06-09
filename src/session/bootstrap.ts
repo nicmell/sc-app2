@@ -6,42 +6,20 @@
 // across reloads when it's still live (the server keeps the same group/range),
 // else mint a fresh one.
 //
-// All URLs are built from the resolved base in `env.ts` (relative in a browser,
-// `http://127.0.0.1:<port>` in the Tauri webview).
+// All requests go through `src/http`, which resolves against the injected
+// HTTP_BASE_URL (Tauri) or same-origin relative URLs (browser).
 
-import { httpBase, wsUrl } from "../env";
+import { get, post, wsUrl, HttpError } from "../http";
 import type { BootstrapResult, SessionInfo } from "./bootstrapTypes";
 
 export type { BootstrapResult, SessionInfo } from "./bootstrapTypes";
 
 const STORAGE_KEY = "sc.session";
 
-/** A bridge peer as reported by `/api/config` (e.g. scsynth, strudel). */
-export interface ServerPeer {
-  name: string;
-  pattern: string;
-  target: string;
-}
-
-/** The subset of `AppConfig` the frontend reads. */
-export interface ServerConfig {
-  port: number;
-  peers: ServerPeer[];
-}
-
-/** Fetch the server config from the Rust router (`/api/config`). The footer
- *  uses it to show scsynth's address. */
-export async function fetchConfig(): Promise<ServerConfig> {
-  const res = await fetch(`${httpBase()}/api/config`);
-  if (!res.ok) throw new Error(`GET /api/config → ${res.status}`);
-  return res.json();
-}
-
 /** Fetch a stored session's info, or `null` if it's gone (404 / network). */
-async function fetchSession(base: string, id: string): Promise<SessionInfo | null> {
+async function fetchSession(id: string): Promise<SessionInfo | null> {
   try {
-    const res = await fetch(`${base}/api/session/${id}`);
-    return res.ok ? ((await res.json()) as SessionInfo) : null;
+    return (await get(`/api/session/${id}`)).json();
   } catch {
     return null;
   }
@@ -49,22 +27,23 @@ async function fetchSession(base: string, id: string): Promise<SessionInfo | nul
 
 /** Mint a fresh session. The server allocates the group + node range; it can
  *  briefly return 503 if scsynth hasn't finished registering, so retry. */
-async function createSession(base: string): Promise<SessionInfo> {
+async function createSession(): Promise<SessionInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(`${base}/api/session`, { method: "POST" });
-    if (res.ok) return (await res.json()) as SessionInfo;
-    if (res.status !== 503) throw new Error(`POST /api/session → ${res.status}`);
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      return await (await post("/api/session")).json();
+    } catch (err) {
+      if (!(err instanceof HttpError) || err.status !== 503) throw err;
+      await new Promise((r) => setTimeout(r, 500));
+    }
   }
   throw new Error("POST /api/session → 503 (scsynth not registered)");
 }
 
 async function doBootstrap(): Promise<BootstrapResult> {
-  const base = httpBase();
   const stored = window.sessionStorage.getItem(STORAGE_KEY);
-  let info = stored ? await fetchSession(base, stored) : null;
+  let info = stored ? await fetchSession(stored) : null;
   if (!info) {
-    info = await createSession(base);
+    info = await createSession();
     window.sessionStorage.setItem(STORAGE_KEY, info.sessionId);
   }
   return { ...info, wsUrl: wsUrl(`/ws?session=${info.sessionId}`) };

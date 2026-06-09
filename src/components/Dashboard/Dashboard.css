@@ -154,13 +154,10 @@
   z-index: 41;
 }
 
-.server-address,
 .server-status {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
   font-family: var(--font-mono);
-}
-.server-status {
   margin-left: auto;
 }
 

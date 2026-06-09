@@ -3,12 +3,11 @@
 //! [`Server`](crate::server::Server), which this layer holds as axum `State`
 //! and drives through its public API (`router → server → core`).
 //!
-//! Routes are assembled in [`router`] from per-feature sub-routers ([`config`],
-//! [`session`], [`ws`], [`plugin`]), so adding a new feature is a new `mod` + a
-//! `.merge(its::routes())`.
+//! Routes are assembled in [`router`] from per-feature sub-routers
+//! ([`session`], [`ws`], [`plugin`]), so adding a new feature is a new `mod` +
+//! a `.merge(its::routes())`.
 
 pub mod assets;
-mod config;
 mod diag;
 mod plugin;
 mod session;
@@ -49,12 +48,11 @@ pub async fn serve(
     Ok(())
 }
 
-/// Assemble the app router from the per-feature `/api` sub-routers (config,
-/// session, ws, plugins), plus the static-asset fallback when a resolver is
-/// installed (production); API-only otherwise (dev — Vite serves the UI).
+/// Assemble the app router from the per-feature `/api` sub-routers (session,
+/// ws, plugins), plus the static-asset fallback when a resolver is installed
+/// (production); API-only otherwise (dev — Vite serves the UI).
 pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router {
     let mut app = Router::new()
-        .merge(config::routes())
         .merge(session::routes())
         .merge(ws::routes())
         .merge(plugin::routes())

@@ -64,10 +64,6 @@ impl Server {
 
     // ── accessors (the router reads these; it never touches `inner`) ──
 
-    pub(crate) fn config(&self) -> &AppConfig {
-        &self.inner.config
-    }
-
     pub(crate) fn port(&self) -> u16 {
         self.inner.config.port
     }

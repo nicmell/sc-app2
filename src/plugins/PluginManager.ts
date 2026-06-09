@@ -33,13 +33,17 @@ export async function listPlugins(): Promise<PluginInfo[]> {
 export async function addPlugin(file: File): Promise<PluginInfo> {
   const buf = await file.arrayBuffer();
   const res = await fetch(await pluginsBase(), { method: "POST", body: new Uint8Array(buf) });
-  if (!res.ok) throw new Error((await res.text()) || `POST /api/plugins → ${res.status}`);
+  if (!res.ok) {
+    throw new Error((await res.text()) || `POST /api/plugins → ${res.status}`);
+  }
   return res.json();
 }
 
 export async function removePlugin(id: string): Promise<void> {
   const res = await fetch(`${await pluginsBase()}/${id}`, { method: "DELETE" });
-  if (!res.ok && res.status !== 204) throw new Error((await res.text()) || `DELETE → ${res.status}`);
+  if (!res.ok && res.status !== 204) {
+    throw new Error((await res.text()) || `DELETE → ${res.status}`)
+  };
 }
 
 /** Fetch a plugin's entry HTML and mount its body into `host`. The `sc-*`

@@ -4,9 +4,9 @@
 // so it can import the app's TypeScript directly.
 
 import { parentPort } from "node:worker_threads";
-import { runTransportWorker } from "../../src/osc/transportWorker";
-import { fromEventEmitter } from "../../src/osc/messageEndpoint";
-import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
+import { runTransportWorker } from "../../src/worker/transportWorker";
+import { fromEventEmitter } from "../../src/worker/messageEndpoint";
+import type { MainToWorker, WorkerToMain } from "../../src/worker/protocol";
 
 if (!parentPort) {
   throw new Error("nodeWorkerEntry.ts must run inside a worker_threads Worker");

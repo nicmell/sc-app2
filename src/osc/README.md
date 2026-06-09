@@ -1,11 +1,16 @@
-# `src/osc` — the OSC transport subsystem
+# `src/osc` (+ `src/worker`) — the OSC transport subsystem
 
-How the app talks OSC to the SuperCollider/Strudel server. The **WebSocket I/O**
-runs **off the main thread** in a Web Worker; the worker is a *generic byte relay*
-(connect / send / receive raw frames). All **OSC encode/decode lives on the main
-thread**, in the `OscClient`. The whole thing sits behind one interface
-(`OscClient`) that can also be backed by a `worker_threads` worker so the
-controllers run **headlessly in Node tests**.
+How the app talks OSC to the SuperCollider/Strudel server. Split across two folders:
+
+- **`src/worker/`** — a generic, OSC-unaware **byte transport** that runs the
+  WebSocket **off the main thread** in a Web Worker (connect / send / receive raw
+  frames). No osc-js here.
+- **`src/osc/`** — the **OSC layer** on top: the `OscClient` seam + the client that
+  owns the OSC protocol (encode outbound, decode inbound). Depends on `src/worker/`;
+  the dependency only ever points that way.
+
+The whole thing sits behind one interface (`OscClient`) that can also be backed by
+a `worker_threads` worker so the controllers run **headlessly in Node tests**.
 
 The app code only ever touches `OscClient` (`sendCommand` / `onReply` /
 `onError` / `onScopeChunk`). Everything else here is how that interface is
@@ -39,16 +44,23 @@ the main-thread `@sc-app/server-commands`). The worker only moves bytes.
 
 ## Files
 
+**`src/worker/` — the byte transport (OSC-unaware):**
+
+| file | responsibility |
+|---|---|
+| `transport.ts` | raw WebSocket: binary in/out, `ready`/`close`. WHATWG API → runs in a browser Worker *and* Node 22. |
+| `protocol.d.ts` | the raw byte protocol: `MainToWorker` (connect/send/disconnect), `WorkerToMain` (open/message/error/closed). No OSC types. |
+| `messageEndpoint.ts` | `MessageEndpoint<Send,Receive>` (post + onMessage), `WorkerHandle` (+ onError + terminate), and `fromEventTarget` / `fromEventEmitter` — adapt a browser `EventTarget` or a node `EventEmitter` to those interfaces |
+| `transportWorker.ts` | `runTransportWorker(endpoint)` — the relay that runs *inside* the worker: drives a `transport` from `MainToWorker`, posts raw frames back as `WorkerToMain`. |
+| `worker.ts` | browser worker entry — `runTransportWorker(fromEventTarget(self))`. No osc-js, no `window` shim. |
+
+**`src/osc/` — the OSC layer:**
+
 | file | responsibility |
 |---|---|
 | `OscClient.ts` | the interface the app/controllers depend on (+ listener types & factory type) |
-| `transport.ts` | raw WebSocket: binary in/out, `ready`/`close`. WHATWG API → runs in a browser Worker *and* Node 22. |
 | `decodeFrame.ts` | `decodeFrame(bytes)` — main-thread OSC decode: `/scope/chunk` → `Float32Array`, else flattened `OscReply`s. Hosts the `OscReply` type. |
-| `../types/protocol.d.ts` | the raw byte protocol: `MainToWorker` (connect/send/disconnect), `WorkerToMain` (open/message/error/closed). No OSC types. |
-| `messageEndpoint.ts` | `MessageEndpoint<Send,Receive>` (post + onMessage), `WorkerHandle` (+ onError + terminate), and `fromEventTarget` / `fromEventEmitter` — adapt a browser `EventTarget` or a node `EventEmitter` to those interfaces |
-| `transportWorker.ts` | `runTransportWorker(endpoint)` — the relay that runs *inside* the worker: drives a `transport` from `MainToWorker`, posts raw frames back as `WorkerToMain`. OSC-unaware. |
 | `WorkerOscClient.ts` | the main-thread handle: owns the OSC protocol (connect/disconnect, encode, decodeFrame) and fans replies out to listeners. `createBrowserWorkerClient` spawns the Vite Worker. |
-| `worker.ts` | browser worker entry — `runTransportWorker(fromEventTarget(self))`. No osc-js, no `window` shim. |
 | `listenerGroup.ts` | tiny add/emit/clear fan-out the client uses, one group per event |
 
 (The Node client/entry — `createNodeWorkerClient`, `nodeWorkerEntry` — live in

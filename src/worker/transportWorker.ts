@@ -9,7 +9,7 @@
 // endpoint.
 
 import { createOscTransport, type OscTransport } from "./transport";
-import type { MainToWorker, WorkerToMain } from "../types/protocol";
+import type { MainToWorker, WorkerToMain } from "./protocol";
 import type { MessageEndpoint } from "./messageEndpoint";
 
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));

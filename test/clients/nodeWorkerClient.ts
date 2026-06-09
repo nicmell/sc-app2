@@ -6,8 +6,8 @@
 
 import { Worker } from "node:worker_threads";
 import { WorkerOscClient } from "../../src/osc/WorkerOscClient";
-import { fromEventEmitter } from "../../src/osc/messageEndpoint";
-import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
+import { fromEventEmitter } from "../../src/worker/messageEndpoint";
+import type { MainToWorker, WorkerToMain } from "../../src/worker/protocol";
 
 export function createNodeWorkerClient(wsUrl: string): WorkerOscClient {
     const w = new Worker(new URL("./nodeWorkerBootstrap.mjs", import.meta.url));

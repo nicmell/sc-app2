@@ -2,7 +2,7 @@
 // listener, clear drops them all. The OscClient implementations keep one group
 // per event (reply / error / scopeChunk) instead of hand-rolling Sets.
 
-import type { Unsubscribe } from "./messageEndpoint";
+import type { Unsubscribe } from "../worker/messageEndpoint";
 
 export interface ListenerGroup<T> {
   /** Register a listener; returns an unsubscribe. */

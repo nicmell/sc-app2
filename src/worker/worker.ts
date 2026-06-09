@@ -5,6 +5,6 @@
 
 import { runTransportWorker } from "./transportWorker";
 import { fromEventTarget } from "./messageEndpoint";
-import type { MainToWorker, WorkerToMain } from "../types/protocol";
+import type { MainToWorker, WorkerToMain } from "./protocol";
 
 runTransportWorker(fromEventTarget<WorkerToMain, MainToWorker>(self));

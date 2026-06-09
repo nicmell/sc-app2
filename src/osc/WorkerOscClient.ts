@@ -7,9 +7,9 @@
 
 import { encode, type DecodedScopeChunk, type OscPacket } from "@sc-app/server-commands";
 import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
-import type { MainToWorker, WorkerToMain } from "../types/protocol";
+import type { MainToWorker, WorkerToMain } from "../worker/protocol";
 import { decodeFrame, type OscReply } from "./decodeFrame";
-import { fromEventTarget, type WorkerHandle, type Unsubscribe } from "./messageEndpoint";
+import { fromEventTarget, type WorkerHandle, type Unsubscribe } from "../worker/messageEndpoint";
 import { listenerGroup } from "./listenerGroup";
 
 export class WorkerOscClient implements OscClient {
@@ -126,7 +126,7 @@ export class WorkerOscClient implements OscClient {
  *  URL(...))` must stay here so Vite bundles it) behind an inline WorkerHandle
  *  that unwraps `MessageEvent.data`. */
 export function createBrowserWorkerClient(wsUrl: string): WorkerOscClient {
-  const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+  const w = new Worker(new URL("../worker/worker.ts", import.meta.url), { type: "module" });
   return new WorkerOscClient(wsUrl, {
     ...fromEventTarget<MainToWorker, WorkerToMain>(w),
     onError: (h) => {

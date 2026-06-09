@@ -3,37 +3,26 @@
 // decode + WebSocket-to-server path. Uses Node 22's global WebSocket (the
 // transport is WHATWG-compliant), so it needs no browser shims.
 
-import { encode, type OscPacket } from "@sc-app/server-commands";
+import { encode, type DecodedScopeChunk, type OscPacket } from "@sc-app/server-commands";
 import { createOscBridge, type OscBridge } from "../../src/osc/bridge";
-import type {
-  ErrorListener,
-  OscClient,
-  ReplyListener,
-  ScopeChunkListener,
-} from "../../src/osc/OscClient";
+import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "../../src/osc/OscClient";
+import type { OscReply } from "../../src/types/protocol";
+import { listenerGroup } from "../../src/osc/listenerGroup";
 
 export class InProcessOscClient implements OscClient {
   private readonly bridge: OscBridge;
-  private readonly replyListeners = new Set<ReplyListener>();
-  private readonly errorListeners = new Set<ErrorListener>();
-  private readonly scopeChunkListeners = new Set<ScopeChunkListener>();
+  private readonly replies = listenerGroup<OscReply>();
+  private readonly errors = listenerGroup<string>();
+  private readonly scopeChunks = listenerGroup<DecodedScopeChunk>();
 
   readonly ready: Promise<void>;
 
   constructor(url: string) {
     this.bridge = createOscBridge(url, {
-      onReply: (reply) => {
-        for (const cb of this.replyListeners) cb(reply);
-      },
-      onScopeChunk: (chunk) => {
-        for (const cb of this.scopeChunkListeners) cb(chunk);
-      },
-      onError: (message) => {
-        for (const cb of this.errorListeners) cb(message);
-      },
-      onClose: () => {
-        for (const cb of this.errorListeners) cb("websocket closed");
-      },
+      onReply: (reply) => this.replies.emit(reply),
+      onScopeChunk: (chunk) => this.scopeChunks.emit(chunk),
+      onError: (message) => this.errors.emit(message),
+      onClose: () => this.errors.emit("websocket closed"),
     });
     this.ready = this.bridge.ready;
   }
@@ -43,24 +32,21 @@ export class InProcessOscClient implements OscClient {
   }
 
   onReply(cb: ReplyListener): () => void {
-    this.replyListeners.add(cb);
-    return () => this.replyListeners.delete(cb) as unknown as void;
+    return this.replies.add(cb);
   }
 
   onError(cb: ErrorListener): () => void {
-    this.errorListeners.add(cb);
-    return () => this.errorListeners.delete(cb) as unknown as void;
+    return this.errors.add(cb);
   }
 
   onScopeChunk(cb: ScopeChunkListener): () => void {
-    this.scopeChunkListeners.add(cb);
-    return () => this.scopeChunkListeners.delete(cb) as unknown as void;
+    return this.scopeChunks.add(cb);
   }
 
   dispose(): void {
     void this.bridge.close();
-    this.replyListeners.clear();
-    this.errorListeners.clear();
-    this.scopeChunkListeners.clear();
+    this.replies.clear();
+    this.errors.clear();
+    this.scopeChunks.clear();
   }
 }

@@ -5,16 +5,17 @@
 // createBrowserWorkerClient below / createNodeWorkerClient in the test harness).
 // One client owns one worker, which owns one WebSocket.
 
-import { encode, type OscPacket } from "@sc-app/server-commands";
+import { encode, type DecodedScopeChunk, type OscPacket } from "@sc-app/server-commands";
 import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
-import type { MainToWorker, WorkerToMain } from "../types/protocol";
+import type { MainToWorker, OscReply, WorkerToMain } from "../types/protocol";
 import { fromEventTarget, type WorkerHandle, type Unsubscribe } from "./messageEndpoint";
+import { listenerGroup } from "./listenerGroup";
 
 export class WorkerOscClient implements OscClient {
   private readonly worker: WorkerHandle<MainToWorker, WorkerToMain>;
-  private readonly replyListeners = new Set<ReplyListener>();
-  private readonly errorListeners = new Set<ErrorListener>();
-  private readonly scopeChunkListeners = new Set<ScopeChunkListener>();
+  private readonly replies = listenerGroup<OscReply>();
+  private readonly errors = listenerGroup<string>();
+  private readonly scopeChunks = listenerGroup<DecodedScopeChunk>();
   private readonly offs: Unsubscribe[] = [];
 
   /** Resolves once the worker's WebSocket is open; rejects if it fails to open. */
@@ -39,7 +40,7 @@ export class WorkerOscClient implements OscClient {
         // A worker-level error before "ready" fails the connection too.
         worker.onError((err) => {
           settle(() => reject(err));
-          for (const cb of this.errorListeners) cb(err.message);
+          this.errors.emit(err.message);
         }),
       );
     });
@@ -54,21 +55,18 @@ export class WorkerOscClient implements OscClient {
 
   /** Subscribe to decoded inbound OSC messages (bundles arrive flattened). */
   onReply(cb: ReplyListener): () => void {
-    this.replyListeners.add(cb);
-    return () => this.replyListeners.delete(cb) as unknown as void;
+    return this.replies.add(cb);
   }
 
   /** Subscribe to transport/decode errors (and unexpected WS close). */
   onError(cb: ErrorListener): () => void {
-    this.errorListeners.add(cb);
-    return () => this.errorListeners.delete(cb) as unknown as void;
+    return this.errors.add(cb);
   }
 
   /** Subscribe to decoded `/scope/chunk` frames (the worker transfers each
    *  chunk's Float32Array, so a listener must consume `data` synchronously). */
   onScopeChunk(cb: ScopeChunkListener): () => void {
-    this.scopeChunkListeners.add(cb);
-    return () => this.scopeChunkListeners.delete(cb) as unknown as void;
+    return this.scopeChunks.add(cb);
   }
 
   /** Tear down: close the WS, drop worker listeners, and terminate the worker. */
@@ -77,24 +75,24 @@ export class WorkerOscClient implements OscClient {
     for (const off of this.offs) off();
     this.offs.length = 0;
     void this.worker.terminate();
-    this.replyListeners.clear();
-    this.errorListeners.clear();
-    this.scopeChunkListeners.clear();
+    this.replies.clear();
+    this.errors.clear();
+    this.scopeChunks.clear();
   }
 
   private handle(msg: WorkerToMain): void {
     switch (msg.type) {
       case "reply":
-        for (const cb of this.replyListeners) cb(msg.reply);
+        this.replies.emit(msg.reply);
         return;
       case "scopeChunk":
-        for (const cb of this.scopeChunkListeners) cb(msg.chunk);
+        this.scopeChunks.emit(msg.chunk);
         return;
       case "error":
-        for (const cb of this.errorListeners) cb(msg.message);
+        this.errors.emit(msg.message);
         return;
       case "closed":
-        for (const cb of this.errorListeners) cb("websocket closed");
+        this.errors.emit("websocket closed");
         return;
       case "ready":
         return; // handled by the `ready` promise

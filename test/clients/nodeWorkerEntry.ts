@@ -4,8 +4,8 @@
 // Spawned by NodeWorkerOscClient with a tsx loader so it can import this TS.
 
 import { parentPort } from "node:worker_threads";
-import { createOscBridge, type OscBridge } from "../osc/bridge";
-import type { MainToWorker, WorkerToMain } from "../osc/protocol";
+import { createOscBridge, type OscBridge } from "../../src/osc/bridge";
+import type { MainToWorker, WorkerToMain } from "../../src/osc/protocol";
 
 if (!parentPort) {
   throw new Error("nodeWorkerEntry.ts must run inside a worker_threads Worker");

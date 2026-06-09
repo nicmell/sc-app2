@@ -9,16 +9,12 @@
 // them via useSyncExternalStore.
 
 import type { OscArg, OscPacket } from "@sc-app/server-commands";
-import {
-  IdAllocator,
-  ScopeController,
-  flattenPacket,
-  type Bootstrap,
-  type OscClient,
-  type OscClientFactory,
-  type OscReply,
-  type ScopeOptions,
-} from "@sc-app/session-core";
+import { flattenPacket } from "../../osc/flatten";
+import type { OscClient, OscClientFactory } from "../../osc/OscClient";
+import type { OscReply } from "../../osc/protocol";
+import { ScopeController, type ScopeOptions } from "../../scope/ScopeController";
+import { IdAllocator } from "../../session/IdAllocator";
+import type { Bootstrap } from "../../session/bootstrapTypes";
 import { appStore } from "../../state/store";
 
 /** What SessionManager needs from its environment. */

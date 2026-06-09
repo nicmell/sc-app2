@@ -31,9 +31,6 @@ export default defineConfig(async () => ({
       "@sc-app/server-commands": fileURLToPath(
         new URL("./packages/server-commands/src/index.ts", import.meta.url),
       ),
-      "@sc-app/session-core": fileURLToPath(
-        new URL("./packages/session-core/src/index.ts", import.meta.url),
-      ),
     },
   },
 

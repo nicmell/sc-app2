@@ -4,8 +4,9 @@
 // carry it. Run with your serve + scsynth/SuperDirt up:
 //
 //   SC_BASE=http://127.0.0.1:3000 npx tsx scenarios/scope-tone.ts
-import { ScopeController, IdAllocator } from "@sc-app/session-core";
-import { InProcessOscClient } from "@sc-app/session-core/node";
+import { ScopeController } from "../../src/scope/ScopeController";
+import { IdAllocator } from "../../src/session/IdAllocator";
+import { InProcessOscClient } from "../clients/InProcessOscClient";
 import { delay, httpBootstrap, ok, waitForServe } from "./lib.ts";
 
 const base = process.env.SC_BASE ?? "http://127.0.0.1:3000";

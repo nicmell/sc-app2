@@ -3,14 +3,8 @@
 // owns one worker, which owns one WebSocket — created per session.
 
 import { encode, type OscPacket } from "@sc-app/server-commands";
-import type {
-  ErrorListener,
-  MainToWorker,
-  OscClient,
-  ReplyListener,
-  ScopeChunkListener,
-  WorkerToMain,
-} from "@sc-app/session-core";
+import type { ErrorListener, OscClient, ReplyListener, ScopeChunkListener } from "./OscClient";
+import type { MainToWorker, WorkerToMain } from "./protocol";
 
 /** Browser OscClient: spawns the Vite Web Worker (the only bundler-specific
  *  piece) and bridges its postMessages to the controllers' OscClient surface. */

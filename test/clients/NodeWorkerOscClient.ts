@@ -6,13 +6,13 @@
 
 import { Worker } from "node:worker_threads";
 import { encode, type OscPacket } from "@sc-app/server-commands";
-import type { MainToWorker, WorkerToMain } from "../osc/protocol";
+import type { MainToWorker, WorkerToMain } from "../../src/osc/protocol";
 import type {
   ErrorListener,
   OscClient,
   ReplyListener,
   ScopeChunkListener,
-} from "./OscClient";
+} from "../../src/osc/OscClient";
 
 export class NodeWorkerOscClient implements OscClient {
   private readonly worker: Worker;

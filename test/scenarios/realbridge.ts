@@ -7,14 +7,14 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { writeFileSync } from "node:fs";
-import type { OscReply } from "@sc-app/session-core";
-import { InProcessOscClient } from "@sc-app/session-core/node";
-import { startFakeScsynth } from "../tests/fixtures/fakeScsynth.ts";
+import type { OscReply } from "../../src/osc/protocol";
+import { InProcessOscClient } from "../clients/InProcessOscClient";
+import { startFakeScsynth } from "../fixtures/fakeScsynth.ts";
 import { delay, httpBootstrap, ok, waitForServe } from "./lib.ts";
 
 const PORT = 3999;
 const FAKE = 57199;
-const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const base = `http://127.0.0.1:${PORT}`;
 
 async function main() {

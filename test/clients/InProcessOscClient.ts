@@ -4,13 +4,13 @@
 // transport is WHATWG-compliant), so it needs no browser shims.
 
 import { encode, type OscPacket } from "@sc-app/server-commands";
-import { createOscBridge, type OscBridge } from "../osc/bridge";
+import { createOscBridge, type OscBridge } from "../../src/osc/bridge";
 import type {
   ErrorListener,
   OscClient,
   ReplyListener,
   ScopeChunkListener,
-} from "./OscClient";
+} from "../../src/osc/OscClient";
 
 export class InProcessOscClient implements OscClient {
   private readonly bridge: OscBridge;

@@ -1216,20 +1216,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sc-app/session-core@workspace:packages/session-core":
-  version: 0.0.0-use.local
-  resolution: "@sc-app/session-core@workspace:packages/session-core"
-  dependencies:
-    "@sc-app/server-commands": "workspace:*"
-    "@sc-app/synthdef-compiler": "workspace:*"
-    "@types/node": "npm:^22"
-    tsx: "npm:^4"
-    typescript: "npm:~5.6.2"
-    vitest: "npm:^2.1.9"
-    ws: "npm:^8"
-  languageName: unknown
-  linkType: soft
-
 "@sc-app/synthdef-compiler@workspace:*, @sc-app/synthdef-compiler@workspace:packages/synthdef-compiler":
   version: 0.0.0-use.local
   resolution: "@sc-app/synthdef-compiler@workspace:packages/synthdef-compiler"
@@ -3481,6 +3467,7 @@ __metadata:
   resolution: "sc-app2@workspace:."
   dependencies:
     "@sc-app/server-commands": "workspace:*"
+    "@sc-app/synthdef-compiler": "workspace:*"
     "@sc-app/ui-foundation": "workspace:*"
     "@strudel/codemirror": "npm:^1.3.0"
     "@strudel/core": "npm:^1.2.6"
@@ -3490,6 +3477,7 @@ __metadata:
     "@tauri-apps/api": "npm:^2"
     "@tauri-apps/cli": "npm:^2"
     "@tauri-apps/plugin-opener": "npm:^2"
+    "@types/node": "npm:^22"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     "@types/react-grid-layout": "npm:^2.1.0"
@@ -3500,8 +3488,11 @@ __metadata:
     react: "npm:^19"
     react-dom: "npm:^19"
     react-grid-layout: "npm:^2.2.3"
+    tsx: "npm:^4"
     typescript: "npm:~5.6.2"
     vite: "npm:^6.0.3"
+    vitest: "npm:^2.1.9"
+    ws: "npm:^8"
   languageName: unknown
   linkType: soft
 

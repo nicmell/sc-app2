@@ -1,12 +1,12 @@
 /// <reference lib="webworker" />
 // OSC worker entry point (browser). Bridges `self` postMessages ↔ the shared
-// bridge core in @sc-app/session-core (which owns the WebSocket + OSC decode).
+// bridge core in `./bridge` (which owns the WebSocket + OSC decode).
 // `workerBootstrap` MUST be imported first — it shims `window` for osc-js before
 // @sc-app/server-commands (which createOscBridge pulls in) is evaluated.
 
 import { setWorkerMessageHandler } from "./workerBootstrap";
-import { createOscBridge, type OscBridge } from "@sc-app/session-core";
-import type { MainToWorker, WorkerToMain } from "@sc-app/session-core";
+import { createOscBridge, type OscBridge } from "./bridge";
+import type { MainToWorker, WorkerToMain } from "./protocol";
 
 let bridge: OscBridge | null = null;
 

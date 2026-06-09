@@ -1,5 +1,5 @@
 // Shared helpers for the opt-in Tier-2 scenarios (real Rust `serve`).
-import type { BootstrapResult } from "@sc-app/session-core";
+import type { BootstrapResult } from "../../src/session/bootstrapTypes";
 
 export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

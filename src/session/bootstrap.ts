@@ -10,9 +10,9 @@
 // `http://127.0.0.1:<port>` in the Tauri webview).
 
 import { httpBase, wsUrl } from "../env";
-import type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
+import type { BootstrapResult, SessionInfo } from "./bootstrapTypes";
 
-export type { BootstrapResult, SessionInfo } from "@sc-app/session-core";
+export type { BootstrapResult, SessionInfo } from "./bootstrapTypes";
 
 const STORAGE_KEY = "sc.session";
 

@@ -23,7 +23,7 @@ import {
   scopeUnsubscribe,
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
-import type { OscClient } from "../client/OscClient";
+import type { OscClient } from "../osc/OscClient";
 import type { IdAllocator } from "../session/IdAllocator";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
 import { compileTestToneSynthDef, testToneSynthDefName } from "./testToneSynthDef";

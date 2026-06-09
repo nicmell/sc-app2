@@ -5,8 +5,12 @@
 // ArrayBuffer-transfer path (NodeWorkerOscClient).
 
 import { describe, it, expect } from "vitest";
-import { ScopeController, IdAllocator, type OscClient, type OscReply } from "@sc-app/session-core";
-import { InProcessOscClient, NodeWorkerOscClient } from "@sc-app/session-core/node";
+import { ScopeController } from "../src/scope/ScopeController";
+import { IdAllocator } from "../src/session/IdAllocator";
+import type { OscClient } from "../src/osc/OscClient";
+import type { OscReply } from "../src/osc/protocol";
+import { InProcessOscClient } from "./clients/InProcessOscClient";
+import { NodeWorkerOscClient } from "./clients/NodeWorkerOscClient";
 import { MockBridge } from "./fixtures/mockBridge";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));

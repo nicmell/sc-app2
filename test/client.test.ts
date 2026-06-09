@@ -10,14 +10,14 @@ import { IdAllocator } from "../src/session/IdAllocator";
 import type { OscClient } from "../src/osc/OscClient";
 import type { OscReply } from "../src/types/protocol";
 import { InProcessOscClient } from "./clients/InProcessOscClient";
-import { NodeWorkerOscClient } from "./clients/NodeWorkerOscClient";
+import { createNodeWorkerClient } from "./clients/nodeWorkerClient";
 import { MockBridge } from "./fixtures/mockBridge";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const clients: Array<{ name: string; make: (url: string) => OscClient }> = [
   { name: "InProcessOscClient", make: (u) => new InProcessOscClient(u) },
-  { name: "NodeWorkerOscClient", make: (u) => new NodeWorkerOscClient(u) },
+  { name: "NodeWorkerClient", make: (u) => createNodeWorkerClient(u) },
 ];
 
 describe.each(clients)("$name", ({ make }) => {

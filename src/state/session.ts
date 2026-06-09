@@ -12,7 +12,7 @@ import {
   type ScsynthStatus,
   type ScsynthError,
 } from "../session/SessionManager";
-import { WorkerClient } from "../osc/WorkerClient";
+import { createBrowserWorkerClient } from "../osc/WorkerOscClient";
 import { bootstrapSession } from "../session/bootstrap";
 
 // Re-export the controller types so existing app imports keep working.
@@ -25,7 +25,7 @@ const scopeFlag = (key: string) =>
  *  Web Worker client + the Tauri/HTTP bootstrap — into the env-agnostic
  *  controller; the `sc-*` Lit elements read this singleton directly. */
 export const session = new SessionManager({
-  createClient: (wsUrl) => new WorkerClient(wsUrl),
+  createClient: createBrowserWorkerClient,
   bootstrap: bootstrapSession,
   scopeOptions: {
     debug: scopeFlag("sc.scopeDebug"),

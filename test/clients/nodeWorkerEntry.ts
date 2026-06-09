@@ -1,48 +1,22 @@
-// worker_threads entry: the Node analogue of the browser `worker.ts`. Bridges
-// `parentPort` postMessages ↔ the shared bridge core, transferring each scope
-// chunk's ArrayBuffer — so the real serialization/transfer path is exercised.
-// Spawned by NodeWorkerOscClient with a tsx loader so it can import this TS.
+// worker_threads entry (Node): build an OscWorkerPort over `parentPort` and run
+// the shared worker runtime — the EventEmitter mirror of the browser worker.ts.
+// Spawned by createNodeWorkerClient under a tsx loader (via the .mjs bootstrap)
+// so it can import the app's TypeScript directly. No `window` shim needed — in
+// Node osc-js finds `global`.
 
 import { parentPort } from "node:worker_threads";
-import { createOscBridge, type OscBridge } from "../../src/osc/bridge";
-import type { MainToWorker, WorkerToMain } from "../../src/types/protocol";
+import { runOscWorker } from "../../src/osc/oscWorkerMain";
 
 if (!parentPort) {
   throw new Error("nodeWorkerEntry.ts must run inside a worker_threads Worker");
 }
 const port = parentPort;
 
-let bridge: OscBridge | null = null;
-
-function post(msg: WorkerToMain, transfer: ArrayBuffer[] = []): void {
-  port.postMessage(msg, transfer);
-}
-
-port.on("message", async (msg: MainToWorker) => {
-  switch (msg.type) {
-    case "connect": {
-      bridge = createOscBridge(msg.url, {
-        onReply: (reply) => post({ type: "reply", reply }),
-        onScopeChunk: (chunk) => post({ type: "scopeChunk", chunk }, [chunk.data.buffer]),
-        onError: (message) => post({ type: "error", message }),
-        onClose: () => post({ type: "closed" }),
-      });
-      try {
-        await bridge.ready;
-        post({ type: "ready" });
-      } catch (err) {
-        post({ type: "error", message: err instanceof Error ? err.message : String(err) });
-      }
-      return;
-    }
-    case "send":
-      bridge?.send(msg.bytes);
-      return;
-    case "disconnect":
-      if (bridge) {
-        await bridge.close();
-        bridge = null;
-      }
-      return;
-  }
+runOscWorker({
+  // The only transferred value is a scope chunk's ArrayBuffer, which node's
+  // transferList accepts directly (avoids the deprecated TransferListItem type).
+  postMessage: (msg, transfer = []) => port.postMessage(msg, transfer as ArrayBuffer[]),
+  onMessage: (handler) => {
+    port.on("message", handler);
+  },
 });

@@ -1,22 +1,15 @@
-// <sc-checkbox> — a toggle bound to a control/var. Deliberately unstyled for
-// now: a native <input type="checkbox"> (the switch UI returns with the
-// inputs migration step). Changing it is a stub — the bound control doesn't
-// move yet.
+// <sc-checkbox> — a toggle bound to a control/var (`bind`/`targetId` on the
+// ScInput base). Deliberately unstyled for now: a native <input
+// type="checkbox"> (the switch UI returns with the inputs migration step).
+// Changing it is a stub — the bound control doesn't move yet.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScCheckboxRuntime, ScCheckboxProps, ScElementRuntimeBase } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScCheckboxProps } from "@/types/runtime";
+import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckboxProps {
-  @property() accessor bind = "";
-
+export class ScCheckbox extends ScInput implements ScCheckboxProps {
   validate(): void {
     this.requireProp("bind", this.bind);
-  }
-
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
-    return this.resolveVisualBind(ctx, this.bind);
   }
 
   private onChange = (e: Event) => {

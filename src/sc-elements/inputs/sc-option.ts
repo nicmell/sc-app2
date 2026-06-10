@@ -1,11 +1,12 @@
-// <sc-option> — one declarative choice inside an sc-select. Stub: rendering
-// inside the select arrives with the inputs migration step.
+// <sc-option> — one declarative choice inside an sc-select: consumed by the
+// parent, never enabled. Stub: rendering inside the select arrives with the
+// inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { RuntimeContext, ScElementRuntimeBase, ScOptionRuntime, ScOptionProps, UgenRuntime } from "@/types/runtime";
+import type { BaseRuntime, RuntimeContext, ScOptionProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScOption extends ScElement<ScOptionRuntime> implements ScOptionProps {
+export class ScOption extends ScElement implements ScOptionProps {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
 
@@ -13,8 +14,7 @@ export class ScOption extends ScElement<ScOptionRuntime> implements ScOptionProp
     this.requireNumeric("value", this.value);
   }
 
-  /** A declarative entry consumed by the parent select — never enabled. */
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): UgenRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     return { ...this.baseRuntime(ctx), enabled: false };
   }
 }

@@ -5,7 +5,6 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScStrudelRuntime } from "@/types/runtime";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
@@ -37,7 +36,7 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   error: "error",
 };
 
-export class ScStrudel extends ScElement<ScStrudelRuntime> {
+export class ScStrudel extends ScElement {
   validate(): void {
     this.requireNoScChildren();
   }

@@ -1,15 +1,14 @@
-// <sc-range> — a range input bound to a control (`bind`). Deliberately
-// unstyled for now: a native <input type="range">; the knob/slider internals
-// return with the inputs migration step. Changing it is a stub — the bound
-// control doesn't move yet.
+// <sc-range> — a range input bound to a control (`bind`/`targetId` on the
+// ScInput base). Deliberately unstyled for now: a native <input type="range">;
+// the knob/slider internals return with the inputs migration step. Changing
+// it is a stub — the bound control doesn't move yet.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScElementRuntimeBase, ScRangeRuntime, ScRangeProps } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScRangeProps } from "@/types/runtime";
+import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScRange extends ScElement<ScRangeRuntime> implements ScRangeProps {
-  @property() accessor bind = "";
+export class ScRange extends ScInput implements ScRangeProps {
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;
@@ -20,10 +19,6 @@ export class ScRange extends ScElement<ScRangeRuntime> implements ScRangeProps {
     this.requireNumeric("max", this.max);
     this.requireNumeric("step", this.step);
     this.requireNumeric("value", this.value);
-  }
-
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
-    return this.resolveVisualBind(ctx, this.bind);
   }
 
   private onInput = (e: Event) => {

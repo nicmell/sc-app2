@@ -16,12 +16,7 @@ vi.mock("@strudel/codemirror", () => ({ StrudelMirror: class {} }));
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
 
-import { registerScElements, type ScPlugin } from "@/sc-elements";
-import type {
-  ScControlRuntime,
-  ScElementRuntime,
-  ScRangeRuntime,
-} from "@/types/runtime";
+import { registerScElements, type ScControl, type ScElement, type ScPlugin, type ScRange } from "@/sc-elements";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
 const ENTRIES = import.meta.glob("/examples/*/*/{index,entry}.html", {
@@ -71,11 +66,10 @@ const failing = cases.filter((c) => c.name in RUNTIME_FAILURES);
 
 /** Mount an example entry into a connected <sc-plugin> host (XML parse +
  *  importNode — entries are XHTML with self-closing tags) and run the parse
- *  engine, exactly like the CDP probe. */
+ *  engine, exactly like the CDP probe. The host IS the parsed root. */
 function parseExample(xml: string): {
   host: ScPlugin;
-  tree: ScElementRuntime;
-  nodes: Map<string, ScElementRuntime>;
+  nodes: Map<string, ScElement>;
 } {
   const doc = new DOMParser().parseFromString(xml, "text/xml");
   if (doc.querySelector("parsererror")) {
@@ -86,10 +80,10 @@ function parseExample(xml: string): {
   host.replaceChildren(
     ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
   );
-  const nodes = new Map<string, ScElementRuntime>();
-  const tree = host.hydrate(`test-${Math.random().toString(36).slice(2)}`);
-  host.process(tree, { rootId: tree.id, nodes, scope: [tree], path: [] });
-  return { host, tree: tree as ScElementRuntime, nodes };
+  const nodes = new Map<string, ScElement>();
+  host.hydrate(`test-${Math.random().toString(36).slice(2)}`);
+  host.process({ rootId: host.id, nodes, scope: [host], path: [] });
+  return { host, nodes };
 }
 
 beforeAll(() => {
@@ -130,33 +124,37 @@ describe("runtime fixtures fail with their exact intentional error", () => {
 });
 
 describe("example-plugin structure", () => {
-  it("merges the runtime values flat onto the items (no nested `runtime`)", () => {
-    const { tree, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    expect("runtime" in tree).toBe(false);
-    expect(tree).toMatchObject({ rootId: tree.id, parentId: "", enabled: true, run: 1 });
-    for (const item of nodes.values()) {
-      expect("runtime" in item).toBe(false);
-      expect(item.rootId).toBe(tree.id);
+  it("assigns the runtime values onto the elements (the element IS the runtime)", () => {
+    const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
+    expect(host.rootId).toBe(host.id);
+    expect(host.parentId).toBe("");
+    expect(host.enabled).toBe(true);
+    expect(host.run).toBe(true);
+    expect(host.scChildren!.length).toBeGreaterThan(0);
+    for (const el of nodes.values()) {
+      expect(el.rootId).toBe(host.id);
     }
   });
 
   it("resolves every sc-range bind to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    const items = [...nodes.values()];
-    const ranges = items.filter((i) => i._element.tagName.toLowerCase() === "sc-range");
+    const ranges = [...nodes.values()].filter(
+      (el): el is ScRange => el.tagName.toLowerCase() === "sc-range",
+    );
     expect(ranges.length).toBeGreaterThan(0);
-    for (const r of ranges as ScRangeRuntime[]) {
-      const target = nodes.get(r.targetId) as ScControlRuntime | undefined;
+    for (const r of ranges) {
+      const target = nodes.get(r.targetId) as ScControl | undefined;
       expect(target).toBeDefined();
-      expect(target!._element.tagName.toLowerCase()).toBe("sc-control");
+      expect(target!.tagName.toLowerCase()).toBe("sc-control");
       expect(target!.enabled).toBe(true);
     }
   });
 
-  it("ties each item to its mounted component (`_element` IS the live element)", () => {
+  it("registers the live element instances themselves", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
+    expect(nodes.get(host.id)).toBe(host);
     for (const el of host.querySelectorAll("[id^=test-]")) {
-      expect(nodes.get(el.id)?._element).toBe(el);
+      expect(nodes.get(el.id)).toBe(el);
     }
     expect(nodes.size).toBeGreaterThan(1);
   });

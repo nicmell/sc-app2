@@ -3,19 +3,13 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { NodeRuntime, RuntimeContext, ScElementRuntimeBase, ScGroupRuntime, ScGroupProps } from "@/types/runtime";
-import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScGroupProps } from "@/types/runtime";
+import { ScNode } from "@/sc-elements/internal/sc-node";
 
-export class ScGroup extends ScElement<ScGroupRuntime> implements ScGroupProps {
+export class ScGroup extends ScNode implements ScGroupProps {
   @property() accessor name = "";
-  @property(runAttribute) accessor run = true;
 
   validate(): void {
     this.requireProp("name", this.name);
-  }
-
-  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): NodeRuntime {
-    this.processChildren(item, ctx);
-    return this.nodeRuntime(ctx, this.run);
   }
 }

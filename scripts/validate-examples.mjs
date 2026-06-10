@@ -46,8 +46,8 @@ const probeRuntime = (pluginId, entry) => evaluate(`(async () => {
   document.body.appendChild(host);
   host.replaceChildren(...[...doc.querySelector("body").children].map((c) => document.importNode(c, true)));
   try {
-    const tree = host.hydrate("probe-" + Math.random().toString(36).slice(2));
-    host.process(tree, { rootId: tree.id, nodes: new Map(), scope: [tree], path: [] });
+    host.hydrate("probe-" + Math.random().toString(36).slice(2));
+    host.process({ rootId: host.id, nodes: new Map(), scope: [host], path: [] });
     return "PASS";
   } catch (e) {
     return "FAIL: " + e.message;

@@ -1,21 +1,18 @@
 // <sc-if> — conditional rendering keyed on a bound control/var (is-truthy /
-// is-falsy / is-equal / … attributes, XSD-allowed, not declared yet). Stub:
-// children always render; the condition logic arrives with the inputs
-// migration step.
+// is-falsy / is-equal / … attributes, XSD-allowed, not declared yet;
+// `bind`/`targetId` on the ScInput base). Stub: children always render; the
+// condition logic arrives with the inputs migration step.
 
-import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScElementRuntimeBase, ScIfRuntime, ScIfProps } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { InputRuntime, RuntimeContext, ScIfProps } from "@/types/runtime";
+import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScIf extends ScElement<ScIfRuntime> implements ScIfProps {
-  @property() accessor bind = "";
-
+export class ScIf extends ScInput implements ScIfProps {
   validate(): void {
     this.requireProp("bind", this.bind);
   }
 
-  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
-    this.processChildren(item, ctx);
-    return this.resolveVisualBind(ctx, this.bind);
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    this.processChildren(ctx);
+    return super.resolveRuntime(ctx);
   }
 }

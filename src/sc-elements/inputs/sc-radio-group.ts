@@ -1,13 +1,12 @@
 // <sc-radio-group> — a radio set over its sc-radio children, bound to a
-// control/var. Stub: the radio UI + value dispatch arrive with the inputs
-// migration step.
+// control/var (`bind`/`targetId` on the ScInput base). Stub: the radio UI +
+// value dispatch arrive with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScElementRuntimeBase, ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { InputRuntime, RuntimeContext, ScRadioGroupProps } from "@/types/runtime";
+import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRadioGroupProps {
-  @property() accessor bind = "";
+export class ScRadioGroup extends ScInput implements ScRadioGroupProps {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   validate(): void {
@@ -17,8 +16,8 @@ export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRa
     }
   }
 
-  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
-    this.processChildren(item, ctx);
-    return this.resolveVisualBind(ctx, this.bind);
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    this.processChildren(ctx);
+    return super.resolveRuntime(ctx);
   }
 }

@@ -27,7 +27,10 @@ import { ScConsole } from "./widgets/sc-console";
 import { ScScope } from "./widgets/sc-scope";
 import { ScStrudel } from "./widgets/sc-strudel";
 
-export { ScElement } from "./internal/sc-element";
+export { ScElement, type ScParentElement } from "./internal/sc-element";
+export { ScNode } from "./internal/sc-node";
+export { ScState } from "./internal/sc-state";
+export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
 export { ScSynthDef, ScUgen };
 export { ScControl, ScVar };

@@ -6,25 +6,23 @@
 // unmount.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/lib/session/SessionManager";
 import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
-import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { PluginInfo } from "@/types/api";
-import type { NodeRuntime, RuntimeContext, ScElementRuntime, ScElementRuntimeBase, ScPluginProps, ScPluginRuntime } from "@/types/runtime";
+import type { NodeRuntime, RuntimeContext, ScPluginProps } from "@/types/runtime";
 
-export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProps {
+export class ScPlugin extends ScNode implements ScPluginProps {
   static properties = {
     _error: { state: true },
   };
 
   declare _error: string;
-
-  @property(runAttribute) accessor run = true;
 
   /** The plugin to load — set imperatively by PluginHost before mounting. */
   plugin?: PluginInfo;
@@ -46,14 +44,13 @@ export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProp
 
   /** The root runtime: parse the children (the whole plugin tree), rolling
    *  the per-parse nodes map back on any validation/resolution error. */
-  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): NodeRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
     try {
-      this.processChildren(item, ctx);
-      return this.nodeRuntime(ctx, this.run);
+      return super.resolveRuntime(ctx);
     } catch (e) {
-      Object.assign(item, { children: [] });
+      this.scChildren = [];
       for (const id of ctx.nodes.keys()) {
-        if (id !== item.id) ctx.nodes.delete(id);
+        if (id !== this.id) ctx.nodes.delete(id);
       }
       throw e;
     }
@@ -70,9 +67,9 @@ export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProp
       // Hydrate + process the tree (the old loadPlugin flow): the per-parse
       // nodes map is adopted by the global registry only on success.
       const boxId = this.id || randomId();
-      const nodes = new Map<string, ScElementRuntime>();
-      const tree = this.hydrate(boxId);
-      this.process(tree, { rootId: boxId, nodes, scope: [tree], path: [] });
+      const nodes = new Map<string, ScElement>();
+      this.hydrate(boxId);
+      this.process({ rootId: boxId, nodes, scope: [this], path: [] });
       registerAll(nodes);
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.

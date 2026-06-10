@@ -4,7 +4,6 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScConsoleRuntime } from "@/types/runtime";
 import { session } from "@/stores/session";
 import type { LoggedEntry } from "@/types/stores";
 
@@ -14,7 +13,7 @@ function fmtTime(ms: number): string {
   return `${hms}.${String(d.getMilliseconds()).padStart(3, "0")}`;
 }
 
-export class ScConsole extends ScElement<ScConsoleRuntime> {
+export class ScConsole extends ScElement {
   validate(): void {
     this.requireNoScChildren();
   }

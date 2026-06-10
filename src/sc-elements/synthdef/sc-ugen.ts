@@ -4,12 +4,12 @@
 
 import { property } from "lit/decorators.js";
 import { isControlRuntime } from "@/lib/utils/guards";
-import type { RuntimeContext, ScElementRuntimeBase, ScUgenRuntime, ScUgenProps, UgenRuntime } from "@/types/runtime";
+import type { BaseRuntime, RuntimeContext, ScUgenProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
 
-export class ScUgen extends ScElement<ScUgenRuntime> implements ScUgenProps {
+export class ScUgen extends ScElement implements ScUgenProps {
   @property() accessor name = "";
   /** The SuperCollider UGen class — the element's `type` attribute. */
   @property({ attribute: "type" }) accessor ugen = "";
@@ -24,17 +24,16 @@ export class ScUgen extends ScElement<ScUgenRuntime> implements ScUgenProps {
     }
   }
 
-  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): UgenRuntime {
-    this.processChildren(item, ctx);
-    const n = item as ScUgenRuntime;
+  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+    this.processChildren(ctx);
     // Every input bind must reference a sibling ugen or a synthdef param.
-    for (const child of n.children) {
-      if (!isControlRuntime(child) || !child._element.bind) continue;
-      for (const ref of child._element.bind.split(",").map((s) => s.trim())) {
+    for (const child of this.scChildren!) {
+      if (!isControlRuntime(child) || !child.bind) continue;
+      for (const ref of child.bind.split(",").map((s) => s.trim())) {
         const refId = ref.split(":")[0];
         if (!this.resolveNode(ctx, [refId])) {
           throw new Error(
-            `<sc-ugen name="${this.name}">: input "${child._element.name}" references unknown "${refId}"`,
+            `<sc-ugen name="${this.name}">: input "${child.name}" references unknown "${refId}"`,
           );
         }
       }

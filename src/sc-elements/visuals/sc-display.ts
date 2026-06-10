@@ -1,19 +1,15 @@
-// <sc-display> — a read-only formatted view of a bound control/var. Stub:
-// value rendering arrives with the inputs migration step.
+// <sc-display> — a read-only formatted view of a bound control/var
+// (`bind`/`targetId` on the ScInput base). Stub: value rendering arrives with
+// the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScDisplayRuntime, ScDisplayProps, ScElementRuntimeBase } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScDisplayProps } from "@/types/runtime";
+import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScDisplay extends ScElement<ScDisplayRuntime> implements ScDisplayProps {
-  @property() accessor bind = "";
+export class ScDisplay extends ScInput implements ScDisplayProps {
   @property() accessor format = "";
 
   validate(): void {
     this.requireProp("bind", this.bind);
-  }
-
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
-    return this.resolveVisualBind(ctx, this.bind);
   }
 }

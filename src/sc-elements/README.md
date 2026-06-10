@@ -5,11 +5,12 @@ root CLAUDE.md ("Migrating an sc-element"): HTML attributes are accessor
 reactive properties on the component (typed by the `ScXProps` interfaces in
 `@/types/runtime`), validation is the component's own `validate()` (called
 during hydration — the real gate, since the upload-time XSD doesn't enforce
-attribute rules), runtime resolution is the component's own `resolveRuntime()`
-(the parse engine + shared bind-resolution machinery live on the `ScElement`
-base in `internal/`), and the parsed item's `_element` IS the mounted
-component, reachable from outside the DOM through the runtime registry
-(`@/runtime/registry`).
+attribute rules), and **the element IS the runtime**: `resolveRuntime()`
+resolves the runtime values and `process()` assigns them onto the component
+itself (declared as plain fields on the `internal/` bases — `rootId`/
+`parentId`/`path`/`enabled` + `scChildren` for parents on `ScElement`, the
+category values on `ScNode`/`ScState`/`ScInput`). The runtime registry
+(`@/runtime/registry`) maps ids straight to the live components.
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,
@@ -18,9 +19,11 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement base: light-DOM root, item getter, validate helpers,
-            and the parse engine (hydrate/process/processChildren + the
-            shared bind-resolution machinery)
+internal/   the bases: ScElement (light-DOM root, validate helpers, the
+            parse engine — hydrate/process/processChildren + the shared
+            bind-resolution machinery — and the common runtime fields),
+            ScNode (run + nodeId/loaded), ScState (name/value/bind +
+            targets/expression), ScInput (bind + targetId)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)

@@ -1,12 +1,13 @@
-// <sc-radio> — one declarative choice inside an sc-radio-group. Stub: the
-// indicator UI arrives with the inputs migration step. Presentational
-// attributes (width/height/src/colors) are XSD-allowed but not declared yet.
+// <sc-radio> — one declarative choice inside an sc-radio-group: consumed by
+// the parent, never enabled. Stub: the indicator UI arrives with the inputs
+// migration step. Presentational attributes (width/height/src/colors) are
+// XSD-allowed but not declared yet.
 
 import { property } from "lit/decorators.js";
-import type { RuntimeContext, ScElementRuntimeBase, ScRadioRuntime, ScRadioProps, UgenRuntime } from "@/types/runtime";
+import type { BaseRuntime, RuntimeContext, ScRadioProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScRadio extends ScElement<ScRadioRuntime> implements ScRadioProps {
+export class ScRadio extends ScElement implements ScRadioProps {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
 
@@ -14,8 +15,7 @@ export class ScRadio extends ScElement<ScRadioRuntime> implements ScRadioProps {
     this.requireNumeric("value", this.value);
   }
 
-  /** A declarative entry consumed by the parent radio-group — never enabled. */
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): UgenRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     return { ...this.baseRuntime(ctx), enabled: false };
   }
 }

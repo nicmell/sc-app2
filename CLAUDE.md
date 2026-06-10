@@ -58,14 +58,17 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          inputs/ (range/checkbox/select/option/radio-group/
                          radio/run), visuals/ (display/if), widgets/ (strudel/
                          scope/console). index.ts is the barrel +
-                         registerScElements(). internal/sc-element.ts is ALSO
-                         the runtime processor: the parse engine (hydrate/
+                         registerScElements(). internal/ is ALSO the runtime:
+                         the element IS the runtime — no item structures. The
+                         ScElement base carries the parse engine (hydrate/
                          process/processChildren) + the shared bind-resolution
-                         machinery live on the ScElement base, and each
-                         component overrides resolveRuntime() for its own
-                         runtime values
-runtime/                 the global parsed-element registry (id → ScElementRuntime),
-                         deliberately NOT a store slice
+                         machinery and the common runtime fields; the category
+                         bases (sc-node/sc-state/sc-input, the old app's
+                         names) declare the category props + runtime values;
+                         each component overrides resolveRuntime(), whose
+                         result process() assigns onto the element itself
+runtime/                 the global parsed-element registry (id → the live
+                         ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, layout, plugins }) — the ONLY store.
                          Cross-module shapes come from @/types (type-only by
@@ -177,32 +180,36 @@ every further `sc-*` element:
    `failValidation`). `hydrate` calls it during parse and a violation fails
    the whole plugin. This is the *real* gate — fastxml does not enforce XSD
    attribute requirements at upload.
-4. **Runtime type** (`src/types/runtime.d.ts`): a `ScXRuntime` interface
-   extending `ScElementRuntimeBase` + the matching runtime mixin
-   (`NodeRuntime`/`ControlRuntime`/`InputRuntime`/…) — the item IS its
-   runtime: `{ id, _element: Element & ScXProps, children?, ...runtime
-   values }` merged flat, no nested `runtime` object (children for parents
-   only), plus a `ScXProps` interface for the reactive properties. Never
-   copy attributes into items — and there is **no `type` field either**: the
-   discriminant is the element's tag itself, derived via `typeOf(item)`
-   (`lib/utils/guards`, `_element.tagName`); the guards narrow by tag with
-   plain cast predicates.
-5. **Runtime**: override `resolveRuntime(item, ctx)` on the component — the
-   parse engine + shared bind-resolution machinery are inherited from the
-   `ScElement` base (`internal/sc-element.ts`): call `this.processChildren(
-   item, ctx)` if the element parses children, resolve binds via
-   `this.resolveStateBind` / `this.resolveVisualBind` / `this.resolveNode`,
-   and return the runtime values over `this.baseRuntime(ctx)` /
-   `this.nodeRuntime(ctx, run)` (the base `process(item, ctx)` merges them
-   into the item). `ctx` is the per-LEVEL state ({rootId, nodes, scope,
-   parentNode, path}) shared by all siblings; the item travels as its own
-   argument. The default is the self-contained leaf. Extend
-   `lib/utils/guards.ts` if the element joins a category (state/node/parent).
-   Add the element's examples to the unit suite's expectations
-   (`tests/examples.test.ts`) if it ships a new fixture.
-6. `item._element` IS the mounted component (strict-equality verified by the
-   ScElement firstUpdated test), so the registry exposes the live element —
-   props and methods — from outside the DOM.
+4. **Runtime values live ON the element** — there are no item structures.
+   Declare them as plain (non-reactive) fields on the component, or inherit
+   them from the category base (`internal/sc-node`: nodeId/loaded + run;
+   `internal/sc-state`: name/value/bind + targets/expression + the shared
+   validation; `internal/sc-input`: bind + targetId); the common core
+   (rootId/parentId/path/enabled + `scChildren` for parents — named so
+   because DOM `children` is taken) is on `ScElement`. The mixin contracts
+   (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
+   `src/types/runtime.d.ts` as `resolveRuntime` return types, next to the
+   `ScXProps` interfaces. Values that duplicate a reactive prop are unified
+   with it, never copied (no runtime `name`/`run`; enabled state resolves
+   into its `value` prop — disabled graph inputs keep the prop as the plain
+   attribute mirror). There is **no `type` field**: the discriminant is the
+   tag (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
+   component classes via type-only imports.
+5. **Runtime resolution**: override `resolveRuntime(ctx)` on the component —
+   the parse engine + shared bind-resolution machinery are inherited from
+   `ScElement` (`internal/sc-element.ts`): call `this.processChildren(ctx)`
+   if the element parses children, resolve binds via `this.resolveStateBind`
+   / `this.resolveVisualBind` / `this.resolveNode`, and return the runtime
+   values over `this.baseRuntime(ctx)` / `this.nodeRuntime(ctx)` (the base
+   `process(ctx)` assigns them onto the element). `ctx` is the per-LEVEL
+   state ({rootId, nodes, scope, parentNode, path}) shared by all siblings.
+   The default is the self-contained leaf. Extend `lib/utils/guards.ts` if
+   the element joins a category (state/node/parent). Add the element's
+   examples to the unit suite's expectations (`tests/examples.test.ts`) if
+   it ships a new fixture.
+6. The registry (`@/runtime/registry`) maps ids to the live components
+   themselves (identity verified by the ScElement firstUpdated test), so
+   props, runtime values, and methods are reachable from outside the DOM.
 
 ## Migration state (elements)
 
@@ -253,7 +260,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
    children into the host, then `host.hydrate(randomId())` +
-   `host.process(tree, {rootId: tree.id, nodes: new Map(), scope: [tree],
+   `host.process({rootId: host.id, nodes: new Map(), scope: [host],
    path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the

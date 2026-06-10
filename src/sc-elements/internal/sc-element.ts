@@ -1,16 +1,16 @@
-// The base of the parsed plugin elements — and the runtime processor itself
-// (ported from the old sc-app's lib/runtime/handlers, moved onto the
-// components): light-DOM rendering, a lookup of the parsed item this element
-// was hydrated into, the per-element validation hook, and the parse engine —
-// `hydrate` (id + validate + bare item), `process` (the per-item skeleton:
-// idempotence, pre-registration, flat runtime merge), `processChildren` (the
-// recursive DOM walk with cumulative scopes), and the shared bind-resolution
-// machinery the `resolveRuntime` overrides build on. Each element type
-// overrides `resolveRuntime` to resolve its own binds and return its runtime
-// values; the HTML attributes are its own reactive properties. Still unported
-// (return with their migration steps): the buffer family (sc-buffer/waveform/
-// test + the old buffer-bound scope), presets/overrides, and synthdef
-// compilation.
+// The base of the parsed plugin elements — and the runtime itself: there is
+// no separate item structure. The element IS the runtime — `process()`
+// resolves the runtime values and assigns them onto the component (declared
+// here and on the category bases: internal/sc-node, sc-state, sc-input), and
+// the runtime registry maps ids straight to the live elements. The base also
+// carries the parse engine — `hydrate` (id + validate), `process` (the
+// per-element skeleton: idempotence, pre-registration, runtime merge),
+// `processChildren` (the recursive DOM walk with cumulative scopes) — and the
+// shared bind-resolution machinery the `resolveRuntime` overrides build on.
+// HTML attributes are reactive properties; runtime values are plain fields.
+// Still unported (return with their migration steps): the buffer family
+// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
+// and synthdef compilation.
 
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
@@ -18,16 +18,7 @@ import { parseBind } from "@/lib/utils/expression";
 import { isNodeRuntime, isNodeType, isParentRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { getById } from "@/runtime/registry";
-import type {
-  BaseRuntime,
-  Expr,
-  InputRuntime,
-  NodeRuntime,
-  RuntimeContext,
-  ScElementRuntime,
-  ScElementRuntimeBase,
-  ScParentRuntime,
-} from "@/types/runtime";
+import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/runtime";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
@@ -36,21 +27,24 @@ export const runAttribute = {
   converter: { fromAttribute: (value: string | null) => value !== "false" },
 };
 
-function nameOf(el: ScElementRuntimeBase): string | undefined {
-  return (el._element as { name?: string }).name;
+/** A parent element — its parsed sc-* children live in `scChildren`. */
+export type ScParentElement = ScElement & { scChildren: ScElement[] };
+
+function nameOf(el: Element): string | undefined {
+  return (el as { name?: string }).name;
 }
 
-function walkPath(node: ScElementRuntime, path: string[]): ScElementRuntime | undefined {
+function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
-  if (isParentRuntime(node)) {
+  if (node.scChildren) {
     const [name, ...rest] = path;
-    const child = node.children.find((c) => nameOf(c) === name);
+    const child = node.scChildren.find((c) => nameOf(c) === name);
     return child ? walkPath(child, rest) : undefined;
   }
   return undefined;
 }
 
-function checkDuplicateNames(scope: ScElementRuntimeBase[]): void {
+function checkDuplicateNames(scope: ScElement[]): void {
   const seen = new Set<string>();
   for (const el of scope) {
     const name = nameOf(el);
@@ -63,16 +57,23 @@ function checkDuplicateNames(scope: ScElementRuntimeBase[]): void {
   }
 }
 
-export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> extends LitElement {
+export abstract class ScElement extends LitElement implements BaseRuntime {
+  // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
+
+  /** The plugin root's id this element was parsed under. */
+  rootId = "";
+  /** The parsed parent element's id ("" at the root). */
+  parentId = "";
+  /** The named ancestor path (scope names, outermost first). */
+  path: string[] = [];
+  enabled = true;
+  /** The parsed sc-* child elements — parents only (NOT the DOM children:
+   *  sc-* descendants reached through plain HTML wrappers). */
+  scChildren?: ScElement[];
+
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
-  }
-
-  /** The parsed item this element was hydrated into (`hydrate` assigns the
-   *  matching DOM id), or `null` before the plugin root has parsed. */
-  get item(): T | null {
-    return (getById(this.id) as T | undefined) ?? null;
   }
 
   /** Per-element attribute validation, called during hydration — a violation
@@ -107,49 +108,42 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element into its bare runtime item: assign the id, run the
-   *  element's own `validate()`, and tie the item to the component. */
-  hydrate(id: string): ScElementRuntimeBase {
+  /** Hydrate this element: assign the id, run the element's own `validate()`,
+   *  and reset the parsed-children list (parents). */
+  hydrate(id: string): this {
     this.setAttribute("id", id);
     this.validate();
-    const item: ScElementRuntimeBase = { id, _element: this };
-    if (isParentRuntime(item)) (item as ScParentRuntime).children = [];
-    return item;
+    if (isParentRuntime(this)) this.scChildren = [];
+    return this;
   }
 
-  /** Process this element's hydrated item: pre-register it (so re-entrant
-   *  resolves of a mid-processing ancestor return it), attach it to the
-   *  parent, resolve the runtime values, and merge them flat into the item.
-   *  Idempotent — an already-processed item is returned as-is. */
-  process(item: ScElementRuntimeBase, ctx: RuntimeContext): ScElementRuntime {
-    const existing = ctx.nodes.get(item.id);
+  /** Process this hydrated element: pre-register it (so re-entrant resolves
+   *  of a mid-processing ancestor return it), attach it to the parent's
+   *  `scChildren`, resolve the runtime values, and assign them onto the
+   *  element. Idempotent — an already-processed element is returned as-is. */
+  process(ctx: RuntimeContext): ScElement {
+    const existing = ctx.nodes.get(this.id);
     if (existing) {
       return existing;
     }
-    const node = item as ScElementRuntime;
-    ctx.nodes.set(node.id, node);
+    ctx.nodes.set(this.id, this);
     if (ctx.parentNode) {
-      ctx.parentNode.children.push(node);
+      ctx.parentNode.scChildren.push(this);
     }
-    Object.assign(item, this.resolveRuntime(item, ctx));
-    return node;
+    Object.assign(this, this.resolveRuntime(ctx));
+    return this;
   }
 
   /** Resolve this element's runtime values — bind resolution lives here, on
    *  each component. The default is the self-contained leaf (sc-console /
    *  sc-scope / sc-strudel). */
-  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): BaseRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     return this.baseRuntime(ctx);
   }
 
   /** The runtime core every element shares. */
   protected baseRuntime(ctx: RuntimeContext): BaseRuntime {
     return { rootId: ctx.rootId, parentId: ctx.parentNode?.id ?? "", path: ctx.path, enabled: true };
-  }
-
-  /** The node-owning elements' runtime core (plugin/group/synth). */
-  protected nodeRuntime(ctx: RuntimeContext, run: boolean): NodeRuntime {
-    return { ...this.baseRuntime(ctx), run: run ? 1 : 0, loaded: false, nodeId: 0 };
   }
 
   /** This element's sc-* descendants, recursing through plain HTML. */
@@ -168,18 +162,22 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
    *  (forward references), and duplicate names are checked across the whole
    *  scope — then process each with the cumulative scope. All siblings share
    *  ONE level context. */
-  protected processChildren(item: ScElementRuntimeBase, ctx: RuntimeContext): void {
-    const parent = item as ScParentRuntime;
-    const name = nameOf(item);
+  protected processChildren(ctx: RuntimeContext): void {
+    const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
     const scope = [...this.walkScElements()].map((el) => el.hydrate(randomId()));
 
     checkDuplicateNames(scope);
 
-    const childCtx: RuntimeContext = { ...ctx, scope: [...scope, ...ctx.scope], parentNode: parent, path };
+    const childCtx: RuntimeContext = {
+      ...ctx,
+      scope: [...scope, ...ctx.scope],
+      parentNode: this as ScElement as ScParentElement,
+      path,
+    };
     for (const child of scope) {
-      (child._element as ScElement).process(child, childCtx);
+      child.process(childCtx);
     }
   }
 
@@ -187,13 +185,12 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
 
   /** Resolve a name path against the scope, processing the target on demand
    *  (forward references). */
-  protected resolveNode(ctx: RuntimeContext, path: string[]): ScElementRuntime | undefined {
+  protected resolveNode(ctx: RuntimeContext, path: string[]): ScElement | undefined {
     const [name, ...rest] = path;
-    const idx = ctx.scope.findIndex((s) => nameOf(s) === name);
-    if (idx < 0) return undefined;
+    const el = ctx.scope.find((s) => nameOf(s) === name);
+    if (!el) return undefined;
 
-    const item = ctx.scope[idx];
-    const target = ctx.nodes.get(item.id) ?? (item._element as ScElement).process(item, ctx);
+    const target = ctx.nodes.get(el.id) ?? el.process(ctx);
 
     return walkPath(target, rest);
   }
@@ -201,7 +198,7 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
   /** Resolve `bind`'s node + control-name pair: the leading segments name a
    *  node in scope (none targets the parent node), the last segment a state
    *  child declared on it. */
-  protected resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElementRuntime; controlName: string } {
+  protected resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElement; controlName: string } {
     const tag = this.tagName.toLowerCase();
     const segments = bind.split(".");
     const controlName = segments.pop()!;
@@ -209,7 +206,7 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
     if (!target || !isNodeRuntime(target)) {
       throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
     }
-    if (!isParentRuntime(target) || !target.children.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+    if (!target.scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
       const targetName = nameOf(target) ?? target.id;
       throw new Error(
         `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
@@ -226,9 +223,7 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
 
     for (const path of parsed.paths) {
       const { target, controlName } = this.resolveControlBind(ctx, path);
-      const targetState = (target as ScParentRuntime).children.find(
-        (c) => isStateRuntime(c) && nameOf(c) === controlName,
-      )!;
+      const targetState = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
       this.checkCircularBind(ctx, targetState.id);
       targets[path] = targetState.id;
     }
@@ -248,7 +243,7 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
       visited.add(current);
       const node = ctx.nodes.get(current);
       if (!node || !isStateRuntime(node)) continue;
-      // The runtime values are still unmerged on a state node that's
+      // The runtime values are still unassigned on a state element that's
       // mid-processing (we got here through its own bind resolve) — its
       // targets aren't known yet, but the cycle is still caught from the
       // other end once they are.
@@ -256,29 +251,25 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
     }
   }
 
-  /** Resolve a visual/input bind to its target state item's id. */
+  /** Resolve a visual/input bind to its target state element's id. */
   protected resolveVisualBind(ctx: RuntimeContext, bind: string): InputRuntime {
     const { target, controlName } = this.resolveControlBind(ctx, bind);
-    const control = (target as ScParentRuntime).children.find(
-      (c) => isStateRuntime(c) && nameOf(c) === controlName,
-    )!;
+    const control = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
     return { ...this.baseRuntime(ctx), targetId: control.id };
   }
 
-  // TEST: the registry item's `_element` must be THIS mounted component
-  // instance — i.e. the runtime registry gives access to the live web
-  // component (and its methods) from outside the DOM. Deferred one task: the
-  // first render races the parse/registerAll in the same microtask queue.
+  // TEST: the registry must hand back THIS mounted component instance — i.e.
+  // it gives access to the live web component (props, runtime values, and
+  // methods) from outside the DOM. Deferred one task: the first render races
+  // the parse/registerAll in the same microtask queue.
   protected firstUpdated(): void {
     setTimeout(() => {
-      const item = this.item;
-      const el = item?._element;
+      const registered = getById(this.id);
       console.log(
         `[sc-element test] <${this.tagName.toLowerCase()} id="${this.id}">`,
-        `registry._element === this: ${el === this}`,
-        "| ctor:", el?.constructor.name ?? "(no item)",
-        "| proto methods:", el ? Object.getOwnPropertyNames(Object.getPrototypeOf(el)) : null,
-        "| _element:", el,
+        `registry element === this: ${registered === this}`,
+        "| ctor:", registered?.constructor.name ?? "(not registered)",
+        "| proto methods:", registered ? Object.getOwnPropertyNames(Object.getPrototypeOf(registered)) : null,
       );
     }, 0);
   }

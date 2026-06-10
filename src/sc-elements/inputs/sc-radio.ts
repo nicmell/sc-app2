@@ -3,7 +3,7 @@
 // attributes (width/height/src/colors) are XSD-allowed but not declared yet.
 
 import { property } from "lit/decorators.js";
-import type { ScRadioRuntime, ScRadioProps } from "@/types/runtime";
+import type { RuntimeContext, ScRadioRuntime, ScRadioProps, UgenRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadio extends ScElement<ScRadioRuntime> implements ScRadioProps {
@@ -12,5 +12,10 @@ export class ScRadio extends ScElement<ScRadioRuntime> implements ScRadioProps {
 
   validate(): void {
     this.requireNumeric("value", this.value);
+  }
+
+  /** A declarative entry consumed by the parent radio-group — never enabled. */
+  protected resolveRuntime(ctx: RuntimeContext): UgenRuntime {
+    return { ...this.baseRuntime(ctx), enabled: false };
   }
 }

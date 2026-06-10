@@ -2,7 +2,7 @@
 // value rendering arrives with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScDisplayRuntime, ScDisplayProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScDisplayRuntime, ScDisplayProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScDisplay extends ScElement<ScDisplayRuntime> implements ScDisplayProps {
@@ -11,5 +11,9 @@ export class ScDisplay extends ScElement<ScDisplayRuntime> implements ScDisplayP
 
   validate(): void {
     this.requireProp("bind", this.bind);
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    return this.resolveVisualBind(ctx, this.bind);
   }
 }

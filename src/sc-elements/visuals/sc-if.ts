@@ -4,7 +4,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScIfRuntime, ScIfProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScIfRuntime, ScIfProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScIf extends ScElement<ScIfRuntime> implements ScIfProps {
@@ -12,5 +12,10 @@ export class ScIf extends ScElement<ScIfRuntime> implements ScIfProps {
 
   validate(): void {
     this.requireProp("bind", this.bind);
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    this.processChildren(ctx);
+    return this.resolveVisualBind(ctx, this.bind);
   }
 }

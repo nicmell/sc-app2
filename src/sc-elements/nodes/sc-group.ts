@@ -3,7 +3,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScGroupRuntime, ScGroupProps } from "@/types/runtime";
+import type { NodeRuntime, RuntimeContext, ScGroupRuntime, ScGroupProps } from "@/types/runtime";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScGroup extends ScElement<ScGroupRuntime> implements ScGroupProps {
@@ -12,5 +12,10 @@ export class ScGroup extends ScElement<ScGroupRuntime> implements ScGroupProps {
 
   validate(): void {
     this.requireProp("name", this.name);
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
+    this.processChildren(ctx);
+    return this.nodeRuntime(ctx, this.run);
   }
 }

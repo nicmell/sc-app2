@@ -4,7 +4,8 @@
 // with the controls migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScControlRuntime, ScControlProps } from "@/types/runtime";
+import { isNodeRuntime } from "@/lib/utils/guards";
+import type { ControlRuntime, RuntimeContext, ScControlRuntime, ScControlProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScControl extends ScElement<ScControlRuntime> implements ScControlProps {
@@ -18,5 +19,16 @@ export class ScControl extends ScElement<ScControlRuntime> implements ScControlP
       this.failValidation(`"value" and "bind" are mutually exclusive`);
     }
     this.requireNumeric("value", this.value);
+  }
+
+  /** Enabled when the parent is a node (plugin/group/synth); a pure graph
+   *  input inside synthdefs/ugens. Only enabled controls resolve binds. */
+  protected resolveRuntime(ctx: RuntimeContext): ControlRuntime {
+    const enabled = ctx.parentNode != null && isNodeRuntime(ctx.parentNode);
+    if (enabled && this.bind) {
+      const { targets, expression } = this.resolveStateBind(ctx, this.bind);
+      return { ...this.baseRuntime(ctx), enabled, name: this.name, value: 0, targets, expression };
+    }
+    return { ...this.baseRuntime(ctx), enabled, name: this.name, value: this.value ?? 0 };
   }
 }

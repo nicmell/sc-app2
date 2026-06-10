@@ -5,7 +5,7 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { ScCheckboxRuntime, ScCheckboxProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScCheckboxRuntime, ScCheckboxProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckboxProps {
@@ -13,6 +13,10 @@ export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckb
 
   validate(): void {
     this.requireProp("bind", this.bind);
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    return this.resolveVisualBind(ctx, this.bind);
   }
 
   private onChange = (e: Event) => {

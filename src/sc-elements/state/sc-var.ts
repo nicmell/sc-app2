@@ -4,7 +4,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScVarRuntime, ScVarProps } from "@/types/runtime";
+import type { RuntimeContext, ScVarRuntime, ScVarProps, VarRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {
@@ -18,5 +18,14 @@ export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {
       this.failValidation(`"value" and "bind" are mutually exclusive`);
     }
     this.requireNumeric("value", this.value);
+  }
+
+  /** Always enabled (unlike sc-control, never a graph input). */
+  protected resolveRuntime(ctx: RuntimeContext): VarRuntime {
+    if (this.bind) {
+      const { targets, expression } = this.resolveStateBind(ctx, this.bind);
+      return { ...this.baseRuntime(ctx), name: this.name, value: 0, targets, expression };
+    }
+    return { ...this.baseRuntime(ctx), name: this.name, value: this.value ?? 0 };
   }
 }

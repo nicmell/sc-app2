@@ -1,23 +1,23 @@
 // <sc-plugin> — the app-synthesized plugin root (never written in plugin
 // HTML; PluginHost creates one per dashboard box). It loads the plugin's
 // entry HTML into itself, parses + validates it into the runtime registry
-// (processHtml), and owns the plugin's scsynth group: created inside the
-// session group on mount, freed — with every synth in it — on unmount.
+// (the ScElement parse engine), and owns the plugin's scsynth group: created
+// inside the session group on mount, freed — with every synth in it — on
+// unmount.
 
-import { html, LitElement } from "lit";
+import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
-import { hydrate, processHtml } from "@/lib/html/processHtml";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/lib/session/SessionManager";
 import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
-import { runAttribute } from "@/sc-elements/internal/sc-element";
+import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 import type { PluginInfo } from "@/types/api";
-import type { ScElementRuntime, ScPluginProps, ScSynthDefRuntime } from "@/types/runtime";
+import type { NodeRuntime, RuntimeContext, ScElementRuntime, ScPluginProps, ScPluginRuntime, ScSynthDefRuntime } from "@/types/runtime";
 
-export class ScPlugin extends LitElement implements ScPluginProps {
+export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProps {
   static properties = {
     _error: { state: true },
   };
@@ -37,6 +37,28 @@ export class ScPlugin extends LitElement implements ScPluginProps {
     this._error = "";
   }
 
+  /** Unlike the other sc-elements, the plugin root renders into a shadow
+   *  root: the plugin markup stays in the light DOM and shows through the
+   *  slot, next to the parse error. */
+  createRenderRoot(): HTMLElement | DocumentFragment {
+    return this.attachShadow({ mode: "open" });
+  }
+
+  /** The root runtime: parse the children (the whole plugin tree), rolling
+   *  the per-parse nodes map back on any validation/resolution error. */
+  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
+    try {
+      this.processChildren(ctx);
+      return this.nodeRuntime(ctx, this.run);
+    } catch (e) {
+      Object.assign(ctx.tree, { children: [] });
+      for (const id of ctx.nodes.keys()) {
+        if (id !== ctx.tree.id) ctx.nodes.delete(id);
+      }
+      throw e;
+    }
+  }
+
   protected async firstUpdated(): Promise<void> {
     if (!this.plugin) {
       this._error = "sc-plugin: no plugin assigned";
@@ -50,8 +72,8 @@ export class ScPlugin extends LitElement implements ScPluginProps {
       const boxId = this.id || randomId();
       const synthdefs: ScSynthDefRuntime[] = [];
       const nodes = new Map<string, ScElementRuntime>();
-      const tree = hydrate(boxId, this);
-      processHtml({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
+      const tree = this.hydrate(boxId);
+      this.process({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
       registerAll(nodes);
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.

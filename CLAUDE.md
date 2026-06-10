@@ -55,7 +55,12 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          inputs/ (range/checkbox/select/option/radio-group/
                          radio/run), visuals/ (display/if), widgets/ (strudel/
                          scope/console). index.ts is the barrel +
-                         registerScElements()
+                         registerScElements(). internal/sc-element.ts is ALSO
+                         the runtime processor: the parse engine (hydrate/
+                         process/processChildren) + the shared bind-resolution
+                         machinery live on the ScElement base, and each
+                         component overrides resolveRuntime() for its own
+                         runtime values
 runtime/                 the global parsed-element registry (id → ScElementRuntime),
                          deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
@@ -73,11 +78,12 @@ constants/               per-domain constants (as-const maps + defaults):
 lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
-  html/                  processHtml/hydrate: parse plugin DOM into typed items
-                         (types/runtime.d.ts), calling each component's own
-                         validate() during hydration (the backend XSD validates
-                         structure at upload, but fastxml does NOT enforce required
-                         attributes — the components' validate() is the real gate)
+  html/                  processHtml/hydrate: a thin facade over the components'
+                         own parse engine (sc-elements/internal ScElement) — the
+                         stable entry point for the validation harness. Hydration
+                         runs each component's validate() (the backend XSD
+                         validates structure at upload, but fastxml does NOT
+                         enforce required attributes — validate() is the real gate)
   osc/                   the OSC transport (see lib/osc/README.md):
                          OscClient (global `oscClient`, mirrors the osc-js OSC class,
                          owns /g_new of the session group + nextNodeId allocation)
@@ -183,12 +189,16 @@ every further `sc-*` element:
    copy attributes into items — and there is **no `type` field either**: the
    discriminant is the element's tag itself, derived via `typeOf(item)`
    (`lib/utils/guards`, `_element.tagName`); the guards narrow by tag with
-   plain cast predicates, and `processElement` dispatches on `typeOf`.
-5. **Runtime**: a handler in `src/runtime/handlers.ts` (`processElement`
-   switch) that resolves binds via the shared machinery and returns the
-   runtime values (`processElement` merges them into the item), reading
-   attributes through `item._element`; extend `lib/utils/guards.ts` if the
-   element joins a category (state/node/parent).
+   plain cast predicates.
+5. **Runtime**: override `resolveRuntime(ctx)` on the component — the parse
+   engine + shared bind-resolution machinery are inherited from the
+   `ScElement` base (`internal/sc-element.ts`): call `this.processChildren(
+   ctx)` if the element parses children, resolve binds via
+   `this.resolveStateBind` / `this.resolveVisualBind` / `this.resolveNode`,
+   and return the runtime values over `this.baseRuntime(ctx)` /
+   `this.nodeRuntime(ctx, run)` (the base `process()` merges them into the
+   item). The default is the self-contained leaf. Extend
+   `lib/utils/guards.ts` if the element joins a category (state/node/parent).
 6. `item._element` IS the mounted component (strict-equality verified by the
    ScElement firstUpdated test), so the registry exposes the live element —
    props and methods — from outside the DOM.

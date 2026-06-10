@@ -3,7 +3,8 @@
 // consumes them in the UGen migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScUgenRuntime, ScUgenProps } from "@/types/runtime";
+import { isControlRuntime } from "@/lib/utils/guards";
+import type { RuntimeContext, ScUgenRuntime, ScUgenProps, UgenRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
@@ -21,5 +22,23 @@ export class ScUgen extends ScElement<ScUgenRuntime> implements ScUgenProps {
     if (!UGEN_RATES.has(this.rate)) {
       this.failValidation(`"rate" attribute must be one of ar|kr|ir (got "${this.rate}")`);
     }
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): UgenRuntime {
+    this.processChildren(ctx);
+    const n = ctx.tree as ScUgenRuntime;
+    // Every input bind must reference a sibling ugen or a synthdef param.
+    for (const child of n.children) {
+      if (!isControlRuntime(child) || !child._element.bind) continue;
+      for (const ref of child._element.bind.split(",").map((s) => s.trim())) {
+        const refId = ref.split(":")[0];
+        if (!this.resolveNode(ctx, [refId])) {
+          throw new Error(
+            `<sc-ugen name="${this.name}">: input "${child._element.name}" references unknown "${refId}"`,
+          );
+        }
+      }
+    }
+    return { ...this.baseRuntime(ctx), enabled: false };
   }
 }

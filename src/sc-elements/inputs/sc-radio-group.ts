@@ -3,7 +3,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRadioGroupProps {
@@ -15,5 +15,10 @@ export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRa
     if (this.orientation !== "horizontal" && this.orientation !== "vertical") {
       this.failValidation(`"orientation" attribute must be horizontal|vertical (got "${this.orientation}")`);
     }
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+    this.processChildren(ctx);
+    return this.resolveVisualBind(ctx, this.bind);
   }
 }

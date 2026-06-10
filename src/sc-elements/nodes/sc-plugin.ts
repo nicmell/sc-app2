@@ -13,7 +13,7 @@ import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/lib/session/SessionManager";
 import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
-import { runAttribute } from "./internal/sc-element";
+import { runAttribute } from "@/sc-elements/internal/sc-element";
 import type { PluginInfo } from "@/types/api";
 import type { ScElementItem, ScPluginProps, ScSynthDefItem } from "@/types/parsers";
 

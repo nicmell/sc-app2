@@ -48,12 +48,14 @@ cd src-tauri && cargo check && cargo test
 ```
 main.tsx                 boot: register sc-* elements, session.start(), render <App/>
 components/              React shell: Dashboard grid, plugin picker/list, toasts
-sc-elements/             Lit elements used inside plugin HTML: sc-plugin (the
-                         app-synthesized root — loads + parses the entry HTML and
-                         owns the plugin's scsynth group), the parsed stubs
-                         (group/synthdef/ugen/control/var/synth/range/checkbox/
-                         run/display/if/select/option/radio-group/radio), and
-                         the leaves (sc-strudel, sc-scope, sc-console)
+sc-elements/             Lit elements used inside plugin HTML, classified by the
+                         old app's taxonomy (see sc-elements/README.md for the
+                         per-element docs): nodes/ (plugin/group/synth),
+                         synthdef/ (synthdef/ugen), state/ (control/var),
+                         inputs/ (range/checkbox/select/option/radio-group/
+                         radio/run), visuals/ (display/if), widgets/ (strudel/
+                         scope/console). index.ts is the barrel +
+                         registerScElements()
 runtime/                 the global parsed-element registry (id → ScElementItem),
                          deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
@@ -201,8 +203,9 @@ every further `sc-*` element:
 Runtime layer: all old handlers ported (bind resolution incl. arithmetic
 expressions via lib/utils/expression parseBind/evalExpr) except buffers,
 presets/overrides, and synthdef compilation. Examples: every old example
-without a buffer-family element lives in `examples/` (16 ported + the 2
-native ones); `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
+without a buffer-family element lives in `examples/<category>/` (see
+examples/README.md — app/synths/bindings/inputs/invalid);
+`scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
 
 **fastxml is pinned to =0.8.0** (src-tauri/Cargo.toml): 0.8.1+ rejects
 mixed-content models whose choices have minOccurs="0" (a text-only `<span>`

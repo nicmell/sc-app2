@@ -6,9 +6,9 @@
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // bad-bindings at runtime. Anything else failing is a migration bug.
 import { execSync } from "node:child_process";
-import { mkdtempSync, readdirSync } from "node:fs";
+import { mkdtempSync, readdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 const REPO = new URL("..", import.meta.url).pathname;
 const API = "http://127.0.0.1:3000";
@@ -47,19 +47,27 @@ const probeRuntime = (pluginId, entry) => evaluate(`(async () => {
 })()`);
 
 const work = mkdtempSync(join(tmpdir(), "sc-examples-"));
-const dirs = readdirSync(join(REPO, "examples")).filter((d) => !d.startsWith("."));
+// Examples live one level deep (examples/<category>/<plugin>), each marked by
+// its metadata.json.
+const dirs = [];
+for (const cat of readdirSync(join(REPO, "examples"), { withFileTypes: true }).filter((d) => d.isDirectory() && !d.name.startsWith(".")).map((d) => d.name)) {
+  for (const plugin of readdirSync(join(REPO, "examples", cat)).filter((d) => !d.startsWith("."))) {
+    if (existsSync(join(REPO, "examples", cat, plugin, "metadata.json"))) dirs.push(join(cat, plugin));
+  }
+}
 const rows = [];
 const uploadedIds = [];
 const preinstalled = await (await fetch(`${API}/api/plugins`)).json();
 
 for (const dir of dirs.sort()) {
-  const pre = preinstalled.find((p) => p.name === dir || (dir === "default-plugin" && p.name === "default-dashboard"));
+  const name = basename(dir);
+  const pre = preinstalled.find((p) => p.name === name || (name === "default-plugin" && p.name === "default-dashboard"));
   let id, entry, uploadNote;
   if (pre) {
     ({ id, entry } = pre);
     uploadNote = "pre-installed";
   } else {
-    const zip = join(work, `${dir}.zip`);
+    const zip = join(work, `${dir.replaceAll("/", "-")}.zip`);
     execSync(`cd ${REPO}/examples/${dir} && zip -q -r ${zip} .`);
     const resp = await fetch(`${API}/api/plugins`, { method: "POST", body: await (await import("node:fs/promises")).readFile(zip) });
     if (resp.status === 201) {
@@ -69,17 +77,17 @@ for (const dir of dirs.sort()) {
       uploadNote = "201";
     } else {
       const msg = (await resp.text()).split("\n")[0].slice(0, 90);
-      const expected = EXPECT_UPLOAD_FAIL.has(dir);
+      const expected = EXPECT_UPLOAD_FAIL.has(name);
       rows.push({ dir, upload: `${resp.status} ${expected ? "(expected)" : "*** UNEXPECTED ***"}`, runtime: "-", note: msg });
       continue;
     }
   }
-  if (EXPECT_UPLOAD_FAIL.has(dir)) {
+  if (EXPECT_UPLOAD_FAIL.has(name)) {
     rows.push({ dir, upload: `${uploadNote} *** EXPECTED 400 ***`, runtime: "-", note: "" });
     continue;
   }
   const rt = await probeRuntime(id, entry);
-  const expectedFail = EXPECT_RUNTIME_FAIL.has(dir);
+  const expectedFail = EXPECT_RUNTIME_FAIL.has(name);
   const ok = rt === "PASS" ? !expectedFail : expectedFail;
   rows.push({ dir, upload: uploadNote, runtime: (rt === "PASS" ? "PASS" : rt.slice(0, 90)) + (ok ? (expectedFail ? " (expected)" : "") : " *** UNEXPECTED ***"), note: "" });
 }
@@ -91,7 +99,7 @@ for (const id of uploadedIds) {
 
 console.log("\n=== example validation report ===");
 for (const r of rows) {
-  console.log(`${r.dir.padEnd(22)} upload: ${String(r.upload).padEnd(28)} runtime: ${r.runtime}${r.note ? "  | " + r.note : ""}`);
+  console.log(`${r.dir.padEnd(32)} upload: ${String(r.upload).padEnd(28)} runtime: ${r.runtime}${r.note ? "  | " + r.note : ""}`);
 }
 const unexpected = rows.filter((r) => String(r.upload).includes("UNEXPECTED") || String(r.runtime).includes("UNEXPECTED"));
 console.log(`\n${unexpected.length} unexpected result(s)`);

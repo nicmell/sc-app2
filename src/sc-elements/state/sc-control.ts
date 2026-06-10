@@ -5,7 +5,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScControlItem, ScControlProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScControl extends ScElement<ScControlItem> implements ScControlProps {
   @property() accessor name = "";

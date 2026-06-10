@@ -6,7 +6,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import type { ScRangeItem, ScRangeProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRange extends ScElement<ScRangeItem> implements ScRangeProps {
   @property() accessor bind = "";

@@ -5,7 +5,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScRunItem, ScRunProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRun extends ScElement<ScRunItem> implements ScRunProps {
   @property() accessor bind = "";

@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScRadioGroupItem, ScRadioGroupProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadioGroup extends ScElement<ScRadioGroupItem> implements ScRadioGroupProps {
   @property() accessor bind = "";

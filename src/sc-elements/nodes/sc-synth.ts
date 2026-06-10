@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScSynthItem, ScSynthProps } from "@/types/parsers";
-import { runAttribute, ScElement } from "./internal/sc-element";
+import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScSynth extends ScElement<ScSynthItem> implements ScSynthProps {
   @property() accessor name = "";

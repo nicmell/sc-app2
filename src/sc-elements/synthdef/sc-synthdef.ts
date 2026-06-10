@@ -3,7 +3,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScSynthDefItem, ScSynthDefProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScSynthDef extends ScElement<ScSynthDefItem> implements ScSynthDefProps {
   @property() accessor name = "";

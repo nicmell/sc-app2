@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScRadioItem, ScRadioProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadio extends ScElement<ScRadioItem> implements ScRadioProps {
   @property({ type: Number }) accessor value = 0;

@@ -4,7 +4,7 @@
 // unmount, which frees the group and the parsed tree.
 import { useEffect, useRef } from "react";
 import { ELEMENTS } from "@/constants/sc-elements";
-import type { ScPlugin } from "@/sc-elements/sc-plugin";
+import type { ScPlugin } from "@/sc-elements";
 import type { PluginInfo } from "@/types/api";
 
 export function PluginHost({ plugin }: { plugin: PluginInfo }) {

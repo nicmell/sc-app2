@@ -4,7 +4,7 @@
 // ui-foundation .strudel/.status-pill styles + CodeMirror apply directly.
 
 import { html } from "lit";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScStrudelItem } from "@/types/parsers";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";

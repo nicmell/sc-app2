@@ -4,7 +4,7 @@
 // App.css. No attributes yet — customization comes later.
 
 import { html } from "lit";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScScopeItem } from "@/types/parsers";
 import { session } from "@/stores/session";
 

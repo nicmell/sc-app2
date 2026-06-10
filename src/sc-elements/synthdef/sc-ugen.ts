@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScUgenItem, ScUgenProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
 

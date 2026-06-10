@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScSelectItem, ScSelectProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScSelect extends ScElement<ScSelectItem> implements ScSelectProps {
   @property() accessor bind = "";

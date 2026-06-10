@@ -1,29 +1,39 @@
-// Register the plugin custom elements — one constructor per tag in the
-// `ELEMENTS` constant (`@/constants/sc-elements`, kept in sync with the backend
-// XSD: src-tauri/src/plugin/xsd/sc-plugin-schema.xsd). Imported once at app
-// boot (main.tsx) so injected plugin HTML upgrades.
+// Barrel for the sc-* custom elements (see README.md for the per-element
+// docs). Re-exports every component plus `registerScElements`, which defines
+// one constructor per tag in the `ELEMENTS` constant (`@/constants/
+// sc-elements`, kept in sync with the backend XSD: src-tauri/src/plugin/xsd/
+// sc-plugin-schema.xsd). Imported once at app boot (main.tsx) so injected
+// plugin HTML upgrades.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElementTagNames } from "@/types/sc-elements";
-import { ScCheckbox } from "./sc-checkbox";
-import { ScConsole } from "./sc-console";
-import { ScControl } from "./sc-control";
-import { ScDisplay } from "./sc-display";
-import { ScGroup } from "./sc-group";
-import { ScIf } from "./sc-if";
-import { ScOption } from "./sc-option";
-import { ScPlugin } from "./sc-plugin";
-import { ScRadio } from "./sc-radio";
-import { ScRadioGroup } from "./sc-radio-group";
-import { ScRange } from "./sc-range";
-import { ScRun } from "./sc-run";
-import { ScScope } from "./sc-scope";
-import { ScSelect } from "./sc-select";
-import { ScStrudel } from "./sc-strudel";
-import { ScSynth } from "./sc-synth";
-import { ScSynthDef } from "./sc-synthdef";
-import { ScUgen } from "./sc-ugen";
-import { ScVar } from "./sc-var";
+import { ScCheckbox } from "./inputs/sc-checkbox";
+import { ScOption } from "./inputs/sc-option";
+import { ScRadio } from "./inputs/sc-radio";
+import { ScRadioGroup } from "./inputs/sc-radio-group";
+import { ScRange } from "./inputs/sc-range";
+import { ScRun } from "./inputs/sc-run";
+import { ScSelect } from "./inputs/sc-select";
+import { ScGroup } from "./nodes/sc-group";
+import { ScPlugin } from "./nodes/sc-plugin";
+import { ScSynth } from "./nodes/sc-synth";
+import { ScControl } from "./state/sc-control";
+import { ScVar } from "./state/sc-var";
+import { ScSynthDef } from "./synthdef/sc-synthdef";
+import { ScUgen } from "./synthdef/sc-ugen";
+import { ScDisplay } from "./visuals/sc-display";
+import { ScIf } from "./visuals/sc-if";
+import { ScConsole } from "./widgets/sc-console";
+import { ScScope } from "./widgets/sc-scope";
+import { ScStrudel } from "./widgets/sc-strudel";
+
+export { ScElement } from "./internal/sc-element";
+export { ScGroup, ScPlugin, ScSynth };
+export { ScSynthDef, ScUgen };
+export { ScControl, ScVar };
+export { ScCheckbox, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect };
+export { ScDisplay, ScIf };
+export { ScConsole, ScScope, ScStrudel };
 
 const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_PLUGIN]: ScPlugin,

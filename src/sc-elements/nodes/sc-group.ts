@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScGroupItem, ScGroupProps } from "@/types/parsers";
-import { runAttribute, ScElement } from "./internal/sc-element";
+import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScGroup extends ScElement<ScGroupItem> implements ScGroupProps {
   @property() accessor name = "";

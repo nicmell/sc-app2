@@ -5,7 +5,7 @@
 
 import { property } from "lit/decorators.js";
 import type { ScIfItem, ScIfProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScIf extends ScElement<ScIfItem> implements ScIfProps {
   @property() accessor bind = "";

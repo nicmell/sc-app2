@@ -3,7 +3,7 @@
 // pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
 
 import { html } from "lit";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScConsoleItem } from "@/types/parsers";
 import { session } from "@/stores/session";
 import type { LoggedEntry } from "@/types/stores";

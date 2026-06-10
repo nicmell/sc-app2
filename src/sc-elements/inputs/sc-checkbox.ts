@@ -6,7 +6,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import type { ScCheckboxItem, ScCheckboxProps } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScCheckbox extends ScElement<ScCheckboxItem> implements ScCheckboxProps {
   @property() accessor bind = "";

@@ -364,10 +364,23 @@ steps, each independently shippable:
 5. **Core `sc-elements`** — `internal/` bases, then
    `sc-plugin/group/synth/synthdef/ugen/control/var`, wired to the current
    transport: add the old `OscService.once()` reply-matching pattern to
-   `OscClient`; node ids via `nextNodeId()`, groups nested in the session group.
+   `OscClient` (prerequisite for any sequenced OSC — /d_recv → /done →
+   /s_new is the first consumer); node ids via `nextNodeId()`, groups
+   nested in the session group.
 6. **Input elements** — stubs are in; remaining: the knob/slider/switch/
-   combobox internals, condition logic, value dispatch + a `runtime` store
-   slice carrying control values (`/n_set`).
+   combobox internals, condition logic, and value dispatch (`/n_set`).
+   Design note (settled in review, not yet built): NO runtime store slice —
+   the element IS the runtime, so propagation is element-to-element.
+   `targets` points binder → target; propagation needs the reverse index:
+   dependents register themselves on the target during resolution (e.g. a
+   `_dependents: Set<ScElement>` on ScState filled by resolveStateBind/
+   resolveVisualBind), and ScState gets a `setValue()` that re-evaluates
+   bound expressions (`evalExpr`, ported and waiting) and notifies
+   dependents (`requestUpdate()` for renders; `/n_set` for enabled
+   controls). Per-step testing seam: mock `session.send` in vitest and
+   assert the OSC messages; interaction tests (fire `input` events) run in
+   happy-dom. Also note: a bindless `sc-run` should require its parent to
+   be a node when /n_run lands.
 7. **Buffers & scopes** — port `sc-buffer`/`sc-waveform`/`sc-test` with the old
    `/b_getn` streaming machinery (Rust `buffer_ws.rs`-style per-buffer WS);
    keep the current SHM master-out scope as-is.

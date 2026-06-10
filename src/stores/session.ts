@@ -4,12 +4,12 @@
 // working.
 
 import { useSyncExternalStore } from "react";
-import { session } from "../session/SessionManager";
-import type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../session/SessionManager";
+import { session } from "@/lib/session/SessionManager";
+import type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "@/lib/session/SessionManager";
 
 // Re-export the singleton + controller types so existing app imports keep working.
-export { session } from "../session/SessionManager";
-export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../session/SessionManager";
+export { session } from "@/lib/session/SessionManager";
+export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "@/lib/session/SessionManager";
 
 /** Subscribe a React component to the connection status. */
 export function useStatus(): ConnStatus {

@@ -5,7 +5,7 @@
 // just injects its body and lets the custom elements upgrade themselves (no
 // runtime/bind pipeline).
 
-import { get, post, del } from "../http";
+import { get, post, del } from "@/lib/http";
 
 export interface PluginAsset {
   path: string;

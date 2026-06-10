@@ -7,10 +7,10 @@
 // Cross-module type imports here are `import type` (erased at runtime), so the
 // slice modules can import `appStore` as a value without a runtime cycle.
 
-import { createStore } from "../utils/reactiveStore";
-import type { SessionState } from "../session/SessionManager";
+import { createStore } from "@/lib/utils/reactiveStore";
+import type { SessionState } from "@/lib/session/SessionManager";
 import type { BoxItem } from "./layout";
-import type { PluginInfo } from "../plugins/PluginManager";
+import type { PluginInfo } from "@/lib/plugins/PluginManager";
 
 export interface AppState {
   session: SessionState;

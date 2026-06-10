@@ -4,8 +4,8 @@
 // closed manually. Driven by the session's coalescing error store.
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { session, useScsynthErrors } from "../state/session";
-import type { ScsynthError } from "../session/SessionManager";
+import { session, useScsynthErrors } from "@/stores/session";
+import type { ScsynthError } from "@/lib/session/SessionManager";
 
 /** How long a banner lingers before auto-dismissing. */
 const DISMISS_MS = 8000;

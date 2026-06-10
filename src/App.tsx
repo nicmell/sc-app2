@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Dashboard } from "./components/Dashboard";
-import { Drawer } from "./components/Drawer";
-import { ToastStack } from "./components/ToastStack";
-import { refreshPlugins } from "./state/plugins";
+import { Dashboard } from "@/components/Dashboard";
+import { Drawer } from "@/components/Drawer";
+import { ToastStack } from "@/components/ToastStack";
+import { refreshPlugins } from "@/stores/plugins";
 import "./App.css";
 
 function App() {

@@ -4,7 +4,7 @@
 // App.css. No attributes yet — customization comes later.
 
 import { LitElement, html } from "lit";
-import { session } from "../state/session";
+import { session } from "@/stores/session";
 
 /** Vertical gain applied to the ±1 sample range before drawing. */
 const GAIN = 0.9;

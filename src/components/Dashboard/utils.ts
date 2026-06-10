@@ -5,7 +5,7 @@
 // "add a panel here" target. `toPixelStyle` maps grid units → absolute pixels for
 // the overlay, matching react-grid-layout's own column/row math (margin-aware).
 import type { LayoutItem } from "react-grid-layout";
-import type { BoxItem } from "../../state/layout";
+import type { BoxItem } from "@/stores/layout";
 
 const PLACEHOLDER_PREFIX = "__placeholder";
 

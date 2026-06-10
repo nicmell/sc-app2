@@ -31,6 +31,8 @@ export default defineConfig(async () => ({
       "@sc-app/server-commands": fileURLToPath(
         new URL("./packages/server-commands/src/index.ts", import.meta.url),
       ),
+      // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 

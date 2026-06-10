@@ -23,7 +23,7 @@ import {
   scopeUnsubscribe,
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
-import type { OscClient } from "../osc/OscClient";
+import type { OscClient } from "@/lib/osc/OscClient";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */

@@ -6,7 +6,7 @@ import {
   listPlugins,
   removePlugin,
   type PluginInfo,
-} from "../plugins/PluginManager";
+} from "@/lib/plugins/PluginManager";
 
 const store = appStore.slice("plugins");
 

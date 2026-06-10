@@ -21,11 +21,11 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
-import { get, post, put, wsUrl, HttpError } from "../http";
-import { oscClient } from "../osc/OscClient";
-import { ScopeController } from "../scope/ScopeController";
-import { layout, setLayout, type BoxItem } from "../state/layout";
-import { appStore } from "../state/store";
+import { get, post, put, wsUrl, HttpError } from "@/lib/http";
+import { oscClient } from "@/lib/osc/OscClient";
+import { ScopeController } from "@/lib/scope/ScopeController";
+import { layout, setLayout, type BoxItem } from "@/stores/layout";
+import { appStore } from "@/stores/store";
 
 /** What the session endpoints return: the server-assigned session identity +
  *  node-id allocation + scope buffer + the scsynth address for the footer,

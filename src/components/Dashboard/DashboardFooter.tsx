@@ -3,8 +3,8 @@
 // from scsynth's `/status.reply` heartbeat, which the Rust bridge polls and
 // forwards over the OSC bridge; until the first reply (or with no backend) we
 // fall back to the connection state.
-import { useStatus, useScsynthStatus, useScsynthAddress } from "../../state/session";
-import type { ScsynthStatus } from "../../session/SessionManager";
+import { useStatus, useScsynthStatus, useScsynthAddress } from "@/stores/session";
+import type { ScsynthStatus } from "@/lib/session/SessionManager";
 
 function formatStatus(s: ScsynthStatus): string {
   return `CPU: ${s.avgCpu.toFixed(1)}% / ${s.peakCpu.toFixed(1)}% | SR: ${s.sampleRate.toFixed(0)} Hz`;

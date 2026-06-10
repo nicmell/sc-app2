@@ -6,10 +6,10 @@
 import { LitElement, html } from "lit";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
-import { ensureStrudelGlobals } from "../strudel/prebake";
+import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
 import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
-import type { ConnStatus } from "../session/SessionManager";
-import { session } from "../state/session";
+import type { ConnStatus } from "@/lib/session/SessionManager";
+import { session } from "@/stores/session";
 
 const SAFETY_LOOKAHEAD_MS = 200;
 

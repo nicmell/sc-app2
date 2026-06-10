@@ -2,8 +2,8 @@
 // opens the plugin-management drawer. Adapted from upstream (dropped the
 // transport play/stop, clock indicator and settings drawer — we have no per-node
 // runtime or clock service here).
-import { useStatus } from "../../state/session";
-import type { ConnStatus } from "../../session/SessionManager";
+import { useStatus } from "@/stores/session";
+import type { ConnStatus } from "@/lib/session/SessionManager";
 
 const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   connecting: "warn",

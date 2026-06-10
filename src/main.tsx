@@ -3,7 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { registerScElements } from "./sc-elements";
-import { session } from "./session/SessionManager";
+import { session } from "@/lib/session/SessionManager";
 
 // Define the plugin custom elements + open the session before first render so
 // injected plugin HTML upgrades and the elements have a live session to read.

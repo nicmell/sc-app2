@@ -3,8 +3,8 @@
 // pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
 
 import { LitElement, html } from "lit";
-import { session } from "../state/session";
-import type { LoggedEntry } from "../session/SessionManager";
+import { session } from "@/stores/session";
+import type { LoggedEntry } from "@/lib/session/SessionManager";
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);

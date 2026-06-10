@@ -1,5 +1,5 @@
 import { PluginList } from "./PluginList";
-import type { PluginInfo } from "../plugins/PluginManager";
+import type { PluginInfo } from "@/lib/plugins/PluginManager";
 
 /** Modal to pick which installed plugin fills a grid cell. */
 export function PluginPicker({

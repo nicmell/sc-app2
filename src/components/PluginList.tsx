@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { useStore } from "../state/useStore";
-import { plugins, uploadPlugin, deletePlugin } from "../state/plugins";
-import type { PluginInfo } from "../plugins/PluginManager";
+import { useStore } from "@/stores/useStore";
+import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
+import type { PluginInfo } from "@/lib/plugins/PluginManager";
 
 /** Installed-plugin list. With `onSelect` it's a picker (click to choose);
  *  otherwise it's the manager (upload + delete). */

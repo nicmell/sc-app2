@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Group Plugin</title>
+</head>
+<body>
+<sc-group name="oscillators">
+    <sc-synthdef name="sine">
+        <sc-control name="freq" value="440"/>
+        <sc-control name="amp" value="0.2"/>
+        <sc-control name="pan" value="0"/>
+        <sc-control name="mute" value="0"/>
+        <sc-ugen name="osc" type="SinOsc">
+            <sc-control name="freq" bind="freq"/>
+        </sc-ugen>
+        <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+            <sc-control name="a" bind="osc"/>
+            <sc-control name="b" bind="amp"/>
+        </sc-ugen>
+        <sc-ugen name="panned" type="Pan2">
+            <sc-control name="in" bind="sig"/>
+            <sc-control name="pos" bind="pan"/>
+        </sc-ugen>
+        <sc-ugen name="muted" type="BinaryOpUGen" op="*">
+            <sc-control name="a" bind="panned"/>
+            <sc-control name="b" bind="mute"/>
+        </sc-ugen>
+        <sc-ugen name="out" type="Out">
+            <sc-control name="bus" value="0"/>
+            <sc-control name="channelsarray" bind="muted"/>
+        </sc-ugen>
+    </sc-synthdef>
+
+    <sc-synth name="osc1" bind="sine">
+        <sc-control name="freq" value="261"/>
+        <sc-control name="amp" value="0.15"/>
+        <sc-control name="pan" value="-0.5"/>
+        <sc-control name="mute" value="0"/>
+    </sc-synth>
+    <sc-synth name="osc2" bind="sine">
+        <sc-control name="freq" value="329"/>
+        <sc-control name="amp" value="0.15"/>
+        <sc-control name="pan" value="0.5"/>
+        <sc-control name="mute" value="0"/>
+    </sc-synth>
+
+    <label>
+        <sc-run size="24"/>
+    </label>
+    <div class="controls">
+        <h3>Oscillator 1</h3>
+        <div class="knobs">
+            <label>
+                <sc-range type="knob" bind="osc1.freq" min="20" max="2000" step="1" diameter="48"/>
+                <span><sc-display bind="osc1.freq" format="%d Hz"/></span>
+            </label>
+            <label>
+                <sc-range type="knob" bind="osc1.amp" min="0" max="1" step="0.01" diameter="48"/>
+                <span><sc-display bind="osc1.amp" format="%.2f"/></span>
+            </label>
+            <label>
+                <sc-range type="slider" bind="osc1.pan" min="-1" max="1" step="0.01" width="120" height="16"/>
+                <span>Pan: <sc-display bind="osc1.pan" format="%.2f"/></span>
+            </label>
+        </div>
+        <h3>Oscillator 2</h3>
+        <div class="knobs">
+            <label>
+                <sc-range type="knob" bind="osc2.freq" min="20" max="2000" step="1" diameter="48"/>
+                <span><sc-display bind="osc2.freq" format="%d Hz"/></span>
+            </label>
+            <label>
+                <sc-range type="knob" bind="osc2.amp" min="0" max="1" step="0.01" diameter="48"/>
+                <span><sc-display bind="osc2.amp" format="%.2f"/></span>
+            </label>
+            <label>
+                <sc-range type="slider" bind="osc2.pan" min="-1" max="1" step="0.01" width="120" height="16"/>
+                <span>Pan: <sc-display bind="osc2.pan" format="%.2f"/></span>
+            </label>
+        </div>
+    </div>
+</sc-group>
+</body>
+</html>

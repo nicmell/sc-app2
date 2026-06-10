@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Group Bind Plugin</title>
+</head>
+<body>
+<sc-group name="voices">
+    <sc-control name="amp" value="0.15"/>
+    <sc-synthdef name="tone">
+        <sc-control name="freq" value="440"/>
+        <sc-control name="amp" value="0.2"/>
+        <sc-control name="gate" value="1"/>
+        <sc-ugen name="osc" type="SinOsc">
+            <sc-control name="freq" bind="freq"/>
+        </sc-ugen>
+        <sc-ugen name="env" type="Linen">
+            <sc-control name="gate" bind="gate"/>
+            <sc-control name="attacktime" value="0.01"/>
+            <sc-control name="susLevel" value="1"/>
+            <sc-control name="releasetime" value="0.1"/>
+        </sc-ugen>
+        <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+            <sc-control name="a" bind="osc"/>
+            <sc-control name="b" bind="amp"/>
+        </sc-ugen>
+        <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+            <sc-control name="a" bind="sig"/>
+            <sc-control name="b" bind="env"/>
+        </sc-ugen>
+        <sc-ugen name="out" type="Out">
+            <sc-control name="bus" value="0"/>
+            <sc-control name="channelsarray" bind="gated"/>
+        </sc-ugen>
+    </sc-synthdef>
+
+    <sc-synth name="low" bind="tone">
+        <sc-control name="freq" value="261"/>
+        <sc-control name="amp" value="0.15"/>
+        <sc-control name="gate" value="1"/>
+    </sc-synth>
+    <sc-synth name="high" bind="tone">
+        <sc-control name="freq" value="523"/>
+        <sc-control name="amp" value="0.15"/>
+        <sc-control name="gate" value="1"/>
+    </sc-synth>
+    <div>
+        <h3>Group Controls</h3>
+        <label>
+            <span>Group Run</span>
+            <sc-run size="24"/>
+        </label>
+        <label>
+            <sc-range type="slider" bind="amp" min="0" max="1" step="0.01" width="120" height="16"/>
+        </label>
+    </div>
+
+    <div>
+        <h3>Low Voice</h3>
+        <label>
+            <sc-run bind="low" size="20"/>
+        </label>
+        <label>
+            <span>Freq: <sc-display bind="low.freq" format="%d Hz"/></span>
+            <sc-range type="knob" bind="low.freq" min="20" max="1000" step="1" diameter="48"/>
+        </label>
+        <label>
+            <span>Amp: <sc-display bind="low.amp" format="%.2f"/></span>
+            <sc-range type="knob" bind="low.amp" min="0" max="1" step="0.01" diameter="48"/>
+        </label>
+    </div>
+
+    <div>
+        <h3>High Voice</h3>
+        <label>
+            <sc-run bind="high" size="20"/>
+        </label>
+        <label>
+            <span>Freq: <sc-display bind="high.freq" format="%d Hz"/></span>
+            <sc-range type="knob" bind="high.freq" min="20" max="2000" step="1" diameter="48"/>
+        </label>
+        <label>
+            <span>Amp: <sc-display bind="high.amp" format="%.2f"/></span>
+            <sc-range type="knob" bind="high.amp" min="0" max="1" step="0.01" diameter="48"/>
+        </label>
+    </div>
+</sc-group>
+</body>
+</html>

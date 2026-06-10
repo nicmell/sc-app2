@@ -23,11 +23,17 @@ export async function removePlugin(id: string): Promise<void> {
   await del(`${PLUGINS_BASE}/${id}`);
 }
 
-/** Fetch a plugin's entry HTML and mount its body into `host`. The `sc-*`
- *  custom elements upgrade on insertion. Plugins must use explicit closing tags
- *  (e.g. `<sc-scope></sc-scope>`) so HTML reparsing doesn't swallow siblings. */
+/** Fetch a plugin's entry (XHTML) and mount its body children into `host`.
+ *  Parsed as XML — entries are XHTML and use self-closing custom-element tags
+ *  (`<sc-control …/>`), which an HTML re-parse would mis-nest — and adopted
+ *  via importNode, so the markup never round-trips through innerHTML. The
+ *  `sc-*` custom elements upgrade on insertion. */
 export async function loadPluginInto(host: HTMLElement, plugin: PluginInfo): Promise<void> {
   const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
-  const doc = new DOMParser().parseFromString(await res.text(), "text/html");
-  host.innerHTML = doc.body?.innerHTML ?? "";
+  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+  const parseError = doc.querySelector("parsererror");
+  if (parseError) throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
+  const body = doc.querySelector("body");
+  if (!body) throw new Error("plugin entry has no <body>");
+  host.replaceChildren(...Array.from(body.children).map((c) => document.importNode(c, true)));
 }

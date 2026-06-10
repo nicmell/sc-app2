@@ -53,7 +53,10 @@ libc = "0.2"
 
 # Plugin system: zip bundles, XSD validation of entry XHTML, asset sniffing.
 zip = { version = "2", default-features = false, features = ["deflate"] }
-fastxml = "0.8"
+# Pinned: 0.8.1+ rejects mixed-content models with minOccurs=0 choices
+# (text-only <span>… fails "requires one of …, found: none"); 0.8.0 is the
+# version the old sc-app validated the example plugins with.
+fastxml = "=0.8.0"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
 getrandom = "0.2"
 

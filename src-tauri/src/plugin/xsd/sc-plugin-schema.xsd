@@ -7,7 +7,10 @@
   <!-- sc-plugin schema: a basic XHTML wrapper containing simple layout HTML
        plus the sc-* custom elements. Grows with each element migration step;
        keep in sync with src/constants/sc-elements.ts and the runtime
-       validation in src/lib/html/handlers.ts. -->
+       validation in the components' validate() methods. The buffer family
+       (sc-buffer / sc-waveform / sc-test and the old buffer-bound sc-scope)
+       is not migrated yet — our sc-scope is the attribute-less master-out
+       SHM scope leaf. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -31,6 +34,9 @@
   <xs:element name="h4" type="inlineType"/>
   <xs:element name="h5" type="inlineType"/>
   <xs:element name="h6" type="inlineType"/>
+  <xs:element name="ul" type="listType"/>
+  <xs:element name="ol" type="listType"/>
+  <xs:element name="li" type="blockType"/>
   <xs:element name="hr"/>
   <xs:element name="br"/>
 
@@ -38,36 +44,69 @@
   <xs:element name="sc-console" type="scLeafType"/>
   <xs:element name="sc-scope" type="scLeafType"/>
   <xs:element name="sc-strudel" type="scLeafType"/>
+  <xs:element name="sc-group" type="scGroupType"/>
   <xs:element name="sc-synthdef" type="scSynthDefType"/>
   <xs:element name="sc-ugen" type="scUGenType"/>
   <xs:element name="sc-control" type="scControlType"/>
+  <xs:element name="sc-var" type="scVarType"/>
   <xs:element name="sc-synth" type="scSynthType"/>
   <xs:element name="sc-range" type="scRangeType"/>
+  <xs:element name="sc-checkbox" type="scCheckboxType"/>
+  <xs:element name="sc-run" type="scRunType"/>
+  <xs:element name="sc-display" type="scDisplayType"/>
+  <xs:element name="sc-if" type="scIfType"/>
+  <xs:element name="sc-select" type="scSelectType"/>
+  <xs:element name="sc-option" type="scOptionType"/>
+  <xs:element name="sc-radio-group" type="scRadioGroupType"/>
+  <xs:element name="sc-radio" type="scRadioType"/>
 
   <!-- ==================== Content model groups ==================== -->
 
-  <xs:group name="blockContent">
+  <xs:group name="htmlElements">
     <xs:choice>
       <xs:element ref="div"/>
       <xs:element ref="p"/>
       <xs:element ref="label"/>
-      <xs:element ref="span"/>
-      <xs:element ref="strong"/>
-      <xs:element ref="em"/>
+      <xs:element ref="ul"/>
+      <xs:element ref="ol"/>
       <xs:element ref="h1"/>
       <xs:element ref="h2"/>
       <xs:element ref="h3"/>
       <xs:element ref="h4"/>
       <xs:element ref="h5"/>
       <xs:element ref="h6"/>
+      <xs:element ref="span"/>
+      <xs:element ref="strong"/>
+      <xs:element ref="em"/>
       <xs:element ref="hr"/>
       <xs:element ref="br"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scControls">
+    <xs:choice>
+      <xs:element ref="sc-display"/>
+      <xs:element ref="sc-if"/>
+      <xs:element ref="sc-range"/>
+      <xs:element ref="sc-checkbox"/>
+      <xs:element ref="sc-run"/>
+      <xs:element ref="sc-select"/>
+      <xs:element ref="sc-radio-group"/>
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
-      <xs:element ref="sc-synthdef"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="blockContent">
+    <xs:choice>
+      <xs:group ref="htmlElements"/>
+      <xs:group ref="scControls"/>
+      <xs:element ref="sc-control"/>
+      <xs:element ref="sc-var"/>
+      <xs:element ref="sc-group"/>
       <xs:element ref="sc-synth"/>
-      <xs:element ref="sc-range"/>
+      <xs:element ref="sc-synthdef"/>
     </xs:choice>
   </xs:group>
 
@@ -77,6 +116,8 @@
       <xs:element ref="strong"/>
       <xs:element ref="em"/>
       <xs:element ref="br"/>
+      <xs:element ref="sc-display"/>
+      <xs:element ref="sc-if"/>
     </xs:choice>
   </xs:group>
 
@@ -118,8 +159,25 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
+  <xs:complexType name="listType">
+    <xs:sequence>
+      <xs:element ref="li" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
   <!-- Leaf custom elements: no custom attrs yet. -->
   <xs:complexType name="scLeafType">
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-group: container (HTML, sc-control, sc-synth, nested sc-group ...). -->
+  <xs:complexType name="scGroupType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="blockContent"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -145,8 +203,16 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-control: a literal value or a bind reference. -->
+  <!-- sc-control: a literal value or a bind reference (mutually exclusive). -->
   <xs:complexType name="scControlType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-var: a named state variable (value or bind expression). -->
+  <xs:complexType name="scVarType">
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="bind" type="xs:string"/>
@@ -164,13 +230,103 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-range: a range input bound to a control. -->
+  <!-- sc-range: a range input bound to a control or var. -->
   <xs:complexType name="scRangeType">
+    <xs:attribute name="type" type="xs:string"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
     <xs:attribute name="max" type="xs:decimal"/>
     <xs:attribute name="step" type="xs:decimal"/>
     <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="diameter" type="xs:decimal"/>
+    <xs:attribute name="width" type="xs:decimal"/>
+    <xs:attribute name="height" type="xs:decimal"/>
+    <xs:attribute name="src" type="xs:string"/>
+    <xs:attribute name="sprites" type="xs:integer"/>
+    <xs:attribute name="fgcolor" type="xs:string"/>
+    <xs:attribute name="bgcolor" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-checkbox: a toggle bound to a control or var. -->
+  <xs:complexType name="scCheckboxType">
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="width" type="xs:decimal"/>
+    <xs:attribute name="height" type="xs:decimal"/>
+    <xs:attribute name="src" type="xs:string"/>
+    <xs:attribute name="fgcolor" type="xs:string"/>
+    <xs:attribute name="bgcolor" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-run: play/pause for a node (bind empty targets the parent). -->
+  <xs:complexType name="scRunType">
+    <xs:attribute name="run" type="xs:boolean"/>
+    <xs:attribute name="size" type="xs:decimal"/>
+    <xs:attribute name="src" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="fgcolor" type="xs:string"/>
+    <xs:attribute name="bgcolor" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-display: read-only formatted view of a bound control/var. -->
+  <xs:complexType name="scDisplayType">
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="format" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-if: conditional rendering keyed on a bound control/var. -->
+  <xs:complexType name="scIfType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="blockContent"/>
+    </xs:choice>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="is-truthy" type="xs:string"/>
+    <xs:attribute name="is-falsy" type="xs:string"/>
+    <xs:attribute name="is-equal" type="xs:string"/>
+    <xs:attribute name="is-not-equal" type="xs:string"/>
+    <xs:attribute name="is-greater-than" type="xs:string"/>
+    <xs:attribute name="is-lesser-than" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-select: dropdown over sc-option children, bound to a control/var. -->
+  <xs:complexType name="scSelectType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-option"/>
+    </xs:choice>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-option: one declarative choice inside sc-select. -->
+  <xs:complexType name="scOptionType">
+    <xs:attribute name="value" type="xs:decimal" use="required"/>
+    <xs:attribute name="label" type="xs:string" use="required"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-radio-group: radio set over sc-radio children, bound to a control/var. -->
+  <xs:complexType name="scRadioGroupType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-radio"/>
+    </xs:choice>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="orientation" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-radio: one declarative choice inside sc-radio-group. -->
+  <xs:complexType name="scRadioType">
+    <xs:attribute name="value" type="xs:decimal" use="required"/>
+    <xs:attribute name="label" type="xs:string" use="required"/>
+    <xs:attribute name="width" type="xs:decimal"/>
+    <xs:attribute name="height" type="xs:decimal"/>
+    <xs:attribute name="src" type="xs:string"/>
+    <xs:attribute name="fgcolor" type="xs:string"/>
+    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

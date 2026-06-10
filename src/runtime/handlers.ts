@@ -1,31 +1,37 @@
-// The runtime processor (ported from the old sc-app's lib/runtime/handlers,
-// trimmed to the migrated elements): `processElement` dispatches each hydrated
-// item to its per-type handler, which resolves its binds against the
-// cumulative scope and attaches the `runtime` object. The HTML attributes are
-// read through `item._element` — the mounted component's reactive properties —
-// never copied into the items. Handlers for the not-yet-migrated elements
-// (sc-group, sc-var, sc-run, sc-if, selects/radios, buffers/waveform/test,
-// presets/overrides, bind expressions, synthdef compilation) return with
-// their migration steps.
+// The runtime processor (ported from the old sc-app's lib/runtime/handlers):
+// `processElement` dispatches each hydrated item to its per-type handler,
+// which resolves its binds against the cumulative scope and attaches the
+// `runtime` object. The HTML attributes are read through `item._element` —
+// the mounted component's reactive properties — never copied into the items.
+// Still unported (return with their migration steps): the buffer family
+// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
+// and synthdef compilation.
 
 import { ELEMENTS } from "@/constants/sc-elements";
+import { parseBind } from "@/lib/utils/expression";
 import { isControl, isNode, isParent, isState, typeOf } from "@/lib/utils/guards";
 import type {
   BaseRuntime,
   ControlRuntime,
-  ScControlItem,
+  Expr,
   InputRuntime,
   NodeRuntime,
+  RunRuntime,
+  ScControlItem,
   ScElementItem,
   ScElementItemBase,
+  ScGroupItem,
   ScParentItem,
   ScPluginItem,
+  ScRunItem,
   ScSynthDefItem,
   ScSynthItem,
   ScUgenItem,
+  ScVarItem,
   StripRuntime,
   SynthDefRuntime,
   UgenRuntime,
+  VarRuntime,
 } from "@/types/parsers";
 
 export interface RuntimeContext {
@@ -94,8 +100,7 @@ function walkPath(node: ScElementItem, path: string[]): ScElementItem | undefine
   return undefined;
 }
 
-function resolveControlBind(ctx: RuntimeContext): { target: ScElementItem; controlName: string } {
-  const bind = bindOf(ctx.tree)!;
+function resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElementItem; controlName: string } {
   const segments = bind.split(".");
   const controlName = segments.pop()!;
   const target = segments.length > 0 ? resolve(ctx, segments) : ctx.parentNode;
@@ -115,17 +120,23 @@ function parentId(ctx: RuntimeContext): string {
   return ctx.parentNode?.id ?? "";
 }
 
-/** Resolve a stateful bind (an enabled sc-control referencing another
- *  control). Plain dot-paths only — the arithmetic bind-expression parser
- *  returns with the sc-var migration step. */
-function resolveStateBind(ctx: RuntimeContext): { targets: Record<string, string> } {
+/** Resolve a stateful bind (an enabled sc-control / sc-var referencing other
+ *  controls/vars): plain dot-paths or an arithmetic expression over them. */
+function resolveStateBind(ctx: RuntimeContext): { targets: Record<string, string>; expression?: Expr } {
   const bind = bindOf(ctx.tree)!;
-  const { target, controlName } = resolveControlBind(ctx);
-  const targetState = (target as ScParentItem).children.find(
-    (c) => isState(c) && c._element.name === controlName,
-  )!;
-  checkCircularBind(ctx, targetState.id);
-  return { targets: { [bind]: targetState.id } };
+  const parsed = parseBind(bind);
+  const targets: Record<string, string> = {};
+
+  for (const path of parsed.paths) {
+    const { target, controlName } = resolveControlBind(ctx, path);
+    const targetState = (target as ScParentItem).children.find(
+      (c) => isState(c) && c._element.name === controlName,
+    )!;
+    checkCircularBind(ctx, targetState.id);
+    targets[path] = targetState.id;
+  }
+
+  return { targets, expression: parsed.expression };
 }
 
 function checkCircularBind(ctx: RuntimeContext, targetId: string): void {
@@ -148,7 +159,7 @@ function checkCircularBind(ctx: RuntimeContext, targetId: string): void {
 }
 
 function resolveVisualBind(ctx: RuntimeContext): InputRuntime {
-  const { target, controlName } = resolveControlBind(ctx);
+  const { target, controlName } = resolveControlBind(ctx, bindOf(ctx.tree)!);
   const control = (target as ScParentItem).children.find(
     (c) => isState(c) && c._element.name === controlName,
   )!;
@@ -172,7 +183,7 @@ const pluginHandler = (ctx: RuntimeContext): NodeRuntime => {
 };
 
 function nodeRuntime(ctx: RuntimeContext): NodeRuntime {
-  const n = ctx.tree as StripRuntime<ScSynthItem>;
+  const n = ctx.tree as StripRuntime<ScGroupItem | ScSynthItem>;
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, run: n._element.run ? 1 : 0, loaded: false, nodeId: 0 };
 }
 
@@ -184,6 +195,49 @@ const synthHandler = (ctx: RuntimeContext): NodeRuntime => {
   }
   ctx.visit(ctx.tree);
   return nodeRuntime(ctx);
+};
+
+const groupHandler = (ctx: RuntimeContext): NodeRuntime => {
+  ctx.visit(ctx.tree);
+  return nodeRuntime(ctx);
+};
+
+const varHandler = (ctx: RuntimeContext): VarRuntime => {
+  const el = (ctx.tree as ScVarItem)._element;
+  if (el.bind) {
+    const { targets, expression } = resolveStateBind(ctx);
+    return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, name: el.name, value: 0, targets, expression };
+  }
+  return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, name: el.name, value: el.value ?? 0 };
+};
+
+const runHandler = (ctx: RuntimeContext): RunRuntime => {
+  const el = (ctx.tree as ScRunItem)._element;
+  const target = el.bind ? resolve(ctx, el.bind.split(".")) : ctx.parentNode;
+  if (el.bind && (!target || !isNode(target))) {
+    throw new Error(`<sc-run>: bind "${el.bind}" does not match any node in scope`);
+  }
+  return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, targetId: target ? target.id : "" };
+};
+
+const ifHandler = (ctx: RuntimeContext): InputRuntime => {
+  ctx.visit(ctx.tree);
+  return resolveVisualBind(ctx);
+};
+
+const selectHandler = (ctx: RuntimeContext): InputRuntime => {
+  ctx.visit(ctx.tree);
+  return resolveVisualBind(ctx);
+};
+
+const radioGroupHandler = (ctx: RuntimeContext): InputRuntime => {
+  ctx.visit(ctx.tree);
+  return resolveVisualBind(ctx);
+};
+
+/** sc-option / sc-radio: declarative entries — never enabled. */
+const choiceHandler = (ctx: RuntimeContext): UgenRuntime => {
+  return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: false };
 };
 
 function collectUgenInputs(node: ScUgenItem): Record<string, string> {
@@ -236,8 +290,8 @@ const controlHandler = (ctx: RuntimeContext): ControlRuntime => {
   const el = (ctx.tree as ScControlItem)._element;
   const enabled = ctx.parentNode != null && isNode(ctx.parentNode);
   if (enabled && el.bind) {
-    const { targets } = resolveStateBind(ctx);
-    return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled, name: el.name, value: 0, targets };
+    const { targets, expression } = resolveStateBind(ctx);
+    return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled, name: el.name, value: 0, targets, expression };
   }
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled, name: el.name, value: el.value ?? 0 };
 };
@@ -267,11 +321,21 @@ export function processElement(ctx: RuntimeContext): ScElementItem {
   let runtime: unknown;
   switch (typeOf(ctx.tree)) {
     case ELEMENTS.SC_PLUGIN: runtime = pluginHandler(ctx); break;
+    case ELEMENTS.SC_GROUP: runtime = groupHandler(ctx); break;
     case ELEMENTS.SC_SYNTH: runtime = synthHandler(ctx); break;
     case ELEMENTS.SC_SYNTHDEF: runtime = synthDefHandler(ctx); break;
     case ELEMENTS.SC_UGEN: runtime = ugenHandler(ctx); break;
     case ELEMENTS.SC_CONTROL: runtime = controlHandler(ctx); break;
+    case ELEMENTS.SC_VAR: runtime = varHandler(ctx); break;
     case ELEMENTS.SC_RANGE: runtime = inputHandler(ctx); break;
+    case ELEMENTS.SC_CHECKBOX: runtime = inputHandler(ctx); break;
+    case ELEMENTS.SC_RUN: runtime = runHandler(ctx); break;
+    case ELEMENTS.SC_DISPLAY: runtime = resolveVisualBind(ctx); break;
+    case ELEMENTS.SC_IF: runtime = ifHandler(ctx); break;
+    case ELEMENTS.SC_SELECT: runtime = selectHandler(ctx); break;
+    case ELEMENTS.SC_OPTION: runtime = choiceHandler(ctx); break;
+    case ELEMENTS.SC_RADIO_GROUP: runtime = radioGroupHandler(ctx); break;
+    case ELEMENTS.SC_RADIO: runtime = choiceHandler(ctx); break;
     case ELEMENTS.SC_CONSOLE: runtime = leafHandler(ctx); break;
     case ELEMENTS.SC_SCOPE: runtime = leafHandler(ctx); break;
     case ELEMENTS.SC_STRUDEL: runtime = leafHandler(ctx); break;

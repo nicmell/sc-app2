@@ -51,8 +51,9 @@ components/              React shell: Dashboard grid, plugin picker/list, toasts
 sc-elements/             Lit elements used inside plugin HTML: sc-plugin (the
                          app-synthesized root — loads + parses the entry HTML and
                          owns the plugin's scsynth group), the parsed stubs
-                         (sc-synthdef/ugen/control/synth/range), and the leaves
-                         (sc-strudel, sc-scope, sc-console)
+                         (group/synthdef/ugen/control/var/synth/range/checkbox/
+                         run/display/if/select/option/radio-group/radio), and
+                         the leaves (sc-strudel, sc-scope, sc-console)
 runtime/                 the global parsed-element registry (id → ScElementItem),
                          deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
@@ -186,6 +187,51 @@ every further `sc-*` element:
    ScElement firstUpdated test), so the registry exposes the live element —
    props and methods — from outside the DOM.
 
+## Migration state (elements)
+
+| element | status |
+|---|---|
+| sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group |
+| sc-group, sc-synthdef, sc-ugen, sc-control, sc-var, sc-synth | **stubs**: parsed + validated + bind-resolved; no OSC behavior yet |
+| sc-range, sc-checkbox | **stubs** with unstyled native inputs; no control propagation |
+| sc-run, sc-display, sc-if, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
+| sc-console, sc-scope, sc-strudel | functional leaves (new-app features; sc-scope is the SHM master-out scope) |
+| sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step) |
+
+Runtime layer: all old handlers ported (bind resolution incl. arithmetic
+expressions via lib/utils/expression parseBind/evalExpr) except buffers,
+presets/overrides, and synthdef compilation. Examples: every old example
+without a buffer-family element lives in `examples/` (16 ported + the 2
+native ones); `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
+
+**fastxml is pinned to =0.8.0** (src-tauri/Cargo.toml): 0.8.1+ rejects
+mixed-content models whose choices have minOccurs="0" (a text-only `<span>`
+fails), which the old app never hit because it locked 0.8.0.
+
+## Validating example plugins (the harness technique)
+
+When elements/parsers change, validate every example end to end: run
+`node scripts/validate-examples.mjs` against `yarn serve` + `yarn dev` +
+headless Chrome (`--remote-debugging-port=9222`). What it does:
+
+1. **Upload gate** — zip each `examples/<dir>` and `POST /api/plugins`:
+   expect 201, except the upload fixtures `bad-metadata`, `bad-entry-xhtml`,
+   `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
+   their specific messages.
+2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
+   (with `awaitPromise`): dynamic-import `/src/lib/html/processHtml.ts`,
+   create an `<sc-plugin>` host, **append it to the document first** (custom
+   elements only upgrade when connected), fetch the entry via
+   `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
+   self-closing tags; HTML parsing mis-nests them) and `importNode` the body
+   children into the host, then `hydrate(randomId(), host)` +
+   `processHtml({rootId, tree, scope:[tree], synthdefs:[], nodes:new Map(),
+   path:[]})`. PASS = no throw; `bad-bindings` must FAIL (first intentional
+   error: duplicate `sine` name). Any other failure is a migration bug —
+   report it.
+3. **Cleanup** — DELETE the plugins the run uploaded, keeping the user's
+   registry as it was.
+
 ## Migration plan (old `sc-app/` → here)
 
 The old app (see `sc-app/CLAUDE.md` for its full docs) is a declarative
@@ -210,8 +256,9 @@ steps, each independently shippable:
    `sc-plugin/group/synth/synthdef/ugen/control/var`, wired to the current
    transport: add the old `OscService.once()` reply-matching pattern to
    `OscClient`; node ids via `nextNodeId()`, groups nested in the session group.
-6. **Input elements** — `sc-range/checkbox/select/option/radio-group/radio/run/
-   display/if` + a `runtime` store slice carrying control values (`/n_set`).
+6. **Input elements** — stubs are in; remaining: the knob/slider/switch/
+   combobox internals, condition logic, value dispatch + a `runtime` store
+   slice carrying control values (`/n_set`).
 7. **Buffers & scopes** — port `sc-buffer`/`sc-waveform`/`sc-test` with the old
    `/b_getn` streaming machinery (Rust `buffer_ws.rs`-style per-buffer WS);
    keep the current SHM master-out scope as-is.

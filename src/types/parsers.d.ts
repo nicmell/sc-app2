@@ -7,6 +7,14 @@ import type { ELEMENTS } from "@/constants/sc-elements";
 // (typed here as the per-element `Props` interfaces the components implement),
 // so nothing is duplicated into the items: read them through `_element`.
 
+// ── Bind expressions (lib/utils/expression) ──────────────────────────────
+
+export type Expr =
+  | { type: "number"; value: number }
+  | { type: "var"; name: string }
+  | { type: "unary"; op: "-"; expr: Expr }
+  | { type: "binary"; op: "+" | "-" | "*" | "/"; left: Expr; right: Expr };
+
 // ── Runtime types ─────────────────────────────────────────────────────────
 
 export interface BaseRuntime {
@@ -25,9 +33,17 @@ export interface NodeRuntime extends BaseRuntime {
 export interface ControlRuntime extends BaseRuntime {
   name: string;
   value: number;
-  /** Bind path → the target state item's id (plain paths only for now — the
-   *  arithmetic bind-expression parser returns with the sc-var migration). */
+  /** Bind path → the target state item's id. */
   targets?: Record<string, string>;
+  /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
+  expression?: Expr;
+}
+
+export interface VarRuntime extends BaseRuntime {
+  name: string;
+  value: number;
+  targets?: Record<string, string>;
+  expression?: Expr;
 }
 
 export interface UgenRuntime extends BaseRuntime {}
@@ -37,6 +53,10 @@ export interface SynthDefRuntime extends BaseRuntime {
 }
 
 export interface InputRuntime extends BaseRuntime {
+  targetId: string;
+}
+
+export interface RunRuntime extends BaseRuntime {
   targetId: string;
 }
 
@@ -80,6 +100,57 @@ export interface ScRangeProps {
   max: number;
   step: number;
   value: number;
+}
+
+export interface ScGroupProps {
+  name: string;
+  run: boolean;
+}
+
+export interface ScVarProps {
+  name: string;
+  /** Literal value — NaN/unset when `bind` is used. */
+  value?: number;
+  /** Reference (or arithmetic expression over references) — unset with `value`. */
+  bind?: string;
+}
+
+export interface ScRunProps {
+  /** Target node by name — empty targets the parent node. */
+  bind: string;
+}
+
+export interface ScDisplayProps {
+  bind: string;
+  /** Printf-style format (%d, %.2f, %b, %s). */
+  format: string;
+}
+
+export interface ScIfProps {
+  bind: string;
+}
+
+export interface ScSelectProps {
+  bind: string;
+}
+
+export interface ScOptionProps {
+  value: number;
+  label: string;
+}
+
+export interface ScRadioGroupProps {
+  bind: string;
+  orientation: "horizontal" | "vertical";
+}
+
+export interface ScRadioProps {
+  value: number;
+  label: string;
+}
+
+export interface ScCheckboxProps {
+  bind: string;
 }
 
 // ── Items ─────────────────────────────────────────────────────────────────
@@ -128,6 +199,60 @@ export interface ScRangeItem extends ScElementItemBase {
   runtime: InputRuntime;
 }
 
+export interface ScGroupItem extends ScElementItemBase {
+  _element: Element & ScGroupProps;
+  children: ScElementItem[];
+  runtime: NodeRuntime;
+}
+
+export interface ScVarItem extends ScElementItemBase {
+  _element: Element & ScVarProps;
+  runtime: VarRuntime;
+}
+
+export interface ScRunItem extends ScElementItemBase {
+  _element: Element & ScRunProps;
+  runtime: RunRuntime;
+}
+
+export interface ScDisplayItem extends ScElementItemBase {
+  _element: Element & ScDisplayProps;
+  runtime: InputRuntime;
+}
+
+export interface ScIfItem extends ScElementItemBase {
+  _element: Element & ScIfProps;
+  children: ScElementItem[];
+  runtime: InputRuntime;
+}
+
+export interface ScSelectItem extends ScElementItemBase {
+  _element: Element & ScSelectProps;
+  children: ScElementItem[];
+  runtime: InputRuntime;
+}
+
+export interface ScOptionItem extends ScElementItemBase {
+  _element: Element & ScOptionProps;
+  runtime: UgenRuntime;
+}
+
+export interface ScRadioGroupItem extends ScElementItemBase {
+  _element: Element & ScRadioGroupProps;
+  children: ScElementItem[];
+  runtime: InputRuntime;
+}
+
+export interface ScRadioItem extends ScElementItemBase {
+  _element: Element & ScRadioProps;
+  runtime: UgenRuntime;
+}
+
+export interface ScCheckboxItem extends ScElementItemBase {
+  _element: Element & ScCheckboxProps;
+  runtime: InputRuntime;
+}
+
 // Attribute-less leaves.
 export interface ScConsoleItem extends ScElementItemBase {
   runtime: BaseRuntime;
@@ -143,17 +268,35 @@ export interface ScStrudelItem extends ScElementItemBase {
 
 export type ScElementItem =
   | ScPluginItem
+  | ScGroupItem
   | ScSynthDefItem
   | ScUgenItem
   | ScControlItem
+  | ScVarItem
   | ScSynthItem
   | ScRangeItem
+  | ScCheckboxItem
+  | ScRunItem
+  | ScDisplayItem
+  | ScIfItem
+  | ScSelectItem
+  | ScOptionItem
+  | ScRadioGroupItem
+  | ScRadioItem
   | ScConsoleItem
   | ScScopeItem
   | ScStrudelItem;
 
 /** Items that parse their children (the rest are leaves). */
-export type ScParentItem = ScPluginItem | ScSynthDefItem | ScUgenItem | ScSynthItem;
+export type ScParentItem =
+  | ScPluginItem
+  | ScGroupItem
+  | ScSynthDefItem
+  | ScUgenItem
+  | ScSynthItem
+  | ScIfItem
+  | ScSelectItem
+  | ScRadioGroupItem;
 
 export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
 

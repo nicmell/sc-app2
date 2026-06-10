@@ -2,7 +2,7 @@
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
 // XML-parse + importNode its body children into a connected <sc-plugin> host,
-// and run the host's own hydrate() + process() — the runtime validation.
+// and run the host's own process() — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
 // each — see examples/README.md). Anything else failing is a migration bug.
@@ -46,7 +46,7 @@ const probeRuntime = (pluginId, entry) => evaluate(`(async () => {
   document.body.appendChild(host);
   host.replaceChildren(...[...doc.querySelector("body").children].map((c) => document.importNode(c, true)));
   try {
-    host.hydrate("probe-" + Math.random().toString(36).slice(2));
+
     host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [] });
     return "PASS";
   } catch (e) {

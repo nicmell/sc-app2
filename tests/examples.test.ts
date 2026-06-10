@@ -1,7 +1,7 @@
 // Unit tests over the example plugins — the fast runtime gate (the CDP
 // harness, scripts/validate-examples.mjs, remains the full-stack acceptance
 // covering the backend upload/XSD path too). Every examples/<category>/
-// <name>/index.html runs through the sc-elements parse engine — hydrate +
+// <name>/index.html runs through the sc-elements parse engine —
 // process on a connected <sc-plugin> host in a simulated DOM. Functional
 // examples must parse clean; the runtime bad-* fixtures must fail with their
 // exact resolveRuntime error (one per error path — the examples/README.md
@@ -81,7 +81,7 @@ function parseExample(xml: string): {
     ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
   );
   const nodes = new Set<ScElement>();
-  host.hydrate(`test-${Math.random().toString(36).slice(2)}`);
+  host.id = `test-${Math.random().toString(36).slice(2)}`;
   host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };
 }
@@ -130,11 +130,11 @@ describe("example-plugin structure", () => {
     expect(host._parentScNode).toBeUndefined();
     expect(host.enabled).toBe(true);
     expect(host.run).toBe(true);
-    expect(host._scChildren!.length).toBeGreaterThan(0);
+    expect(host.scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
       if (el !== host) {
-        expect(el._parentScNode?._scChildren).toContain(el);
+        expect(el._parentScNode?.scChildren).toContain(el);
       }
     }
   });

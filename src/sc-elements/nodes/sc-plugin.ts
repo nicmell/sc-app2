@@ -16,7 +16,7 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import { layout } from "@/stores/layout";
 import { plugins } from "@/stores/plugins";
-import type { NodeRuntime, RuntimeContext, ScPluginProps } from "@/types/runtime";
+import type { ScPluginProps } from "@/types/runtime";
 
 export class ScPlugin extends ScNode implements ScPluginProps {
   static properties = {
@@ -40,19 +40,6 @@ export class ScPlugin extends ScNode implements ScPluginProps {
     return this.attachShadow({ mode: "open" });
   }
 
-  /** The root runtime: parse the children (the whole plugin tree), rolling
-   *  the per-parse state back on any validation/resolution error. */
-  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    try {
-      return super.resolveRuntime(ctx);
-    } catch (e) {
-      this._scChildren = [];
-      ctx.nodes.clear();
-      ctx.nodes.add(this);
-      throw e;
-    }
-  }
-
   protected async firstUpdated(): Promise<void> {
     // The DOM id IS the dashboard box id (assigned by PluginHost's JSX) —
     // resolve the box's assigned plugin from the stores.
@@ -65,11 +52,8 @@ export class ScPlugin extends ScNode implements ScPluginProps {
     try {
       await loadPluginInto(this, info);
       if (!this.isConnected) return; // unmounted while fetching
-      // Validate + process the tree (the id is already ours, so no hydrate):
-      // the registry adopts the parsed tree (root + _scChildren) only on
-      // success.
-      this.validate();
-      this._scChildren = [];
+      // Process the tree (validation runs inside; the children derive from
+      // the DOM): the registry adopts it (root + scChildren) only on success.
       this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
       registerAll(this);
       // The group all of this plugin's synths will live in — freed wholesale

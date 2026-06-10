@@ -60,7 +60,7 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          scope/console). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (hydrate/
+                         ScElement base carries the parse engine (
                          process/processChildren) + the common runtime fields;
                          validation.ts holds the validation + bind-resolution
                          helpers as plain functions; the category bases
@@ -171,9 +171,9 @@ parser-item design; each decision is load-bearing for the recipe below:
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `hydrate()`/`process()` live on `ScElement`, `resolveRuntime()` returns
-   the runtime values, and `process()` assigns them onto the component
-   itself. `lib/html` and `src/runtime/handlers.ts` are gone — the engine
+   `process()` lives on `ScElement` — it validates the element, then
+   assigns `resolveRuntime()`'s values onto the component itself. `lib/
+   html`, `src/runtime/handlers.ts`, and `hydrate` are gone — the engine
    lives on the base, and the validation + bind-resolution helpers are plain
    functions in `internal/validation.ts`, taking the element explicitly
    where the error messages need it.
@@ -182,25 +182,29 @@ parser-item design; each decision is load-bearing for the recipe below:
    fields once; concrete elements are mostly `validate()` + a small
    `resolveRuntime()` override composed via `super`.
 4. **Runtime values are live element references, not string ids**:
-   `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
-   `children` is taken), `_targetScNode` on inputs, `targets:
-   Record<path, ScState>` on state. Cycle detection walks the bind graph
-   through these references with no lookups; the only id-keyed structure
-   left is the global registry (`@/runtime/registry`, id → live element),
-   whose purpose IS lookup from outside the DOM — it adopts a parsed tree
-   by walking `_scChildren` from the root. Anything *persisted* (presets,
-   layout) stays id/path-based; references are in-memory runtime only.
+   `_rootScNode`/`_parentScNode`, `_targetScNode` on inputs, `targets:
+   Record<path, ScState>` on state. The parsed children aren't even stored:
+   `scChildren` derives them from the live DOM on every occurrence (the DOM
+   is the single source of truth — named so because `children` is the DOM
+   collection). Cycle detection walks the bind graph through these
+   references with no lookups; the only id-keyed structure left is the
+   global registry (`@/runtime/registry`, id → live element), whose purpose
+   IS lookup from outside the DOM — it adopts a parsed tree by walking
+   `scChildren` from the root. Anything *persisted* (presets, layout) stays
+   id/path-based; references are in-memory runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`; enabled state resolves into its live `value` prop,
    while disabled graph inputs keep `value` as the plain attribute mirror
    (the synthdef collection depends on telling a missing attribute apart).
-6. **The parse context is per-level**: `process(ctx)` threads `{rootNode,
-   nodes: Set<ScElement>, scope, parentNode, path}` — one shared object per
-   sibling scope. The two-phase order is the invariant everything rests on:
-   a parent hydrates (id + validate) ALL its children first, so forward
-   references resolve against unprocessed siblings and duplicate names are
-   caught across the whole scope; processing then runs per child, resolving
-   scope names on demand with inner-scope shadowing.
+6. **The parse context is per-level and `process` recurses**: `process(ctx)`
+   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
+   one shared object per sibling scope; it assigns a fresh id where none
+   exists, runs `validate()`, then `resolveRuntime()` (which recurses via
+   `processChildren` where the element parses children). The scope invariant
+   everything rests on: a parent puts ALL its DOM-derived children into the
+   level scope and checks duplicate names BEFORE any child processes, so
+   forward references resolve against unprocessed siblings on demand, with
+   inner-scope shadowing.
 7. **Two validation gates** keep all of this honest: `yarn test` (the
    examples through the engine in happy-dom, exact error messages pinned)
    and the CDP harness (upload/XSD path + real browser) — see "Validating
@@ -225,8 +229,8 @@ further `sc-*` element:
 3. **Validation is colocated**: override `validate()` on the component,
    building on the `internal/validation` helpers, called with the element —
    `requireProp(this, …)`, `requireNumeric(this, …)`,
-   `requireNoScChildren(this)`, `failValidation(this, …)`. `hydrate` calls
-   it during parse and a violation fails the whole plugin. This is the
+   `requireNoScChildren(this)`, `failValidation(this, …)`. `process` calls
+   it before resolving and a violation fails the whole plugin. This is the
    *real* gate — fastxml does not enforce XSD attribute requirements at
    upload.
 4. **Runtime values live ON the element** — there are no item structures.
@@ -235,7 +239,7 @@ further `sc-*` element:
    `internal/sc-state`: name/value/bind + targets/expression + the shared
    validation; `internal/sc-input`: bind + `_targetScNode`); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus path/enabled and `_scChildren` for parents, named so because DOM
+   plus path/enabled, with `scChildren` derived from the DOM, named so because
    `children` is taken) is on `ScElement`. The mixin contracts
    (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
    `src/types/runtime.d.ts` as `resolveRuntime` return types, next to the
@@ -289,7 +293,7 @@ fails), which the old app never hit because it locked 0.8.0.
 **Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom
 (`tests/examples.test.ts`). Loads every example entry via `import.meta.glob`,
 mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
-and runs `host.hydrate(...)` + `host.process({rootNode: host, nodes, scope:
+and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean; the runtime `bad-*`
 fixtures must fail with their **exact** message; plus structural assertions
 (flat runtime merge, range bind targets, `_element` identity). The strudel
@@ -310,7 +314,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    document first** (custom elements only upgrade when connected), fetch the
    entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
-   children into the host, then `host.hydrate(randomId())` +
+   children into the host, then
    `host.process({rootNode: host, nodes: new Map(), scope: [host],
    path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each

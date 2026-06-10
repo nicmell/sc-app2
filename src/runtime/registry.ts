@@ -1,6 +1,6 @@
 // The global parsed-element registry: id → the live ScElement component for
-// every element the parse engine (sc-elements/internal ScElement hydrate/
-// process) has produced — the element IS its runtime, so the registry exposes
+// every element the parse engine (sc-elements/internal ScElement
+// process()) has produced — the element IS its runtime, so the registry exposes
 // props, runtime values, and methods from outside the DOM. Deliberately NOT a
 // slice of the app store — parsed trees are not reactive UI state. A plugin
 // registers its whole tree at parse time and unregisters it when the
@@ -11,11 +11,11 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 const nodes = new Map<string, ScElement>();
 
 /** Adopt a processed plugin tree — the root and every parsed descendant
- *  (via `_scChildren`) a successful root `process()` run produced. */
+ *  (via `scChildren`) a successful root `process()` run produced. */
 export function registerAll(root: ScElement): void {
   const add = (el: ScElement): void => {
     nodes.set(el.id, el);
-    el._scChildren?.forEach(add);
+    el.scChildren?.forEach(add);
   };
   add(root);
 }
@@ -36,7 +36,7 @@ export function unregisterTree(rootId: string): void {
   if (!root) return;
   const drop = (el: ScElement): void => {
     nodes.delete(el.id);
-    el._scChildren?.forEach(drop);
+    el.scChildren?.forEach(drop);
   };
   drop(root);
 }

@@ -4,12 +4,12 @@ The Lit web components plugin HTML is built from. They follow the recipe in the
 root CLAUDE.md ("Migrating an sc-element"): HTML attributes are accessor
 reactive properties on the component (typed by the `ScXProps` interfaces in
 `@/types/runtime`), validation is the component's own `validate()` (called
-during hydration — the real gate, since the upload-time XSD doesn't enforce
+by `process` during parse — the real gate, since the upload-time XSD doesn't enforce
 attribute rules), and **the element IS the runtime**: `resolveRuntime()`
 resolves the runtime values and `process()` assigns them onto the component
 itself (declared as plain fields on the `internal/` bases — `_rootScNode`/
 `_parentScNode` (live element references, not ids) + `path`/`enabled` +
-`_scChildren` for parents on `ScElement`, the category values on
+`scChildren` derived from the DOM on `ScElement`, the category values on
 `ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
 maps ids straight to the live components.
 
@@ -20,7 +20,7 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
+internal/   ScElement (light-DOM root, the parse engine — process/
             processChildren — and the common runtime fields); validation.ts
             (the require*/failValidation primitives + the bind-resolution
             machinery, as plain functions over the elements); the category
@@ -46,7 +46,7 @@ The app-synthesized plugin root: **never written in plugin HTML** — PluginHost
 renders one per dashboard box declaratively (React mounts custom elements like
 any DOM tag), with the box's id as its DOM id. It resolves its plugin from the
 layout/plugins stores by that id, loads the entry XHTML (XML-parsed +
-importNode), runs `validate()` + `process()` (no hydrate — the id is already
+importNode), runs `process()` (validation inside — the id is already
 its own; the registry then adopts the parsed tree), and owns the plugin's
 scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on

@@ -16,7 +16,7 @@ import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/ru
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
-// ── Attribute validation (hydrate-time) ─────────────────────────────────────
+// ── Attribute validation (parse-time) ──────────────────────────────────────
 
 /** Throw a validation error in the canonical `<tag>: message` shape. */
 export function failValidation(el: Element, message: string): never {
@@ -69,9 +69,9 @@ export function baseRuntime(ctx: RuntimeContext): BaseRuntime {
 
 function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
-  if (node._scChildren) {
+  if (node.scChildren) {
     const [name, ...rest] = path;
-    const child = node._scChildren.find((c) => nameOf(c) === name);
+    const child = node.scChildren.find((c) => nameOf(c) === name);
     return child ? walkPath(child, rest) : undefined;
   }
   return undefined;
@@ -104,7 +104,7 @@ export function resolveControlBind(
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
   }
-  if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+  if (!target.scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     const targetName = nameOf(target) ?? target.id;
     throw new Error(
       `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
@@ -126,7 +126,7 @@ export function resolveStateBind(
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path);
-    const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
+    const targetState = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
     checkCircularBind(el, targetState);
     targets[path] = targetState;
   }
@@ -157,6 +157,6 @@ export function checkCircularBind(el: ScElement, target: ScElement): void {
 /** Resolve `el`'s visual/input bind to its target state element. */
 export function resolveVisualBind(el: Element, ctx: RuntimeContext, bind: string): InputRuntime {
   const { target, controlName } = resolveControlBind(el, ctx, bind);
-  const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
+  const control = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
   return { ...baseRuntime(ctx), _targetScNode: control };
 }

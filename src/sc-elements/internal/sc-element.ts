@@ -1,17 +1,16 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — `process()`
-// resolves the runtime values and assigns them onto the component (declared
-// here and on the category bases: internal/sc-node, sc-state, sc-input), and
-// the runtime registry maps ids straight to the live elements. The base
-// carries the parse engine — `hydrate` (id + validate), `process` (the
-// per-element skeleton: idempotence, pre-registration, runtime merge),
-// `processChildren` (the recursive DOM walk with cumulative scopes); the
-// validation and bind-resolution helpers the `validate()`/`resolveRuntime`
-// overrides build on live in internal/validation.ts. HTML attributes are
-// reactive properties; runtime values are plain fields. Still unported
-// (return with their migration steps): the buffer family (sc-buffer/waveform/
-// test + the old buffer-bound scope), presets/overrides, and synthdef
-// compilation.
+// validates the element, resolves the runtime values, and assigns them onto
+// the component (declared here and on the category bases: internal/sc-node,
+// sc-state, sc-input), recursing into the children (`processChildren`) where
+// the per-element `resolveRuntime` says so. The parsed children are NOT
+// stored: `scChildren` derives them from the live DOM on every occurrence —
+// the DOM is the single source of truth. The validation and bind-resolution
+// helpers the `validate()`/`resolveRuntime` overrides build on live in
+// internal/validation.ts. HTML attributes are reactive properties; runtime
+// values are plain fields. Still unported (return with their migration
+// steps): the buffer family (sc-buffer/waveform/test + the old buffer-bound
+// scope), presets/overrides, and synthdef compilation.
 
 import { LitElement } from "lit";
 import { isNodeType, isParentRuntime } from "@/lib/utils/guards";
@@ -25,25 +24,30 @@ export const runAttribute = {
   converter: { fromAttribute: (value: string | null) => value !== "false" },
 };
 
-/** A parent element — its parsed sc-* children live in `_scChildren`. */
-export type ScParentElement = ScElement & { _scChildren: ScElement[] };
+/** A parent element — its parsed sc-* children derive from the DOM
+ *  (`scChildren` is non-undefined). */
+export type ScParentElement = ScElement & { scChildren: ScElement[] };
 
 export abstract class ScElement extends LitElement implements BaseRuntime {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
-  /** The hydrated identity — the native DOM id; `hydrate` assigns it (and
-   *  the browser reflects it to the attribute). */
+  /** The hydrated identity — the native DOM id; `process` assigns one where
+   *  none exists yet (the browser reflects it to the attribute). */
   declare id: string;
   /** The plugin root element this element was parsed under. */
   _rootScNode!: ScElement;
   /** The parsed parent element (unset at the root). */
   _parentScNode?: ScParentElement;
-  /** The parsed sc-* child elements — parents only (NOT the DOM children:
-   *  sc-* descendants reached through plain HTML wrappers). */
-  _scChildren?: ScElement[];
   /** The named ancestor path (scope names, outermost first). */
   path: string[] = [];
   enabled = true;
+
+  /** The parsed sc-* child elements, derived from the live DOM on every
+   *  occurrence — parents only; NOT the DOM `children` (sc-* descendants are
+   *  reached through plain HTML wrappers). */
+  get scChildren(): ScElement[] | undefined {
+    return isParentRuntime(this) ? [...this.walkScElements()] : undefined;
+  }
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -59,27 +63,19 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign the id, run the element's own `validate()`,
-   *  and reset the parsed-children list (parents). */
-  hydrate(id: string): this {
-    this.id = id;
-    this.validate();
-    if (isParentRuntime(this)) this._scChildren = [];
-    return this;
-  }
-
-  /** Process this hydrated element: pre-register it (so re-entrant resolves
-   *  of a mid-processing ancestor return it), attach it to the parent's
-   *  `_scChildren`, resolve the runtime values, and assign them onto the
-   *  element. Idempotent — an already-processed element is returned as-is. */
+  /** Process this element: pre-register it (so re-entrant resolves of a
+   *  mid-processing ancestor return it), assign an id where none exists yet
+   *  (the registry keys by it; the root arrives with the box id), run the
+   *  element's own `validate()`, then resolve the runtime values and assign
+   *  them onto the element. Idempotent — an already-processed element is
+   *  returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
     }
     ctx.nodes.add(this);
-    if (ctx.parentNode) {
-      ctx.parentNode._scChildren.push(this);
-    }
+    if (!this.id) this.id = randomId();
+    this.validate();
     Object.assign(this, this.resolveRuntime(ctx));
     return this;
   }
@@ -102,16 +98,16 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
   }
 
-  /** Parse this parent's children: hydrate (id + validate) EVERY child first
-   *  — the full sibling scope must exist before any child resolves a bind
-   *  (forward references), and duplicate names are checked across the whole
-   *  scope — then process each with the cumulative scope. All siblings share
-   *  ONE level context. */
+  /** Recurse into this parent's children: the full sibling scope (derived
+   *  from the DOM) goes into the level context BEFORE any child processes,
+   *  so forward references resolve against unprocessed siblings, and
+   *  duplicate names are checked across the whole scope up front. All
+   *  siblings share ONE level context; `process` recurses per child. */
   protected processChildren(ctx: RuntimeContext): void {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
-    const scope = [...this.walkScElements()].map((el) => el.hydrate(randomId()));
+    const scope = [...this.walkScElements()];
 
     checkDuplicateNames(scope);
 

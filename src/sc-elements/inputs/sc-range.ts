@@ -5,7 +5,7 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScRangeRuntime, ScRangeProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScElementRuntimeBase, ScRangeRuntime, ScRangeProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRange extends ScElement<ScRangeRuntime> implements ScRangeProps {
@@ -22,7 +22,7 @@ export class ScRange extends ScElement<ScRangeRuntime> implements ScRangeProps {
     this.requireNumeric("value", this.value);
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
     return this.resolveVisualBind(ctx, this.bind);
   }
 

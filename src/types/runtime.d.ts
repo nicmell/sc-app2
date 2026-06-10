@@ -283,16 +283,14 @@ export type ScParentRuntime =
 
 export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
 
-/** The per-parse state threaded through the element components' `process` /
- *  `resolveRuntime` recursion (sc-elements/internal ScElement): `tree` is the
- *  item being processed, `nodes` the per-parse id → item map (adopted by the
- *  runtime registry on success), `scope` the cumulative bind-resolution
- *  scope. */
+/** The per-LEVEL parse state threaded through the element components'
+ *  `process(item, ctx)` recursion (sc-elements/internal ScElement) — all
+ *  siblings share one context; the item being processed travels as its own
+ *  argument. `nodes` is the per-parse id → item map (adopted by the runtime
+ *  registry on success), `scope` the cumulative bind-resolution scope. */
 export interface RuntimeContext {
   rootId: string;
-  tree: ScElementRuntimeBase;
   nodes: Map<string, ScElementRuntime>;
-  synthdefs: ScSynthDefRuntime[];
   scope: ScElementRuntimeBase[];
   parentNode?: ScParentRuntime;
   path: string[];

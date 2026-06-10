@@ -5,7 +5,7 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScCheckboxRuntime, ScCheckboxProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScCheckboxRuntime, ScCheckboxProps, ScElementRuntimeBase } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckboxProps {
@@ -15,7 +15,7 @@ export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckb
     this.requireProp("bind", this.bind);
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
     return this.resolveVisualBind(ctx, this.bind);
   }
 

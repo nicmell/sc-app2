@@ -27,6 +27,9 @@ yarn osc
 # Type-check + bundle the frontend
 yarn build
 
+# Unit tests (the example plugins through the parse engine, happy-dom)
+yarn test
+
 # Rust check / unit tests
 cd src-tauri && cargo check && cargo test
 ```
@@ -78,12 +81,6 @@ constants/               per-domain constants (as-const maps + defaults):
 lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
-  html/                  processHtml/hydrate: a thin facade over the components'
-                         own parse engine (sc-elements/internal ScElement) — the
-                         stable entry point for the validation harness. Hydration
-                         runs each component's validate() (the backend XSD
-                         validates structure at upload, but fastxml does NOT
-                         enforce required attributes — validate() is the real gate)
   osc/                   the OSC transport (see lib/osc/README.md):
                          OscClient (global `oscClient`, mirrors the osc-js OSC class,
                          owns /g_new of the session group + nextNodeId allocation)
@@ -190,15 +187,19 @@ every further `sc-*` element:
    discriminant is the element's tag itself, derived via `typeOf(item)`
    (`lib/utils/guards`, `_element.tagName`); the guards narrow by tag with
    plain cast predicates.
-5. **Runtime**: override `resolveRuntime(ctx)` on the component — the parse
-   engine + shared bind-resolution machinery are inherited from the
+5. **Runtime**: override `resolveRuntime(item, ctx)` on the component — the
+   parse engine + shared bind-resolution machinery are inherited from the
    `ScElement` base (`internal/sc-element.ts`): call `this.processChildren(
-   ctx)` if the element parses children, resolve binds via
+   item, ctx)` if the element parses children, resolve binds via
    `this.resolveStateBind` / `this.resolveVisualBind` / `this.resolveNode`,
    and return the runtime values over `this.baseRuntime(ctx)` /
-   `this.nodeRuntime(ctx, run)` (the base `process()` merges them into the
-   item). The default is the self-contained leaf. Extend
+   `this.nodeRuntime(ctx, run)` (the base `process(item, ctx)` merges them
+   into the item). `ctx` is the per-LEVEL state ({rootId, nodes, scope,
+   parentNode, path}) shared by all siblings; the item travels as its own
+   argument. The default is the self-contained leaf. Extend
    `lib/utils/guards.ts` if the element joins a category (state/node/parent).
+   Add the element's examples to the unit suite's expectations
+   (`tests/examples.test.ts`) if it ships a new fixture.
 6. `item._element` IS the mounted component (strict-equality verified by the
    ScElement firstUpdated test), so the registry exposes the live element —
    props and methods — from outside the DOM.
@@ -225,9 +226,20 @@ examples/README.md — app/synths/bindings/inputs/invalid);
 mixed-content models whose choices have minOccurs="0" (a text-only `<span>`
 fails), which the old app never hit because it locked 0.8.0.
 
-## Validating example plugins (the harness technique)
+## Validating example plugins (the two gates)
 
-When elements/parsers change, validate every example end to end: run
+**Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom
+(`tests/examples.test.ts`). Loads every example entry via `import.meta.glob`,
+mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
+and runs `host.hydrate(...)` + `host.process(tree, {rootId, nodes, scope:
+[tree], path:[]})`. Functional examples must parse clean; the runtime `bad-*`
+fixtures must fail with their **exact** message; plus structural assertions
+(flat runtime merge, range bind targets, `_element` identity). The strudel
+editor stack is vi.mock'ed (browser-only deps); the five upload fixtures are
+backend validation and are excluded here.
+
+**End-to-end gate (the harness technique)**: when elements/parsers change,
+validate every example through the real stack: run
 `node scripts/validate-examples.mjs` against `yarn serve` + `yarn dev` +
 headless Chrome (`--remote-debugging-port=9222`). What it does:
 
@@ -236,15 +248,15 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
    their specific messages.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): dynamic-import `/src/lib/html/processHtml.ts`,
-   create an `<sc-plugin>` host, **append it to the document first** (custom
-   elements only upgrade when connected), fetch the entry via
-   `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
+   (with `awaitPromise`): create an `<sc-plugin>` host, **append it to the
+   document first** (custom elements only upgrade when connected), fetch the
+   entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
-   children into the host, then `hydrate(randomId(), host)` +
-   `processHtml({rootId, tree, scope:[tree], synthdefs:[], nodes:new Map(),
-   path:[]})`. PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
-   with its intentional handler error (one per error path — see the
+   children into the host, then `host.hydrate(randomId())` +
+   `host.process(tree, {rootId: tree.id, nodes: new Map(), scope: [tree],
+   path: []})` — the host's own parse-engine methods; nothing to import.
+   PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
+   with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration
    bug — report it.
 3. **Cleanup** — DELETE the plugins the run uploaded, keeping the user's

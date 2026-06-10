@@ -2,10 +2,10 @@
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
 // XML-parse + importNode its body children into a connected <sc-plugin> host,
-// and run hydrate + processHtml (dynamic import) — the runtime validation.
+// and run the host's own hydrate() + process() — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
-// the remaining bad-* fixtures at runtime (one handler error path each —
-// see examples/README.md). Anything else failing is a migration bug.
+// the remaining bad-* fixtures at runtime (one resolveRuntime error path
+// each — see examples/README.md). Anything else failing is a migration bug.
 import { execSync } from "node:child_process";
 import { mkdtempSync, readdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -39,7 +39,6 @@ await send("Runtime.enable");
 await new Promise((r) => setTimeout(r, 3000)); // app boot
 
 const probeRuntime = (pluginId, entry) => evaluate(`(async () => {
-  const { hydrate, processHtml } = await import("/src/lib/html/processHtml.ts");
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
   if (doc.querySelector("parsererror")) return "PARSE ERROR: " + doc.querySelector("parsererror").textContent.slice(0, 120);
@@ -47,8 +46,8 @@ const probeRuntime = (pluginId, entry) => evaluate(`(async () => {
   document.body.appendChild(host);
   host.replaceChildren(...[...doc.querySelector("body").children].map((c) => document.importNode(c, true)));
   try {
-    const tree = hydrate("probe-" + Math.random().toString(36).slice(2), host);
-    processHtml({ rootId: tree.id, tree, scope: [tree], synthdefs: [], nodes: new Map(), path: [] });
+    const tree = host.hydrate("probe-" + Math.random().toString(36).slice(2));
+    host.process(tree, { rootId: tree.id, nodes: new Map(), scope: [tree], path: [] });
     return "PASS";
   } catch (e) {
     return "FAIL: " + e.message;

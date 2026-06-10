@@ -2,7 +2,7 @@
 // app-synthesized root PluginHost mounts — never written in plugin HTML).
 // Keep in sync with the backend XSD (src-tauri/src/plugin/xsd/
 // sc-plugin-schema.xsd); sc-elements/index.ts registers one constructor per
-// entry, and the parser (lib/html) accepts exactly these types.
+// entry, and the parse engine (sc-elements/internal ScElement) accepts exactly these types.
 export const ELEMENTS = {
   SC_PLUGIN: "sc-plugin",
   SC_GROUP: "sc-group",

@@ -2,7 +2,7 @@
 // inside the select arrives with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { RuntimeContext, ScOptionRuntime, ScOptionProps, UgenRuntime } from "@/types/runtime";
+import type { RuntimeContext, ScElementRuntimeBase, ScOptionRuntime, ScOptionProps, UgenRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScOption extends ScElement<ScOptionRuntime> implements ScOptionProps {
@@ -14,7 +14,7 @@ export class ScOption extends ScElement<ScOptionRuntime> implements ScOptionProp
   }
 
   /** A declarative entry consumed by the parent select — never enabled. */
-  protected resolveRuntime(ctx: RuntimeContext): UgenRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): UgenRuntime {
     return { ...this.baseRuntime(ctx), enabled: false };
   }
 }

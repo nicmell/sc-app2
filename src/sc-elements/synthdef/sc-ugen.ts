@@ -4,7 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import { isControlRuntime } from "@/lib/utils/guards";
-import type { RuntimeContext, ScUgenRuntime, ScUgenProps, UgenRuntime } from "@/types/runtime";
+import type { RuntimeContext, ScElementRuntimeBase, ScUgenRuntime, ScUgenProps, UgenRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
@@ -24,9 +24,9 @@ export class ScUgen extends ScElement<ScUgenRuntime> implements ScUgenProps {
     }
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): UgenRuntime {
-    this.processChildren(ctx);
-    const n = ctx.tree as ScUgenRuntime;
+  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): UgenRuntime {
+    this.processChildren(item, ctx);
+    const n = item as ScUgenRuntime;
     // Every input bind must reference a sibling ugen or a synthdef param.
     for (const child of n.children) {
       if (!isControlRuntime(child) || !child._element.bind) continue;

@@ -3,7 +3,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext, ScElementRuntimeBase, ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRadioGroupProps {
@@ -17,8 +17,8 @@ export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRa
     }
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    this.processChildren(ctx);
+  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): InputRuntime {
+    this.processChildren(item, ctx);
     return this.resolveVisualBind(ctx, this.bind);
   }
 }

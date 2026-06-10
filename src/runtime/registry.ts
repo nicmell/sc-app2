@@ -1,8 +1,9 @@
-// The global parsed-element registry: id → ScElementRuntime for every element the
-// plugin parser (lib/html processHtml) has hydrated. Deliberately NOT a slice
-// of the app store — parsed trees are plain data the sc-* elements look
-// themselves up in, not reactive UI state. A plugin registers its whole tree
-// at parse time and unregisters it when the sc-plugin root unmounts.
+// The global parsed-element registry: id → ScElementRuntime for every element
+// the parse engine (sc-elements/internal ScElement hydrate/process) has
+// produced. Deliberately NOT a slice of the app store — parsed trees are plain
+// data the sc-* elements look themselves up in, not reactive UI state. A
+// plugin registers its whole tree at parse time and unregisters it when the
+// sc-plugin root unmounts.
 
 import { isParentRuntime } from "@/lib/utils/guards";
 import type { ScElementRuntime } from "@/types/runtime";
@@ -10,7 +11,7 @@ import type { ScElementRuntime } from "@/types/runtime";
 const nodes = new Map<string, ScElementRuntime>();
 
 /** Adopt a processed plugin tree (the per-parse `nodes` map a successful
- *  `processHtml` run produced). */
+ *  root `process()` run produced). */
 export function registerAll(tree: ReadonlyMap<string, ScElementRuntime>): void {
   for (const [id, item] of tree) nodes.set(id, item);
 }

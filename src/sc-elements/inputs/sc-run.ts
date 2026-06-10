@@ -5,13 +5,13 @@
 
 import { property } from "lit/decorators.js";
 import { isNodeRuntime } from "@/lib/utils/guards";
-import type { RunRuntime, RuntimeContext, ScRunRuntime, ScRunProps } from "@/types/runtime";
+import type { RunRuntime, RuntimeContext, ScElementRuntimeBase, ScRunRuntime, ScRunProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRun extends ScElement<ScRunRuntime> implements ScRunProps {
   @property() accessor bind = "";
 
-  protected resolveRuntime(ctx: RuntimeContext): RunRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): RunRuntime {
     const target = this.bind ? this.resolveNode(ctx, this.bind.split(".")) : ctx.parentNode;
     if (this.bind && (!target || !isNodeRuntime(target))) {
       throw new Error(`<sc-run>: bind "${this.bind}" does not match any node in scope`);

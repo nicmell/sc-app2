@@ -117,28 +117,28 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
     return item;
   }
 
-  /** Process this element's hydrated item (`ctx.tree`): pre-register it (so
-   *  re-entrant resolves of a mid-processing ancestor return it), attach it
-   *  to the parent, resolve the runtime values, and merge them flat into the
-   *  item. Idempotent — an already-processed item is returned as-is. */
-  process(ctx: RuntimeContext): ScElementRuntime {
-    const existing = ctx.nodes.get(ctx.tree.id);
+  /** Process this element's hydrated item: pre-register it (so re-entrant
+   *  resolves of a mid-processing ancestor return it), attach it to the
+   *  parent, resolve the runtime values, and merge them flat into the item.
+   *  Idempotent — an already-processed item is returned as-is. */
+  process(item: ScElementRuntimeBase, ctx: RuntimeContext): ScElementRuntime {
+    const existing = ctx.nodes.get(item.id);
     if (existing) {
       return existing;
     }
-    const node = ctx.tree as unknown as ScElementRuntime;
+    const node = item as ScElementRuntime;
     ctx.nodes.set(node.id, node);
     if (ctx.parentNode) {
       ctx.parentNode.children.push(node);
     }
-    Object.assign(ctx.tree, this.resolveRuntime(ctx));
+    Object.assign(item, this.resolveRuntime(item, ctx));
     return node;
   }
 
   /** Resolve this element's runtime values — bind resolution lives here, on
    *  each component. The default is the self-contained leaf (sc-console /
    *  sc-scope / sc-strudel). */
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): BaseRuntime {
     return this.baseRuntime(ctx);
   }
 
@@ -166,19 +166,20 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
   /** Parse this parent's children: hydrate (id + validate) EVERY child first
    *  — the full sibling scope must exist before any child resolves a bind
    *  (forward references), and duplicate names are checked across the whole
-   *  scope — then process each with the cumulative scope. */
-  protected processChildren(ctx: RuntimeContext): void {
-    const parent = ctx.tree as ScParentRuntime;
-    const name = nameOf(ctx.tree);
+   *  scope — then process each with the cumulative scope. All siblings share
+   *  ONE level context. */
+  protected processChildren(item: ScElementRuntimeBase, ctx: RuntimeContext): void {
+    const parent = item as ScParentRuntime;
+    const name = nameOf(item);
     const path = name ? [...ctx.path, name] : ctx.path;
 
     const scope = [...this.walkScElements()].map((el) => el.hydrate(randomId()));
 
     checkDuplicateNames(scope);
 
-    const childScope = [...scope, ...ctx.scope];
+    const childCtx: RuntimeContext = { ...ctx, scope: [...scope, ...ctx.scope], parentNode: parent, path };
     for (const child of scope) {
-      (child._element as ScElement).process({ ...ctx, tree: child, scope: childScope, parentNode: parent, path });
+      (child._element as ScElement).process(child, childCtx);
     }
   }
 
@@ -192,7 +193,7 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
     if (idx < 0) return undefined;
 
     const item = ctx.scope[idx];
-    const target = ctx.nodes.get(item.id) ?? (item._element as ScElement).process({ ...ctx, tree: item });
+    const target = ctx.nodes.get(item.id) ?? (item._element as ScElement).process(item, ctx);
 
     return walkPath(target, rest);
   }
@@ -201,16 +202,17 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
    *  node in scope (none targets the parent node), the last segment a state
    *  child declared on it. */
   protected resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElementRuntime; controlName: string } {
+    const tag = this.tagName.toLowerCase();
     const segments = bind.split(".");
     const controlName = segments.pop()!;
     const target = segments.length > 0 ? this.resolveNode(ctx, segments) : ctx.parentNode;
     if (!target || !isNodeRuntime(target)) {
-      throw new Error(`<${typeOf(ctx.tree)} bind="${bind}">: does not match any node in scope`);
+      throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
     }
     if (!isParentRuntime(target) || !target.children.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
       const targetName = nameOf(target) ?? target.id;
       throw new Error(
-        `<${typeOf(ctx.tree)} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
+        `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
       );
     }
     return { target, controlName };
@@ -235,12 +237,13 @@ export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> e
   }
 
   protected checkCircularBind(ctx: RuntimeContext, targetId: string): void {
-    const visited = new Set<string>([ctx.tree.id]);
+    const visited = new Set<string>([this.id]);
     const queue = [targetId];
     while (queue.length > 0) {
       const current = queue.pop()!;
       if (visited.has(current)) {
-        throw new Error(`<${typeOf(ctx.tree)} name="${nameOf(ctx.tree)}">: circular bind reference detected`);
+        const name = (this as { name?: string }).name;
+        throw new Error(`<${this.tagName.toLowerCase()} name="${name}">: circular bind reference detected`);
       }
       visited.add(current);
       const node = ctx.nodes.get(current);

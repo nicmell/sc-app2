@@ -4,7 +4,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { RuntimeContext, ScVarRuntime, ScVarProps, VarRuntime } from "@/types/runtime";
+import type { RuntimeContext, ScElementRuntimeBase, ScVarRuntime, ScVarProps, VarRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {
@@ -21,7 +21,7 @@ export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {
   }
 
   /** Always enabled (unlike sc-control, never a graph input). */
-  protected resolveRuntime(ctx: RuntimeContext): VarRuntime {
+  protected resolveRuntime(_item: ScElementRuntimeBase, ctx: RuntimeContext): VarRuntime {
     if (this.bind) {
       const { targets, expression } = this.resolveStateBind(ctx, this.bind);
       return { ...this.baseRuntime(ctx), name: this.name, value: 0, targets, expression };

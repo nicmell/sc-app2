@@ -4,7 +4,7 @@
 import { property } from "lit/decorators.js";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
-import type { RuntimeContext, ScParentRuntime, ScSynthDefRuntime, ScSynthDefProps, ScUgenRuntime, SynthDefRuntime } from "@/types/runtime";
+import type { RuntimeContext, ScElementRuntimeBase, ScParentRuntime, ScSynthDefRuntime, ScSynthDefProps, ScUgenRuntime, SynthDefRuntime } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 function collectControlParams(node: ScParentRuntime): Record<string, number> {
@@ -38,13 +38,13 @@ export class ScSynthDef extends ScElement<ScSynthDefRuntime> implements ScSynthD
     this.requireProp("name", this.name);
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
-    this.processChildren(ctx);
-    const n = ctx.tree as ScSynthDefRuntime;
-    ctx.synthdefs.push(n);
+  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): SynthDefRuntime {
+    this.processChildren(item, ctx);
+    const n = item as ScSynthDefRuntime;
     // Collect params + per-ugen input specs as the old app did — compilation
-    // (synthDefManager) returns with the lib/synthdef migration step;
-    // collecting still validates that every ugen input has a bind or value.
+    // (synthDefManager) returns with the lib/synthdef migration step, deriving
+    // the synthdef list from the parsed tree in document order; collecting
+    // still validates that every ugen input has a bind or value.
     collectControlParams(n);
     const ugenChildren = n.children.filter((c): c is ScUgenRuntime => typeOf(c) === ELEMENTS.SC_UGEN);
     for (const c of ugenChildren) {

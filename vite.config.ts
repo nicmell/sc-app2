@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
@@ -47,6 +48,14 @@ export default defineConfig(async () => ({
   build: {
     // Emit a manifest mapping source files to their hashed build outputs.
     manifest: "manifest.json",
+  },
+
+  // Unit tests (`yarn test`): the example plugins through the sc-elements
+  // parse engine in a simulated DOM — the fast runtime gate next to the full
+  // CDP harness (scripts/validate-examples.mjs).
+  test: {
+    environment: "happy-dom",
+    include: ["tests/**/*.test.ts"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

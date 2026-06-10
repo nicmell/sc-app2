@@ -15,7 +15,7 @@ import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 import type { PluginInfo } from "@/types/api";
-import type { NodeRuntime, RuntimeContext, ScElementRuntime, ScPluginProps, ScPluginRuntime, ScSynthDefRuntime } from "@/types/runtime";
+import type { NodeRuntime, RuntimeContext, ScElementRuntime, ScElementRuntimeBase, ScPluginProps, ScPluginRuntime } from "@/types/runtime";
 
 export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProps {
   static properties = {
@@ -46,14 +46,14 @@ export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProp
 
   /** The root runtime: parse the children (the whole plugin tree), rolling
    *  the per-parse nodes map back on any validation/resolution error. */
-  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
+  protected resolveRuntime(item: ScElementRuntimeBase, ctx: RuntimeContext): NodeRuntime {
     try {
-      this.processChildren(ctx);
+      this.processChildren(item, ctx);
       return this.nodeRuntime(ctx, this.run);
     } catch (e) {
-      Object.assign(ctx.tree, { children: [] });
+      Object.assign(item, { children: [] });
       for (const id of ctx.nodes.keys()) {
-        if (id !== ctx.tree.id) ctx.nodes.delete(id);
+        if (id !== item.id) ctx.nodes.delete(id);
       }
       throw e;
     }
@@ -70,10 +70,9 @@ export class ScPlugin extends ScElement<ScPluginRuntime> implements ScPluginProp
       // Hydrate + process the tree (the old loadPlugin flow): the per-parse
       // nodes map is adopted by the global registry only on success.
       const boxId = this.id || randomId();
-      const synthdefs: ScSynthDefRuntime[] = [];
       const nodes = new Map<string, ScElementRuntime>();
       const tree = this.hydrate(boxId);
-      this.process({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
+      this.process(tree, { rootId: boxId, nodes, scope: [tree], path: [] });
       registerAll(nodes);
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad Unknown SynthDef (intentional error)</title>
+</head>
+<body>
+<!-- INTENTIONAL: no <sc-synthdef name="missing"> exists in scope —
+     synthHandler must fail with "does not match any <sc-synthdef>" -->
+<sc-synth name="s1" bind="missing">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+</sc-synth>
+</body>
+</html>

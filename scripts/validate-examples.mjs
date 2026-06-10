@@ -4,7 +4,8 @@
 // XML-parse + importNode its body children into a connected <sc-plugin> host,
 // and run hydrate + processHtml (dynamic import) — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
-// bad-bindings at runtime. Anything else failing is a migration bug.
+// the remaining bad-* fixtures at runtime (one handler error path each —
+// see examples/README.md). Anything else failing is a migration bug.
 import { execSync } from "node:child_process";
 import { mkdtempSync, readdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -13,7 +14,17 @@ import { basename, join } from "node:path";
 const REPO = new URL("..", import.meta.url).pathname;
 const API = "http://127.0.0.1:3000";
 const EXPECT_UPLOAD_FAIL = new Set(["bad-metadata", "bad-entry-xhtml", "bad-entry-schema", "bad-asset-type", "bad-asset-mismatch"]);
-const EXPECT_RUNTIME_FAIL = new Set(["bad-bindings"]);
+const EXPECT_RUNTIME_FAIL = new Set([
+  "bad-bindings", // duplicate name in scope (first of its several errors)
+  "bad-node-bind", // bind path's node segment matches nothing
+  "bad-synthdef-bind", // bind targets a synthdef (not a node)
+  "bad-undeclared-control", // bound control not declared on the target node
+  "bad-circular-bind", // mutual sc-var cycle
+  "bad-unknown-synthdef", // sc-synth bind matches no synthdef
+  "bad-run-bind", // sc-run bind matches no node
+  "bad-ugen-input", // ugen input with neither bind nor value
+  "bad-ugen-ref", // ugen input references an unknown name
+]);
 
 // CDP setup
 const tabs = await (await fetch("http://127.0.0.1:9222/json/list")).json();

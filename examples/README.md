@@ -45,14 +45,30 @@ adopts nodes; no HTML re-parse). To install one by hand:
 
 ## `invalid/` — intentional failures (the negative fixtures)
 
-| plugin | fails at | with |
+Upload-time fixtures (rejected by the backend zip/XSD validation):
+
+| plugin | fails with |
+|---|---|
+| `bad-metadata` | `"author" must be a non-empty string` |
+| `bad-entry-xhtml` | ill-formed XML |
+| `bad-entry-schema` | entry doesn't conform to the XSD |
+| `bad-asset-type` | `svg` is not a supported asset type |
+| `bad-asset-mismatch` | asset content (jpeg) ≠ declared type (png) |
+
+Runtime fixtures (upload fine; `processHtml` must reject them — each one
+targets a single error path in `src/runtime/handlers.ts`):
+
+| plugin | error path | fails with |
 |---|---|---|
-| `bad-metadata` | upload | `"author" must be a non-empty string` |
-| `bad-entry-xhtml` | upload | ill-formed XML |
-| `bad-entry-schema` | upload | entry doesn't conform to the XSD |
-| `bad-asset-type` | upload | `svg` is not a supported asset type |
-| `bad-asset-mismatch` | upload | asset content (jpeg) ≠ declared type (png) |
-| `bad-bindings` | **runtime** (uploads fine) | first intentional error: duplicate `sine` name in scope; also carries unknown-synthdef and undeclared-control binds |
+| `bad-bindings` | `checkDuplicateNames` | duplicate `sine` name in scope (the grab-bag legacy fixture: also carries unknown-node and undeclared-control binds behind the first error) |
+| `bad-node-bind` | `resolveControlBind` | `bind="ghost.freq"` — no node `ghost` in scope |
+| `bad-synthdef-bind` | `resolveControlBind` | `bind="sine.freq"` resolves to the *synthdef* (not a node) — the classic param-vs-control mistake |
+| `bad-undeclared-control` | `resolveControlBind` | `bind="s1.detune"` — `s1` declares no `detune` control |
+| `bad-circular-bind` | `checkCircularBind` | two `sc-var`s bound to each other (`a → b → a`) across groups |
+| `bad-unknown-synthdef` | `synthHandler` | `<sc-synth bind="missing">` matches no `<sc-synthdef>` |
+| `bad-run-bind` | `runHandler` | `<sc-run bind="ghost">` matches no node |
+| `bad-ugen-input` | `collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |
+| `bad-ugen-ref` | `ugenHandler` | a ugen input bound to `lfo`, which names no sibling ugen / param |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

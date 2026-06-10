@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad Circular Bind (intentional error)</title>
+</head>
+<body>
+<!-- INTENTIONAL: a → b → a. Processing "a" resolves "g2.b" on demand, whose
+     own bind resolves back to the mid-processing "a"; once b's targets are
+     known, a's checkCircularBind must fail with "circular bind reference
+     detected" -->
+<sc-group name="g1">
+    <sc-var name="a" bind="g2.b"/>
+</sc-group>
+<sc-group name="g2">
+    <sc-var name="b" bind="g1.a"/>
+</sc-group>
+</body>
+</html>

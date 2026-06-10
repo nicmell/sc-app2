@@ -233,9 +233,10 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
    children into the host, then `hydrate(randomId(), host)` +
    `processHtml({rootId, tree, scope:[tree], synthdefs:[], nodes:new Map(),
-   path:[]})`. PASS = no throw; `bad-bindings` must FAIL (first intentional
-   error: duplicate `sine` name). Any other failure is a migration bug —
-   report it.
+   path:[]})`. PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
+   with its intentional handler error (one per error path — see the
+   `invalid/` table in examples/README.md). Any other failure is a migration
+   bug — report it.
 3. **Cleanup** — DELETE the plugins the run uploaded, keeping the user's
    registry as it was.
 

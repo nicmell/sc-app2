@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad Run Bind (intentional error)</title>
+</head>
+<body>
+<sc-synthdef name="sine">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind="freq"/>
+    </sc-ugen>
+    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="osc"/>
+        <sc-control name="b" bind="amp"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind="sig"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="s1" bind="sine">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+    <!-- INTENTIONAL: no node named "ghost" in scope — runHandler must fail
+         with "does not match any node in scope" (an empty bind would target
+         the parent synth) -->
+    <sc-run bind="ghost" size="20"/>
+</sc-synth>
+</body>
+</html>

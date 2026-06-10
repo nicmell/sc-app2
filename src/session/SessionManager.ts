@@ -1,11 +1,13 @@
 // Owns the per-session OSC connection and the UI-facing reactive state:
 // connection status, a bounded OSC log (tx + rx), scsynth load, and error
-// banners. Mints the session itself (`POST /api/session` via src/http) and
-// talks to the bridge through the global `oscClient`.
+// banners. Talks to the session endpoints itself (via src/http) and to the
+// bridge through the global `oscClient`.
 //
-// A session lives exactly as long as its WebSocket (the server ends it on
-// close), so every start mints a fresh one; nothing is persisted across
-// reloads.
+// A *live* session still dies with its WebSocket, but its identity + dashboard
+// layout persist: the session id is kept in localStorage, the layout is
+// periodically PUT to the backend (saved under the app data dir next to the
+// plugins), and at boot a stored id is revived via GET — falling back to
+// minting a fresh session when that fails.
 //
 // State lives in the single app store (`src/state/store.ts`) under its `session`
 // slice; the public `status`/`log`/`scsynthStatus`/`scsynthErrors` are `select`
@@ -19,13 +21,15 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
-import { post, wsUrl, HttpError } from "../http";
+import { get, post, put, wsUrl, HttpError } from "../http";
 import { oscClient } from "../osc/OscClient";
 import { ScopeController } from "../scope/ScopeController";
+import { layout, setLayout, type BoxItem } from "../state/layout";
 import { appStore } from "../state/store";
 
-/** What `POST /api/session` returns: the server-assigned session identity +
- *  node-id allocation + scope buffer + the scsynth address for the footer. */
+/** What the session endpoints return: the server-assigned session identity +
+ *  node-id allocation + scope buffer + the scsynth address for the footer,
+ *  plus (on GET) the saved dashboard layout. */
 interface SessionInfo {
   sessionId: string;
   /** scsynth group this session's synths must live under — allocated by the
@@ -39,6 +43,8 @@ interface SessionInfo {
   scopeIndex: number;
   /** The scsynth `host:port` the bridge talks to (shown in the footer). */
   scsynthAddress: string | null;
+  /** The saved dashboard layout, if this session has one on the server. */
+  layout: BoxItem[] | null;
 }
 
 export type ConnStatus = "connecting" | "connected" | "error";
@@ -102,6 +108,12 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
   };
 }
 
+/** Where the session id survives across app runs (shared by every tab). */
+const SESSION_KEY = "sc.session";
+
+/** How often the dashboard layout is saved to the backend (when changed). */
+const LAYOUT_SAVE_INTERVAL_MS = 10_000;
+
 /** Mint a fresh session. The server allocates the group id + node range; it
  *  can briefly return 503 if scsynth hasn't finished registering, so retry. */
 async function createSession(): Promise<SessionInfo> {
@@ -114,6 +126,16 @@ async function createSession(): Promise<SessionInfo> {
     }
   }
   throw new Error("POST /api/session → 503 (scsynth not registered)");
+}
+
+/** Revive a stored session id (GET returns its info + saved layout), or
+ *  `null` on any failure — the caller falls back to minting a fresh one. */
+async function fetchSession(id: string): Promise<SessionInfo | null> {
+  try {
+    return await (await get(`/api/session/${id}`)).json();
+  } catch {
+    return null;
+  }
 }
 
 /** Max OSC-log entries kept in memory (oldest dropped). */
@@ -135,6 +157,9 @@ export class SessionManager {
   private scopeController: ScopeController | null = null;
   private nextId = 0;
   private disposed = false;
+  /** The layout-autosave timer + the last value it saved (reference compare). */
+  private saveTimer: ReturnType<typeof setInterval> | null = null;
+  private lastSavedLayout: BoxItem[] | null = null;
 
   /** Dismiss one banner by id (the toast's × / auto-dismiss timer). */
   dismissError(id: number): void {
@@ -151,17 +176,28 @@ export class SessionManager {
     return this.scopeController;
   }
 
-  /** Mint a session, connect the global OSC client (which creates the session
-   *  group and owns node-id allocation), and wire its events into the store.
-   *  Idempotent — only the first call does anything (React StrictMode mounts
-   *  effects twice; main.tsx calls this once at boot). */
+  /** Revive the stored session (restoring its saved layout) or mint a fresh
+   *  one, connect the global OSC client (which creates the session group and
+   *  owns node-id allocation), wire its events into the store, and start the
+   *  periodic layout save. Idempotent — only the first call does anything
+   *  (React StrictMode mounts effects twice; main.tsx calls this once at
+   *  boot). */
   async start(): Promise<void> {
     if (this.started || this.disposed) return;
     this.started = true;
     try {
-      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } =
-        await createSession();
+      // A stored id revives the saved session (same id, saved layout); any
+      // failure — nothing saved, server restarted scsynth-less, … — falls
+      // back to minting a fresh session.
+      const stored = localStorage.getItem(SESSION_KEY);
+      const info = (stored ? await fetchSession(stored) : null) ?? (await createSession());
+      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } = info;
       if (this.disposed) return;
+      localStorage.setItem(SESSION_KEY, sessionId);
+      if (info.layout) {
+        setLayout(info.layout);
+        this.lastSavedLayout = layout.get();
+      }
       this.state.update((s) => ({ ...s, scsynthAddress }));
       await oscClient.connect(wsUrl(`/ws?session=${sessionId}`), { sessionGroupId, nodeIdBase, nodeIdCount });
       if (this.disposed) {
@@ -180,10 +216,30 @@ export class SessionManager {
       // Start the master-out scope tap + subscription now that we're connected.
       this.scopeController = new ScopeController(oscClient, sessionGroupId, scopeIndex);
       this.scopeController.start();
+      this.startLayoutAutosave(sessionId);
       this.setStatus("connected");
     } catch {
       if (!this.disposed) this.setStatus("error");
     }
+  }
+
+  /** Periodically PUT the dashboard layout to the session endpoint (the server
+   *  stores it next to the plugins, see src-tauri saved_sessions). Skips ticks
+   *  where the layout hasn't changed since the last save; failures just retry
+   *  on the next tick. */
+  private startLayoutAutosave(sessionId: string): void {
+    this.saveTimer = setInterval(() => {
+      const current = layout.get();
+      if (current === this.lastSavedLayout) return;
+      put(`/api/session/${sessionId}`, JSON.stringify(current), {
+        headers: { "content-type": "application/json" },
+      }).then(
+        () => {
+          this.lastSavedLayout = current;
+        },
+        (err) => console.warn("[session] layout save failed:", err),
+      );
+    }, LAYOUT_SAVE_INTERVAL_MS);
   }
 
   /** Send an OSC packet over the bridge, logging it as `tx`. */
@@ -195,6 +251,10 @@ export class SessionManager {
 
   dispose(): void {
     this.disposed = true;
+    if (this.saveTimer !== null) {
+      clearInterval(this.saveTimer);
+      this.saveTimer = null;
+    }
     this.scopeController?.dispose();
     this.scopeController = null;
     // Drop our subscriptions before closing so the intentional close doesn't

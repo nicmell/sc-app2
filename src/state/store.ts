@@ -14,21 +14,11 @@ import type { PluginInfo } from "../plugins/PluginManager";
 
 export interface AppState {
   session: SessionState;
-  /** Dashboard grid placement, persisted to localStorage. */
+  /** Dashboard grid placement. Restored from / periodically saved to the
+   *  backend's saved-session storage by the SessionManager. */
   layout: BoxItem[];
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
-}
-
-const LAYOUT_KEY = "sc.dashboard.layout";
-
-function loadLayout(): BoxItem[] {
-  try {
-    const raw = localStorage.getItem(LAYOUT_KEY);
-    return raw ? (JSON.parse(raw) as BoxItem[]) : [];
-  } catch {
-    return [];
-  }
 }
 
 /** Initial session slice. Defined here (not imported from SessionManager) so
@@ -45,15 +35,6 @@ const initialSessionState: SessionState = {
 
 export const appStore = createStore<AppState>({
   session: initialSessionState,
-  layout: loadLayout(),
+  layout: [],
   plugins: [],
-});
-
-// Persist the layout slice on change (the dashboard survives reloads).
-appStore.slice("layout").subscribe((items) => {
-  try {
-    localStorage.setItem(LAYOUT_KEY, JSON.stringify(items));
-  } catch {
-    /* storage full / unavailable — non-fatal */
-  }
 });

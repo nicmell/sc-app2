@@ -51,6 +51,14 @@ impl SessionStore {
     /// via `make_block` (the id scheme lives on [`scsynth`](super::scsynth)), and
     /// store the entry.
     pub fn create(&self, make_block: impl Fn(u32) -> SessionBlock) -> (Uuid, SessionBlock) {
+        let id = Uuid::new_v4();
+        (id, self.create_with_id(id, make_block))
+    }
+
+    /// Same allocation as [`create`](Self::create) but under a caller-supplied
+    /// id — the revive path, where a saved session keeps its identity across
+    /// app runs (the block itself is freshly allocated).
+    pub fn create_with_id(&self, id: Uuid, make_block: impl Fn(u32) -> SessionBlock) -> SessionBlock {
         let mut st = self.0.lock().unwrap();
         let index = st.free.pop().unwrap_or_else(|| {
             let i = st.next_index;
@@ -58,9 +66,8 @@ impl SessionStore {
             i
         });
         let block = make_block(index);
-        let id = Uuid::new_v4();
         st.sessions.insert(id, SessionEntry { block, index });
-        (id, block)
+        block
     }
 
     /// Whether `id` is a live session.

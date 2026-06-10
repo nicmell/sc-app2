@@ -94,6 +94,17 @@ pub fn plugins_registry_path() -> PathBuf {
     data_dir().join("plugins.json")
 }
 
+/// Directory holding saved-session layout files (`<session id>.json`).
+pub fn sessions_dir() -> PathBuf {
+    data_dir().join("sessions")
+}
+
+/// The saved-session registry file (`SavedSessionInfo[]` as JSON) — the
+/// session counterpart of the plugin registry.
+pub fn sessions_registry_path() -> PathBuf {
+    data_dir().join("sessions.json")
+}
+
 /// Load config from an explicit path (serve `--config`) or the canonical
 /// location, tolerating a missing or malformed file (logs and defaults).
 pub fn load(path: Option<PathBuf>) -> AppConfig {

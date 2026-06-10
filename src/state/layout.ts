@@ -1,5 +1,6 @@
 // Dashboard grid layout: which plugin sits in which cell, plus geometry. A slice
-// of the single app store (`store.ts`), which owns the localStorage persistence.
+// of the single app store (`store.ts`); the SessionManager restores it from the
+// backend's saved session at boot and periodically saves it back.
 
 import { appStore } from "./store";
 

@@ -95,6 +95,14 @@ impl Server {
         Some(self.inner.sessions.create(|index| session_block(cid, index)))
     }
 
+    /// Mint a live session under a caller-supplied id — the revive path, where
+    /// a saved session keeps its identity across app runs. `None` if scsynth
+    /// never registers within [`CLIENT_ID_WAIT`].
+    pub(crate) async fn create_session_with_id(&self, id: Uuid) -> Option<SessionBlock> {
+        let cid = self.inner.scsynth.await_client_id(CLIENT_ID_WAIT).await?;
+        Some(self.inner.sessions.create_with_id(id, |index| session_block(cid, index)))
+    }
+
     /// End a session: drop it from the store and free its scsynth group (and
     /// everything in it). Called when the session's WebSocket closes.
     pub(crate) async fn end_session(&self, id: &Uuid) {

@@ -207,7 +207,13 @@ parser-item design; each decision is load-bearing for the recipe below:
    processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
    referenced before it is declared` when a bind names an in-scope element
    that hasn't processed yet (a name matching nothing keeps the
-   does-not-match errors). The `bad-forward-ref` fixture pins the message.
+   does-not-match errors), and `resolveControlBind` gives the same honest
+   error when a same-scope state is bound before its declaration (it checks
+   the target's full DOM children for the error text only — the partial
+   `_scChildren` stays the gate). `bad-forward-ref` and
+   `bad-forward-state-ref` pin the messages. Type-checked binds: an
+   `sc-synth` bind must resolve to an actual `<sc-synthdef>`
+   (`bad-synth-target`).
    Referencing the mid-processing ANCESTOR stays legal (it pre-registers
    before its children run), so group-scoped binds to earlier siblings work.
    Consequence: references point strictly backward, the bind graph is a DAG
@@ -273,8 +279,9 @@ further `sc-*` element:
    suite's expectations (`tests/examples.test.ts`) if it ships a new
    fixture.
 6. The registry (`@/runtime/registry`) maps ids to the live components
-   themselves (identity verified by the ScElement firstUpdated test), so
-   props, runtime values, and methods are reachable from outside the DOM.
+   themselves (identity pinned by the unit suite and the dashboard probe),
+   so props, runtime values, and methods are reachable from outside the
+   DOM.
 
 ## Migration state (elements)
 

@@ -21,6 +21,8 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-undeclared-control", // bound control not declared on the target node
   "bad-circular-bind", // sc-var self-reference (the only cycle left)
   "bad-forward-ref", // bind target declared after its reference
+  "bad-forward-state-ref", // same-scope state bound before its declaration
+  "bad-synth-target", // sc-synth bind naming a non-synthdef element
   "bad-unknown-synthdef", // sc-synth bind matches no synthdef
   "bad-run-bind", // sc-run bind matches no node
   "bad-ugen-input", // ugen input with neither bind nor value

@@ -110,6 +110,14 @@ export function resolveControlBind(
     throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
   }
   if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+    // When the state IS declared on the target but only later in the
+    // document (not yet processed), give the honest bind-order error
+    // instead of "not declared".
+    for (const c of target.walkScElements()) {
+      if (isStateRuntime(c) && nameOf(c) === controlName) {
+        throw new Error(`<${tag}>: "${controlName}" is referenced before it is declared`);
+      }
+    }
     const targetName = nameOf(target) ?? target.id;
     throw new Error(
       `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,

@@ -1,4 +1,3 @@
-import type { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
@@ -152,7 +151,6 @@ export interface ScCheckboxProps {
   bind: string;
 }
 
-export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
 
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`
  *  recursion (sc-elements/internal ScElement) — all siblings share one

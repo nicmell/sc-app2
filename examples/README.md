@@ -4,7 +4,7 @@ Each directory is one plugin (its `metadata.json` + entry XHTML + optional
 assets), zipped verbatim for upload. They double as the **acceptance suite**
 for the parser/runtime: `node scripts/validate-examples.mjs` (with the dev
 stack + headless Chrome running) uploads every one of them and runs the
-in-page `processHtml` validation — see "Validating example plugins" in the
+in-page parse-engine validation — see "Validating example plugins" in the
 root CLAUDE.md. Anything failing outside the `invalid/` fixtures is a bug.
 
 Entries are XHTML (self-closing tags are fine — the loader parses XML and
@@ -66,10 +66,12 @@ targets a single error path in the sc-elements runtime
 | `bad-undeclared-control` | `resolveControlBind` | `bind="s1.detune"` — `s1` declares no `detune` control |
 | `bad-circular-bind` | `resolveStateBind` (self-reference guard) | an `sc-var` bound to itself (`a → vars.a`) — the only cycle expressible now that references point strictly backward |
 | `bad-forward-ref` | `resolveNode` | controls/inputs reference a synth declared *after* them — bind targets must be declared before their references in DOM order |
-| `bad-unknown-synthdef` | `synthHandler` | `<sc-synth bind="missing">` matches no `<sc-synthdef>` |
-| `bad-run-bind` | `runHandler` | `<sc-run bind="ghost">` matches no node |
-| `bad-ugen-input` | `collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |
-| `bad-ugen-ref` | `ugenHandler` | a ugen input bound to `lfo`, which names no sibling ugen / param |
+| `bad-forward-state-ref` | `resolveControlBind` | a same-scope state bound before its declaration (`vars.b` with `b` a later sibling) — the honest bind-order error, not "not declared" |
+| `bad-synth-target` | `sc-synth resolveRuntime` | `<sc-synth bind="fx">` naming a *group* — the bind must resolve to an actual `<sc-synthdef>` |
+| `bad-unknown-synthdef` | `sc-synth resolveRuntime` | `<sc-synth bind="missing">` matches no `<sc-synthdef>` |
+| `bad-run-bind` | `sc-run resolveRuntime` | `<sc-run bind="ghost">` matches no node |
+| `bad-ugen-input` | `sc-synthdef collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |
+| `bad-ugen-ref` | `sc-ugen resolveRuntime` | a ugen input bound to `lfo`, which names no sibling ugen / param |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

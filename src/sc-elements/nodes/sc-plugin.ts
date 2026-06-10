@@ -7,6 +7,7 @@
 // in it — on unmount.
 
 import { html } from "lit";
+import { state } from "lit/decorators.js";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/lib/osc/OscClient";
@@ -19,19 +20,10 @@ import { plugins } from "@/stores/plugins";
 import type { ScPluginProps } from "@/types/runtime";
 
 export class ScPlugin extends ScNode implements ScPluginProps {
-  static properties = {
-    _error: { state: true },
-  };
-
-  declare _error: string;
+  @state() accessor _error = "";
 
   /** The plugin's scsynth group (inside the session group), once created. */
   private groupNodeId: number | null = null;
-
-  constructor() {
-    super();
-    this._error = "";
-  }
 
   /** Unlike the other sc-elements, the plugin root renders into a shadow
    *  root: the plugin markup stays in the light DOM and shows through the

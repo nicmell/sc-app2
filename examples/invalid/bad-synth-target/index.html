@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad Synth Target (intentional error)</title>
+</head>
+<body>
+<sc-group name="fx">
+    <sc-control name="gain" value="0.5"/>
+</sc-group>
+
+<!-- INTENTIONAL: the synth binds "fx" — a group, not a synthdef. The bind
+     must name an actual <sc-synthdef>; resolveRuntime must fail with
+     "does not match any <sc-synthdef>" -->
+<sc-synth name="s1" bind="fx">
+    <sc-control name="freq" value="440"/>
+</sc-synth>
+</body>
+</html>

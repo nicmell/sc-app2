@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad Forward State Reference (intentional error)</title>
+</head>
+<body>
+<!-- INTENTIONAL: "a" binds "vars.b" where "b" is a LATER sibling in the same
+     scope — the state is declared on the target, but only after its
+     reference; resolveControlBind must fail with the honest bind-order error
+     "referenced before it is declared" (not "not declared") -->
+<sc-group name="vars">
+    <sc-var name="a" bind="vars.b"/>
+    <sc-var name="b" value="1"/>
+</sc-group>
+</body>
+</html>

@@ -16,7 +16,6 @@
 import { LitElement } from "lit";
 import { isNodeType } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
-import { getById } from "@/runtime/registry";
 import { baseRuntime, checkDuplicateNames, nameOf } from "@/sc-elements/internal/validation";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 
@@ -93,7 +92,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** This element's sc-* descendants, recursing through plain HTML. */
-  protected *walkScElements(el: Element = this): Generator<ScElement> {
+  *walkScElements(el: Element = this): Generator<ScElement> {
     for (const child of Array.from(el.children)) {
       if (isNodeType(child.tagName.toLowerCase())) {
         yield child as ScElement;
@@ -127,21 +126,5 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     for (const child of scope) {
       child.process(childCtx);
     }
-  }
-
-  // TEST: the registry must hand back THIS mounted component instance — i.e.
-  // it gives access to the live web component (props, runtime values, and
-  // methods) from outside the DOM. Deferred one task: the first render races
-  // the parse/registerAll in the same microtask queue.
-  protected firstUpdated(): void {
-    setTimeout(() => {
-      const registered = getById(this.id);
-      console.log(
-        `[sc-element test] <${this.tagName.toLowerCase()} id="${this.id}">`,
-        `registry element === this: ${registered === this}`,
-        "| ctor:", registered?.constructor.name ?? "(not registered)",
-        "| proto methods:", registered ? Object.getOwnPropertyNames(Object.getPrototypeOf(registered)) : null,
-      );
-    }, 0);
   }
 }

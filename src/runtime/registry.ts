@@ -24,12 +24,6 @@ export function getById(id: string): ScElement | undefined {
   return nodes.get(id);
 }
 
-export function getByIdOrThrow(id: string): ScElement {
-  const el = nodes.get(id);
-  if (!el) throw new Error(`runtime registry: no element with id "${id}"`);
-  return el;
-}
-
 /** Drop a parsed tree (the plugin root + every descendant) — plugin unmount. */
 export function unregisterTree(rootId: string): void {
   const root = nodes.get(rootId);

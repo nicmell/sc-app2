@@ -42,6 +42,8 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-undeclared-control": '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
   "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
+  "bad-forward-state-ref": '<sc-var>: "b" is referenced before it is declared',
+  "bad-synth-target": '<sc-synth bind="fx">: does not match any <sc-synthdef>',
   "bad-unknown-synthdef": '<sc-synth bind="missing">: does not match any <sc-synthdef>',
   "bad-run-bind": '<sc-run>: bind "ghost" does not match any node in scope',
   "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
@@ -96,7 +98,7 @@ afterEach(() => {
 });
 
 describe("example discovery", () => {
-  it("finds every functional example and all ten runtime fixtures", () => {
+  it("finds every functional example and every runtime fixture", () => {
     expect(passing.length).toBeGreaterThanOrEqual(10);
     expect(failing.map((c) => c.name).sort()).toEqual(Object.keys(RUNTIME_FAILURES).sort());
   });
@@ -158,9 +160,12 @@ describe("example-plugin structure", () => {
   it("processes the live element instances themselves", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
     expect(nodes.has(host)).toBe(true);
-    for (const el of host.querySelectorAll("[id^=test-]")) {
+    const scDescendants = [...host.querySelectorAll("*")].filter((el) =>
+      el.tagName.toLowerCase().startsWith("sc-"),
+    );
+    expect(scDescendants.length).toBeGreaterThan(1);
+    for (const el of scDescendants) {
       expect(nodes.has(el as ScElement)).toBe(true);
     }
-    expect(nodes.size).toBeGreaterThan(1);
   });
 });

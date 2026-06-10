@@ -79,7 +79,7 @@ export function isNodeRuntime(el: Element): el is ScNode {
   return t === ELEMENTS.SC_PLUGIN || t === ELEMENTS.SC_GROUP || t === ELEMENTS.SC_SYNTH;
 }
 
-/** Elements that parse their children into `scChildren` (the rest are leaves). */
+/** Elements that parse their children into `_scChildren` (the rest are leaves). */
 export function isParentRuntime(el: ScElement): el is ScParentElement {
   return PARENT_TYPES.has(typeOf(el));
 }

@@ -60,7 +60,7 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          scope/console). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (
+                         ScElement base carries the parse engine (hydrate/
                          process/processChildren) + the common runtime fields;
                          validation.ts holds the validation + bind-resolution
                          helpers as plain functions; the category bases
@@ -171,41 +171,51 @@ parser-item design; each decision is load-bearing for the recipe below:
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `process()` lives on `ScElement` — it validates the element, then
-   assigns `resolveRuntime()`'s values onto the component itself. `lib/
-   html`, `src/runtime/handlers.ts`, and `hydrate` are gone — the engine
-   lives on the base, and the validation + bind-resolution helpers are plain
-   functions in `internal/validation.ts`, taking the element explicitly
-   where the error messages need it.
+   `process()` lives on `ScElement` — it attaches the element to its
+   parent, validates it, then assigns `resolveRuntime()`'s values onto the
+   component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
+   the engine lives on the base, and the validation + bind-resolution
+   helpers are plain functions in `internal/validation.ts`, taking the
+   element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
    fields once; concrete elements are mostly `validate()` + a small
    `resolveRuntime()` override composed via `super`.
 4. **Runtime values are live element references, not string ids**:
-   `_rootScNode`/`_parentScNode`, `_targetScNode` on inputs, `targets:
-   Record<path, ScState>` on state. The parsed children aren't even stored:
-   `scChildren` derives them from the live DOM on every occurrence (the DOM
-   is the single source of truth — named so because `children` is the DOM
-   collection). Cycle detection walks the bind graph through these
-   references with no lookups; the only id-keyed structure left is the
-   global registry (`@/runtime/registry`, id → live element), whose purpose
-   IS lookup from outside the DOM — it adopts a parsed tree by walking
-   `scChildren` from the root. Anything *persisted* (presets, layout) stays
-   id/path-based; references are in-memory runtime only.
+   `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
+   `children` is taken), `_targetScNode` on inputs, `targets:
+   Record<path, ScState>` on state. Cycle detection walks the bind graph
+   through these references with no lookups; the only id-keyed structure
+   left is the global registry (`@/runtime/registry`, id → live element),
+   whose purpose IS lookup from outside the DOM — it adopts a parsed tree
+   by walking `_scChildren` from the root. Anything *persisted* (presets,
+   layout) stays id/path-based; references are in-memory runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`; enabled state resolves into its live `value` prop,
    while disabled graph inputs keep `value` as the plain attribute mirror
    (the synthdef collection depends on telling a missing attribute apart).
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
-   one shared object per sibling scope; it assigns a fresh id where none
-   exists, runs `validate()`, then `resolveRuntime()` (which recurses via
-   `processChildren` where the element parses children). The scope invariant
-   everything rests on: a parent puts ALL its DOM-derived children into the
-   level scope and checks duplicate names BEFORE any child processes, so
-   forward references resolve against unprocessed siblings on demand, with
-   inner-scope shadowing.
-7. **Two validation gates** keep all of this honest: `yarn test` (the
+   one shared object per sibling scope; it attaches the element to its
+   parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
+   (which recurses via `processChildren` where the element parses
+   children). A parent hydrates (assigns ids to) ALL its children into the
+   level scope and checks duplicate names BEFORE any child processes, with
+   inner-scope shadowing on name lookups.
+7. **Bind-order constraint: bind targets must be declared BEFORE their
+   references in DOM order.** Elements that have not yet been processed
+   cannot be referenced — we plan to process the elements strictly in DOM
+   order. (Today `resolveNode` still resolves a forward reference by
+   processing the named sibling on demand — `forward-ref-plugin` and
+   `bad-circular-bind` exercise it — but new plugins must NOT rely on this;
+   those examples get reordered/retired when strict DOM-order processing
+   lands.) Consequence for `checkCircularBind`: it exists exactly because
+   on-demand resolution makes mutual cycles reachable. Under strict
+   DOM-order processing, references point strictly backward, the bind graph
+   is a DAG by construction, and the walk reduces to a one-line
+   self-reference guard (`target === el` — an element can still name itself
+   through its mid-processing parent) — drop it then, not before.
+8. **Two validation gates** keep all of this honest: `yarn test` (the
    examples through the engine in happy-dom, exact error messages pinned)
    and the CDP harness (upload/XSD path + real browser) — see "Validating
    example plugins" below.
@@ -239,7 +249,7 @@ further `sc-*` element:
    `internal/sc-state`: name/value/bind + targets/expression + the shared
    validation; `internal/sc-input`: bind + `_targetScNode`); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus path/enabled, with `scChildren` derived from the DOM, named so because
+   plus path/enabled and `_scChildren` for parents, named so because DOM
    `children` is taken) is on `ScElement`. The mixin contracts
    (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
    `src/types/runtime.d.ts` as `resolveRuntime` return types, next to the

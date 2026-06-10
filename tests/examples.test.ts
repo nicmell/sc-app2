@@ -130,11 +130,11 @@ describe("example-plugin structure", () => {
     expect(host._parentScNode).toBeUndefined();
     expect(host.enabled).toBe(true);
     expect(host.run).toBe(true);
-    expect(host.scChildren!.length).toBeGreaterThan(0);
+    expect(host._scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
       if (el !== host) {
-        expect(el._parentScNode?.scChildren).toContain(el);
+        expect(el._parentScNode?._scChildren).toContain(el);
       }
     }
   });

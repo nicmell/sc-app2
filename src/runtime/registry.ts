@@ -11,11 +11,11 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 const nodes = new Map<string, ScElement>();
 
 /** Adopt a processed plugin tree — the root and every parsed descendant
- *  (via `scChildren`) a successful root `process()` run produced. */
+ *  (via `_scChildren`) a successful root `process()` run produced. */
 export function registerAll(root: ScElement): void {
   const add = (el: ScElement): void => {
     nodes.set(el.id, el);
-    el.scChildren?.forEach(add);
+    el._scChildren?.forEach(add);
   };
   add(root);
 }
@@ -36,7 +36,7 @@ export function unregisterTree(rootId: string): void {
   if (!root) return;
   const drop = (el: ScElement): void => {
     nodes.delete(el.id);
-    el.scChildren?.forEach(drop);
+    el._scChildren?.forEach(drop);
   };
   drop(root);
 }

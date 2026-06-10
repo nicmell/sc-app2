@@ -9,7 +9,7 @@ attribute rules), and **the element IS the runtime**: `resolveRuntime()`
 resolves the runtime values and `process()` assigns them onto the component
 itself (declared as plain fields on the `internal/` bases — `_rootScNode`/
 `_parentScNode` (live element references, not ids) + `path`/`enabled` +
-`scChildren` derived from the DOM on `ScElement`, the category values on
+`_scChildren` for parents on `ScElement`, the category values on
 `ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
 maps ids straight to the live components.
 
@@ -20,7 +20,7 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (light-DOM root, the parse engine — process/
+internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
             processChildren — and the common runtime fields); validation.ts
             (the require*/failValidation primitives + the bind-resolution
             machinery, as plain functions over the elements); the category

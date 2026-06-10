@@ -50,9 +50,6 @@ export class ScPlugin extends LitElement {
       const tree = hydrate({ id: boxId, type: ELEMENTS.SC_PLUGIN }, this);
       processHtml({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
       registerAll(nodes);
-      for (const node of nodes) {
-        console.log(node)
-      }
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.
       this.groupNodeId = oscClient.nextNodeId();

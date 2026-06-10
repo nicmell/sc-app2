@@ -26,6 +26,7 @@ export class ScScope extends ScElement<ScScopeItem> {
   }
 
   firstUpdated(): void {
+    super.firstUpdated();
     this.canvas = this.querySelector("canvas");
     this.ctx = this.canvas?.getContext("2d") ?? null;
     const css = getComputedStyle(this);

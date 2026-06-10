@@ -18,4 +18,22 @@ export abstract class ScElement<T extends ScElementItem = ScElementItem> extends
   get item(): T | null {
     return (getById(this.id) as T | undefined) ?? null;
   }
+
+  // TEST: the registry item's `_element` must be THIS mounted component
+  // instance — i.e. the runtime registry gives access to the live web
+  // component (and its methods) from outside the DOM. Deferred one task: the
+  // first render races processHtml/registerAll in the same microtask queue.
+  protected firstUpdated(): void {
+    setTimeout(() => {
+      const item = this.item;
+      const el = item?._element;
+      console.log(
+        `[sc-element test] <${this.tagName.toLowerCase()} id="${this.id}">`,
+        `registry._element === this: ${el === this}`,
+        "| ctor:", el?.constructor.name ?? "(no item)",
+        "| proto methods:", el ? Object.getOwnPropertyNames(Object.getPrototypeOf(el)) : null,
+        "| _element:", el,
+      );
+    }, 0);
+  }
 }

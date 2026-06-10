@@ -5,18 +5,10 @@
 // so the base is "" and relative URLs work. Inside the Tauri webview the origin
 // is `tauri://localhost`, not the HTTP server, so the Rust side injects
 // `window.HTTP_BASE_URL = "http://127.0.0.1:<port>"` via an initialization
-// script before any frontend code runs (see src-tauri lib.rs run_gui).
+// script before any frontend code runs (see src-tauri lib.rs run_gui and
+// @/constants/env, which reads it).
 
-declare global {
-  interface Window {
-    /** Injected by the Tauri webview's initialization script; absent in a browser. */
-    HTTP_BASE_URL?: string;
-  }
-}
-
-/** The HTTP base every request targets: `http://127.0.0.1:<port>` in Tauri,
- *  `""` (same-origin / Vite-proxied relative URLs) in a browser. */
-export const HTTP_BASE_URL: string = window.HTTP_BASE_URL ?? "";
+import { HTTP_BASE_URL } from "@/constants/env";
 
 /** A `ws(s)://…` URL for a server path (e.g. `/ws?session=<id>`), derived from
  *  HTTP_BASE_URL (Tauri) or the page origin (browser). */

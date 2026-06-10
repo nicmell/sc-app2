@@ -1,14 +1,11 @@
 // Installed-plugin registry, mirrored from the Rust router. A slice of the
 // single app store (`store.ts`).
+import { SliceName } from "@/constants/store";
+import { addPlugin, listPlugins, removePlugin } from "@/lib/plugins/PluginManager";
 import { appStore } from "./store";
-import {
-  addPlugin,
-  listPlugins,
-  removePlugin,
-  type PluginInfo,
-} from "@/lib/plugins/PluginManager";
+import type { PluginInfo } from "@/types/api";
 
-const store = appStore.slice("plugins");
+const store = appStore.slice(SliceName.PLUGINS);
 
 export const plugins = store;
 

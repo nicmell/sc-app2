@@ -6,20 +6,7 @@
 // runtime/bind pipeline).
 
 import { get, post, del } from "@/lib/http";
-
-export interface PluginAsset {
-  path: string;
-  type: string;
-}
-
-export interface PluginInfo {
-  id: string;
-  name: string;
-  author: string;
-  version: string;
-  entry: string;
-  assets: PluginAsset[];
-}
+import type { PluginInfo } from "@/types/api";
 
 const PLUGINS_BASE = "/api/plugins";
 

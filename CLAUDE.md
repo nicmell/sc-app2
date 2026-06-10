@@ -51,9 +51,15 @@ components/              React shell: Dashboard grid, plugin picker/list, toasts
 sc-elements/             Lit elements used inside plugin HTML (sc-strudel, sc-scope, sc-console)
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, layout, plugins }) — the ONLY store.
-                         Imports from slice modules must be type-only (a value import
-                         creates a runtime cycle with the module-level singletons).
+                         Cross-module shapes come from @/types (type-only by
+                         construction), so no runtime cycle with the singletons.
   layout.ts / plugins.ts / session.ts / useStore.ts
+types/                   .d.ts domain shapes (old sc-app convention):
+                         stores.d.ts (app state), api.d.ts (HTTP payloads),
+                         osc.d.ts (transport), sc-elements.d.ts (JSX tags)
+constants/               per-domain constants (as-const maps + defaults):
+                         env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
+                         session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
 lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)

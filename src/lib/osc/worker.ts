@@ -3,7 +3,7 @@
 // thread. A dumb byte relay: open/send/close in, open/message/error/close out.
 // No osc-js here — encode/decode live in the OscClient's plugin notify path.
 
-import type { PluginToWorker, WorkerToPlugin } from "./protocol";
+import type { PluginToWorker, WorkerToPlugin } from "@/types/osc";
 
 let ws: WebSocket | null = null;
 

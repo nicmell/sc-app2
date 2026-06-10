@@ -8,7 +8,7 @@ import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
 import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
-import type { ConnStatus } from "@/lib/session/SessionManager";
+import type { ConnStatus } from "@/types/stores";
 import { session } from "@/stores/session";
 
 const SAFETY_LOOKAHEAD_MS = 200;

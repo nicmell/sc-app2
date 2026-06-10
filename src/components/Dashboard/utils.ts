@@ -5,11 +5,11 @@
 // "add a panel here" target. `toPixelStyle` maps grid units → absolute pixels for
 // the overlay, matching react-grid-layout's own column/row math (margin-aware).
 import type { LayoutItem } from "react-grid-layout";
-import type { BoxItem } from "@/stores/layout";
+import type { BoxItem } from "@/types/stores";
+
+import { MARGIN } from "@/constants/layout";
 
 const PLACEHOLDER_PREFIX = "__placeholder";
-
-export const MARGIN: [number, number] = [10, 10];
 
 function findMaxRect(grid: number[][], rows: number, cols: number) {
   let bestArea = 0;

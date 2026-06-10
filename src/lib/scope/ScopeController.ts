@@ -23,16 +23,14 @@ import {
   scopeUnsubscribe,
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
+import {
+  SCOPE_CHANNELS,
+  SCOPE_CHUNK_SIZE,
+  SCOPE_INPUT_BUS,
+  SCOPE_SUB_ID,
+} from "@/constants/osc";
 import type { OscClient } from "@/lib/osc/OscClient";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
-
-/** SuperDirt sums all orbits to the stereo master out (bus 0/1). */
-const INPUT_BUS = 0;
-const CHANNELS = 2;
-/** Frames per scope slot = one chunk (~21 ms at 48 kHz). */
-const CHUNK_SIZE = 1024;
-/** Fixed subscription id (one subscription per WS connection). */
-const SUB_ID = 1;
 
 export class ScopeController {
   /** Latest decoded chunk; ScopeView reads this in its RAF loop. */
@@ -58,8 +56,8 @@ export class ScopeController {
     if (this.started || this.disposed) return;
     this.started = true;
 
-    const name = scopeTapSynthDefName(CHANNELS, CHUNK_SIZE);
-    const tapBytes = compileScopeTapSynthDef(CHANNELS, CHUNK_SIZE);
+    const name = scopeTapSynthDefName(SCOPE_CHANNELS, SCOPE_CHUNK_SIZE);
+    const tapBytes = compileScopeTapSynthDef(SCOPE_CHANNELS, SCOPE_CHUNK_SIZE);
     // The session group is brand-new on every connect (sessions die with their
     // WebSocket), so there is never a stale tap to clear.
     const nodeId = this.client.nextNodeId();
@@ -68,7 +66,7 @@ export class ScopeController {
     // /d_recv the tap def; its completion message /s_new's the tap at the tail
     // of this session's group so it reads the post-mix master out.
     const sNewMsg = sNew(name, nodeId, AddToTail, this.groupId, {
-      inBus: INPUT_BUS,
+      inBus: SCOPE_INPUT_BUS,
       scopeNum: this.scopeIndex,
     });
     this.client.send(dRecv(tapBytes, encode(sNewMsg)));
@@ -83,11 +81,11 @@ export class ScopeController {
         console.error("[scope] bad /scope/chunk:", err);
         return;
       }
-      if (chunk.subId !== SUB_ID) return;
+      if (chunk.subId !== SCOPE_SUB_ID) return;
       this.chunkRef.current = chunk;
     });
     this.client.send(
-      scopeSubscribe({ subId: SUB_ID, scope: this.scopeIndex, channels: CHANNELS, chunkSize: CHUNK_SIZE }),
+      scopeSubscribe({ subId: SCOPE_SUB_ID, scope: this.scopeIndex, channels: SCOPE_CHANNELS, chunkSize: SCOPE_CHUNK_SIZE }),
     );
   }
 
@@ -98,7 +96,7 @@ export class ScopeController {
     this.chunkSubId = null;
     this.chunkRef.current = null;
     // Stop bridge polling, then free the tap synth.
-    this.client.send(scopeUnsubscribe(SUB_ID));
+    this.client.send(scopeUnsubscribe(SCOPE_SUB_ID));
     if (this.tapNodeId !== null) this.client.send(nFree(this.tapNodeId));
   }
 }

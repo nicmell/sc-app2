@@ -9,7 +9,7 @@
 // plugins), and at boot a stored id is revived via GET — falling back to
 // minting a fresh session when that fails.
 //
-// State lives in the single app store (`src/state/store.ts`) under its `session`
+// State lives in the single app store (`@/stores/store.ts`) under its `session`
 // slice; the public `status`/`log`/`scsynthStatus`/`scsynthErrors` are `select`
 // views off that slice, so each notifies independently and the React hooks read
 // them via useSyncExternalStore.
@@ -21,82 +21,23 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
+import { OSC_REPLIES } from "@/constants/osc";
+import { SliceName } from "@/constants/store";
+import {
+  CREATE_SESSION_RETRIES,
+  CREATE_SESSION_RETRY_MS,
+  LAYOUT_SAVE_INTERVAL_MS,
+  MAX_ERRORS,
+  MAX_LOG,
+  SESSION_KEY,
+} from "@/constants/session";
 import { get, post, put, wsUrl, HttpError } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { ScopeController } from "@/lib/scope/ScopeController";
-import { layout, setLayout, type BoxItem } from "@/stores/layout";
+import { layout, setLayout } from "@/stores/layout";
 import { appStore } from "@/stores/store";
-
-/** What the session endpoints return: the server-assigned session identity +
- *  node-id allocation + scope buffer + the scsynth address for the footer,
- *  plus (on GET) the saved dashboard layout. */
-interface SessionInfo {
-  sessionId: string;
-  /** scsynth group this session's synths must live under — allocated by the
-   *  server, created by the OscClient once the WS is open. */
-  sessionGroupId: number;
-  /** First node id the frontend may allocate for this session. */
-  nodeIdBase: number;
-  /** How many node ids the frontend may allocate. */
-  nodeIdCount: number;
-  /** scsynth scope-buffer index this session's master-out tap uses. */
-  scopeIndex: number;
-  /** The scsynth `host:port` the bridge talks to (shown in the footer). */
-  scsynthAddress: string | null;
-  /** The saved dashboard layout, if this session has one on the server. */
-  layout: BoxItem[] | null;
-}
-
-export type ConnStatus = "connecting" | "connected" | "error";
-
-/** One decoded OSC message for the console. */
-export interface OscLogEntry {
-  ts: number; // client wall-clock ms
-  dir: "tx" | "rx"; // tx = we sent it, rx = we received it
-  address: string;
-  args: string[];
-}
-
-/** A log entry plus a stable React key. */
-export type LoggedEntry = OscLogEntry & { id: number };
-
-/** scsynth's live load, parsed from its `/status.reply` heartbeat — what the
- *  footer reports. The Rust bridge polls `/status` and fans the reply out to us. */
-export interface ScsynthStatus {
-  avgCpu: number;
-  peakCpu: number;
-  sampleRate: number;
-}
-
-/** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
- *  surfaced to the user as a toast banner. Repeated identical failures coalesce
- *  into one entry with a bumped `count`. */
-export interface ScsynthError {
-  id: number;
-  /** The failed command address (e.g. `/s_new`) — empty for `/late`. */
-  address: string;
-  message: string;
-  variant: "error" | "warn";
-  count: number;
-  ts: number;
-}
-
-/** The session slice of the app store (its initial value lives in
- *  `src/state/store.ts`, which only type-imports from here). */
-export interface SessionState {
-  status: ConnStatus;
-  log: LoggedEntry[];
-  scsynthStatus: ScsynthStatus | null;
-  errors: ScsynthError[];
-  /** The scsynth `host:port` the bridge talks to (from the session response). */
-  scsynthAddress: string | null;
-}
-
-/** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
-const STATUS_REPLY = "/status.reply";
-
-/** Max coalesced error banners kept (oldest dropped). */
-const MAX_ERRORS = 20;
+import type { SessionInfo } from "@/types/api";
+import type { BoxItem, ConnStatus, ScsynthStatus } from "@/types/stores";
 
 /** Parse a `/status.reply`'s args. Layout (scsynth):
  *  `[1, ugens, synths, groups, defs, avgCpu, peakCpu, srNominal, srActual]`. */
@@ -108,21 +49,15 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
   };
 }
 
-/** Where the session id survives across app runs (shared by every tab). */
-const SESSION_KEY = "sc.session";
-
-/** How often the dashboard layout is saved to the backend (when changed). */
-const LAYOUT_SAVE_INTERVAL_MS = 10_000;
-
 /** Mint a fresh session. The server allocates the group id + node range; it
  *  can briefly return 503 if scsynth hasn't finished registering, so retry. */
 async function createSession(): Promise<SessionInfo> {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < CREATE_SESSION_RETRIES; attempt++) {
     try {
       return await (await post("/api/session")).json();
     } catch (err) {
       if (!(err instanceof HttpError) || err.status !== 503) throw err;
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, CREATE_SESSION_RETRY_MS));
     }
   }
   throw new Error("POST /api/session → 503 (scsynth not registered)");
@@ -138,12 +73,9 @@ async function fetchSession(id: string): Promise<SessionInfo | null> {
   }
 }
 
-/** Max OSC-log entries kept in memory (oldest dropped). */
-export const MAX_LOG = 300;
-
 export class SessionManager {
   /** This session's slice of the single app store. */
-  private readonly state = appStore.slice("session");
+  private readonly state = appStore.slice(SliceName.SESSION);
   readonly status = this.state.select((s) => s.status);
   readonly log = this.state.select((s) => s.log);
   readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
@@ -282,7 +214,7 @@ export class SessionManager {
    *  logged as `rx`. */
   private handleReply(reply: OSC.Message): void {
     if (reply.address === SCOPE_CHUNK_ADDRESS) return;
-    if (reply.address === STATUS_REPLY) {
+    if (reply.address === OSC_REPLIES.STATUS) {
       const next = parseStatus(reply.args as ReadonlyArray<OscArg>);
       this.state.update((s) => ({ ...s, scsynthStatus: next }));
       return;
@@ -291,12 +223,12 @@ export class SessionManager {
     // the browser console so every failure is visible there, and also raise a
     // toast banner. Either way they still fall through to the OSC console as
     // the full history.
-    if (reply.address === "/fail") {
+    if (reply.address === OSC_REPLIES.FAIL) {
       const command = String(reply.args[0] ?? "?");
       const message = String(reply.args[1] ?? "(no message)");
       console.error(`[scsynth] ${command}: ${message}`);
       this.pushError(command, message, "error");
-    } else if (reply.address === "/late") {
+    } else if (reply.address === OSC_REPLIES.LATE) {
       const seconds = Number(reply.args[0]) || 0;
       const message = `bundle ran ${seconds.toFixed(3)}s late`;
       console.warn(`[scsynth] /late: ${message}`);
@@ -330,5 +262,5 @@ export class SessionManager {
 /** The one session for the whole app. It's a module singleton (not
  *  React-context-scoped) so the Lit `sc-*` elements — which live in injected
  *  plugin HTML, outside React's tree — can reach it directly; the React shell
- *  reads it through the hooks in `src/state/session.ts`. */
+ *  reads it through the hooks in `@/stores/session.ts`. */
 export const session = new SessionManager();

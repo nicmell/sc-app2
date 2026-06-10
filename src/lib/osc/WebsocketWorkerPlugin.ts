@@ -5,7 +5,7 @@
 // osc-js does all OSC decode/dispatch from there.
 
 import OSC from "osc-js";
-import type { PluginToWorker, WorkerToPlugin } from "./protocol";
+import type { PluginToWorker, WorkerToPlugin } from "@/types/osc";
 
 /** What `open()` needs: the WebSocket URL of the OSC bridge. */
 export interface WebsocketWorkerPluginOptions {

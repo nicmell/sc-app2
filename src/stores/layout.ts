@@ -2,19 +2,11 @@
 // of the single app store (`store.ts`); the SessionManager restores it from the
 // backend's saved session at boot and periodically saves it back.
 
+import { SliceName } from "@/constants/store";
 import { appStore } from "./store";
+import type { BoxItem } from "@/types/stores";
 
-/** A grid cell: react-grid-layout geometry + the assigned plugin id. */
-export interface BoxItem {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  plugin?: string;
-}
-
-const store = appStore.slice("layout");
+const store = appStore.slice(SliceName.LAYOUT);
 
 export const layout = store;
 

@@ -1,15 +1,14 @@
-// React bindings for the session singleton (src/session/SessionManager.ts):
+// React bindings for the session singleton (@/lib/session/SessionManager):
 // useSyncExternalStore hooks over its reactive views. The singleton itself is
 // re-exported so existing imports (the `sc-*` Lit elements, ToastStack) keep
-// working.
+// working; the domain types live in @/types/stores.
 
 import { useSyncExternalStore } from "react";
 import { session } from "@/lib/session/SessionManager";
-import type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "@/lib/session/SessionManager";
+import type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "@/types/stores";
 
-// Re-export the singleton + controller types so existing app imports keep working.
+// Re-export the singleton so existing app imports keep working.
 export { session } from "@/lib/session/SessionManager";
-export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "@/lib/session/SessionManager";
 
 /** Subscribe a React component to the connection status. */
 export function useStatus(): ConnStatus {

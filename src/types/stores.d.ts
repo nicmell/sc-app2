@@ -1,0 +1,70 @@
+// The app-store domain shapes, gathered here (old sc-app convention) so the
+// store and its slice modules only ever exchange types — `.d.ts` modules can't
+// carry runtime values, which makes the "no runtime imports into store.ts"
+// invariant structural.
+
+import type { PluginInfo } from "@/types/api";
+
+/** A grid cell: react-grid-layout geometry + the assigned plugin id. */
+export interface BoxItem {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  plugin?: string;
+}
+
+export type ConnStatus = "connecting" | "connected" | "error";
+
+/** One decoded OSC message for the console. */
+export interface OscLogEntry {
+  ts: number; // client wall-clock ms
+  dir: "tx" | "rx"; // tx = we sent it, rx = we received it
+  address: string;
+  args: string[];
+}
+
+/** A log entry plus a stable React key. */
+export type LoggedEntry = OscLogEntry & { id: number };
+
+/** scsynth's live load, parsed from its `/status.reply` heartbeat — what the
+ *  footer reports. The Rust bridge polls `/status` and fans the reply out to us. */
+export interface ScsynthStatus {
+  avgCpu: number;
+  peakCpu: number;
+  sampleRate: number;
+}
+
+/** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
+ *  surfaced to the user as a toast banner. Repeated identical failures coalesce
+ *  into one entry with a bumped `count`. */
+export interface ScsynthError {
+  id: number;
+  /** The failed command address (e.g. `/s_new`) — empty for `/late`. */
+  address: string;
+  message: string;
+  variant: "error" | "warn";
+  count: number;
+  ts: number;
+}
+
+/** The session slice of the app store. */
+export interface SessionState {
+  status: ConnStatus;
+  log: LoggedEntry[];
+  scsynthStatus: ScsynthStatus | null;
+  errors: ScsynthError[];
+  /** The scsynth `host:port` the bridge talks to (from the session response). */
+  scsynthAddress: string | null;
+}
+
+/** The single app store's root state — one slice per domain. */
+export interface AppState {
+  session: SessionState;
+  /** Dashboard grid placement. Restored from / periodically saved to the
+   *  backend's saved-session storage by the SessionManager. */
+  layout: BoxItem[];
+  /** Installed-plugin registry, mirrored from the Rust router. */
+  plugins: PluginInfo[];
+}

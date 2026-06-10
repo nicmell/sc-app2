@@ -11,10 +11,12 @@ import { GridLayout, noCompactor, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useStore } from "@/stores/useStore";
-import { layout, setLayout, addBox, removeBox, setBoxPlugin, randomId, type BoxItem } from "@/stores/layout";
+import { layout, setLayout, addBox, removeBox, setBoxPlugin, randomId } from "@/stores/layout";
+import type { BoxItem } from "@/types/stores";
 import { plugins } from "@/stores/plugins";
-import type { PluginInfo } from "@/lib/plugins/PluginManager";
-import { computePlaceholders, isPlaceholder, MARGIN } from "./utils";
+import type { PluginInfo } from "@/types/api";
+import { MARGIN, NUM_COLUMNS, NUM_ROWS } from "@/constants/layout";
+import { computePlaceholders, isPlaceholder } from "./utils";
 import { DashboardPanel } from "./DashboardPanel";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardFooter } from "./DashboardFooter";
@@ -25,8 +27,6 @@ import "./Dashboard.css";
 
 const HEADER_HEIGHT = 42;
 const FOOTER_HEIGHT = 42;
-const NUM_ROWS = 8;
-const NUM_COLUMNS = 12;
 
 function subscribeToResize(cb: () => void) {
   window.addEventListener("resize", cb);

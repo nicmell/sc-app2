@@ -15,16 +15,7 @@
 import OSC from "osc-js";
 import { AddToTail, gNewOne, type OscPacket } from "@sc-app/server-commands";
 import { WebsocketWorkerPlugin } from "./WebsocketWorkerPlugin";
-
-/** A session's scsynth allocation, as returned by `POST /api/session`. */
-export interface OscSession {
-  /** The session's group — created by `connect` at the tail of scsynth's root group. */
-  sessionGroupId: number;
-  /** First node id this session may allocate. */
-  nodeIdBase: number;
-  /** How many node ids this session may allocate. */
-  nodeIdCount: number;
-}
+import type { OscSession } from "@/types/osc";
 
 export class OscClient {
   private readonly osc = new OSC({ plugin: new WebsocketWorkerPlugin() });

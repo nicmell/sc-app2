@@ -1,11 +1,12 @@
 import type { ELEMENTS } from "@/constants/sc-elements";
 
-// The plugin element-tree type system. Items carry only what the parser and
-// runtime processor infer — identity (`id`), structure (`children`),
-// the processor-attached `runtime`, and `_element`: the mounted web component
-// itself. The HTML attributes live as reactive properties ON the component
-// (typed here as the per-element `Props` interfaces the components implement),
-// so nothing is duplicated into the items: read them through `_element`.
+// The plugin element-tree type system. Runtime items carry only what the
+// parser and runtime processor infer — identity (`id`), structure
+// (`children`), the processor-resolved runtime values (merged directly into
+// the item), and `_element`: the mounted web component itself. The HTML
+// attributes live as reactive properties ON the component (typed here as the
+// per-element `Props` interfaces the components implement), so nothing is
+// duplicated into the items: read them through `_element`.
 
 // ── Bind expressions (lib/utils/expression) ──────────────────────────────
 
@@ -15,7 +16,7 @@ export type Expr =
   | { type: "unary"; op: "-"; expr: Expr }
   | { type: "binary"; op: "+" | "-" | "*" | "/"; left: Expr; right: Expr };
 
-// ── Runtime types ─────────────────────────────────────────────────────────
+// ── Runtime value mixins (what the handlers resolve per element) ──────────
 
 export interface BaseRuntime {
   rootId: string;
@@ -153,155 +154,131 @@ export interface ScCheckboxProps {
   bind: string;
 }
 
-// ── Items ─────────────────────────────────────────────────────────────────
+// ── Runtime items ─────────────────────────────────────────────────────────
 //
-// There is no `type` field: the discriminant IS the element's tag —
-// `typeOf(item)` (lib/utils/guards) derives it from `_element.tagName`.
+// Each item IS its runtime: identity + `_element` + the matching runtime
+// mixin, merged flat (no nested `runtime` object). There is no `type` field:
+// the discriminant IS the element's tag — `typeOf(item)` (lib/utils/guards)
+// derives it from `_element.tagName`. `hydrate` produces the bare
+// ScElementRuntimeBase shape; `processElement` merges the resolved runtime
+// values into it.
 
-export interface ScElementItemBase {
+export interface ScElementRuntimeBase {
   id: string;
   /** The mounted web component this item was hydrated from — its reactive
    *  properties ARE the element's HTML attributes. */
   _element: Element;
 }
 
-export interface ScPluginItem extends ScElementItemBase {
+export interface ScPluginRuntime extends ScElementRuntimeBase, NodeRuntime {
   _element: Element & ScPluginProps;
-  children: ScElementItem[];
-  runtime: NodeRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScSynthDefItem extends ScElementItemBase {
+export interface ScSynthDefRuntime extends ScElementRuntimeBase, SynthDefRuntime {
   _element: Element & ScSynthDefProps;
-  children: ScElementItem[];
-  runtime: SynthDefRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScUgenItem extends ScElementItemBase {
+export interface ScUgenRuntime extends ScElementRuntimeBase, UgenRuntime {
   _element: Element & ScUgenProps;
-  children: ScElementItem[];
-  runtime: UgenRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScControlItem extends ScElementItemBase {
+export interface ScControlRuntime extends ScElementRuntimeBase, ControlRuntime {
   _element: Element & ScControlProps;
-  runtime: ControlRuntime;
 }
 
-export interface ScSynthItem extends ScElementItemBase {
+export interface ScSynthRuntime extends ScElementRuntimeBase, NodeRuntime {
   _element: Element & ScSynthProps;
-  children: ScElementItem[];
-  runtime: NodeRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScRangeItem extends ScElementItemBase {
+export interface ScRangeRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScRangeProps;
-  runtime: InputRuntime;
 }
 
-export interface ScGroupItem extends ScElementItemBase {
+export interface ScGroupRuntime extends ScElementRuntimeBase, NodeRuntime {
   _element: Element & ScGroupProps;
-  children: ScElementItem[];
-  runtime: NodeRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScVarItem extends ScElementItemBase {
+export interface ScVarRuntime extends ScElementRuntimeBase, VarRuntime {
   _element: Element & ScVarProps;
-  runtime: VarRuntime;
 }
 
-export interface ScRunItem extends ScElementItemBase {
+export interface ScRunRuntime extends ScElementRuntimeBase, RunRuntime {
   _element: Element & ScRunProps;
-  runtime: RunRuntime;
 }
 
-export interface ScDisplayItem extends ScElementItemBase {
+export interface ScDisplayRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScDisplayProps;
-  runtime: InputRuntime;
 }
 
-export interface ScIfItem extends ScElementItemBase {
+export interface ScIfRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScIfProps;
-  children: ScElementItem[];
-  runtime: InputRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScSelectItem extends ScElementItemBase {
+export interface ScSelectRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScSelectProps;
-  children: ScElementItem[];
-  runtime: InputRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScOptionItem extends ScElementItemBase {
+export interface ScOptionRuntime extends ScElementRuntimeBase, UgenRuntime {
   _element: Element & ScOptionProps;
-  runtime: UgenRuntime;
 }
 
-export interface ScRadioGroupItem extends ScElementItemBase {
+export interface ScRadioGroupRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScRadioGroupProps;
-  children: ScElementItem[];
-  runtime: InputRuntime;
+  children: ScElementRuntime[];
 }
 
-export interface ScRadioItem extends ScElementItemBase {
+export interface ScRadioRuntime extends ScElementRuntimeBase, UgenRuntime {
   _element: Element & ScRadioProps;
-  runtime: UgenRuntime;
 }
 
-export interface ScCheckboxItem extends ScElementItemBase {
+export interface ScCheckboxRuntime extends ScElementRuntimeBase, InputRuntime {
   _element: Element & ScCheckboxProps;
-  runtime: InputRuntime;
 }
 
 // Attribute-less leaves.
-export interface ScConsoleItem extends ScElementItemBase {
-  runtime: BaseRuntime;
-}
+export interface ScConsoleRuntime extends ScElementRuntimeBase, BaseRuntime {}
 
-export interface ScScopeItem extends ScElementItemBase {
-  runtime: BaseRuntime;
-}
+export interface ScScopeRuntime extends ScElementRuntimeBase, BaseRuntime {}
 
-export interface ScStrudelItem extends ScElementItemBase {
-  runtime: BaseRuntime;
-}
+export interface ScStrudelRuntime extends ScElementRuntimeBase, BaseRuntime {}
 
-export type ScElementItem =
-  | ScPluginItem
-  | ScGroupItem
-  | ScSynthDefItem
-  | ScUgenItem
-  | ScControlItem
-  | ScVarItem
-  | ScSynthItem
-  | ScRangeItem
-  | ScCheckboxItem
-  | ScRunItem
-  | ScDisplayItem
-  | ScIfItem
-  | ScSelectItem
-  | ScOptionItem
-  | ScRadioGroupItem
-  | ScRadioItem
-  | ScConsoleItem
-  | ScScopeItem
-  | ScStrudelItem;
+export type ScElementRuntime =
+  | ScPluginRuntime
+  | ScGroupRuntime
+  | ScSynthDefRuntime
+  | ScUgenRuntime
+  | ScControlRuntime
+  | ScVarRuntime
+  | ScSynthRuntime
+  | ScRangeRuntime
+  | ScCheckboxRuntime
+  | ScRunRuntime
+  | ScDisplayRuntime
+  | ScIfRuntime
+  | ScSelectRuntime
+  | ScOptionRuntime
+  | ScRadioGroupRuntime
+  | ScRadioRuntime
+  | ScConsoleRuntime
+  | ScScopeRuntime
+  | ScStrudelRuntime;
 
 /** Items that parse their children (the rest are leaves). */
-export type ScParentItem =
-  | ScPluginItem
-  | ScGroupItem
-  | ScSynthDefItem
-  | ScUgenItem
-  | ScSynthItem
-  | ScIfItem
-  | ScSelectItem
-  | ScRadioGroupItem;
+export type ScParentRuntime =
+  | ScPluginRuntime
+  | ScGroupRuntime
+  | ScSynthDefRuntime
+  | ScUgenRuntime
+  | ScSynthRuntime
+  | ScIfRuntime
+  | ScSelectRuntime
+  | ScRadioGroupRuntime;
 
 export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
-
-/** An item before the runtime processor has attached its `runtime` (and,
- *  recursively, its children's) — what the HTML hydration step produces. */
-export type StripRuntime<T> = Omit<T, "runtime" | "children"> & {
-  children?: ScElementItemBase[];
-};

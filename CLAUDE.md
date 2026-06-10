@@ -56,7 +56,7 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          radio/run), visuals/ (display/if), widgets/ (strudel/
                          scope/console). index.ts is the barrel +
                          registerScElements()
-runtime/                 the global parsed-element registry (id → ScElementItem),
+runtime/                 the global parsed-element registry (id → ScElementRuntime),
                          deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, layout, plugins }) — the ONLY store.
@@ -173,18 +173,21 @@ every further `sc-*` element:
    `failValidation`). `hydrate` calls it during parse and a violation fails
    the whole plugin. This is the *real* gate — fastxml does not enforce XSD
    attribute requirements at upload.
-4. **Item type** (`src/types/parsers.d.ts`): only what the parser/runtime
-   infers — `{ id, _element: Element & ScXProps, children?, runtime }`
-   (children for parents only) plus a `ScXProps` interface for the reactive
-   properties. Never copy attributes into items — and there is **no `type`
-   field either**: the discriminant is the element's tag itself, derived via
-   `typeOf(item)` (`lib/utils/guards`, `_element.tagName`); the guards narrow
-   by tag with plain cast predicates, and `processElement` dispatches on
-   `typeOf`.
+4. **Runtime type** (`src/types/parsers.d.ts`): a `ScXRuntime` interface
+   extending `ScElementRuntimeBase` + the matching runtime mixin
+   (`NodeRuntime`/`ControlRuntime`/`InputRuntime`/…) — the item IS its
+   runtime: `{ id, _element: Element & ScXProps, children?, ...runtime
+   values }` merged flat, no nested `runtime` object (children for parents
+   only), plus a `ScXProps` interface for the reactive properties. Never
+   copy attributes into items — and there is **no `type` field either**: the
+   discriminant is the element's tag itself, derived via `typeOf(item)`
+   (`lib/utils/guards`, `_element.tagName`); the guards narrow by tag with
+   plain cast predicates, and `processElement` dispatches on `typeOf`.
 5. **Runtime**: a handler in `src/runtime/handlers.ts` (`processElement`
    switch) that resolves binds via the shared machinery and returns the
-   runtime object, reading attributes through `item._element`; extend
-   `lib/utils/guards.ts` if the element joins a category (state/node/parent).
+   runtime values (`processElement` merges them into the item), reading
+   attributes through `item._element`; extend `lib/utils/guards.ts` if the
+   element joins a category (state/node/parent).
 6. `item._element` IS the mounted component (strict-equality verified by the
    ScElement firstUpdated test), so the registry exposes the live element —
    props and methods — from outside the DOM.

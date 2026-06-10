@@ -15,7 +15,7 @@ import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import { runAttribute } from "@/sc-elements/internal/sc-element";
 import type { PluginInfo } from "@/types/api";
-import type { ScElementItem, ScPluginProps, ScSynthDefItem } from "@/types/parsers";
+import type { ScElementRuntime, ScPluginProps, ScSynthDefRuntime } from "@/types/parsers";
 
 export class ScPlugin extends LitElement implements ScPluginProps {
   static properties = {
@@ -48,8 +48,8 @@ export class ScPlugin extends LitElement implements ScPluginProps {
       // Hydrate + process the tree (the old loadPlugin flow): the per-parse
       // nodes map is adopted by the global registry only on success.
       const boxId = this.id || randomId();
-      const synthdefs: ScSynthDefItem[] = [];
-      const nodes = new Map<string, ScElementItem>();
+      const synthdefs: ScSynthDefRuntime[] = [];
+      const nodes = new Map<string, ScElementRuntime>();
       const tree = hydrate(boxId, this);
       processHtml({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
       registerAll(nodes);

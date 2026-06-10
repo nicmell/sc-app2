@@ -3,12 +3,12 @@
 // consumes them in the UGen migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScUgenItem, ScUgenProps } from "@/types/parsers";
+import type { ScUgenRuntime, ScUgenProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
 
-export class ScUgen extends ScElement<ScUgenItem> implements ScUgenProps {
+export class ScUgen extends ScElement<ScUgenRuntime> implements ScUgenProps {
   @property() accessor name = "";
   /** The SuperCollider UGen class — the element's `type` attribute. */
   @property({ attribute: "type" }) accessor ugen = "";

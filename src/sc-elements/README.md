@@ -17,9 +17,9 @@ Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
 internal/   ScElement base (light-DOM root, item getter, validate helpers)
-nodes/      elements owning scsynth nodes        (isNode)
+nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
-state/      named values binds can target        (isState)
+state/      named values binds can target        (isStateRuntime)
 inputs/     interactive controls
 visuals/    read-only / conditional presentation
 widgets/    self-contained app panels (new-app features, not in the old app)

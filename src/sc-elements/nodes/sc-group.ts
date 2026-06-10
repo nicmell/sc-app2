@@ -3,10 +3,10 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScGroupItem, ScGroupProps } from "@/types/parsers";
+import type { ScGroupRuntime, ScGroupProps } from "@/types/parsers";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScGroup extends ScElement<ScGroupItem> implements ScGroupProps {
+export class ScGroup extends ScElement<ScGroupRuntime> implements ScGroupProps {
   @property() accessor name = "";
   @property(runAttribute) accessor run = true;
 

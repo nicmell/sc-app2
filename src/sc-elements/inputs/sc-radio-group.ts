@@ -3,10 +3,10 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScRadioGroupItem, ScRadioGroupProps } from "@/types/parsers";
+import type { ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScRadioGroup extends ScElement<ScRadioGroupItem> implements ScRadioGroupProps {
+export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRadioGroupProps {
   @property() accessor bind = "";
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 

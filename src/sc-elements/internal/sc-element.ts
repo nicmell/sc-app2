@@ -7,7 +7,7 @@
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { getById } from "@/runtime/registry";
-import type { ScElementItem } from "@/types/parsers";
+import type { ScElementRuntime } from "@/types/parsers";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
@@ -16,7 +16,7 @@ export const runAttribute = {
   converter: { fromAttribute: (value: string | null) => value !== "false" },
 };
 
-export abstract class ScElement<T extends ScElementItem = ScElementItem> extends LitElement {
+export abstract class ScElement<T extends ScElementRuntime = ScElementRuntime> extends LitElement {
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement {
     return this;

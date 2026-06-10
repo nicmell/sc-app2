@@ -1,15 +1,16 @@
 // The runtime processor (ported from the old sc-app's lib/runtime/handlers):
 // `processElement` dispatches each hydrated item to its per-type handler,
-// which resolves its binds against the cumulative scope and attaches the
-// `runtime` object. The HTML attributes are read through `item._element` —
-// the mounted component's reactive properties — never copied into the items.
+// which resolves its binds against the cumulative scope and returns the
+// runtime values, merged flat into the item itself (the item IS its runtime).
+// The HTML attributes are read through `item._element` — the mounted
+// component's reactive properties — never copied into the items.
 // Still unported (return with their migration steps): the buffer family
 // (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
 // and synthdef compilation.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { parseBind } from "@/lib/utils/expression";
-import { isControl, isNode, isParent, isState, typeOf } from "@/lib/utils/guards";
+import { isControlRuntime, isNodeRuntime, isParentRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type {
   BaseRuntime,
   ControlRuntime,
@@ -17,18 +18,17 @@ import type {
   InputRuntime,
   NodeRuntime,
   RunRuntime,
-  ScControlItem,
-  ScElementItem,
-  ScElementItemBase,
-  ScGroupItem,
-  ScParentItem,
-  ScPluginItem,
-  ScRunItem,
-  ScSynthDefItem,
-  ScSynthItem,
-  ScUgenItem,
-  ScVarItem,
-  StripRuntime,
+  ScControlRuntime,
+  ScElementRuntime,
+  ScElementRuntimeBase,
+  ScGroupRuntime,
+  ScParentRuntime,
+  ScPluginRuntime,
+  ScRunRuntime,
+  ScSynthDefRuntime,
+  ScSynthRuntime,
+  ScUgenRuntime,
+  ScVarRuntime,
   SynthDefRuntime,
   UgenRuntime,
   VarRuntime,
@@ -36,28 +36,28 @@ import type {
 
 export interface RuntimeContext {
   rootId: string;
-  tree: ScElementItemBase;
-  nodes: Map<string, ScElementItem>;
-  synthdefs: ScSynthDefItem[];
-  scope: ScElementItemBase[];
-  visit: (node: ScElementItemBase) => ScElementItem;
-  parentNode?: ScParentItem;
+  tree: ScElementRuntimeBase;
+  nodes: Map<string, ScElementRuntime>;
+  synthdefs: ScSynthDefRuntime[];
+  scope: ScElementRuntimeBase[];
+  visit: (node: ScElementRuntimeBase) => ScElementRuntime;
+  parentNode?: ScParentRuntime;
   path: string[];
 }
 
 // --- Element-property accessors (the attributes live on the components) ---
 
-function nameOf(el: ScElementItemBase): string | undefined {
+function nameOf(el: ScElementRuntimeBase): string | undefined {
   return (el._element as { name?: string }).name;
 }
 
-function bindOf(el: ScElementItemBase): string | undefined {
+function bindOf(el: ScElementRuntimeBase): string | undefined {
   return (el._element as { bind?: string }).bind;
 }
 
 // --- Helpers ---
 
-export function checkDuplicateNames(scope: ScElementItemBase[]): void {
+export function checkDuplicateNames(scope: ScElementRuntimeBase[]): void {
   const seen = new Set<string>();
   for (const el of scope) {
     const name = nameOf(el);
@@ -70,17 +70,17 @@ export function checkDuplicateNames(scope: ScElementItemBase[]): void {
   }
 }
 
-function collectControlParams(node: ScParentItem): Record<string, number> {
+function collectControlParams(node: ScParentRuntime): Record<string, number> {
   const controls: Record<string, number> = {};
   for (const child of node.children) {
-    if (isControl(child) && child._element.value != null) {
+    if (isControlRuntime(child) && child._element.value != null) {
       controls[child._element.name] = child._element.value;
     }
   }
   return controls;
 }
 
-function resolve(ctx: RuntimeContext, path: string[]): ScElementItem | undefined {
+function resolve(ctx: RuntimeContext, path: string[]): ScElementRuntime | undefined {
   const [name, ...rest] = path;
   const idx = ctx.scope.findIndex((s) => nameOf(s) === name);
   if (idx < 0) return undefined;
@@ -90,9 +90,9 @@ function resolve(ctx: RuntimeContext, path: string[]): ScElementItem | undefined
   return walkPath(target, rest);
 }
 
-function walkPath(node: ScElementItem, path: string[]): ScElementItem | undefined {
+function walkPath(node: ScElementRuntime, path: string[]): ScElementRuntime | undefined {
   if (path.length === 0) return node;
-  if (isParent(node)) {
+  if (isParentRuntime(node)) {
     const [name, ...rest] = path;
     const child = node.children.find((c) => nameOf(c) === name);
     return child ? walkPath(child, rest) : undefined;
@@ -100,14 +100,14 @@ function walkPath(node: ScElementItem, path: string[]): ScElementItem | undefine
   return undefined;
 }
 
-function resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElementItem; controlName: string } {
+function resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElementRuntime; controlName: string } {
   const segments = bind.split(".");
   const controlName = segments.pop()!;
   const target = segments.length > 0 ? resolve(ctx, segments) : ctx.parentNode;
-  if (!target || !isNode(target)) {
+  if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${typeOf(ctx.tree)} bind="${bind}">: does not match any node in scope`);
   }
-  if (!isParent(target) || !target.children.some((c) => isState(c) && c._element.name === controlName)) {
+  if (!isParentRuntime(target) || !target.children.some((c) => isStateRuntime(c) && c._element.name === controlName)) {
     const targetName = nameOf(target) ?? target.id;
     throw new Error(
       `<${typeOf(ctx.tree)} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
@@ -129,8 +129,8 @@ function resolveStateBind(ctx: RuntimeContext): { targets: Record<string, string
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(ctx, path);
-    const targetState = (target as ScParentItem).children.find(
-      (c) => isState(c) && c._element.name === controlName,
+    const targetState = (target as ScParentRuntime).children.find(
+      (c) => isStateRuntime(c) && c._element.name === controlName,
     )!;
     checkCircularBind(ctx, targetState.id);
     targets[path] = targetState.id;
@@ -149,19 +149,19 @@ function checkCircularBind(ctx: RuntimeContext, targetId: string): void {
     }
     visited.add(current);
     const node = ctx.nodes.get(current);
-    if (!node || !isState(node)) continue;
-    // `runtime` is still unset on a state node that's mid-processing (we got
-    // here through its own bind resolve) — its targets aren't known yet, but
-    // the cycle is still caught from the other end once they are.
-    const targets = (node.runtime as { targets?: Record<string, string> } | undefined)?.targets;
-    if (targets) queue.push(...Object.values(targets));
+    if (!node || !isStateRuntime(node)) continue;
+    // The runtime values are still unmerged on a state node that's
+    // mid-processing (we got here through its own bind resolve) — its targets
+    // aren't known yet, but the cycle is still caught from the other end once
+    // they are.
+    if (node.targets) queue.push(...Object.values(node.targets));
   }
 }
 
 function resolveVisualBind(ctx: RuntimeContext): InputRuntime {
   const { target, controlName } = resolveControlBind(ctx, bindOf(ctx.tree)!);
-  const control = (target as ScParentItem).children.find(
-    (c) => isState(c) && c._element.name === controlName,
+  const control = (target as ScParentRuntime).children.find(
+    (c) => isStateRuntime(c) && c._element.name === controlName,
   )!;
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, targetId: control.id };
 }
@@ -169,7 +169,7 @@ function resolveVisualBind(ctx: RuntimeContext): InputRuntime {
 // --- Handlers ---
 
 const pluginHandler = (ctx: RuntimeContext): NodeRuntime => {
-  const n = ctx.tree as StripRuntime<ScPluginItem>;
+  const n = ctx.tree as ScPluginRuntime;
   try {
     ctx.visit(ctx.tree);
     return { rootId: ctx.rootId, parentId: "", path: ctx.path, enabled: true, run: n._element.run ? 1 : 0, loaded: false, nodeId: 0 };
@@ -183,12 +183,12 @@ const pluginHandler = (ctx: RuntimeContext): NodeRuntime => {
 };
 
 function nodeRuntime(ctx: RuntimeContext): NodeRuntime {
-  const n = ctx.tree as StripRuntime<ScGroupItem | ScSynthItem>;
+  const n = ctx.tree as ScGroupRuntime | ScSynthRuntime;
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, run: n._element.run ? 1 : 0, loaded: false, nodeId: 0 };
 }
 
 const synthHandler = (ctx: RuntimeContext): NodeRuntime => {
-  const n = ctx.tree as StripRuntime<ScSynthItem>;
+  const n = ctx.tree as ScSynthRuntime;
   const bind = n._element.bind;
   if (bind && !resolve(ctx, [bind])) {
     throw new Error(`<sc-synth bind="${bind}">: does not match any <sc-synthdef>`);
@@ -203,7 +203,7 @@ const groupHandler = (ctx: RuntimeContext): NodeRuntime => {
 };
 
 const varHandler = (ctx: RuntimeContext): VarRuntime => {
-  const el = (ctx.tree as ScVarItem)._element;
+  const el = (ctx.tree as ScVarRuntime)._element;
   if (el.bind) {
     const { targets, expression } = resolveStateBind(ctx);
     return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, name: el.name, value: 0, targets, expression };
@@ -212,9 +212,9 @@ const varHandler = (ctx: RuntimeContext): VarRuntime => {
 };
 
 const runHandler = (ctx: RuntimeContext): RunRuntime => {
-  const el = (ctx.tree as ScRunItem)._element;
+  const el = (ctx.tree as ScRunRuntime)._element;
   const target = el.bind ? resolve(ctx, el.bind.split(".")) : ctx.parentNode;
-  if (el.bind && (!target || !isNode(target))) {
+  if (el.bind && (!target || !isNodeRuntime(target))) {
     throw new Error(`<sc-run>: bind "${el.bind}" does not match any node in scope`);
   }
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: true, targetId: target ? target.id : "" };
@@ -240,10 +240,10 @@ const choiceHandler = (ctx: RuntimeContext): UgenRuntime => {
   return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled: false };
 };
 
-function collectUgenInputs(node: ScUgenItem): Record<string, string> {
+function collectUgenInputs(node: ScUgenRuntime): Record<string, string> {
   const inputs: Record<string, string> = {};
   for (const child of node.children) {
-    if (isControl(child)) {
+    if (isControlRuntime(child)) {
       const { name, bind, value } = child._element;
       if (!bind && value == null) {
         throw new Error(`<sc-control name="${name}">: requires either a bind or value attribute`);
@@ -256,13 +256,13 @@ function collectUgenInputs(node: ScUgenItem): Record<string, string> {
 
 const synthDefHandler = (ctx: RuntimeContext): SynthDefRuntime => {
   ctx.visit(ctx.tree);
-  const n = ctx.tree as unknown as ScSynthDefItem;
+  const n = ctx.tree as unknown as ScSynthDefRuntime;
   ctx.synthdefs.push(n);
   // Collect params + per-ugen input specs as the old app did — compilation
   // (synthDefManager) returns with the lib/synthdef migration step; collecting
   // still validates that every ugen input has a bind or value.
   collectControlParams(n);
-  const ugenChildren = n.children.filter((c): c is ScUgenItem => typeOf(c) === ELEMENTS.SC_UGEN);
+  const ugenChildren = n.children.filter((c): c is ScUgenRuntime => typeOf(c) === ELEMENTS.SC_UGEN);
   for (const c of ugenChildren) {
     collectUgenInputs(c);
   }
@@ -271,9 +271,9 @@ const synthDefHandler = (ctx: RuntimeContext): SynthDefRuntime => {
 
 const ugenHandler = (ctx: RuntimeContext): UgenRuntime => {
   ctx.visit(ctx.tree);
-  const n = ctx.tree as unknown as ScUgenItem;
+  const n = ctx.tree as unknown as ScUgenRuntime;
   for (const child of n.children) {
-    if (!isControl(child) || !child._element.bind) continue;
+    if (!isControlRuntime(child) || !child._element.bind) continue;
     for (const ref of child._element.bind.split(",").map((s) => s.trim())) {
       const refId = ref.split(":")[0];
       if (!resolve(ctx, [refId])) {
@@ -287,8 +287,8 @@ const ugenHandler = (ctx: RuntimeContext): UgenRuntime => {
 };
 
 const controlHandler = (ctx: RuntimeContext): ControlRuntime => {
-  const el = (ctx.tree as ScControlItem)._element;
-  const enabled = ctx.parentNode != null && isNode(ctx.parentNode);
+  const el = (ctx.tree as ScControlRuntime)._element;
+  const enabled = ctx.parentNode != null && isNodeRuntime(ctx.parentNode);
   if (enabled && el.bind) {
     const { targets, expression } = resolveStateBind(ctx);
     return { rootId: ctx.rootId, parentId: parentId(ctx), path: ctx.path, enabled, name: el.name, value: 0, targets, expression };
@@ -307,13 +307,13 @@ const leafHandler = (ctx: RuntimeContext): BaseRuntime => {
 
 // --- Dispatch ---
 
-export function processElement(ctx: RuntimeContext): ScElementItem {
+export function processElement(ctx: RuntimeContext): ScElementRuntime {
   const existing = ctx.nodes.get(ctx.tree.id);
   if (existing) {
     return existing;
   }
   // Pre-register to prevent re-entrant processing (ancestor resolve during visit)
-  const node = ctx.tree as unknown as ScElementItem;
+  const node = ctx.tree as unknown as ScElementRuntime;
   ctx.nodes.set(node.id, node);
   if (ctx.parentNode) {
     ctx.parentNode.children.push(node);
@@ -343,6 +343,6 @@ export function processElement(ctx: RuntimeContext): ScElementItem {
       throw new Error(`Unknown element type: ${typeOf(ctx.tree)}`);
     }
   }
-  Object.assign(ctx.tree, { runtime });
+  Object.assign(ctx.tree, runtime);
   return node;
 }

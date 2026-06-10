@@ -5,10 +5,10 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { ScRangeItem, ScRangeProps } from "@/types/parsers";
+import type { ScRangeRuntime, ScRangeProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScRange extends ScElement<ScRangeItem> implements ScRangeProps {
+export class ScRange extends ScElement<ScRangeRuntime> implements ScRangeProps {
   @property() accessor bind = "";
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;

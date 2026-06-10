@@ -4,10 +4,10 @@
 // with the controls migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScControlItem, ScControlProps } from "@/types/parsers";
+import type { ScControlRuntime, ScControlProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScControl extends ScElement<ScControlItem> implements ScControlProps {
+export class ScControl extends ScElement<ScControlRuntime> implements ScControlProps {
   @property() accessor name = "";
   @property() accessor bind: string | undefined = undefined;
   @property({ type: Number }) accessor value: number | undefined = undefined;

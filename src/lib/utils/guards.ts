@@ -1,19 +1,19 @@
 // Type guards over the parser items. There is no stored `type` field — the
 // discriminant is the element's tag itself: `typeOf(item)` derives it from
-// `_element.tagName`, and each guard narrows to the concrete ScElementItem.
+// `_element.tagName`, and each guard narrows to the concrete ScElementRuntime.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import type {
   NodeType,
-  ScControlItem,
-  ScElementItemBase,
-  ScGroupItem,
-  ScParentItem,
-  ScPluginItem,
-  ScSynthDefItem,
-  ScSynthItem,
-  ScUgenItem,
-  ScVarItem,
+  ScControlRuntime,
+  ScElementRuntimeBase,
+  ScGroupRuntime,
+  ScParentRuntime,
+  ScPluginRuntime,
+  ScSynthDefRuntime,
+  ScSynthRuntime,
+  ScUgenRuntime,
+  ScVarRuntime,
 } from "@/types/parsers";
 
 const NODE_TYPES: ReadonlySet<string> = new Set(Object.values(ELEMENTS));
@@ -34,51 +34,51 @@ export function isNodeType(value: string): value is NodeType {
 }
 
 /** The item's element type — the tag of the component it was hydrated from. */
-export function typeOf(el: ScElementItemBase): NodeType {
+export function typeOf(el: ScElementRuntimeBase): NodeType {
   return el._element.tagName.toLowerCase() as NodeType;
 }
 
-export function isPlugin(el: ScElementItemBase): el is ScPluginItem {
+export function isPluginRuntime(el: ScElementRuntimeBase): el is ScPluginRuntime {
   return typeOf(el) === ELEMENTS.SC_PLUGIN;
 }
 
-export function isGroup(el: ScElementItemBase): el is ScGroupItem | ScPluginItem {
+export function isGroupRuntime(el: ScElementRuntimeBase): el is ScGroupRuntime | ScPluginRuntime {
   const t = typeOf(el);
   return t === ELEMENTS.SC_GROUP || t === ELEMENTS.SC_PLUGIN;
 }
 
-export function isSynth(el: ScElementItemBase): el is ScSynthItem {
+export function isSynthRuntime(el: ScElementRuntimeBase): el is ScSynthRuntime {
   return typeOf(el) === ELEMENTS.SC_SYNTH;
 }
 
-export function isSynthDef(el: ScElementItemBase): el is ScSynthDefItem {
+export function isSynthDefRuntime(el: ScElementRuntimeBase): el is ScSynthDefRuntime {
   return typeOf(el) === ELEMENTS.SC_SYNTHDEF;
 }
 
-export function isUgen(el: ScElementItemBase): el is ScUgenItem {
+export function isUgenRuntime(el: ScElementRuntimeBase): el is ScUgenRuntime {
   return typeOf(el) === ELEMENTS.SC_UGEN;
 }
 
-export function isControl(el: ScElementItemBase): el is ScControlItem {
+export function isControlRuntime(el: ScElementRuntimeBase): el is ScControlRuntime {
   return typeOf(el) === ELEMENTS.SC_CONTROL;
 }
 
-export function isVar(el: ScElementItemBase): el is ScVarItem {
+export function isVarRuntime(el: ScElementRuntimeBase): el is ScVarRuntime {
   return typeOf(el) === ELEMENTS.SC_VAR;
 }
 
 /** Stateful items a bind can target. */
-export function isState(el: ScElementItemBase): el is ScControlItem | ScVarItem {
+export function isStateRuntime(el: ScElementRuntimeBase): el is ScControlRuntime | ScVarRuntime {
   const t = typeOf(el);
   return t === ELEMENTS.SC_CONTROL || t === ELEMENTS.SC_VAR;
 }
 
 /** Items that can own running scsynth nodes. */
-export function isNode(el: ScElementItemBase): el is ScPluginItem | ScGroupItem | ScSynthItem {
+export function isNodeRuntime(el: ScElementRuntimeBase): el is ScPluginRuntime | ScGroupRuntime | ScSynthRuntime {
   const t = typeOf(el);
   return t === ELEMENTS.SC_PLUGIN || t === ELEMENTS.SC_GROUP || t === ELEMENTS.SC_SYNTH;
 }
 
-export function isParent(el: ScElementItemBase): el is ScParentItem {
+export function isParentRuntime(el: ScElementRuntimeBase): el is ScParentRuntime {
   return PARENT_TYPES.has(typeOf(el));
 }

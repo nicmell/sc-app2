@@ -5,13 +5,13 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScScopeItem } from "@/types/parsers";
+import type { ScScopeRuntime } from "@/types/parsers";
 import { session } from "@/stores/session";
 
 /** Vertical gain applied to the ±1 sample range before drawing. */
 const GAIN = 0.9;
 
-export class ScScope extends ScElement<ScScopeItem> {
+export class ScScope extends ScElement<ScScopeRuntime> {
   validate(): void {
     this.requireNoScChildren();
   }

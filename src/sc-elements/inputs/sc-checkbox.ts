@@ -5,10 +5,10 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { ScCheckboxItem, ScCheckboxProps } from "@/types/parsers";
+import type { ScCheckboxRuntime, ScCheckboxProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScCheckbox extends ScElement<ScCheckboxItem> implements ScCheckboxProps {
+export class ScCheckbox extends ScElement<ScCheckboxRuntime> implements ScCheckboxProps {
   @property() accessor bind = "";
 
   validate(): void {

@@ -4,10 +4,10 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScVarItem, ScVarProps } from "@/types/parsers";
+import type { ScVarRuntime, ScVarProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScVar extends ScElement<ScVarItem> implements ScVarProps {
+export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {
   @property() accessor name = "";
   @property() accessor bind: string | undefined = undefined;
   @property({ type: Number }) accessor value: number | undefined = undefined;

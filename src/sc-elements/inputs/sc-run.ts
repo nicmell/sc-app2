@@ -4,9 +4,9 @@
 // but not declared yet.
 
 import { property } from "lit/decorators.js";
-import type { ScRunItem, ScRunProps } from "@/types/parsers";
+import type { ScRunRuntime, ScRunProps } from "@/types/parsers";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScRun extends ScElement<ScRunItem> implements ScRunProps {
+export class ScRun extends ScElement<ScRunRuntime> implements ScRunProps {
   @property() accessor bind = "";
 }

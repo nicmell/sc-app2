@@ -9,11 +9,11 @@
 // bind resolution. The HTML attributes are NOT copied into the items — the
 // runtime reads them through `item._element`'s reactive properties.
 
-import { isNodeType, isParent } from "@/lib/utils/guards";
+import { isNodeType, isParentRuntime } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { checkDuplicateNames, processElement, type RuntimeContext } from "@/runtime/handlers";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScElementItem, ScElementItemBase, ScParentItem } from "@/types/parsers";
+import type { ScElementRuntime, ScElementRuntimeBase, ScParentRuntime } from "@/types/parsers";
 
 function* walkDom(el: Element): Generator<Element> {
   for (const child of Array.from(el.children)) {
@@ -26,23 +26,23 @@ function* walkDom(el: Element): Generator<Element> {
   }
 }
 
-export function hydrate(id: string, element: Element): ScElementItemBase {
+export function hydrate(id: string, element: Element): ScElementRuntimeBase {
   element.setAttribute("id", id);
   // The components own their attribute validation (sc-plugin, the synthesized
   // root, declares none). A violation fails the whole plugin parse.
   (element as Partial<ScElement>).validate?.();
-  const item: ScElementItemBase = { id, _element: element };
-  if (isParent(item)) (item as ScParentItem).children = [];
+  const item: ScElementRuntimeBase = { id, _element: element };
+  if (isParentRuntime(item)) (item as ScParentRuntime).children = [];
   return item;
 }
 
 export type HtmlRuntimeContext = Omit<RuntimeContext, "visit">;
 
-export function processHtml(args: HtmlRuntimeContext): ScElementItem {
+export function processHtml(args: HtmlRuntimeContext): ScElementRuntime {
   return processElement({
     ...args,
-    visit(node: ScElementItemBase): ScElementItem {
-      const parent = node as ScParentItem;
+    visit(node: ScElementRuntimeBase): ScElementRuntime {
+      const parent = node as ScParentRuntime;
       const elements = Array.from(walkDom(node._element));
 
       const name = (node._element as { name?: string }).name;

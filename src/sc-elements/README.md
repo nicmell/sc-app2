@@ -43,8 +43,8 @@ with the matching migration steps.
 ### `<sc-plugin>` — functional
 The app-synthesized plugin root: **never written in plugin HTML** — PluginHost
 creates one per dashboard box and sets its `plugin` property. It loads the
-entry XHTML (XML-parsed + importNode), runs `processHtml` (registering the
-parsed tree in the runtime registry), and owns the plugin's scsynth group:
+entry XHTML (XML-parsed + importNode), runs its own `hydrate()` + `process()`
+(the registry then adopts the parsed tree), and owns the plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
 Props: `run` (boolean attribute, `run="false"` is the only falsy spelling).

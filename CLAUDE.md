@@ -159,10 +159,55 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   tap def).
 * `@sc-app/ui-foundation` — base styles/custom-element foundation.
 
+## How the element architecture settled (the design decisions)
+
+The architecture evolved through deliberate steps away from the old app's
+parser-item design; each decision is load-bearing for the recipe below:
+
+1. **Attributes became reactive properties** on the components (`@property()
+   accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
+   attribute copies on parser items — and `validate()` moved next to them.
+2. **The items lost their copied props, then their `type` field** (the tag is
+   the discriminant), **then their nested `runtime` object** (values merged
+   flat), **and finally their existence**: the element IS the runtime.
+   `hydrate()`/`process()` live on `ScElement`, `resolveRuntime()` returns
+   the runtime values, and `process()` assigns them onto the component
+   itself. `lib/html` and `src/runtime/handlers.ts` are gone — the engine,
+   the per-element resolution, and the shared bind machinery are all
+   `sc-elements/internal/`.
+3. **The old app's `internal/` category bases returned** (`sc-node`,
+   `sc-state`, `sc-input`) to declare the per-category props + runtime
+   fields once; concrete elements are mostly `validate()` + a small
+   `resolveRuntime()` override composed via `super`.
+4. **Runtime values are live element references, not string ids**:
+   `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
+   `children` is taken), `_targetScNode` on inputs, `targets:
+   Record<path, ScState>` on state. Cycle detection walks the bind graph
+   through these references with no lookups; the only id-keyed structure
+   left is the global registry (`@/runtime/registry`, id → live element),
+   whose purpose IS lookup from outside the DOM — it adopts a parsed tree
+   by walking `_scChildren` from the root. Anything *persisted* (presets,
+   layout) stays id/path-based; references are in-memory runtime only.
+5. **Values that duplicate a reactive prop are unified, never copied**: no
+   runtime `name`/`run`; enabled state resolves into its live `value` prop,
+   while disabled graph inputs keep `value` as the plain attribute mirror
+   (the synthdef collection depends on telling a missing attribute apart).
+6. **The parse context is per-level**: `process(ctx)` threads `{rootNode,
+   nodes: Set<ScElement>, scope, parentNode, path}` — one shared object per
+   sibling scope. The two-phase order is the invariant everything rests on:
+   a parent hydrates (id + validate) ALL its children first, so forward
+   references resolve against unprocessed siblings and duplicate names are
+   caught across the whole scope; processing then runs per child, resolving
+   scope names on demand with inner-scope shadowing.
+7. **Two validation gates** keep all of this honest: `yarn test` (the
+   examples through the engine in happy-dom, exact error messages pinned)
+   and the CDP harness (upload/XSD path + real browser) — see "Validating
+   example plugins" below.
+
 ## Migrating an sc-element (the recipe)
 
-The element architecture settled with the first migrated batch — follow it for
-every further `sc-*` element:
+The element architecture settled as described above — follow this for every
+further `sc-*` element:
 
 1. **Tag**: add it to `ELEMENTS` (`src/constants/sc-elements.ts`), the
    constructor `REGISTRY` (`src/sc-elements/index.ts`), and the backend XSD

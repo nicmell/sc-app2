@@ -3,7 +3,7 @@
 // attributes (width/height/src/colors) are XSD-allowed but not declared yet.
 
 import { property } from "lit/decorators.js";
-import type { ScRadioRuntime, ScRadioProps } from "@/types/parsers";
+import type { ScRadioRuntime, ScRadioProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadio extends ScElement<ScRadioRuntime> implements ScRadioProps {

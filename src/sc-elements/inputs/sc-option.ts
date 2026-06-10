@@ -2,7 +2,7 @@
 // inside the select arrives with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScOptionRuntime, ScOptionProps } from "@/types/parsers";
+import type { ScOptionRuntime, ScOptionProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScOption extends ScElement<ScOptionRuntime> implements ScOptionProps {

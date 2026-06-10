@@ -14,7 +14,7 @@ import type {
   ScSynthRuntime,
   ScUgenRuntime,
   ScVarRuntime,
-} from "@/types/parsers";
+} from "@/types/runtime";
 
 const NODE_TYPES: ReadonlySet<string> = new Set(Object.values(ELEMENTS));
 

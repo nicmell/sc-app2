@@ -2,7 +2,7 @@
 // Supports: +, -, *, /, unary -, parentheses, numbers, and variable references.
 // Variables are dot-separated paths (e.g., "vars.freq") extracted during parsing.
 
-import type {Expr} from '@/types/parsers';
+import type {Expr} from '@/types/runtime';
 
 export interface ParsedBind {
     paths: string[];

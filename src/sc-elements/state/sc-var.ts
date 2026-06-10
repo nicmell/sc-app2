@@ -4,7 +4,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScVarRuntime, ScVarProps } from "@/types/parsers";
+import type { ScVarRuntime, ScVarProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScVar extends ScElement<ScVarRuntime> implements ScVarProps {

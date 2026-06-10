@@ -7,7 +7,7 @@
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { getById } from "@/runtime/registry";
-import type { ScElementRuntime } from "@/types/parsers";
+import type { ScElementRuntime } from "@/types/runtime";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 

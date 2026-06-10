@@ -5,7 +5,7 @@
 // at parse time and unregisters it when the sc-plugin root unmounts.
 
 import { isParentRuntime } from "@/lib/utils/guards";
-import type { ScElementRuntime } from "@/types/parsers";
+import type { ScElementRuntime } from "@/types/runtime";
 
 const nodes = new Map<string, ScElementRuntime>();
 

@@ -2,7 +2,7 @@
 // value rendering arrives with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScDisplayRuntime, ScDisplayProps } from "@/types/parsers";
+import type { ScDisplayRuntime, ScDisplayProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScDisplay extends ScElement<ScDisplayRuntime> implements ScDisplayProps {

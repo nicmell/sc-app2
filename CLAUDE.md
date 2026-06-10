@@ -65,7 +65,8 @@ stores/                  the single app store + slices and React hooks
   layout.ts / plugins.ts / session.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
-                         osc.d.ts (transport), sc-elements.d.ts (JSX tags)
+                         osc.d.ts (transport), sc-elements.d.ts (JSX tags),
+                         runtime.d.ts (the element runtime tree + ScXProps)
 constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
@@ -73,7 +74,7 @@ lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
   html/                  processHtml/hydrate: parse plugin DOM into typed items
-                         (types/parsers.d.ts), calling each component's own
+                         (types/runtime.d.ts), calling each component's own
                          validate() during hydration (the backend XSD validates
                          structure at upload, but fastxml does NOT enforce required
                          attributes — the components' validate() is the real gate)
@@ -164,7 +165,7 @@ every further `sc-*` element:
 2. **Attributes live on the component, not the item.** Declare them as
    standard-decorator reactive properties — `@property({ type: Number })
    accessor min = 0;` — implementing the element's `ScXProps` interface from
-   `src/types/parsers.d.ts`. (Vite lowers the decorators via
+   `src/types/runtime.d.ts`. (Vite lowers the decorators via
    `esbuild.target: "es2022"`; attribute→property conversion replaces hand
    parsing. Use the shared `runAttribute` converter for `run="false"`
    semantics.)
@@ -173,7 +174,7 @@ every further `sc-*` element:
    `failValidation`). `hydrate` calls it during parse and a violation fails
    the whole plugin. This is the *real* gate — fastxml does not enforce XSD
    attribute requirements at upload.
-4. **Runtime type** (`src/types/parsers.d.ts`): a `ScXRuntime` interface
+4. **Runtime type** (`src/types/runtime.d.ts`): a `ScXRuntime` interface
    extending `ScElementRuntimeBase` + the matching runtime mixin
    (`NodeRuntime`/`ControlRuntime`/`InputRuntime`/…) — the item IS its
    runtime: `{ id, _element: Element & ScXProps, children?, ...runtime

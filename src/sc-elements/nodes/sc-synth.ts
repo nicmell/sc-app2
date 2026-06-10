@@ -3,7 +3,7 @@
 // arrives with the synth migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScSynthRuntime, ScSynthProps } from "@/types/parsers";
+import type { ScSynthRuntime, ScSynthProps } from "@/types/runtime";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScSynth extends ScElement<ScSynthRuntime> implements ScSynthProps {

@@ -4,7 +4,7 @@
 // but not declared yet.
 
 import { property } from "lit/decorators.js";
-import type { ScRunRuntime, ScRunProps } from "@/types/parsers";
+import type { ScRunRuntime, ScRunProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRun extends ScElement<ScRunRuntime> implements ScRunProps {

@@ -5,7 +5,7 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScStrudelRuntime } from "@/types/parsers";
+import type { ScStrudelRuntime } from "@/types/runtime";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";

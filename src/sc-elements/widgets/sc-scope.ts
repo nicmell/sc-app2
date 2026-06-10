@@ -5,7 +5,7 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScScopeRuntime } from "@/types/parsers";
+import type { ScScopeRuntime } from "@/types/runtime";
 import { session } from "@/stores/session";
 
 /** Vertical gain applied to the ±1 sample range before drawing. */

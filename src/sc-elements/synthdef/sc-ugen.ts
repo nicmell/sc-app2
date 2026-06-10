@@ -3,7 +3,7 @@
 // consumes them in the UGen migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScUgenRuntime, ScUgenProps } from "@/types/parsers";
+import type { ScUgenRuntime, ScUgenProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);

@@ -32,7 +32,7 @@ import type {
   SynthDefRuntime,
   UgenRuntime,
   VarRuntime,
-} from "@/types/parsers";
+} from "@/types/runtime";
 
 export interface RuntimeContext {
   rootId: string;

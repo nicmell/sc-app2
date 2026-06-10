@@ -4,7 +4,7 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScConsoleRuntime } from "@/types/parsers";
+import type { ScConsoleRuntime } from "@/types/runtime";
 import { session } from "@/stores/session";
 import type { LoggedEntry } from "@/types/stores";
 

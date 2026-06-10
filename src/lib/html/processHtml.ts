@@ -13,7 +13,7 @@ import { isNodeType, isParentRuntime } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { checkDuplicateNames, processElement, type RuntimeContext } from "@/runtime/handlers";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScElementRuntime, ScElementRuntimeBase, ScParentRuntime } from "@/types/parsers";
+import type { ScElementRuntime, ScElementRuntimeBase, ScParentRuntime } from "@/types/runtime";
 
 function* walkDom(el: Element): Generator<Element> {
   for (const child of Array.from(el.children)) {

@@ -15,7 +15,7 @@ import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import { runAttribute } from "@/sc-elements/internal/sc-element";
 import type { PluginInfo } from "@/types/api";
-import type { ScElementRuntime, ScPluginProps, ScSynthDefRuntime } from "@/types/parsers";
+import type { ScElementRuntime, ScPluginProps, ScSynthDefRuntime } from "@/types/runtime";
 
 export class ScPlugin extends LitElement implements ScPluginProps {
   static properties = {

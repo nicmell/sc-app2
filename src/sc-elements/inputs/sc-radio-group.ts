@@ -3,7 +3,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/parsers";
+import type { ScRadioGroupRuntime, ScRadioGroupProps } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScRadioGroup extends ScElement<ScRadioGroupRuntime> implements ScRadioGroupProps {

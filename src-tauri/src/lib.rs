@@ -85,7 +85,6 @@ async fn start(config: AppConfig, logger: Arc<Logger>) -> std::io::Result<(Serve
     // group on every registration itself.
     let scsynth = Scsynth::supervise(bridge.clone());
     let server = Server::new(config, bridge, scsynth, logger);
-    server.spawn_session_reaper();
     let (listener, _addr) = router::listen(&server).await?;
     Ok((server, listener))
 }

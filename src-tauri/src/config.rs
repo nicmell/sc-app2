@@ -13,8 +13,6 @@ use serde::Deserialize;
 /// Bundle identifier — also the app config dir name (matches tauri.conf.json).
 const IDENTIFIER: &str = "com.nicmell.scapp";
 const DEFAULT_PORT: u16 = 3000;
-/// Grace window before a session with no live WebSocket is reclaimed.
-const DEFAULT_SESSION_TTL_SECONDS: u64 = 60;
 
 /// A peer the bridge connects to at startup. `pattern` is the OSC-address regex
 /// that routes outbound messages to this peer; `name` identifies it in logs.
@@ -35,10 +33,6 @@ pub struct AppConfig {
     pub peers: Vec<PeerConfig>,
     #[serde(default)]
     pub log_dir: Option<PathBuf>,
-    /// Seconds a session with no live WebSocket lingers before the reaper frees
-    /// its scsynth group and reclaims its node-id block.
-    #[serde(default = "default_session_ttl_seconds")]
-    pub session_ttl_seconds: u64,
 }
 
 impl Default for AppConfig {
@@ -47,17 +41,12 @@ impl Default for AppConfig {
             port: DEFAULT_PORT,
             peers: default_peers(),
             log_dir: None,
-            session_ttl_seconds: DEFAULT_SESSION_TTL_SECONDS,
         }
     }
 }
 
 fn default_port() -> u16 {
     DEFAULT_PORT
-}
-
-fn default_session_ttl_seconds() -> u64 {
-    DEFAULT_SESSION_TTL_SECONDS
 }
 
 /// Starter peers, seeded when `config.json` declares none: scsynth (its command

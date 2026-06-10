@@ -55,6 +55,12 @@ export function useScsynthStatus(): ScsynthStatus | null {
   return useSyncExternalStore(session.scsynthStatus.subscribe, session.scsynthStatus.get);
 }
 
+/** Subscribe a React component to the scsynth address the bridge talks to
+ *  (from the session response; the footer shows it). */
+export function useScsynthAddress(): string | null {
+  return useSyncExternalStore(session.scsynthAddress.subscribe, session.scsynthAddress.get);
+}
+
 /** Subscribe a React component to the active scsynth error banners. */
 export function useScsynthErrors(): ScsynthError[] {
   return useSyncExternalStore(session.scsynthErrors.subscribe, session.scsynthErrors.get);

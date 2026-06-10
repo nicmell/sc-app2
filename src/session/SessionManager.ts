@@ -17,7 +17,6 @@ import {
 } from "@sc-app/server-commands";
 import { oscClient } from "../osc/OscClient";
 import { ScopeController, type ScopeOptions } from "../scope/ScopeController";
-import { IdAllocator } from "./IdAllocator";
 import type { Bootstrap } from "./bootstrapTypes";
 import { appStore } from "../state/store";
 
@@ -69,6 +68,8 @@ export interface SessionState {
   log: LoggedEntry[];
   scsynthStatus: ScsynthStatus | null;
   errors: ScsynthError[];
+  /** The scsynth `host:port` the bridge talks to (from the session response). */
+  scsynthAddress: string | null;
 }
 
 /** Initial session slice, shared with the app store's root state. */
@@ -77,6 +78,7 @@ export const initialSessionState: SessionState = {
   log: [],
   scsynthStatus: null,
   errors: [],
+  scsynthAddress: null,
 };
 
 /** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
@@ -105,6 +107,7 @@ export class SessionManager {
   readonly log = this.state.select((s) => s.log);
   readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
   readonly scsynthErrors = this.state.select((s) => s.errors);
+  readonly scsynthAddress = this.state.select((s) => s.scsynthAddress);
 
   private readonly deps: SessionDeps;
   private connected = false;
@@ -133,13 +136,16 @@ export class SessionManager {
     return this.scopeController;
   }
 
-  /** Bootstrap the session, connect the global OSC client, and wire its events
-   *  into the store. Safe to call once per controller. */
+  /** Bootstrap the session, connect the global OSC client (which creates the
+   *  session group and owns node-id allocation), and wire its events into the
+   *  store. Safe to call once per controller. */
   async start(): Promise<void> {
     try {
-      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex } = await this.deps.bootstrap();
+      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } =
+        await this.deps.bootstrap();
       if (this.disposed) return;
-      await oscClient.connect(wsUrl);
+      this.state.update((s) => ({ ...s, scsynthAddress }));
+      await oscClient.connect(wsUrl, { sessionGroupId, nodeIdBase, nodeIdCount });
       if (this.disposed) {
         oscClient.close();
         return;
@@ -153,11 +159,8 @@ export class SessionManager {
       this.subscribe("close", () => {
         if (!this.disposed) this.setStatus("error");
       });
-      // Synths this session creates live in its server-assigned group, with
-      // node ids drawn from its server-assigned block.
-      const ids = new IdAllocator(nodeIdBase, nodeIdCount);
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(oscClient, sessionGroupId, ids, scopeIndex, this.deps.scopeOptions);
+      this.scopeController = new ScopeController(oscClient, sessionGroupId, scopeIndex, this.deps.scopeOptions);
       this.scopeController.start();
       this.setStatus("connected");
     } catch {

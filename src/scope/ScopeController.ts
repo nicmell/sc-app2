@@ -2,14 +2,13 @@
 // scope buffer and streams it back for the waveform display. No global clock —
 // the bridge polls SHM on a timer (see src-tauri router/ws.rs).
 //
-// On start it: allocates a node id from the session block and clears any stale
-// tap at that id (a previous mount), /d_recv's the tap SynthDef with the /s_new
-// riding as the completion message (atomic, no /sync), subscribes to
-// /scope/chunk, then sends /scope/subscribe so the bridge begins polling. The
-// tap is created inside the session's group (under the bridge root group at the
-// tail of scsynth's root, so it still reads the post-SuperDirt master out). The
-// latest chunk is written to `chunkRef`, which ScopeView's RAF loop reads —
-// never React state (chunks arrive ~47 Hz).
+// On start it: allocates a node id from the session block (client.nextNodeId),
+// /d_recv's the tap SynthDef with the /s_new riding as the completion message
+// (atomic, no /sync), subscribes to /scope/chunk, then sends /scope/subscribe
+// so the bridge begins polling. The tap is created inside the session's group
+// (at the tail of scsynth's root group, so it reads the post-SuperDirt master
+// out). The latest chunk is written to `chunkRef`, which ScopeView's RAF loop
+// reads — never React state (chunks arrive ~47 Hz).
 
 import OSC from "osc-js";
 import {
@@ -17,7 +16,6 @@ import {
   AddToTail,
   dRecv,
   encode,
-  gFreeAll,
   nFree,
   parseScopeChunkArgs,
   SCOPE_CHUNK_ADDRESS,
@@ -27,7 +25,6 @@ import {
   type DecodedScopeChunk,
 } from "@sc-app/server-commands";
 import type { OscClient } from "../osc/OscClient";
-import type { IdAllocator } from "../session/IdAllocator";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
 import { compileTestToneSynthDef, testToneSynthDefName } from "./testToneSynthDef";
 
@@ -54,7 +51,6 @@ export class ScopeController {
 
   private readonly client: OscClient;
   private readonly groupId: number;
-  private readonly ids: IdAllocator;
   /** Per-session SHM scope-buffer index (server-assigned) so concurrent
    *  windows tap into distinct buffers instead of stomping a shared one. */
   private readonly scopeIndex: number;
@@ -67,16 +63,9 @@ export class ScopeController {
   private readonly debug: boolean;
   private readonly testTone: boolean;
 
-  constructor(
-    client: OscClient,
-    sessionGroupId: number,
-    ids: IdAllocator,
-    scopeIndex: number,
-    options: ScopeOptions = {},
-  ) {
+  constructor(client: OscClient, sessionGroupId: number, scopeIndex: number, options: ScopeOptions = {}) {
     this.client = client;
     this.groupId = sessionGroupId;
-    this.ids = ids;
     this.scopeIndex = scopeIndex;
     this.debug = options.debug ?? false;
     this.testTone = options.testTone ?? false;
@@ -88,14 +77,10 @@ export class ScopeController {
 
     const name = scopeTapSynthDefName(CHANNELS, CHUNK_SIZE);
     const tapBytes = compileScopeTapSynthDef(CHANNELS, CHUNK_SIZE);
-    // Clear any stale tap from a prior connect before re-creating ours. We free
-    // the whole session group (which only holds our tap) rather than `/n_free`
-    // a specific node: `/g_freeAll` is a no-op on an empty group, so a fresh
-    // session doesn't trigger a "Node not found" /fail, while a reload still
-    // clears the tap left behind within the reconnect grace window.
-    const nodeId = this.ids.alloc();
+    // The session group is brand-new on every connect (sessions die with their
+    // WebSocket), so there is never a stale tap to clear.
+    const nodeId = this.client.nextNodeId();
     this.tapNodeId = nodeId;
-    this.client.send(gFreeAll(this.groupId));
 
     // /d_recv the tap def; its completion message /s_new's the tap at the tail
     // of this session's group so it reads the post-mix master out.
@@ -109,7 +94,7 @@ export class ScopeController {
     // group so it runs before the tap reads the bus. If the scope shows this
     // (and it's audible), the whole tap→SHM→bridge→canvas path is healthy.
     if (this.testTone) {
-      const toneMsg = sNew(testToneSynthDefName(), this.ids.alloc(), AddToHead, this.groupId, {
+      const toneMsg = sNew(testToneSynthDefName(), this.client.nextNodeId(), AddToHead, this.groupId, {
         out: INPUT_BUS,
         freq: 220,
         amp: 0.2,

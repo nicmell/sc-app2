@@ -2,12 +2,12 @@
 //! [`core`](crate::core), consumed by the HTTP [`router`](crate::router).
 //!
 //! Layering is one-directional: `router → server → core`. [`Server`] owns the
-//! per-session bookkeeping (the Uuid↔index map, the WS connection refcount, the
-//! idle reaper) and the scope SHM mapping, and **delegates everything
-//! SuperCollider-side to [`Scsynth`]**: the node-id partitioning scheme, the
-//! root group, and the `/g_new`/`/g_freeAll`/`/n_free` messaging all live there.
-//! It holds no HTTP types (the asset resolver lives in `router`), so it doubles
-//! cleanly as the axum `State`.
+//! per-session bookkeeping (the Uuid↔index map) and the scope SHM mapping, and
+//! **delegates everything SuperCollider-side to [`Scsynth`]**: the node-id
+//! partitioning scheme and the `/g_freeAll`/`/n_free` messaging live there
+//! (the session *group* is created by the frontend). It holds no HTTP types
+//! (the asset resolver lives in `router`), so it doubles cleanly as the axum
+//! `State`.
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -17,15 +17,13 @@ use uuid::Uuid;
 
 use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
-use crate::core::scsynth::{root_group_id, session_block, Scsynth, SessionBlock};
+use crate::core::scsynth::{session_block, Scsynth, SessionBlock};
 use crate::core::sessions::SessionStore;
 use crate::logger::Logger;
 use crate::scope::ScopeShm;
 
 /// How long to wait for scsynth registration (clientID) before failing a POST.
 const CLIENT_ID_WAIT: Duration = Duration::from_secs(5);
-/// Cap on the reaper's sweep interval (it also tracks `session_ttl_seconds`/4).
-const MAX_SWEEP: Duration = Duration::from_secs(15);
 
 /// The shared application core. Cheap to clone (Arc-backed), so it doubles as
 /// the axum `State`.
@@ -76,49 +74,45 @@ impl Server {
         &self.inner.sessions
     }
 
-    /// Free the root group + release the scsynth client slot — for shutdown.
+    /// Shutdown: end every live session individually (free each one's group,
+    /// one by one), then release the scsynth client slot (`/notify 0`).
     pub(crate) async fn unregister(&self) {
+        for (id, block) in self.inner.sessions.drain_all() {
+            self.inner.scsynth.free_group(block.group_id).await;
+            tracing::info!(session = %id, group = block.group_id, "session ended (shutdown)");
+        }
         self.inner.scsynth.unregister().await;
     }
 
     // ── sessions ──
 
-    /// Mint a session: wait for scsynth registration, allocate an index +
-    /// node-id block, and `/g_new` the session group under the root group.
+    /// Mint a session: wait for scsynth registration and allocate an index +
+    /// node-id block. The frontend creates the session group itself (`/g_new`
+    /// at the tail of scsynth's root group) once its WebSocket is open.
     /// `None` if scsynth never registers within [`CLIENT_ID_WAIT`].
     pub(crate) async fn create_session(&self) -> Option<(Uuid, SessionBlock)> {
         let cid = self.inner.scsynth.await_client_id(CLIENT_ID_WAIT).await?;
-        let (id, block) = self.inner.sessions.create(|index| session_block(cid, index));
-        self.inner.scsynth.new_group(block.group_id, root_group_id(cid)).await;
-        // Keep our root group last in scsynth's root group so this session's
-        // scope tap reads bus 0 after SuperDirt's output (which may have booted
-        // after us, landing earlier in the node order).
-        self.inner.scsynth.order_root_to_tail().await;
-        Some((id, block))
+        Some(self.inner.sessions.create(|index| session_block(cid, index)))
     }
 
-    /// Free a session's scsynth group and everything in it. Used by DELETE and
-    /// the idle reaper.
-    pub(crate) async fn free_session_group(&self, group_id: i32) {
-        self.inner.scsynth.free_group(group_id).await;
+    /// End a session: drop it from the store and free its scsynth group (and
+    /// everything in it). Called when the session's WebSocket closes.
+    pub(crate) async fn end_session(&self, id: &Uuid) {
+        if let Some(block) = self.inner.sessions.remove(id) {
+            self.inner.scsynth.free_group(block.group_id).await;
+            tracing::info!(session = %id, group = block.group_id, "session ended (ws closed)");
+        }
     }
 
-    /// Spawn the background reaper: evict sessions whose WebSocket has been gone
-    /// past `session_ttl_seconds`, freeing each one's group.
-    pub(crate) fn spawn_session_reaper(&self) {
-        let server = self.clone();
-        let grace = Duration::from_secs(self.inner.config.session_ttl_seconds);
-        let sweep = std::cmp::min(grace / 4, MAX_SWEEP).max(Duration::from_secs(1));
-        tokio::spawn(async move {
-            let mut ticker = tokio::time::interval(sweep);
-            loop {
-                ticker.tick().await;
-                for (id, block) in server.inner.sessions.evict_idle(grace) {
-                    tracing::info!(session = %id, group = block.group_id, "session evicted (idle past TTL)");
-                    server.free_session_group(block.group_id).await;
-                }
-            }
-        });
+    /// The `scsynth` peer's `host:port` from config — returned by the session
+    /// endpoint so the frontend footer can display it.
+    pub(crate) fn scsynth_address(&self) -> Option<String> {
+        self.inner
+            .config
+            .peers
+            .iter()
+            .find(|p| p.name == "scsynth")
+            .map(|p| p.target.clone())
     }
 
     // ── scope SHM ──
@@ -145,12 +139,9 @@ impl Server {
 
     /// UDP port of the `scsynth` peer (its SHM segment is named after it).
     fn scsynth_port(&self) -> Option<u16> {
-        self.inner
-            .config
-            .peers
-            .iter()
-            .find(|p| p.name == "scsynth")
-            .and_then(|p| p.target.parse::<SocketAddr>().ok())
+        self.scsynth_address()?
+            .parse::<SocketAddr>()
+            .ok()
             .map(|addr| addr.port())
     }
 }

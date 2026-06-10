@@ -29,15 +29,15 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
 // ── node-id partitioning ─────────────────────────────────────────────────
 //
 // scsynth partitions the node-ID space by client: client `cid` owns
-// `[cid << 26, (cid+1) << 26)`. We carve our slice into a per-client root group
-// (`base + 1`) plus fixed-size per-session sub-blocks (`base + index*SPAN`), so
-// every synth a session creates has a server-assigned id that can't collide
-// with another session, another scsynth client (sclang/SuperDirt at clientID
-// 0), or the default groups. The app layer ([`crate::server`]) allocates the
-// per-session `index`; the scheme itself lives here, with scsynth's protocol.
+// `[cid << 26, (cid+1) << 26)`. We carve our slice into fixed-size per-session
+// sub-blocks (`base + index*SPAN`), so every synth a session creates has a
+// server-assigned id that can't collide with another session, another scsynth
+// client (sclang/SuperDirt at clientID 0), or the default groups. The app
+// layer ([`crate::server`]) allocates the per-session `index`; the scheme
+// itself lives here, with scsynth's protocol. The session *group* (`/g_new` at
+// the tail of scsynth's root group 0) is created by the frontend once its
+// WebSocket is open — the bridge only frees groups (session end / shutdown).
 
-/// `/g_new` add-action: add the new group to the tail of the target group.
-const ADD_TO_TAIL: i32 = 1;
 /// Bits a client's node-ID block occupies — matches SuperCollider's allocator.
 const ID_SHIFT: u32 = 26;
 /// Node IDs reserved per session (group id + this many synth ids). 2^16 →
@@ -64,12 +64,6 @@ pub struct SessionBlock {
 /// index wraps within this range (mirrors the SHM reader's expectation).
 pub const SCOPE_BUFFER_COUNT: u32 = 128;
 
-/// The per-client root group id (reserved at `base + 1`, clear of the session
-/// sub-blocks which start at `base + SPAN`).
-pub fn root_group_id(cid: i32) -> i32 {
-    (cid << ID_SHIFT) + 1
-}
-
 /// The [`SessionBlock`] for session `index` (1-based) of client `cid`.
 pub fn session_block(cid: i32, index: u32) -> SessionBlock {
     let group_id = (cid << ID_SHIFT) + (index as i32) * SESSION_SPAN;
@@ -84,28 +78,12 @@ pub fn session_block(cid: i32, index: u32) -> SessionBlock {
 
 // ── group-command packet builders ─────────────────────────────────────────
 
-fn g_new_packet(group_id: i32, add_action: i32, target_id: i32) -> Vec<u8> {
-    osc::encode(
-        "/g_new",
-        vec![OscType::Int(group_id), OscType::Int(add_action), OscType::Int(target_id)],
-    )
-}
-
 fn g_free_all_packet(group_id: i32) -> Vec<u8> {
     osc::encode("/g_freeAll", vec![OscType::Int(group_id)])
 }
 
 fn n_free_packet(node_id: i32) -> Vec<u8> {
     osc::encode("/n_free", vec![OscType::Int(node_id)])
-}
-
-/// `/n_order <addAction> <targetId> <nodeId>` — reposition `node` (addAction 1 =
-/// to the tail of the target group).
-fn n_order_packet(add_action: i32, target_id: i32, node_id: i32) -> Vec<u8> {
-    osc::encode(
-        "/n_order",
-        vec![OscType::Int(add_action), OscType::Int(target_id), OscType::Int(node_id)],
-    )
 }
 
 // ── protocol ────────────────────────────────────────────────────────────
@@ -239,11 +217,6 @@ struct State {
     alive: bool,
     /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
     status_replies: u64,
-    /// The client id we last created a root group for. On a transient reconnect
-    /// (same id, scsynth never restarted) the group still exists, so we free it
-    /// before re-creating — avoiding a duplicate-id `/g_new` failure. Preserved
-    /// across `reset()` (it tracks across reconnects).
-    root_group_cid: Option<i32>,
 }
 
 /// Keeps the bridge registered with a live scsynth. Cheap to clone (Arc-backed).
@@ -286,7 +259,7 @@ impl Scsynth {
     }
 
     /// The scsynth-assigned client id, once registered. The app turns it into
-    /// session blocks via [`session_block`] / [`root_group_id`].
+    /// session blocks via [`session_block`].
     pub fn client_id(&self) -> Option<i32> {
         self.inner.state.lock().unwrap().client_id
     }
@@ -306,78 +279,20 @@ impl Scsynth {
         .ok()
     }
 
-    /// `/g_new <group_id>` at the tail of `target_id`.
-    pub async fn new_group(&self, group_id: i32, target_id: i32) {
-        self.inner
-            .bridge
-            .dispatch_command(&g_new_packet(group_id, ADD_TO_TAIL, target_id))
-            .await;
-    }
-
-    /// Move our per-client root group to the **tail** of scsynth's root group
-    /// (group 0). The master-out scope tap lives (nested) in here and reads bus
-    /// 0 with `In.ar`, so it must run *after* SuperDirt's output monitors. Node
-    /// order in group 0 depends on who booted first; re-tailing when a session
-    /// is created (a frontend is about to tap) guarantees the tap samples bus 0
-    /// after SuperDirt has written it — otherwise the scope reads pre-mix
-    /// silence even though the audio is audible.
-    pub async fn order_root_to_tail(&self) {
-        let Some(cid) = self.client_id() else {
-            return;
-        };
-        self.inner
-            .bridge
-            .dispatch_command(&n_order_packet(ADD_TO_TAIL, 0, root_group_id(cid)))
-            .await;
-    }
-
     /// Free a group and everything in it (`/g_freeAll` + `/n_free`).
     pub async fn free_group(&self, group_id: i32) {
         self.inner.bridge.dispatch_command(&g_free_all_packet(group_id)).await;
         self.inner.bridge.dispatch_command(&n_free_packet(group_id)).await;
     }
 
-    /// Free the per-client root group (and everything in it) then release our
-    /// client slot on scsynth (`/notify 0`) — for shutdown.
+    /// Release our client slot on scsynth (`/notify 0`) — for shutdown. Live
+    /// session groups are freed individually first, by [`crate::server`].
     pub async fn unregister(&self) {
         if !self.inner.bridge.has_route("/notify") {
             return;
         }
-        if let Some(cid) = self.client_id() {
-            self.free_group(root_group_id(cid)).await;
-            tracing::info!(root_group = root_group_id(cid), "freed bridge root group");
-        }
         self.inner.bridge.dispatch_command(&notify_packet(false)).await;
         tracing::info!("sent /notify 0 (unregistered from scsynth)");
-    }
-
-    /// Create the per-client root group under scsynth's root group (AddToTail of
-    /// group 0, so it runs after sclang/SuperDirt). Session groups nest in it;
-    /// shutdown frees it wholesale.
-    ///
-    /// Non-destructive: if we already created this client's root group (a
-    /// transient reconnect where scsynth stayed up), the group — and every live
-    /// session group + scope tap inside it — still exists, so we leave it alone.
-    /// Re-creating (or freeing first) would either duplicate-`/g_new` or destroy
-    /// live audio. Only a genuinely new client id (or first boot) creates one.
-    async fn create_root_group(&self) {
-        let Some(cid) = self.client_id() else {
-            return;
-        };
-        if cid == 0 && self.inner.bridge.has_route("/dirt") {
-            tracing::warn!(
-                "scsynth assigned clientID 0 while a separate sclang/SuperDirt peer exists; \
-                 boot scsynth with -maxLogins ≥ 2 so node-id blocks don't overlap"
-            );
-        }
-        if self.inner.state.lock().unwrap().root_group_cid == Some(cid) {
-            tracing::debug!(client_id = cid, "root group already present; not re-creating");
-            return;
-        }
-        let root = root_group_id(cid);
-        self.new_group(root, 0).await;
-        self.inner.state.lock().unwrap().root_group_cid = Some(cid);
-        tracing::info!(client_id = cid, root_group = root, "created bridge root group");
     }
 
     /// Classify one inbound packet and record what it tells us about scsynth.
@@ -421,8 +336,12 @@ impl Scsynth {
             if self.register().await {
                 // Connected — `record` logged "scsynth running …".
                 down = false;
-                // (Re)create our per-client root group; session groups nest in it.
-                self.create_root_group().await;
+                if self.client_id() == Some(0) && self.inner.bridge.has_route("/dirt") {
+                    tracing::warn!(
+                        "scsynth assigned clientID 0 while a separate sclang/SuperDirt peer exists; \
+                         boot scsynth with -maxLogins ≥ 2 so node-id blocks don't overlap"
+                    );
+                }
                 self.set_alive(true);
                 self.poll_status_until_dead().await; // blocks until scsynth dies
                 self.set_alive(false);
@@ -591,17 +510,9 @@ mod tests {
     }
 
     #[test]
-    fn root_group_sits_just_above_the_block_base() {
-        assert_eq!(root_group_id(1), (1 << 26) + 1);
-        assert_eq!(root_group_id(0), 1);
-    }
-
-    #[test]
-    fn session_blocks_are_disjoint_and_clear_of_root() {
-        let root = root_group_id(1);
+    fn session_blocks_are_disjoint() {
         let a = session_block(1, 1);
         let b = session_block(1, 2);
-        assert!(a.group_id > root);
         assert!(a.node_base + a.node_count <= b.group_id);
         assert_eq!(b.group_id - a.group_id, SESSION_SPAN);
     }

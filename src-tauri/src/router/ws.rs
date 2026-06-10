@@ -62,11 +62,10 @@ async fn ws_handler(
             .into_response();
     }
     ws.on_upgrade(move |socket| async move {
-        // Refcount the live connection so the reaper never evicts an attached
-        // session; detach on close starts the grace window.
-        server.sessions().attach(&id);
         run_ws(&server, socket).await;
-        server.sessions().detach(&id);
+        // A session lives exactly as long as its WebSocket: end it (and free
+        // its scsynth group) the moment the socket goes away.
+        server.end_session(&id).await;
     })
 }
 

@@ -140,8 +140,8 @@ export class ScopeController {
     }
   }
 
-  /** Log chunk stats (~1×/sec) to the console so the debug-console drawer shows
-   *  whether non-zero audio is reaching the browser. */
+  /** Log chunk stats (~1×/sec) to the console to show whether non-zero audio
+   *  is reaching the browser. */
   private logChunk(chunk: DecodedScopeChunk): void {
     this.chunkCount++;
     if (this.chunkCount % 50 !== 1) return;

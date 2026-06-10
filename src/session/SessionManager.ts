@@ -207,9 +207,9 @@ export class SessionManager {
       return;
     }
     // `/fail <command> <error> [extras…]` and `/late <seconds>` are mirrored to
-    // the debug console (the footer drawer, via console.*) so every failure is
-    // visible there, and also raise a toast banner. Either way they still fall
-    // through to the OSC console as the full history.
+    // the browser console so every failure is visible there, and also raise a
+    // toast banner. Either way they still fall through to the OSC console as
+    // the full history.
     if (reply.address === "/fail") {
       const command = String(reply.args[0] ?? "?");
       const message = String(reply.args[1] ?? "(no message)");

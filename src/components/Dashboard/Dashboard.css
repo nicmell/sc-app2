@@ -129,11 +129,6 @@
   font-size: var(--font-size-sm);
 }
 
-/* Height of the debug-log drawer; also how far the footer lifts when open. */
-:root {
-  --debug-log-height: 40vh;
-}
-
 /* ── footer ── */
 .footer {
   display: flex;
@@ -144,14 +139,6 @@
   border-top: 1px solid var(--color-border);
   height: 42px;
   background: var(--color-surface-1);
-  /* transition: transform var(--transition-base); */
-}
-/* When the drawer is open the bar lifts to sit atop the panel, which docks to
-   the bottom of the viewport — so the log appears *below* the footer bar while
-   hovering over the dashboard (the grid keeps its size). */
-.footer[data-debug-open="true"] {
-  transform: translateY(calc(-1 * var(--debug-log-height)));
-  z-index: 41;
 }
 
 .server-status {
@@ -159,67 +146,4 @@
   color: var(--color-text-mute);
   font-family: var(--font-mono);
   margin-left: auto;
-}
-
-/* ── debug log (footer drawer) ── */
-.debug-log-controls {
-  gap: var(--space-2xs);
-}
-
-/* Portaled to <body>, docked to the bottom of the viewport below the lifted
-   footer bar. Fixed-height so the footer's lift matches the panel's top edge. */
-.debug-log-panel {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--debug-log-height);
-  overflow-y: auto;
-  padding: var(--space-2xs) var(--space-xs);
-  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
-  border-top: 1px solid var(--color-border-strong);
-  backdrop-filter: blur(8px);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  z-index: 40;
-}
-
-.debug-log-empty {
-  color: var(--color-text-mute);
-  padding: var(--space-xs);
-}
-
-.debug-log-entry {
-  display: grid;
-  grid-template-columns: 5em 3em 1fr;
-  gap: var(--space-xs);
-  padding: var(--space-3xs) 0;
-  line-height: var(--line-height-normal);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.debug-log-entry .t {
-  opacity: 0.5;
-  font-variant-numeric: tabular-nums;
-}
-.debug-log-entry .l {
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.05em;
-}
-.debug-log-entry[data-level="log"] .l {
-  color: var(--color-log-info);
-}
-.debug-log-entry[data-level="info"] .l {
-  color: var(--color-ok-text);
-}
-.debug-log-entry[data-level="warn"],
-.debug-log-entry[data-level="warn"] .l {
-  color: var(--color-log-warn);
-}
-.debug-log-entry[data-level="error"],
-.debug-log-entry[data-level="error"] .l {
-  color: var(--color-log-error);
 }

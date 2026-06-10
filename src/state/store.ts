@@ -1,5 +1,5 @@
 // The single app store. Every domain (session, dashboard layout, installed
-// plugins, debug log) is one top-level slice of this one `createStore` — modules
+// plugins) is one top-level slice of this one `createStore` — modules
 // read/write their slice via `appStore.slice(key)` / `appStore.select(...)`,
 // and React subscribes through the hooks. There is no other `createStore` in
 // the app.
@@ -11,7 +11,6 @@ import { createStore } from "../utils/reactiveStore";
 import { initialSessionState, type SessionState } from "../session/SessionManager";
 import type { BoxItem } from "./layout";
 import type { PluginInfo } from "../plugins/PluginManager";
-import type { DebugEntry } from "../utils/debugLog";
 
 export interface AppState {
   session: SessionState;
@@ -19,8 +18,6 @@ export interface AppState {
   layout: BoxItem[];
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
-  /** Console-mirror ring buffer for the debug drawer. */
-  debug: DebugEntry[];
 }
 
 const LAYOUT_KEY = "sc.dashboard.layout";
@@ -38,7 +35,6 @@ export const appStore = createStore<AppState>({
   session: initialSessionState,
   layout: loadLayout(),
   plugins: [],
-  debug: [],
 });
 
 // Persist the layout slice on change (the dashboard survives reloads).

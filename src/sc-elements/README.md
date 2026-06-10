@@ -7,10 +7,11 @@ reactive properties on the component (typed by the `ScXProps` interfaces in
 during hydration — the real gate, since the upload-time XSD doesn't enforce
 attribute rules), and **the element IS the runtime**: `resolveRuntime()`
 resolves the runtime values and `process()` assigns them onto the component
-itself (declared as plain fields on the `internal/` bases — `rootId`/
-`parentId`/`path`/`enabled` + `scChildren` for parents on `ScElement`, the
-category values on `ScNode`/`ScState`/`ScInput`). The runtime registry
-(`@/runtime/registry`) maps ids straight to the live components.
+itself (declared as plain fields on the `internal/` bases — `_rootScNode`/
+`_parentScNode` (live element references, not ids) + `path`/`enabled` +
+`_scChildren` for parents on `ScElement`, the category values on
+`ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
+maps ids straight to the live components.
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,

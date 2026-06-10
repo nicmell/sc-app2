@@ -48,7 +48,7 @@ export class ScPlugin extends ScNode implements ScPluginProps {
     try {
       return super.resolveRuntime(ctx);
     } catch (e) {
-      this.scChildren = [];
+      this._scChildren = [];
       for (const id of ctx.nodes.keys()) {
         if (id !== this.id) ctx.nodes.delete(id);
       }
@@ -69,7 +69,7 @@ export class ScPlugin extends ScNode implements ScPluginProps {
       const boxId = this.id || randomId();
       const nodes = new Map<string, ScElement>();
       this.hydrate(boxId);
-      this.process({ rootId: boxId, nodes, scope: [this], path: [] });
+      this.process({ rootNode: this, nodes, scope: [this], path: [] });
       registerAll(nodes);
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.

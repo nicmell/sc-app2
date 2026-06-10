@@ -27,7 +27,7 @@ export class ScUgen extends ScElement implements ScUgenProps {
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     this.processChildren(ctx);
     // Every input bind must reference a sibling ugen or a synthdef param.
-    for (const child of this.scChildren!) {
+    for (const child of this._scChildren!) {
       if (!isControlRuntime(child) || !child.bind) continue;
       for (const ref of child.bind.split(",").map((s) => s.trim())) {
         const refId = ref.split(":")[0];

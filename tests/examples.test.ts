@@ -82,7 +82,7 @@ function parseExample(xml: string): {
   );
   const nodes = new Map<string, ScElement>();
   host.hydrate(`test-${Math.random().toString(36).slice(2)}`);
-  host.process({ rootId: host.id, nodes, scope: [host], path: [] });
+  host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };
 }
 
@@ -126,13 +126,16 @@ describe("runtime fixtures fail with their exact intentional error", () => {
 describe("example-plugin structure", () => {
   it("assigns the runtime values onto the elements (the element IS the runtime)", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    expect(host.rootId).toBe(host.id);
-    expect(host.parentId).toBe("");
+    expect(host._rootScNode).toBe(host);
+    expect(host._parentScNode).toBeUndefined();
     expect(host.enabled).toBe(true);
     expect(host.run).toBe(true);
-    expect(host.scChildren!.length).toBeGreaterThan(0);
+    expect(host._scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes.values()) {
-      expect(el.rootId).toBe(host.id);
+      expect(el._rootScNode).toBe(host);
+      if (el !== host) {
+        expect(el._parentScNode?._scChildren).toContain(el);
+      }
     }
   });
 

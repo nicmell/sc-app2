@@ -27,8 +27,8 @@ export const runAttribute = {
   converter: { fromAttribute: (value: string | null) => value !== "false" },
 };
 
-/** A parent element — its parsed sc-* children live in `scChildren`. */
-export type ScParentElement = ScElement & { scChildren: ScElement[] };
+/** A parent element — its parsed sc-* children live in `_scChildren`. */
+export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
 function nameOf(el: Element): string | undefined {
   return (el as { name?: string }).name;
@@ -36,9 +36,9 @@ function nameOf(el: Element): string | undefined {
 
 function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
-  if (node.scChildren) {
+  if (node._scChildren) {
     const [name, ...rest] = path;
-    const child = node.scChildren.find((c) => nameOf(c) === name);
+    const child = node._scChildren.find((c) => nameOf(c) === name);
     return child ? walkPath(child, rest) : undefined;
   }
   return undefined;
@@ -60,16 +60,19 @@ function checkDuplicateNames(scope: ScElement[]): void {
 export abstract class ScElement extends LitElement implements BaseRuntime {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
-  /** The plugin root's id this element was parsed under. */
-  rootId = "";
-  /** The parsed parent element's id ("" at the root). */
-  parentId = "";
+  /** The hydrated identity — the native DOM id; `hydrate` assigns it (and
+   *  the browser reflects it to the attribute). */
+  declare id: string;
+  /** The plugin root element this element was parsed under. */
+  _rootScNode!: ScElement;
+  /** The parsed parent element (unset at the root). */
+  _parentScNode?: ScParentElement;
+  /** The parsed sc-* child elements — parents only (NOT the DOM children:
+   *  sc-* descendants reached through plain HTML wrappers). */
+  _scChildren?: ScElement[];
   /** The named ancestor path (scope names, outermost first). */
   path: string[] = [];
   enabled = true;
-  /** The parsed sc-* child elements — parents only (NOT the DOM children:
-   *  sc-* descendants reached through plain HTML wrappers). */
-  scChildren?: ScElement[];
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -111,15 +114,15 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** Hydrate this element: assign the id, run the element's own `validate()`,
    *  and reset the parsed-children list (parents). */
   hydrate(id: string): this {
-    this.setAttribute("id", id);
+    this.id = id;
     this.validate();
-    if (isParentRuntime(this)) this.scChildren = [];
+    if (isParentRuntime(this)) this._scChildren = [];
     return this;
   }
 
   /** Process this hydrated element: pre-register it (so re-entrant resolves
    *  of a mid-processing ancestor return it), attach it to the parent's
-   *  `scChildren`, resolve the runtime values, and assign them onto the
+   *  `_scChildren`, resolve the runtime values, and assign them onto the
    *  element. Idempotent — an already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     const existing = ctx.nodes.get(this.id);
@@ -128,7 +131,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
     ctx.nodes.set(this.id, this);
     if (ctx.parentNode) {
-      ctx.parentNode.scChildren.push(this);
+      ctx.parentNode._scChildren.push(this);
     }
     Object.assign(this, this.resolveRuntime(ctx));
     return this;
@@ -143,7 +146,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   /** The runtime core every element shares. */
   protected baseRuntime(ctx: RuntimeContext): BaseRuntime {
-    return { rootId: ctx.rootId, parentId: ctx.parentNode?.id ?? "", path: ctx.path, enabled: true };
+    return { _rootScNode: ctx.rootNode, _parentScNode: ctx.parentNode, path: ctx.path, enabled: true };
   }
 
   /** This element's sc-* descendants, recursing through plain HTML. */
@@ -206,7 +209,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     if (!target || !isNodeRuntime(target)) {
       throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
     }
-    if (!target.scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+    if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
       const targetName = nameOf(target) ?? target.id;
       throw new Error(
         `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
@@ -223,7 +226,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
     for (const path of parsed.paths) {
       const { target, controlName } = this.resolveControlBind(ctx, path);
-      const targetState = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
+      const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
       this.checkCircularBind(ctx, targetState.id);
       targets[path] = targetState.id;
     }
@@ -254,7 +257,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** Resolve a visual/input bind to its target state element's id. */
   protected resolveVisualBind(ctx: RuntimeContext, bind: string): InputRuntime {
     const { target, controlName } = this.resolveControlBind(ctx, bind);
-    const control = target.scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
+    const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
     return { ...this.baseRuntime(ctx), targetId: control.id };
   }
 

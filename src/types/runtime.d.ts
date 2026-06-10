@@ -25,8 +25,10 @@ export type Expr =
 // its `value` prop.
 
 export interface BaseRuntime {
-  rootId: string;
-  parentId: string;
+  /** The plugin root element this element was parsed under. */
+  _rootScNode: ScElement;
+  /** The parsed parent element (unset at the root). */
+  _parentScNode?: ScParentElement;
   path: string[];
   enabled: boolean;
 }
@@ -155,7 +157,7 @@ export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
  *  context. `nodes` is the per-parse id → element map (adopted by the runtime
  *  registry on success), `scope` the cumulative bind-resolution scope. */
 export interface RuntimeContext {
-  rootId: string;
+  rootNode: ScElement;
   nodes: Map<string, ScElement>;
   scope: ScElement[];
   parentNode?: ScParentElement;

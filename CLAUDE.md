@@ -185,8 +185,9 @@ every further `sc-*` element:
    them from the category base (`internal/sc-node`: nodeId/loaded + run;
    `internal/sc-state`: name/value/bind + targets/expression + the shared
    validation; `internal/sc-input`: bind + targetId); the common core
-   (rootId/parentId/path/enabled + `scChildren` for parents — named so
-   because DOM `children` is taken) is on `ScElement`. The mixin contracts
+   (`_rootScNode`/`_parentScNode` — live element references, not ids —
+   plus path/enabled and `_scChildren` for parents, named so because DOM
+   `children` is taken) is on `ScElement`. The mixin contracts
    (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
    `src/types/runtime.d.ts` as `resolveRuntime` return types, next to the
    `ScXProps` interfaces. Values that duplicate a reactive prop are unified
@@ -202,7 +203,7 @@ every further `sc-*` element:
    / `this.resolveVisualBind` / `this.resolveNode`, and return the runtime
    values over `this.baseRuntime(ctx)` / `this.nodeRuntime(ctx)` (the base
    `process(ctx)` assigns them onto the element). `ctx` is the per-LEVEL
-   state ({rootId, nodes, scope, parentNode, path}) shared by all siblings.
+   state ({rootNode, nodes, scope, parentNode, path}) shared by all siblings.
    The default is the self-contained leaf. Extend `lib/utils/guards.ts` if
    the element joins a category (state/node/parent). Add the element's
    examples to the unit suite's expectations (`tests/examples.test.ts`) if
@@ -238,8 +239,8 @@ fails), which the old app never hit because it locked 0.8.0.
 **Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom
 (`tests/examples.test.ts`). Loads every example entry via `import.meta.glob`,
 mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
-and runs `host.hydrate(...)` + `host.process(tree, {rootId, nodes, scope:
-[tree], path:[]})`. Functional examples must parse clean; the runtime `bad-*`
+and runs `host.hydrate(...)` + `host.process({rootNode: host, nodes, scope:
+[host], path:[]})`. Functional examples must parse clean; the runtime `bad-*`
 fixtures must fail with their **exact** message; plus structural assertions
 (flat runtime merge, range bind targets, `_element` identity). The strudel
 editor stack is vi.mock'ed (browser-only deps); the five upload fixtures are
@@ -260,7 +261,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
    children into the host, then `host.hydrate(randomId())` +
-   `host.process({rootId: host.id, nodes: new Map(), scope: [host],
+   `host.process({rootNode: host, nodes: new Map(), scope: [host],
    path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the

@@ -32,7 +32,7 @@ export function unregisterTree(rootId: string): void {
   if (!root) return;
   const drop = (el: ScElement): void => {
     nodes.delete(el.id);
-    el.scChildren?.forEach(drop);
+    el._scChildren?.forEach(drop);
   };
   drop(root);
 }

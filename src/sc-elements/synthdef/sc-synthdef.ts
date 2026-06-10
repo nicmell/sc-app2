@@ -10,7 +10,7 @@ import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
 function collectControlParams(node: ScParentElement): Record<string, number> {
   const controls: Record<string, number> = {};
-  for (const child of node.scChildren) {
+  for (const child of node._scChildren) {
     if (isControlRuntime(child) && child.value != null) {
       controls[child.name] = child.value;
     }
@@ -20,7 +20,7 @@ function collectControlParams(node: ScParentElement): Record<string, number> {
 
 function collectUgenInputs(node: ScUgen): Record<string, string> {
   const inputs: Record<string, string> = {};
-  for (const child of node.scChildren!) {
+  for (const child of node._scChildren!) {
     if (isControlRuntime(child)) {
       const { name, bind, value } = child;
       if (!bind && value == null) {
@@ -48,7 +48,7 @@ export class ScSynthDef extends ScElement implements ScSynthDefProps {
     // the synthdef list from the parsed tree in document order; collecting
     // still validates that every ugen input has a bind or value.
     collectControlParams(this as ScElement as ScParentElement);
-    const ugenChildren = this.scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN);
+    const ugenChildren = this._scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN);
     for (const c of ugenChildren) {
       collectUgenInputs(c);
     }

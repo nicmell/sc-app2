@@ -69,11 +69,11 @@ constants/               per-domain constants (as-const maps + defaults):
 lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
-  html/                  processHtml: parse + validate plugin DOM into typed items
-                         (types/parsers.d.ts) and register them in @/runtime. Strict
-                         per-element attribute validation (the backend XSD validates
+  html/                  processHtml/hydrate: parse plugin DOM into typed items
+                         (types/parsers.d.ts), calling each component's own
+                         validate() during hydration (the backend XSD validates
                          structure at upload, but fastxml does NOT enforce required
-                         attributes — the runtime parser is the real gate)
+                         attributes — the components' validate() is the real gate)
   osc/                   the OSC transport (see lib/osc/README.md):
                          OscClient (global `oscClient`, mirrors the osc-js OSC class,
                          owns /g_new of the session group + nextNodeId allocation)
@@ -148,6 +148,43 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 * `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
   tap def).
 * `@sc-app/ui-foundation` — base styles/custom-element foundation.
+
+## Migrating an sc-element (the recipe)
+
+The element architecture settled with the first migrated batch — follow it for
+every further `sc-*` element:
+
+1. **Tag**: add it to `ELEMENTS` (`src/constants/sc-elements.ts`), the
+   constructor `REGISTRY` (`src/sc-elements/index.ts`), and the backend XSD
+   (`src-tauri/src/plugin/xsd/sc-plugin-schema.xsd` — declaration, complex
+   type, content-model group). The JSX augmentation grows automatically.
+2. **Attributes live on the component, not the item.** Declare them as
+   standard-decorator reactive properties — `@property({ type: Number })
+   accessor min = 0;` — implementing the element's `ScXProps` interface from
+   `src/types/parsers.d.ts`. (Vite lowers the decorators via
+   `esbuild.target: "es2022"`; attribute→property conversion replaces hand
+   parsing. Use the shared `runAttribute` converter for `run="false"`
+   semantics.)
+3. **Validation is colocated**: override `validate()` on the component (base
+   helpers: `requireProp`, `requireNumeric`, `requireNoScChildren`,
+   `failValidation`). `hydrate` calls it during parse and a violation fails
+   the whole plugin. This is the *real* gate — fastxml does not enforce XSD
+   attribute requirements at upload.
+4. **Item type** (`src/types/parsers.d.ts`): only what the parser/runtime
+   infers — `{ id, _element: Element & ScXProps, children?, runtime }`
+   (children for parents only) plus a `ScXProps` interface for the reactive
+   properties. Never copy attributes into items — and there is **no `type`
+   field either**: the discriminant is the element's tag itself, derived via
+   `typeOf(item)` (`lib/utils/guards`, `_element.tagName`); the guards narrow
+   by tag with plain cast predicates, and `processElement` dispatches on
+   `typeOf`.
+5. **Runtime**: a handler in `src/runtime/handlers.ts` (`processElement`
+   switch) that resolves binds via the shared machinery and returns the
+   runtime object, reading attributes through `item._element`; extend
+   `lib/utils/guards.ts` if the element joins a category (state/node/parent).
+6. `item._element` IS the mounted component (strict-equality verified by the
+   ScElement firstUpdated test), so the registry exposes the live element —
+   props and methods — from outside the DOM.
 
 ## Migration plan (old `sc-app/` → here)
 

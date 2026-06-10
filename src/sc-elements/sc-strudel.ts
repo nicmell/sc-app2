@@ -38,6 +38,10 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 };
 
 export class ScStrudel extends ScElement<ScStrudelItem> {
+  validate(): void {
+    this.requireNoScChildren();
+  }
+
   private mirror: InstanceType<typeof StrudelMirror> | null = null;
   private off: (() => void) | null = null;
   private status: ConnStatus = "connecting";

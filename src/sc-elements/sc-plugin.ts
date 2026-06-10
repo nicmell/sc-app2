@@ -5,23 +5,26 @@
 // session group on mount, freed — with every synth in it — on unmount.
 
 import { html, LitElement } from "lit";
+import { property } from "lit/decorators.js";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
-import { ELEMENTS } from "@/constants/sc-elements";
 import { hydrate, processHtml } from "@/lib/html/processHtml";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/lib/session/SessionManager";
 import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
+import { runAttribute } from "./internal/sc-element";
 import type { PluginInfo } from "@/types/api";
-import type { ScElementItem, ScSynthDefItem } from "@/types/parsers";
+import type { ScElementItem, ScPluginProps, ScSynthDefItem } from "@/types/parsers";
 
-export class ScPlugin extends LitElement {
+export class ScPlugin extends LitElement implements ScPluginProps {
   static properties = {
     _error: { state: true },
   };
 
   declare _error: string;
+
+  @property(runAttribute) accessor run = true;
 
   /** The plugin to load — set imperatively by PluginHost before mounting. */
   plugin?: PluginInfo;
@@ -47,7 +50,7 @@ export class ScPlugin extends LitElement {
       const boxId = this.id || randomId();
       const synthdefs: ScSynthDefItem[] = [];
       const nodes = new Map<string, ScElementItem>();
-      const tree = hydrate({ id: boxId, type: ELEMENTS.SC_PLUGIN }, this);
+      const tree = hydrate(boxId, this);
       processHtml({ rootId: boxId, tree, scope: [tree], synthdefs, nodes, path: [] });
       registerAll(nodes);
       // The group all of this plugin's synths will live in — freed wholesale

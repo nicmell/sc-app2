@@ -8,6 +8,14 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  // Lower standard (stage-3) decorators in the per-file esbuild transform —
+  // the sc-elements use `@property() accessor` reactive properties and
+  // Rollup's parser can't read raw decorator syntax (esbuild only lowers them
+  // when the target isn't esnext).
+  esbuild: {
+    target: "es2022",
+  },
+
   // react-grid-layout bundles react-draggable, whose drag-start logger reads
   // `process.env.DRAGGABLE_DEBUG` — `process` is undefined in the browser, so it
   // throws on the first drag/resize. Replace the expression with a constant.

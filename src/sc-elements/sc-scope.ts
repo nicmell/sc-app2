@@ -12,6 +12,10 @@ import { session } from "@/stores/session";
 const GAIN = 0.9;
 
 export class ScScope extends ScElement<ScScopeItem> {
+  validate(): void {
+    this.requireNoScChildren();
+  }
+
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private raf = 0;

@@ -1,8 +1,14 @@
 // <sc-synthdef> — declares a synth graph (sc-control + sc-ugen children).
-// Stub: parsing/validation only; compilation + /d_recv arrive with the
-// synthdef migration step.
+// Compilation + /d_recv arrive with the synthdef migration step.
 
-import type { ScSynthDefItem } from "@/types/parsers";
+import { property } from "lit/decorators.js";
+import type { ScSynthDefItem, ScSynthDefProps } from "@/types/parsers";
 import { ScElement } from "./internal/sc-element";
 
-export class ScSynthDef extends ScElement<ScSynthDefItem> {}
+export class ScSynthDef extends ScElement<ScSynthDefItem> implements ScSynthDefProps {
+  @property() accessor name = "";
+
+  validate(): void {
+    this.requireProp("name", this.name);
+  }
+}

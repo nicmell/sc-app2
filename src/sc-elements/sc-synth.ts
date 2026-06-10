@@ -1,8 +1,17 @@
 // <sc-synth> — a synth instance of an sc-synthdef (referenced by `bind`),
-// with sc-control children as its parameters. Stub: parsing/validation only;
-// /s_new in the plugin group arrives with the synth migration step.
+// with sc-control children as its parameters. /s_new in the plugin group
+// arrives with the synth migration step.
 
-import type { ScSynthItem } from "@/types/parsers";
-import { ScElement } from "./internal/sc-element";
+import { property } from "lit/decorators.js";
+import type { ScSynthItem, ScSynthProps } from "@/types/parsers";
+import { runAttribute, ScElement } from "./internal/sc-element";
 
-export class ScSynth extends ScElement<ScSynthItem> {}
+export class ScSynth extends ScElement<ScSynthItem> implements ScSynthProps {
+  @property() accessor name = "";
+  @property() accessor bind = "";
+  @property(runAttribute) accessor run = true;
+
+  validate(): void {
+    this.requireProp("name", this.name);
+  }
+}

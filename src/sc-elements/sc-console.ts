@@ -15,6 +15,10 @@ function fmtTime(ms: number): string {
 }
 
 export class ScConsole extends ScElement<ScConsoleItem> {
+  validate(): void {
+    this.requireNoScChildren();
+  }
+
   private off: (() => void) | null = null;
 
 

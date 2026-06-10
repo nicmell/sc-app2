@@ -1,11 +1,20 @@
-// Minimal base for the parsed plugin elements (the old sc-app's ScElement,
-// trimmed to the stub phase): light-DOM rendering and a lookup of the parsed
-// item this element was hydrated into — no store subscription, no parent
-// context yet.
+// Minimal base for the parsed plugin elements: light-DOM rendering, a lookup
+// of the parsed item this element was hydrated into, and the per-element
+// validation hook the parser calls during hydration. HTML attributes are NOT
+// copied into the items — they live here, on the components, as reactive
+// properties; the runtime reads them through `item._element`.
 
 import { LitElement } from "lit";
+import { ELEMENTS } from "@/constants/sc-elements";
 import { getById } from "@/runtime/registry";
 import type { ScElementItem } from "@/types/parsers";
+
+const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
+
+/** `run="false"` is the only falsy spelling (bare/`run="true"` mean running). */
+export const runAttribute = {
+  converter: { fromAttribute: (value: string | null) => value !== "false" },
+};
 
 export abstract class ScElement<T extends ScElementItem = ScElementItem> extends LitElement {
   /** Render into the light DOM so plugin markup children stay visible. */
@@ -17,6 +26,36 @@ export abstract class ScElement<T extends ScElementItem = ScElementItem> extends
    *  matching DOM id), or `null` before the plugin root has parsed. */
   get item(): T | null {
     return (getById(this.id) as T | undefined) ?? null;
+  }
+
+  /** Per-element attribute validation, called by the parser during hydration
+   *  (`lib/html` hydrate) — a violation fails the whole plugin parse. The
+   *  backend XSD validates structure at upload, but it does not enforce
+   *  attribute requirements, so this is the real gate. Colocate the rules
+   *  with the property declarations in each component. */
+  validate(): void {}
+
+  /** Throw a validation error in the canonical `<tag>: message` shape. */
+  protected failValidation(message: string): never {
+    throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`);
+  }
+
+  /** Leaves must not nest other sc-* elements. (Plain DOM children are fine:
+   *  an upgraded element has already rendered its own UI into itself.) */
+  protected requireNoScChildren(): void {
+    if (this.querySelector(SC_ELEMENT_SELECTOR)) this.failValidation("must not contain sc-* elements");
+  }
+
+  /** Require a non-empty reactive property (backing a required attribute). */
+  protected requireProp(name: string, value: string): void {
+    if (!value) this.failValidation(`missing required "${name}" attribute`);
+  }
+
+  /** Reject a numeric property whose attribute didn't parse as a number. */
+  protected requireNumeric(name: string, value: number | undefined): void {
+    if (value !== undefined && Number.isNaN(value)) {
+      this.failValidation(`"${name}" attribute must be a number`);
+    }
   }
 
   // TEST: the registry item's `_element` must be THIS mounted component

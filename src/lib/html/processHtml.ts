@@ -1,20 +1,19 @@
-// Parse a plugin's injected DOM into the typed element tree (ported from the
-// old sc-app): `hydrate` validates + extracts each element's attributes
-// (handlers.ts) and ties the item to its DOM node; `processHtml` drives the
-// runtime processor (src/runtime/handlers processElement) with a `visit`
-// callback that walks the DOM for sc-* parser tags (recursing through plain
-// HTML), hydrates each scope with fresh ids, rejects duplicate sibling names,
-// and recurses with the cumulative scope for bind resolution.
+// Parse a plugin's injected DOM into the typed element tree: `hydrate` assigns
+// the item's id onto the (already upgraded) web component, runs the element's
+// own `validate()` (the per-element attribute rules live on the components,
+// next to their reactive property declarations), and ties the item to it;
+// `processHtml` drives the runtime processor (src/runtime/handlers
+// processElement) with a `visit` callback that walks the DOM for sc-* parser
+// tags (recursing through plain HTML), hydrates each scope with fresh ids,
+// rejects duplicate sibling names, and recurses with the cumulative scope for
+// bind resolution. The HTML attributes are NOT copied into the items — the
+// runtime reads them through `item._element`'s reactive properties.
 
-import { isNodeType } from "@/lib/utils/guards";
+import { isNodeType, isParent } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { checkDuplicateNames, processElement, type RuntimeContext } from "@/runtime/handlers";
-import type { NodeType, ScElementItem, ScElementItemBase, ScParentItem } from "@/types/parsers";
-import { extractProps } from "./handlers";
-
-function tagToType(tag: string): NodeType {
-  return tag as NodeType;
-}
+import type { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScElementItem, ScElementItemBase, ScParentItem } from "@/types/parsers";
 
 function* walkDom(el: Element): Generator<Element> {
   for (const child of Array.from(el.children)) {
@@ -27,13 +26,14 @@ function* walkDom(el: Element): Generator<Element> {
   }
 }
 
-export function hydrate(
-  node: { id: string; type: string; [key: string]: unknown },
-  element: Element,
-): ScElementItemBase {
-  element.setAttribute("id", node.id);
-  const props = extractProps(node.type, element);
-  return Object.assign(node, props, { _element: element }) as ScElementItemBase;
+export function hydrate(id: string, element: Element): ScElementItemBase {
+  element.setAttribute("id", id);
+  // The components own their attribute validation (sc-plugin, the synthesized
+  // root, declares none). A violation fails the whole plugin parse.
+  (element as Partial<ScElement>).validate?.();
+  const item: ScElementItemBase = { id, _element: element };
+  if (isParent(item)) (item as ScParentItem).children = [];
+  return item;
 }
 
 export type HtmlRuntimeContext = Omit<RuntimeContext, "visit">;
@@ -43,13 +43,12 @@ export function processHtml(args: HtmlRuntimeContext): ScElementItem {
     ...args,
     visit(node: ScElementItemBase): ScElementItem {
       const parent = node as ScParentItem;
-      const elements = Array.from(walkDom(node._element!));
+      const elements = Array.from(walkDom(node._element));
 
-      const path = "name" in node && node.name ? [...args.path, node.name as string] : args.path;
+      const name = (node._element as { name?: string }).name;
+      const path = name ? [...args.path, name] : args.path;
 
-      const scope = elements.map((el) => {
-        return hydrate({ id: randomId(), type: tagToType(el.tagName.toLowerCase()) }, el);
-      });
+      const scope = elements.map((el) => hydrate(randomId(), el));
 
       checkDuplicateNames(scope);
 

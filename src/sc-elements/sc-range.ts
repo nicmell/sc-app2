@@ -4,31 +4,22 @@
 // control doesn't move yet.
 
 import { html } from "lit";
-import type { ScRangeItem } from "@/types/parsers";
+import { property } from "lit/decorators.js";
+import type { ScRangeItem, ScRangeProps } from "@/types/parsers";
 import { ScElement } from "./internal/sc-element";
 
-export class ScRange extends ScElement<ScRangeItem> {
-  static properties = {
-    bind: { type: String },
-    min: { type: Number },
-    max: { type: Number },
-    step: { type: Number },
-    value: { type: Number },
-  };
+export class ScRange extends ScElement<ScRangeItem> implements ScRangeProps {
+  @property() accessor bind = "";
+  @property({ type: Number }) accessor min = 0;
+  @property({ type: Number }) accessor max = 1;
+  @property({ type: Number }) accessor step = 0.01;
+  @property({ type: Number }) accessor value = 0;
 
-  declare bind: string;
-  declare min: number;
-  declare max: number;
-  declare step: number;
-  declare value: number;
-
-  constructor() {
-    super();
-    this.bind = "";
-    this.min = 0;
-    this.max = 1;
-    this.step = 0.01;
-    this.value = 0;
+  validate(): void {
+    this.requireNumeric("min", this.min);
+    this.requireNumeric("max", this.max);
+    this.requireNumeric("step", this.step);
+    this.requireNumeric("value", this.value);
   }
 
   private onInput = (e: Event) => {

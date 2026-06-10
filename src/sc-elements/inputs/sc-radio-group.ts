@@ -4,15 +4,16 @@
 
 import { property } from "lit/decorators.js";
 import type { InputRuntime, RuntimeContext, ScRadioGroupProps } from "@/types/runtime";
+import { failValidation, requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScRadioGroup extends ScInput implements ScRadioGroupProps {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   validate(): void {
-    this.requireProp("bind", this.bind);
+    requireProp(this, "bind", this.bind);
     if (this.orientation !== "horizontal" && this.orientation !== "vertical") {
-      this.failValidation(`"orientation" attribute must be horizontal|vertical (got "${this.orientation}")`);
+      failValidation(this, `"orientation" attribute must be horizontal|vertical (got "${this.orientation}")`);
     }
   }
 

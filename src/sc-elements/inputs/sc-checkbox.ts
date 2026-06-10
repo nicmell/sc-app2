@@ -5,11 +5,12 @@
 
 import { html } from "lit";
 import type { ScCheckboxProps } from "@/types/runtime";
+import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScCheckbox extends ScInput implements ScCheckboxProps {
   validate(): void {
-    this.requireProp("bind", this.bind);
+    requireProp(this, "bind", this.bind);
   }
 
   private onChange = (e: Event) => {

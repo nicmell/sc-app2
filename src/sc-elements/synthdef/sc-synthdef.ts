@@ -5,6 +5,7 @@ import { property } from "lit/decorators.js";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, ScSynthDefProps, SynthDefRuntime } from "@/types/runtime";
+import { baseRuntime, requireProp } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
@@ -38,7 +39,7 @@ export class ScSynthDef extends ScElement implements ScSynthDefProps {
   loaded = false;
 
   validate(): void {
-    this.requireProp("name", this.name);
+    requireProp(this, "name", this.name);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
@@ -52,6 +53,6 @@ export class ScSynthDef extends ScElement implements ScSynthDefProps {
     for (const c of ugenChildren) {
       collectUgenInputs(c);
     }
-    return { ...this.baseRuntime(ctx), loaded: false };
+    return { ...baseRuntime(ctx), loaded: false };
   }
 }

@@ -4,12 +4,13 @@
 
 import { property } from "lit/decorators.js";
 import type { ScGroupProps } from "@/types/runtime";
+import { requireProp } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScGroup extends ScNode implements ScGroupProps {
   @property() accessor name = "";
 
   validate(): void {
-    this.requireProp("name", this.name);
+    requireProp(this, "name", this.name);
   }
 }

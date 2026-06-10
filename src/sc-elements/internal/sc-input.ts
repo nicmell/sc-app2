@@ -8,6 +8,7 @@
 
 import { property } from "lit/decorators.js";
 import type { InputRuntime, RuntimeContext } from "@/types/runtime";
+import { resolveVisualBind } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScInput extends ScElement {
@@ -17,6 +18,6 @@ export abstract class ScInput extends ScElement {
   _targetScNode?: ScElement;
 
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    return this.resolveVisualBind(ctx, this.bind);
+    return resolveVisualBind(this, ctx, this.bind);
   }
 }

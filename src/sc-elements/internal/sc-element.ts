@@ -2,26 +2,23 @@
 // no separate item structure. The element IS the runtime — `process()`
 // resolves the runtime values and assigns them onto the component (declared
 // here and on the category bases: internal/sc-node, sc-state, sc-input), and
-// the runtime registry maps ids straight to the live elements. The base also
+// the runtime registry maps ids straight to the live elements. The base
 // carries the parse engine — `hydrate` (id + validate), `process` (the
 // per-element skeleton: idempotence, pre-registration, runtime merge),
-// `processChildren` (the recursive DOM walk with cumulative scopes) — and the
-// shared bind-resolution machinery the `resolveRuntime` overrides build on.
-// HTML attributes are reactive properties; runtime values are plain fields.
-// Still unported (return with their migration steps): the buffer family
-// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
-// and synthdef compilation.
+// `processChildren` (the recursive DOM walk with cumulative scopes); the
+// validation and bind-resolution helpers the `validate()`/`resolveRuntime`
+// overrides build on live in internal/validation.ts. HTML attributes are
+// reactive properties; runtime values are plain fields. Still unported
+// (return with their migration steps): the buffer family (sc-buffer/waveform/
+// test + the old buffer-bound scope), presets/overrides, and synthdef
+// compilation.
 
 import { LitElement } from "lit";
-import { ELEMENTS } from "@/constants/sc-elements";
-import { parseBind } from "@/lib/utils/expression";
-import { isNodeRuntime, isNodeType, isParentRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
+import { isNodeType, isParentRuntime } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { getById } from "@/runtime/registry";
-import type { ScState } from "@/sc-elements/internal/sc-state";
-import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/runtime";
-
-const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
+import { baseRuntime, checkDuplicateNames, nameOf } from "@/sc-elements/internal/validation";
+import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 
 /** `run="false"` is the only falsy spelling (bare/`run="true"` mean running). */
 export const runAttribute = {
@@ -30,33 +27,6 @@ export const runAttribute = {
 
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
-
-function nameOf(el: Element): string | undefined {
-  return (el as { name?: string }).name;
-}
-
-function walkPath(node: ScElement, path: string[]): ScElement | undefined {
-  if (path.length === 0) return node;
-  if (node._scChildren) {
-    const [name, ...rest] = path;
-    const child = node._scChildren.find((c) => nameOf(c) === name);
-    return child ? walkPath(child, rest) : undefined;
-  }
-  return undefined;
-}
-
-function checkDuplicateNames(scope: ScElement[]): void {
-  const seen = new Set<string>();
-  for (const el of scope) {
-    const name = nameOf(el);
-    if (name) {
-      if (seen.has(name)) {
-        throw new Error(`<${typeOf(el)} name="${name}">: duplicate name in scope`);
-      }
-      seen.add(name);
-    }
-  }
-}
 
 export abstract class ScElement extends LitElement implements BaseRuntime {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
@@ -84,31 +54,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  fails the whole plugin parse. The backend XSD validates structure at
    *  upload, but it does not enforce attribute requirements, so this is the
    *  real gate. Colocate the rules with the property declarations in each
-   *  component. */
+   *  component, building on the internal/validation helpers. */
   validate(): void {}
-
-  /** Throw a validation error in the canonical `<tag>: message` shape. */
-  protected failValidation(message: string): never {
-    throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`);
-  }
-
-  /** Leaves must not nest other sc-* elements. (Plain DOM children are fine:
-   *  an upgraded element has already rendered its own UI into itself.) */
-  protected requireNoScChildren(): void {
-    if (this.querySelector(SC_ELEMENT_SELECTOR)) this.failValidation("must not contain sc-* elements");
-  }
-
-  /** Require a non-empty reactive property (backing a required attribute). */
-  protected requireProp(name: string, value: string): void {
-    if (!value) this.failValidation(`missing required "${name}" attribute`);
-  }
-
-  /** Reject a numeric property whose attribute didn't parse as a number. */
-  protected requireNumeric(name: string, value: number | undefined): void {
-    if (value !== undefined && Number.isNaN(value)) {
-      this.failValidation(`"${name}" attribute must be a number`);
-    }
-  }
 
   // ── The parse engine ────────────────────────────────────────────────────
 
@@ -138,15 +85,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** Resolve this element's runtime values — bind resolution lives here, on
-   *  each component. The default is the self-contained leaf (sc-console /
-   *  sc-scope / sc-strudel). */
+   *  each component (over the internal/validation machinery). The default is
+   *  the self-contained leaf (sc-console / sc-scope / sc-strudel). */
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return this.baseRuntime(ctx);
-  }
-
-  /** The runtime core every element shares. */
-  protected baseRuntime(ctx: RuntimeContext): BaseRuntime {
-    return { _rootScNode: ctx.rootNode, _parentScNode: ctx.parentNode, path: ctx.path, enabled: true };
+    return baseRuntime(ctx);
   }
 
   /** This element's sc-* descendants, recursing through plain HTML. */
@@ -182,83 +124,6 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     for (const child of scope) {
       child.process(childCtx);
     }
-  }
-
-  // ── Shared bind-resolution machinery ────────────────────────────────────
-
-  /** Resolve a name path against the scope, processing the target on demand
-   *  (forward references). */
-  protected resolveNode(ctx: RuntimeContext, path: string[]): ScElement | undefined {
-    const [name, ...rest] = path;
-    const el = ctx.scope.find((s) => nameOf(s) === name);
-    if (!el) return undefined;
-
-    const target = ctx.nodes.has(el) ? el : el.process(ctx);
-
-    return walkPath(target, rest);
-  }
-
-  /** Resolve `bind`'s node + control-name pair: the leading segments name a
-   *  node in scope (none targets the parent node), the last segment a state
-   *  child declared on it. */
-  protected resolveControlBind(ctx: RuntimeContext, bind: string): { target: ScElement; controlName: string } {
-    const tag = this.tagName.toLowerCase();
-    const segments = bind.split(".");
-    const controlName = segments.pop()!;
-    const target = segments.length > 0 ? this.resolveNode(ctx, segments) : ctx.parentNode;
-    if (!target || !isNodeRuntime(target)) {
-      throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
-    }
-    if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
-      const targetName = nameOf(target) ?? target.id;
-      throw new Error(
-        `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
-      );
-    }
-    return { target, controlName };
-  }
-
-  /** Resolve a stateful bind (an enabled sc-control / sc-var referencing other
-   *  controls/vars): plain dot-paths or an arithmetic expression over them. */
-  protected resolveStateBind(ctx: RuntimeContext, bind: string): { targets: Record<string, ScState>; expression?: Expr } {
-    const parsed = parseBind(bind);
-    const targets: Record<string, ScState> = {};
-
-    for (const path of parsed.paths) {
-      const { target, controlName } = this.resolveControlBind(ctx, path);
-      const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
-      this.checkCircularBind(targetState);
-      targets[path] = targetState;
-    }
-
-    return { targets, expression: parsed.expression };
-  }
-
-  /** Walk the bind graph from `target` through the live `targets` references
-   *  — no registry/map lookups needed. */
-  protected checkCircularBind(target: ScElement): void {
-    const visited = new Set<ScElement>([this]);
-    const queue = [target];
-    while (queue.length > 0) {
-      const current = queue.pop()!;
-      if (visited.has(current)) {
-        const name = (this as { name?: string }).name;
-        throw new Error(`<${this.tagName.toLowerCase()} name="${name}">: circular bind reference detected`);
-      }
-      visited.add(current);
-      // The runtime values are still unassigned on a state element that's
-      // mid-processing (we got here through its own bind resolve) — its
-      // targets aren't known yet, but the cycle is still caught from the
-      // other end once they are.
-      if (isStateRuntime(current) && current.targets) queue.push(...Object.values(current.targets));
-    }
-  }
-
-  /** Resolve a visual/input bind to its target state element. */
-  protected resolveVisualBind(ctx: RuntimeContext, bind: string): InputRuntime {
-    const { target, controlName } = this.resolveControlBind(ctx, bind);
-    const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
-    return { ...this.baseRuntime(ctx), _targetScNode: control };
   }
 
   // TEST: the registry must hand back THIS mounted component instance — i.e.

@@ -4,6 +4,7 @@
 // App.css. No attributes yet — customization comes later.
 
 import { html } from "lit";
+import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { session } from "@/stores/session";
 
@@ -12,7 +13,7 @@ const GAIN = 0.9;
 
 export class ScScope extends ScElement {
   validate(): void {
-    this.requireNoScChildren();
+    requireNoScChildren(this);
   }
 
   private canvas: HTMLCanvasElement | null = null;

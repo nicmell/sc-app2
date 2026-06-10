@@ -6,6 +6,7 @@
 
 import { property } from "lit/decorators.js";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
+import { baseRuntime } from "@/sc-elements/internal/validation";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScNode extends ScElement {
@@ -22,6 +23,6 @@ export abstract class ScNode extends ScElement {
 
   /** The node-owning elements' runtime core. */
   protected nodeRuntime(ctx: RuntimeContext): NodeRuntime {
-    return { ...this.baseRuntime(ctx), loaded: false, nodeId: 0 };
+    return { ...baseRuntime(ctx), loaded: false, nodeId: 0 };
   }
 }

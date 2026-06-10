@@ -4,6 +4,7 @@
 // ui-foundation .strudel/.status-pill styles + CodeMirror apply directly.
 
 import { html } from "lit";
+import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
@@ -38,7 +39,7 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 
 export class ScStrudel extends ScElement {
   validate(): void {
-    this.requireNoScChildren();
+    requireNoScChildren(this);
   }
 
   private mirror: InstanceType<typeof StrudelMirror> | null = null;

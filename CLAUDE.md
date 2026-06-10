@@ -61,12 +61,13 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
                          ScElement base carries the parse engine (hydrate/
-                         process/processChildren) + the shared bind-resolution
-                         machinery and the common runtime fields; the category
-                         bases (sc-node/sc-state/sc-input, the old app's
-                         names) declare the category props + runtime values;
-                         each component overrides resolveRuntime(), whose
-                         result process() assigns onto the element itself
+                         process/processChildren) + the common runtime fields;
+                         validation.ts holds the validation + bind-resolution
+                         helpers as plain functions; the category bases
+                         (sc-node/sc-state/sc-input, the old app's names)
+                         declare the category props + runtime values; each
+                         component overrides resolveRuntime(), whose result
+                         process() assigns onto the element itself
 runtime/                 the global parsed-element registry (id → the live
                          ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
@@ -172,9 +173,10 @@ parser-item design; each decision is load-bearing for the recipe below:
    flat), **and finally their existence**: the element IS the runtime.
    `hydrate()`/`process()` live on `ScElement`, `resolveRuntime()` returns
    the runtime values, and `process()` assigns them onto the component
-   itself. `lib/html` and `src/runtime/handlers.ts` are gone — the engine,
-   the per-element resolution, and the shared bind machinery are all
-   `sc-elements/internal/`.
+   itself. `lib/html` and `src/runtime/handlers.ts` are gone — the engine
+   lives on the base, and the validation + bind-resolution helpers are plain
+   functions in `internal/validation.ts`, taking the element explicitly
+   where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
    fields once; concrete elements are mostly `validate()` + a small
@@ -220,11 +222,13 @@ further `sc-*` element:
    `esbuild.target: "es2022"`; attribute→property conversion replaces hand
    parsing. Use the shared `runAttribute` converter for `run="false"`
    semantics.)
-3. **Validation is colocated**: override `validate()` on the component (base
-   helpers: `requireProp`, `requireNumeric`, `requireNoScChildren`,
-   `failValidation`). `hydrate` calls it during parse and a violation fails
-   the whole plugin. This is the *real* gate — fastxml does not enforce XSD
-   attribute requirements at upload.
+3. **Validation is colocated**: override `validate()` on the component,
+   building on the `internal/validation` helpers, called with the element —
+   `requireProp(this, …)`, `requireNumeric(this, …)`,
+   `requireNoScChildren(this)`, `failValidation(this, …)`. `hydrate` calls
+   it during parse and a violation fails the whole plugin. This is the
+   *real* gate — fastxml does not enforce XSD attribute requirements at
+   upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded + run;
@@ -242,17 +246,18 @@ further `sc-*` element:
    tag (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
    component classes via type-only imports.
 5. **Runtime resolution**: override `resolveRuntime(ctx)` on the component —
-   the parse engine + shared bind-resolution machinery are inherited from
-   `ScElement` (`internal/sc-element.ts`): call `this.processChildren(ctx)`
-   if the element parses children, resolve binds via `this.resolveStateBind`
-   / `this.resolveVisualBind` / `this.resolveNode`, and return the runtime
-   values over `this.baseRuntime(ctx)` / `this.nodeRuntime(ctx)` (the base
-   `process(ctx)` assigns them onto the element). `ctx` is the per-LEVEL
-   state ({rootNode, nodes, scope, parentNode, path}) shared by all siblings.
-   The default is the self-contained leaf. Extend `lib/utils/guards.ts` if
-   the element joins a category (state/node/parent). Add the element's
-   examples to the unit suite's expectations (`tests/examples.test.ts`) if
-   it ships a new fixture.
+   the parse engine (`process`/`processChildren`/`walkScElements`) is
+   inherited from `ScElement` (`internal/sc-element.ts`); the bind machinery
+   is imported from `internal/validation` — `resolveStateBind(this, ctx,
+   bind)`, `resolveVisualBind(this, ctx, bind)`, `resolveNode(ctx, path)` —
+   and the runtime values build over `baseRuntime(ctx)` (or ScNode's
+   `this.nodeRuntime(ctx)`); the base `process(ctx)` assigns them onto the
+   element. `ctx` is the per-LEVEL state ({rootNode, nodes, scope,
+   parentNode, path}) shared by all siblings. The default is the
+   self-contained leaf. Extend `lib/utils/guards.ts` if the element joins a
+   category (state/node/parent). Add the element's examples to the unit
+   suite's expectations (`tests/examples.test.ts`) if it ships a new
+   fixture.
 6. The registry (`@/runtime/registry`) maps ids to the live components
    themselves (identity verified by the ScElement firstUpdated test), so
    props, runtime values, and methods are reachable from outside the DOM.

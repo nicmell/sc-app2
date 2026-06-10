@@ -8,6 +8,7 @@
 
 import { property } from "lit/decorators.js";
 import type { Expr, RuntimeContext, StateRuntime } from "@/types/runtime";
+import { baseRuntime, failValidation, requireNumeric, requireProp, resolveStateBind } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
@@ -21,11 +22,11 @@ export abstract class ScState extends ScElement {
   expression?: Expr;
 
   validate(): void {
-    this.requireProp("name", this.name);
+    requireProp(this, "name", this.name);
     if (this.bind !== undefined && this.value !== undefined) {
-      this.failValidation(`"value" and "bind" are mutually exclusive`);
+      failValidation(this, `"value" and "bind" are mutually exclusive`);
     }
-    this.requireNumeric("value", this.value);
+    requireNumeric(this, "value", this.value);
   }
 
   /** Resolve the literal/bound value into the live `value` property. Only
@@ -35,12 +36,12 @@ export abstract class ScState extends ScElement {
    *  tell a missing `value` attribute apart. */
   protected stateRuntime(ctx: RuntimeContext, enabled: boolean): StateRuntime {
     if (!enabled) {
-      return { ...this.baseRuntime(ctx), enabled };
+      return { ...baseRuntime(ctx), enabled };
     }
     if (this.bind) {
-      const { targets, expression } = this.resolveStateBind(ctx, this.bind);
-      return { ...this.baseRuntime(ctx), enabled, value: 0, targets, expression };
+      const { targets, expression } = resolveStateBind(this, ctx, this.bind);
+      return { ...baseRuntime(ctx), enabled, value: 0, targets, expression };
     }
-    return { ...this.baseRuntime(ctx), enabled, value: this.value ?? 0 };
+    return { ...baseRuntime(ctx), enabled, value: this.value ?? 0 };
   }
 }

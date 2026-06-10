@@ -20,10 +20,11 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   the bases: ScElement (light-DOM root, validate helpers, the
-            parse engine — hydrate/process/processChildren + the shared
-            bind-resolution machinery — and the common runtime fields),
-            ScNode (run + nodeId/loaded), ScState (name/value/bind +
+internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
+            processChildren — and the common runtime fields); validation.ts
+            (the require*/failValidation primitives + the bind-resolution
+            machinery, as plain functions over the elements); the category
+            bases ScNode (run + nodeId/loaded), ScState (name/value/bind +
             targets/expression), ScInput (bind + _targetScNode)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements

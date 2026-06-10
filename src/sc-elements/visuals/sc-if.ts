@@ -4,11 +4,12 @@
 // condition logic arrives with the inputs migration step.
 
 import type { InputRuntime, RuntimeContext, ScIfProps } from "@/types/runtime";
+import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScIf extends ScInput implements ScIfProps {
   validate(): void {
-    this.requireProp("bind", this.bind);
+    requireProp(this, "bind", this.bind);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {

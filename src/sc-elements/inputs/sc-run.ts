@@ -6,14 +6,15 @@
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import type { InputRuntime, RuntimeContext, ScRunProps } from "@/types/runtime";
+import { baseRuntime, resolveNode } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScRun extends ScInput implements ScRunProps {
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    const target = this.bind ? this.resolveNode(ctx, this.bind.split(".")) : ctx.parentNode;
+    const target = this.bind ? resolveNode(ctx, this.bind.split(".")) : ctx.parentNode;
     if (this.bind && (!target || !isNodeRuntime(target))) {
       throw new Error(`<sc-run>: bind "${this.bind}" does not match any node in scope`);
     }
-    return { ...this.baseRuntime(ctx), _targetScNode: target };
+    return { ...baseRuntime(ctx), _targetScNode: target };
   }
 }

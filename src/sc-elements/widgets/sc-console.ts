@@ -3,6 +3,7 @@
 // pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
 
 import { html } from "lit";
+import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { session } from "@/stores/session";
 import type { LoggedEntry } from "@/types/stores";
@@ -15,7 +16,7 @@ function fmtTime(ms: number): string {
 
 export class ScConsole extends ScElement {
   validate(): void {
-    this.requireNoScChildren();
+    requireNoScChildren(this);
   }
 
   private off: (() => void) | null = null;

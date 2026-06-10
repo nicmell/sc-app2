@@ -5,6 +5,7 @@
 import { property } from "lit/decorators.js";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext, ScUgenProps } from "@/types/runtime";
+import { baseRuntime, failValidation, requireProp, resolveNode } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
@@ -17,10 +18,10 @@ export class ScUgen extends ScElement implements ScUgenProps {
   @property() accessor op: string | undefined = undefined;
 
   validate(): void {
-    this.requireProp("name", this.name);
-    this.requireProp("type", this.ugen);
+    requireProp(this, "name", this.name);
+    requireProp(this, "type", this.ugen);
     if (!UGEN_RATES.has(this.rate)) {
-      this.failValidation(`"rate" attribute must be one of ar|kr|ir (got "${this.rate}")`);
+      failValidation(this, `"rate" attribute must be one of ar|kr|ir (got "${this.rate}")`);
     }
   }
 
@@ -31,13 +32,13 @@ export class ScUgen extends ScElement implements ScUgenProps {
       if (!isControlRuntime(child) || !child.bind) continue;
       for (const ref of child.bind.split(",").map((s) => s.trim())) {
         const refId = ref.split(":")[0];
-        if (!this.resolveNode(ctx, [refId])) {
+        if (!resolveNode(ctx, [refId])) {
           throw new Error(
             `<sc-ugen name="${this.name}">: input "${child.name}" references unknown "${refId}"`,
           );
         }
       }
     }
-    return { ...this.baseRuntime(ctx), enabled: false };
+    return { ...baseRuntime(ctx), enabled: false };
   }
 }

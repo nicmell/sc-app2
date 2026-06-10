@@ -6,6 +6,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import type { ScRangeProps } from "@/types/runtime";
+import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScRange extends ScInput implements ScRangeProps {
@@ -15,10 +16,10 @@ export class ScRange extends ScInput implements ScRangeProps {
   @property({ type: Number }) accessor value = 0;
 
   validate(): void {
-    this.requireNumeric("min", this.min);
-    this.requireNumeric("max", this.max);
-    this.requireNumeric("step", this.step);
-    this.requireNumeric("value", this.value);
+    requireNumeric(this, "min", this.min);
+    requireNumeric(this, "max", this.max);
+    requireNumeric(this, "step", this.step);
+    requireNumeric(this, "value", this.value);
   }
 
   private onInput = (e: Event) => {

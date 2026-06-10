@@ -4,6 +4,7 @@
 
 import { property } from "lit/decorators.js";
 import type { BaseRuntime, RuntimeContext, ScOptionProps } from "@/types/runtime";
+import { baseRuntime, requireNumeric } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScOption extends ScElement implements ScOptionProps {
@@ -11,10 +12,10 @@ export class ScOption extends ScElement implements ScOptionProps {
   @property() accessor label = "";
 
   validate(): void {
-    this.requireNumeric("value", this.value);
+    requireNumeric(this, "value", this.value);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return { ...this.baseRuntime(ctx), enabled: false };
+    return { ...baseRuntime(ctx), enabled: false };
   }
 }

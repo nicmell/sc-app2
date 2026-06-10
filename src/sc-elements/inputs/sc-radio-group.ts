@@ -3,11 +3,11 @@
 // value dispatch arrive with the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { InputRuntime, RuntimeContext, ScRadioGroupProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { failValidation, requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScRadioGroup extends ScInput implements ScRadioGroupProps {
+export class ScRadioGroup extends ScInput {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   validate(): void {

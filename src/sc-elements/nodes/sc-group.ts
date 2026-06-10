@@ -3,11 +3,11 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScGroupProps } from "@/types/runtime";
+import type {  } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
-export class ScGroup extends ScNode implements ScGroupProps {
+export class ScGroup extends ScNode {
   @property() accessor name = "";
 
   validate(): void {

@@ -4,7 +4,7 @@
 import { property } from "lit/decorators.js";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
-import type { RuntimeContext, ScSynthDefProps, SynthDefRuntime } from "@/types/runtime";
+import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
 import { baseRuntime, requireProp } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
@@ -33,7 +33,7 @@ function collectUgenInputs(node: ScUgen): Record<string, string> {
   return inputs;
 }
 
-export class ScSynthDef extends ScElement implements ScSynthDefProps {
+export class ScSynthDef extends ScElement {
   @property() accessor name = "";
 
   loaded = false;

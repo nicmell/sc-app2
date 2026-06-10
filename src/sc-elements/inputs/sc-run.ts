@@ -5,11 +5,11 @@
 // but not declared yet.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import type { InputRuntime, RuntimeContext, ScRunProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { baseRuntime, resolveNode } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScRun extends ScInput implements ScRunProps {
+export class ScRun extends ScInput {
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
     const target = this.bind ? resolveNode(this, ctx, this.bind.split(".")) : ctx.parentNode;
     if (this.bind && (!target || !isNodeRuntime(target))) {

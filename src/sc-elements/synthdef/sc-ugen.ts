@@ -4,13 +4,13 @@
 
 import { property } from "lit/decorators.js";
 import { isControlRuntime } from "@/lib/utils/guards";
-import type { BaseRuntime, RuntimeContext, ScUgenProps } from "@/types/runtime";
+import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import { baseRuntime, failValidation, requireProp, resolveNode } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
 
-export class ScUgen extends ScElement implements ScUgenProps {
+export class ScUgen extends ScElement {
   @property() accessor name = "";
   /** The SuperCollider UGen class — the element's `type` attribute. */
   @property({ attribute: "type" }) accessor ugen = "";

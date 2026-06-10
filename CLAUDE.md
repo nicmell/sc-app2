@@ -78,7 +78,7 @@ stores/                  the single app store + slices and React hooks
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
-                         runtime.d.ts (the element runtime tree + ScXProps)
+                         runtime.d.ts (engine types: runtime mixins + RuntimeContext)
 constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
@@ -235,10 +235,10 @@ further `sc-*` element:
    constructor `REGISTRY` (`src/sc-elements/index.ts`), and the backend XSD
    (`src-tauri/src/plugin/xsd/sc-plugin-schema.xsd` — declaration, complex
    type, content-model group). The JSX augmentation grows automatically.
-2. **Attributes live on the component, not the item.** Declare them as
-   standard-decorator reactive properties — `@property({ type: Number })
-   accessor min = 0;` — implementing the element's `ScXProps` interface from
-   `src/types/runtime.d.ts`. (Vite lowers the decorators via
+2. **Attributes live on the component — the class IS the attribute
+   contract.** Declare them as standard-decorator reactive properties —
+   `@property({ type: Number }) accessor min = 0;` — there is no parallel
+   props interface. (Vite lowers the decorators via
    `esbuild.target: "es2022"`; attribute→property conversion replaces hand
    parsing. Use the shared `runAttribute` converter for `run="false"`
    semantics.)
@@ -258,8 +258,7 @@ further `sc-*` element:
    plus path/enabled and `_scChildren` for parents, named so because DOM
    `children` is taken) is on `ScElement`. The mixin contracts
    (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
-   `src/types/runtime.d.ts` as `resolveRuntime` return types, next to the
-   `ScXProps` interfaces. Values that duplicate a reactive prop are unified
+   `src/types/runtime.d.ts` as `resolveRuntime` return types. Values that duplicate a reactive prop are unified
    with it, never copied (no runtime `name`/`run`; enabled state resolves
    into its `value` prop — disabled graph inputs keep the prop as the plain
    attribute mirror). There is **no `type` field**: the discriminant is the

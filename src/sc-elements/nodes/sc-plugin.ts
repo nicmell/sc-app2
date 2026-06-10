@@ -17,9 +17,9 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import { layout } from "@/stores/layout";
 import { plugins } from "@/stores/plugins";
-import type { ScPluginProps } from "@/types/runtime";
+import type {  } from "@/types/runtime";
 
-export class ScPlugin extends ScNode implements ScPluginProps {
+export class ScPlugin extends ScNode {
   @state() accessor _error = "";
 
   /** The plugin's scsynth group (inside the session group), once created. */

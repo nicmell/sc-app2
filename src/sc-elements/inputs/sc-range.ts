@@ -5,11 +5,11 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import type { ScRangeProps } from "@/types/runtime";
+import type {  } from "@/types/runtime";
 import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScRange extends ScInput implements ScRangeProps {
+export class ScRange extends ScInput {
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;

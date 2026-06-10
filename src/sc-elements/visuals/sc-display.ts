@@ -3,11 +3,11 @@
 // the inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { ScDisplayProps } from "@/types/runtime";
+import type {  } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScDisplay extends ScInput implements ScDisplayProps {
+export class ScDisplay extends ScInput {
   @property() accessor format = "";
 
   validate(): void {

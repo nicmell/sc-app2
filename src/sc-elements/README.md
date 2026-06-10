@@ -2,8 +2,8 @@
 
 The Lit web components plugin HTML is built from. They follow the recipe in the
 root CLAUDE.md ("Migrating an sc-element"): HTML attributes are accessor
-reactive properties on the component (typed by the `ScXProps` interfaces in
-`@/types/runtime`), validation is the component's own `validate()` (called
+reactive properties on the component (the class IS the attribute contract —
+no parallel props interfaces), validation is the component's own `validate()` (called
 by `process` during parse — the real gate, since the upload-time XSD doesn't enforce
 attribute rules), and **the element IS the runtime**: `resolveRuntime()`
 resolves the runtime values and `process()` assigns them onto the component

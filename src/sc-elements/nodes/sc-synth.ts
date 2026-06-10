@@ -4,11 +4,11 @@
 
 import { property } from "lit/decorators.js";
 import { isSynthDefRuntime } from "@/lib/utils/guards";
-import type { NodeRuntime, RuntimeContext, ScSynthProps } from "@/types/runtime";
+import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
 import { requireProp, resolveNode } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
-export class ScSynth extends ScNode implements ScSynthProps {
+export class ScSynth extends ScNode {
   @property() accessor name = "";
   @property() accessor bind = "";
 

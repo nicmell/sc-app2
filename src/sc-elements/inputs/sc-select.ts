@@ -2,11 +2,11 @@
 // control/var (`bind`/`targetId` on the ScInput base). Stub: the combobox UI
 // + value dispatch arrive with the inputs migration step.
 
-import type { InputRuntime, RuntimeContext, ScSelectProps } from "@/types/runtime";
+import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
-export class ScSelect extends ScInput implements ScSelectProps {
+export class ScSelect extends ScInput {
   validate(): void {
     requireProp(this, "bind", this.bind);
   }

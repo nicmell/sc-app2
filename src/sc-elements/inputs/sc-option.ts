@@ -3,11 +3,11 @@
 // inputs migration step.
 
 import { property } from "lit/decorators.js";
-import type { BaseRuntime, RuntimeContext, ScOptionProps } from "@/types/runtime";
+import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import { baseRuntime, requireNumeric } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScOption extends ScElement implements ScOptionProps {
+export class ScOption extends ScElement {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
 

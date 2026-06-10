@@ -5,10 +5,10 @@
 // arrives with the controls migration step.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import type { RuntimeContext, ScControlProps, StateRuntime } from "@/types/runtime";
+import type { RuntimeContext, StateRuntime } from "@/types/runtime";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
-export class ScControl extends ScState implements ScControlProps {
+export class ScControl extends ScState {
   protected resolveRuntime(ctx: RuntimeContext): StateRuntime {
     return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
   }

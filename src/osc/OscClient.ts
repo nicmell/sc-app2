@@ -5,9 +5,9 @@
 // `connect(url, session)`.
 //
 // One global instance (`oscClient`) serves the whole frontend — the
-// SessionManager starts the connection once the bootstrap yields the WS URL +
-// session block, and consumers (ScopeController, …) subscribe to addresses
-// directly. On connect the client creates the session's scsynth group itself
+// SessionManager starts the connection once `POST /api/session` yields the WS
+// URL + session block, and consumers (ScopeController, …) subscribe to
+// addresses directly. On connect the client creates the session's scsynth group itself
 // (`/g_new` at the tail of scsynth's root group — sessions always start
 // fresh; the bridge ends them when the WebSocket closes) and owns node-id
 // allocation from the session's server-assigned block (`nextNodeId`).

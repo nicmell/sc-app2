@@ -1,44 +1,15 @@
-// The session singleton: one SessionManager for the whole app, owning the
-// OSC worker connection + status/log stores + the scope tap. It's a module
-// singleton (not React-context-scoped) so the Lit `sc-*` elements — which live
-// in injected plugin HTML, outside React's tree — can reach it directly. The
-// React shell reads it through the hooks below.
+// React bindings for the session singleton (src/session/SessionManager.ts):
+// useSyncExternalStore hooks over its reactive views. The singleton itself is
+// re-exported so existing imports (the `sc-*` Lit elements, ToastStack) keep
+// working.
 
 import { useSyncExternalStore } from "react";
-import {
-  SessionManager,
-  type ConnStatus,
-  type LoggedEntry,
-  type ScsynthStatus,
-  type ScsynthError,
-} from "../session/SessionManager";
-import { bootstrapSession } from "../session/bootstrap";
+import { session } from "../session/SessionManager";
+import type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../session/SessionManager";
 
-// Re-export the controller types so existing app imports keep working.
+// Re-export the singleton + controller types so existing app imports keep working.
+export { session } from "../session/SessionManager";
 export type { ConnStatus, LoggedEntry, ScsynthStatus, ScsynthError } from "../session/SessionManager";
-
-const scopeFlag = (key: string) =>
-  typeof localStorage !== "undefined" && !!localStorage.getItem(key);
-
-/** The one session for the whole app. It drives the global `oscClient`
- *  (src/osc/OscClient.ts) and is fed the Tauri/HTTP bootstrap; the `sc-*` Lit
- *  elements read this singleton directly. */
-export const session = new SessionManager({
-  bootstrap: bootstrapSession,
-  scopeOptions: {
-    debug: scopeFlag("sc.scopeDebug"),
-    testTone: scopeFlag("sc.scopeTestTone"),
-  },
-});
-
-let started = false;
-
-/** Start the session once (bootstrap + worker connect). Idempotent. */
-export function startSession(): void {
-  if (started) return;
-  started = true;
-  void session.start();
-}
 
 /** Subscribe a React component to the connection status. */
 export function useStatus(): ConnStatus {

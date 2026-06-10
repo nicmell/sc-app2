@@ -1,7 +1,11 @@
 // Owns the per-session OSC connection and the UI-facing reactive state:
 // connection status, a bounded OSC log (tx + rx), scsynth load, and error
-// banners. Talks to the bridge through the global `oscClient`; the session
-// bootstrap is injected via SessionDeps.
+// banners. Mints the session itself (`POST /api/session` via src/http) and
+// talks to the bridge through the global `oscClient`.
+//
+// A session lives exactly as long as its WebSocket (the server ends it on
+// close), so every start mints a fresh one; nothing is persisted across
+// reloads.
 //
 // State lives in the single app store (`src/state/store.ts`) under its `session`
 // slice; the public `status`/`log`/`scsynthStatus`/`scsynthErrors` are `select`
@@ -15,17 +19,26 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
+import { post, wsUrl, HttpError } from "../http";
 import { oscClient } from "../osc/OscClient";
-import { ScopeController, type ScopeOptions } from "../scope/ScopeController";
-import type { Bootstrap } from "./bootstrapTypes";
+import { ScopeController } from "../scope/ScopeController";
 import { appStore } from "../state/store";
 
-/** What SessionManager needs from its environment. */
-export interface SessionDeps {
-  /** Mint/reuse a session and return its connection info. */
-  bootstrap: Bootstrap;
-  /** Scope diagnostics (the app maps localStorage flags to these). */
-  scopeOptions?: ScopeOptions;
+/** What `POST /api/session` returns: the server-assigned session identity +
+ *  node-id allocation + scope buffer + the scsynth address for the footer. */
+interface SessionInfo {
+  sessionId: string;
+  /** scsynth group this session's synths must live under — allocated by the
+   *  server, created by the OscClient once the WS is open. */
+  sessionGroupId: number;
+  /** First node id the frontend may allocate for this session. */
+  nodeIdBase: number;
+  /** How many node ids the frontend may allocate. */
+  nodeIdCount: number;
+  /** scsynth scope-buffer index this session's master-out tap uses. */
+  scopeIndex: number;
+  /** The scsynth `host:port` the bridge talks to (shown in the footer). */
+  scsynthAddress: string | null;
 }
 
 export type ConnStatus = "connecting" | "connected" | "error";
@@ -62,7 +75,8 @@ export interface ScsynthError {
   ts: number;
 }
 
-/** The session slice of the app store. */
+/** The session slice of the app store (its initial value lives in
+ *  `src/state/store.ts`, which only type-imports from here). */
 export interface SessionState {
   status: ConnStatus;
   log: LoggedEntry[];
@@ -71,15 +85,6 @@ export interface SessionState {
   /** The scsynth `host:port` the bridge talks to (from the session response). */
   scsynthAddress: string | null;
 }
-
-/** Initial session slice, shared with the app store's root state. */
-export const initialSessionState: SessionState = {
-  status: "connecting",
-  log: [],
-  scsynthStatus: null,
-  errors: [],
-  scsynthAddress: null,
-};
 
 /** scsynth's heartbeat reply: drives the footer, deliberately never logged. */
 const STATUS_REPLY = "/status.reply";
@@ -97,6 +102,20 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
   };
 }
 
+/** Mint a fresh session. The server allocates the group id + node range; it
+ *  can briefly return 503 if scsynth hasn't finished registering, so retry. */
+async function createSession(): Promise<SessionInfo> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await (await post("/api/session")).json();
+    } catch (err) {
+      if (!(err instanceof HttpError) || err.status !== 503) throw err;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  throw new Error("POST /api/session → 503 (scsynth not registered)");
+}
+
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
@@ -109,17 +128,13 @@ export class SessionManager {
   readonly scsynthErrors = this.state.select((s) => s.errors);
   readonly scsynthAddress = this.state.select((s) => s.scsynthAddress);
 
-  private readonly deps: SessionDeps;
+  private started = false;
   private connected = false;
   /** (event, id) pairs of our oscClient subscriptions, for dispose(). */
   private subscriptions: Array<[string, number]> = [];
   private scopeController: ScopeController | null = null;
   private nextId = 0;
   private disposed = false;
-
-  constructor(deps: SessionDeps) {
-    this.deps = deps;
-  }
 
   /** Dismiss one banner by id (the toast's × / auto-dismiss timer). */
   dismissError(id: number): void {
@@ -136,16 +151,19 @@ export class SessionManager {
     return this.scopeController;
   }
 
-  /** Bootstrap the session, connect the global OSC client (which creates the
-   *  session group and owns node-id allocation), and wire its events into the
-   *  store. Safe to call once per controller. */
+  /** Mint a session, connect the global OSC client (which creates the session
+   *  group and owns node-id allocation), and wire its events into the store.
+   *  Idempotent — only the first call does anything (React StrictMode mounts
+   *  effects twice; main.tsx calls this once at boot). */
   async start(): Promise<void> {
+    if (this.started || this.disposed) return;
+    this.started = true;
     try {
-      const { wsUrl, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } =
-        await this.deps.bootstrap();
+      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } =
+        await createSession();
       if (this.disposed) return;
       this.state.update((s) => ({ ...s, scsynthAddress }));
-      await oscClient.connect(wsUrl, { sessionGroupId, nodeIdBase, nodeIdCount });
+      await oscClient.connect(wsUrl(`/ws?session=${sessionId}`), { sessionGroupId, nodeIdBase, nodeIdCount });
       if (this.disposed) {
         oscClient.close();
         return;
@@ -160,7 +178,7 @@ export class SessionManager {
         if (!this.disposed) this.setStatus("error");
       });
       // Start the master-out scope tap + subscription now that we're connected.
-      this.scopeController = new ScopeController(oscClient, sessionGroupId, scopeIndex, this.deps.scopeOptions);
+      this.scopeController = new ScopeController(oscClient, sessionGroupId, scopeIndex);
       this.scopeController.start();
       this.setStatus("connected");
     } catch {
@@ -248,3 +266,9 @@ export class SessionManager {
     }));
   }
 }
+
+/** The one session for the whole app. It's a module singleton (not
+ *  React-context-scoped) so the Lit `sc-*` elements — which live in injected
+ *  plugin HTML, outside React's tree — can reach it directly; the React shell
+ *  reads it through the hooks in `src/state/session.ts`. */
+export const session = new SessionManager();

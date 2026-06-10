@@ -12,7 +12,6 @@
 
 import OSC from "osc-js";
 import {
-  AddToHead,
   AddToTail,
   dRecv,
   encode,
@@ -26,7 +25,6 @@ import {
 } from "@sc-app/server-commands";
 import type { OscClient } from "../osc/OscClient";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "./scopeTapSynthDef";
-import { compileTestToneSynthDef, testToneSynthDefName } from "./testToneSynthDef";
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */
 const INPUT_BUS = 0;
@@ -35,15 +33,6 @@ const CHANNELS = 2;
 const CHUNK_SIZE = 1024;
 /** Fixed subscription id (one subscription per WS connection). */
 const SUB_ID = 1;
-
-/** Diagnostics, injected so the package needs no `localStorage`. The app reads
- *  the `sc.scopeDebug` / `sc.scopeTestTone` localStorage flags and passes them. */
-export interface ScopeOptions {
-  /** Log chunk stats (~1×/sec) to the console. */
-  debug?: boolean;
-  /** Inject a 220 Hz sine onto the tapped bus (proves the pipeline). */
-  testTone?: boolean;
-}
 
 export class ScopeController {
   /** Latest decoded chunk; ScopeView reads this in its RAF loop. */
@@ -58,17 +47,11 @@ export class ScopeController {
   private chunkSubId: number | null = null;
   private started = false;
   private disposed = false;
-  /** Diagnostics: total chunks received + console-logging / test-tone flags. */
-  private chunkCount = 0;
-  private readonly debug: boolean;
-  private readonly testTone: boolean;
 
-  constructor(client: OscClient, sessionGroupId: number, scopeIndex: number, options: ScopeOptions = {}) {
+  constructor(client: OscClient, sessionGroupId: number, scopeIndex: number) {
     this.client = client;
     this.groupId = sessionGroupId;
     this.scopeIndex = scopeIndex;
-    this.debug = options.debug ?? false;
-    this.testTone = options.testTone ?? false;
   }
 
   start(): void {
@@ -90,19 +73,6 @@ export class ScopeController {
     });
     this.client.send(dRecv(tapBytes, encode(sNewMsg)));
 
-    // Diagnostic: a known sine onto the tapped bus, at the HEAD of the session
-    // group so it runs before the tap reads the bus. If the scope shows this
-    // (and it's audible), the whole tap→SHM→bridge→canvas path is healthy.
-    if (this.testTone) {
-      const toneMsg = sNew(testToneSynthDefName(), this.client.nextNodeId(), AddToHead, this.groupId, {
-        out: INPUT_BUS,
-        freq: 220,
-        amp: 0.2,
-      });
-      this.client.send(dRecv(compileTestToneSynthDef(), encode(toneMsg)));
-      console.log(`[scope] TEST TONE: 220Hz → bus ${INPUT_BUS} (expect an audible sine + waveform)`);
-    }
-
     // Stream the slot the tap writes; the bridge intercepts this subscribe.
     // `/scope/chunk` is an ordinary OSC message — subscribe to its address.
     this.chunkSubId = this.client.on(SCOPE_CHUNK_ADDRESS, (msg: OSC.Message) => {
@@ -115,31 +85,9 @@ export class ScopeController {
       }
       if (chunk.subId !== SUB_ID) return;
       this.chunkRef.current = chunk;
-      if (this.debug) this.logChunk(chunk);
     });
     this.client.send(
       scopeSubscribe({ subId: SUB_ID, scope: this.scopeIndex, channels: CHANNELS, chunkSize: CHUNK_SIZE }),
-    );
-    if (this.debug) {
-      console.log(`[scope] subscribed: group=${this.groupId} tap=${nodeId} scopeIndex=${this.scopeIndex}`);
-    }
-  }
-
-  /** Log chunk stats (~1×/sec) to the console to show whether non-zero audio
-   *  is reaching the browser. */
-  private logChunk(chunk: DecodedScopeChunk): void {
-    this.chunkCount++;
-    if (this.chunkCount % 50 !== 1) return;
-    let min = Infinity;
-    let max = -Infinity;
-    const d = chunk.data;
-    for (let i = 0; i < d.length; i++) {
-      if (d[i] < min) min = d[i];
-      if (d[i] > max) max = d[i];
-    }
-    console.log(
-      `[scope] chunks=${this.chunkCount} ch=${chunk.channels} frames=${chunk.frameCount} ` +
-        `min=${min.toFixed(4)} max=${max.toFixed(4)}`,
     );
   }
 

@@ -8,7 +8,7 @@
 // slice modules can import `appStore` as a value without a runtime cycle.
 
 import { createStore } from "../utils/reactiveStore";
-import { initialSessionState, type SessionState } from "../session/SessionManager";
+import type { SessionState } from "../session/SessionManager";
 import type { BoxItem } from "./layout";
 import type { PluginInfo } from "../plugins/PluginManager";
 
@@ -30,6 +30,18 @@ function loadLayout(): BoxItem[] {
     return [];
   }
 }
+
+/** Initial session slice. Defined here (not imported from SessionManager) so
+ *  this module has no runtime dependency on the slice modules — they import
+ *  `appStore` as a value, and the module-level `session` singleton constructs
+ *  against a fully-initialized store regardless of import order. */
+const initialSessionState: SessionState = {
+  status: "connecting",
+  log: [],
+  scsynthStatus: null,
+  errors: [],
+  scsynthAddress: null,
+};
 
 export const appStore = createStore<AppState>({
   session: initialSessionState,

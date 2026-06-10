@@ -2,7 +2,9 @@
 // the session's bounded tx/rx log store and renders it as a scrolling list,
 // pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
+import { ScElement } from "./internal/sc-element";
+import type { ScConsoleItem } from "@/types/parsers";
 import { session } from "@/stores/session";
 import type { LoggedEntry } from "@/types/stores";
 
@@ -12,12 +14,9 @@ function fmtTime(ms: number): string {
   return `${hms}.${String(d.getMilliseconds()).padStart(3, "0")}`;
 }
 
-export class ScConsole extends LitElement {
+export class ScConsole extends ScElement<ScConsoleItem> {
   private off: (() => void) | null = null;
 
-  protected createRenderRoot(): HTMLElement {
-    return this;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();

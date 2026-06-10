@@ -48,7 +48,13 @@ cd src-tauri && cargo check && cargo test
 ```
 main.tsx                 boot: register sc-* elements, session.start(), render <App/>
 components/              React shell: Dashboard grid, plugin picker/list, toasts
-sc-elements/             Lit elements used inside plugin HTML (sc-strudel, sc-scope, sc-console)
+sc-elements/             Lit elements used inside plugin HTML: sc-plugin (the
+                         app-synthesized root — loads + parses the entry HTML and
+                         owns the plugin's scsynth group), the parsed stubs
+                         (sc-synthdef/ugen/control/synth/range), and the leaves
+                         (sc-strudel, sc-scope, sc-console)
+runtime/                 the global parsed-element registry (id → ScElementItem),
+                         deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, layout, plugins }) — the ONLY store.
                          Cross-module shapes come from @/types (type-only by
@@ -63,6 +69,11 @@ constants/               per-domain constants (as-const maps + defaults):
 lib/                     non-React infrastructure
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
+  html/                  processHtml: parse + validate plugin DOM into typed items
+                         (types/parsers.d.ts) and register them in @/runtime. Strict
+                         per-element attribute validation (the backend XSD validates
+                         structure at upload, but fastxml does NOT enforce required
+                         attributes — the runtime parser is the real gate)
   osc/                   the OSC transport (see lib/osc/README.md):
                          OscClient (global `oscClient`, mirrors the osc-js OSC class,
                          owns /g_new of the session group + nextNodeId allocation)

@@ -3,13 +3,15 @@
 // DOM (no shadow) so ui-foundation tokens + the .sc-scope CSS apply; styled in
 // App.css. No attributes yet — customization comes later.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
+import { ScElement } from "./internal/sc-element";
+import type { ScScopeItem } from "@/types/parsers";
 import { session } from "@/stores/session";
 
 /** Vertical gain applied to the ±1 sample range before drawing. */
 const GAIN = 0.9;
 
-export class ScScope extends LitElement {
+export class ScScope extends ScElement<ScScopeItem> {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private raf = 0;
@@ -18,9 +20,6 @@ export class ScScope extends LitElement {
   private chans = ["#8ab4f8", "#96f2a7"];
 
   // Light DOM: render into the element itself.
-  protected createRenderRoot(): HTMLElement {
-    return this;
-  }
 
   render() {
     return html`<canvas class="sc-scope-canvas"></canvas>`;

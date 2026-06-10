@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Synth plugin</title>
+  </head>
+  <body>
+    <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"></sc-control>
+      <sc-control name="amp" value="0.2"></sc-control>
+      <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind="freq"></sc-control>
+      </sc-ugen>
+      <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="osc"></sc-control>
+        <sc-control name="b" bind="amp"></sc-control>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"></sc-control>
+        <sc-control name="channelsarray" bind="sig"></sc-control>
+      </sc-ugen>
+    </sc-synthdef>
+
+    <sc-synth name="voice" bind="sine">
+      <sc-control name="freq" value="440"></sc-control>
+      <sc-control name="amp" value="0.2"></sc-control>
+    </sc-synth>
+
+    <div>
+      <label>freq
+        <sc-range bind="voice.freq" min="50" max="2000" step="1" value="440"></sc-range>
+      </label>
+      <label>amp
+        <sc-range bind="voice.amp" min="0" max="1" step="0.01" value="0.2"></sc-range>
+      </label>
+    </div>
+  </body>
+</html>

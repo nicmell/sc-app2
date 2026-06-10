@@ -22,6 +22,7 @@ export class OscClient {
   /** Next node id to hand out, within `[nodeIdBase, nodeIdEnd)`. */
   private nextId = 0;
   private endId = 0;
+  private groupId: number | null = null;
 
   /** Open the WebSocket (via the worker) to `url`; once open, create the
    *  session's group at the tail of scsynth's root group and arm the node-id
@@ -38,6 +39,7 @@ export class OscClient {
         offAll();
         this.nextId = session.nodeIdBase;
         this.endId = session.nodeIdBase + session.nodeIdCount;
+        this.groupId = session.sessionGroupId;
         // The session is freshly minted (it dies with the previous WebSocket),
         // so its group never pre-exists: create it at the tail of scsynth's
         // root group, after SuperDirt's output monitors.
@@ -54,6 +56,13 @@ export class OscClient {
       });
       this.osc.open({ url });
     });
+  }
+
+  /** The session's scsynth group (created on connect) — plugin groups and
+   *  synths nest inside it. Throws before `connect`. */
+  get sessionGroupId(): number {
+    if (this.groupId === null) throw new Error("OscClient.sessionGroupId: not connected");
+    return this.groupId;
   }
 
   /** Allocate the next node id from the session's server-assigned block.

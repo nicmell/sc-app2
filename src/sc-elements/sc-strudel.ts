@@ -3,7 +3,9 @@
 // the session, with a status pill + Play/Stop controls. Light DOM so the
 // ui-foundation .strudel/.status-pill styles + CodeMirror apply directly.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
+import { ScElement } from "./internal/sc-element";
+import type { ScStrudelItem } from "@/types/parsers";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
@@ -35,16 +37,13 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   error: "error",
 };
 
-export class ScStrudel extends LitElement {
+export class ScStrudel extends ScElement<ScStrudelItem> {
   private mirror: InstanceType<typeof StrudelMirror> | null = null;
   private off: (() => void) | null = null;
   private status: ConnStatus = "connecting";
   private playing = false;
   private detail = "";
 
-  protected createRenderRoot(): HTMLElement {
-    return this;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();

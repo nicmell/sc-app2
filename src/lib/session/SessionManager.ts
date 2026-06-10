@@ -126,15 +126,18 @@ export class SessionManager {
       const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } = info;
       if (this.disposed) return;
       localStorage.setItem(SESSION_KEY, sessionId);
-      if (info.layout) {
-        setLayout(info.layout);
-        this.lastSavedLayout = layout.get();
-      }
       this.state.update((s) => ({ ...s, scsynthAddress }));
       await oscClient.connect(wsUrl(`/ws?session=${sessionId}`), { sessionGroupId, nodeIdBase, nodeIdCount });
       if (this.disposed) {
         oscClient.close();
         return;
+      }
+      // Restore the saved layout only once connected: mounting a panel mounts
+      // its <sc-plugin>, which allocates node ids + creates its group — both
+      // need the live connection.
+      if (info.layout) {
+        setLayout(info.layout);
+        this.lastSavedLayout = layout.get();
       }
       this.connected = true;
       this.subscribe("*", (msg: OSC.Message) => this.handleReply(msg));

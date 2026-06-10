@@ -4,9 +4,10 @@
     xmlns="http://www.w3.org/1999/xhtml"
     elementFormDefault="qualified">
 
-  <!-- Minimal sc-plugin schema: a basic XHTML wrapper containing simple layout
-       HTML plus our three custom elements (sc-console, sc-scope, sc-strudel).
-       Attribute-light for now; element customization comes later. -->
+  <!-- sc-plugin schema: a basic XHTML wrapper containing simple layout HTML
+       plus the sc-* custom elements. Grows with each element migration step;
+       keep in sync with src/constants/sc-elements.ts and the runtime
+       validation in src/lib/html/handlers.ts. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -20,7 +21,7 @@
   <!-- Layout HTML -->
   <xs:element name="div" type="blockType"/>
   <xs:element name="p" type="inlineType"/>
-  <xs:element name="label" type="inlineType"/>
+  <xs:element name="label" type="blockType"/>
   <xs:element name="span" type="inlineType"/>
   <xs:element name="strong" type="inlineType"/>
   <xs:element name="em" type="inlineType"/>
@@ -33,10 +34,15 @@
   <xs:element name="hr"/>
   <xs:element name="br"/>
 
-  <!-- sc-* elements (our three) -->
+  <!-- sc-* elements -->
   <xs:element name="sc-console" type="scLeafType"/>
   <xs:element name="sc-scope" type="scLeafType"/>
   <xs:element name="sc-strudel" type="scLeafType"/>
+  <xs:element name="sc-synthdef" type="scSynthDefType"/>
+  <xs:element name="sc-ugen" type="scUGenType"/>
+  <xs:element name="sc-control" type="scControlType"/>
+  <xs:element name="sc-synth" type="scSynthType"/>
+  <xs:element name="sc-range" type="scRangeType"/>
 
   <!-- ==================== Content model groups ==================== -->
 
@@ -59,6 +65,9 @@
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
+      <xs:element ref="sc-synthdef"/>
+      <xs:element ref="sc-synth"/>
+      <xs:element ref="sc-range"/>
     </xs:choice>
   </xs:group>
 
@@ -109,8 +118,59 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- The three custom elements: empty leaves for now (no custom attrs yet). -->
+  <!-- Leaf custom elements: no custom attrs yet. -->
   <xs:complexType name="scLeafType">
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-synthdef: a synth graph — sc-control params + sc-ugen nodes. -->
+  <xs:complexType name="scSynthDefType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-control"/>
+      <xs:element ref="sc-ugen"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-ugen: one UGen node; sc-control children are its inputs. -->
+  <xs:complexType name="scUGenType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-control"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="rate" type="xs:string"/>
+    <xs:attribute name="op" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-control: a literal value or a bind reference. -->
+  <xs:complexType name="scControlType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-synth: a synthdef instance; sc-control children are its params. -->
+  <xs:complexType name="scSynthType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-control"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="run" type="xs:boolean"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-range: a range input bound to a control. -->
+  <xs:complexType name="scRangeType">
+    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="min" type="xs:decimal"/>
+    <xs:attribute name="max" type="xs:decimal"/>
+    <xs:attribute name="step" type="xs:decimal"/>
+    <xs:attribute name="value" type="xs:decimal"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

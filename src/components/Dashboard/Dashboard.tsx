@@ -99,7 +99,7 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
             </button>
           </div>
         ) : plugin ? (
-          <PluginHost plugin={plugin} />
+          <PluginHost box={item} />
         ) : (
           <div className="dashboard-panel-empty">
             <button type="button" data-size="sm" onClick={() => setModalOpen(item)}>

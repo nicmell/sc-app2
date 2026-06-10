@@ -43,9 +43,12 @@ with the matching migration steps.
 
 ### `<sc-plugin>` — functional
 The app-synthesized plugin root: **never written in plugin HTML** — PluginHost
-creates one per dashboard box and sets its `plugin` property. It loads the
-entry XHTML (XML-parsed + importNode), runs its own `hydrate()` + `process()`
-(the registry then adopts the parsed tree), and owns the plugin's scsynth group:
+renders one per dashboard box declaratively (React mounts custom elements like
+any DOM tag), with the box's id as its DOM id. It resolves its plugin from the
+layout/plugins stores by that id, loads the entry XHTML (XML-parsed +
+importNode), runs `validate()` + `process()` (no hydrate — the id is already
+its own; the registry then adopts the parsed tree), and owns the plugin's
+scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
 Props: `run` (boolean attribute, `run="false"` is the only falsy spelling).

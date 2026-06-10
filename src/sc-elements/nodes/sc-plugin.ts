@@ -1,20 +1,21 @@
 // <sc-plugin> — the app-synthesized plugin root (never written in plugin
-// HTML; PluginHost creates one per dashboard box). It loads the plugin's
-// entry HTML into itself, parses + validates it into the runtime registry
-// (the ScElement parse engine), and owns the plugin's scsynth group: created
-// inside the session group on mount, freed — with every synth in it — on
-// unmount.
+// HTML; PluginHost renders one per dashboard box, with the box's id as its
+// DOM id). It looks its plugin up in the layout/plugins stores by that id,
+// loads the entry HTML into itself, parses + validates it into the runtime
+// registry (the ScElement parse engine), and owns the plugin's scsynth
+// group: created inside the session group on mount, freed — with every synth
+// in it — on unmount.
 
 import { html } from "lit";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/lib/session/SessionManager";
-import { randomId } from "@/lib/utils/randomId";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
-import type { PluginInfo } from "@/types/api";
+import { layout } from "@/stores/layout";
+import { plugins } from "@/stores/plugins";
 import type { NodeRuntime, RuntimeContext, ScPluginProps } from "@/types/runtime";
 
 export class ScPlugin extends ScNode implements ScPluginProps {
@@ -23,9 +24,6 @@ export class ScPlugin extends ScNode implements ScPluginProps {
   };
 
   declare _error: string;
-
-  /** The plugin to load — set imperatively by PluginHost before mounting. */
-  plugin?: PluginInfo;
 
   /** The plugin's scsynth group (inside the session group), once created. */
   private groupNodeId: number | null = null;
@@ -56,17 +54,22 @@ export class ScPlugin extends ScNode implements ScPluginProps {
   }
 
   protected async firstUpdated(): Promise<void> {
-    if (!this.plugin) {
+    // The DOM id IS the dashboard box id (assigned by PluginHost's JSX) —
+    // resolve the box's assigned plugin from the stores.
+    const box = layout.get().find((b) => b.i === this.id);
+    const info = plugins.get().find((p) => p.id === box?.plugin);
+    if (!info) {
       this._error = "sc-plugin: no plugin assigned";
       return;
     }
     try {
-      await loadPluginInto(this, this.plugin);
+      await loadPluginInto(this, info);
       if (!this.isConnected) return; // unmounted while fetching
-      // Hydrate + process the tree (the old loadPlugin flow): the registry
-      // adopts the parsed tree (root + _scChildren) only on success.
-      const boxId = this.id || randomId();
-      this.hydrate(boxId);
+      // Validate + process the tree (the id is already ours, so no hydrate):
+      // the registry adopts the parsed tree (root + _scChildren) only on
+      // success.
+      this.validate();
+      this._scChildren = [];
       this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
       registerAll(this);
       // The group all of this plugin's synths will live in — freed wholesale

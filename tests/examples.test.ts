@@ -69,7 +69,7 @@ const failing = cases.filter((c) => c.name in RUNTIME_FAILURES);
  *  engine, exactly like the CDP probe. The host IS the parsed root. */
 function parseExample(xml: string): {
   host: ScPlugin;
-  nodes: Map<string, ScElement>;
+  nodes: Set<ScElement>;
 } {
   const doc = new DOMParser().parseFromString(xml, "text/xml");
   if (doc.querySelector("parsererror")) {
@@ -80,7 +80,7 @@ function parseExample(xml: string): {
   host.replaceChildren(
     ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
   );
-  const nodes = new Map<string, ScElement>();
+  const nodes = new Set<ScElement>();
   host.hydrate(`test-${Math.random().toString(36).slice(2)}`);
   host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };
@@ -131,7 +131,7 @@ describe("example-plugin structure", () => {
     expect(host.enabled).toBe(true);
     expect(host.run).toBe(true);
     expect(host._scChildren!.length).toBeGreaterThan(0);
-    for (const el of nodes.values()) {
+    for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
       if (el !== host) {
         expect(el._parentScNode?._scChildren).toContain(el);
@@ -141,23 +141,24 @@ describe("example-plugin structure", () => {
 
   it("resolves every sc-range bind to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    const ranges = [...nodes.values()].filter(
+    const ranges = [...nodes].filter(
       (el): el is ScRange => el.tagName.toLowerCase() === "sc-range",
     );
     expect(ranges.length).toBeGreaterThan(0);
     for (const r of ranges) {
-      const target = nodes.get(r.targetId) as ScControl | undefined;
+      const target = r._targetScNode as ScControl | undefined;
       expect(target).toBeDefined();
       expect(target!.tagName.toLowerCase()).toBe("sc-control");
       expect(target!.enabled).toBe(true);
+      expect(nodes.has(target!)).toBe(true);
     }
   });
 
-  it("registers the live element instances themselves", () => {
+  it("processes the live element instances themselves", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    expect(nodes.get(host.id)).toBe(host);
+    expect(nodes.has(host)).toBe(true);
     for (const el of host.querySelectorAll("[id^=test-]")) {
-      expect(nodes.get(el.id)).toBe(el);
+      expect(nodes.has(el as ScElement)).toBe(true);
     }
     expect(nodes.size).toBeGreaterThan(1);
   });

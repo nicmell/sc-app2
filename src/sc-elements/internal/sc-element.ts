@@ -18,6 +18,7 @@ import { parseBind } from "@/lib/utils/expression";
 import { isNodeRuntime, isNodeType, isParentRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import { getById } from "@/runtime/registry";
+import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/runtime";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
@@ -125,11 +126,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  `_scChildren`, resolve the runtime values, and assign them onto the
    *  element. Idempotent — an already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
-    const existing = ctx.nodes.get(this.id);
-    if (existing) {
-      return existing;
+    if (ctx.nodes.has(this)) {
+      return this;
     }
-    ctx.nodes.set(this.id, this);
+    ctx.nodes.add(this);
     if (ctx.parentNode) {
       ctx.parentNode._scChildren.push(this);
     }
@@ -193,7 +193,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     const el = ctx.scope.find((s) => nameOf(s) === name);
     if (!el) return undefined;
 
-    const target = ctx.nodes.get(el.id) ?? el.process(ctx);
+    const target = ctx.nodes.has(el) ? el : el.process(ctx);
 
     return walkPath(target, rest);
   }
@@ -220,23 +220,25 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   /** Resolve a stateful bind (an enabled sc-control / sc-var referencing other
    *  controls/vars): plain dot-paths or an arithmetic expression over them. */
-  protected resolveStateBind(ctx: RuntimeContext, bind: string): { targets: Record<string, string>; expression?: Expr } {
+  protected resolveStateBind(ctx: RuntimeContext, bind: string): { targets: Record<string, ScState>; expression?: Expr } {
     const parsed = parseBind(bind);
-    const targets: Record<string, string> = {};
+    const targets: Record<string, ScState> = {};
 
     for (const path of parsed.paths) {
       const { target, controlName } = this.resolveControlBind(ctx, path);
-      const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
-      this.checkCircularBind(ctx, targetState.id);
-      targets[path] = targetState.id;
+      const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
+      this.checkCircularBind(targetState);
+      targets[path] = targetState;
     }
 
     return { targets, expression: parsed.expression };
   }
 
-  protected checkCircularBind(ctx: RuntimeContext, targetId: string): void {
-    const visited = new Set<string>([this.id]);
-    const queue = [targetId];
+  /** Walk the bind graph from `target` through the live `targets` references
+   *  — no registry/map lookups needed. */
+  protected checkCircularBind(target: ScElement): void {
+    const visited = new Set<ScElement>([this]);
+    const queue = [target];
     while (queue.length > 0) {
       const current = queue.pop()!;
       if (visited.has(current)) {
@@ -244,21 +246,19 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         throw new Error(`<${this.tagName.toLowerCase()} name="${name}">: circular bind reference detected`);
       }
       visited.add(current);
-      const node = ctx.nodes.get(current);
-      if (!node || !isStateRuntime(node)) continue;
       // The runtime values are still unassigned on a state element that's
       // mid-processing (we got here through its own bind resolve) — its
       // targets aren't known yet, but the cycle is still caught from the
       // other end once they are.
-      if (node.targets) queue.push(...Object.values(node.targets));
+      if (isStateRuntime(current) && current.targets) queue.push(...Object.values(current.targets));
     }
   }
 
-  /** Resolve a visual/input bind to its target state element's id. */
+  /** Resolve a visual/input bind to its target state element. */
   protected resolveVisualBind(ctx: RuntimeContext, bind: string): InputRuntime {
     const { target, controlName } = this.resolveControlBind(ctx, bind);
     const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
-    return { ...this.baseRuntime(ctx), targetId: control.id };
+    return { ...this.baseRuntime(ctx), _targetScNode: control };
   }
 
   // TEST: the registry must hand back THIS mounted component instance — i.e.

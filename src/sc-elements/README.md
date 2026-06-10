@@ -24,7 +24,7 @@ internal/   the bases: ScElement (light-DOM root, validate helpers, the
             parse engine — hydrate/process/processChildren + the shared
             bind-resolution machinery — and the common runtime fields),
             ScNode (run + nodeId/loaded), ScState (name/value/bind +
-            targets/expression), ScInput (bind + targetId)
+            targets/expression), ScInput (bind + _targetScNode)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)

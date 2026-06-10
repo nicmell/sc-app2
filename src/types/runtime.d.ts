@@ -1,5 +1,6 @@
 import type { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
+import type { ScState } from "@/sc-elements/internal/sc-state";
 
 // The runtime type system. There are NO item structures: the element IS the
 // runtime — `process()` resolves the runtime values and assigns them onto the
@@ -43,8 +44,8 @@ export interface StateRuntime extends BaseRuntime {
    *  on ENABLED state — disabled graph inputs keep the prop as the plain
    *  attribute mirror. */
   value?: number;
-  /** Bind path → the target state element's id. */
-  targets?: Record<string, string>;
+  /** Bind path → the live target state element. */
+  targets?: Record<string, ScState>;
   /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
   expression?: Expr;
 }
@@ -54,7 +55,8 @@ export interface SynthDefRuntime extends BaseRuntime {
 }
 
 export interface InputRuntime extends BaseRuntime {
-  targetId: string;
+  /** The live bound target (a state element; a node for sc-run). */
+  _targetScNode?: ScElement;
 }
 
 // ── Element props (the components' reactive properties) ──────────────────
@@ -154,11 +156,12 @@ export type NodeType = (typeof ELEMENTS)[keyof typeof ELEMENTS];
 
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`
  *  recursion (sc-elements/internal ScElement) — all siblings share one
- *  context. `nodes` is the per-parse id → element map (adopted by the runtime
- *  registry on success), `scope` the cumulative bind-resolution scope. */
+ *  context. `nodes` is the per-parse set of processed elements (the
+ *  idempotence/forward-ref guard; the registry adopts the tree from the root
+ *  on success), `scope` the cumulative bind-resolution scope. */
 export interface RuntimeContext {
   rootNode: ScElement;
-  nodes: Map<string, ScElement>;
+  nodes: Set<ScElement>;
   scope: ScElement[];
   parentNode?: ScParentElement;
   path: string[];

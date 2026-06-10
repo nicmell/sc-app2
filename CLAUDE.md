@@ -184,7 +184,7 @@ every further `sc-*` element:
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded + run;
    `internal/sc-state`: name/value/bind + targets/expression + the shared
-   validation; `internal/sc-input`: bind + targetId); the common core
+   validation; `internal/sc-input`: bind + `_targetScNode`); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
    plus path/enabled and `_scChildren` for parents, named so because DOM
    `children` is taken) is on `ScElement`. The mixin contracts

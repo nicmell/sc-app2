@@ -10,10 +10,14 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 
 const nodes = new Map<string, ScElement>();
 
-/** Adopt a processed plugin tree (the per-parse `nodes` map a successful
- *  root `process()` run produced). */
-export function registerAll(tree: ReadonlyMap<string, ScElement>): void {
-  for (const [id, el] of tree) nodes.set(id, el);
+/** Adopt a processed plugin tree — the root and every parsed descendant
+ *  (via `_scChildren`) a successful root `process()` run produced. */
+export function registerAll(root: ScElement): void {
+  const add = (el: ScElement): void => {
+    nodes.set(el.id, el);
+    el._scChildren?.forEach(add);
+  };
+  add(root);
 }
 
 export function getById(id: string): ScElement | undefined {

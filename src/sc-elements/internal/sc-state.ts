@@ -15,8 +15,8 @@ export abstract class ScState extends ScElement {
   @property() accessor bind: string | undefined = undefined;
   @property({ type: Number }) accessor value: number | undefined = undefined;
 
-  /** Bind path → the target state element's id (set when bound). */
-  targets?: Record<string, string>;
+  /** Bind path → the live target state element (set when bound). */
+  targets?: Record<string, ScState>;
   /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
   expression?: Expr;
 

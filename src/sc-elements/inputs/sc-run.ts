@@ -1,6 +1,6 @@
 // <sc-run> — a play/pause control for a node (`bind` targets a synth/group by
 // name; empty targets the parent node — unlike the other ScInput elements its
-// `targetId` points at a node). Stub: /n_run arrives with the inputs
+// `_targetScNode` points at a node). Stub: /n_run arrives with the inputs
 // migration step. Presentational attributes (size/src/colors) are XSD-allowed
 // but not declared yet.
 
@@ -14,6 +14,6 @@ export class ScRun extends ScInput implements ScRunProps {
     if (this.bind && (!target || !isNodeRuntime(target))) {
       throw new Error(`<sc-run>: bind "${this.bind}" does not match any node in scope`);
     }
-    return { ...this.baseRuntime(ctx), targetId: target ? target.id : "" };
+    return { ...this.baseRuntime(ctx), _targetScNode: target };
   }
 }

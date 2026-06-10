@@ -43,15 +43,14 @@ export class ScPlugin extends ScNode implements ScPluginProps {
   }
 
   /** The root runtime: parse the children (the whole plugin tree), rolling
-   *  the per-parse nodes map back on any validation/resolution error. */
+   *  the per-parse state back on any validation/resolution error. */
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
     try {
       return super.resolveRuntime(ctx);
     } catch (e) {
       this._scChildren = [];
-      for (const id of ctx.nodes.keys()) {
-        if (id !== this.id) ctx.nodes.delete(id);
-      }
+      ctx.nodes.clear();
+      ctx.nodes.add(this);
       throw e;
     }
   }
@@ -64,13 +63,12 @@ export class ScPlugin extends ScNode implements ScPluginProps {
     try {
       await loadPluginInto(this, this.plugin);
       if (!this.isConnected) return; // unmounted while fetching
-      // Hydrate + process the tree (the old loadPlugin flow): the per-parse
-      // nodes map is adopted by the global registry only on success.
+      // Hydrate + process the tree (the old loadPlugin flow): the registry
+      // adopts the parsed tree (root + _scChildren) only on success.
       const boxId = this.id || randomId();
-      const nodes = new Map<string, ScElement>();
       this.hydrate(boxId);
-      this.process({ rootNode: this, nodes, scope: [this], path: [] });
-      registerAll(nodes);
+      this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
+      registerAll(this);
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.
       this.groupNodeId = oscClient.nextNodeId();

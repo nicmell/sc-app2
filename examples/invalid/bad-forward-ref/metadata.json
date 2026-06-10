@@ -1,5 +1,5 @@
 {
-  "name": "forward-ref-plugin",
+  "name": "bad-forward-ref",
   "author": "sc-app",
   "version": "0.1.0",
   "entry": "index.html",

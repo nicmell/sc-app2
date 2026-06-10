@@ -202,19 +202,19 @@ parser-item design; each decision is load-bearing for the recipe below:
    children). A parent hydrates (assigns ids to) ALL its children into the
    level scope and checks duplicate names BEFORE any child processes, with
    inner-scope shadowing on name lookups.
-7. **Bind-order constraint: bind targets must be declared BEFORE their
-   references in DOM order.** Elements that have not yet been processed
-   cannot be referenced — we plan to process the elements strictly in DOM
-   order. (Today `resolveNode` still resolves a forward reference by
-   processing the named sibling on demand — `forward-ref-plugin` and
-   `bad-circular-bind` exercise it — but new plugins must NOT rely on this;
-   those examples get reordered/retired when strict DOM-order processing
-   lands.) Consequence for `checkCircularBind`: it exists exactly because
-   on-demand resolution makes mutual cycles reachable. Under strict
-   DOM-order processing, references point strictly backward, the bind graph
-   is a DAG by construction, and the walk reduces to a one-line
-   self-reference guard (`target === el` — an element can still name itself
-   through its mid-processing parent) — drop it then, not before.
+7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE
+   their references in DOM order.** Elements that have not yet been
+   processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
+   referenced before it is declared` when a bind names an in-scope element
+   that hasn't processed yet (a name matching nothing keeps the
+   does-not-match errors). The `bad-forward-ref` fixture pins the message.
+   Referencing the mid-processing ANCESTOR stays legal (it pre-registers
+   before its children run), so group-scoped binds to earlier siblings work.
+   Consequence: references point strictly backward, the bind graph is a DAG
+   by construction, and `checkCircularBind`'s graph walk is gone — reduced
+   to the self-reference guard in `resolveStateBind` (`target === el`; an
+   element can still name itself through its mid-processing parent —
+   `bad-circular-bind` pins it).
 8. **Two validation gates** keep all of this honest: `yarn test` (the
    examples through the engine in happy-dom, exact error messages pinned)
    and the CDP harness (upload/XSD path + real browser) — see "Validating

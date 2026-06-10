@@ -32,7 +32,7 @@ export class ScUgen extends ScElement implements ScUgenProps {
       if (!isControlRuntime(child) || !child.bind) continue;
       for (const ref of child.bind.split(",").map((s) => s.trim())) {
         const refId = ref.split(":")[0];
-        if (!resolveNode(ctx, [refId])) {
+        if (!resolveNode(this, ctx, [refId])) {
           throw new Error(
             `<sc-ugen name="${this.name}">: input "${child.name}" references unknown "${refId}"`,
           );

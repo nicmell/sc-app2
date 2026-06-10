@@ -41,6 +41,7 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-synthdef-bind": '<sc-range bind="sine.freq">: does not match any node in scope',
   "bad-undeclared-control": '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
+  "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
   "bad-unknown-synthdef": '<sc-synth bind="missing">: does not match any <sc-synthdef>',
   "bad-run-bind": '<sc-run>: bind "ghost" does not match any node in scope',
   "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
@@ -95,8 +96,8 @@ afterEach(() => {
 });
 
 describe("example discovery", () => {
-  it("finds every functional example and all nine runtime fixtures", () => {
-    expect(passing.length).toBeGreaterThanOrEqual(11);
+  it("finds every functional example and all ten runtime fixtures", () => {
+    expect(passing.length).toBeGreaterThanOrEqual(10);
     expect(failing.map((c) => c.name).sort()).toEqual(Object.keys(RUNTIME_FAILURES).sort());
   });
 });

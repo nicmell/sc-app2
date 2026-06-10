@@ -4,15 +4,13 @@
     <title>Bad Circular Bind (intentional error)</title>
 </head>
 <body>
-<!-- INTENTIONAL: a → b → a. Processing "a" resolves "g2.b" on demand, whose
-     own bind resolves back to the mid-processing "a"; once b's targets are
-     known, a's checkCircularBind must fail with "circular bind reference
-     detected" -->
-<sc-group name="g1">
-    <sc-var name="a" bind="g2.b"/>
-</sc-group>
-<sc-group name="g2">
-    <sc-var name="b" bind="g1.a"/>
+<!-- INTENTIONAL: "a" binds itself through its mid-processing parent — the
+     only cycle still expressible now that bind targets must be declared
+     before their references (the targets graph is a DAG by construction);
+     resolveStateBind's self-reference guard must fail with "circular bind
+     reference detected" -->
+<sc-group name="vars">
+    <sc-var name="a" bind="vars.a"/>
 </sc-group>
 </body>
 </html>

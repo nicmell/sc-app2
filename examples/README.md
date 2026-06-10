@@ -30,10 +30,9 @@ adopts nodes; no HTML re-parse). To install one by hand:
 
 | plugin | purpose |
 |---|---|
-| `forward-ref-plugin` | Controls/inputs appear *before* the synth they reference — tests on-demand `resolve` during processing. |
 | `nested-groups-plugin` | Multi-segment bind paths (`outer.inner.deep.control`) through nested groups — tests `walkPath` + cumulative scopes. |
 | `group-bind-plugin` | Group-level controls bound from synth params + per-synth run/range/display — tests cross-level binds. |
-| `var-plugin` | `sc-var`s with arithmetic bind expressions (mirror, `vars.freq * 2`, sums, products) — tests `parseBind`/expression resolution + circular-bind detection. |
+| `var-plugin` | `sc-var`s with arithmetic bind expressions (mirror, `vars.freq * 2`, sums, products) — tests `parseBind`/expression resolution. |
 | `conditional-plugin` | `sc-if` with controls binding to siblings — tests that `sc-if` is scope-transparent. |
 
 ## `inputs/` — input widgets
@@ -55,8 +54,9 @@ Upload-time fixtures (rejected by the backend zip/XSD validation):
 | `bad-asset-type` | `svg` is not a supported asset type |
 | `bad-asset-mismatch` | asset content (jpeg) ≠ declared type (png) |
 
-Runtime fixtures (upload fine; `processHtml` must reject them — each one
-targets a single error path in `src/runtime/handlers.ts`):
+Runtime fixtures (upload fine; the parse engine must reject them — each one
+targets a single error path in the sc-elements runtime
+(`internal/validation.ts` + the `resolveRuntime` overrides)):
 
 | plugin | error path | fails with |
 |---|---|---|
@@ -64,7 +64,8 @@ targets a single error path in `src/runtime/handlers.ts`):
 | `bad-node-bind` | `resolveControlBind` | `bind="ghost.freq"` — no node `ghost` in scope |
 | `bad-synthdef-bind` | `resolveControlBind` | `bind="sine.freq"` resolves to the *synthdef* (not a node) — the classic param-vs-control mistake |
 | `bad-undeclared-control` | `resolveControlBind` | `bind="s1.detune"` — `s1` declares no `detune` control |
-| `bad-circular-bind` | `checkCircularBind` | two `sc-var`s bound to each other (`a → b → a`) across groups |
+| `bad-circular-bind` | `resolveStateBind` (self-reference guard) | an `sc-var` bound to itself (`a → vars.a`) — the only cycle expressible now that references point strictly backward |
+| `bad-forward-ref` | `resolveNode` | controls/inputs reference a synth declared *after* them — bind targets must be declared before their references in DOM order |
 | `bad-unknown-synthdef` | `synthHandler` | `<sc-synth bind="missing">` matches no `<sc-synthdef>` |
 | `bad-run-bind` | `runHandler` | `<sc-run bind="ghost">` matches no node |
 | `bad-ugen-input` | `collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |

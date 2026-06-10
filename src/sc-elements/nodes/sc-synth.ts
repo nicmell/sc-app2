@@ -16,7 +16,7 @@ export class ScSynth extends ScNode implements ScSynthProps {
   }
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    if (this.bind && !resolveNode(ctx, [this.bind])) {
+    if (this.bind && !resolveNode(this, ctx, [this.bind])) {
       throw new Error(`<sc-synth bind="${this.bind}">: does not match any <sc-synthdef>`);
     }
     return super.resolveRuntime(ctx);

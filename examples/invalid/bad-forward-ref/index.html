@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Forward Reference Plugin</title>
+    <title>Bad Forward Reference (intentional error)</title>
 </head>
 <body>
-<!-- Controls appear BEFORE the synth they bind to — tests on-demand resolve -->
 <sc-synthdef name="sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
@@ -21,6 +20,10 @@
     </sc-ugen>
 </sc-synthdef>
 
+<!-- INTENTIONAL: the controls reference "s1" BEFORE it is declared — bind
+     targets must be declared earlier in the document; resolveNode must fail
+     with "referenced before it is declared" (the first error comes from the
+     sc-run) -->
 <div>
     <h3>Controls (before synth)</h3>
     <label>

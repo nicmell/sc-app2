@@ -77,14 +77,19 @@ function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   return undefined;
 }
 
-/** Resolve a name path against the scope, processing the target on demand
- *  (forward references). */
-export function resolveNode(ctx: RuntimeContext, path: string[]): ScElement | undefined {
+/** Resolve a name path against the scope. Only elements that have already
+ *  been processed can be referenced — bind targets must be declared BEFORE
+ *  their references in DOM order (a name matching a later, not-yet-processed
+ *  element is an explicit error; a name matching nothing falls through to
+ *  the caller's own error). */
+export function resolveNode(el: Element, ctx: RuntimeContext, path: string[]): ScElement | undefined {
   const [name, ...rest] = path;
-  const el = ctx.scope.find((s) => nameOf(s) === name);
-  if (!el) return undefined;
+  const target = ctx.scope.find((s) => nameOf(s) === name);
+  if (!target) return undefined;
 
-  const target = ctx.nodes.has(el) ? el : el.process(ctx);
+  if (!ctx.nodes.has(target)) {
+    throw new Error(`<${el.tagName.toLowerCase()}>: "${name}" is referenced before it is declared`);
+  }
 
   return walkPath(target, rest);
 }
@@ -100,7 +105,7 @@ export function resolveControlBind(
   const tag = el.tagName.toLowerCase();
   const segments = bind.split(".");
   const controlName = segments.pop()!;
-  const target = segments.length > 0 ? resolveNode(ctx, segments) : ctx.parentNode;
+  const target = segments.length > 0 ? resolveNode(el, ctx, segments) : ctx.parentNode;
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
   }
@@ -127,31 +132,17 @@ export function resolveStateBind(
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path);
     const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
-    checkCircularBind(el, targetState);
+    // With references restricted to already-processed elements, processing
+    // order strictly decreases along any bind chain — the targets graph is a
+    // DAG by construction. The only cycle left is the self-reference (an
+    // element can still name itself through its mid-processing parent).
+    if (targetState === el) {
+      throw new Error(`<${el.tagName.toLowerCase()} name="${nameOf(el)}">: circular bind reference detected`);
+    }
     targets[path] = targetState;
   }
 
   return { targets, expression: parsed.expression };
-}
-
-/** Walk the bind graph from `target` through the live `targets` references —
- *  no registry/map lookups needed — rejecting any path back to `el`. */
-export function checkCircularBind(el: ScElement, target: ScElement): void {
-  const visited = new Set<ScElement>([el]);
-  const queue = [target];
-  while (queue.length > 0) {
-    const current = queue.pop()!;
-    if (visited.has(current)) {
-      const name = nameOf(el);
-      throw new Error(`<${el.tagName.toLowerCase()} name="${name}">: circular bind reference detected`);
-    }
-    visited.add(current);
-    // The runtime values are still unassigned on a state element that's
-    // mid-processing (we got here through its own bind resolve) — its
-    // targets aren't known yet, but the cycle is still caught from the
-    // other end once they are.
-    if (isStateRuntime(current) && current.targets) queue.push(...Object.values(current.targets));
-  }
 }
 
 /** Resolve `el`'s visual/input bind to its target state element. */

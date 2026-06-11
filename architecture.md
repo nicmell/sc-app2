@@ -83,8 +83,8 @@ SIGINT/SIGTERM, `Server::unregister` frees every live session group and sends
   `subscribe()` hands every consumer (each WS pump, the supervisor, diag)
   its own receiver. Laggards drop frames, never block.
 * **`scsynth.rs`** — protocol + supervisor + the node-id scheme.
-  * Supervisor loop: `/notify 1` → ack carries our **clientID** → `/version`
-    → "running"; then poll `/status` at 1 Hz until 3 misses → reconnect loop
+  * Supervisor loop: `/notify 1` → the ack carries our **clientID** →
+    registered; then poll `/status` at 1 Hz until 3 misses → reconnect loop
     at 1 Hz. The 1 Hz `/status.reply` is load-bearing downstream: it fans out
     to every WS client and is both the frontend's footer telemetry **and**
     its connection watchdog food.

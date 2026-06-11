@@ -1,22 +1,22 @@
 //! scsynth: the SuperCollider server-command protocol plus a supervisor that
 //! keeps the bridge registered with a live scsynth.
 //!
-//! The protocol half encodes `/notify`, `/status`, `/version` (via the generic
+//! The protocol half encodes `/notify` and `/status` (via the generic
 //! [`osc`](super::osc) helpers) and classifies the replies ([`classify_reply`]).
 //! The supervisor half ([`Scsynth`]) rides on a generic
 //! [`Bridge`](super::bridge::Bridge): it subscribes to inbound datagrams to
 //! track scsynth's state, and sends commands via the bridge. It registers
-//! (`/notify` → `/version`), polls `/status` as a heartbeat, reconnects when
-//! scsynth stops answering, and unregisters (`/notify 0`) on shutdown.
+//! (`/notify`), polls `/status` as a heartbeat, reconnects when scsynth stops
+//! answering, and unregisters (`/notify 0`) on shutdown.
 
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::{broadcast, watch};
 
 use super::bridge::Bridge;
-use super::osc::{self, OscMessage, OscType};
+use super::osc::{self, OscType};
 
 /// Consecutive missed `/status.reply`s before scsynth is considered down.
 const MAX_STATUS_MISSES: u32 = 3;
@@ -24,7 +24,7 @@ const MAX_STATUS_MISSES: u32 = 3;
 const STATUS_INTERVAL: Duration = Duration::from_secs(1);
 /// Delay between reconnection attempts while scsynth is unreachable.
 const RETRY_INTERVAL: Duration = Duration::from_secs(1);
-/// How long to wait for a `/done /notify` or `/version.reply`.
+/// How long to wait for the `/done /notify` registration ack.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(1);
 
 // ── node-id partitioning ─────────────────────────────────────────────────
@@ -99,42 +99,12 @@ fn status_packet() -> Vec<u8> {
     osc::encode("/status", vec![])
 }
 
-/// Encode `/version` — scsynth replies `/version.reply`.
-fn version_packet() -> Vec<u8> {
-    osc::encode("/version", vec![])
-}
-
-/// scsynth version from a `/version.reply` (SC protocol:
-/// `progName major:int minor:int patch:str branch:str commitHash:str`).
-#[derive(Debug, Clone)]
-struct Version {
-    prog_name: String,
-    major: i32,
-    minor: i32,
-    /// SC reports the patch as a string (e.g. `".0"`) — kept verbatim.
-    patch: String,
-    branch: String,
-    commit_hash: String,
-}
-
-impl std::fmt::Display for Version {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}.{}{}", self.prog_name, self.major, self.minor, self.patch)?;
-        if !self.branch.is_empty() || !self.commit_hash.is_empty() {
-            write!(f, " ({}@{})", self.branch, self.commit_hash)?;
-        }
-        Ok(())
-    }
-}
-
 /// A scsynth reply the supervisor acts on (everything is still forwarded to
 /// clients by the bridge; these variants only drive registration + liveness,
 /// or — for `Fail`/`Late` — get logged).
 enum Reply {
     /// `/done /notify <clientId>` — the registration ack.
     DoneNotify(i32),
-    /// `/version.reply …`.
-    Version(Version),
     /// `/status.reply …` — heartbeat.
     Status,
     /// `/fail <command:str> <error:str> [extras:int…]` — a command failed. Sent
@@ -171,7 +141,6 @@ fn classify_reply(bytes: &[u8]) -> Reply {
                 _ => Reply::Other,
             }
         }
-        "/version.reply" => version_from(&msg).map_or(Reply::Other, Reply::Version),
         "/status.reply" => Reply::Status,
         "/fail" => Reply::Fail {
             // SC protocol: /fail <commandAddress:str> <errorString:str> [extras…].
@@ -188,31 +157,7 @@ fn classify_reply(bytes: &[u8]) -> Reply {
     }
 }
 
-fn version_from(msg: &OscMessage) -> Option<Version> {
-    let string_at = |i: usize, default: &str| match msg.args.get(i) {
-        Some(OscType::String(s)) => s.clone(),
-        _ => default.to_string(),
-    };
-    Some(Version {
-        prog_name: string_at(0, "scsynth"),
-        major: osc::int_arg(msg.args.get(1)?)?,
-        minor: osc::int_arg(msg.args.get(2)?)?,
-        patch: string_at(3, ""),
-        branch: string_at(4, ""),
-        commit_hash: string_at(5, ""),
-    })
-}
-
 // ── supervisor ──────────────────────────────────────────────────────────
-
-/// What scsynth has told us (the mutex-guarded part; the client id and the
-/// "running" flag live in `watch` channels so waiters are event-driven).
-#[derive(Default)]
-struct State {
-    version: Option<Version>,
-    /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
-    status_replies: u64,
-}
 
 /// Keeps the bridge registered with a live scsynth. Cheap to clone (Arc-backed).
 #[derive(Clone)]
@@ -222,13 +167,11 @@ pub struct Scsynth {
 
 struct Inner {
     bridge: Bridge,
-    state: Mutex<State>,
     /// The scsynth-assigned client id (`/done /notify`), `None` between
     /// registrations. A `watch` so waiters block on change, not on a poll.
     client_id: watch::Sender<Option<i32>>,
-    /// True once both the client id and the version are in for the current
-    /// registration.
-    running: watch::Sender<bool>,
+    /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
+    status_replies: AtomicU64,
     /// Bumped on every successful (re)registration — consumers caching
     /// per-connection scsynth state (e.g. the SHM scope mapping) compare
     /// against it to detect a restart and re-derive.
@@ -242,9 +185,8 @@ impl Scsynth {
         let scsynth = Self {
             inner: Arc::new(Inner {
                 bridge,
-                state: Mutex::new(State::default()),
                 client_id: watch::Sender::new(None),
-                running: watch::Sender::new(false),
+                status_replies: AtomicU64::new(0),
                 generation: AtomicU64::new(0),
             }),
         };
@@ -324,35 +266,22 @@ impl Scsynth {
     fn observe(&self, bytes: &[u8]) {
         match classify_reply(bytes) {
             Reply::DoneNotify(cid) => {
-                self.inner.client_id.send_replace(Some(cid));
-                self.check_running();
+                // Act only on the transition (a duplicate ack must not re-log
+                // or bump the generation).
+                if self.inner.client_id.send_replace(Some(cid)).is_none() {
+                    tracing::info!(client_id = cid, "scsynth registered");
+                    self.inner.generation.fetch_add(1, Ordering::AcqRel);
+                }
             }
-            Reply::Version(v) => {
-                self.inner.state.lock().unwrap().version = Some(v);
-                self.check_running();
+            Reply::Status => {
+                self.inner.status_replies.fetch_add(1, Ordering::Relaxed);
             }
-            Reply::Status => self.inner.state.lock().unwrap().status_replies += 1,
             Reply::Fail { command, message, extras } => {
                 tracing::warn!(%command, %message, ?extras, "scsynth /fail");
             }
             Reply::Late(seconds) => tracing::warn!(seconds, "scsynth /late bundle"),
             Reply::Other => {}
         }
-    }
-
-    /// Once both the client id and version are present for this registration,
-    /// flag running (logged once) and bump the generation.
-    fn check_running(&self) {
-        if *self.inner.running.borrow() {
-            return;
-        }
-        let Some(client_id) = self.client_id() else { return };
-        let s = self.inner.state.lock().unwrap();
-        let Some(version) = s.version.as_ref() else { return };
-        tracing::info!(client_id, %version, "scsynth running");
-        drop(s);
-        self.inner.generation.fetch_add(1, Ordering::AcqRel);
-        self.inner.running.send_replace(true);
     }
 
     /// Supervisor loop: (re)register, poll `/status` until scsynth stops
@@ -367,7 +296,7 @@ impl Scsynth {
         loop {
             self.reset();
             if self.register().await {
-                // Connected — `check_running` logged "scsynth running …".
+                // Connected — `observe` logged "scsynth registered".
                 down = false;
                 if self.client_id() == Some(0) && self.inner.bridge.has_route("/dirt") {
                     tracing::warn!(
@@ -386,23 +315,13 @@ impl Scsynth {
         }
     }
 
-    /// One registration attempt: `/notify 1` → wait for the `/done /notify` ack
-    /// (so the version round-trip runs against a registered client) → `/version`
-    /// → wait until `check_running` flags running. Quiet — `run` logs
-    /// transitions.
+    /// One registration attempt: `/notify 1` → wait for the `/done /notify`
+    /// ack. Quiet — `observe`/`run` log the transitions.
     async fn register(&self) -> bool {
         self.inner.bridge.dispatch_command(&notify_packet(true)).await;
         // (clientID 0 is valid, so the ack test is "populated", not "> 0".)
         let mut cid = self.inner.client_id.subscribe();
-        let acked = tokio::time::timeout(REPLY_TIMEOUT, cid.wait_for(Option::is_some))
-            .await
-            .is_ok_and(|r| r.is_ok());
-        if !acked {
-            return false;
-        }
-        self.inner.bridge.dispatch_command(&version_packet()).await;
-        let mut running = self.inner.running.subscribe();
-        tokio::time::timeout(REPLY_TIMEOUT, running.wait_for(|r| *r))
+        tokio::time::timeout(REPLY_TIMEOUT, cid.wait_for(Option::is_some))
             .await
             .is_ok_and(|r| r.is_ok())
     }
@@ -412,10 +331,10 @@ impl Scsynth {
     async fn poll_status_until_dead(&self) {
         let mut misses = 0u32;
         loop {
-            let before = self.inner.state.lock().unwrap().status_replies;
+            let before = self.inner.status_replies.load(Ordering::Relaxed);
             self.inner.bridge.dispatch_command(&status_packet()).await;
             tokio::time::sleep(STATUS_INTERVAL).await;
-            if self.inner.state.lock().unwrap().status_replies > before {
+            if self.inner.status_replies.load(Ordering::Relaxed) > before {
                 misses = 0;
             } else {
                 misses += 1;
@@ -426,12 +345,10 @@ impl Scsynth {
         }
     }
 
-    /// Clear the registration state for a fresh (re)connect attempt. Keeps the
+    /// Clear the registration for a fresh (re)connect attempt. Keeps the
     /// monotonic `status_replies` counter and the `generation`.
     fn reset(&self) {
         self.inner.client_id.send_replace(None);
-        self.inner.running.send_replace(false);
-        self.inner.state.lock().unwrap().version = None;
     }
 }
 
@@ -439,7 +356,7 @@ impl Scsynth {
 mod tests {
     use super::*;
 
-    fn message_of(bytes: &[u8]) -> OscMessage {
+    fn message_of(bytes: &[u8]) -> osc::OscMessage {
         osc::decode_message(bytes).expect("expected a message")
     }
 
@@ -448,7 +365,6 @@ mod tests {
         assert_eq!(message_of(&notify_packet(true)).args, vec![OscType::Int(1)]);
         assert_eq!(message_of(&notify_packet(false)).args, vec![OscType::Int(0)]);
         assert_eq!(message_of(&status_packet()).addr, "/status");
-        assert_eq!(message_of(&version_packet()).addr, "/version");
     }
 
     #[test]
@@ -457,28 +373,6 @@ mod tests {
         assert!(matches!(classify_reply(&ok), Reply::DoneNotify(7)));
         let other = osc::encode("/done", vec![OscType::String("/quit".into())]);
         assert!(matches!(classify_reply(&other), Reply::Other));
-    }
-
-    #[test]
-    fn classifies_version_reply() {
-        let bytes = osc::encode(
-            "/version.reply",
-            vec![
-                OscType::String("scsynth".into()),
-                OscType::Int(3),
-                OscType::Int(13),
-                OscType::String(".0".into()),
-                OscType::String("main".into()),
-                OscType::String("abc1234".into()),
-            ],
-        );
-        match classify_reply(&bytes) {
-            Reply::Version(v) => {
-                assert_eq!((v.major, v.minor), (3, 13));
-                assert_eq!(v.to_string(), "scsynth 3.13.0 (main@abc1234)");
-            }
-            _ => panic!("expected Version"),
-        }
     }
 
     #[test]

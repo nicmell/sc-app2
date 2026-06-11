@@ -31,8 +31,9 @@ export interface SessionInfo {
   nodeIdCount: number;
   /** scsynth scope-buffer index this session's master-out tap uses. */
   scopeIndex: number;
-  /** The scsynth `host:port` the bridge talks to (shown in the footer). */
-  scsynthAddress: string | null;
-  /** The saved dashboard layout, if this session has one on the server. */
-  layout: BoxItem[] | null;
+  /** The scsynth `host:port` the bridge talks to (shown in the footer);
+   *  empty if the peer is unconfigured. */
+  scsynthAddress: string;
+  /** The saved dashboard layout; `[]` when this session has none saved. */
+  layout: BoxItem[];
 }

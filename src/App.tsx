@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ConnectionOverlay } from "@/components/ConnectionOverlay";
 import { Dashboard } from "@/components/Dashboard";
 import { Drawer } from "@/components/Drawer";
 import { ToastStack } from "@/components/ToastStack";
@@ -18,6 +19,7 @@ function App() {
       <Dashboard onToggleDrawer={() => setDrawerOpen((open) => !open)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <ToastStack />
+      <ConnectionOverlay />
     </div>
   );
 }

@@ -49,10 +49,11 @@ struct SessionInfo {
     /// scsynth scope-buffer index for this session's master-out tap (so
     /// concurrent windows don't write the same SHM scope buffer).
     scope_index: i32,
-    /// The `scsynth` peer's `host:port` from config (`None` if unconfigured).
-    scsynth_address: Option<String>,
-    /// The saved dashboard layout (opaque to the server), if one exists.
-    layout: Option<serde_json::Value>,
+    /// The `scsynth` peer's `host:port` from config (empty if unconfigured).
+    scsynth_address: String,
+    /// The saved dashboard layout (opaque to the server); `[]` when none
+    /// exists, so the frontend can rely on it being an array.
+    layout: serde_json::Value,
 }
 
 impl SessionInfo {
@@ -63,8 +64,8 @@ impl SessionInfo {
             node_id_base: block.node_base,
             node_id_count: block.node_count,
             scope_index: block.scope_index,
-            scsynth_address: server.scsynth_address(),
-            layout,
+            scsynth_address: server.scsynth_address().unwrap_or_default(),
+            layout: layout.unwrap_or_else(|| serde_json::json!([])),
         }
     }
 }

@@ -23,15 +23,8 @@ import {
 } from "@sc-app/server-commands";
 import { OSC_REPLIES } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
-import {
-  CREATE_SESSION_RETRIES,
-  CREATE_SESSION_RETRY_MS,
-  LAYOUT_SAVE_INTERVAL_MS,
-  MAX_ERRORS,
-  MAX_LOG,
-  SESSION_KEY,
-} from "@/constants/session";
-import { get, post, put, wsUrl, HttpError } from "@/lib/http";
+import { LAYOUT_SAVE_INTERVAL_MS, MAX_ERRORS, MAX_LOG, SESSION_KEY } from "@/constants/session";
+import { get, post, put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { ScopeController } from "@/lib/scope/ScopeController";
 import { layout, setLayout } from "@/stores/layout";
@@ -49,18 +42,11 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
   };
 }
 
-/** Mint a fresh session. The server allocates the group id + node range; it
- *  can briefly return 503 if scsynth hasn't finished registering, so retry. */
+/** Mint a fresh session. The server allocates the group id + node range. It
+ *  only starts serving after scsynth's first registration, so a 503 (scsynth
+ *  not registered) can only mean a later outage — fail immediately. */
 async function createSession(): Promise<SessionInfo> {
-  for (let attempt = 0; attempt < CREATE_SESSION_RETRIES; attempt++) {
-    try {
-      return await (await post("/api/session")).json();
-    } catch (err) {
-      if (!(err instanceof HttpError) || err.status !== 503) throw err;
-      await new Promise((r) => setTimeout(r, CREATE_SESSION_RETRY_MS));
-    }
-  }
-  throw new Error("POST /api/session → 503 (scsynth not registered)");
+  return await (await post("/api/session")).json();
 }
 
 /** Revive a stored session id (GET returns its info + saved layout), or
@@ -134,8 +120,9 @@ export class SessionManager {
       }
       // Restore the saved layout only once connected: mounting a panel mounts
       // its <sc-plugin>, which allocates node ids + creates its group — both
-      // need the live connection.
-      if (info.layout) {
+      // need the live connection. An empty layout (fresh session) must not
+      // clobber the DEFAULT_LAYOUT the store boots with.
+      if (info.layout.length > 0) {
         setLayout(info.layout);
         this.lastSavedLayout = layout.get();
       }
@@ -186,6 +173,29 @@ export class SessionManager {
 
   dispose(): void {
     this.disposed = true;
+    this.teardown();
+  }
+
+  /** Re-run the whole connection flow after a failure (the error modal's
+   *  Retry button). Only legal from the "error" state; the immediate flip to
+   *  "connecting" also blocks double-clicks. The dashboard layout is left
+   *  alone — the existing screen state stays visible below the overlay. */
+  async retry(): Promise<void> {
+    if (this.disposed || this.status.get() !== "error") return;
+    this.teardown();
+    this.started = false;
+    this.lastSavedLayout = null;
+    // Keep `nextId` (log/banner keys must stay unique) and the log itself;
+    // clear the stale telemetry of the dead connection.
+    this.state.update((s) => ({ ...s, status: "connecting", scsynthStatus: null, errors: [] }));
+    await this.start();
+  }
+
+  /** Shared teardown: stop the autosave, drop the scope tap + our
+   *  subscriptions, and close the client. Closes unconditionally — after a
+   *  connect-phase failure `connected` is still false but the WS worker
+   *  already exists, and close() is a no-op on a never-opened client. */
+  private teardown(): void {
     if (this.saveTimer !== null) {
       clearInterval(this.saveTimer);
       this.saveTimer = null;
@@ -196,10 +206,8 @@ export class SessionManager {
     // read as an error.
     for (const [event, id] of this.subscriptions) oscClient.off(event, id);
     this.subscriptions = [];
-    if (this.connected) {
-      this.connected = false;
-      oscClient.close();
-    }
+    this.connected = false;
+    oscClient.close();
   }
 
   private subscribe(event: string, cb: (...args: any[]) => void): void {

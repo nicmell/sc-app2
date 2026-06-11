@@ -1,3 +1,4 @@
+import { Modal } from "@/components/ui/Modal";
 import { PluginList } from "./PluginList";
 import type { PluginInfo } from "@/types/api";
 
@@ -10,16 +11,14 @@ export function PluginPicker({
   onClose: () => void;
 }) {
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <header>Select plugin</header>
-        <PluginList onSelect={onSelect} />
-        <div className="cluster modal-actions">
-          <button type="button" data-variant="ghost" onClick={onClose}>
-            Cancel
-          </button>
-        </div>
+    <Modal onClose={onClose}>
+      <header>Select plugin</header>
+      <PluginList onSelect={onSelect} />
+      <div className="cluster modal-actions">
+        <button type="button" data-variant="ghost" onClick={onClose}>
+          Cancel
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }

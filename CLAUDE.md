@@ -50,7 +50,10 @@ cd src-tauri && cargo check && cargo test
 
 ```
 main.tsx                 boot: register sc-* elements, session.start(), render <App/>
-components/              React shell: Dashboard grid, plugin picker/list, toasts
+components/              React shell: Dashboard grid, plugin picker/list, toasts,
+                         the connection overlay (boot loader + retry modal over
+                         the session status), ui/ (Modal — the first of the
+                         planned components/ui primitives)
 sc-elements/             Lit elements used inside plugin HTML, classified by the
                          old app's taxonomy (see sc-elements/README.md for the
                          per-element docs): nodes/ (plugin/group/synth),

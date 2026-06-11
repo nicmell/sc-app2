@@ -52,10 +52,11 @@ export default defineConfig(async () => ({
 
   // Unit tests (`yarn test`): the example plugins through the sc-elements
   // parse engine in a simulated DOM — the fast runtime gate next to the full
-  // CDP harness (scripts/validate-examples.mjs).
+  // CDP harness (scripts/validate-examples.mjs) — plus React component tests
+  // (.tsx, e.g. the connection overlay).
   test: {
     environment: "happy-dom",
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.{ts,tsx}"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

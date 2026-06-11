@@ -7,6 +7,7 @@
 //! [`dispatch_command`](Bridge::dispatch_command). Cheap to clone (Arc-backed).
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use bytes::Bytes;
 use tokio::sync::broadcast;
@@ -32,8 +33,17 @@ struct Inner {
 
 impl Bridge {
     /// Connect the configured peers and start one pump task per peer
-    /// (peer socket → the shared `inbound` fan-out). Never blocks.
-    pub async fn connect(configs: &[PeerConfig]) -> Self {
+    /// (peer socket → the shared `inbound` fan-out). `connect_timeout` is
+    /// waited out before the connection attempts (config `connect_timeout`,
+    /// e.g. to give the peers time to boot); zero connects immediately.
+    pub async fn connect(configs: &[PeerConfig], connect_timeout: Duration) -> Self {
+        if !connect_timeout.is_zero() {
+            tracing::info!(
+                seconds = connect_timeout.as_secs(),
+                "waiting before connecting peers"
+            );
+            tokio::time::sleep(connect_timeout).await;
+        }
         let peers = peer::connect_all(configs).await;
         let (inbound, _rx) = broadcast::channel(INBOUND_CAPACITY);
         let bridge = Self {

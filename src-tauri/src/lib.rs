@@ -81,7 +81,11 @@ pub fn run() {
 /// bind the listener. The composition root for both run modes — `assets` (the
 /// per-mode input) is handed to [`router::serve`] by the caller, not stored here.
 async fn start(config: AppConfig, logger: Arc<Logger>) -> std::io::Result<(Server, TcpListener)> {
-    let bridge = Bridge::connect(&config.peers).await;
+    let bridge = Bridge::connect(
+        &config.peers,
+        std::time::Duration::from_secs(config.connect_timeout),
+    )
+    .await;
     // The supervisor owns the scsynth side — it (re)creates its per-client root
     // group on every registration itself.
     let scsynth = Scsynth::supervise(bridge.clone());

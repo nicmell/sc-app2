@@ -23,14 +23,18 @@ pub struct PeerConfig {
     pub target: String,
 }
 
-/// Contents of `config.json`: the listen `port`, the UDP `peers`, and file
-/// logging via `log_dir`.
+/// Contents of `config.json`: the listen `port`, the UDP `peers`, a startup
+/// `connect_timeout`, and file logging via `log_dir`.
 #[derive(Deserialize, Clone)]
 pub struct AppConfig {
     #[serde(default = "default_port")]
     pub port: u16,
     #[serde(default = "default_peers")]
     pub peers: Vec<PeerConfig>,
+    /// Seconds to wait at startup before attempting the peer connections
+    /// (e.g. to give scsynth time to boot). 0 connects immediately.
+    #[serde(default)]
+    pub connect_timeout: u64,
     #[serde(default)]
     pub log_dir: Option<PathBuf>,
 }
@@ -40,6 +44,7 @@ impl Default for AppConfig {
         Self {
             port: DEFAULT_PORT,
             peers: default_peers(),
+            connect_timeout: 0,
             log_dir: None,
         }
     }
@@ -209,6 +214,22 @@ mod tests {
                 p.target
             );
         }
+    }
+
+    #[test]
+    fn loads_connect_timeout() {
+        let path = tmp("connect-timeout");
+        std::fs::write(&path, r#"{ "connect_timeout": 5 }"#).unwrap();
+        assert_eq!(load(Some(path.clone())).connect_timeout, 5);
+        std::fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn missing_connect_timeout_defaults_to_zero() {
+        let path = tmp("no-connect-timeout");
+        std::fs::write(&path, "{}").unwrap();
+        assert_eq!(load(Some(path.clone())).connect_timeout, 0);
+        std::fs::remove_file(path).ok();
     }
 
     #[test]

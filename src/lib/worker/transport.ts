@@ -1,5 +1,5 @@
 // The raw WebSocket transport for packed OSC frames, behind the shared
-// `{ open, close, send, onMessage, status }` interface. This runs INSIDE the
+// `{ open, close, send, onEvent, status }` interface. This runs INSIDE the
 // Web Worker (worker.ts calls `createWsTransport()` directly); the main
 // thread talks to it through the WorkerClient, which exposes the same
 // interface across the postMessage boundary. No osc-js here.
@@ -17,20 +17,23 @@ export const TRANSPORT_STATUS = {
   IS_CLOSED: 3,
 } as const;
 
+export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_STATUS];
+
 /** A transport for packed OSC frames — implemented by the raw WebSocket
  *  (`createWsTransport`, in the worker) and by its main-thread proxy
- *  (`createWorkerClient`). */
-export interface OscTransport {
+ *  (the WorkerClient). */
+export interface WorkerTransport {
   /** Open the connection to `url`. */
   open(url: string): void;
   /** Close the connection. */
   close(): void;
   /** Relay one packed OSC frame. */
   send(data: Uint8Array): void;
-  /** Register the consumer of transport events (one listener). */
-  onMessage(cb: (msg: TransportEvent) => void): void;
+  /** Register the consumer of transport events — open/message/error/close
+   *  (one listener). */
+  onEvent(cb: (msg: TransportEvent) => void): void;
   /** Connection status (a `TRANSPORT_STATUS` / `OSC.STATUS` value). */
-  status(): number;
+  status(): TransportStatus;
 }
 
 /** The WebSocket itself: open/send/close in, open/message/error/close out.
@@ -39,7 +42,7 @@ export interface OscTransport {
  *  a previous socket, and an orderly `close` emits no event — the client
  *  synthesizes the single close signal, so a stale close can never arrive
  *  after a new connection's subscribers are in place. */
-export function createWsTransport(): OscTransport {
+export function createWsTransport(): WorkerTransport {
   let ws: WebSocket | null = null;
   let notify: (msg: TransportEvent) => void = () => {};
 
@@ -71,7 +74,7 @@ export function createWsTransport(): OscTransport {
       };
       ws.onclose = (e) => {
         console.warn("[sc:transport] ws close", e.code, e.reason || "(no reason)");
-        notify({ type: "close" });
+        notify({ type: "close", code: e.code, reason: e.reason || undefined });
       };
     },
 
@@ -87,13 +90,13 @@ export function createWsTransport(): OscTransport {
       ws.send(data);
     },
 
-    onMessage(cb) {
+    onEvent(cb) {
       notify = cb;
     },
 
     status() {
       // WebSocket readyState already uses the TRANSPORT_STATUS numbering.
-      return ws ? ws.readyState : TRANSPORT_STATUS.IS_NOT_INITIALIZED;
+      return (ws ? ws.readyState : TRANSPORT_STATUS.IS_NOT_INITIALIZED) as TransportStatus;
     },
   };
 }

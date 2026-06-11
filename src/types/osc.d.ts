@@ -23,9 +23,11 @@ export type TransportCommand =
   | { type: "send"; data: Uint8Array }
   | { type: "close" };
 
-/** What the transport reports (transport → worker → WorkerClient). */
+/** What the transport reports (transport → worker → WorkerClient). A real
+ *  socket close carries the WebSocket close code/reason for diagnostics; the
+ *  WorkerClient's synthesized close (orderly shutdown) carries neither. */
 export type TransportEvent =
   | { type: "open" }
   | { type: "message"; data: ArrayBuffer }
   | { type: "error"; message: string }
-  | { type: "close" };
+  | { type: "close"; code?: number; reason?: string };

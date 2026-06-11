@@ -1,5 +1,5 @@
 // The app's OSC client: composes osc-js's OSC class with the
-// WebsocketWorkerPlugin, so all encode/decode/dispatch is osc-js and the
+// OscWorkerPlugin, so all encode/decode/dispatch is osc-js and the
 // WebSocket runs in a Web Worker. The interface mirrors the OSC class
 // (open/close/send/on/off/status), plus a promise-returning
 // `connect(url, session)`.
@@ -33,7 +33,7 @@ import {
 import { MAX_ERRORS, MAX_LOG, OSC_REPLIES, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
-import { WebsocketWorkerPlugin } from "./WebsocketWorkerPlugin";
+import { OscWorkerPlugin } from "./OscWorkerPlugin";
 import type { OscSession } from "@/types/osc";
 import type { ScsynthStatus } from "@/types/stores";
 
@@ -48,7 +48,7 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
 }
 
 export class OscClient {
-  private readonly osc = new OSC({ plugin: new WebsocketWorkerPlugin() });
+  private readonly osc = new OSC({ plugin: new OscWorkerPlugin() });
 
   /** The OSC slice of the single app store. */
   private readonly state = appStore.slice(SliceName.OSC);
@@ -80,6 +80,15 @@ export class OscClient {
       console.error("[osc] transport error:", err);
       this.pushError("websocket", err instanceof Error ? err.message : String(err), "error");
       if (this.status() === OSC.STATUS.IS_OPEN) this.close();
+    });
+    // Diagnose abnormal closes: only a real socket close carries a code (the
+    // WorkerClient's synthesized orderly close doesn't), and 1000 is a normal
+    // closure — anything else gets a banner saying why the connection died.
+    this.osc.on("close", (info?: { code?: number; reason?: string }) => {
+      if (!info?.code || info.code === 1000) return;
+      const message = `connection closed (${info.code}${info.reason ? `: ${info.reason}` : ""})`;
+      console.warn(`[osc] ${message}`);
+      this.pushError("websocket", message, "warn");
     });
   }
 

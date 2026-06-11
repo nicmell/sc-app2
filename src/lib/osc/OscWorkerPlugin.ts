@@ -3,26 +3,26 @@
 // Plugin contract (OSC calls open/close/send/status) and maps the
 // transport's events onto the `notify` callback osc-js registers — osc-js
 // does all OSC decode/dispatch from there. All worker/WebSocket mechanics
-// live behind the shared OscTransport interface.
+// live behind the shared WorkerTransport interface.
 
 import OSC from "osc-js";
 import { workerClient } from "@/lib/worker/WorkerClient";
 import type { TransportEvent } from "@/types/osc";
 
 /** What `open()` needs: the WebSocket URL of the OSC bridge. */
-export interface WebsocketWorkerPluginOptions {
+export interface OscWorkerPluginOptions {
   url?: string;
 }
 
 type Notify = (...args: unknown[]) => void;
 
-export class WebsocketWorkerPlugin extends OSC.Plugin {
+export class OscWorkerPlugin extends OSC.Plugin {
   private readonly transport = workerClient;
   private notify: Notify = () => {};
 
   constructor() {
     super();
-    this.transport.onMessage((msg) => this.handleMessage(msg));
+    this.transport.onEvent((msg) => this.handleEvent(msg));
   }
 
   /** Called by osc-js after construction to hand us its event sink. */
@@ -37,9 +37,9 @@ export class WebsocketWorkerPlugin extends OSC.Plugin {
 
   /** Open the WebSocket to `url` (the client spawns its worker lazily —
    *  nothing runs until the first connect). */
-  open(customOptions: WebsocketWorkerPluginOptions = {}): void {
+  open(customOptions: OscWorkerPluginOptions = {}): void {
     const { url } = customOptions;
-    if (!url) throw new Error("WebsocketWorkerPlugin.open: missing url");
+    if (!url) throw new Error("OscWorkerPlugin.open: missing url");
     this.transport.open(url);
   }
 
@@ -55,8 +55,10 @@ export class WebsocketWorkerPlugin extends OSC.Plugin {
 
   /** Map a transport event onto osc-js's notify: inbound frames are unpacked
    *  and dispatched by osc-js (a malformed frame throws inside notify —
-   *  surface it instead of crashing); connection events pass through. */
-  private handleMessage(msg: TransportEvent): void {
+   *  surface it instead of crashing); connection events pass through — close
+   *  carries the WebSocket code/reason (when the socket reported one) so
+   *  'close' subscribers can say why. */
+  private handleEvent(msg: TransportEvent): void {
     switch (msg.type) {
       case "message":
         try {
@@ -69,8 +71,10 @@ export class WebsocketWorkerPlugin extends OSC.Plugin {
         this.notify("error", new Error(msg.message));
         return;
       case "open":
+        this.notify("open");
+        return;
       case "close":
-        this.notify(msg.type);
+        this.notify("close", { code: msg.code, reason: msg.reason });
         return;
     }
   }

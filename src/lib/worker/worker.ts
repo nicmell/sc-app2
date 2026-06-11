@@ -13,7 +13,7 @@ const post = (msg: TransportEvent, transfer?: Transferable[]) =>
   (self as unknown as DedicatedWorkerGlobalScope).postMessage(msg, { transfer });
 
 // Transfer inbound frames' buffers so the main thread owns them zero-copy.
-transport.onMessage((msg) => post(msg, msg.type === "message" ? [msg.data] : undefined));
+transport.onEvent((msg) => post(msg, msg.type === "message" ? [msg.data] : undefined));
 
 self.onmessage = (ev: MessageEvent<TransportCommand>) => {
   const msg = ev.data;

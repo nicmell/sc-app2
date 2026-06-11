@@ -6,9 +6,11 @@
 //! learns through the injected `window.HTTP_BASE_URL`), the `peers` the bridge
 //! connects to at startup, and an optional `log_dir`.
 
+pub mod cli;
+
 use std::path::PathBuf;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Bundle identifier — also the app config dir name (matches tauri.conf.json).
 const IDENTIFIER: &str = "com.nicmell.scapp";
@@ -16,7 +18,7 @@ const DEFAULT_PORT: u16 = 3000;
 
 /// A peer the bridge connects to at startup. `pattern` is the OSC-address regex
 /// that routes outbound messages to this peer; `name` identifies it in logs.
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct PeerConfig {
     pub name: String,
     pub pattern: String,
@@ -25,7 +27,7 @@ pub struct PeerConfig {
 
 /// Contents of `config.json`: the listen `port`, the UDP `peers`, a startup
 /// `connect_timeout`, and file logging via `log_dir`.
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct AppConfig {
     #[serde(default = "default_port")]
     pub port: u16,
@@ -35,7 +37,7 @@ pub struct AppConfig {
     /// (e.g. to give scsynth time to boot). 0 connects immediately.
     #[serde(default)]
     pub connect_timeout: u64,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub log_dir: Option<PathBuf>,
 }
 
@@ -110,26 +112,32 @@ pub fn sessions_registry_path() -> PathBuf {
     data_dir().join("sessions.json")
 }
 
+/// Parse config JSON strictly — the shared core of [`load`] (which tolerates
+/// failures by falling back to defaults) and `config validate` (which reports
+/// them). Seeds the starter peers when missing or explicitly empty.
+pub fn parse(text: &str) -> Result<AppConfig, serde_json::Error> {
+    let mut config: AppConfig = serde_json::from_str(text)?;
+    if config.peers.is_empty() {
+        config.peers = default_peers();
+    }
+    Ok(config)
+}
+
 /// Load config from an explicit path (serve `--config`) or the canonical
 /// location, tolerating a missing or malformed file (logs and defaults).
 pub fn load(path: Option<PathBuf>) -> AppConfig {
     let Some(path) = path.or_else(canonical_path) else {
         return AppConfig::default();
     };
-    let mut config = match std::fs::read_to_string(&path) {
-        Ok(s) => serde_json::from_str(&s).unwrap_or_else(|e| {
+    match std::fs::read_to_string(&path) {
+        Ok(s) => parse(&s).unwrap_or_else(|e| {
             // Pre-tracing: `load` runs before the logger is initialized
             // (we need `log_dir` from here), so this stays an eprintln!.
             eprintln!("[config] ignoring {}: {e}", path.display());
             AppConfig::default()
         }),
         Err(_) => AppConfig::default(),
-    };
-    // Seed starter peers when missing or explicitly empty.
-    if config.peers.is_empty() {
-        config.peers = default_peers();
     }
-    config
 }
 
 #[cfg(test)]

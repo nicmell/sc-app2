@@ -1,6 +1,10 @@
 //! sc-app2 entry point.
 //!
 //! * `serve [--config <path>]` → headless HTTP server (API + frontend).
+//! * `plugin <validate|add|remove|list>` → manage plugin bundles from the
+//!   command line (no server; see [`plugin::cli`]).
+//! * `config <write|validate>` → write the default `config.json` / validate
+//!   one (no server; see [`config::cli`]).
 //! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
 //!   which also runs the HTTP server (API + frontend) for external clients.
 //!
@@ -54,14 +58,38 @@ enum Command {
         #[arg(long)]
         log_dir: Option<PathBuf>,
     },
+    /// Manage plugin bundles (validate / add / remove / list).
+    #[command(subcommand)]
+    Plugin(plugin::cli::PluginCommand),
+    /// Manage config.json (write the default / validate one).
+    #[command(subcommand)]
+    Config(config::cli::ConfigCommand),
+}
+
+/// Report a CLI subcommand's outcome and exit (0 on success, 1 with the error
+/// on stderr otherwise).
+fn exit_cli(result: Result<(), String>) -> ! {
+    match result {
+        Ok(()) => std::process::exit(0),
+        Err(e) => {
+            eprintln!("Error: {e}");
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn run() {
-    let command = Cli::parse().command;
+    // The plugin/config subcommands are plain filesystem operations — no
+    // logger or server involved; run them and exit before any of that boots.
+    let command = match Cli::parse().command {
+        Some(Command::Plugin(cmd)) => exit_cli(plugin::cli::run(cmd)),
+        Some(Command::Config(cmd)) => exit_cli(config::cli::run(cmd)),
+        other => other,
+    };
     // serve reads --config / --log-dir; GUI uses the canonical config location.
     let (config_path, cli_log_dir) = match &command {
         Some(Command::Serve { config, log_dir }) => (config.clone(), log_dir.clone()),
-        None => (None, None),
+        _ => (None, None),
     };
     let config = config::load(config_path);
     let context = tauri::generate_context!();
@@ -72,6 +100,7 @@ pub fn run() {
 
     match command {
         Some(Command::Serve { .. }) => run_serve(config, context, logger),
+        Some(Command::Plugin(_) | Command::Config(_)) => unreachable!("handled above"),
         None => run_gui(config, context, logger),
     }
 }

@@ -139,15 +139,21 @@ dashboard layout persist** server-side:
 ### Backend (`src-tauri/src/`)
 
 ```
-lib.rs            CLI (serve | GUI) + composition root (bridge → scsynth → server → router)
-config.rs         config.json (port, peers, log_dir) + app-data-dir paths
+lib.rs            CLI (serve | plugin <validate|add|remove|list> |
+                  config <write|validate> | GUI) +
+                  composition root (bridge → scsynth → server → router)
+config/           config.json (port, peers, connect_timeout, log_dir) +
+                  app-data-dir paths + the `config` CLI subcommands (cli.rs:
+                  write the default / strictly validate one)
 core/bridge.rs    UDP peers (scsynth, strudel) ⇄ broadcast fan-out, pattern routing
 core/scsynth.rs   supervisor: /notify registration, clientID, /status heartbeat,
                   node-id partitioning (cid<<26 blocks, per-session SESSION_SPAN
                   sub-blocks), group free helpers
 core/sessions.rs  live-session store (Uuid → block, index recycling)
 saved_sessions.rs saved layouts: sessions.json registry + sessions/<id>.json
-plugin/           zip validation (metadata, XSD entry, assets) + plugins.json registry
+plugin/           zip validation (metadata, XSD entry, assets) + plugins.json
+                  registry + the `plugin` CLI subcommands (cli.rs, ported from
+                  the old app) over the same manager
 router/           axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs

@@ -10,7 +10,7 @@
 //! API-only. [`serve_static`] is the axum fallback that uses a resolver.
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use axum::body::Bytes;
 use axum::extract::Request;
@@ -22,68 +22,68 @@ pub trait AssetResolver: Send + Sync + 'static {
     fn get(&self, path: &str) -> Option<Bytes>;
 }
 
-/// Memoizes a resolver's hits: the underlying resolvers copy the embedded
-/// bytes on every lookup, so without this each page load memcpy's the whole
-/// JS bundle. Assets are immutable for the process lifetime; `Bytes` clones
-/// are refcounted. Misses pass through (SPA routes miss on purpose).
+/// Caches exactly the **built** assets: the underlying resolvers copy the
+/// embedded bytes on every lookup, so without this each page load memcpy's
+/// the whole JS bundle. The cache is filled once at boot from the Vite
+/// manifest and immutable afterwards (`Bytes` clones are refcounted);
+/// anything outside it — public/ files like favicons, SPA-route misses —
+/// passes through to the resolver uncached.
 struct CachedAssets<R> {
     inner: R,
-    cache: Mutex<HashMap<String, Bytes>>,
+    cache: HashMap<String, Bytes>,
 }
 
 impl<R: AssetResolver> CachedAssets<R> {
     /// Wrap `inner` and warm the cache from the Vite build manifest
     /// (`manifest.json`, emitted by `yarn build`): `index.html`, the manifest
     /// itself, and every chunk's `file`/`css`/`assets` output are resolved
-    /// once at boot, so no request ever pays the embedded-asset copy. Files
-    /// outside the manifest (public/ files like favicons) stay lazily cached;
-    /// a missing manifest just falls back to all-lazy.
+    /// once at boot, so no request to a built asset ever pays the
+    /// embedded-asset copy. A missing manifest degrades to caching just
+    /// `index.html`; everything else passes through.
     fn preloaded(inner: R) -> Self {
-        let cached = Self { inner, cache: Mutex::new(HashMap::new()) };
-        let warmed = cached
-            .manifest_paths()
-            .iter()
-            .filter(|path| cached.get(path).is_some())
-            .count();
-        tracing::debug!(warmed, "frontend asset cache preloaded");
-        cached
-    }
-
-    /// Every build output named by the Vite manifest (plus `index.html` and
-    /// the manifest itself, which this lookup caches as a side effect).
-    fn manifest_paths(&self) -> Vec<String> {
-        let mut paths = vec!["index.html".to_string()];
-        let Some(manifest) = self
-            .get("manifest.json")
-            .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
-        else {
-            return paths;
-        };
-        let Some(entries) = manifest.as_object() else {
-            return paths;
-        };
-        for entry in entries.values() {
-            if let Some(file) = entry.get("file").and_then(|v| v.as_str()) {
-                paths.push(file.to_string());
-            }
-            for list in ["css", "assets"] {
-                if let Some(items) = entry.get(list).and_then(|v| v.as_array()) {
-                    paths.extend(items.iter().filter_map(|v| v.as_str().map(str::to_string)));
-                }
+        let mut cache = HashMap::new();
+        for path in manifest_paths(&inner) {
+            if let Some(bytes) = inner.get(&path) {
+                cache.insert(path, bytes);
             }
         }
-        paths
+        tracing::debug!(warmed = cache.len(), "frontend asset cache preloaded");
+        Self { inner, cache }
     }
+}
+
+/// Every build output named by the Vite manifest, plus `index.html` and the
+/// manifest itself (both build outputs too).
+fn manifest_paths(resolver: &impl AssetResolver) -> Vec<String> {
+    let mut paths = vec!["index.html".to_string(), "manifest.json".to_string()];
+    let Some(manifest) = resolver
+        .get("manifest.json")
+        .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
+    else {
+        return paths;
+    };
+    let Some(entries) = manifest.as_object() else {
+        return paths;
+    };
+    for entry in entries.values() {
+        if let Some(file) = entry.get("file").and_then(|v| v.as_str()) {
+            paths.push(file.to_string());
+        }
+        for list in ["css", "assets"] {
+            if let Some(items) = entry.get(list).and_then(|v| v.as_array()) {
+                paths.extend(items.iter().filter_map(|v| v.as_str().map(str::to_string)));
+            }
+        }
+    }
+    paths
 }
 
 impl<R: AssetResolver> AssetResolver for CachedAssets<R> {
     fn get(&self, path: &str) -> Option<Bytes> {
-        if let Some(bytes) = self.cache.lock().unwrap().get(path) {
-            return Some(bytes.clone());
+        match self.cache.get(path) {
+            Some(bytes) => Some(bytes.clone()),
+            None => self.inner.get(path),
         }
-        let bytes = self.inner.get(path)?;
-        self.cache.lock().unwrap().insert(path.to_string(), bytes.clone());
-        Some(bytes)
     }
 }
 
@@ -236,7 +236,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn preload_warms_manifest_assets_so_requests_skip_the_resolver() {
+    async fn preload_caches_built_assets_only() {
         let manifest = br#"{
             "index.html": { "file": "assets/app.js", "css": ["assets/app.css"] }
         }"#;
@@ -246,6 +246,8 @@ mod tests {
                 ("manifest.json".to_string(), Bytes::from_static(manifest)),
                 ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
                 ("assets/app.css".to_string(), Bytes::from_static(b"body{}")),
+                // A public/ file: served, but never cached.
+                ("favicon.svg".to_string(), Bytes::from_static(b"<svg/>")),
             ])),
             hits: std::sync::atomic::AtomicUsize::new(0),
         }));
@@ -260,5 +262,11 @@ mod tests {
             assert!(cached.get(path).is_some());
         }
         assert_eq!(counting.hits.load(std::sync::atomic::Ordering::SeqCst), after_boot);
+
+        // The public/ file passes through on every request — not in the
+        // manifest, not in the cache.
+        assert!(cached.get("favicon.svg").is_some());
+        assert!(cached.get("favicon.svg").is_some());
+        assert_eq!(counting.hits.load(std::sync::atomic::Ordering::SeqCst), after_boot + 2);
     }
 }

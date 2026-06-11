@@ -89,6 +89,11 @@ async fn start(config: AppConfig, logger: Arc<Logger>) -> std::io::Result<(Serve
     // The supervisor owns the scsynth side — it (re)creates its per-client root
     // group on every registration itself.
     let scsynth = Scsynth::supervise(bridge.clone());
+    // Gate the HTTP server on the first successful scsynth registration, so
+    // clients never reach it before scsynth is up; later outages stay with
+    // the supervisor's reconnect loop.
+    tracing::info!("waiting for scsynth registration before starting the HTTP server");
+    scsynth.await_registration().await;
     let server = Server::new(config, bridge, scsynth, logger);
     let (listener, _addr) = router::listen(&server).await?;
     Ok((server, listener))

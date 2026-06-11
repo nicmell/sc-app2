@@ -17,14 +17,14 @@ use tokio::sync::broadcast;
 use super::bridge::Bridge;
 use super::osc::{self, OscMessage, OscType};
 
-/// scsynth `/status` heartbeat poll interval.
-const STATUS_INTERVAL: Duration = Duration::from_secs(2);
 /// Consecutive missed `/status.reply`s before scsynth is considered down.
 const MAX_STATUS_MISSES: u32 = 3;
+/// scsynth `/status` heartbeat poll interval.
+const STATUS_INTERVAL: Duration = Duration::from_secs(1);
 /// Delay between reconnection attempts while scsynth is unreachable.
-const RETRY_INTERVAL: Duration = Duration::from_secs(2);
+const RETRY_INTERVAL: Duration = Duration::from_secs(1);
 /// How long to wait for a `/done /notify` or `/version.reply`.
-const REPLY_TIMEOUT: Duration = Duration::from_secs(2);
+const REPLY_TIMEOUT: Duration = Duration::from_secs(1);
 
 // ── node-id partitioning ─────────────────────────────────────────────────
 //
@@ -262,6 +262,21 @@ impl Scsynth {
     /// session blocks via [`session_block`].
     pub fn client_id(&self) -> Option<i32> {
         self.inner.state.lock().unwrap().client_id
+    }
+
+    /// Wait — without a timeout — for the first successful registration
+    /// (`/done /notify`). The composition root gates the HTTP listener on this,
+    /// so clients never reach a server whose scsynth side hasn't come up once;
+    /// later outages stay with the supervisor's reconnect loop. Returns
+    /// immediately when no peer routes `/notify` (supervision is disabled and
+    /// the wait would never resolve).
+    pub async fn await_registration(&self) {
+        if !self.inner.bridge.has_route("/notify") {
+            return;
+        }
+        while self.client_id().is_none() {
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
     }
 
     /// Poll for the clientID until registered or `timeout` elapses (a session

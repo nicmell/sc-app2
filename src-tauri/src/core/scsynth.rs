@@ -9,10 +9,11 @@
 //! (`/notify` → `/version`), polls `/status` as a heartbeat, reconnects when
 //! scsynth stops answering, and unregisters (`/notify 0`) on shutdown.
 
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, watch};
 
 use super::bridge::Bridge;
 use super::osc::{self, OscMessage, OscType};
@@ -204,17 +205,11 @@ fn version_from(msg: &OscMessage) -> Option<Version> {
 
 // ── supervisor ──────────────────────────────────────────────────────────
 
-/// What scsynth has told us. "running" once both the client id
-/// (`/done /notify`) and the version (`/version.reply`) are in; `alive` then
-/// tracks the `/status` heartbeat.
+/// What scsynth has told us (the mutex-guarded part; the client id and the
+/// "running" flag live in `watch` channels so waiters are event-driven).
 #[derive(Default)]
 struct State {
-    client_id: Option<i32>,
     version: Option<Version>,
-    /// Set true (and logged once) when both fields are first present.
-    running: bool,
-    /// Whether scsynth is currently responding to the `/status` heartbeat.
-    alive: bool,
     /// Monotonic count of `/status.reply`s seen — the poller's liveness signal.
     status_replies: u64,
 }
@@ -228,6 +223,16 @@ pub struct Scsynth {
 struct Inner {
     bridge: Bridge,
     state: Mutex<State>,
+    /// The scsynth-assigned client id (`/done /notify`), `None` between
+    /// registrations. A `watch` so waiters block on change, not on a poll.
+    client_id: watch::Sender<Option<i32>>,
+    /// True once both the client id and the version are in for the current
+    /// registration.
+    running: watch::Sender<bool>,
+    /// Bumped on every successful (re)registration — consumers caching
+    /// per-connection scsynth state (e.g. the SHM scope mapping) compare
+    /// against it to detect a restart and re-derive.
+    generation: AtomicU64,
 }
 
 impl Scsynth {
@@ -238,6 +243,9 @@ impl Scsynth {
             inner: Arc::new(Inner {
                 bridge,
                 state: Mutex::new(State::default()),
+                client_id: watch::Sender::new(None),
+                running: watch::Sender::new(false),
+                generation: AtomicU64::new(0),
             }),
         };
         // Subscribe synchronously (before any /notify) so an early reply can't
@@ -261,7 +269,14 @@ impl Scsynth {
     /// The scsynth-assigned client id, once registered. The app turns it into
     /// session blocks via [`session_block`].
     pub fn client_id(&self) -> Option<i32> {
-        self.inner.state.lock().unwrap().client_id
+        *self.inner.client_id.borrow()
+    }
+
+    /// The registration generation: bumped on every successful (re)connect.
+    /// Lets consumers detect an scsynth restart and re-derive cached
+    /// per-connection state (e.g. the SHM scope mapping).
+    pub fn generation(&self) -> u64 {
+        self.inner.generation.load(Ordering::Acquire)
     }
 
     /// Wait — without a timeout — for the first successful registration
@@ -274,24 +289,19 @@ impl Scsynth {
         if !self.inner.bridge.has_route("/notify") {
             return;
         }
-        while self.client_id().is_none() {
-            tokio::time::sleep(Duration::from_millis(50)).await;
-        }
+        let mut rx = self.inner.client_id.subscribe();
+        let _ = rx.wait_for(Option::is_some).await;
     }
 
-    /// Poll for the clientID until registered or `timeout` elapses (a session
+    /// Wait for the clientID until registered or `timeout` elapses (a session
     /// created right after boot may arrive before `/notify` completes).
     pub async fn await_client_id(&self, timeout: Duration) -> Option<i32> {
-        tokio::time::timeout(timeout, async {
-            loop {
-                if let Some(cid) = self.client_id() {
-                    return cid;
-                }
-                tokio::time::sleep(Duration::from_millis(50)).await;
-            }
-        })
-        .await
-        .ok()
+        let mut rx = self.inner.client_id.subscribe();
+        let registered = match tokio::time::timeout(timeout, rx.wait_for(Option::is_some)).await {
+            Ok(Ok(value)) => *value,
+            _ => None,
+        };
+        registered
     }
 
     /// Free a group and everything in it (`/g_freeAll` + `/n_free`).
@@ -313,8 +323,14 @@ impl Scsynth {
     /// Classify one inbound packet and record what it tells us about scsynth.
     fn observe(&self, bytes: &[u8]) {
         match classify_reply(bytes) {
-            Reply::DoneNotify(cid) => self.record(|s| s.client_id = Some(cid)),
-            Reply::Version(v) => self.record(|s| s.version = Some(v)),
+            Reply::DoneNotify(cid) => {
+                self.inner.client_id.send_replace(Some(cid));
+                self.check_running();
+            }
+            Reply::Version(v) => {
+                self.inner.state.lock().unwrap().version = Some(v);
+                self.check_running();
+            }
             Reply::Status => self.inner.state.lock().unwrap().status_replies += 1,
             Reply::Fail { command, message, extras } => {
                 tracing::warn!(%command, %message, ?extras, "scsynth /fail");
@@ -324,17 +340,19 @@ impl Scsynth {
         }
     }
 
-    /// Apply a state update; once both the client id and version are present,
-    /// flag running and log it once.
-    fn record(&self, update: impl FnOnce(&mut State)) {
-        let mut s = self.inner.state.lock().unwrap();
-        update(&mut s);
-        if !s.running && s.client_id.is_some() && s.version.is_some() {
-            s.running = true;
-            let client_id = s.client_id.unwrap();
-            let version = s.version.as_ref().unwrap();
-            tracing::info!(client_id, %version, "scsynth running");
+    /// Once both the client id and version are present for this registration,
+    /// flag running (logged once) and bump the generation.
+    fn check_running(&self) {
+        if *self.inner.running.borrow() {
+            return;
         }
+        let Some(client_id) = self.client_id() else { return };
+        let s = self.inner.state.lock().unwrap();
+        let Some(version) = s.version.as_ref() else { return };
+        tracing::info!(client_id, %version, "scsynth running");
+        drop(s);
+        self.inner.generation.fetch_add(1, Ordering::AcqRel);
+        self.inner.running.send_replace(true);
     }
 
     /// Supervisor loop: (re)register, poll `/status` until scsynth stops
@@ -349,7 +367,7 @@ impl Scsynth {
         loop {
             self.reset();
             if self.register().await {
-                // Connected — `record` logged "scsynth running …".
+                // Connected — `check_running` logged "scsynth running …".
                 down = false;
                 if self.client_id() == Some(0) && self.inner.bridge.has_route("/dirt") {
                     tracing::warn!(
@@ -357,9 +375,7 @@ impl Scsynth {
                          boot scsynth with -maxLogins ≥ 2 so node-id blocks don't overlap"
                     );
                 }
-                self.set_alive(true);
                 self.poll_status_until_dead().await; // blocks until scsynth dies
-                self.set_alive(false);
             }
             // Not connected (registration failed, or the heartbeat just died).
             if !down {
@@ -372,15 +388,23 @@ impl Scsynth {
 
     /// One registration attempt: `/notify 1` → wait for the `/done /notify` ack
     /// (so the version round-trip runs against a registered client) → `/version`
-    /// → wait until `record` flags running. Quiet — `run` logs transitions.
+    /// → wait until `check_running` flags running. Quiet — `run` logs
+    /// transitions.
     async fn register(&self) -> bool {
         self.inner.bridge.dispatch_command(&notify_packet(true)).await;
         // (clientID 0 is valid, so the ack test is "populated", not "> 0".)
-        if !self.await_state(REPLY_TIMEOUT, |s| s.client_id.is_some()).await {
+        let mut cid = self.inner.client_id.subscribe();
+        let acked = tokio::time::timeout(REPLY_TIMEOUT, cid.wait_for(Option::is_some))
+            .await
+            .is_ok_and(|r| r.is_ok());
+        if !acked {
             return false;
         }
         self.inner.bridge.dispatch_command(&version_packet()).await;
-        self.await_state(REPLY_TIMEOUT, |s| s.running).await
+        let mut running = self.inner.running.subscribe();
+        tokio::time::timeout(REPLY_TIMEOUT, running.wait_for(|r| *r))
+            .await
+            .is_ok_and(|r| r.is_ok())
     }
 
     /// Poll `/status` until scsynth misses [`MAX_STATUS_MISSES`] consecutive
@@ -402,28 +426,12 @@ impl Scsynth {
         }
     }
 
-    /// Poll the state until `pred` holds or `timeout` elapses.
-    async fn await_state(&self, timeout: Duration, pred: impl Fn(&State) -> bool) -> bool {
-        tokio::time::timeout(timeout, async {
-            while !pred(&self.inner.state.lock().unwrap()) {
-                tokio::time::sleep(Duration::from_millis(25)).await;
-            }
-        })
-        .await
-        .is_ok()
-    }
-
-    /// Clear the registration fields for a fresh (re)connect attempt. Keeps the
-    /// monotonic `status_replies` counter and the `alive` flag.
+    /// Clear the registration state for a fresh (re)connect attempt. Keeps the
+    /// monotonic `status_replies` counter and the `generation`.
     fn reset(&self) {
-        let mut s = self.inner.state.lock().unwrap();
-        s.client_id = None;
-        s.version = None;
-        s.running = false;
-    }
-
-    fn set_alive(&self, alive: bool) {
-        self.inner.state.lock().unwrap().alive = alive;
+        self.inner.client_id.send_replace(None);
+        self.inner.running.send_replace(false);
+        self.inner.state.lock().unwrap().version = None;
     }
 }
 

@@ -20,6 +20,9 @@ struct SessionEntry {
     block: SessionBlock,
     /// Index within the client block — returned to the free list on removal.
     index: u32,
+    /// Whether a WebSocket currently owns this session (at most one — see
+    /// [`SessionStore::attach`]).
+    attached: bool,
 }
 
 struct StoreState {
@@ -57,22 +60,42 @@ impl SessionStore {
 
     /// Same allocation as [`create`](Self::create) but under a caller-supplied
     /// id — the revive path, where a saved session keeps its identity across
-    /// app runs (the block itself is freshly allocated).
+    /// app runs (the block itself is freshly allocated). Idempotent: if the
+    /// session is already live (e.g. two concurrent revives of the same
+    /// stored id), the existing block is returned instead of overwriting the
+    /// entry (which would leak its index).
     pub fn create_with_id(&self, id: Uuid, make_block: impl Fn(u32) -> SessionBlock) -> SessionBlock {
         let mut st = self.0.lock().unwrap();
+        if let Some(existing) = st.sessions.get(&id) {
+            return existing.block;
+        }
         let index = st.free.pop().unwrap_or_else(|| {
             let i = st.next_index;
             st.next_index += 1;
             i
         });
         let block = make_block(index);
-        st.sessions.insert(id, SessionEntry { block, index });
+        st.sessions.insert(id, SessionEntry { block, index, attached: false });
         block
     }
 
     /// Whether `id` is a live session.
     pub fn contains(&self, id: &Uuid) -> bool {
         self.0.lock().unwrap().sessions.contains_key(id)
+    }
+
+    /// Claim the session for a WebSocket. At most one socket may own a
+    /// session at a time: `Ok(true)` claimed, `Ok(false)` someone else holds
+    /// it, `Err(())` no such session. Released by [`remove`](Self::remove) —
+    /// a session dies with its socket, so there is no separate detach.
+    pub fn attach(&self, id: &Uuid) -> Result<bool, ()> {
+        let mut st = self.0.lock().unwrap();
+        let entry = st.sessions.get_mut(id).ok_or(())?;
+        if entry.attached {
+            return Ok(false);
+        }
+        entry.attached = true;
+        Ok(true)
     }
 
     /// A live session's block (for GET).

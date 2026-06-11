@@ -8,8 +8,8 @@
 //!   `/status` / reconnect / unregister), plus the node-id partitioning scheme
 //!   and group messaging, on top of a [`bridge::Bridge`].
 //! * [`sessions`] — per-client session store: node-id sub-block allocation +
-//!   liveness bookkeeping (the data structure; the reaper that drives eviction
-//!   lives in [`crate::server`]).
+//!   liveness bookkeeping (the data structure; eviction is driven by the WS
+//!   layer — a session ends when its socket closes).
 
 pub mod bridge;
 pub mod osc;

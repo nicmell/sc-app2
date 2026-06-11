@@ -2,31 +2,33 @@
 //! talks to over UDP.
 //!
 //! At startup [`connect_all`] opens one connected `UdpSocket` per configured
-//! [`PeerConfig`] and spawns a receive task that republishes inbound datagrams
-//! on a `broadcast` channel — consumed by the bridge (forwarded verbatim to the
-//! WebSocket) and by the scsynth supervisor. The task keeps receiving across
-//! transient errors (e.g. a connected-UDP `ECONNREFUSED` when scsynth is down)
-//! so the bridge recovers when the peer returns. The `pattern` regex routes
-//! outbound messages to this peer (see [`route_for`]).
+//! [`PeerConfig`] and spawns a receive task that publishes inbound datagrams
+//! straight onto the bridge's shared `broadcast` fan-out (consumed by every
+//! WebSocket pump and the scsynth supervisor, each via its own
+//! [`Bridge::subscribe`](super::bridge::Bridge::subscribe) receiver). The task
+//! keeps receiving across transient errors (e.g. a connected-UDP
+//! `ECONNREFUSED` when scsynth is down) so the bridge recovers when the peer
+//! returns. The `pattern` regex routes outbound messages to this peer (see
+//! [`route_for`]).
 
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use bytes::Bytes;
 use regex::Regex;
 use tokio::net::{lookup_host, UdpSocket};
 use tokio::sync::broadcast;
 
 use crate::config::PeerConfig;
 
-/// Capacity of each peer's inbound broadcast channel.
-const INBOUND_CAPACITY: usize = 256;
 /// Max datagram size read per `recv`.
 const RECV_BUF: usize = 64 * 1024;
 
 /// A connected peer: a UDP socket bound locally and connected to the configured
-/// target, plus the inbound broadcast channel.
+/// target. Inbound datagrams go straight to the shared fan-out handed to
+/// [`Peer::connect`].
 pub struct Peer {
     pub name: String,
     pub target: SocketAddr,
@@ -34,15 +36,13 @@ pub struct Peer {
     /// matches (see [`route_for`]).
     pub pattern: Regex,
     pub socket: Arc<UdpSocket>,
-    /// Inbound datagrams, fanned out to the bridge + the `/notify` handshake.
-    pub inbound: broadcast::Sender<Vec<u8>>,
 }
 
 impl Peer {
     /// Compile the pattern, resolve the target, bind+connect a UDP socket,
-    /// and spawn the receive task. Fails on invalid regex, unresolvable
-    /// target, or socket bind/connect errors.
-    pub async fn connect(config: &PeerConfig) -> Result<Arc<Peer>> {
+    /// and spawn the receive task publishing into `inbound`. Fails on invalid
+    /// regex, unresolvable target, or socket bind/connect errors.
+    pub async fn connect(config: &PeerConfig, inbound: broadcast::Sender<Bytes>) -> Result<Arc<Peer>> {
         let pattern = Regex::new(&config.pattern)
             .with_context(|| format!("invalid regex for peer '{}': {}", config.name, config.pattern))?;
 
@@ -58,15 +58,13 @@ impl Peer {
             .await
             .with_context(|| format!("connecting peer '{}' to {target}", config.name))?;
 
-        let (inbound, _rx) = broadcast::channel(INBOUND_CAPACITY);
         let peer = Arc::new(Peer {
             name: config.name.clone(),
             target,
             pattern,
             socket: Arc::new(socket),
-            inbound,
         });
-        spawn_recv(peer.clone());
+        spawn_recv(peer.clone(), inbound);
         Ok(peer)
     }
 }
@@ -83,9 +81,9 @@ async fn resolve(target: &str) -> Result<SocketAddr> {
         .with_context(|| format!("no addresses for {target}"))
 }
 
-/// Read datagrams, log them, and republish the raw bytes on the inbound
-/// channel (consumed by the bridge forwarder and the `/notify` handshake).
-fn spawn_recv(peer: Arc<Peer>) {
+/// Read datagrams, log them, and publish the raw bytes on the shared fan-out
+/// (consumed by the WS pumps and the `/notify` handshake).
+fn spawn_recv(peer: Arc<Peer>, inbound: broadcast::Sender<Bytes>) {
     tokio::spawn(async move {
         let mut buf = vec![0u8; RECV_BUF];
         loop {
@@ -93,7 +91,7 @@ fn spawn_recv(peer: Arc<Peer>) {
                 Ok(n) => {
                     tracing::debug!(peer = %peer.name, bytes = n, "inbound datagram");
                     // No consumers is fine; ignore the send error.
-                    let _ = peer.inbound.send(buf[..n].to_vec());
+                    let _ = inbound.send(Bytes::copy_from_slice(&buf[..n]));
                 }
                 // Sending to a down peer surfaces ECONNREFUSED here on the
                 // connected UDP socket. Keep the task alive (so we recover when
@@ -109,10 +107,10 @@ fn spawn_recv(peer: Arc<Peer>) {
 
 /// Connect every configured peer, logging each by `name`. Failures are skipped
 /// (a typo'd peer shouldn't block boot).
-pub async fn connect_all(configs: &[PeerConfig]) -> Vec<Arc<Peer>> {
+pub async fn connect_all(configs: &[PeerConfig], inbound: broadcast::Sender<Bytes>) -> Vec<Arc<Peer>> {
     let mut peers = Vec::with_capacity(configs.len());
     for config in configs {
-        match Peer::connect(config).await {
+        match Peer::connect(config, inbound.clone()).await {
             Ok(peer) => {
                 // UDP is connectionless: the socket is bound + pointed at the
                 // target, but nothing has confirmed the target is actually up.
@@ -145,13 +143,17 @@ mod tests {
         }
     }
 
+    fn channel() -> broadcast::Sender<Bytes> {
+        broadcast::channel(16).0
+    }
+
     #[tokio::test]
     async fn connects_and_resolves_target() {
         // A throwaway loopback socket stands in for the remote peer.
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let remote_addr = remote.local_addr().unwrap();
 
-        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()))
+        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()), channel())
             .await
             .expect("connect");
         assert_eq!(peer.target, remote_addr);
@@ -162,10 +164,11 @@ mod tests {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let remote_addr = remote.local_addr().unwrap();
 
-        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()))
+        let inbound = channel();
+        let mut rx = inbound.subscribe();
+        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()), inbound)
             .await
             .expect("connect");
-        let mut rx = peer.inbound.subscribe();
 
         // Send to the peer's local port; its connected socket receives it.
         let peer_addr = peer.socket.local_addr().unwrap();
@@ -175,22 +178,25 @@ mod tests {
             .await
             .expect("recv timed out")
             .expect("broadcast recv");
-        assert_eq!(got, b"hello".to_vec());
+        assert_eq!(got.as_ref(), b"hello");
     }
 
     #[tokio::test]
     async fn invalid_regex_errors() {
-        assert!(Peer::connect(&peer_config("bad", "(", "127.0.0.1:1")).await.is_err());
+        assert!(Peer::connect(&peer_config("bad", "(", "127.0.0.1:1"), channel()).await.is_err());
     }
 
     #[tokio::test]
     async fn route_for_matches_by_pattern() {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let addr = remote.local_addr().unwrap().to_string();
-        let peers = connect_all(&[
-            peer_config("scsynth", r"^/(s_new|notify|status)", &addr),
-            peer_config("strudel", r"^/(dirt|clock)(/|$)", &addr),
-        ])
+        let peers = connect_all(
+            &[
+                peer_config("scsynth", r"^/(s_new|notify|status)", &addr),
+                peer_config("strudel", r"^/(dirt|clock)(/|$)", &addr),
+            ],
+            channel(),
+        )
         .await;
 
         assert_eq!(route_for(&peers, "/dirt/play").map(|p| p.name.as_str()), Some("strudel"));
@@ -205,7 +211,7 @@ mod tests {
             peer_config("ok", "^/x", &remote.local_addr().unwrap().to_string()),
             peer_config("bad-regex", "(", "127.0.0.1:1"),
         ];
-        let peers = connect_all(&configs).await;
+        let peers = connect_all(&configs, channel()).await;
         assert_eq!(peers.len(), 1);
         assert_eq!(peers[0].name, "ok");
     }

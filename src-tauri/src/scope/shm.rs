@@ -95,15 +95,6 @@ impl MmapRegion {
         unsafe { std::slice::from_raw_parts(self.ptr, self.size) }
     }
 
-    /// Read a native-endian f32 at byte offset. Bounds-checked.
-    pub fn read_f32_ne(&self, offset: usize) -> Option<f32> {
-        if offset + 4 > self.size {
-            return None;
-        }
-        let bytes: [u8; 4] = self.as_slice()[offset..offset + 4].try_into().ok()?;
-        Some(f32::from_ne_bytes(bytes))
-    }
-
     /// Read a native-endian i32 at byte offset. Bounds-checked.
     pub fn read_i32_ne(&self, offset: usize) -> Option<i32> {
         if offset + 4 > self.size {
@@ -404,23 +395,24 @@ pub fn read_scope_slot(
     let total_bytes = total_floats
         .checked_mul(4)
         .ok_or_else(|| "scope_buffer total byte count overflow".to_string())?;
-    if data_byte_offset + total_bytes > region.size() {
-        return Err(format!(
-            "scope_buffer[{}] slot data OOB: offset {} + {} bytes > segment {}",
-            scope_idx,
-            data_byte_offset,
-            total_bytes,
-            region.size()
-        ));
-    }
+    let end = data_byte_offset
+        .checked_add(total_bytes)
+        .filter(|&end| end <= region.size())
+        .ok_or_else(|| {
+            format!(
+                "scope_buffer[{}] slot data OOB: offset {} + {} bytes > segment {}",
+                scope_idx,
+                data_byte_offset,
+                total_bytes,
+                region.size()
+            )
+        })?;
 
-    let mut floats = Vec::with_capacity(total_floats);
-    for i in 0..total_floats {
-        let f = region
-            .read_f32_ne(data_byte_offset + i * 4)
-            .ok_or_else(|| "scope_buffer slot data read OOB".to_string())?;
-        floats.push(f);
-    }
+    // One bounds check, then a straight pass over the slot's bytes.
+    let floats: Vec<f32> = region.as_slice()[data_byte_offset..end]
+        .chunks_exact(4)
+        .map(|chunk| f32::from_ne_bytes(chunk.try_into().unwrap()))
+        .collect();
 
     Ok(ScopeReadResult::Data {
         floats,

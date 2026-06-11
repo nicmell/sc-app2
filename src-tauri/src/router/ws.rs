@@ -54,12 +54,29 @@ async fn ws_handler(
         )
             .into_response();
     };
-    if !server.sessions().contains(&id) {
-        return (
-            StatusCode::NOT_FOUND,
-            format!("session {id} not found (expired or never created)\n"),
-        )
-            .into_response();
+    // A session is owned by exactly one socket: a second tab shares the same
+    // localStorage id, and letting it attach would free the group under the
+    // first tab when either socket closes.
+    // TODO(multi-tab): instead of rejecting, this could be solved on the
+    // frontend with a SharedWorker owning the one WebSocket across tabs,
+    // and/or by minting a distinct node-id block per tab client at every
+    // launch (to be verified).
+    match server.sessions().attach(&id) {
+        Err(()) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("session {id} not found (expired or never created)\n"),
+            )
+                .into_response();
+        }
+        Ok(false) => {
+            return (
+                StatusCode::CONFLICT,
+                format!("session {id} already has an active connection (another tab?)\n"),
+            )
+                .into_response();
+        }
+        Ok(true) => {}
     }
     ws.on_upgrade(move |socket| async move {
         run_ws(&server, socket).await;
@@ -78,9 +95,12 @@ async fn run_ws(server: &Server, mut socket: WebSocket) {
     // for one. `/scope/*` is bridge-internal — claimed below, never routed.
     let mut scope: Option<ScopeSubscription> = None;
     let mut poll = tokio::time::interval(SCOPE_POLL);
+    // The poll arm is gated on an active subscription; skip the tick burst
+    // the interval would otherwise replay when the scope re-enables it.
+    poll.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     loop {
         tokio::select! {
-            _ = poll.tick() => {
+            _ = poll.tick(), if scope.is_some() => {
                 if let Some(chunk) = scope.as_mut().and_then(ScopeSubscription::poll) {
                     if socket.send(Message::Binary(chunk.into())).await.is_err() {
                         break;

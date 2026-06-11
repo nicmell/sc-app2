@@ -9,7 +9,8 @@
 //! Both return `None` in dev, where Vite serves the UI and the server stays
 //! API-only. [`serve_static`] is the axum fallback that uses a resolver.
 
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use axum::body::Bytes;
 use axum::extract::Request;
@@ -19,6 +20,32 @@ use axum::response::{IntoResponse, Response};
 /// Resolves a frontend path (`index.html`, `assets/app.js`) to its bytes.
 pub trait AssetResolver: Send + Sync + 'static {
     fn get(&self, path: &str) -> Option<Bytes>;
+}
+
+/// Memoizes a resolver's hits: the underlying resolvers copy the embedded
+/// bytes on every lookup, so without this each page load memcpy's the whole
+/// JS bundle. Assets are immutable for the process lifetime; `Bytes` clones
+/// are refcounted. Misses pass through (SPA routes miss on purpose).
+struct CachedAssets<R> {
+    inner: R,
+    cache: Mutex<HashMap<String, Bytes>>,
+}
+
+impl<R: AssetResolver> CachedAssets<R> {
+    fn new(inner: R) -> Self {
+        Self { inner, cache: Mutex::new(HashMap::new()) }
+    }
+}
+
+impl<R: AssetResolver> AssetResolver for CachedAssets<R> {
+    fn get(&self, path: &str) -> Option<Bytes> {
+        if let Some(bytes) = self.cache.lock().unwrap().get(path) {
+            return Some(bytes.clone());
+        }
+        let bytes = self.inner.get(path)?;
+        self.cache.lock().unwrap().insert(path.to_string(), bytes.clone());
+        Some(bytes)
+    }
 }
 
 /// serve: assets embedded in the `tauri::Context`.
@@ -44,12 +71,12 @@ impl AssetResolver for AppAssets {
 
 /// Resolver over the embedded context (headless serve). `None` in dev.
 pub fn from_context(context: tauri::Context) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev)).then(move || Arc::new(ContextAssets(context)) as Arc<dyn AssetResolver>)
+    (!cfg!(dev)).then(move || Arc::new(CachedAssets::new(ContextAssets(context))) as Arc<dyn AssetResolver>)
 }
 
 /// Resolver over the running app (GUI, for external clients). `None` in dev.
 pub fn from_app(app: &tauri::App) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev)).then(|| Arc::new(AppAssets(app.asset_resolver())) as Arc<dyn AssetResolver>)
+    (!cfg!(dev)).then(|| Arc::new(CachedAssets::new(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>)
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.

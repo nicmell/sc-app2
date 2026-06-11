@@ -116,12 +116,9 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
         None => Vec::new(),
     };
 
-    let mut bytes = [0u8; 8];
-    getrandom::getrandom(&mut bytes).map_err(|e| format!("failed to generate id: {e}"))?;
-    let id: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
-
     Ok(PluginInfo {
-        id,
+        // Minted at install time (add_plugin) — validation is pure.
+        id: String::new(),
         name,
         author: get_str("author")?,
         version,
@@ -228,9 +225,11 @@ fn zip_filename(info: &PluginInfo) -> PathBuf {
 }
 
 /// Validate + store a plugin bundle, replacing any existing entry with the same
-/// name+version. Returns the stored [`PluginInfo`].
+/// name+version. Mints the registry id here (validation stays pure) and
+/// returns the stored [`PluginInfo`].
 pub fn add_plugin(data: &[u8]) -> Result<PluginInfo, String> {
-    let info = validate_plugin(data)?;
+    let mut info = validate_plugin(data)?;
+    info.id = uuid::Uuid::new_v4().simple().to_string();
 
     let plugins_dir = config::plugins_dir();
     std::fs::create_dir_all(&plugins_dir).map_err(|e| e.to_string())?;

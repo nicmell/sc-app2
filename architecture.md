@@ -71,17 +71,17 @@ SIGINT/SIGTERM, `Server::unregister` frees every live session group and sends
   `int_arg`, and `peek_address`, which reads a packet's address (recursing
   into a bundle's first element) **without decoding** — the routing hot path.
 * **`peer.rs`** — one `Peer` per config entry: compiled routing regex,
-  resolved target, a connected `UdpSocket`, and a recv task that republishes
-  inbound datagrams on a per-peer broadcast channel. The task survives
-  transient errors (connected-UDP `ECONNREFUSED` while a peer is down) with a
-  200 ms backoff, so peers recover without restarts. A peer that fails setup
-  is skipped, not fatal.
+  resolved target, a connected `UdpSocket`, and a recv task that publishes
+  inbound datagrams straight onto the bridge's shared fan-out. The task
+  survives transient errors (connected-UDP `ECONNREFUSED` while a peer is
+  down) with a 200 ms backoff, so peers recover without restarts. A peer that
+  fails setup is skipped, not fatal.
 * **`bridge.rs`** — the protocol-agnostic switch. Outbound:
   `dispatch_command(bytes)` peeks the address, finds the first peer whose
-  regex matches, sends (no match → warn + drop). Inbound: one pump task per
-  peer drains its channel into a single shared `broadcast::Sender<Bytes>`
-  (capacity 256) — `subscribe()` hands every consumer (each WS pump, the
-  supervisor, diag) its own receiver. Laggards drop frames, never block.
+  regex matches, sends (no match → warn + drop). Inbound: the single shared
+  `broadcast::Sender<Bytes>` (capacity 256) the peers publish into —
+  `subscribe()` hands every consumer (each WS pump, the supervisor, diag)
+  its own receiver. Laggards drop frames, never block.
 * **`scsynth.rs`** — protocol + supervisor + the node-id scheme.
   * Supervisor loop: `/notify 1` → ack carries our **clientID** → `/version`
     → "running"; then poll `/status` at 1 Hz until 3 misses → reconnect loop
@@ -101,11 +101,14 @@ SIGINT/SIGTERM, `Server::unregister` frees every live session group and sends
 ### `server.rs` — the app-logic layer
 
 `Server` is the axum `State` (Arc-backed, cheap clone): config + SessionStore
-+ Bridge + Scsynth + the lazily-mmapped `ScopeShm` (a `OnceCell` — opened on
-first scope subscribe, shared by all sockets, cached as `None` on failure).
-`create_session[_with_id]` waits up to 5 s for the scsynth clientID then
-allocates a block; `end_session` frees the group. Layering is one-directional:
-**router → server → core**, and the router never touches `Server`'s internals.
++ Bridge + Scsynth + the lazily-mmapped `ScopeShm`, cached per scsynth
+**registration generation** — an scsynth restart recreates the segment, so the
+mapping (or a cached failure) is re-derived after every re-registration
+instead of pointing at a dead inode. `create_session[_with_id]` waits up to
+5 s for the scsynth clientID then allocates a block; `end_session` frees the
+group; a session can be **attached by at most one WebSocket** (a second tab
+gets 409). Layering is one-directional: **router → server → core**, and the
+router never touches `Server`'s internals.
 
 ### `router/` — HTTP + the WS pump
 
@@ -272,8 +275,8 @@ sc-plugin.firstUpdated → oscClient.nextNodeId() → oscClient.send(gNewOne(...
 **Inbound reply** (e.g. `/n_go`, `/fail`, `/status.reply`):
 
 ```
-scsynth UDP → Peer recv task → per-peer channel → Bridge pump
-  → shared broadcast → every WS pump → binary frame → worker (zero-copy)
+scsynth UDP → Peer recv task → shared broadcast (Bridge fan-out)
+  → every WS pump → binary frame → worker (zero-copy)
   → plugin notify → osc-js unpack + dispatch:
       "*" → OscClient.handleReply:
             /status.reply → osc.scsynthStatus (DashboardFooter) + feed watchdog

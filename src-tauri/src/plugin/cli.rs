@@ -38,7 +38,10 @@ pub fn run(cmd: PluginCommand) -> Result<(), String> {
 }
 
 fn print_plugin_info(info: &manager::PluginInfo) {
-    println!("  id:      {}", info.id);
+    // Empty for `validate` — the id is minted at install time.
+    if !info.id.is_empty() {
+        println!("  id:      {}", info.id);
+    }
     println!("  name:    {}", info.name);
     println!("  version: {}", info.version);
     println!("  author:  {}", info.author);

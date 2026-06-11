@@ -5,10 +5,19 @@
 //! values (`/g_queryTree 0 1`), parses the `/g_queryTree.reply`, and returns it
 //! as JSON — so you can see execution order (head→tail = the order printed) and
 //! each synth's bus controls (e.g. our scope tap's `inBus`, SuperDirt's `out`),
-//! which is exactly what's needed to debug a silent tap.
+//! which is exactly what's needed to debug a silent tap: it shows whether the
+//! tap synth exists, where it sits relative to SuperDirt's output monitors,
+//! and which bus it actually reads.
 //!
 //! `GET /api/diag/dumptree` fires `/g_dumpTree 0 1`, which makes scsynth print
-//! the tree to its own stdout (the `yarn osc` console).
+//! the same tree to its own stdout (the `yarn osc` console) — useful when the
+//! reply-based query times out or you want scsynth's own formatting.
+//!
+//! TODO: these endpoints were added for debugging the scope bring-up and can
+//! be removed (or feature-gated) once the buffer/scope migration settles.
+//! Note the `/g_queryTree` request goes through the shared bridge, so its
+//! (large) reply currently fans out to every connected WS client's OSC
+//! console as well.
 
 use std::time::Duration;
 

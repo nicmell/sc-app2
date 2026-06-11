@@ -4,6 +4,10 @@
 //! `sessions.json` is the registry, mirroring the plugin one
 //! ([`crate::plugin::manager`]). Stateless fs functions, consumed by the
 //! `/api/session` router: a stored frontend id is revived from here at boot.
+//!
+//! TODO: saved sessions grow without bound — a browser that clears its
+//! localStorage orphans its `<id>.json` + registry row forever. Prune by
+//! `saved_at` age (or cap the count) at boot.
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

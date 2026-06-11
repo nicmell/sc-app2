@@ -32,10 +32,10 @@ struct Inner {
 }
 
 impl Bridge {
-    /// Connect the configured peers and start one pump task per peer
-    /// (peer socket → the shared `inbound` fan-out). `connect_timeout` is
-    /// waited out before the connection attempts (config `connect_timeout`,
-    /// e.g. to give the peers time to boot); zero connects immediately.
+    /// Connect the configured peers; their receive tasks publish straight
+    /// onto the shared `inbound` fan-out. `connect_timeout` is waited out
+    /// before the connection attempts (config `connect_timeout`, e.g. to give
+    /// the peers time to boot); zero connects immediately.
     pub async fn connect(configs: &[PeerConfig], connect_timeout: Duration) -> Self {
         if !connect_timeout.is_zero() {
             tracing::info!(
@@ -44,13 +44,11 @@ impl Bridge {
             );
             tokio::time::sleep(connect_timeout).await;
         }
-        let peers = peer::connect_all(configs).await;
         let (inbound, _rx) = broadcast::channel(INBOUND_CAPACITY);
-        let bridge = Self {
+        let peers = peer::connect_all(configs, inbound.clone()).await;
+        Self {
             inner: Arc::new(Inner { peers, inbound }),
-        };
-        bridge.spawn_pumps();
-        bridge
+        }
     }
 
     /// Subscribe to the stream of inbound peer datagrams (one receiver per
@@ -79,26 +77,5 @@ impl Bridge {
     /// supervisor checks for a `/notify` route before registering).
     pub fn has_route(&self, address: &str) -> bool {
         peer::route_for(&self.inner.peers, address).is_some()
-    }
-
-    /// One task per peer: drain its inbound datagrams into the shared fan-out.
-    fn spawn_pumps(&self) {
-        for peer in &self.inner.peers {
-            let mut peer_inbound = peer.inbound.subscribe();
-            let inbound = self.inner.inbound.clone();
-            tokio::spawn(async move {
-                loop {
-                    match peer_inbound.recv().await {
-                        // No subscribers is fine; ignore the send error.
-                        Ok(bytes) => {
-                            let _ = inbound.send(Bytes::from(bytes));
-                        }
-                        // Dropped some datagrams under load — keep going.
-                        Err(broadcast::error::RecvError::Lagged(_)) => continue,
-                        Err(broadcast::error::RecvError::Closed) => break,
-                    }
-                }
-            });
-        }
     }
 }

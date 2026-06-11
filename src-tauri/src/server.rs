@@ -40,8 +40,11 @@ struct Inner {
     /// Held only to keep the log file-appender's flush guard alive (never read).
     _logger: Arc<Logger>,
     /// Lazily-opened mmap of scsynth's SHM scope buffers, shared across all WS
-    /// connections. `None` once we've tried and failed (cached, not retried).
-    scope_shm: tokio::sync::OnceCell<Option<Arc<ScopeShm>>>,
+    /// connections, keyed by the scsynth registration generation: an scsynth
+    /// restart recreates the segment file, so the mapping (or a cached
+    /// failure) is re-derived once per (re)registration instead of staying
+    /// pointed at a dead inode forever.
+    scope_shm: tokio::sync::Mutex<Option<(u64, Option<Arc<ScopeShm>>)>>,
 }
 
 impl Server {
@@ -55,7 +58,7 @@ impl Server {
                 bridge,
                 scsynth,
                 _logger: logger,
-                scope_shm: tokio::sync::OnceCell::new(),
+                scope_shm: tokio::sync::Mutex::new(None),
             }),
         }
     }
@@ -114,6 +117,13 @@ impl Server {
 
     /// The `scsynth` peer's `host:port` from config — returned by the session
     /// endpoint so the frontend footer can display it.
+    ///
+    /// TODO: the "scsynth" peer name must not grow into a load-bearing
+    /// contract. scsynth is one (optional) feature — the app aims to also
+    /// work as a pure OSC client (bridge + console over arbitrary peers).
+    /// Keep everything scsynth-specific (this address, the SHM scope, the
+    /// supervisor, session node-id blocks) gated on the peer's presence and
+    /// degrading gracefully when it's absent.
     pub(crate) fn scsynth_address(&self) -> Option<String> {
         self.inner
             .config
@@ -126,23 +136,27 @@ impl Server {
     // ── scope SHM ──
 
     /// The lazily-opened mmap of scsynth's SHM scope buffers, shared across WS
-    /// connections. Opens (and locates the scope-buffer vector) on first call;
-    /// caches `None` on failure so a missing/unreadable segment isn't retried.
+    /// connections. Opens (and locates the scope-buffer vector) on first call,
+    /// and re-opens after every scsynth re-registration — the restart
+    /// recreated the segment, so an old mapping points at a dead inode. A
+    /// failure is cached only within the current registration generation.
     pub(crate) async fn scope_shm(&self) -> Option<Arc<ScopeShm>> {
-        self.inner
-            .scope_shm
-            .get_or_init(|| async {
-                let port = self.scsynth_port()?;
-                match ScopeShm::open(port) {
-                    Ok(shm) => Some(Arc::new(shm)),
-                    Err(e) => {
-                        tracing::warn!(error = %e, "scope SHM unavailable");
-                        None
-                    }
-                }
-            })
-            .await
-            .clone()
+        let generation = self.inner.scsynth.generation();
+        let mut cached = self.inner.scope_shm.lock().await;
+        if let Some((cached_generation, shm)) = &*cached {
+            if *cached_generation == generation {
+                return shm.clone();
+            }
+        }
+        let shm = self.scsynth_port().and_then(|port| match ScopeShm::open(port) {
+            Ok(shm) => Some(Arc::new(shm)),
+            Err(e) => {
+                tracing::warn!(error = %e, "scope SHM unavailable");
+                None
+            }
+        });
+        *cached = Some((generation, shm.clone()));
+        shm
     }
 
     /// UDP port of the `scsynth` peer (its SHM segment is named after it).

@@ -1,9 +1,8 @@
 // OSC transport types: the client-facing session block and the message
-// protocol between the WebsocketWorkerPlugin (main thread) and the
-// WebSocket-owning worker. Pure bytes on the wire — all OSC encode/decode
-// happens in osc-js on the main thread; the worker only moves frames. The ws
-// URL isn't a message: it rides in as the worker's `name`, and the worker
-// opens the socket on `open`.
+// protocol between the WorkerClient (main thread) and the WebSocket-owning
+// worker — commands down, transport events up. Pure bytes on the wire — all
+// OSC encode/decode happens in osc-js on the main thread; the worker only
+// moves frames.
 
 /** A session's scsynth allocation, as `OscClient.connect` consumes it. */
 export interface OscSession {
@@ -18,12 +17,14 @@ export interface OscSession {
   scopeIndex: number;
 }
 
-export type PluginToWorker =
+/** What the transport is told to do (WorkerClient → worker). */
+export type TransportCommand =
   | { type: "open"; url: string }
   | { type: "send"; data: Uint8Array }
   | { type: "close" };
 
-export type WorkerToPlugin =
+/** What the transport reports (transport → worker → WorkerClient). */
+export type TransportEvent =
   | { type: "open" }
   | { type: "message"; data: ArrayBuffer }
   | { type: "error"; message: string }

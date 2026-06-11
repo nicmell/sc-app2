@@ -270,6 +270,7 @@ export class OscClient {
   }
 }
 
-/** The one OSC client for the whole frontend. The worker/WebSocket only spin
- *  up on the first `connect`, so creating this at import time is free. */
+/** The one OSC client for the whole frontend. The WebSocket only opens on the
+ *  first `connect` (the permanent worker behind it is spawned by the
+ *  WorkerClient module at import). */
 export const oscClient = new OscClient();

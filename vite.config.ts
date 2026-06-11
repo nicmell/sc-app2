@@ -57,6 +57,7 @@ export default defineConfig(async () => ({
   test: {
     environment: "happy-dom",
     include: ["tests/**/*.test.{ts,tsx}"],
+    setupFiles: ["tests/setup.ts"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

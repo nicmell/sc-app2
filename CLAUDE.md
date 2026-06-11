@@ -94,8 +94,16 @@ lib/                     non-React infrastructure
                          AND the osc store slice: tx/rx console log, /fail–/late
                          banners, /status.reply load + heartbeat watchdog, the
                          `connected` signal; closes itself on critical failures)
-                         → WebsocketWorkerPlugin (osc-js Plugin impl)
-                         → worker.ts (Web Worker owning the WebSocket; bytes only)
+                         → WebsocketWorkerPlugin (osc-js Plugin impl, a thin
+                           adapter over lib/worker's WorkerClient)
+  worker/                the worker-backed WebSocket transport:
+                         WorkerClient.ts (global `workerClient`: main-thread
+                         proxy owning THE permanent worker + status,
+                         OscTransport interface — {open, close, send,
+                         onMessage, status})
+                         → worker.ts (Web Worker entry: protocol ⇄ transport)
+                         → transport.ts (createWsTransport: the raw WebSocket,
+                           same OscTransport interface, in-worker)
   session/SessionManager (global `session`): mints/revives the session over HTTP,
                          connects oscClient and observes its close (→ conn status),
                          10s layout autosave

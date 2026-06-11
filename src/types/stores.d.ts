@@ -49,19 +49,29 @@ export interface ScsynthError {
   ts: number;
 }
 
-/** The session slice of the app store. */
+/** The session slice of the app store: the UI-facing connection lifecycle. */
 export interface SessionState {
   status: ConnStatus;
+  /** The scsynth `host:port` the bridge talks to (from the session response). */
+  scsynthAddress: string | null;
+}
+
+/** The OSC slice of the app store, owned by the OscClient. */
+export interface OscState {
+  /** Transport-level "connection ready" — the session group exists and the
+   *  node-id allocator is armed. Consumers like the ScopeController arm on
+   *  this; distinct from the session slice's UI `status`. */
+  connected: boolean;
   log: LoggedEntry[];
   scsynthStatus: ScsynthStatus | null;
   errors: ScsynthError[];
-  /** The scsynth `host:port` the bridge talks to (from the session response). */
-  scsynthAddress: string | null;
 }
 
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
+  /** The OSC transport's telemetry (console log, banners, scsynth load). */
+  osc: OscState;
   /** Dashboard grid placement. Restored from / periodically saved to the
    *  backend's saved-session storage by the SessionManager. */
   layout: BoxItem[];

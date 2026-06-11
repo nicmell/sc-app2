@@ -10,8 +10,7 @@ import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
-import { oscClient } from "@/lib/osc/OscClient";
-import { session } from "@/lib/session/SessionManager";
+import { oscClient } from "@/stores/osc";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
@@ -51,7 +50,7 @@ export class ScPlugin extends ScNode {
       // The group all of this plugin's synths will live in — freed wholesale
       // on unmount.
       this.groupNodeId = oscClient.nextNodeId();
-      session.send(gNewOne(this.groupNodeId, AddToTail, oscClient.sessionGroupId));
+      oscClient.send(gNewOne(this.groupNodeId, AddToTail, oscClient.sessionGroupId));
     } catch (e) {
       this._error = e instanceof Error ? e.message : String(e);
     }
@@ -60,8 +59,8 @@ export class ScPlugin extends ScNode {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     if (this.groupNodeId !== null) {
-      session.send(gFreeAll(this.groupNodeId));
-      session.send(nFree(this.groupNodeId));
+      oscClient.send(gFreeAll(this.groupNodeId));
+      oscClient.send(nFree(this.groupNodeId));
       this.groupNodeId = null;
     }
     if (this.id) unregisterTree(this.id);

@@ -15,10 +15,19 @@ export function flattenPacket(packet: OscPacket): FlatOsc[] {
   return out;
 }
 
+/** One OSC arg as display text — binary args (e.g. a /d_recv SynthDef blob)
+ *  render as a size tag instead of a byte list. */
+export function formatOscArg(arg: unknown): string {
+  if (arg instanceof Uint8Array || arg instanceof ArrayBuffer) {
+    return `blob(${arg.byteLength}B)`;
+  }
+  return String(arg);
+}
+
 function walk(packet: OscPacket, out: FlatOsc[]): void {
   if (isBundle(packet)) {
     for (const el of packet.bundleElements) walk(el as OscPacket, out);
   } else if (isMessage(packet)) {
-    out.push({ address: packet.address, args: (packet.args ?? []).map((a) => String(a)) });
+    out.push({ address: packet.address, args: (packet.args ?? []).map(formatOscArg) });
   }
 }

@@ -11,19 +11,25 @@
 
 import { DEFAULT_LAYOUT } from "@/constants/layout";
 import { createStore } from "@/lib/utils/reactiveStore";
-import type { AppState, SessionState } from "@/types/stores";
+import type { AppState, OscState, SessionState } from "@/types/stores";
 
 /** Initial session slice. */
 const initialSessionState: SessionState = {
   status: "connecting",
-  log: [],
-  scsynthStatus: null,
-  errors: [],
   scsynthAddress: null,
+};
+
+/** Initial OSC slice (owned by the OscClient). */
+const initialOscState: OscState = {
+  connected: false,
+  scsynthStatus: null,
+  log: [],
+  errors: [],
 };
 
 export const appStore = createStore<AppState>({
   session: initialSessionState,
+  osc: initialOscState,
   layout: DEFAULT_LAYOUT,
   plugins: [],
 });

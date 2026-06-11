@@ -1,11 +1,11 @@
 // <sc-console> — the OSC message log. Ports the old OscConsole: subscribes to
-// the session's bounded tx/rx log store and renders it as a scrolling list,
+// the OscClient's bounded tx/rx log store and renders it as a scrolling list,
 // pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
 
 import { html } from "lit";
 import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import { session } from "@/stores/session";
+import { oscClient } from "@/stores/osc";
 import type { LoggedEntry } from "@/types/stores";
 
 function fmtTime(ms: number): string {
@@ -24,7 +24,7 @@ export class ScConsole extends ScElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.off = session.log.subscribe(() => this.requestUpdate());
+    this.off = oscClient.log.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback(): void {
@@ -40,7 +40,7 @@ export class ScConsole extends ScElement {
   }
 
   render() {
-    const entries: LoggedEntry[] = session.log.get();
+    const entries: LoggedEntry[] = oscClient.log.get();
     return html`
       <section class="osc-console">
         <header class="osc-header">

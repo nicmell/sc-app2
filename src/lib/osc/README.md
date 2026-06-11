@@ -22,16 +22,16 @@ SessionManager / ScopeController / sc-elements
 
 | file | responsibility |
 |---|---|
-| `OscClient.ts` | the client class + the global `oscClient` instance. `connect(url)` resolves once the socket is open; `send(packet)` takes the `OSC.Message`/`OSC.Bundle` packets the `@sc-app/server-commands` constructors build; `on(address, cb)` subscribes to inbound messages (osc-js address patterns, `*` for all) and to `'open'`/`'close'`/`'error'`. |
+| `OscClient.ts` | the client class + the global `oscClient` instance. `connect(url)` resolves once the socket is open; `send(packet)` takes the `OSC.Message`/`OSC.Bundle` packets the `@sc-app/server-commands` constructors build (and logs each message as `tx`); `on(address, cb)` subscribes to inbound messages (osc-js address patterns, `*` for all) and to `'open'`/`'close'`/`'error'`. The client also **owns the OSC telemetry** — the app store's `osc` slice: the bounded tx/rx console log, the `/fail`–`/late` banners, scsynth's `/status.reply` load, and the `connected` signal the ScopeController arms on — and **terminates its own connection** on a critical transport error or a missed `/status.reply` heartbeat (the SessionManager only observes the close). |
 | `WebsocketWorkerPlugin.ts` | the osc-js transport plugin. Spawns the worker lazily on `open({url})`, forwards packed binary out, and feeds inbound frames to `notify` — osc-js unpacks and dispatches them. |
 | `worker.ts` | Web Worker entry: owns the `WebSocket` (binary frames in/out, transferred zero-copy). No osc-js here. |
 | `protocol.ts` | the plugin ⇄ worker message types. |
 
 ## Trace a message each way
 
-**Outbound** — `session.send(packet)`:
+**Outbound** — `oscClient.send(packet)`:
 ```
-SessionManager.send → oscClient.send → OSC.send → packet.pack()        [main thread]
+oscClient.send (tx log) → OSC.send → packet.pack()                     [main thread]
   → plugin.send(bytes) → worker.postMessage({type:"send"}, transfer)
 ══ worker ══ ws.send(bytes) → bridge
 ```

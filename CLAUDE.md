@@ -74,10 +74,10 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
 runtime/                 the global parsed-element registry (id → the live
                          ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, layout, plugins }) — the ONLY store.
-                         Cross-module shapes come from @/types (type-only by
+  store.ts               createStore({ session, osc, layout, plugins }) — the ONLY
+                         store. Cross-module shapes come from @/types (type-only by
                          construction), so no runtime cycle with the singletons.
-  layout.ts / plugins.ts / session.ts / useStore.ts
+  layout.ts / plugins.ts / session.ts / osc.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
@@ -90,13 +90,18 @@ lib/                     non-React infrastructure
                          HttpError (carries the response body, e.g. plugin validation errors)
   osc/                   the OSC transport (see lib/osc/README.md):
                          OscClient (global `oscClient`, mirrors the osc-js OSC class,
-                         owns /g_new of the session group + nextNodeId allocation)
+                         owns /g_new of the session group + nextNodeId allocation,
+                         AND the osc store slice: tx/rx console log, /fail–/late
+                         banners, /status.reply load + heartbeat watchdog, the
+                         `connected` signal; closes itself on critical failures)
                          → WebsocketWorkerPlugin (osc-js Plugin impl)
                          → worker.ts (Web Worker owning the WebSocket; bytes only)
   session/SessionManager (global `session`): mints/revives the session over HTTP,
-                         connects oscClient, routes replies (status/fail/late → store),
-                         tx/rx OSC console log, 10s layout autosave
-  scope/                 ScopeController: master-out tap synthdef + /scope/chunk → chunkRef
+                         connects oscClient and observes its close (→ conn status),
+                         10s layout autosave
+  scope/                 ScopeController (global `scopeController`): master-out tap
+                         synthdef + /scope/chunk → chunkRef; arms/stops itself on
+                         oscClient's `connected` signal
   plugins/PluginManager  plugin CRUD + entry-HTML loading over /api/plugins
   strudel/               Strudel bootstrap (prebake) for sc-strudel
   utils/reactiveStore    the minimal store implementation (slices, select, subscribe)

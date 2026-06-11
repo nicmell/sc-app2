@@ -11,6 +11,7 @@ import { transpiler } from "@strudel/transpiler";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
 import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
+import { oscClient } from "@/stores/osc";
 import { session } from "@/stores/session";
 
 const SAFETY_LOOKAHEAD_MS = 200;
@@ -92,7 +93,7 @@ export class ScStrudel extends ScElement {
       const timetag = Math.round(
         Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );
-      session.send(dirtPlayBundle(event, timetag));
+      oscClient.send(dirtPlayBundle(event, timetag));
     };
 
     this.mirror = new StrudelMirror({

@@ -3,7 +3,8 @@
 // from scsynth's `/status.reply` heartbeat, which the Rust bridge polls and
 // forwards over the OSC bridge; until the first reply (or with no backend) we
 // fall back to the connection state.
-import { useStatus, useScsynthStatus, useScsynthAddress } from "@/stores/session";
+import { useStatus, useScsynthAddress } from "@/stores/session";
+import { useScsynthStatus } from "@/stores/osc";
 import type { ScsynthStatus } from "@/types/stores";
 
 function formatStatus(s: ScsynthStatus): string {

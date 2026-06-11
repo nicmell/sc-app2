@@ -1,10 +1,10 @@
 // scsynth error/warning banners, rendered with the ui-foundation `.toast`
 // primitive: a bottom-right stack, portaled to <body>. Each banner auto-dismisses
 // after a timeout (reset when a coalesced repeat refreshes its `ts`) and can be
-// closed manually. Driven by the session's coalescing error store.
+// closed manually. Driven by the OscClient's coalescing error store.
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { session, useScsynthErrors } from "@/stores/session";
+import { oscClient, useScsynthErrors } from "@/stores/osc";
 import type { ScsynthError } from "@/types/stores";
 
 /** How long a banner lingers before auto-dismissing. */
@@ -14,7 +14,7 @@ function Toast({ error }: { error: ScsynthError }) {
   // Re-arm whenever the entry's timestamp changes (a coalesced repeat refreshes
   // `ts`), so the countdown restarts on each new occurrence.
   useEffect(() => {
-    const t = setTimeout(() => session.dismissError(error.id), DISMISS_MS);
+    const t = setTimeout(() => oscClient.dismissError(error.id), DISMISS_MS);
     return () => clearTimeout(t);
   }, [error.id, error.ts]);
 
@@ -29,7 +29,7 @@ function Toast({ error }: { error: ScsynthError }) {
         type="button"
         className="toast-close"
         aria-label="Dismiss"
-        onClick={() => session.dismissError(error.id)}
+        onClick={() => oscClient.dismissError(error.id)}
       >
         ×
       </button>

@@ -1,12 +1,12 @@
 // <sc-scope> — master-out waveform. Ports the old ScopeView: a canvas + RAF
-// loop reading the latest scope chunk from the session's ScopeController. Light
+// loop reading the latest scope chunk from the global ScopeController. Light
 // DOM (no shadow) so ui-foundation tokens + the .sc-scope CSS apply; styled in
 // App.css. No attributes yet — customization comes later.
 
 import { html } from "lit";
 import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import { session } from "@/stores/session";
+import { scopeController } from "@/lib/scope/ScopeController";
 
 /** Vertical gain applied to the ±1 sample range before drawing. */
 const GAIN = 0.9;
@@ -80,7 +80,7 @@ export class ScScope extends ScElement {
     ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    const chunk = session.scope?.chunkRef.current;
+    const chunk = scopeController.chunkRef.current;
     if (!chunk || chunk.data.length < 2) return;
     const { data, channels } = chunk;
     const perChannel = (data.length / channels) | 0;

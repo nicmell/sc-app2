@@ -13,6 +13,9 @@ export interface OscSession {
   nodeIdBase: number;
   /** How many node ids this session may allocate. */
   nodeIdCount: number;
+  /** scsynth scope-buffer index this session's master-out tap uses (the
+   *  ScopeController reads it off the client when the connection arms). */
+  scopeIndex: number;
 }
 
 export type PluginToWorker =

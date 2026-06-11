@@ -6,6 +6,18 @@ export const OSC_REPLIES = {
   LATE: "/late",
 } as const;
 
+/** Max OSC-log entries kept in memory (oldest dropped). */
+export const MAX_LOG = 300;
+
+/** Max coalesced error banners kept (oldest dropped). */
+export const MAX_ERRORS = 20;
+
+/** How long the client waits for a `/status.reply` before treating the
+ *  connection as dead and closing it. The Rust bridge heartbeats scsynth at
+ *  1 s and fans every reply out to us, so 5 s of silence mirrors its own
+ *  missed-replies slack. */
+export const STATUS_REPLY_TIMEOUT_MS = 5_000;
+
 // ── master-out scope tap ──────────────────────────────────────────────
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */

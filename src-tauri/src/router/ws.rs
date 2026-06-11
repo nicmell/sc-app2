@@ -57,10 +57,30 @@ async fn ws_handler(
     // A session is owned by exactly one socket: a second tab shares the same
     // localStorage id, and letting it attach would free the group under the
     // first tab when either socket closes.
-    // TODO(multi-tab): instead of rejecting, this could be solved on the
-    // frontend with a SharedWorker owning the one WebSocket across tabs,
-    // and/or by minting a distinct node-id block per tab client at every
-    // launch (to be verified).
+    //
+    // TODO(multi-tab): rejecting is the stopgap. Two real solutions, checked
+    // for feasibility:
+    //
+    // 1. Per-tab sessions (preferred — works with the backend as-is): every
+    //    tab always POSTs a fresh session (own id, own WS, own group +
+    //    node-id block + scope index — the server already supports any
+    //    number of live sessions with disjoint blocks). What's missing is
+    //    only decoupling the *saved layout* from the live-session id: fetch
+    //    the layout under the stored id without reviving it (or copy it onto
+    //    the fresh session at mint), and accept last-writer-wins on the
+    //    saved layout + the stored id.
+    // 2. A frontend SharedWorker owning the one WebSocket across tabs.
+    //    Verified insufficient as a socket-only change: the per-connection
+    //    state (node-id allocator, /g_new group ownership, the scope
+    //    SUB_ID/scopeIndex, the layout autosave) lives per-tab in
+    //    OscClient/SessionManager, so two tabs over one shared socket would
+    //    collide on node ids and the scope subscription and fight over the
+    //    layout PUT. It only works if the allocator + OSC client core move
+    //    into the SharedWorker (tabs become thin views) — a much larger
+    //    refactor, also gated on SharedWorker availability in the embedders
+    //    (back in WKWebView only since Safari 16). Option 1 is the
+    //    pragmatic path; 2 pays off only if truly shared live state across
+    //    tabs is ever wanted.
     match server.sessions().attach(&id) {
         Err(()) => {
             return (

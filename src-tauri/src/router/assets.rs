@@ -32,8 +32,47 @@ struct CachedAssets<R> {
 }
 
 impl<R: AssetResolver> CachedAssets<R> {
-    fn new(inner: R) -> Self {
-        Self { inner, cache: Mutex::new(HashMap::new()) }
+    /// Wrap `inner` and warm the cache from the Vite build manifest
+    /// (`manifest.json`, emitted by `yarn build`): `index.html`, the manifest
+    /// itself, and every chunk's `file`/`css`/`assets` output are resolved
+    /// once at boot, so no request ever pays the embedded-asset copy. Files
+    /// outside the manifest (public/ files like favicons) stay lazily cached;
+    /// a missing manifest just falls back to all-lazy.
+    fn preloaded(inner: R) -> Self {
+        let cached = Self { inner, cache: Mutex::new(HashMap::new()) };
+        let warmed = cached
+            .manifest_paths()
+            .iter()
+            .filter(|path| cached.get(path).is_some())
+            .count();
+        tracing::debug!(warmed, "frontend asset cache preloaded");
+        cached
+    }
+
+    /// Every build output named by the Vite manifest (plus `index.html` and
+    /// the manifest itself, which this lookup caches as a side effect).
+    fn manifest_paths(&self) -> Vec<String> {
+        let mut paths = vec!["index.html".to_string()];
+        let Some(manifest) = self
+            .get("manifest.json")
+            .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
+        else {
+            return paths;
+        };
+        let Some(entries) = manifest.as_object() else {
+            return paths;
+        };
+        for entry in entries.values() {
+            if let Some(file) = entry.get("file").and_then(|v| v.as_str()) {
+                paths.push(file.to_string());
+            }
+            for list in ["css", "assets"] {
+                if let Some(items) = entry.get(list).and_then(|v| v.as_array()) {
+                    paths.extend(items.iter().filter_map(|v| v.as_str().map(str::to_string)));
+                }
+            }
+        }
+        paths
     }
 }
 
@@ -71,12 +110,14 @@ impl AssetResolver for AppAssets {
 
 /// Resolver over the embedded context (headless serve). `None` in dev.
 pub fn from_context(context: tauri::Context) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev)).then(move || Arc::new(CachedAssets::new(ContextAssets(context))) as Arc<dyn AssetResolver>)
+    (!cfg!(dev))
+        .then(move || Arc::new(CachedAssets::preloaded(ContextAssets(context))) as Arc<dyn AssetResolver>)
 }
 
 /// Resolver over the running app (GUI, for external clients). `None` in dev.
 pub fn from_app(app: &tauri::App) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev)).then(|| Arc::new(CachedAssets::new(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>)
+    (!cfg!(dev))
+        .then(|| Arc::new(CachedAssets::preloaded(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>)
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.
@@ -178,5 +219,46 @@ mod tests {
         let res = serve_static(req("/api/nope"), assets()).await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
         assert!(!content_type(&res).contains("text/html"));
+    }
+
+    /// Counts how often the underlying resolver is hit, so the cache's
+    /// "one inner lookup per asset, ever" contract is pinned.
+    struct CountingAssets {
+        inner: MapAssets,
+        hits: std::sync::atomic::AtomicUsize,
+    }
+
+    impl AssetResolver for &'static CountingAssets {
+        fn get(&self, path: &str) -> Option<Bytes> {
+            self.hits.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            self.inner.get(path)
+        }
+    }
+
+    #[tokio::test]
+    async fn preload_warms_manifest_assets_so_requests_skip_the_resolver() {
+        let manifest = br#"{
+            "index.html": { "file": "assets/app.js", "css": ["assets/app.css"] }
+        }"#;
+        let counting: &'static CountingAssets = Box::leak(Box::new(CountingAssets {
+            inner: MapAssets(HashMap::from([
+                ("index.html".to_string(), Bytes::from_static(b"<html>root</html>")),
+                ("manifest.json".to_string(), Bytes::from_static(manifest)),
+                ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
+                ("assets/app.css".to_string(), Bytes::from_static(b"body{}")),
+            ])),
+            hits: std::sync::atomic::AtomicUsize::new(0),
+        }));
+
+        let cached = CachedAssets::preloaded(counting);
+        let after_boot = counting.hits.load(std::sync::atomic::Ordering::SeqCst);
+
+        // Every manifest-named asset is already cached: repeated requests
+        // never reach the underlying resolver again.
+        for path in ["index.html", "manifest.json", "assets/app.js", "assets/app.css"] {
+            assert!(cached.get(path).is_some(), "missing {path}");
+            assert!(cached.get(path).is_some());
+        }
+        assert_eq!(counting.hits.load(std::sync::atomic::Ordering::SeqCst), after_boot);
     }
 }

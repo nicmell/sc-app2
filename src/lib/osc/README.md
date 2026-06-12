@@ -9,7 +9,7 @@ thread.
 ## Layer stack (each box has one job; deps point downward)
 
 ```
-SessionManager / ScopeController / sc-elements
+SessionManager / sc-elements
         │   import { oscClient } — the global instance
    OscClient (OscClient.ts)            connect/close/send/on/off/status — mirrors the osc-js OSC class
         │   composes `new OSC({ plugin })`
@@ -28,7 +28,7 @@ SessionManager / ScopeController / sc-elements
 
 | file | responsibility |
 |---|---|
-| `OscClient.ts` | the client class + the global `oscClient` instance. `connect(url)` resolves once the socket is open; `send(packet)` takes the `OSC.Message`/`OSC.Bundle` packets the `@sc-app/server-commands` constructors build (and logs each message as `tx`); `on(address, cb)` subscribes to inbound messages (osc-js address patterns, `*` for all) and to `'open'`/`'close'`/`'error'`. The client also **owns the OSC telemetry** — the app store's `osc` slice: the bounded tx/rx console log, the `/fail`–`/late` banners, scsynth's `/status.reply` load, and the `connected` signal the ScopeController arms on — and **terminates its own connection** on a critical transport error or a missed `/status.reply` heartbeat (the SessionManager only observes the close). |
+| `OscClient.ts` | the client class + the global `oscClient` instance. `connect(url)` resolves once the socket is open; `send(packet)` takes the `OSC.Message`/`OSC.Bundle` packets the `@sc-app/server-commands` constructors build (and logs each message as `tx`); `on(address, cb)` subscribes to inbound messages (osc-js address patterns, `*` for all) and to `'open'`/`'close'`/`'error'`. The client also **owns the OSC telemetry** — the app store's `osc` slice: the bounded tx/rx console log, the `/fail`–`/late` banners, scsynth's `/status.reply` load, and the `connected` signal the plugin lifecycle arms on — and **terminates its own connection** on a critical transport error or a missed `/status.reply` heartbeat (the SessionManager only observes the close). It is also the sc-elements' whole scsynth vocabulary: the sequenced command methods (createGroup/createSynth/sendSynthDef/…), the scope-slot allocator over the session's span, and the decoded `onScopeChunk` stream. |
 | `OscWorkerPlugin.ts` | the osc-js transport plugin — a thin adapter: implements the Plugin contract over the `workerClient` singleton and maps its events onto `notify` — osc-js unpacks and dispatches inbound frames. |
 | `../worker/WorkerClient.ts` | the `WorkerClient` class + the `workerClient` singleton — the main-thread proxy to the worker: spawns the one permanent worker in its constructor (at import time; connections come and go over it via open/close), tracks the status (numbering mirrors `OSC.STATUS`), and synthesizes the single `close` event on an orderly close. |
 | `../worker/worker.ts` | Web Worker entry: wires the postMessage protocol to the in-worker transport (inbound frames transferred zero-copy). No osc-js here. |
@@ -48,9 +48,11 @@ oscClient.send (tx log) → OSC.send → packet.pack()                     [main
 ```
 ══ worker ══ ws message → postMessage({type:"message", data}, transfer)   (zero-copy)
 ══ main ══ plugin.notify(bytes) → osc-js unpacks + dispatches by address
-  → ScopeController's on('/scope/chunk') → parseScopeChunkArgs → chunkRef
+  → handleReply → parseScopeChunkArgs → the sc-scopes' onScopeChunk
+    subscribers (each filters on its own subId) → chunkRef
 ```
 
 `/scope/chunk` is an ordinary OSC message — no special-casing anywhere in the
-transport; consumers just subscribe to its address. Bundles are dispatched
+transport; the client decodes it once in `handleReply` and fans it out to the
+`onScopeChunk` subscribers. Bundles are dispatched
 per-element by osc-js (future timetags are honored with delayed dispatch).

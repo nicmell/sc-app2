@@ -7,7 +7,7 @@
 // in it — on unmount.
 //
 // The plugin also lives with the OSC connection (`oscClient.connected`,
-// the ScopeController's pattern): a drop unloads every element — flags and
+// the old ScopeController's pattern): a drop unloads every element — flags and
 // node ids reset, teardown sends harmlessly dropped on the dead socket —
 // while the per-plugin runtime map survives; reestablishment re-runs the
 // load pass, so the recreated synths carry the user's current values.

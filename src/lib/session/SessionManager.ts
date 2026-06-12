@@ -71,7 +71,7 @@ export class SessionManager {
       // back to minting a fresh session.
       const stored = localStorage.getItem(SESSION_KEY);
       const info = (stored ? await fetchSession(stored) : null) ?? (await createSession());
-      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndex, scsynthAddress } = info;
+      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndexBase, scopeIndexCount, scsynthAddress } = info;
       if (this.disposed) return;
       localStorage.setItem(SESSION_KEY, sessionId);
       this.state.update((s) => ({ ...s, scsynthAddress }));
@@ -79,7 +79,8 @@ export class SessionManager {
         sessionGroupId,
         nodeIdBase,
         nodeIdCount,
-        scopeIndex,
+        scopeIndexBase,
+        scopeIndexCount,
       });
       if (this.disposed) {
         oscClient.close();

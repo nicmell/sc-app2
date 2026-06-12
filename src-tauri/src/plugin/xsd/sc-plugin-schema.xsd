@@ -42,8 +42,8 @@
 
   <!-- sc-* elements -->
   <xs:element name="sc-console" type="scLeafType"/>
-  <xs:element name="sc-scope" type="scLeafType"/>
-  <xs:element name="sc-strudel" type="scLeafType"/>
+  <xs:element name="sc-scope" type="scScopeType"/>
+  <xs:element name="sc-strudel" type="scStrudelType"/>
   <xs:element name="sc-group" type="scGroupType"/>
   <xs:element name="sc-synthdef" type="scSynthDefType"/>
   <xs:element name="sc-ugen" type="scUGenType"/>
@@ -168,6 +168,22 @@
 
   <!-- Leaf custom elements: no custom attrs yet. -->
   <xs:complexType name="scLeafType">
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-scope: a tap over `channels` consecutive buses starting at `bus`
+       (defaults: the stereo master out). The frontend validate() enforces
+       the integer ranges. -->
+  <xs:complexType name="scScopeType">
+    <xs:attribute name="bus" type="xs:integer"/>
+    <xs:attribute name="channels" type="xs:integer"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <!-- sc-strudel: the Strudel REPL; text content is the initial pattern
+       code, `orbit` stamps a default orbit onto emitted dirt events. -->
+  <xs:complexType name="scStrudelType" mixed="true">
+    <xs:attribute name="orbit" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

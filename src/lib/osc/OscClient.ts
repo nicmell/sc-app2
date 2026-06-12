@@ -6,7 +6,7 @@
 //
 // One global instance (`oscClient`) serves the whole frontend — the
 // SessionManager starts the connection once `POST /api/session` yields the WS
-// URL + session block, and consumers (ScopeController, …) subscribe to
+// URL + session block, and consumers (the sc-elements, …) subscribe to
 // addresses directly. On connect the client creates the session's scsynth group itself
 // (`/g_new` at the tail of scsynth's root group — sessions always start
 // fresh; the bridge ends them when the WebSocket closes) and owns node-id
@@ -15,7 +15,7 @@
 // The client also owns the whole OSC telemetry domain — the `osc` slice of the
 // app store: the bounded tx/rx console log, the `/fail`–`/late` error banners,
 // scsynth's `/status.reply` load, and the transport-level `connected` signal
-// consumers arm on (the ScopeController starts/stops with it). And it polices
+// consumers arm on (the plugins reload/unload with it). And it polices
 // its own connection: a critical transport error or a missed `/status.reply`
 // heartbeat terminates the session by closing the WebSocket — the
 // SessionManager only observes the close.
@@ -35,10 +35,14 @@ import {
   nFree,
   NodeEvent,
   nSet,
+  parseScopeChunkArgs,
   SCOPE_CHUNK_ADDRESS,
+  scopeSubscribe,
+  scopeUnsubscribe,
   sNew,
   sync,
   Synced,
+  type DecodedScopeChunk,
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
@@ -74,7 +78,7 @@ export class OscClient {
   /** The OSC slice of the single app store. */
   private readonly state = appStore.slice(SliceName.OSC);
   /** Transport-level "connection ready": the session group exists and the
-   *  node-id allocator is armed. The ScopeController starts/stops on it. */
+   *  node-id allocator is armed. The plugins reload/unload on it. */
   readonly connected = this.state.select((s) => s.connected);
   readonly log = this.state.select((s) => s.log);
   readonly errors = this.state.select((s) => s.errors);
@@ -84,13 +88,23 @@ export class OscClient {
   private nextId = 0;
   private endId = 0;
   private groupId: number | null = null;
-  private sessionScopeIndex: number | null = null;
+  /** The session's scope-slot span (armed on connect) + free-list allocator. */
+  private scopeBase = 0;
+  private scopeCount = 0;
+  private scopeUsed = 0;
+  private freeScopeSlots: number[] = [];
+  /** Monotonic /scope/subscribe subId — never reused within a connection, so
+   *  a freed slot's late chunk can't be misattributed to a new subscriber. */
+  private nextSubId = 1;
   /** Stable React keys for log entries and banners. */
   private nextEntryId = 0;
   /** The `/status.reply` heartbeat watchdog (armed while connected). */
   private statusTimer: ReturnType<typeof setTimeout> | null = null;
   /** Pending one-shot reply waiters (FIFO per address+match). */
   private waiters: ReplyWaiter[] = [];
+  /** /scope/chunk subscribers (one per loaded sc-scope), fed decoded chunks
+   *  from handleReply — each filters on its own subId. */
+  private scopeChunkSubs = new Set<(chunk: DecodedScopeChunk) => void>();
 
   constructor() {
     // Always-on subscriptions (osc-js handlers survive reconnects; nothing
@@ -121,7 +135,7 @@ export class OscClient {
   /** Open the WebSocket (via the worker) to `url`; once open, create the
    *  session's group at the tail of scsynth's root group, arm the node-id
    *  allocator over the session's block, and flag `connected` (which arms the
-   *  ScopeController and the status watchdog). Resolves once the socket is
+   *  plugin reloads and the status watchdog). Resolves once the socket is
    *  open; rejects on an error or close before that. */
   connect(url: string, session: OscSession): Promise<void> {
     // Fresh connection, fresh telemetry: drop the dead connection's load and
@@ -138,12 +152,16 @@ export class OscClient {
         this.nextId = session.nodeIdBase;
         this.endId = session.nodeIdBase + session.nodeIdCount;
         this.groupId = session.sessionGroupId;
-        this.sessionScopeIndex = session.scopeIndex;
+        this.scopeBase = session.scopeIndexBase;
+        this.scopeCount = session.scopeIndexCount;
+        this.scopeUsed = 0;
+        this.freeScopeSlots = [];
+        this.nextSubId = 1;
         // The session is freshly minted (it dies with the previous WebSocket),
         // so its group never pre-exists: create it at the tail of scsynth's
         // root group, after SuperDirt's output monitors.
         this.send(gNewOne(session.sessionGroupId, AddToTail, 0));
-        // Flag readiness only after /g_new, so subscribers (ScopeController)
+        // Flag readiness only after /g_new, so subscribers (plugin reloads)
         // allocate and send into an existing group.
         this.state.update((s) => ({ ...s, connected: true }));
         this.armWatchdog();
@@ -168,11 +186,23 @@ export class OscClient {
     return this.groupId;
   }
 
-  /** The session's scsynth scope-buffer index (server-assigned, arrives with
-   *  the session block on connect). Throws before `connect`. */
-  get scopeIndex(): number {
-    if (this.sessionScopeIndex === null) throw new Error("OscClient.scopeIndex: not connected");
-    return this.sessionScopeIndex;
+  /** Allocate a scope-buffer slot from the session's server-assigned span
+   *  (freed slots are reused first). Throws before `connect` and when the
+   *  span is exhausted — more live scopes than the per-session budget. */
+  allocScopeIndex(): number {
+    if (this.scopeCount === 0) throw new Error("OscClient.allocScopeIndex: not connected");
+    const recycled = this.freeScopeSlots.pop();
+    if (recycled !== undefined) return recycled;
+    if (this.scopeUsed >= this.scopeCount) {
+      throw new Error(`OscClient.allocScopeIndex: scope-slot block exhausted (${this.scopeCount} per session)`);
+    }
+    return this.scopeBase + this.scopeUsed++;
+  }
+
+  /** Return a slot to the allocator (scope tap torn down). */
+  freeScopeIndex(index: number): void {
+    if (index < this.scopeBase || index >= this.scopeBase + this.scopeCount) return;
+    if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);
   }
 
   /** Allocate the next node id from the session's server-assigned block.
@@ -185,7 +215,7 @@ export class OscClient {
   }
 
   /** Close the connection (and the worker behind it). Dropping `connected`
-   *  first lets subscribers (ScopeController) send their teardown while the
+   *  first lets subscribers send their teardown while the
    *  socket is still open — harmlessly dropped when the transport is already
    *  dead, since the bridge frees the whole session group on WS close. */
   close(): void {
@@ -307,6 +337,35 @@ export class OscClient {
     this.send(nSet(nodeId, { [name]: value }));
   }
 
+  /** Free a single node (a scope tap's teardown). */
+  freeSynth(nodeId: number): void {
+    this.send(nFree(nodeId));
+  }
+
+  /** Start a scope-slot chunk stream (the bridge intercepts the message —
+   *  no scsynth reply). Returns the minted subId; `/scope/chunk` frames echo
+   *  it, so subscribers filter on it. */
+  subscribeScope(scope: number, channels: number, chunkSize: number): number {
+    const subId = this.nextSubId++;
+    this.send(scopeSubscribe({ subId, scope, channels, chunkSize }));
+    return subId;
+  }
+
+  /** Stop a scope-slot chunk stream. */
+  unsubscribeScope(subId: number): void {
+    this.send(scopeUnsubscribe(subId));
+  }
+
+  /** Subscribe to the decoded `/scope/chunk` stream (dispatched straight
+   *  from `handleReply` — also the unit-test seam). Returns the
+   *  unsubscriber. Subscribers filter on their own subId. */
+  onScopeChunk(callback: (chunk: DecodedScopeChunk) => void): () => void {
+    this.scopeChunkSubs.add(callback);
+    return () => {
+      this.scopeChunkSubs.delete(callback);
+    };
+  }
+
   /** Connection status (an `OSC.STATUS` value). */
   status(): number {
     return this.osc.status();
@@ -324,7 +383,7 @@ export class OscClient {
 
   /** Route an inbound reply: `/status.reply` feeds the watchdog + the
    *  scsynth-status view (and is kept out of the console); `/scope/chunk`
-   *  streams at ~47 Hz and is consumed by the ScopeController's own
+   *  streams at ~47 Hz and is consumed by the sc-scope elements' own
    *  subscription, so only the console log skips it; `/fail` and `/late`
    *  additionally raise a banner; everything else is logged as `rx`.
    *  Public for unit tests — normally fed by the constructor's `*`
@@ -339,7 +398,21 @@ export class OscClient {
       clearTimeout(waiter.timer);
       waiter.resolve(reply);
     }
-    if (reply.address === SCOPE_CHUNK_ADDRESS) return;
+    if (reply.address === SCOPE_CHUNK_ADDRESS) {
+      // Streams at ~47 Hz per scope: dispatch to the sc-scope subscribers
+      // and keep it out of the console log.
+      if (this.scopeChunkSubs.size > 0) {
+        let chunk: DecodedScopeChunk;
+        try {
+          chunk = parseScopeChunkArgs(reply.args as unknown[]);
+        } catch (err) {
+          console.error("[osc] bad /scope/chunk:", err);
+          return;
+        }
+        for (const cb of [...this.scopeChunkSubs]) cb(chunk);
+      }
+      return;
+    }
     if (reply.address === OSC_REPLIES.STATUS) {
       const next = parseStatus(reply.args as ReadonlyArray<OscArg>);
       this.state.update((s) => ({ ...s, scsynthStatus: next }));

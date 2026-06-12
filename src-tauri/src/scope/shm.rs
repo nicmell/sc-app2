@@ -300,15 +300,18 @@ fn find_scope_buffer_candidates(bytes: &[u8]) -> Vec<usize> {
 pub enum ScopeReadResult {
     /// `_status` is free or header fields are zero — ScopeOut2 hasn't run yet.
     NotInitialized,
-    /// Initialized but no slot pushed yet (data offset_ptr is null).
+    /// Initialized but no slot pushed yet (data offset_ptr is null), or a
+    /// push landed mid-copy (torn read — the next poll picks up the new slot).
     NoData,
     /// A completed slot.
     Data {
-        /// Interleaved samples: `frames × channels`.
-        floats: Vec<f32>,
+        /// The slot's raw samples: `frames × channels` **native-endian** f32
+        /// bytes, channel-interleaved — a straight memcpy of the SHM region;
+        /// the wire encoder byte-swaps them in its single pass.
+        samples: Vec<u8>,
         channels: usize,
         /// Frame count for this slot. Kept for completeness; the chunk encoder
-        /// derives length from `floats`, so callers may ignore it.
+        /// derives length from `samples`, so callers may ignore it.
         #[allow(dead_code)]
         frames: usize,
         /// The `_stage` value at read time — compare against the previous read
@@ -408,14 +411,23 @@ pub fn read_scope_slot(
             )
         })?;
 
-    // One bounds check, then a straight pass over the slot's bytes.
-    let floats: Vec<f32> = region.as_slice()[data_byte_offset..end]
-        .chunks_exact(4)
-        .map(|chunk| f32::from_ne_bytes(chunk.try_into().unwrap()))
-        .collect();
+    // One bounds check, then a straight memcpy of the slot's bytes.
+    let samples = region.as_slice()[data_byte_offset..end].to_vec();
+
+    // Re-check `_stage` after the copy: this reader is a non-participant in
+    // the triple buffer (read-only mmap — it can't take the `_out` role), and
+    // a push swaps `_in` ↔ `_stage`, making the slot we just copied the
+    // writer's NEXT target. If a push landed mid-copy the data may be torn —
+    // drop it; the next poll emits the freshly completed slot instead.
+    let stage_after = region
+        .read_i32_ne(buf_offset + SB_OFF_STAGE)
+        .ok_or_else(|| "scope_buffer _stage field OOB".to_string())?;
+    if stage_after != stage as i32 {
+        return Ok(ScopeReadResult::NoData);
+    }
 
     Ok(ScopeReadResult::Data {
-        floats,
+        samples,
         channels,
         frames,
         stage,

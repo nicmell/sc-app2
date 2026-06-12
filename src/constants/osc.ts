@@ -23,15 +23,13 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
-// ── master-out scope tap ──────────────────────────────────────────────
+// ── scope taps (<sc-scope> defaults) ──────────────────────────────────
 
-/** SuperDirt sums all orbits to the stereo master out (bus 0/1). */
+/** Default tap input: SuperDirt sums all orbits to the stereo master out
+ *  (bus 0/1). */
 export const SCOPE_INPUT_BUS = 0;
 
 export const SCOPE_CHANNELS = 2;
 
 /** Frames per scope slot = one chunk (~21 ms at 48 kHz). */
 export const SCOPE_CHUNK_SIZE = 1024;
-
-/** Fixed subscription id (one subscription per WS connection). */
-export const SCOPE_SUB_ID = 1;

@@ -2,9 +2,17 @@
 // StrudelMirror editor whose Hap onsets are emitted as `/dirt/play` bundles via
 // the session, with a status pill + Play/Stop controls. Light DOM so the
 // ui-foundation .strudel/.status-pill styles + CodeMirror apply directly.
+//
+// Parametrized: the element's TEXT CONTENT is the initial pattern code
+// (captured before Lit's first light-DOM render, which would otherwise show
+// it raw), and `orbit` stamps a default orbit onto every dirt event the
+// pattern doesn't route itself. The load pass needs nothing (the editor works
+// offline; only the sends need the connection), but unload() stops playback —
+// a disconnect would otherwise keep emitting /dirt/play into a dead socket.
 
 import { html } from "lit";
-import { requireNoScChildren } from "@/sc-elements/internal/validation";
+import { property } from "lit/decorators.js";
+import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { StrudelMirror } from "@strudel/codemirror";
 import { transpiler } from "@strudel/transpiler";
@@ -39,8 +47,14 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 };
 
 export class ScStrudel extends ScElement {
+  /** Default orbit stamped onto dirt events the pattern doesn't route. */
+  @property({ type: Number }) accessor orbit: number | undefined = undefined;
+
   validate(): void {
     requireNoScChildren(this);
+    if (this.orbit !== undefined && (!Number.isInteger(this.orbit) || this.orbit < 0)) {
+      failValidation(this, `"orbit" attribute must be a non-negative integer (got "${this.orbit}")`);
+    }
   }
 
   private mirror: InstanceType<typeof StrudelMirror> | null = null;
@@ -48,10 +62,17 @@ export class ScStrudel extends ScElement {
   private status: ConnStatus = "connecting";
   private playing = false;
   private detail = "";
-
+  /** The element's markup text — the initial pattern code. */
+  private initialCode = "";
 
   connectedCallback(): void {
     super.connectedCallback();
+    // Capture the authored pattern BEFORE Lit's first light-DOM render and
+    // clear it, so the raw code text doesn't show next to the editor.
+    if (!this.initialCode) {
+      this.initialCode = this.textContent?.trim() ?? "";
+      if (this.initialCode) this.replaceChildren();
+    }
     this.status = session.status.get();
     this.off = session.status.subscribe((s) => {
       this.status = s;
@@ -70,9 +91,17 @@ export class ScStrudel extends ScElement {
     }
   }
 
-  updated(): void {
-    // Mount the editor once, the first time we're connected and the host exists.
-    if (this.mirror || this.status !== "connected") return;
+  /** Stop playback on the connection-loss unload — the editor stays mounted
+   *  (it works offline); only the event stream dies with the socket. */
+  unload(): void {
+    super.unload();
+    if (this.playing) void this.mirror?.stop();
+  }
+
+  protected firstUpdated(): void {
+    // Mount the editor once the host div exists — the editor itself doesn't
+    // need the connection (Play stays disabled until the session is up).
+    if (this.mirror) return;
     const root = this.querySelector<HTMLDivElement>(".strudel-editor");
     if (!root) return;
 
@@ -90,6 +119,9 @@ export class ScStrudel extends ScElement {
         if (typeof v === "string" || typeof v === "number") event[k] = v;
       }
       if (!event.s) return;
+      // The element's default orbit — only when the pattern didn't route
+      // the event itself (`.orbit(n)` wins).
+      if (this.orbit !== undefined && event.orbit === undefined) event.orbit = this.orbit;
       const timetag = Math.round(
         Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );
@@ -98,7 +130,7 @@ export class ScStrudel extends ScElement {
 
     this.mirror = new StrudelMirror({
       root,
-      initialCode: DEFAULT_CODE,
+      initialCode: this.initialCode || DEFAULT_CODE,
       defaultOutput,
       getTime: () => performance.now() / 1000,
       transpiler,

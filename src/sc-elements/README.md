@@ -145,11 +145,18 @@ The OSC console: the session's bounded tx/rx log (from the session store).
 No attributes.
 
 ### `<sc-scope>`
-The master-out oscilloscope fed by the SHM `/scope/chunk` stream
-(`lib/scope/ScopeController` writes `chunkRef`; the canvas draws in a RAF
-loop). No attributes. NOT the old buffer-bound sc-scope — that returns with
-the buffer-family migration.
+An oscilloscope over `channels` consecutive buses starting at `bus`
+(defaults: the stereo master out, bus 0 × 2). The element owns its whole
+tap through the load pass: a ScopeOut2 tap synth at the session-group tail
+writing a scope slot allocated from the session's span, plus the bridge's
+`/scope/chunk` subscription (filtered by its own subId into `chunkRef`; the
+canvas draws in a RAF loop). Unload reverses it all, so taps re-arm across
+disconnects. NOT the old buffer-bound sc-scope — that returns with the
+buffer-family migration.
 
 ### `<sc-strudel>`
 A Strudel editor whose patterns route to StrudelDirt through the OSC bridge
-(`session.send` of timetagged `/dirt/play` bundles). No attributes.
+(timetagged `/dirt/play` bundles). The element's text content is the initial
+pattern code; `orbit` stamps a default orbit onto events the pattern doesn't
+route itself (`.orbit(n)` wins). The editor works offline; unload stops
+playback on connection loss.

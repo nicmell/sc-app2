@@ -10,16 +10,15 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
-vi.mock("@strudel/codemirror", () => ({ StrudelMirror: class {} }));
+vi.mock("@strudel/codemirror", () => ({
+  StrudelMirror: class {
+    stop() {}
+    clear() {}
+    evaluate() {}
+  },
+}));
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
-// The real singleton arms the master-out scope tap on the `connected` signal
-// (and reads the unmocked scopeIndex getter) — these tests flip that signal
-// to drive the plugins' unload/reload cycle, so stub it out.
-vi.mock("@/lib/scope/ScopeController", () => ({
-  ScopeController: class {},
-  scopeController: { chunkRef: { current: null } },
-}));
 
 import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";

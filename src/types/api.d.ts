@@ -29,8 +29,11 @@ export interface SessionInfo {
   nodeIdBase: number;
   /** How many node ids the frontend may allocate. */
   nodeIdCount: number;
-  /** scsynth scope-buffer index this session's master-out tap uses. */
-  scopeIndex: number;
+  /** First scsynth scope-buffer index this session's scope taps may use;
+   *  the frontend allocates one slot per <sc-scope> from this span. */
+  scopeIndexBase: number;
+  /** How many scope-buffer slots the session owns. */
+  scopeIndexCount: number;
   /** The scsynth `host:port` the bridge talks to (shown in the footer);
    *  empty if the peer is unconfigured. */
   scsynthAddress: string;

@@ -104,7 +104,12 @@ lib/                     non-React infrastructure
                          sequenced send + reply wait: createGroup/createSynth
                          (→ /n_go, returning the allocated node id),
                          sendSynthDef (/d_recv + embedded /sync ack),
-                         freeGroup/freeSynthDef/setControl)
+                         freeGroup/freeSynthDef/freeSynth/setControl,
+                         subscribeScope (mints the subId) / unsubscribeScope /
+                         onScopeChunk (decoded chunks, dispatched from
+                         handleReply) + the scope-slot allocator
+                         (allocScopeIndex/freeScopeIndex over the session's
+                         server-assigned span))
                          → OscWorkerPlugin (osc-js Plugin impl, a thin
                            adapter over lib/worker's WorkerClient)
   worker/                the worker-backed WebSocket transport:
@@ -118,9 +123,10 @@ lib/                     non-React infrastructure
   session/SessionManager (global `session`): mints/revives the session over HTTP,
                          connects oscClient and observes its close (→ conn status),
                          10s layout autosave
-  scope/                 ScopeController (global `scopeController`): master-out tap
-                         synthdef + /scope/chunk → chunkRef; arms/stops itself on
-                         oscClient's `connected` signal
+  scope/                 scopeTapSynthDef: the ScopeOut2 tap def, compiled per
+                         (channels, chunkSize) with inBus/scopeNum as controls.
+                         No controller — each <sc-scope> element owns its tap
+                         through the load/unload pass
   plugins/PluginManager  plugin CRUD + entry-HTML loading over /api/plugins
   synthdef/              compileSynthDef(name, params, specs): the markup-spec →
                          SCgf compiler over @sc-app/synthdef-compiler's primitives
@@ -189,6 +195,12 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   bridge-internal (never routed to a peer).
 * scsynth must boot with `-maxLogins ≥ 2` (`yarn osc` does) so the bridge's
   clientID ≠ sclang's and node-id blocks don't overlap.
+* Scope slots: scsynth boots 128 SHM scope buffers; each session is assigned
+  an aligned span of 8 (`SCOPE_SPAN`, core/scsynth.rs —
+  `scopeIndexBase`/`scopeIndexCount` in the session payload). The frontend
+  allocates one slot per `<sc-scope>` (`oscClient.allocScopeIndex`); the
+  bridge rejects subscribes outside the session's span. One WS supports any
+  number of concurrent scope subscriptions, keyed by subId.
 
 ## Workspace packages (`packages/`)
 
@@ -332,7 +344,9 @@ further `sc-*` element:
 | sc-var | **stub**: parsed + validated + bind-resolved; no live propagation (expressions evaluate at a later step) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
 | sc-run, sc-if, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
-| sc-console, sc-scope, sc-strudel | functional leaves (new-app features; sc-scope is the SHM master-out scope) |
+| sc-console | functional leaf (the OSC console; no attributes) |
+| sc-scope | functional + parametrized: `bus`/`channels` — the element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
+| sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
 | sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step) |
 
 **The load pass**: after the sync parse, `ScPlugin.firstUpdated` awaits

@@ -63,19 +63,30 @@ pub fn parse_subscribe(msg: &OscMessage) -> Option<(i32, usize)> {
     Some((sub_id, scope as usize))
 }
 
+/// Parse a `/scope/unsubscribe subId` message into the subId to drop. (The
+/// TS counterpart is `scopeUnsubscribe(subId)` in
+/// `packages/server-commands/src/commands/scope.ts`.)
+pub fn parse_unsubscribe(msg: &OscMessage) -> Option<i32> {
+    int_arg(msg.args.first()?)
+}
+
 /// Encode a `/scope/chunk subId tickIndex isGap channels data:blob` message.
 /// The blob is `frames × channels` IEEE-754 float32 in **big-endian**,
 /// channel-interleaved (matched by the worker's `parseScopeChunkArgs`).
+/// `ne_samples` is the slot's raw native-endian f32 bytes straight from SHM
+/// — byte-swapped into the blob in this single pass (swapping the u32 bit
+/// pattern swaps the f32 it encodes).
 pub fn encode_scope_chunk(
     sub_id: u32,
     tick_index: u32,
     is_gap: bool,
     channels: u32,
-    interleaved_floats: &[f32],
+    ne_samples: &[u8],
 ) -> Vec<u8> {
-    let mut blob = Vec::with_capacity(interleaved_floats.len() * 4);
-    for &f in interleaved_floats {
-        blob.extend_from_slice(&f.to_be_bytes());
+    let mut blob = Vec::with_capacity(ne_samples.len());
+    for chunk in ne_samples.chunks_exact(4) {
+        let bits = u32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)"));
+        blob.extend_from_slice(&bits.to_be_bytes());
     }
     let msg = OscMessage {
         addr: SCOPE_CHUNK.into(),
@@ -131,7 +142,7 @@ impl ScopeSubscription {
             return None;
         }
         match shm::read_scope_slot(&shm.region, &shm.layout, self.scope_idx) {
-            Ok(ScopeReadResult::Data { floats, channels, stage, frames }) => {
+            Ok(ScopeReadResult::Data { samples, channels, stage, frames }) => {
                 self.last_stage = stage as i32;
                 self.tick = self.tick.wrapping_add(1);
                 self.idle_polls = 0;
@@ -140,7 +151,8 @@ impl ScopeSubscription {
                 // slot's min/max so a flat-zero scope can be traced to the source.
                 if self.debug && self.tick % 50 == 1 {
                     let (mut min, mut max) = (f32::INFINITY, f32::NEG_INFINITY);
-                    for &f in &floats {
+                    for chunk in samples.chunks_exact(4) {
+                        let f = f32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)"));
                         min = min.min(f);
                         max = max.max(f);
                     }
@@ -160,7 +172,7 @@ impl ScopeSubscription {
                     self.tick,
                     false,
                     channels as u32,
-                    &floats,
+                    &samples,
                 ))
             }
             // NotInitialized / NoData: leave `last_stage` so we retry next poll.
@@ -195,13 +207,27 @@ impl ScopeSubscription {
 mod tests {
     use super::*;
 
+    #[test]
+    fn parse_unsubscribe_extracts_sub_id() {
+        let msg = |args: Vec<OscType>| OscMessage { addr: SCOPE_UNSUBSCRIBE.into(), args };
+        assert_eq!(parse_unsubscribe(&msg(vec![OscType::Int(7)])), Some(7));
+        assert_eq!(parse_unsubscribe(&msg(vec![])), None);
+        assert_eq!(parse_unsubscribe(&msg(vec![OscType::String("7".into())])), None);
+    }
+
     /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args
     /// (subId, tickIndex, isGap, channels, blob) and a **big-endian** float32
     /// blob (`1.0` → `3F 80 00 00`), matched by `parseScopeChunkArgs` /
     /// `decodeBlobFloatsBE` in `packages/server-commands/src/commands/scope.ts`.
+    /// The encoder's input is the slot's raw native-endian bytes, as
+    /// read_scope_slot returns them.
     #[test]
     fn encode_scope_chunk_round_trips_with_be_blob() {
-        let bytes = encode_scope_chunk(7, 3, false, 2, &[1.0, -1.0]);
+        let ne_samples: Vec<u8> = [1.0f32, -1.0f32]
+            .iter()
+            .flat_map(|f| f.to_ne_bytes())
+            .collect();
+        let bytes = encode_scope_chunk(7, 3, false, 2, &ne_samples);
         let (_, packet) = rosc::decoder::decode_udp(&bytes).expect("decode");
         let OscPacket::Message(msg) = packet else {
             panic!("expected a message");

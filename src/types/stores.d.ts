@@ -59,7 +59,7 @@ export interface SessionState {
 /** The OSC slice of the app store, owned by the OscClient. */
 export interface OscState {
   /** Transport-level "connection ready" — the session group exists and the
-   *  node-id allocator is armed. Consumers like the ScopeController arm on
+   *  node-id allocator is armed. Consumers like the plugin lifecycle arm on
    *  this; distinct from the session slice's UI `status`. */
   connected: boolean;
   log: LoggedEntry[];

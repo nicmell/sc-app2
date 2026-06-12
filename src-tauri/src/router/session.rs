@@ -46,9 +46,12 @@ struct SessionInfo {
     session_group_id: i32,
     node_id_base: i32,
     node_id_count: i32,
-    /// scsynth scope-buffer index for this session's master-out tap (so
-    /// concurrent windows don't write the same SHM scope buffer).
-    scope_index: i32,
+    /// First scsynth scope-buffer index for this session's scope taps; the
+    /// frontend allocates one slot per `<sc-scope>` from this span (so
+    /// concurrent windows don't write the same SHM scope buffers).
+    scope_index_base: i32,
+    /// How many scope-buffer slots the session owns.
+    scope_index_count: i32,
     /// The `scsynth` peer's `host:port` from config (empty if unconfigured).
     scsynth_address: String,
     /// The saved dashboard layout (opaque to the server); `[]` when none
@@ -63,7 +66,8 @@ impl SessionInfo {
             session_group_id: block.group_id,
             node_id_base: block.node_base,
             node_id_count: block.node_count,
-            scope_index: block.scope_index,
+            scope_index_base: block.scope_index_base,
+            scope_index_count: block.scope_index_count,
             scsynth_address: server.scsynth_address().unwrap_or_default(),
             layout: layout.unwrap_or_else(|| serde_json::json!([])),
         }

@@ -12,9 +12,11 @@ export interface OscSession {
   nodeIdBase: number;
   /** How many node ids this session may allocate. */
   nodeIdCount: number;
-  /** scsynth scope-buffer index this session's master-out tap uses (the
-   *  ScopeController reads it off the client when the connection arms). */
-  scopeIndex: number;
+  /** First scsynth scope-buffer index this session may use — the client
+   *  allocates one slot per scope tap from the span (`allocScopeIndex`). */
+  scopeIndexBase: number;
+  /** How many scope-buffer slots this session owns. */
+  scopeIndexCount: number;
 }
 
 /** What the transport is told to do (WorkerClient → worker). */

@@ -42,7 +42,9 @@ cd src-tauri && cargo check && cargo test
   embedded HTTP server first, then builds the window programmatically with an
   initialization script injecting `window.HTTP_BASE_URL = "http://127.0.0.1:<port>"`
   (the webview origin is `tauri://localhost`, so same-origin URLs don't work).
-  There is **no Tauri IPC** — the webview talks plain HTTP/WS like any browser.
+  There is **no Tauri IPC** — the webview talks plain HTTP/WS like any browser
+  (the API serves permissive CORS: the webview origin — `tauri://localhost`,
+  or the Vite devUrl in dev — is always cross-origin to the loopback server).
 * **Serve** (`sc-app2 serve`): the same server headless; browsers are same-origin
   (or Vite-proxied in dev) and `HTTP_BASE_URL` is `""`.
 

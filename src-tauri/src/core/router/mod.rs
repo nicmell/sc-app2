@@ -19,6 +19,7 @@ use std::sync::Arc;
 use axum::extract::Request;
 use axum::Router;
 use tokio::net::TcpListener;
+use tower_http::cors::CorsLayer;
 
 use crate::core::server::Server;
 use assets::AssetResolver;
@@ -57,7 +58,14 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         .merge(ws::routes())
         .merge(plugin::routes())
         .merge(diag::routes())
-        .with_state(server);
+        .with_state(server)
+        // The GUI webview is ALWAYS cross-origin to this server
+        // (`tauri://localhost` in prod, the Vite devUrl in dev — only a
+        // plain browser via the Vite proxy is same-origin), so without CORS
+        // every fetch from the webview is blocked. Permissive is fine here:
+        // the listener binds 127.0.0.1 only and the API uses no
+        // cookies/credentials.
+        .layer(CorsLayer::permissive());
     if let Some(assets) = assets {
         app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
     }

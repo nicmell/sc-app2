@@ -33,11 +33,7 @@ pub fn run(context: tauri::Context) {
             // The window is built here — not auto-created from the config —
             // so the initialization script can carry the just-bound server
             // port; its shape comes from tauri.conf.json.
-            let window = app
-                .config()
-                .app
-                .windows
-                .first()
+            let window = app.config().app.windows.first()
                 .ok_or("no window declared in tauri.conf.json")?;
             tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
                 .initialization_script(initialization_script(server.port()))

@@ -122,20 +122,50 @@ pub fn parse(text: &str) -> Result<AppConfig, serde_json::Error> {
     Ok(config)
 }
 
+/// Write the default config (pretty JSON) to `path`, creating parent
+/// directories. Shared by the first-run seeding in [`load`] and the
+/// `config write` CLI subcommand.
+pub fn write_default(path: &std::path::Path) -> Result<(), String> {
+    if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
+        std::fs::create_dir_all(dir)
+            .map_err(|e| format!("Error creating \"{}\": {e}", dir.display()))?;
+    }
+    let json = serde_json::to_string_pretty(&AppConfig::default()).map_err(|e| e.to_string())?;
+    std::fs::write(path, json + "\n").map_err(|e| format!("Error writing \"{}\": {e}", path.display()))
+}
+
 /// Load config from an explicit path (serve `--config`) or the canonical
 /// location, tolerating a missing or malformed file (logs and defaults).
+/// A missing CANONICAL file is seeded with the defaults (first run), so
+/// users have a config.json to find and edit; an explicit `--config` path is
+/// the user's own and is never created here (`config write` does that).
 pub fn load(path: Option<PathBuf>) -> AppConfig {
-    let Some(path) = path.or_else(canonical_path) else {
-        return AppConfig::default();
-    };
-    match std::fs::read_to_string(&path) {
+    match path {
+        Some(path) => read(&path, false),
+        None => match canonical_path() {
+            Some(path) => read(&path, true),
+            None => AppConfig::default(),
+        },
+    }
+}
+
+fn read(path: &std::path::Path, seed_when_missing: bool) -> AppConfig {
+    match std::fs::read_to_string(path) {
         Ok(s) => parse(&s).unwrap_or_else(|e| {
             // Pre-tracing: `load` runs before the logger is initialized
             // (we need `log_dir` from here), so this stays an eprintln!.
             eprintln!("[config] ignoring {}: {e}", path.display());
             AppConfig::default()
         }),
-        Err(_) => AppConfig::default(),
+        Err(_) => {
+            if seed_when_missing {
+                match write_default(path) {
+                    Ok(()) => eprintln!("[config] wrote default config to {}", path.display()),
+                    Err(e) => eprintln!("[config] could not seed {}: {e}", path.display()),
+                }
+            }
+            AppConfig::default()
+        }
     }
 }
 
@@ -173,7 +203,27 @@ mod tests {
 
     #[test]
     fn missing_file_falls_back_to_default() {
-        assert_eq!(load(Some(tmp("does-not-exist"))).port, DEFAULT_PORT);
+        let path = tmp("does-not-exist");
+        assert_eq!(load(Some(path.clone())).port, DEFAULT_PORT);
+        // An explicit --config path is never created by load.
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn seeding_writes_the_default_and_round_trips() {
+        let path = std::env::temp_dir()
+            .join("sc-app2-test-seed")
+            .join("config.json");
+        std::fs::remove_file(&path).ok();
+        // The canonical-path behavior: a missing file is seeded…
+        let config = read(&path, true);
+        assert_eq!(config.port, DEFAULT_PORT);
+        assert!(path.exists());
+        // …and the seeded file parses back to the same defaults.
+        let reread = read(&path, false);
+        assert_eq!(reread.port, DEFAULT_PORT);
+        assert_eq!(reread.peers.len(), 2);
+        std::fs::remove_file(&path).ok();
     }
 
     #[test]

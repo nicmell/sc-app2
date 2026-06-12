@@ -47,11 +47,7 @@ fn cmd_write(path: &str) -> Result<(), String> {
     if dest.exists() {
         return Err(format!("\"{path}\" already exists; remove it first"));
     }
-    if let Some(dir) = dest.parent().filter(|d| !d.as_os_str().is_empty()) {
-        std::fs::create_dir_all(dir).map_err(|e| format!("Error creating \"{}\": {e}", dir.display()))?;
-    }
-    let json = serde_json::to_string_pretty(&config::AppConfig::default()).map_err(|e| e.to_string())?;
-    std::fs::write(dest, json + "\n").map_err(|e| format!("Error writing \"{path}\": {e}"))?;
+    config::write_default(dest)?;
     println!("Default config written to \"{path}\".");
     Ok(())
 }

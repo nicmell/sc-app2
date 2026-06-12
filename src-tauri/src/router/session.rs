@@ -6,7 +6,7 @@
 //! (`/g_new` at the tail of scsynth's root group) once its WebSocket is open,
 //! and the session ends when that WebSocket closes (see `router/ws.rs`).
 //!
-//! The dashboard layout is persisted server-side ([`crate::saved_sessions`]):
+//! The dashboard layout is persisted server-side ([`crate::layouts`]):
 //! the frontend periodically `PUT`s it, and at boot `GET` either returns the
 //! live session or **revives** a saved one under the same id (fresh block) so
 //! the layout survives across app runs. `DELETE` ends a live session
@@ -21,8 +21,8 @@ use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::core::scsynth::SessionBlock;
-use crate::saved_sessions;
+use crate::core::blocks::SessionBlock;
+use crate::layouts;
 use crate::server::Server;
 
 /// The `/api/session` routes (mint / fetch-or-revive / save / drop).
@@ -90,7 +90,7 @@ async fn post_session(State(server): State<Server>) -> Response {
 /// Fetch a live session — or revive a saved one under the same id (fresh
 /// block), so a browser's stored session id restores its layout at boot.
 async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
-    let layout = saved_sessions::load_layout(&id);
+    let layout = layouts::load_layout(&id);
     if let Some(block) = server.sessions().block(&id) {
         return Json(SessionInfo::new(&server, id, block, layout)).into_response();
     }
@@ -115,7 +115,7 @@ async fn put_session(
     if !server.sessions().contains(&id) {
         return (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response();
     }
-    match saved_sessions::save_layout(&id, &layout) {
+    match layouts::save_layout(&id, &layout) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
     }

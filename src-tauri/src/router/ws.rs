@@ -22,7 +22,7 @@ use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::core::osc::peek_address;
-use crate::core::scsynth::SessionBlock;
+use crate::core::blocks::SessionBlock;
 use crate::scope::{self, SessionScopes};
 use crate::server::Server;
 
@@ -114,10 +114,7 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
     // This session's whole scope state — subscriptions, span gating, chunk
     // staging — owned here, semantics in crate::scope.
     let mut scopes = SessionScopes::new(block);
-    let mut poll = tokio::time::interval(scope::SCOPE_POLL);
-    // The poll arm is gated on active subscriptions; skip the tick burst
-    // the interval would otherwise replay when a scope re-enables it.
-    poll.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    let mut poll = scope::poll_interval();
     loop {
         tokio::select! {
             // Priority order: uplink commands, then control replies, then the

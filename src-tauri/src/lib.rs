@@ -23,7 +23,7 @@ mod core;
 mod logger;
 mod plugin;
 mod router;
-mod saved_sessions;
+mod layouts;
 mod scope;
 mod server;
 

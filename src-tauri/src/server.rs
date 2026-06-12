@@ -17,7 +17,8 @@ use uuid::Uuid;
 
 use crate::config::AppConfig;
 use crate::core::bridge::Bridge;
-use crate::core::scsynth::{session_block, Scsynth, SessionBlock};
+use crate::core::blocks::{session_block, SessionBlock};
+use crate::core::scsynth::Scsynth;
 use crate::core::sessions::SessionStore;
 use crate::logger::Logger;
 use crate::scope::ScopeShm;

@@ -1,8 +1,9 @@
-//! Saved-session storage: the dashboard layout each session periodically PUTs,
-//! persisted in the app data dir next to the plugins — `sessions/<id>.json`
-//! holds the layout (opaque JSON; the server never interprets it) and
-//! `sessions.json` is the registry, mirroring the plugin one
-//! ([`crate::plugin::manager`]). Stateless fs functions, consumed by the
+//! Saved dashboard layouts (NOT the live sessions — those are
+//! [`core::sessions`](crate::core::sessions)): the layout each session
+//! periodically PUTs, persisted in the app data dir next to the plugins —
+//! `sessions/<id>.json` holds the layout (opaque JSON; the server never
+//! interprets it) and `sessions.json` is the registry, mirroring the plugin
+//! one ([`crate::plugin::manager`]). Stateless fs functions, consumed by the
 //! `/api/session` router: a stored frontend id is revived from here at boot.
 //!
 //! TODO: saved sessions grow without bound — a browser that clears its

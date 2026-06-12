@@ -1,10 +1,11 @@
-//! Per-client session store: node-id sub-block allocation. A passive data
+//! Per-client LIVE session store (the persisted dashboard layouts live in
+//! [`crate::layouts`]): node-id sub-block allocation. A passive data
 //! structure — the OSC group teardown a removal triggers lives in
 //! [`crate::server`] (a session ends when its WebSocket closes, or at
 //! shutdown when every live session is drained and freed one by one).
 //!
-//! Each session maps a [`Uuid`] to its [`SessionBlock`](super::scsynth::SessionBlock)
-//! (minted by the [`scsynth`](super::scsynth) id scheme). Indices are handed
+//! Each session maps a [`Uuid`] to its [`SessionBlock`](super::blocks::SessionBlock)
+//! (minted by the [`blocks`](super::blocks) id scheme). Indices are handed
 //! out monotonically and recycled via a free list, so a session's node-id
 //! block is reused after it's reclaimed.
 
@@ -13,7 +14,7 @@ use std::sync::{Arc, Mutex};
 
 use uuid::Uuid;
 
-use super::scsynth::SessionBlock;
+use super::blocks::SessionBlock;
 
 /// Per-session bookkeeping.
 struct SessionEntry {
@@ -29,7 +30,7 @@ struct StoreState {
     sessions: HashMap<Uuid, SessionEntry>,
     /// Returned session indices, reused before extending `next_index`.
     free: Vec<u32>,
-    /// Next fresh index. Starts at 1 — [`session_block`](super::scsynth::session_block)
+    /// Next fresh index. Starts at 1 — [`session_block`](super::blocks::session_block)
     /// indices are 1-based (index 0 would collide with the block base).
     next_index: u32,
 }
@@ -129,7 +130,7 @@ impl SessionStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::scsynth::session_block;
+    use crate::core::blocks::session_block;
 
     /// Build a block the way `create_session` does (the id scheme is scsynth's).
     fn block_of(index: u32) -> SessionBlock {

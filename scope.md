@@ -30,8 +30,8 @@ named after its UDP port:
 - **Linux**: `/dev/shm/SuperColliderServer_<port>` (POSIX `shm_open`)
 
 The segment holds the control buses and **128 `scope_buffer` instances**
-(`src-tauri/src/scope/shm.rs` pins this count as
-`EXPECTED_SCOPE_BUFFER_COUNT`; `core/scsynth.rs` mirrors it as
+(`src-tauri/src/scope/layout.rs` pins this count as
+`EXPECTED_SCOPE_BUFFER_COUNT`; `core/blocks.rs` mirrors it as
 `SCOPE_BUFFER_COUNT`). The buffers are scattered by Boost's allocator; a
 `bi::vector<offset_ptr<scope_buffer>>` inside the segment is the index → buffer
 map. All pointers in the segment are Boost `offset_ptr`s — self-relative
@@ -104,7 +104,7 @@ the session group in the root, so the master out always scopes Strudel.
 ## 2. Session conventions: scope-slot spans
 
 Each session (one per browser tab / WebSocket) owns an **aligned span of 8
-SHM slots** out of the 128 (`SCOPE_SPAN`, `src-tauri/src/core/scsynth.rs`):
+SHM slots** out of the 128 (`SCOPE_SPAN`, `src-tauri/src/core/blocks.rs`):
 `base = ((sessionIndex - 1) * 8) % 128` — 16 concurrent sessions before spans
 wrap onto each other (the same accepted collision model as the node-id wrap).
 A compile-time guard pins that the span divides the pool, so a span never
@@ -117,7 +117,7 @@ The span travels in the session payload (`scopeIndexBase` /
 re-armed on every connect; freed slots are reused, and exhaustion past 8
 live scopes throws). The bridge **enforces** the span: a `/scope/subscribe`
 naming a slot outside the session's block is logged and ignored
-(`SessionBlock::owns_scope_index`, gated in `router/ws.rs::subscribe_scope`).
+(`SessionBlock::owns_scope_index`, gated in `SessionScopes::subscribe`).
 
 ## 3. The bridge (`src-tauri/src/scope/`, `router/ws.rs`, `server.rs`)
 

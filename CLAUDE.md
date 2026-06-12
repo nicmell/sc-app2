@@ -170,21 +170,28 @@ config/           config.json (port, peers, connect_timeout, log_dir) +
                   app-data-dir paths + the `config` CLI subcommands (cli.rs:
                   write the default / strictly validate one)
 core/bridge.rs    UDP peers (scsynth, strudel) ⇄ broadcast fan-out, pattern routing
-core/scsynth.rs   supervisor: /notify registration, clientID, /status heartbeat,
-                  node-id partitioning (cid<<26 blocks, per-session SESSION_SPAN
-                  sub-blocks), group free helpers
-core/sessions.rs  live-session store (Uuid → block, index recycling)
-saved_sessions.rs saved layouts: sessions.json registry + sessions/<id>.json
+core/blocks.rs    the per-session id-partitioning scheme (pure math): node-id
+                  sub-blocks (cid<<26 blocks, per-session SESSION_SPAN) +
+                  scope-slot spans (SCOPE_SPAN of SCOPE_BUFFER_COUNT)
+core/scsynth.rs   protocol + supervisor: /notify registration, clientID,
+                  /status heartbeat, group free helpers
+core/sessions.rs  LIVE-session store (Uuid → block, index recycling)
+layouts.rs        SAVED dashboard layouts: sessions.json registry +
+                  sessions/<id>.json
 plugin/           zip validation (metadata, XSD entry, assets) + plugins.json
                   registry + the `plugin` CLI subcommands (cli.rs, ported from
                   the old app) over the same manager
 router/           axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
-scope/            scsynth SHM scope buffers → /scope/chunk frames over the WS:
-                  shm.rs (the byte-level reader) + SessionScopes (one session's
-                  subscriptions, span gating, latest-only chunk staging — owned
-                  by the WS task; ws.rs stays pure transport). See scope.md
+scope/            scsynth SHM scope buffers → /scope/chunk frames over the WS,
+                  one file per layer: mmap.rs (read-only mapping + acquire
+                  reads), layout.rs (scope_buffer layout + discovery),
+                  reader.rs (non-mutating slot reader), wire.rs (the /scope/*
+                  contract), session.rs (per-slot cursors + SessionScopes —
+                  one session's subscriptions, span gating, latest-only chunk
+                  staging, owned by the WS task; ws.rs stays pure transport).
+                  See scope.md
 server.rs         app logic glue (axum State): session mint/revive/end, scope SHM
 ```
 
@@ -200,7 +207,7 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 * scsynth must boot with `-maxLogins ≥ 2` (`yarn osc` does) so the bridge's
   clientID ≠ sclang's and node-id blocks don't overlap.
 * Scope slots: scsynth boots 128 SHM scope buffers; each session is assigned
-  an aligned span of 8 (`SCOPE_SPAN`, core/scsynth.rs —
+  an aligned span of 8 (`SCOPE_SPAN`, core/blocks.rs —
   `scopeIndexBase`/`scopeIndexCount` in the session payload). The frontend
   allocates one slot per `<sc-scope>` (`oscClient.allocScopeIndex`); the
   bridge rejects subscribes outside the session's span. One WS supports any

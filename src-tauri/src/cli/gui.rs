@@ -1,14 +1,23 @@
 //! No subcommand — the native GUI run mode: Tauri with the window built
 //! programmatically (so the embedded server can bind first and its base URL
-//! be injected as `window.HTTP_BASE_URL` via an initialization script — the
-//! webview's origin is `tauri://localhost`, not the server), plus the HTTP
-//! server for external clients, which serves the frontend through the
-//! running app's asset resolver.
+//! be injected via [`initialization_script`] — the webview's origin is
+//! `tauri://localhost`, not the server), plus the HTTP server for external
+//! clients, which serves the frontend through the running app's asset
+//! resolver. The window's static shape (label, title, size) is data, not
+//! code: it lives in `tauri.conf.json` under `app.windows` with
+//! `create: false`, so Tauri doesn't auto-create it and [`run`] can build it
+//! from that config at the right moment.
 
 use tauri::Manager;
 
 use crate::core::server::Server;
 use crate::core::{self, router};
+
+/// The injected base-URL bootstrap. It runs before any frontend code, so
+/// `src/http` reads the global synchronously.
+fn initialization_script(port: u16) -> String {
+    format!("window.HTTP_BASE_URL = \"http://127.0.0.1:{port}\";")
+}
 
 pub fn run(context: tauri::Context) {
     let app = tauri::Builder::default()
@@ -21,13 +30,17 @@ pub fn run(context: tauri::Context) {
                 .map_err(|e| format!("server bind: {e}"))?;
             // Keep a handle for the exit hook (tear down scsynth state on close).
             app.manage(server.clone());
-            // The window is created here (not tauri.conf.json) so the injected
-            // base URL can carry the just-bound server port. The script runs
-            // before any frontend code, so `src/http` reads it synchronously.
-            tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::default())
-                .title("sc-app2")
-                .inner_size(800.0, 600.0)
-                .initialization_script(format!("window.HTTP_BASE_URL = \"http://127.0.0.1:{}\";", server.port()))
+            // The window is built here — not auto-created from the config —
+            // so the initialization script can carry the just-bound server
+            // port; its shape comes from tauri.conf.json.
+            let window = app
+                .config()
+                .app
+                .windows
+                .first()
+                .ok_or("no window declared in tauri.conf.json")?;
+            tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
+                .initialization_script(initialization_script(server.port()))
                 .build()?;
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = router::serve(server, listener, assets).await {

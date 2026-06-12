@@ -10,7 +10,15 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [],
+    "windows": [
+      {
+        "label": "main",
+        "title": "sc-app2",
+        "width": 800,
+        "height": 600,
+        "create": false
+      }
+    ],
     "security": {
       "csp": null
     }

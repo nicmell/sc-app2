@@ -1,11 +1,11 @@
-// <sc-synthdef> — declares a synth graph (sc-control + sc-ugen children),
-// compiled to SCgf bytes at parse time (a graph error is an ordinary parse
-// failure) and sent to scsynth in the load pass.
+// <sc-synthdef> — declares a synth graph (sc-control + sc-ugen children).
+// The parse collects the param defaults and the DOM-ordered ugen specs onto
+// the element; the load pass compiles them to SCgf right at /d_recv time and
+// awaits the install ack.
 
 import { property } from "lit/decorators.js";
-import { ADDR_SYNCED, dFree, dRecv, encode, sync, Synced } from "@sc-app/server-commands";
 import { ELEMENTS } from "@/constants/sc-elements";
-import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
+import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
@@ -41,8 +41,10 @@ export class ScSynthDef extends ScElement {
   @property() accessor name = "";
 
   loaded = false;
-  /** The compiled SCgf bytes (parse time); /d_recv'd in the load pass. */
-  bytes!: Uint8Array;
+  /** The param defaults + DOM-ordered ugen specs, collected at parse —
+   *  compiled to SCgf at /d_recv time in the load pass. */
+  params!: Record<string, number>;
+  specs!: UgenSpec[];
 
   validate(): void {
     requireProp(this, "name", this.name);
@@ -51,35 +53,31 @@ export class ScSynthDef extends ScElement {
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
     this.processChildren(ctx);
     // Collect params + per-ugen input specs (DOM order — the bind-order
-    // constraint makes that a valid build order) and compile right here: a
-    // graph error fails the plugin parse like any validation error.
+    // constraint makes that a valid build order); collecting validates that
+    // every ugen input has a bind or value. Compilation waits for load.
     const params = collectControlParams(this as ScElement as ScParentElement);
     const specs = this._scChildren!
       .filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN)
       .map((c) => ({ name: c.name, type: c.ugen, rate: c.rate, op: c.op, inputs: collectUgenInputs(c) }));
-    const bytes = compileSynthDef(this.name, params, specs);
-    return { ...baseRuntime(ctx), loaded: false, bytes };
+    return { ...baseRuntime(ctx), loaded: false, params, specs };
   }
 
-  /** Send the compiled def and await its arrival: /d_recv carries an
-   *  embedded /sync completion, so the /synced ack (matched by a syncId
-   *  unique across WS clients — it comes from the session's node-id block)
-   *  guarantees the def exists before any later sibling's /s_new. */
+  /** Compile the collected specs and install the def: the /d_recv's
+   *  embedded /sync completion guarantees it exists in scsynth before any
+   *  later sibling's /s_new. A graph error fails the load like any other
+   *  pipeline failure (surfaced in the plugin's error box). */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
-    const syncId = oscClient.nextNodeId();
-    const reply = oscClient.once(ADDR_SYNCED, (m) => Synced.syncId(m) === syncId);
-    oscClient.send(dRecv(this.bytes, encode(sync(syncId))));
-    await reply;
+    await oscClient.sendSynthDef(compileSynthDef(this.name, this.params, this.specs));
     this.loaded = true;
   }
 
   /** Free the def on unmount — defs otherwise leak in scsynth. Known
    *  limitation (old-app parity): def names are global to scsynth, so two
-   *  plugins declaring the same name overwrite each other and this dFree
+   *  plugins declaring the same name overwrite each other and this d_free
    *  can break the survivor. */
   unload(): void {
-    if (this.loaded) oscClient.send(dFree(this.name));
+    if (this.loaded) oscClient.freeSynthDef(this.name);
     this.loaded = false;
   }
 }

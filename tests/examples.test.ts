@@ -16,7 +16,8 @@ vi.mock("@strudel/codemirror", () => ({ StrudelMirror: class {} }));
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
 
-import { registerScElements, type ScControl, type ScElement, type ScPlugin, type ScRange } from "@/sc-elements";
+import { registerScElements, type ScControl, type ScElement, type ScPlugin, type ScRange, type ScSynthDef } from "@/sc-elements";
+import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
 const ENTRIES = import.meta.glob("/examples/*/*/{index,entry}.html", {
@@ -108,6 +109,21 @@ describe("functional examples parse clean", () => {
   for (const c of passing) {
     it(`${c.category}/${c.name}`, () => {
       expect(() => parseExample(c.xml)).not.toThrow();
+    });
+  }
+});
+
+describe("every example synthdef compiles", () => {
+  // Compilation happens at /d_recv time in the load pass, not at parse — so
+  // compile each parsed synthdef's collected params/specs here to keep the
+  // unit gate proving the whole graph vocabulary the examples use.
+  for (const c of passing) {
+    it(`${c.category}/${c.name}`, () => {
+      const { host } = parseExample(c.xml);
+      const defs = [...host.querySelectorAll("sc-synthdef")] as ScSynthDef[];
+      for (const def of defs) {
+        expect(() => compileSynthDef(def.name, def.params, def.specs)).not.toThrow();
+      }
     });
   }
 });

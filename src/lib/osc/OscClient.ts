@@ -22,11 +22,23 @@
 
 import OSC from "osc-js";
 import {
+  ADDR_N_GO,
+  ADDR_SYNCED,
   AddToTail,
+  dFree,
+  dRecv,
+  encode,
   flattenPacket,
   formatOscArg,
+  gFreeAll,
   gNewOne,
+  nFree,
+  NodeEvent,
+  nSet,
   SCOPE_CHUNK_ADDRESS,
+  sNew,
+  sync,
+  Synced,
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
@@ -207,9 +219,8 @@ export class OscClient {
    *  with the message; rejects after `timeoutMs` or when the connection
    *  closes. Register BEFORE the `send()` that prompts the reply — the reply
    *  can race in otherwise. One matching reply resolves exactly one waiter
-   *  (FIFO). The sequenced-command primitive: elements compose it with
-   *  `send` + the server-commands constructors (`/d_recv` → `/synced`,
-   *  `/s_new` → `/n_go`). */
+   *  (FIFO). The sequenced-command primitive under the command methods
+   *  below (`/d_recv` → `/synced`, `/s_new`–`/g_new` → `/n_go`). */
   once(
     address: string,
     match: (msg: OSC.Message) => boolean = () => true,
@@ -238,6 +249,62 @@ export class OscClient {
       clearTimeout(w.timer);
       w.reject(err);
     }
+  }
+
+  // ── scsynth command methods ─────────────────────────────────────────────
+  //
+  // The sc-elements' whole OSC vocabulary: every sequenced send + its reply
+  // wait lives here (node ids allocated internally), the elements only await
+  // the returned promises. Fire-and-forget teardown stays void.
+
+  /** Create a group at the tail of `targetId`; resolves with the new node id
+   *  once its `/n_go` confirms. */
+  async createGroup(targetId: number): Promise<number> {
+    const nodeId = this.nextNodeId();
+    const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === nodeId);
+    this.send(gNewOne(nodeId, AddToTail, targetId));
+    await reply;
+    return nodeId;
+  }
+
+  /** Free a group's contents, then the group node itself. */
+  freeGroup(groupId: number): void {
+    this.send(gFreeAll(groupId));
+    this.send(nFree(groupId));
+  }
+
+  /** Install a compiled synthdef; resolves once its embedded `/sync`
+   *  completion round-trips (`/synced` matched by a syncId from the
+   *  session's node-id block — unique across WS clients for free). */
+  async sendSynthDef(bytes: Uint8Array): Promise<void> {
+    const syncId = this.nextNodeId();
+    const reply = this.once(ADDR_SYNCED, (m) => Synced.syncId(m) === syncId);
+    this.send(dRecv(bytes, encode(sync(syncId))));
+    await reply;
+  }
+
+  /** Remove an installed synthdef by name. */
+  freeSynthDef(name: string): void {
+    this.send(dFree(name));
+  }
+
+  /** Create a synth at the tail of `targetId` with its control name-value
+   *  pairs baked in; resolves with the new node id once `/n_go` confirms. */
+  async createSynth(
+    defName: string,
+    targetId: number,
+    controls: Record<string, number>,
+  ): Promise<number> {
+    const nodeId = this.nextNodeId();
+    const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === nodeId);
+    this.send(sNew(defName, nodeId, AddToTail, targetId, controls));
+    await reply;
+    return nodeId;
+  }
+
+  /** Set one control on a live node. */
+  setControl(nodeId: number, name: string, value: number): void {
+    this.send(nSet(nodeId, { [name]: value }));
   }
 
   /** Connection status (an `OSC.STATUS` value). */

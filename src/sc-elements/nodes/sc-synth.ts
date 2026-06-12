@@ -4,7 +4,6 @@
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
 
 import { property } from "lit/decorators.js";
-import { ADDR_N_GO, AddToTail, NodeEvent, sNew } from "@sc-app/server-commands";
 import { isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
@@ -37,11 +36,7 @@ export class ScSynth extends ScNode {
   async load(): Promise<void> {
     await super.load();
     if (!this.isConnected || !this.bind) return;
-    const nodeId = oscClient.nextNodeId();
-    const reply = oscClient.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === nodeId);
-    oscClient.send(sNew(this.bind, nodeId, AddToTail, this.targetGroupId, this.getControls()));
-    await reply;
-    this.nodeId = nodeId;
+    this.nodeId = await oscClient.createSynth(this.bind, this.targetGroupId, this.getControls());
     this.loaded = true;
   }
 

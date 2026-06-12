@@ -17,7 +17,7 @@ vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => unde
 import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
-import { setControlValue } from "@/stores/controls";
+import { setRuntimeValue } from "@/stores/runtime";
 import { registerScElements, type ScControl, type ScDisplay, type ScElement, type ScPlugin, type ScSynth } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
 import xml from "/examples/synths/example-plugin/index.html?raw";
@@ -97,13 +97,13 @@ beforeEach(() => {
 afterEach(() => {
   document.body.replaceChildren(); // disconnects → unload paths run
   vi.restoreAllMocks();
-  appStore.update((s) => ({ ...s, controls: {} }));
+  appStore.update((s) => ({ ...s, runtime: {} }));
 });
 
 describe("load pass", () => {
   it("seeds exactly the enabled controls' defaults, keyed by full path", async () => {
     const { host } = await mountExample();
-    expect(appStore.get().controls[host.id]).toEqual({
+    expect(appStore.get().runtime[host.id]).toEqual({
       "s1.freq": 440,
       "s1.amp": 0.2,
       "s1.pan": 0,
@@ -113,7 +113,7 @@ describe("load pass", () => {
 
   it("parse alone stays store-pure (no seeding before load)", () => {
     parseExample();
-    expect(appStore.get().controls).toEqual({});
+    expect(appStore.get().runtime).toEqual({});
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -160,7 +160,7 @@ describe("ScControl.setValue", () => {
     const synth = host.querySelector("sc-synth") as ScSynth;
 
     freq.setValue(550);
-    expect(appStore.get().controls[host.id]["s1.freq"]).toBe(550);
+    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(550);
     expect(freq.value).toBe(550);
     expect(nSets()).toHaveLength(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "freq", 550]);
@@ -177,7 +177,7 @@ describe("ScControl.setValue", () => {
     const freq = control(host, "freq");
     const range = host.querySelector("sc-range") as ScElement & { updateComplete: Promise<boolean> };
 
-    setControlValue(host.id, "s1.freq", 660);
+    setRuntimeValue(host.id, "s1.freq", 660);
     await range.updateComplete;
     expect(freq.value).toBe(660);
     expect((range.querySelector("input") as HTMLInputElement).value).toBe("660");
@@ -197,7 +197,7 @@ describe("inputs and display", () => {
     input.value = "880";
     input.dispatchEvent(new Event("input"));
 
-    expect(appStore.get().controls[host.id]["s1.freq"]).toBe(880);
+    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(880);
     expect(nSets()).toHaveLength(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "freq", 880]);
     await display.updateComplete;
@@ -213,10 +213,10 @@ describe("inputs and display", () => {
 
     input.checked = true;
     input.dispatchEvent(new Event("change"));
-    expect(appStore.get().controls[host.id]["s1.mute"]).toBe(1);
+    expect(appStore.get().runtime[host.id]["s1.mute"]).toBe(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "mute", 1]);
 
-    setControlValue(host.id, "s1.mute", 0);
+    setRuntimeValue(host.id, "s1.mute", 0);
     await checkbox.updateComplete;
     expect(input.checked).toBe(false);
     expect(nSets()).toHaveLength(1); // the external write sent no OSC
@@ -239,10 +239,10 @@ describe("unmount", () => {
     const input = host.querySelector('sc-range[bind="s1.freq"] input') as HTMLInputElement;
 
     host.remove();
-    expect(appStore.get().controls[host.id]).toBeUndefined();
+    expect(appStore.get().runtime[host.id]).toBeUndefined();
 
     // A write straight into the slice reaches no detached element.
-    setControlValue(host.id, "s1.freq", 999);
+    setRuntimeValue(host.id, "s1.freq", 999);
     expect(freq.value).toBe(440);
     expect(input.value).toBe("440");
     expect(nSets()).toHaveLength(0);

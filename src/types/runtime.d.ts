@@ -1,3 +1,4 @@
+import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
@@ -52,8 +53,10 @@ export interface StateRuntime extends BaseRuntime {
 
 export interface SynthDefRuntime extends BaseRuntime {
   loaded: boolean;
-  /** The compiled SCgf bytes (compiled at parse time; sent on load). */
-  bytes: Uint8Array;
+  /** The param defaults + DOM-ordered ugen specs (collected at parse) —
+   *  compiled to SCgf right at /d_recv time in the load pass. */
+  params: Record<string, number>;
+  specs: UgenSpec[];
 }
 
 export interface InputRuntime extends BaseRuntime {

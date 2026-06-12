@@ -8,10 +8,9 @@
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
-import { ADDR_N_GO, AddToTail, gFreeAll, gNewOne, NodeEvent, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/stores/osc";
-import { dropPluginControls } from "@/stores/controls";
+import { dropPluginRuntime } from "@/stores/runtime";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
@@ -59,11 +58,7 @@ export class ScPlugin extends ScNode {
    *  the group id, so children target `targetGroupId` uniformly. */
   async load(): Promise<void> {
     if (!this.isConnected) return; // unmounted mid-load
-    const groupId = oscClient.nextNodeId();
-    const reply = oscClient.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === groupId);
-    oscClient.send(gNewOne(groupId, AddToTail, oscClient.sessionGroupId));
-    await reply;
-    this.nodeId = groupId;
+    this.nodeId = await oscClient.createGroup(oscClient.sessionGroupId);
     this.loaded = true;
     await super.load();
   }
@@ -72,13 +67,12 @@ export class ScPlugin extends ScNode {
     super.disconnectedCallback();
     this.unload(); // children first, reverse DOM order
     if (this.nodeId !== 0) {
-      oscClient.send(gFreeAll(this.nodeId));
-      oscClient.send(nFree(this.nodeId));
+      oscClient.freeGroup(this.nodeId);
       this.nodeId = 0;
       this.loaded = false;
     }
     if (this.id) {
-      dropPluginControls(this.id);
+      dropPluginRuntime(this.id);
       unregisterTree(this.id);
     }
   }

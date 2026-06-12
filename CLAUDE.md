@@ -74,11 +74,11 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
 runtime/                 the global parsed-element registry (id → the live
                          ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, osc, layout, plugins, controls })
+  store.ts               createStore({ session, osc, layout, plugins, runtime })
                          — the ONLY store. Cross-module shapes come from @/types
                          (type-only by construction), so no runtime cycle with
                          the singletons.
-  controls.ts            live control values per mounted plugin: plugin-root-id
+  runtime.ts             live runtime values per mounted plugin: plugin-root-id
                          → control path ("s1.freq") → number. Seeded from the
                          declarative defaults in the load pass; dropped wholesale
                          on unmount; ScControl.setValue is the only
@@ -99,7 +99,12 @@ lib/                     non-React infrastructure
                          owns /g_new of the session group + nextNodeId allocation,
                          AND the osc store slice: tx/rx console log, /fail–/late
                          banners, /status.reply load + heartbeat watchdog, the
-                         `connected` signal; closes itself on critical failures)
+                         `connected` signal; closes itself on critical failures;
+                         AND the elements' scsynth command methods — every
+                         sequenced send + reply wait: createGroup/createSynth
+                         (→ /n_go, returning the allocated node id),
+                         sendSynthDef (/d_recv + embedded /sync ack),
+                         freeGroup/freeSynthDef/setControl)
                          → OscWorkerPlugin (osc-js Plugin impl, a thin
                            adapter over lib/worker's WorkerClient)
   worker/                the worker-backed WebSocket transport:
@@ -121,7 +126,8 @@ lib/                     non-React infrastructure
                          SCgf compiler over @sc-app/synthdef-compiler's primitives
                          (registry, operators, encoder, graph validation). No topo
                          sort: the bind-order constraint makes DOM order a valid
-                         build order. Called at parse time by sc-synthdef
+                         build order. Called by sc-synthdef at /d_recv time in
+                         the load pass (the parse only collects params + specs)
   strudel/               Strudel bootstrap (prebake) for sc-strudel
   utils/reactiveStore    the minimal store implementation (slices, select, subscribe)
 ```
@@ -320,8 +326,8 @@ further `sc-*` element:
 | element | status |
 |---|---|
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
-| sc-synthdef, sc-ugen | functional: compiled to SCgf at parse time (lib/synthdef), /d_recv + embedded /sync ack in the load pass, /d_free on unmount |
-| sc-synth, sc-control | functional: /s_new (controls baked in) gated on /n_go; setValue → controls store + /n_set. `run="false"` not honored yet (sc-run step) |
+| sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
+| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in, gated on /n_go); setValue → runtime store + setControl (/n_set). `run="false"` not honored yet (sc-run step) |
 | sc-range, sc-checkbox, sc-display | functional, deliberately unstyled (bare native inputs — knob/slider/switch return later): read/write the bound control via selectValue()/setValue() |
 | sc-var | **stub**: parsed + validated + bind-resolved; no live propagation (expressions evaluate at a later step) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
@@ -333,18 +339,21 @@ further `sc-*` element:
 `load()` — an async walk over `_scChildren` in strict DOM order, each child
 fully awaited before the next (no reactive depsReady gates; the bind-order
 constraint makes DOM order a valid dependency order, so /d_recv's ack always
-precedes the dependent /s_new). Sequenced commands use `oscClient.once(address,
-match)` (waiters matched in `handleReply` — also the unit-test seam), each
-registered before its `send`. `unload()` walks in reverse on unmount; synth
+precedes the dependent /s_new). The elements never touch `send`/`once`
+directly — every sequenced send + its reply wait is an OscClient command
+method (createGroup/createSynth/sendSynthDef/…, node ids allocated
+internally), built on `oscClient.once(address, match)` (waiters matched in
+`handleReply` — also the unit-test seam), registered before the send.
+`unload()` walks in reverse on unmount; synth
 nodes die with the plugin group's gFreeAll (no per-synth /n_free). Known
 old-app-parity limitation: synthdef names are global to scsynth — two plugins
 declaring the same name overwrite each other.
 
-**Control values**: one `controls` store slice keyed plugin-root-id → full
+**Runtime values**: one `runtime` store slice keyed plugin-root-id → full
 control path ("s1.freq") → number. Enabled sc-controls seed their declarative
 default in the load pass and mirror the key into their reactive `value` prop;
 `ScControl.setValue()` is the single OSC-dispatching write path (store +
-/n_set via `_parentScNode.nodeId`); a direct slice write is UI-only (views
+`oscClient.setControl` on `_parentScNode.nodeId`); a direct slice write is UI-only (views
 refresh, no echo — two inputs on one control converge with one /n_set per
 gesture). Inputs/displays subscribe through the control's `selectValue()` and
 unsubscribe in `disconnectedCallback`; native inputs bind with Lit's `live()`
@@ -367,8 +376,10 @@ fails), which the old app never hit because it locked 0.8.0.
 (`tests/examples.test.ts`). Loads every example entry via `import.meta.glob`,
 mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
 and runs `host.process({rootNode: host, nodes, scope:
-[host], path:[]})`. Functional examples must parse clean (which now includes
-compiling every synthdef — the registry is plain data, happy-dom-safe); the
+[host], path:[]})`. Functional examples must parse clean, and every parsed
+synthdef's collected params/specs must compile (a dedicated describe — the
+load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
+registry is plain data, happy-dom-safe); the
 runtime `bad-*` fixtures must fail with their **exact** message; plus
 structural assertions (flat runtime merge, range bind targets, `_element`
 identity). The strudel editor stack is vi.mock'ed (browser-only deps); the
@@ -416,7 +427,8 @@ steps, each independently shippable:
 2. **`lib/ugen` + `assets/ugens` + `lib/synthdef`** — DONE, reconciled with
    `@sc-app/synthdef-compiler`: the package provides registry/operators/
    encoder/validation; `lib/synthdef/compileSynthDef.ts` is the markup-spec
-   translation (no SynthDefManager — bytes live on the element).
+   translation (no SynthDefManager — params + specs live on the element,
+   compiled at /d_recv time).
 3. **`types/` + `constants/` + `lib/utils`** — parser types, guards, the bind
    expression parser.
 4. **`lib/html` + `lib/runtime`** — element-tree hydration (cumulative scopes)
@@ -425,12 +437,14 @@ steps, each independently shippable:
    validation stays as-is.
 5. **Core `sc-elements`** — DONE for the synth path:
    `OscClient.once(address, match)` reply matching (waiters in
-   `handleReply`), the sequential `load()`/`unload()` pass, sc-synthdef
-   (/d_recv + /sync ack, /d_free), sc-synth (/s_new gated on /n_go into
+   `handleReply`) + the scsynth command methods (the elements' whole OSC
+   vocabulary), the sequential `load()`/`unload()` pass, sc-synthdef
+   (sendSynthDef: compile + /d_recv + /sync ack; freeSynthDef), sc-synth
+   (createSynth gated on /n_go into
    `targetGroupId`). Remaining: sc-group's own /g_new, sc-var live
    propagation, `run="false"` at /s_new.
 6. **Input elements** — value dispatch is DONE for range/checkbox/display
-   over the `controls` store slice (see "Control values" above — this
+   over the `runtime` store slice (see "Runtime values" above — this
    superseded the earlier no-store-slice design note: per-plugin store maps
    keyed by control path, `ScControl.setValue()` as the single OSC write
    path). Remaining: the knob/slider/switch/combobox internals, sc-if

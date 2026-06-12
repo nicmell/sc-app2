@@ -7,6 +7,16 @@
 //! code: it lives in `tauri.conf.json` under `app.windows` with
 //! `create: false`, so Tauri doesn't auto-create it and [`run`] can build it
 //! from that config at the right moment.
+//!
+//! The config sets `titleBarStyle: "Transparent"` + a dark `backgroundColor`
+//! deliberately: tauri-runtime-wry maps the DEFAULT style (`Visible`) to a
+//! full-size content view on macOS (a workaround for tauri#10225), which puts
+//! the whole webview — the app header, the boot overlay — UNDER the title
+//! bar. `Transparent` is the one style with a normal-size content view, so
+//! nothing renders beneath the bar; the bar shows the window background
+//! (hence the dark color). Known trade-off inherited from #10225: with a
+//! non-full-size content view, opening the docked devtools can push the
+//! content view around — reopen the window if it ever bites.
 
 use tauri::Manager;
 

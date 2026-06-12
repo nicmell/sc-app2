@@ -16,7 +16,9 @@
         "title": "sc-app2",
         "width": 800,
         "height": 600,
-        "create": false
+        "create": false,
+        "titleBarStyle": "Transparent",
+        "backgroundColor": "#15171b"
       }
     ],
     "security": {

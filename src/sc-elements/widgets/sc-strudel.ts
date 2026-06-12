@@ -132,8 +132,8 @@ export class ScStrudel extends ScElement {
       root,
       initialCode: this.initialCode || DEFAULT_CODE,
       defaultOutput,
-      getTime: () => performance.now() / 1000,
       transpiler,
+      getTime: () => performance.now() / 1000,
       prebake: () => ensureStrudelGlobals().then(() => undefined),
       bgFill: false,
       solo: false,
@@ -148,8 +148,42 @@ export class ScStrudel extends ScElement {
       afterEval: () => {
         this.detail = "";
         this.requestUpdate();
+        // Widgets evaluated into the pattern can mount new style modules —
+        // re-bridge so they reach the light-DOM editor too.
+        this.bridgeEditorStyles();
       },
     });
+    this.bridgeEditorStyles();
+    // The ctor applies the persisted strudel defaults (18px / monospace) as
+    // INLINE styles on the editor root and scroller, beating any stylesheet
+    // — re-assert the app's tokens so the editor matches the OSC console's
+    // type (same vars .osc-log uses).
+    root.style.fontFamily = "var(--font-mono)";
+    root.style.fontSize = "var(--font-size-xs)";
+    const scroller = root.querySelector<HTMLElement>(".cm-scroller");
+    if (scroller) scroller.style.fontFamily = "var(--font-mono)";
+  }
+
+  /** CodeMirror mounts its style modules into the editor's COMPOSED-tree
+   *  root: its root detection walks up through `assignedSlot`, so inside a
+   *  plugin — whose markup is slotted into `<sc-plugin>`'s shadow root —
+   *  the styles land in that shadow root's adoptedStyleSheets, where they
+   *  cannot style the editor (its DOM lives in the light tree: broken
+   *  flex layout, no theme colors). Re-adopt those sheets onto the document
+   *  so they actually apply; a constructed sheet may be adopted by many
+   *  roots, so this is safe and idempotent. */
+  private bridgeEditorStyles(): void {
+    if (!("adoptedStyleSheets" in document)) return;
+    // Walk exactly like CodeMirror's root detection (assignedSlot first).
+    let node: Node | null = this;
+    while (node && !(node instanceof ShadowRoot)) {
+      node = (node instanceof Element ? node.assignedSlot : null) ?? node.parentNode;
+    }
+    if (!(node instanceof ShadowRoot)) return; // not slotted — nothing to bridge
+    const missing = node.adoptedStyleSheets.filter((s) => !document.adoptedStyleSheets.includes(s));
+    if (missing.length) {
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, ...missing];
+    }
   }
 
   render() {

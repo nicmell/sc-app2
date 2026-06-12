@@ -23,8 +23,12 @@ use crate::core::sessions::SessionStore;
 use crate::core::logger::Logger;
 use crate::core::scope::ScopeShm;
 
-/// How long to wait for scsynth registration (clientID) before failing a POST.
-const CLIENT_ID_WAIT: Duration = Duration::from_secs(5);
+/// How long a session request long-polls scsynth registration (clientID)
+/// before answering 503. Just enough to absorb the common race (server up,
+/// /notify in flight — the supervisor retries every 1 s); the frontend's
+/// bounded retry loop is the real waiter, so a long bound here only delays
+/// its "no connection" advice.
+const CLIENT_ID_WAIT: Duration = Duration::from_secs(1);
 
 /// The shared application core. Cheap to clone (Arc-backed), so it doubles as
 /// the axum `State`.

@@ -21,7 +21,7 @@ vi.mock("@/lib/http", async (importOriginal) => ({
 }));
 
 import { HttpError } from "@/lib/http";
-import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS } from "@/constants/session";
+import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { SessionManager } from "@/lib/session/SessionManager";
 import { appStore } from "@/stores/store";
 
@@ -78,6 +78,20 @@ describe("SessionManager boot", () => {
     // The in-flight timer fires, but the disposed guard stops the loop
     // before any further request.
     expect(http.post).toHaveBeenCalledTimes(1);
+  });
+
+  it("a 503 on revive enters the quiet loop without burning the fallback POST", async () => {
+    localStorage.setItem(SESSION_KEY, "00000000-0000-0000-0000-000000000000");
+    http.get.mockRejectedValue(new HttpError(503, "Service Unavailable"));
+    const manager = new SessionManager();
+
+    await manager.start();
+    // The revive's 503 already says "scsynth not registered" — the fresh-mint
+    // POST would only spend a second registration long-poll on the same news.
+    expect(http.get).toHaveBeenCalledTimes(1);
+    expect(http.post).not.toHaveBeenCalled();
+    expect(manager.status.get()).toBe("connecting");
+    manager.dispose();
   });
 
   it("any other failure flips to the error modal with no auto-retry", async () => {

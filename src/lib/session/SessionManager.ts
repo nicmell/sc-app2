@@ -25,19 +25,21 @@ import { appStore } from "@/stores/store";
 import type { SessionInfo } from "@/types/api";
 import type { BoxItem, ConnStatus } from "@/types/stores";
 
-/** Mint a fresh session. The server allocates the group id + node range. It
- *  only starts serving after scsynth's first registration, so a 503 (scsynth
- *  not registered) can only mean a later outage — fail immediately. */
+/** Mint a fresh session. The server allocates the group id + node range;
+ *  503 = scsynth not registered (the bounded quiet-retry case). */
 async function createSession(): Promise<SessionInfo> {
   return await (await post("/api/session")).json();
 }
 
 /** Revive a stored session id (GET returns its info + saved layout), or
- *  `null` on any failure — the caller falls back to minting a fresh one. */
+ *  `null` on failure — the caller falls back to minting a fresh one. A 503
+ *  propagates instead: scsynth isn't registered, so the fallback POST would
+ *  only burn a second registration long-poll to learn the same thing. */
 async function fetchSession(id: string): Promise<SessionInfo | null> {
   try {
     return await (await get(`/api/session/${id}`)).json();
-  } catch {
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 503) throw e;
     return null;
   }
 }

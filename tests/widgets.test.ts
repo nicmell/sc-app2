@@ -224,6 +224,76 @@ describe("sc-scope", () => {
       '"frames" attribute must be ≤ 16384 (got "32768")',
     );
   });
+
+  it("parses the display props (and defaults them per the scope conventions)", async () => {
+    const host = await mountXml(
+      '<sc-scope channels="1" trigger="normal" slope="falling" level="0.1" gain="2" layout="split"/>',
+    );
+    const scope = host.querySelector("sc-scope") as ScScope;
+    expect([scope.trigger, scope.slope, scope.level, scope.gain, scope.layout]).toEqual([
+      "normal", "falling", 0.1, 2, "split",
+    ]);
+
+    document.body.replaceChildren();
+    const bare = await mountXml("<sc-scope/>");
+    const def = bare.querySelector("sc-scope") as ScScope;
+    expect([def.trigger, def.slope, def.level, def.gain, def.layout]).toEqual([
+      "auto", "rising", 0, 1, "overlay",
+    ]);
+  });
+
+  it("rejects invalid display props at parse", async () => {
+    await expect(mountXml('<sc-scope trigger="bogus"/>')).rejects.toThrow(
+      '"trigger" attribute must be one of auto|normal|off (got "bogus")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml('<sc-scope slope="up"/>')).rejects.toThrow(
+      '"slope" attribute must be one of rising|falling (got "up")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml('<sc-scope gain="0"/>')).rejects.toThrow(
+      '"gain" attribute must be a positive number (got "0")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml('<sc-scope layout="stack"/>')).rejects.toThrow(
+      '"layout" attribute must be one of overlay|split (got "stack")',
+    );
+  });
+
+  it("resolves the drawn window per trigger mode: pin, fallback, hold", async () => {
+    const mkChunk = (data: Float32Array) => ({
+      subId: 1, tickIndex: 0, isGap: false, channels: 1, frameCount: data.length, data,
+    });
+    // 8 cycles in 1024 samples starting at the trough: rising zero-crossing
+    // at sample 32 — inside the 256-sample search headroom.
+    const periodic = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) periodic[i] = 0.5 * Math.sin(-Math.PI / 2 + (2 * Math.PI * 8 * i) / 1024);
+    const triggerless = new Float32Array(1024).fill(0.5); // DC — never crosses
+
+    const host = await mountXml('<sc-scope channels="1" trigger="normal"/>');
+    const scope = host.querySelector("sc-scope") as ScScope;
+    const resolve = (c: ReturnType<typeof mkChunk>) =>
+      (scope as unknown as { resolveWindow(c: unknown): { chunk: unknown; offset: number; span: number } | null })
+        .resolveWindow(c);
+
+    // Triggered: pinned to the crossing, ¾ window after the search headroom.
+    const a = resolve(mkChunk(periodic));
+    expect(a).toMatchObject({ offset: 32, span: 768 });
+
+    // normal + no trigger: the last triggered window is held verbatim.
+    const b = resolve(mkChunk(triggerless));
+    expect(b).toBe(a);
+
+    // auto + no trigger: free-runs the new chunk from sample 0.
+    scope.trigger = "auto";
+    const c = resolve(mkChunk(triggerless));
+    expect(c).toMatchObject({ offset: 0, span: 768 });
+    expect(c!.chunk).not.toBe(a!.chunk);
+
+    // off: the raw full window.
+    scope.trigger = "off";
+    expect(resolve(mkChunk(periodic))).toMatchObject({ offset: 0, span: 1024 });
+  });
 });
 
 describe("sc-strudel", () => {

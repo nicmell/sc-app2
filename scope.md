@@ -257,8 +257,43 @@ Conventions:
   unit-test seam — tests feed chunks straight into it. The handler map is
   cleared on connect (fresh subId space).
 
-`<sc-scope bus channels>` (defaults `0` / `2`) owns the lifecycle through the
-element load pass:
+### `<sc-scope>` props
+
+Tap props (change what scsynth runs — the def is compiled per
+`(channels, frames)`):
+
+| prop | default | meaning |
+|---|---|---|
+| `bus` | `0` | first audio bus the tap reads (0 = master out L) |
+| `channels` | `2` | consecutive buses read from `bus`; also the lane count |
+| `frames` | `1024` (≤ 16384) | samples per chunk = the visible window (`frames/sampleRate` seconds). The slot completes — and the view refreshes — at the inverse rate, so bigger windows page rather than flow; the SHM slot is allocated at this size, hence the ceiling |
+
+Display props (renderer-only — the tap, wire and bridge are untouched; all
+enforced by the element's `validate()`):
+
+| prop | default | meaning |
+|---|---|---|
+| `trigger` | `auto` | the scope-literature trigger mode. A free-running scope draws each chunk from sample 0, so the trace's phase drifts (or ghosts into N superimposed copies at near-rational `freq × frames / sampleRate`). Triggered modes pin the drawn window to a level crossing instead: `auto` = trigger when a crossing is found, free-run the chunk otherwise; `normal` = hold the last *triggered* trace otherwise (clean for periodic signals, freezes on silence); `off` = always free-run |
+| `slope` | `rising` | trigger slope: the crossing direction |
+| `level` | `0` | trigger level: the threshold to cross (sample units, pre-`gain`) |
+| `gain` | `1` | vertical scale: sample × gain maps ±1 to the lane height (a 0.9 padding stays internal); over-gained lanes clip in `split`, overflow in `overlay` |
+| `layout` | `overlay` | `overlay` superimposes all lanes around one midline; `split` stacks per-channel bands, each with its own zero line and clip rect |
+
+Trigger internals (`src/lib/scope/trigger.ts`, pure + unit-tested): the
+**source is lane 0** — all lanes draw at the found offset so they stay
+time-aligned, like a bench scope sweeping every channel off ch 1. The search
+uses the chunk's **first quarter as headroom** and displays the remaining ¾
+from the crossing, so a trigger exists only for periods ≤ `frames/4` samples
+(at 1024/48 kHz: ≥ ~187 Hz — raise `frames` to lock lower pitches). A fixed
+**hysteresis** (±0.02 full-scale) arms the trigger — the signal must retreat
+past the margin before a crossing fires — so noise riding near the level
+can't false-trigger. `off` draws the full `frames`; triggered modes draw
+¾ × `frames`, in both fallback and pinned traces, so the time scale doesn't
+jump between chunks.
+
+### Lifecycle
+
+`<sc-scope>` owns the tap through the element load pass:
 
 ```
 load():   slot = allocScopeIndex()

@@ -10,6 +10,14 @@
 // global controller had), and subscribes to the bridge's /scope/chunk stream
 // filtered by its own subId; unload() reverses all of it, so the connection
 // lifecycle (disconnect → unload, reconnect → reload) re-arms taps for free.
+//
+// Display props (renderer-only — the tap/wire carry the same chunks):
+// `trigger` (auto|normal|off), `slope` (rising|falling) + `level` pin the
+// drawn window to a level crossing on lane 0 like a bench scope's edge
+// trigger (see lib/scope/trigger.ts and scope.md §5); `gain` scales the
+// vertical axis; `layout` (overlay|split) stacks the lanes into per-channel
+// bands instead of superimposing them.
+//
 // The canvas + RAF loop render the latest chunk. Light DOM (no shadow) so
 // ui-foundation tokens + the .sc-scope CSS apply; styled in App.css.
 
@@ -18,12 +26,24 @@ import { property } from "lit/decorators.js";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
 import { SCOPE_CHANNELS, SCOPE_CHUNK_SIZE, SCOPE_INPUT_BUS, SCOPE_MAX_FRAMES } from "@/constants/osc";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
+import { findTriggerOffset } from "@/lib/scope/trigger";
 import { oscClient } from "@/stores/osc";
 import { failValidation, requireNoScChildren, requireNumeric } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-/** Vertical gain applied to the ±1 sample range before drawing. */
-const GAIN = 0.9;
+/** Padding factor: ±1 (after `gain`) maps to this fraction of the lane. */
+const PAD = 0.9;
+
+const TRIGGER_MODES = ["auto", "normal", "off"] as const;
+const SLOPES = ["rising", "falling"] as const;
+const LAYOUTS = ["overlay", "split"] as const;
+
+/** One resolved draw: which chunk, from which sample, how many samples. */
+interface DrawWindow {
+  chunk: DecodedScopeChunk;
+  offset: number;
+  span: number;
+}
 
 export class ScScope extends ScElement {
   /** First audio bus the tap reads. */
@@ -32,6 +52,17 @@ export class ScScope extends ScElement {
   @property({ type: Number }) accessor channels = SCOPE_CHANNELS;
   /** Frames per chunk = the visible window (frames/sampleRate seconds). */
   @property({ type: Number }) accessor frames = SCOPE_CHUNK_SIZE;
+  /** Trigger mode: `auto` (trigger when found, free-run otherwise),
+   *  `normal` (hold the last triggered trace otherwise), `off` (free-run). */
+  @property() accessor trigger = "auto";
+  /** Trigger slope: the crossing direction on lane 0. */
+  @property() accessor slope = "rising";
+  /** Trigger level: the threshold lane 0 must cross. */
+  @property({ type: Number }) accessor level = 0;
+  /** Vertical scale: sample × gain maps ±1 to the full lane height. */
+  @property({ type: Number }) accessor gain = 1;
+  /** `overlay` superimposes the lanes; `split` stacks per-channel bands. */
+  @property() accessor layout = "overlay";
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */
@@ -58,6 +89,20 @@ export class ScScope extends ScElement {
     }
     if (this.frames > SCOPE_MAX_FRAMES) {
       failValidation(this, `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this.frames}")`);
+    }
+    if (!(TRIGGER_MODES as readonly string[]).includes(this.trigger)) {
+      failValidation(this, `"trigger" attribute must be one of auto|normal|off (got "${this.trigger}")`);
+    }
+    if (!(SLOPES as readonly string[]).includes(this.slope)) {
+      failValidation(this, `"slope" attribute must be one of rising|falling (got "${this.slope}")`);
+    }
+    requireNumeric(this, "level", this.level);
+    requireNumeric(this, "gain", this.gain);
+    if (!(this.gain > 0)) {
+      failValidation(this, `"gain" attribute must be a positive number (got "${this.gain}")`);
+    }
+    if (!(LAYOUTS as readonly string[]).includes(this.layout)) {
+      failValidation(this, `"layout" attribute must be one of overlay|split (got "${this.layout}")`);
     }
   }
 
@@ -90,6 +135,7 @@ export class ScScope extends ScElement {
     oscClient.freeSynth(this.tapNodeId);
     oscClient.freeScopeIndex(this.scopeIdx);
     this.chunkRef.current = null;
+    this.held = null;
     this.tapNodeId = 0;
     this.scopeIdx = -1;
     this.loaded = false;
@@ -108,6 +154,9 @@ export class ScScope extends ScElement {
   private drawnChunk: DecodedScopeChunk | null = null;
   private drawnW = 0;
   private drawnH = 0;
+  /** `normal` mode's hold: the last triggered window, redrawn while no new
+   *  chunk triggers (a bench scope's "no trigger → keep the trace"). */
+  private held: DrawWindow | null = null;
 
   // Light DOM: render into the element itself.
 
@@ -126,6 +175,10 @@ export class ScScope extends ScElement {
     this.startLoop();
   }
 
+  protected updated(): void {
+    this.drawnW = 0; // a display prop may have changed — repaint next frame
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
     cancelAnimationFrame(this.raf);
@@ -137,6 +190,35 @@ export class ScScope extends ScElement {
       this.drawFrame();
     };
     this.raf = requestAnimationFrame(draw);
+  }
+
+  /** Resolve the latest chunk against the trigger props into the window to
+   *  draw. Triggered modes reserve the chunk's first quarter as search
+   *  headroom and display the remaining ¾ from the found crossing, so every
+   *  trace starts at the same phase; signals whose period exceeds the
+   *  headroom (or never cross the level) fall back per the mode. */
+  private resolveWindow(chunk: DecodedScopeChunk): DrawWindow | null {
+    const perChannel = (chunk.data.length / chunk.channels) | 0;
+    if (perChannel < 2) return null;
+    const headroom = perChannel >> 2;
+    if (this.trigger === "off" || headroom === 0) {
+      return { chunk, offset: 0, span: perChannel };
+    }
+    const offset = findTriggerOffset(
+      chunk.data, // lane 0 = the planar chunk's first perChannel samples
+      headroom,
+      this.level,
+      this.slope === "rising",
+    );
+    const span = perChannel - headroom;
+    if (offset !== null) {
+      this.held = { chunk, offset, span };
+      return this.held;
+    }
+    if (this.trigger === "normal" && this.held && this.held.chunk.channels === chunk.channels) {
+      return this.held; // hold the last triggered trace
+    }
+    return { chunk, offset: 0, span }; // auto fallback: free-run this chunk
   }
 
   private drawFrame(): void {
@@ -162,38 +244,53 @@ export class ScScope extends ScElement {
       canvas.height = bh;
     }
 
+    const win = chunk && chunk.data.length >= 2 ? this.resolveWindow(chunk) : null;
+    const bands = win && this.layout === "split" ? win.chunk.channels : 1;
+    const bandH = h / bands;
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = this.bg;
     ctx.fillRect(0, 0, w, h);
 
     ctx.strokeStyle = this.zero;
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, h / 2);
-    ctx.lineTo(w, h / 2);
-    ctx.stroke();
+    for (let b = 0; b < bands; b++) {
+      const mid = b * bandH + bandH / 2;
+      ctx.beginPath();
+      ctx.moveTo(0, mid);
+      ctx.lineTo(w, mid);
+      ctx.stroke();
+    }
 
-    if (!chunk || chunk.data.length < 2) return;
-    const { data, channels } = chunk;
-    const perChannel = (data.length / channels) | 0;
-    if (perChannel < 2) return;
+    if (!win || win.span < 2) return;
+    const { data, channels } = win.chunk;
+    const perChannel = (win.chunk.data.length / channels) | 0;
 
-    const xStep = w / (perChannel - 1);
-    const mid = h / 2;
+    const xStep = w / (win.span - 1);
     ctx.lineWidth = 1.25;
     for (let c = 0; c < channels; c++) {
+      const mid = (this.layout === "split" ? c : 0) * bandH + bandH / 2;
+      const yScale = this.gain * PAD * (bandH / 2);
+      ctx.save();
+      if (this.layout === "split") {
+        // Keep an over-gained lane inside its own band.
+        ctx.beginPath();
+        ctx.rect(0, c * bandH, w, bandH);
+        ctx.clip();
+      }
       ctx.strokeStyle = this.chans[c % this.chans.length];
       ctx.beginPath();
-      for (let i = 0; i < perChannel; i++) {
+      for (let i = 0; i < win.span; i++) {
         // The chunk is PLANAR (scsynth's scope_buffer layout: one contiguous
         // frame run per channel), not interleaved.
-        const sample = data[c * perChannel + i];
+        const sample = data[c * perChannel + win.offset + i];
         const x = i * xStep;
-        const y = mid - sample * GAIN * mid;
+        const y = mid - sample * yScale;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
+      ctx.restore();
     }
   }
 }

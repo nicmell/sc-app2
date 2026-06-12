@@ -172,12 +172,20 @@
 
   <!-- sc-scope: a tap over `channels` consecutive buses starting at `bus`
        (defaults: the stereo master out); `frames` is the visible window in
-       samples (default 1024). The frontend validate() enforces the integer
-       ranges. -->
+       samples (default 1024). Display props: `trigger` (auto|normal|off) +
+       `slope` (rising|falling) + `level` pin the drawn window to a level
+       crossing on the first lane; `gain` scales the vertical axis; `layout`
+       (overlay|split) stacks per-channel bands. The frontend validate()
+       enforces the ranges and enumerations. -->
   <xs:complexType name="scScopeType">
     <xs:attribute name="bus" type="xs:integer"/>
     <xs:attribute name="channels" type="xs:integer"/>
     <xs:attribute name="frames" type="xs:integer"/>
+    <xs:attribute name="trigger" type="xs:string"/>
+    <xs:attribute name="slope" type="xs:string"/>
+    <xs:attribute name="level" type="xs:decimal"/>
+    <xs:attribute name="gain" type="xs:decimal"/>
+    <xs:attribute name="layout" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

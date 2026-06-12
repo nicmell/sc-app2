@@ -54,9 +54,10 @@ export interface DecodedScopeChunk {
   isGap: boolean;
   channels: number;
   frameCount: number;
-  /** Interleaved samples, `frameCount × channels` floats. Owns its
-   *  own `ArrayBuffer` (allocated fresh by the byte-swap loop) so
-   *  the worker can transfer it across postMessage. */
+  /** Planar samples (one frame run per channel — the SHM slot's own
+   *  layout), `frameCount × channels` floats. Owns its own
+   *  `ArrayBuffer` (allocated fresh by the byte-swap loop) so the
+   *  worker can transfer it across postMessage. */
   data: Float32Array;
 }
 

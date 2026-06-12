@@ -1,13 +1,14 @@
-//! `serve` — the headless run mode: build the stack ([`crate::core::start`])
-//! and serve the API + frontend on the main thread until a shutdown signal.
+//! `serve` — the headless run mode: boot the engine
+//! ([`core::start`](crate::core::start)) and serve the API + frontend on the
+//! main thread until a shutdown signal. Errors (a failed bind, a serve-loop
+//! failure) report through the dispatcher's `exit_cli` like any other
+//! command's.
 
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use clap::Args;
 
-use crate::core::logger::Logger;
-use crate::core::{self, config::AppConfig, router};
+use crate::core::{self, router};
 
 #[derive(Args)]
 pub struct ServeArgs {
@@ -19,12 +20,14 @@ pub struct ServeArgs {
     pub log_dir: Option<PathBuf>,
 }
 
-pub fn run(config: AppConfig, context: tauri::Context, logger: Arc<Logger>) {
+pub fn run(args: ServeArgs, context: tauri::Context) -> Result<(), String> {
     tauri::async_runtime::block_on(async move {
         let assets = router::assets::from_context(context);
-        let (server, listener) = core::start(config, logger).await.expect("failed to bind server");
-        if let Err(e) = router::serve(server, listener, assets).await {
-            tracing::error!(error = %e, "server error");
-        }
-    });
+        let (server, listener) = core::start(args.config, args.log_dir)
+            .await
+            .map_err(|e| format!("server bind: {e}"))?;
+        router::serve(server, listener, assets)
+            .await
+            .map_err(|e| format!("server error: {e}"))
+    })
 }

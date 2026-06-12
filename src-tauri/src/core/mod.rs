@@ -43,7 +43,7 @@ pub mod scsynth;
 pub mod server;
 pub mod sessions;
 
-use std::sync::Arc;
+use std::path::PathBuf;
 
 use tokio::net::TcpListener;
 
@@ -51,14 +51,21 @@ use bridge::Bridge;
 use scsynth::Scsynth;
 use server::Server;
 
-/// Connect the OSC bridge, build the [`Server`] over a fresh scsynth
-/// supervisor, and bind the listener — the composition root shared by the
-/// serve and GUI run modes ([`crate::cli`]). `assets` (the per-mode input) is
-/// handed to [`router::serve`] by the caller, not stored here.
+/// Boot the whole engine — the one composition root both run modes
+/// ([`crate::cli`]) call: resolve the config (an explicit path overrides the
+/// canonical location), initialize logging (the `log_dir` flag overrides the
+/// config's; the [`Server`] owns the flush guard), connect the OSC bridge,
+/// supervise scsynth, build the [`Server`], and bind the listener. `assets`
+/// (the per-mode input) is handed to [`router::serve`] by the caller, not
+/// stored here.
 pub async fn start(
-    config: config::AppConfig,
-    logger: Arc<logger::Logger>,
+    config_path: Option<PathBuf>,
+    log_dir: Option<PathBuf>,
 ) -> std::io::Result<(Server, TcpListener)> {
+    let config = config::load(config_path);
+    // Effective log dir: the --log-dir flag (serve only) > config `log_dir`.
+    let log_dir = log_dir.or_else(|| config.log_dir.clone());
+    let logger = logger::Logger::init(log_dir.as_deref());
     let bridge = Bridge::connect(
         &config.peers,
         std::time::Duration::from_secs(config.connect_timeout),

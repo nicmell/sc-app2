@@ -168,15 +168,17 @@ by `core::start`); `lib.rs` is just the module tree + `run()`.
 
 ```
 lib.rs            module tree + pub fn run() → cli::run()
-cli/              mod.rs (clap definitions + the single exhaustive dispatch
-                  + the run modes' shared `boot` prelude: config load, the
-                  ONE tauri generate_context!, logger init);
+cli/              mod.rs (clap definitions + the single exhaustive dispatch —
+                  every command but the GUI reports through exit_cli — and
+                  the ONE tauri generate_context! site);
                   serve.rs (ServeArgs + the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
                   plugin.rs (validate|add|remove|list, over core/plugin's
                   manager), config.rs (write|validate)
-core/             mod.rs also exports start(): bridge → scsynth supervisor →
-                  Server → router::listen — the composition root
+core/             mod.rs also exports start(config_path, log_dir) — the ONE
+                  composition root both run modes call: config load + logger
+                  init (the Server owns the flush guard) + bridge → scsynth
+                  supervisor → Server → router::listen
   bridge.rs       UDP peers (scsynth, strudel) ⇄ broadcast fan-out, routing
   osc.rs/peer.rs  generic OSC helpers / connected UDP peers
   scsynth.rs      protocol + supervisor: /notify registration, clientID,

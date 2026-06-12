@@ -1,5 +1,8 @@
 // <sc-scope> — a waveform view of `channels` consecutive audio buses starting
-// at `bus` (defaults: the stereo master out). The element owns its whole tap
+// at `bus` (defaults: the stereo master out), showing a window of `frames`
+// samples (the visible time span = frames/sampleRate; the slot completes —
+// and the view refreshes — at the inverse rate, so bigger windows page
+// rather than flow). The element owns its whole tap
 // through the load pass: load() installs the tap synthdef (ScopeOut2 into a
 // scope-buffer slot allocated from the session's span), creates the tap synth
 // at the tail of the SESSION group (it reads post-everything as of load time —
@@ -13,7 +16,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
-import { SCOPE_CHANNELS, SCOPE_CHUNK_SIZE, SCOPE_INPUT_BUS } from "@/constants/osc";
+import { SCOPE_CHANNELS, SCOPE_CHUNK_SIZE, SCOPE_INPUT_BUS, SCOPE_MAX_FRAMES } from "@/constants/osc";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
 import { oscClient } from "@/stores/osc";
 import { failValidation, requireNoScChildren, requireNumeric } from "@/sc-elements/internal/validation";
@@ -27,6 +30,8 @@ export class ScScope extends ScElement {
   @property({ type: Number }) accessor bus = SCOPE_INPUT_BUS;
   /** How many consecutive buses (from `bus`) the tap reads. */
   @property({ type: Number }) accessor channels = SCOPE_CHANNELS;
+  /** Frames per chunk = the visible window (frames/sampleRate seconds). */
+  @property({ type: Number }) accessor frames = SCOPE_CHUNK_SIZE;
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */
@@ -47,21 +52,28 @@ export class ScScope extends ScElement {
     if (!Number.isInteger(this.channels) || this.channels < 1) {
       failValidation(this, `"channels" attribute must be a positive integer (got "${this.channels}")`);
     }
+    requireNumeric(this, "frames", this.frames);
+    if (!Number.isInteger(this.frames) || this.frames < 1) {
+      failValidation(this, `"frames" attribute must be a positive integer (got "${this.frames}")`);
+    }
+    if (this.frames > SCOPE_MAX_FRAMES) {
+      failValidation(this, `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this.frames}")`);
+    }
   }
 
   /** Install + start the tap and subscribe its chunk stream. */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
     this.scopeIdx = oscClient.allocScopeIndex();
-    await oscClient.sendSynthDef(compileScopeTapSynthDef(this.channels, SCOPE_CHUNK_SIZE));
+    await oscClient.sendSynthDef(compileScopeTapSynthDef(this.channels, this.frames));
     this.tapNodeId = await oscClient.createSynth(
-      scopeTapSynthDefName(this.channels, SCOPE_CHUNK_SIZE),
+      scopeTapSynthDefName(this.channels, this.frames),
       oscClient.sessionGroupId,
       { inBus: this.bus, scopeNum: this.scopeIdx },
     );
     // One call wires the whole stream: the handler is registered under the
     // minted subId before the subscribe goes out, and dispatch is keyed.
-    this.stream = oscClient.subscribeScope(this.scopeIdx, this.channels, SCOPE_CHUNK_SIZE, (chunk) => {
+    this.stream = oscClient.subscribeScope(this.scopeIdx, this.channels, this.frames, (chunk) => {
       this.chunkRef.current = chunk;
     });
     this.loaded = true;
@@ -173,7 +185,9 @@ export class ScScope extends ScElement {
       ctx.strokeStyle = this.chans[c % this.chans.length];
       ctx.beginPath();
       for (let i = 0; i < perChannel; i++) {
-        const sample = data[i * channels + c];
+        // The chunk is PLANAR (scsynth's scope_buffer layout: one contiguous
+        // frame run per channel), not interleaved.
+        const sample = data[c * perChannel + i];
         const x = i * xStep;
         const y = mid - sample * GAIN * mid;
         if (i === 0) ctx.moveTo(x, y);

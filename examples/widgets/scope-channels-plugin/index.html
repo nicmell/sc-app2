@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Scope Channels Plugin</title>
+</head>
+<body>
+<sc-synthdef name="stereoPair">
+    <sc-control name="freqL" value="220"/>
+    <sc-control name="freqR" value="331"/>
+    <sc-control name="amp" value="0.4"/>
+    <sc-control name="gate" value="1"/>
+    <sc-ugen name="oscL" type="SinOsc">
+        <sc-control name="freq" bind="freqL"/>
+    </sc-ugen>
+    <sc-ugen name="oscR" type="Saw">
+        <sc-control name="freq" bind="freqR"/>
+    </sc-ugen>
+    <sc-ugen name="level" type="BinaryOpUGen" op="*" rate="kr">
+        <sc-control name="a" bind="amp"/>
+        <sc-control name="b" bind="gate"/>
+    </sc-ugen>
+    <sc-ugen name="sigL" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="oscL"/>
+        <sc-control name="b" bind="level"/>
+    </sc-ugen>
+    <sc-ugen name="sigR" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="oscR"/>
+        <sc-control name="b" bind="level"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind="sigL,sigR"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="s1" bind="stereoPair">
+    <sc-control name="freqL" value="220"/>
+    <sc-control name="freqR" value="331"/>
+    <sc-control name="amp" value="0.4"/>
+    <sc-control name="gate" value="1"/>
+</sc-synth>
+<div style="display:flex;flex-direction:column;height:100%;gap:8px;">
+    <div style="display:flex;gap:16px;align-items:center;flex:none;">
+        <label>
+            <span>L (sine): <sc-display bind="s1.freqL" format="%d Hz"/></span>
+            <sc-range type="slider" bind="s1.freqL" min="20" max="2000" step="1" width="140" height="16"/>
+        </label>
+        <label>
+            <span>R (saw): <sc-display bind="s1.freqR" format="%d Hz"/></span>
+            <sc-range type="slider" bind="s1.freqR" min="20" max="2000" step="1" width="140" height="16"/>
+        </label>
+        <label>
+            <span>Amp: <sc-display bind="s1.amp" format="%.2f"/></span>
+            <sc-range type="slider" bind="s1.amp" min="0" max="1" step="0.01" width="100" height="16"/>
+        </label>
+        <label>
+            <sc-checkbox bind="s1.gate" width="24" height="24"/>
+            <span>Gate</span>
+        </label>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>Both channels — one 2-channel tap (bus 0–1)</span>
+        <sc-scope bus="0" channels="2"/>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>Left only (bus 0)</span>
+        <sc-scope bus="0" channels="1"/>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>Right only (bus 1)</span>
+        <sc-scope bus="1" channels="1"/>
+    </div>
+</div>
+</body>
+</html>

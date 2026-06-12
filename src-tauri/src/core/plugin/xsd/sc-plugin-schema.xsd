@@ -9,8 +9,7 @@
        keep in sync with src/constants/sc-elements.ts and the runtime
        validation in the components' validate() methods. The buffer family
        (sc-buffer / sc-waveform / sc-test and the old buffer-bound sc-scope)
-       is not migrated yet — our sc-scope is the attribute-less master-out
-       SHM scope leaf. -->
+       is not migrated yet — our sc-scope is the bus-tap SHM scope. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -172,11 +171,13 @@
   </xs:complexType>
 
   <!-- sc-scope: a tap over `channels` consecutive buses starting at `bus`
-       (defaults: the stereo master out). The frontend validate() enforces
-       the integer ranges. -->
+       (defaults: the stereo master out); `frames` is the visible window in
+       samples (default 1024). The frontend validate() enforces the integer
+       ranges. -->
   <xs:complexType name="scScopeType">
     <xs:attribute name="bus" type="xs:integer"/>
     <xs:attribute name="channels" type="xs:integer"/>
+    <xs:attribute name="frames" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

@@ -22,8 +22,11 @@ pub enum ScopeReadResult {
     /// A completed slot.
     Data {
         /// The slot's raw samples: `frames × channels` **native-endian** f32
-        /// bytes, channel-interleaved — a straight memcpy of the SHM region;
-        /// the wire encoder byte-swaps them in its single pass.
+        /// bytes, **planar** (one contiguous frame run per channel, stride
+        /// `_size`; our taps bake `maxFrames = scopeFrames`, so the stride
+        /// equals `frames` and the slot is exactly this copy) — a straight
+        /// memcpy of the SHM region; the wire encoder byte-swaps them in its
+        /// single pass.
         samples: Vec<u8>,
         channels: usize,
         /// Frame count for this slot. Kept for completeness; the chunk encoder

@@ -15,7 +15,8 @@
  * - `/scope/chunk`       subId:i, tick:i, isGap:i, channels:i, data:b
  *
  * `data` is a blob (`Uint8Array`) of `frameCount × channels × 4`
- * bytes of **big-endian** IEEE-754 float32, channel-interleaved.
+ * bytes of **big-endian** IEEE-754 float32, planar — one frame run
+ * per channel (the SHM slot's own layout).
  * BE for consistency with OSC's `,f` type. The worker's reply pump
  * decodes via `decodeScopeChunkBlob`.
  */

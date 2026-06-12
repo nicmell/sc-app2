@@ -38,7 +38,8 @@ pub fn parse_unsubscribe(msg: &OscMessage) -> Option<i32> {
 
 /// Encode a `/scope/chunk subId tickIndex isGap channels data:blob` message.
 /// The blob is `frames × channels` IEEE-754 float32 in **big-endian**,
-/// channel-interleaved (matched by the worker's `parseScopeChunkArgs`).
+/// planar — one frame run per channel, the SHM slot's own layout (matched
+/// by the worker's `parseScopeChunkArgs`).
 /// `ne_samples` is the slot's raw native-endian f32 bytes straight from SHM
 /// — byte-swapped into the blob in this single pass (swapping the u32 bit
 /// pattern swaps the f32 it encodes).

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Scope Frames Plugin</title>
+</head>
+<body>
+<sc-synthdef name="frameSine">
+    <sc-control name="freq" value="220"/>
+    <sc-control name="amp" value="0.4"/>
+    <sc-control name="gate" value="1"/>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind="freq"/>
+    </sc-ugen>
+    <sc-ugen name="scaled" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="osc"/>
+        <sc-control name="b" bind="amp"/>
+    </sc-ugen>
+    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind="scaled"/>
+        <sc-control name="b" bind="gate"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind="gated"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="s1" bind="frameSine">
+    <sc-control name="freq" value="220"/>
+    <sc-control name="amp" value="0.4"/>
+    <sc-control name="gate" value="1"/>
+</sc-synth>
+<div style="display:flex;flex-direction:column;height:100%;gap:8px;">
+    <div style="display:flex;gap:16px;align-items:center;flex:none;">
+        <label>
+            <span>Freq: <sc-display bind="s1.freq" format="%d Hz"/></span>
+            <sc-range type="slider" bind="s1.freq" min="20" max="2000" step="1" width="160" height="16"/>
+        </label>
+        <label>
+            <span>Amp: <sc-display bind="s1.amp" format="%.2f"/></span>
+            <sc-range type="slider" bind="s1.amp" min="0" max="1" step="0.01" width="120" height="16"/>
+        </label>
+        <label>
+            <sc-checkbox bind="s1.gate" width="24" height="24"/>
+            <span>Gate</span>
+        </label>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>1024 frames (~21 ms @ 48 kHz)</span>
+        <sc-scope bus="0" channels="1" frames="1024"/>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>2048 frames (~43 ms)</span>
+        <sc-scope bus="0" channels="1" frames="2048"/>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>4096 frames (~85 ms)</span>
+        <sc-scope bus="0" channels="1" frames="4096"/>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <span>8192 frames (~171 ms)</span>
+        <sc-scope bus="0" channels="1" frames="8192"/>
+    </div>
+</div>
+</body>
+</html>

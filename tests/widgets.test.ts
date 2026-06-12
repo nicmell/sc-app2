@@ -100,7 +100,8 @@ async function mountXml(bodyXml: string): Promise<ScPlugin> {
   return host;
 }
 
-/** A /scope/chunk frame's blob: big-endian f32, channel-interleaved. */
+/** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
+ *  channel — the SHM slot's own layout). */
 function beBlob(floats: number[]): Uint8Array {
   const bytes = new Uint8Array(floats.length * 4);
   const dv = new DataView(bytes.buffer);
@@ -143,6 +144,13 @@ describe("sc-scope", () => {
     expect(sNew.args.slice(2)).toEqual([1, SESSION_GROUP, "inBus", 16, "scopeNum", SCOPE_BASE]);
     expect(sent[3].args).toEqual([1, SCOPE_BASE, 1, 1024]); // subId, slot, channels, chunk
     expect(scope.loaded).toBe(true);
+  });
+
+  it("compiles the tap per (channels, frames) and subscribes with the window size", async () => {
+    await mountXml('<sc-scope channels="1" frames="2048"/>');
+    const sNew = sent[2];
+    expect(sNew.args[0]).toBe("scopeTap1ch_2048");
+    expect(sent[3].args).toEqual([1, SCOPE_BASE, 1, 2048]); // subId, slot, channels, frames
   });
 
   it("defaults to the stereo master out", async () => {
@@ -206,6 +214,14 @@ describe("sc-scope", () => {
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope bus="-1"/>')).rejects.toThrow(
       '"bus" attribute must be a non-negative integer (got "-1")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml('<sc-scope frames="0"/>')).rejects.toThrow(
+      '"frames" attribute must be a positive integer (got "0")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml('<sc-scope frames="32768"/>')).rejects.toThrow(
+      '"frames" attribute must be ≤ 16384 (got "32768")',
     );
   });
 });

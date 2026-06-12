@@ -42,6 +42,13 @@ adopts nodes; no HTML re-parse). To install one by hand:
 | `select-plugin` | `sc-select`/`sc-option` dropdowns and `sc-radio-group`/`sc-radio` sets bound to controls/vars. |
 | `waveselect-plugin` | A `Select` UGen switching SinOsc/Saw/Pulse, driven by an `sc-select` — an input wired into a synth graph. |
 
+## `widgets/` — the widget leaves' parameters
+
+| plugin | purpose |
+|---|---|
+| `scope-frames-plugin` | A simple sine synth (freq/amp/gate) feeding four `sc-scope`s with `frames` 1024/2048/4096/8192 — the same signal at four window sizes (and four refresh rates: bigger windows page rather than flow). Tests per-(channels, frames) tap compilation + concurrent slots. |
+| `scope-channels-plugin` | A two-channel synthdef (sine left, saw right — `Out` with a comma-list `channelsarray`) under three scopes: one 2-channel tap over bus 0–1 plus per-channel mono taps. Tests multichannel lane separation (the chunk's planar layout — this example caught the renderer indexing it as interleaved). |
+
 ## `invalid/` — intentional failures (the negative fixtures)
 
 Upload-time fixtures (rejected by the backend zip/XSD validation):

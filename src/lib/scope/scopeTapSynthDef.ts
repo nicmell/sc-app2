@@ -40,7 +40,8 @@ export function compileScopeTapSynthDef(channels: number, chunkSize: number): Ui
   const def = synthdef(name, (g, { inBus = 0, scopeNum = 0 }) => {
     // `In.ar(bus, channels)` registers an N-output UGen but the sugar returns a
     // single UGenInput at output 0; fan its outputs into an array so ScopeOut2
-    // writes all channels interleaved (else every lane but 0 reads flat).
+    // writes every channel into its planar lane (else every lane but 0 reads
+    // flat).
     const inUgen = g.In.ar(inBus, channels);
     const inIdx = ugenIndex(inUgen);
     if (inIdx === null) {

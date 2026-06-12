@@ -379,7 +379,7 @@ further `sc-*` element:
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
 | sc-run, sc-if, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
 | sc-console | functional leaf (the OSC console; no attributes) |
-| sc-scope | functional + parametrized: `bus`/`channels` — the element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
+| sc-scope | functional + parametrized: `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384; the slot completes, and the view refreshes, every frames/sampleRate) — the element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
 | sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step) |
 
@@ -423,7 +423,7 @@ Runtime layer: all old handlers ported (bind resolution incl. arithmetic
 expressions via lib/utils/expression parseBind/evalExpr) except buffers and
 presets/overrides. Examples: every old example
 without a buffer-family element lives in `examples/<category>/` (see
-examples/README.md — app/synths/bindings/inputs/invalid);
+examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
 
 **fastxml is pinned to =0.8.0** (src-tauri/Cargo.toml): 0.8.1+ rejects

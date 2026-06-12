@@ -31,5 +31,11 @@ export const SCOPE_INPUT_BUS = 0;
 
 export const SCOPE_CHANNELS = 2;
 
-/** Frames per scope slot = one chunk (~21 ms at 48 kHz). */
+/** Default frames per scope slot = one chunk = the visible window
+ *  (~21 ms at 48 kHz); <sc-scope frames="…"> overrides per element. */
 export const SCOPE_CHUNK_SIZE = 1024;
+
+/** Ceiling for <sc-scope frames>: ScopeOut2 allocates the slot at maxFrames
+ *  from scsynth's finite SHM scope pool, and past this the page-flip refresh
+ *  (sampleRate/frames) is too slow to read as motion anyway (~3 Hz at 48 kHz). */
+export const SCOPE_MAX_FRAMES = 16384;

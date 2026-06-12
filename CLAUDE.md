@@ -349,6 +349,18 @@ nodes die with the plugin group's gFreeAll (no per-synth /n_free). Known
 old-app-parity limitation: synthdef names are global to scsynth — two plugins
 declaring the same name overwrite each other.
 
+**Connection lifecycle**: every mounted plugin lives with the connection —
+ScPlugin subscribes to `oscClient.connected` (the ScopeController's pattern).
+A drop runs `unload()` (the exact inverse of the load pass: store
+subscriptions dropped, flags/node ids reset, teardown sends silently dropped
+on the dead socket) while the per-plugin runtime map survives;
+reestablishment re-runs the load pass — fresh node ids from the new session
+block, and the /s_new carries the user's current values out of the runtime
+slice. A `loadEpoch` on the plugin root (bumped by unload/reload) invalidates
+any suspended load pass, so a mid-load disconnect can't leak a stale /s_new
+into the new connection. Parse failures stay permanent (`parsed` flips only
+when `process()` succeeds — reload never retries them).
+
 **Runtime values**: one `runtime` store slice keyed plugin-root-id → full
 control path ("s1.freq") → number. Enabled sc-controls seed their declarative
 default in the load pass and mirror the key into their reactive `value` prop;

@@ -53,8 +53,12 @@ export class ScControl extends ScState {
   }
 
   /** Seed the declarative default and mirror the store key into the live
-   *  `value` prop. No OSC here — the defaults ride the parent's /s_new. */
+   *  `value` prop. No OSC here — the defaults ride the parent's /s_new.
+   *  Re-entrant (reconnect reload): seeding skips existing keys, so the
+   *  user-moved value survives, and the stale subscription is dropped first. */
   async load(): Promise<void> {
+    this.offValue?.();
+    this.offValue = undefined;
     if (this.enabled && this.isConnected) {
       seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
       const view = this.selectValue();
@@ -64,6 +68,15 @@ export class ScControl extends ScState {
       });
     }
     await super.load();
+  }
+
+  /** The inverse of load(): drop the store subscription (re-established by
+   *  the reconnect reload). The store key itself survives — it's only
+   *  dropped with the plugin's unmount. */
+  unload(): void {
+    super.unload();
+    this.offValue?.();
+    this.offValue = undefined;
   }
 
   disconnectedCallback(): void {

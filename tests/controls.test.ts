@@ -13,12 +13,19 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockIn
 vi.mock("@strudel/codemirror", () => ({ StrudelMirror: class {} }));
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
+// The real singleton arms the master-out scope tap on the `connected` signal
+// (and reads the unmocked scopeIndex getter) — these tests flip that signal
+// to drive the plugins' unload/reload cycle, so stub it out.
+vi.mock("@/lib/scope/ScopeController", () => ({
+  ScopeController: class {},
+  scopeController: { chunkRef: { current: null } },
+}));
 
 import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { setRuntimeValue } from "@/stores/runtime";
-import { registerScElements, type ScControl, type ScDisplay, type ScElement, type ScPlugin, type ScSynth } from "@/sc-elements";
+import { registerScElements, type ScControl, type ScDisplay, type ScElement, type ScPlugin, type ScSynth, type ScSynthDef } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
 import xml from "/examples/synths/example-plugin/index.html?raw";
 
@@ -97,8 +104,12 @@ beforeEach(() => {
 afterEach(() => {
   document.body.replaceChildren(); // disconnects → unload paths run
   vi.restoreAllMocks();
-  appStore.update((s) => ({ ...s, runtime: {} }));
+  appStore.update((s) => ({ ...s, runtime: {}, osc: { ...s.osc, connected: false } }));
 });
+
+/** Drive the `connected` signal the plugins live on (the osc slice). */
+const setConnected = (connected: boolean) =>
+  appStore.update((s) => ({ ...s, osc: { ...s.osc, connected } }));
 
 describe("load pass", () => {
   it("seeds exactly the enabled controls' defaults, keyed by full path", async () => {
@@ -262,6 +273,80 @@ describe("unmount", () => {
   it("a parse-only host removes cleanly", () => {
     const { host } = parseExample();
     expect(() => host.remove()).not.toThrow();
+  });
+});
+
+describe("disconnect / reconnect", () => {
+  it("a connection drop unloads every element; reconnect reloads with the user's values", async () => {
+    setConnected(true); // established connection — set before mounting (change-only signal)
+    const { host } = await mountExample();
+    const synth = host.querySelector("sc-synth") as ScSynth;
+    const def = host.querySelector("sc-synthdef") as ScSynthDef;
+    const firstSynthId = synth.nodeId;
+    control(host, "freq").setValue(880);
+
+    sent.length = 0;
+    oscClient.close(); // → connected=false → unload (and waiter rejection, like a real drop)
+
+    expect(host.loaded).toBe(false);
+    expect(host.nodeId).toBe(0);
+    expect(synth.loaded).toBe(false);
+    expect(synth.nodeId).toBe(0);
+    expect(def.loaded).toBe(false);
+    // Teardown attempted, children before the group (the live client drops
+    // these on a dead socket; the mock records them).
+    expect(sent.map((m) => m.address)).toEqual(["/d_free", "/g_freeAll", "/n_free"]);
+    // The runtime map survives a disconnect — only unmount drops it.
+    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(880);
+
+    sent.length = 0;
+    setConnected(true); // reconnect
+    await vi.waitFor(() => expect(host.loaded).toBe(true));
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv", "/s_new"]);
+    // Fresh node ids from the new block; the /s_new bakes in the moved value.
+    expect(synth.nodeId).not.toBe(firstSynthId);
+    expect(sent[2].args).toEqual([
+      "sine", synth.nodeId, 1, host.nodeId,
+      "freq", 880, "amp", 0.2, "pan", 0, "mute", 0,
+    ]);
+
+    // The store wiring was rebuilt, not duplicated: an external write still
+    // refreshes the input through the fresh subscription.
+    const range = host.querySelector('sc-range[bind="s1.freq"]') as ScElement & { updateComplete: Promise<boolean> };
+    setRuntimeValue(host.id, "s1.freq", 700);
+    await range.updateComplete;
+    expect((range.querySelector("input") as HTMLInputElement).value).toBe("700");
+  });
+
+  it("recovers from a mid-load disconnect once the connection returns", async () => {
+    setConnected(true);
+    // Withhold the /synced ack so the first pass stalls at /d_recv.
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address !== "/d_recv") autoRespond(msg);
+    });
+    const { host } = parseExample();
+    const loading = host.load().catch(() => {});
+    await new Promise((r) => setTimeout(r, 0));
+    expect(host.loaded).toBe(true); // group is up, def stalled
+
+    oscClient.close(); // rejects the pending waiter AND unloads the partial state
+    await loading;
+    expect(host.loaded).toBe(false);
+    expect(host.nodeId).toBe(0);
+
+    // Reconnect against a fully answering server: exactly one clean pass.
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      autoRespond(msg);
+    });
+    sent.length = 0;
+    setConnected(true);
+    await vi.waitFor(() => expect(host.loaded).toBe(true));
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv", "/s_new"]);
+    expect(sent.filter((m) => m.address === "/s_new")).toHaveLength(1);
   });
 });
 

@@ -5,6 +5,12 @@
 // registry (the ScElement parse engine), and owns the plugin's scsynth
 // group: created inside the session group on mount, freed — with every synth
 // in it — on unmount.
+//
+// The plugin also lives with the OSC connection (`oscClient.connected`,
+// the ScopeController's pattern): a drop unloads every element — flags and
+// node ids reset, teardown sends harmlessly dropped on the dead socket —
+// while the per-plugin runtime map survives; reestablishment re-runs the
+// load pass, so the recreated synths carry the user's current values.
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
@@ -16,16 +22,33 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import { layout } from "@/stores/layout";
 import { plugins } from "@/stores/plugins";
-import type {  } from "@/types/runtime";
+import type { RuntimeContext } from "@/types/runtime";
 
 export class ScPlugin extends ScNode {
   @state() accessor _error = "";
+
+  /** Parse succeeded — there is a tree to (re)load. A parse failure is
+   *  permanent for this mount; reload() never retries it. */
+  parsed = false;
+
+  /** Unsubscribe from the `connected` signal (set on connect, cleared on
+   *  disconnect). */
+  private offConnected?: () => void;
 
   /** Unlike the other sc-elements, the plugin root renders into a shadow
    *  root: the plugin markup stays in the light DOM and shows through the
    *  slot, next to the parse error. */
   createRenderRoot(): HTMLElement | DocumentFragment {
     return this.attachShadow({ mode: "open" });
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // Live with the connection (a change-only signal — the initial load runs
+    // in firstUpdated): a drop unloads, reestablishment reloads.
+    this.offConnected ??= oscClient.connected.subscribe((up) =>
+      up ? void this.reload() : this.unload(),
+    );
   }
 
   protected async firstUpdated(): Promise<void> {
@@ -53,24 +76,57 @@ export class ScPlugin extends ScNode {
     }
   }
 
+  process(ctx: RuntimeContext): ScElement {
+    const el = super.process(ctx);
+    this.parsed = true; // only reached when the whole tree parsed clean
+    return el;
+  }
+
   /** Create the plugin's scsynth group — the group all of this plugin's
    *  synths live in, freed wholesale on unmount. The plugin's `nodeId` IS
    *  the group id, so children target `targetGroupId` uniformly. */
   async load(): Promise<void> {
-    if (!this.isConnected) return; // unmounted mid-load
+    if (!this.isConnected || this.loaded) return; // unmounted mid-load / already live
     this.nodeId = await oscClient.createGroup(oscClient.sessionGroupId);
     this.loaded = true;
     await super.load();
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.unload(); // children first, reverse DOM order
+  /** The inverse of the load pass: children first (reverse DOM order), then
+   *  this plugin's group. Bumping the epoch aborts any suspended pass. The
+   *  teardown sends go out normally on a live socket (DOM unmount) and are
+   *  silently dropped on a dead one (connection loss — the bridge has
+   *  already freed the whole session group server-side). */
+  unload(): void {
+    this.loadEpoch++;
+    super.unload();
     if (this.nodeId !== 0) {
       oscClient.freeGroup(this.nodeId);
-      this.nodeId = 0;
-      this.loaded = false;
     }
+    this.nodeId = 0;
+    this.loaded = false;
+  }
+
+  /** Re-run the load pass once the connection is reestablished. Nothing to
+   *  do without a parsed tree (parse failures are permanent) or when already
+   *  live (the signal can't race a completed load — `connected` only flips
+   *  after a full disconnect, which unloaded). */
+  private async reload(): Promise<void> {
+    if (!this.parsed || this.loaded) return;
+    this.loadEpoch++;
+    this._error = "";
+    try {
+      await this.load();
+    } catch (e) {
+      this._error = e instanceof Error ? e.message : String(e);
+    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.offConnected?.();
+    this.offConnected = undefined;
+    this.unload();
     if (this.id) {
       dropPluginRuntime(this.id);
       unregisterTree(this.id);

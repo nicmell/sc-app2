@@ -43,6 +43,11 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** The named ancestor path (scope names, outermost first). */
   path: string[] = [];
   enabled = true;
+  /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
+   *  root's unload()/reload(), it invalidates a suspended load pass: the
+   *  sequential walk re-checks it after every awaited child and aborts when
+   *  it moved (disconnect unload, or a newer pass superseding this one). */
+  loadEpoch = 0;
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -99,8 +104,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  Overrides sequence their own OSC and call `super.load()` where the
    *  children follow. */
   async load(): Promise<void> {
+    const epoch = this._rootScNode?.loadEpoch ?? 0;
     for (const child of this._scChildren ?? []) {
       await child.load();
+      if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return; // pass invalidated mid-await
     }
   }
 

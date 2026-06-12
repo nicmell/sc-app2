@@ -37,6 +37,8 @@ export class ScDisplay extends ScInput {
   }
 
   async load(): Promise<void> {
+    this.offValue?.(); // re-entrant: drop the stale subscription on reload
+    this.offValue = undefined;
     const target = this._targetScNode;
     if (target && isControlRuntime(target) && target.enabled) {
       const view = target.selectValue();
@@ -48,6 +50,12 @@ export class ScDisplay extends ScInput {
       this._value = target.value; // static until sc-var propagation lands
     }
     await super.load();
+  }
+
+  unload(): void {
+    super.unload();
+    this.offValue?.();
+    this.offValue = undefined;
   }
 
   disconnectedCallback(): void {

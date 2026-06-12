@@ -18,6 +18,11 @@ export const MAX_ERRORS = 20;
  *  missed-replies slack. */
 export const STATUS_REPLY_TIMEOUT_MS = 5_000;
 
+/** How long a `once()` reply waiter holds out before rejecting — sequenced
+ *  commands (`/d_recv` → `/synced`, `/s_new` → `/n_go`) fail loudly instead
+ *  of wedging the plugin load. */
+export const REPLY_TIMEOUT_MS = 3_000;
+
 // ── master-out scope tap ──────────────────────────────────────────────
 
 /** SuperDirt sums all orbits to the stereo master out (bus 0/1). */

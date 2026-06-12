@@ -8,9 +8,10 @@
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
-import { AddToTail, gFreeAll, gNewOne, nFree } from "@sc-app/server-commands";
+import { ADDR_N_GO, AddToTail, gFreeAll, gNewOne, NodeEvent, nFree } from "@sc-app/server-commands";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/stores/osc";
+import { dropPluginControls } from "@/stores/controls";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
@@ -20,9 +21,6 @@ import type {  } from "@/types/runtime";
 
 export class ScPlugin extends ScNode {
   @state() accessor _error = "";
-
-  /** The plugin's scsynth group (inside the session group), once created. */
-  private groupNodeId: number | null = null;
 
   /** Unlike the other sc-elements, the plugin root renders into a shadow
    *  root: the plugin markup stays in the light DOM and shows through the
@@ -47,23 +45,42 @@ export class ScPlugin extends ScNode {
       // the DOM): the registry adopts it (root + scChildren) only on success.
       this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
       registerAll(this);
-      // The group all of this plugin's synths will live in — freed wholesale
-      // on unmount.
-      this.groupNodeId = oscClient.nextNodeId();
-      oscClient.send(gNewOne(this.groupNodeId, AddToTail, oscClient.sessionGroupId));
+      // The async load pass: the plugin group first, then every child fully,
+      // sequentially, in DOM order (/d_recv before /s_new etc.). A failure
+      // lands in the same error box as a parse failure.
+      await this.load();
     } catch (e) {
       this._error = e instanceof Error ? e.message : String(e);
     }
   }
 
+  /** Create the plugin's scsynth group — the group all of this plugin's
+   *  synths live in, freed wholesale on unmount. The plugin's `nodeId` IS
+   *  the group id, so children target `targetGroupId` uniformly. */
+  async load(): Promise<void> {
+    if (!this.isConnected) return; // unmounted mid-load
+    const groupId = oscClient.nextNodeId();
+    const reply = oscClient.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === groupId);
+    oscClient.send(gNewOne(groupId, AddToTail, oscClient.sessionGroupId));
+    await reply;
+    this.nodeId = groupId;
+    this.loaded = true;
+    await super.load();
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this.groupNodeId !== null) {
-      oscClient.send(gFreeAll(this.groupNodeId));
-      oscClient.send(nFree(this.groupNodeId));
-      this.groupNodeId = null;
+    this.unload(); // children first, reverse DOM order
+    if (this.nodeId !== 0) {
+      oscClient.send(gFreeAll(this.nodeId));
+      oscClient.send(nFree(this.nodeId));
+      this.nodeId = 0;
+      this.loaded = false;
     }
-    if (this.id) unregisterTree(this.id);
+    if (this.id) {
+      dropPluginControls(this.id);
+      unregisterTree(this.id);
+    }
   }
 
   render() {

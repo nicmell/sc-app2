@@ -30,7 +30,7 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
-import { MAX_ERRORS, MAX_LOG, OSC_REPLIES, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { MAX_ERRORS, MAX_LOG, OSC_REPLIES, REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { OscWorkerPlugin } from "./OscWorkerPlugin";
@@ -45,6 +45,15 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
     peakCpu: Number(args[6]) || 0,
     sampleRate: Number(args[8]) || 0,
   };
+}
+
+/** A pending `once()` reply waiter, matched in `handleReply`. */
+interface ReplyWaiter {
+  address: string;
+  match: (msg: OSC.Message) => boolean;
+  resolve: (msg: OSC.Message) => void;
+  reject: (err: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
 }
 
 export class OscClient {
@@ -68,6 +77,8 @@ export class OscClient {
   private nextEntryId = 0;
   /** The `/status.reply` heartbeat watchdog (armed while connected). */
   private statusTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Pending one-shot reply waiters (FIFO per address+match). */
+  private waiters: ReplyWaiter[] = [];
 
   constructor() {
     // Always-on subscriptions (osc-js handlers survive reconnects; nothing
@@ -85,6 +96,9 @@ export class OscClient {
     // WorkerClient's synthesized orderly close doesn't), and 1000 is a normal
     // closure — anything else gets a banner saying why the connection died.
     this.osc.on("close", (info?: { code?: number; reason?: string }) => {
+      // Whatever the reason, no reply is coming anymore: fail pending
+      // waiters now instead of letting them run out their timeouts.
+      this.rejectWaiters(new Error("OscClient.once: connection closed"));
       if (!info?.code || info.code === 1000) return;
       const message = `connection closed (${info.code}${info.reason ? `: ${info.reason}` : ""})`;
       console.warn(`[osc] ${message}`);
@@ -164,6 +178,7 @@ export class OscClient {
    *  dead, since the bridge frees the whole session group on WS close. */
   close(): void {
     this.disarmWatchdog();
+    this.rejectWaiters(new Error("OscClient.once: connection closed"));
     this.state.update((s) => ({ ...s, connected: false }));
     this.osc.close();
   }
@@ -186,6 +201,43 @@ export class OscClient {
   /** Remove a subscription made with `on`. */
   off(event: string, subscriptionId: number): boolean {
     return this.osc.off(event, subscriptionId);
+  }
+
+  /** Wait for one inbound reply on `address` satisfying `match`. Resolves
+   *  with the message; rejects after `timeoutMs` or when the connection
+   *  closes. Register BEFORE the `send()` that prompts the reply — the reply
+   *  can race in otherwise. One matching reply resolves exactly one waiter
+   *  (FIFO). The sequenced-command primitive: elements compose it with
+   *  `send` + the server-commands constructors (`/d_recv` → `/synced`,
+   *  `/s_new` → `/n_go`). */
+  once(
+    address: string,
+    match: (msg: OSC.Message) => boolean = () => true,
+    timeoutMs: number = REPLY_TIMEOUT_MS,
+  ): Promise<OSC.Message> {
+    return new Promise<OSC.Message>((resolve, reject) => {
+      const waiter: ReplyWaiter = {
+        address,
+        match,
+        resolve,
+        reject,
+        timer: setTimeout(() => {
+          this.waiters = this.waiters.filter((w) => w !== waiter);
+          reject(new Error(`OscClient.once: timed out waiting for ${address}`));
+        }, timeoutMs),
+      };
+      this.waiters.push(waiter);
+    });
+  }
+
+  /** Fail every pending waiter (connection gone — no replies are coming). */
+  private rejectWaiters(err: Error): void {
+    const pending = this.waiters;
+    this.waiters = [];
+    for (const w of pending) {
+      clearTimeout(w.timer);
+      w.reject(err);
+    }
   }
 
   /** Connection status (an `OSC.STATUS` value). */
@@ -211,6 +263,15 @@ export class OscClient {
    *  Public for unit tests — normally fed by the constructor's `*`
    *  subscription. */
   handleReply(reply: OSC.Message): void {
+    // One-shot waiters first — the message still falls through to the
+    // telemetry routing below (a /synced or /n_go someone awaits is logged
+    // like any other reply).
+    const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));
+    if (waiter) {
+      this.waiters = this.waiters.filter((w) => w !== waiter);
+      clearTimeout(waiter.timer);
+      waiter.resolve(reply);
+    }
     if (reply.address === SCOPE_CHUNK_ADDRESS) return;
     if (reply.address === OSC_REPLIES.STATUS) {
       const next = parseStatus(reply.args as ReadonlyArray<OscArg>);

@@ -91,6 +91,28 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return baseRuntime(ctx);
   }
 
+  /** The async load pass, run AFTER the sync parse, in strict DOM order: a
+   *  parent awaits each child fully before the next starts — no concurrency,
+   *  no reactive gates. The bind-order constraint (targets declared before
+   *  their references) makes DOM order a valid dependency order, so a
+   *  synthdef's /d_recv is acknowledged before its synth's /s_new is sent.
+   *  Overrides sequence their own OSC and call `super.load()` where the
+   *  children follow. */
+  async load(): Promise<void> {
+    for (const child of this._scChildren ?? []) {
+      await child.load();
+    }
+  }
+
+  /** Undo the load pass (plugin unmount). Sends are fire-and-forget — no
+   *  replies awaited; children unload in REVERSE DOM order so dependents go
+   *  before their targets. */
+  unload(): void {
+    for (const child of [...(this._scChildren ?? [])].reverse()) {
+      child.unload();
+    }
+  }
+
   /** This element's sc-* descendants, recursing through plain HTML. */
   *walkScElements(el: Element = this): Generator<ScElement> {
     for (const child of Array.from(el.children)) {

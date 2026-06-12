@@ -52,6 +52,8 @@ export interface StateRuntime extends BaseRuntime {
 
 export interface SynthDefRuntime extends BaseRuntime {
   loaded: boolean;
+  /** The compiled SCgf bytes (compiled at parse time; sent on load). */
+  bytes: Uint8Array;
 }
 
 export interface InputRuntime extends BaseRuntime {

@@ -67,6 +67,13 @@ export interface OscState {
   errors: ScsynthError[];
 }
 
+/** One mounted plugin's live control values, keyed by the control's full
+ *  named path (e.g. `"s1.freq"`; a plugin-level control is just `"freq"`).
+ *  Seeded from the declarative `value` attributes in the load pass; written
+ *  through `ScControl.setValue` (the single write path that also dispatches
+ *  `/n_set`). */
+export type PluginControlValues = Record<string, number>;
+
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
@@ -77,4 +84,7 @@ export interface AppState {
   layout: BoxItem[];
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
+  /** Live control values per mounted plugin (keyed by the plugin root's
+   *  element id — the dashboard box id); dropped wholesale on unmount. */
+  controls: Record<string, PluginControlValues>;
 }

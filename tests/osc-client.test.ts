@@ -7,9 +7,9 @@
 // Importing OscClient is side-effect-free here: the WS worker only spawns
 // inside connect(), which is never called in this file.
 
-import { beforeEach, describe, expect, it } from "vitest";
-import { OSC, formatOscArg, SCOPE_CHUNK_ADDRESS } from "@sc-app/server-commands";
-import { MAX_LOG } from "@/constants/osc";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OSC, formatOscArg, SCOPE_CHUNK_ADDRESS, Synced } from "@sc-app/server-commands";
+import { MAX_LOG, REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { SliceName } from "@/constants/store";
@@ -71,6 +71,50 @@ describe("OscClient.handleReply", () => {
   it("skips /scope/chunk in the console log", () => {
     oscClient.handleReply(new OSC.Message(SCOPE_CHUNK_ADDRESS, 1, 0));
     expect(oscClient.log.get()).toHaveLength(0);
+  });
+});
+
+describe("OscClient.once", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("resolves on the first matching reply, which still reaches the console log", async () => {
+    const reply = oscClient.once("/synced", (m) => Synced.syncId(m) === 7);
+    oscClient.handleReply(new OSC.Message("/synced", 7));
+    const msg = await reply;
+    expect(msg.args).toEqual([7]);
+    expect(oscClient.log.get()).toHaveLength(1);
+  });
+
+  it("ignores non-matching replies and is one-shot FIFO per match", async () => {
+    const first = oscClient.once("/n_go", (m) => m.args[0] === 100);
+    const second = oscClient.once("/n_go", (m) => m.args[0] === 100);
+    oscClient.handleReply(new OSC.Message("/n_go", 99, 1, -1, -1, 0));
+    oscClient.handleReply(new OSC.Message("/n_go", 100, 1, -1, -1, 0));
+    await expect(first).resolves.toMatchObject({ address: "/n_go" });
+    // The second waiter is still pending — only one waiter consumed the reply.
+    oscClient.handleReply(new OSC.Message("/n_go", 100, 1, -1, -1, 0));
+    await expect(second).resolves.toMatchObject({ address: "/n_go" });
+  });
+
+  it("rejects after the reply timeout", async () => {
+    vi.useFakeTimers();
+    const reply = oscClient.once("/synced", (m) => Synced.syncId(m) === 8);
+    const expectation = expect(reply).rejects.toThrow(
+      "OscClient.once: timed out waiting for /synced",
+    );
+    vi.advanceTimersByTime(REPLY_TIMEOUT_MS);
+    await expectation;
+    // A late reply after the timeout matches nothing (the waiter is gone).
+    oscClient.handleReply(new OSC.Message("/synced", 8));
+  });
+
+  it("rejects pending waiters when the connection closes", async () => {
+    const reply = oscClient.once("/synced");
+    const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
+    oscClient.close();
+    await expectation;
   });
 });
 

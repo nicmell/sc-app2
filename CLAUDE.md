@@ -181,7 +181,10 @@ plugin/           zip validation (metadata, XSD entry, assets) + plugins.json
 router/           axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
-scope.rs          scsynth SHM scope buffers → /scope/chunk frames over the WS
+scope/            scsynth SHM scope buffers → /scope/chunk frames over the WS:
+                  shm.rs (the byte-level reader) + SessionScopes (one session's
+                  subscriptions, span gating, latest-only chunk staging — owned
+                  by the WS task; ws.rs stays pure transport). See scope.md
 server.rs         app logic glue (axum State): session mint/revive/end, scope SHM
 ```
 

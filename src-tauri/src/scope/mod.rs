@@ -1,12 +1,15 @@
-//! Minimal SHM scope: a fixed tap on scsynth's master out, polled from the WS
-//! task on a timer and streamed to the browser as `/scope/chunk` OSC messages.
+//! SHM scope streaming: `ScopeOut2` tap synths write scsynth's shared-memory
+//! scope buffers; the WS task polls them on a timer and streams completed
+//! slots to the browser as `/scope/chunk` OSC messages.
 //!
-//! This is the SHM-only, single-scope slice of upstream sc-app's scope system:
-//! no OSC `/b_getn` fallback, no per-bus ref-counting, no scope-buffer
-//! allocator, and no `/clock/tick` dependency — the WS pump just polls a
-//! [`ScopeSubscription`] on a timer (see [`crate::router::ws`]). [`shm`] is the
-//! byte-level reader; this module owns the subscription, the `/scope/*` wire
-//! helpers, and the address constants.
+//! This module owns ALL the scope semantics; the WS pump only routes frames
+//! and ferries bytes (see [`crate::router::ws`]). [`shm`] is the byte-level
+//! reader; [`ScopeSubscription`] is one slot's poll cursor; [`SessionScopes`]
+//! is one session's whole scope state — the subId-keyed subscriptions, the
+//! span-gated subscribe/unsubscribe frame handling, and the latest-only
+//! staging of encoded chunks the pump drains when the socket is free. It is
+//! OWNED by the session's WS task (a session lives exactly as long as its
+//! socket), so none of this state needs locking.
 //!
 //! ## Wire contract (must match the TS worker)
 //!
@@ -19,12 +22,20 @@
 
 pub mod shm;
 
+use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use rosc::{OscMessage, OscPacket, OscType};
 
-use crate::core::osc::int_arg;
+use crate::core::osc::{decode_message, int_arg};
+use crate::core::scsynth::SessionBlock;
 use shm::{find_scope_buffer_array, shm_path, MmapRegion, ScopeBufferLayout, ScopeReadResult};
+
+/// How often the WS task polls SHM for new scope slots. A `_stage`-only peek
+/// per subscription each tick; the data copy happens only when a new frame is
+/// ready (~chunkSize/sampleRate ≈ 47 Hz at 1024/48k), so over-polling is cheap.
+pub const SCOPE_POLL: Duration = Duration::from_millis(5);
 
 /// OSC address the frontend sends to (de)register the master-out scope.
 pub const SCOPE_SUBSCRIBE: &str = "/scope/subscribe";
@@ -203,9 +214,111 @@ impl ScopeSubscription {
     }
 }
 
+/// One session's whole scope state, owned by its WS task: the subId-keyed
+/// subscriptions (one per mounted `<sc-scope>`), the span gate, and the
+/// latest-only staging of encoded chunks. The pump feeds it `/scope/*`
+/// frames and its poll timer, and drains [`next_chunk`](Self::next_chunk)
+/// only when no control traffic is waiting — chunks are DISPOSABLE (a fresh
+/// one supersedes them ~chunk-cadence later), so a newer chunk replaces an
+/// unsent older one and stream data never delays the control acks
+/// (`/n_go`, `/synced`) the frontend's load pass gates on.
+pub struct SessionScopes {
+    /// The session's assigned slot span — the subscribe gate.
+    block: SessionBlock,
+    /// Subscriptions keyed by the frontend-minted subId.
+    subs: HashMap<i32, ScopeSubscription>,
+    /// Encoded chunks awaiting the socket, latest-only per subId.
+    pending: HashMap<i32, Vec<u8>>,
+}
+
+impl SessionScopes {
+    pub fn new(block: SessionBlock) -> Self {
+        Self { block, subs: HashMap::new(), pending: HashMap::new() }
+    }
+
+    /// Whether the pump's poll timer should run at all.
+    pub fn is_active(&self) -> bool {
+        !self.subs.is_empty()
+    }
+
+    /// Whether a staged chunk is waiting for the socket.
+    pub fn has_pending(&self) -> bool {
+        !self.pending.is_empty()
+    }
+
+    /// Handle a `/scope/subscribe` frame: parse, gate the requested slot on
+    /// the session's span (so concurrent sessions can't stomp each other's
+    /// SHM scope buffers — the span is server-assigned; a violation means a
+    /// frontend allocator bug, not user input), and install the
+    /// subscription. Re-subscribing an existing subId replaces it (fresh
+    /// SHM cursor). Malformed frames are ignored.
+    pub fn subscribe(&mut self, bytes: &[u8], shm: Option<Arc<ScopeShm>>) {
+        let Some((sub_id, scope_idx)) =
+            decode_message(bytes).as_ref().and_then(parse_subscribe)
+        else {
+            tracing::debug!("malformed /scope/subscribe ignored");
+            return;
+        };
+        if !self.block.owns_scope_index(scope_idx) {
+            tracing::warn!(
+                sub_id, scope_idx,
+                base = self.block.scope_index_base, count = self.block.scope_index_count,
+                "scope subscribe outside session block; ignored"
+            );
+            return;
+        }
+        tracing::debug!(sub_id, scope_idx, have_shm = shm.is_some(), "scope subscribe");
+        self.subs.insert(sub_id, ScopeSubscription::new(sub_id, scope_idx, shm));
+    }
+
+    /// Handle a `/scope/unsubscribe subId` frame: drop that subscription and
+    /// its staged chunk. Malformed or unknown subIds are ignored (logged) —
+    /// an unsubscribe racing a socket close is normal, not an error.
+    pub fn unsubscribe(&mut self, bytes: &[u8]) {
+        let Some(sub_id) = decode_message(bytes).as_ref().and_then(parse_unsubscribe) else {
+            tracing::debug!("malformed /scope/unsubscribe ignored");
+            return;
+        };
+        if self.subs.remove(&sub_id).is_none() {
+            tracing::debug!(sub_id, "unsubscribe for unknown scope subId");
+            return;
+        }
+        self.pending.remove(&sub_id);
+    }
+
+    /// One poll tick: a cheap `_stage`-only peek per subscription; fresh
+    /// slots are encoded and staged (no I/O here — the pump drains them).
+    pub fn poll(&mut self) {
+        for (&sub_id, sub) in self.subs.iter_mut() {
+            if let Some(chunk) = sub.poll() {
+                self.pending.insert(sub_id, chunk);
+            }
+        }
+    }
+
+    /// Take one staged chunk for sending.
+    pub fn next_chunk(&mut self) -> Option<Vec<u8>> {
+        let sub_id = *self.pending.keys().next()?;
+        self.pending.remove(&sub_id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::scsynth::session_block;
+
+    fn frame(addr: &str, args: Vec<OscType>) -> Vec<u8> {
+        rosc::encoder::encode(&OscPacket::Message(OscMessage { addr: addr.into(), args }))
+            .expect("encode frame")
+    }
+
+    fn subscribe_frame(sub_id: i32, scope: i32) -> Vec<u8> {
+        frame(
+            SCOPE_SUBSCRIBE,
+            vec![OscType::Int(sub_id), OscType::Int(scope), OscType::Int(2), OscType::Int(1024)],
+        )
+    }
 
     #[test]
     fn parse_unsubscribe_extracts_sub_id() {
@@ -213,6 +326,44 @@ mod tests {
         assert_eq!(parse_unsubscribe(&msg(vec![OscType::Int(7)])), Some(7));
         assert_eq!(parse_unsubscribe(&msg(vec![])), None);
         assert_eq!(parse_unsubscribe(&msg(vec![OscType::String("7".into())])), None);
+    }
+
+    #[test]
+    fn subscribe_gates_slots_on_the_session_span() {
+        // Session 2: base = SCOPE_SPAN, so both span bounds are real.
+        let block = session_block(1, 2);
+        let mut scopes = SessionScopes::new(block);
+        assert!(!scopes.is_active());
+
+        // In-span slot installs; out-of-span and garbage are ignored.
+        scopes.subscribe(&subscribe_frame(1, block.scope_index_base), None);
+        assert!(scopes.is_active());
+        scopes.subscribe(&subscribe_frame(2, block.scope_index_base - 1), None);
+        scopes.subscribe(b"garbage", None);
+        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(2)]));
+        assert!(scopes.is_active()); // subId 2 was never installed; 1 remains
+    }
+
+    #[test]
+    fn unsubscribe_removes_only_the_named_sub() {
+        let block = session_block(1, 1);
+        let mut scopes = SessionScopes::new(block);
+        scopes.subscribe(&subscribe_frame(7, block.scope_index_base), None);
+        scopes.subscribe(&subscribe_frame(8, block.scope_index_base + 1), None);
+
+        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(7)]));
+        assert!(scopes.is_active());
+
+        // Garbage frames and unknown subIds leave the rest untouched.
+        scopes.unsubscribe(b"garbage");
+        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(99)]));
+        assert!(scopes.is_active());
+
+        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(8)]));
+        assert!(!scopes.is_active());
+        // Nothing staged without SHM; the drain seam is empty, not stuck.
+        assert!(!scopes.has_pending());
+        assert!(scopes.next_chunk().is_none());
     }
 
     /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args

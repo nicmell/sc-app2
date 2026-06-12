@@ -3,16 +3,13 @@
 //! `/ws?session=<uuid>` validates the session, then upgrades to a bridge
 //! between one browser/webview and the OSC [`Bridge`](crate::core::bridge):
 //! uplink binary frames are dispatched to the matching peer; peer replies (from
-//! the bridge's fan-out) are written back. `/scope/*` frames are claimed by the
-//! socket's scope subscriptions (one per mounted `<sc-scope>`, keyed by subId)
-//! instead of routed; all SHM/scope logic lives in [`crate::scope`] — this
-//! loop only ferries bytes.
+//! the bridge's fan-out) are written back. `/scope/*` frames are claimed for
+//! the session's [`SessionScopes`] instead of routed — all scope semantics
+//! (subscriptions, span gating, chunk staging) live in [`crate::scope`]; this
+//! loop only routes frames and ferries bytes.
 //!
 //! [`routes`] is the `/ws` sub-router, merged into the app in
 //! [`router`](super::router).
-
-use std::collections::HashMap;
-use std::time::Duration;
 
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Query, State};
@@ -24,15 +21,10 @@ use serde::Deserialize;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-use crate::core::osc::{decode_message, peek_address};
+use crate::core::osc::peek_address;
 use crate::core::scsynth::SessionBlock;
-use crate::scope::{self, ScopeSubscription};
+use crate::scope::{self, SessionScopes};
 use crate::server::Server;
-
-/// How often the WS task polls SHM for a new scope slot. A `_stage`-only peek
-/// each tick; the data copy happens only when a new frame is ready
-/// (~chunkSize/sampleRate ≈ 47 Hz at 1024/48k), so over-polling is cheap.
-const SCOPE_POLL: Duration = Duration::from_millis(5);
 
 /// The `/ws` route.
 pub fn routes() -> Router<Server> {
@@ -115,46 +107,32 @@ async fn ws_handler(
 }
 
 /// Bridge one WebSocket for its lifetime: uplink binary frames go to the
-/// [`Bridge`](crate::core::bridge) (or the scope subscriptions); peer replies
-/// (from its fan-out) and scope chunks are written back.
+/// [`Bridge`](crate::core::bridge) (or the session's [`SessionScopes`]); peer
+/// replies (from its fan-out) and staged scope chunks are written back.
 async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
     let mut replies = server.bridge().subscribe();
-    // The scope subscriptions for this socket, keyed by the frontend-minted
-    // subId — one per mounted <sc-scope>. `/scope/*` is bridge-internal —
-    // claimed below, never routed.
-    let mut scopes: HashMap<i32, ScopeSubscription> = HashMap::new();
-    // Encoded chunks waiting for the socket, latest-only per subId: chunks
-    // are DISPOSABLE (a fresh one supersedes them ~chunk-cadence later), so
-    // a newer chunk replaces an unsent older one, and the drain arm below
-    // ranks beneath uplink + replies — stream data never delays the control
-    // acks (/n_go, /synced) the load pass gates on.
-    let mut pending: HashMap<i32, Vec<u8>> = HashMap::new();
-    let mut poll = tokio::time::interval(SCOPE_POLL);
+    // This session's whole scope state — subscriptions, span gating, chunk
+    // staging — owned here, semantics in crate::scope.
+    let mut scopes = SessionScopes::new(block);
+    let mut poll = tokio::time::interval(scope::SCOPE_POLL);
     // The poll arm is gated on active subscriptions; skip the tick burst
     // the interval would otherwise replay when a scope re-enables it.
     poll.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     loop {
         tokio::select! {
             // Priority order: uplink commands, then control replies, then the
-            // chunk poll/drain — re-evaluated between every awaited send.
+            // chunk poll/drain — re-evaluated between every awaited send, so
+            // disposable stream data never delays control traffic.
             biased;
             msg = socket.recv() => match msg {
                 Some(Ok(Message::Binary(bytes))) => {
                     match peek_address(bytes.as_ref()) {
+                        // `/scope/*` is bridge-internal: claimed, never routed.
                         Some(scope::SCOPE_SUBSCRIBE) => {
-                            if let Some((sub_id, sub)) =
-                                subscribe_scope(server, &block, bytes.as_ref()).await
-                            {
-                                // Re-subscribing an existing subId replaces it
-                                // (fresh SHM cursor).
-                                scopes.insert(sub_id, sub);
-                            }
+                            let shm = server.scope_shm().await;
+                            scopes.subscribe(bytes.as_ref(), shm);
                         }
-                        Some(scope::SCOPE_UNSUBSCRIBE) => {
-                            if let Some(sub_id) = unsubscribe_scope(&mut scopes, bytes.as_ref()) {
-                                pending.remove(&sub_id);
-                            }
-                        }
+                        Some(scope::SCOPE_UNSUBSCRIBE) => scopes.unsubscribe(bytes.as_ref()),
                         _ => server.bridge().dispatch_command(bytes.as_ref()).await,
                     }
                 }
@@ -175,100 +153,16 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                 Err(broadcast::error::RecvError::Lagged(_)) => continue,
                 Err(broadcast::error::RecvError::Closed) => break,
             },
-            _ = poll.tick(), if !scopes.is_empty() => {
-                // Each subscription is a cheap `_stage`-only peek; the data
-                // copy + encode happen only for slots with a fresh chunk.
-                // No sends here — frames land in `pending` for the drain arm.
-                for (&sub_id, sub) in scopes.iter_mut() {
-                    if let Some(chunk) = sub.poll() {
-                        pending.insert(sub_id, chunk);
-                    }
-                }
-            }
-            // Always-ready when there is something to drain; with `biased`
-            // it runs only when nothing above is — one chunk per pass, so
-            // replies are re-checked between chunk sends.
-            _ = std::future::ready(()), if !pending.is_empty() => {
-                let sub_id = *pending.keys().next().expect("pending is non-empty");
-                let chunk = pending.remove(&sub_id).expect("key just observed");
+            _ = poll.tick(), if scopes.is_active() => scopes.poll(),
+            // Always-ready when something is staged; with `biased` it runs
+            // only when nothing above is — one chunk per pass, so replies
+            // are re-checked between chunk sends.
+            _ = std::future::ready(()), if scopes.has_pending() => {
+                let chunk = scopes.next_chunk().expect("has_pending was checked");
                 if socket.send(Message::Binary(chunk.into())).await.is_err() {
                     break;
                 }
             }
         }
-    }
-}
-
-/// Parse a `/scope/subscribe`, gate the requested slot on the session's
-/// assigned span, and open (or reuse) the shared SHM mapping.
-async fn subscribe_scope(
-    server: &Server,
-    block: &SessionBlock,
-    bytes: &[u8],
-) -> Option<(i32, ScopeSubscription)> {
-    let msg = decode_message(bytes)?;
-    let (sub_id, scope_idx) = scope::parse_subscribe(&msg)?;
-    // Reject slots outside the session's span so concurrent sessions can't
-    // stomp each other's SHM scope buffers (the span is server-assigned; a
-    // violation means a frontend allocator bug, not user input).
-    if !block.owns_scope_index(scope_idx) {
-        tracing::warn!(
-            sub_id, scope_idx,
-            base = block.scope_index_base, count = block.scope_index_count,
-            "scope subscribe outside session block; ignored"
-        );
-        return None;
-    }
-    let shm = server.scope_shm().await;
-    tracing::debug!(sub_id, scope_idx, have_shm = shm.is_some(), "scope subscribe");
-    Some((sub_id, ScopeSubscription::new(sub_id, scope_idx, shm)))
-}
-
-/// Drop the subscription named by a `/scope/unsubscribe subId` frame,
-/// returning the removed subId (the caller prunes its pending chunk too).
-/// Malformed or unknown subIds are ignored (logged) — an unsubscribe racing
-/// a socket close is normal, not an error.
-fn unsubscribe_scope(scopes: &mut HashMap<i32, ScopeSubscription>, bytes: &[u8]) -> Option<i32> {
-    let Some(sub_id) = decode_message(bytes).as_ref().and_then(scope::parse_unsubscribe) else {
-        tracing::debug!("malformed /scope/unsubscribe ignored");
-        return None;
-    };
-    if scopes.remove(&sub_id).is_none() {
-        tracing::debug!(sub_id, "unsubscribe for unknown scope subId");
-        return None;
-    }
-    Some(sub_id)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rosc::{OscMessage, OscPacket, OscType};
-
-    fn unsubscribe_frame(args: Vec<OscType>) -> Vec<u8> {
-        rosc::encoder::encode(&OscPacket::Message(OscMessage {
-            addr: scope::SCOPE_UNSUBSCRIBE.into(),
-            args,
-        }))
-        .expect("encode /scope/unsubscribe")
-    }
-
-    #[test]
-    fn unsubscribe_removes_only_the_named_sub() {
-        // shm `None` is a valid construction — poll() just returns None.
-        let mut scopes = HashMap::from([
-            (7, ScopeSubscription::new(7, 0, None)),
-            (8, ScopeSubscription::new(8, 1, None)),
-        ]);
-
-        assert_eq!(unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(7)])), Some(7));
-        assert!(!scopes.contains_key(&7));
-        assert!(scopes.contains_key(&8));
-
-        // Garbage frames and unknown subIds leave the map untouched.
-        assert_eq!(unsubscribe_scope(&mut scopes, b"garbage"), None);
-        assert_eq!(unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(99)])), None);
-        assert!(scopes.contains_key(&8));
-        assert_eq!(scopes.len(), 1);
     }
 }

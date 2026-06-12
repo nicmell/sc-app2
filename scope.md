@@ -171,17 +171,21 @@ Consequences of being a non-participant reader:
 
 ### Per-WebSocket subscriptions and the poll pump
 
-`router/ws.rs` keeps a `HashMap<subId, ScopeSubscription>` per socket — one
-entry per mounted `<sc-scope>`. A 5 ms `tokio::interval` arm (gated on the
-map being non-empty) polls every subscription; each poll is the `_stage`
-peek, and only a fresh slot pays the copy + encode. Chunks ride the same
-binary WS frames as every other OSC reply, but **never delay them**: the
-poll arm only stages encoded frames into a latest-only `pending` map (a
-newer chunk replaces an unsent older one — chunks are disposable, control
-replies are not), and a `biased` select drains one pending chunk per pass,
-ranked beneath uplink commands and bridge replies — so a slow socket
-degrades the scope's frame rate, never the `/n_go`/`/synced` acks the load
-pass gates on.
+All the per-session scope state lives on one type, `scope::SessionScopes` —
+the subId-keyed subscriptions (one per mounted `<sc-scope>`), the span-gated
+subscribe/unsubscribe frame handling, and the latest-only chunk staging. The
+WS task **owns** it (a session lives exactly as long as its socket, so the
+state needs no locking and drops with the task); `router/ws.rs` itself stays
+pure transport — it only peeks addresses to claim `/scope/*` frames and
+ferries bytes. A 5 ms `tokio::interval` arm (gated on `is_active()`) runs
+`poll()`: a `_stage` peek per subscription, with only fresh slots paying the
+copy + encode. Chunks ride the same binary WS frames as every other OSC
+reply, but **never delay them**: `poll()` only stages encoded frames into a
+latest-only pending map (a newer chunk replaces an unsent older one — chunks
+are disposable, control replies are not), and a `biased` select drains one
+pending chunk per pass, ranked beneath uplink commands and bridge replies —
+so a slow socket degrades the scope's frame rate, never the
+`/n_go`/`/synced` acks the load pass gates on.
 
 `/scope/subscribe` and `/scope/unsubscribe` are **bridge-internal**: the WS
 pump claims them by address peek before bridge dispatch — they are never

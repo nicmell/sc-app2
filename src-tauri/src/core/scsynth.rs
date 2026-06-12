@@ -175,22 +175,9 @@ impl Scsynth {
         self.inner.generation.load(Ordering::Acquire)
     }
 
-    /// Wait — without a timeout — for the first successful registration
-    /// (`/done /notify`). The composition root gates the HTTP listener on this,
-    /// so clients never reach a server whose scsynth side hasn't come up once;
-    /// later outages stay with the supervisor's reconnect loop. Returns
-    /// immediately when no peer routes `/notify` (supervision is disabled and
-    /// the wait would never resolve).
-    pub async fn await_registration(&self) {
-        if !self.inner.bridge.has_route("/notify") {
-            return;
-        }
-        let mut rx = self.inner.client_id.subscribe();
-        let _ = rx.wait_for(Option::is_some).await;
-    }
-
     /// Wait for the clientID until registered or `timeout` elapses (a session
-    /// created right after boot may arrive before `/notify` completes).
+    /// may be requested before scsynth is even running — the supervisor keeps
+    /// retrying registration, and the frontend retries the 503'd session).
     pub async fn await_client_id(&self, timeout: Duration) -> Option<i32> {
         let mut rx = self.inner.client_id.subscribe();
         let registered = match tokio::time::timeout(timeout, rx.wait_for(Option::is_some)).await {

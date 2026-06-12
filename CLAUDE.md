@@ -154,6 +154,10 @@ dashboard layout persist** server-side:
 1. Boot: `localStorage["sc.session"]` → `GET /api/session/{id}` **revives** the
    saved session under the same UUID (fresh node-id block) and returns the saved
    layout; on any failure fall back to `POST /api/session` (new id, stored back).
+   While scsynth is unregistered the server answers 503 (it binds without
+   waiting for scsynth, so the GUI window opens regardless) and the
+   SessionManager retries quietly under the boot overlay until it appears;
+   any other failure shows the error modal with its manual Retry.
 2. `oscClient.connect(wsUrl, block)` opens the WS (in the worker) and sends
    `/g_new` — the session group lives **at the tail of scsynth's root group 0**;
    synth ids come from `oscClient.nextNodeId()` over the server-assigned block.

@@ -17,8 +17,8 @@
 // useSyncExternalStore.
 
 import { SliceName } from "@/constants/store";
-import { LAYOUT_SAVE_INTERVAL_MS, SESSION_KEY } from "@/constants/session";
-import { get, post, put, wsUrl } from "@/lib/http";
+import { LAYOUT_SAVE_INTERVAL_MS, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
+import { get, HttpError, post, put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
 import { appStore } from "@/stores/store";
@@ -102,8 +102,18 @@ export class SessionManager {
       });
       this.startLayoutAutosave(sessionId);
       this.setStatus("connected");
-    } catch {
-      if (!this.disposed) this.setStatus("error");
+    } catch (e) {
+      if (this.disposed) return;
+      // 503 = the server is up but scsynth hasn't registered yet (the user
+      // simply hasn't started it): keep the boot overlay and retry quietly —
+      // the app must not dead-end on a missing scsynth. Anything else is a
+      // real failure and gets the error modal (with its manual Retry).
+      if (e instanceof HttpError && e.status === 503) {
+        this.started = false;
+        setTimeout(() => void this.start(), SCSYNTH_RETRY_MS);
+        return;
+      }
+      this.setStatus("error");
     }
   }
 

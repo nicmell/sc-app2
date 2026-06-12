@@ -1,7 +1,7 @@
 //! Per-client LIVE session store (the persisted dashboard layouts live in
-//! [`crate::layouts`]): node-id sub-block allocation. A passive data
+//! [`crate::core::layouts`]): node-id sub-block allocation. A passive data
 //! structure — the OSC group teardown a removal triggers lives in
-//! [`crate::server`] (a session ends when its WebSocket closes, or at
+//! [`crate::core::server`] (a session ends when its WebSocket closes, or at
 //! shutdown when every live session is drained and freed one by one).
 //!
 //! Each session maps a [`Uuid`] to its [`SessionBlock`](super::blocks::SessionBlock)

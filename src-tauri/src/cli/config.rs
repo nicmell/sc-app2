@@ -1,13 +1,13 @@
 //! The `config` CLI subcommands (the `plugin` family's sibling): write the
 //! default `config.json` to a path, and validate an existing one — the strict
-//! counterpart of [`super::load`], which silently falls back to defaults on a
+//! counterpart of [`config::load`](crate::core::config::load), which silently falls back to defaults on a
 //! malformed file. Validation goes beyond JSON shape: every peer's routing
 //! regex must compile and its target must look like `host:port`, the same
 //! requirements the bridge enforces (by skipping the peer) at startup.
 
 use clap::Subcommand;
 
-use crate::config;
+use crate::core::config;
 
 #[derive(Subcommand)]
 pub enum ConfigCommand {

@@ -30,7 +30,7 @@ named after its UDP port:
 - **Linux**: `/dev/shm/SuperColliderServer_<port>` (POSIX `shm_open`)
 
 The segment holds the control buses and **128 `scope_buffer` instances**
-(`src-tauri/src/scope/layout.rs` pins this count as
+(`src-tauri/src/core/scope/layout.rs` pins this count as
 `EXPECTED_SCOPE_BUFFER_COUNT`; `core/blocks.rs` mirrors it as
 `SCOPE_BUFFER_COUNT`). The buffers are scattered by Boost's allocator; a
 `bi::vector<offset_ptr<scope_buffer>>` inside the segment is the index → buffer
@@ -119,7 +119,7 @@ live scopes throws). The bridge **enforces** the span: a `/scope/subscribe`
 naming a slot outside the session's block is logged and ignored
 (`SessionBlock::owns_scope_index`, gated in `SessionScopes::subscribe`).
 
-## 3. The bridge (`src-tauri/src/scope/`, `router/ws.rs`, `server.rs`)
+## 3. The bridge (`src-tauri/src/core/scope/`, `router/ws.rs`, `server.rs`)
 
 ### Opening the segment
 

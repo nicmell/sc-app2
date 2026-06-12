@@ -21,7 +21,7 @@ use regex::Regex;
 use tokio::net::{lookup_host, UdpSocket};
 use tokio::sync::broadcast;
 
-use crate::config::PeerConfig;
+use crate::core::config::PeerConfig;
 
 /// Max datagram size read per `recv`.
 const RECV_BUF: usize = 64 * 1024;

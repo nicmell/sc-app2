@@ -162,37 +162,47 @@ dashboard layout persist** server-side:
 
 ### Backend (`src-tauri/src/`)
 
+Three top-level modules: `cli/` (the command-line surface), `core/`
+(everything that isn't transport or CLI), `router/` (axum transport);
+`lib.rs` is the run modes + composition root.
+
 ```
-lib.rs            CLI (serve | plugin <validate|add|remove|list> |
-                  config <write|validate> | GUI) +
-                  composition root (bridge → scsynth → server → router)
-config/           config.json (port, peers, connect_timeout, log_dir) +
-                  app-data-dir paths + the `config` CLI subcommands (cli.rs:
-                  write the default / strictly validate one)
-core/bridge.rs    UDP peers (scsynth, strudel) ⇄ broadcast fan-out, pattern routing
-core/blocks.rs    the per-session id-partitioning scheme (pure math): node-id
+lib.rs            run modes (serve | GUI) + composition root
+                  (bridge → scsynth → server → router)
+cli/              the command-line surface: mod.rs (clap definitions +
+                  parse_and_dispatch — the no-server subcommands run and
+                  exit before the stack boots) + one file per subcommand
+                  group: plugin.rs (validate|add|remove|list, over
+                  core/plugin's manager), config.rs (write|validate)
+core/
+  bridge.rs       UDP peers (scsynth, strudel) ⇄ broadcast fan-out, routing
+  osc.rs/peer.rs  generic OSC helpers / connected UDP peers
+  scsynth.rs      protocol + supervisor: /notify registration, clientID,
+                  /status heartbeat, group free helpers
+  blocks.rs       the per-session id-partitioning scheme (pure math): node-id
                   sub-blocks (cid<<26 blocks, per-session SESSION_SPAN) +
                   scope-slot spans (SCOPE_SPAN of SCOPE_BUFFER_COUNT)
-core/scsynth.rs   protocol + supervisor: /notify registration, clientID,
-                  /status heartbeat, group free helpers
-core/sessions.rs  LIVE-session store (Uuid → block, index recycling)
-layouts.rs        SAVED dashboard layouts: sessions.json registry +
+  sessions.rs     LIVE-session store (Uuid → block, index recycling)
+  layouts.rs      SAVED dashboard layouts: sessions.json registry +
                   sessions/<id>.json
-plugin/           zip validation (metadata, XSD entry, assets) + plugins.json
-                  registry + the `plugin` CLI subcommands (cli.rs, ported from
-                  the old app) over the same manager
+  server.rs       the app-logic facade the router holds as axum State:
+                  session mint/revive/end, the shared scope SHM handle
+  config.rs       config.json (port, peers, connect_timeout, log_dir) +
+                  app-data-dir paths
+  logger.rs       tracing to stderr + optional rotated JSON file
+  plugin/         zip validation (metadata, XSD entry, assets) + plugins.json
+                  registry (manager.rs + xsd/)
+  scope/          scsynth SHM scope buffers → /scope/chunk frames over the
+                  WS, one file per layer: mmap.rs (read-only mapping +
+                  acquire reads), layout.rs (scope_buffer layout +
+                  discovery), reader.rs (non-mutating slot reader), wire.rs
+                  (the /scope/* contract), session.rs (per-slot cursors +
+                  SessionScopes — one session's subscriptions, span gating,
+                  latest-only chunk staging, owned by the WS task; ws.rs
+                  stays pure transport). See scope.md
 router/           axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
-scope/            scsynth SHM scope buffers → /scope/chunk frames over the WS,
-                  one file per layer: mmap.rs (read-only mapping + acquire
-                  reads), layout.rs (scope_buffer layout + discovery),
-                  reader.rs (non-mutating slot reader), wire.rs (the /scope/*
-                  contract), session.rs (per-slot cursors + SessionScopes —
-                  one session's subscriptions, span gating, latest-only chunk
-                  staging, owned by the WS task; ws.rs stays pure transport).
-                  See scope.md
-server.rs         app logic glue (axum State): session mint/revive/end, scope SHM
 ```
 
 App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`,

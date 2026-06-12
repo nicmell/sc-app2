@@ -6,7 +6,6 @@
 //! learns through the injected `window.HTTP_BASE_URL`), the `peers` the bridge
 //! connects to at startup, and an optional `log_dir`.
 
-pub mod cli;
 
 use std::path::PathBuf;
 

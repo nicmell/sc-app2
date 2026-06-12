@@ -5,7 +5,7 @@
 
 use clap::Subcommand;
 
-use crate::plugin::manager;
+use crate::core::plugin::manager;
 
 #[derive(Subcommand)]
 pub enum PluginCommand {

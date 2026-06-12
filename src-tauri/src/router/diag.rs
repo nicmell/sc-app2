@@ -30,7 +30,7 @@ use serde_json::{json, Value};
 use tokio::time::timeout;
 
 use crate::core::osc::{self, OscType};
-use crate::server::Server;
+use crate::core::server::Server;
 
 /// The `/api/diag/*` routes.
 pub fn routes() -> Router<Server> {

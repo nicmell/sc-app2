@@ -14,7 +14,7 @@ use tokio::sync::broadcast;
 
 use super::osc;
 use super::peer::{self, Peer};
-use crate::config::PeerConfig;
+use crate::core::config::PeerConfig;
 
 /// Capacity of the inbound fan-out broadcast.
 const INBOUND_CAPACITY: usize = 256;

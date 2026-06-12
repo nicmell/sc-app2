@@ -207,7 +207,7 @@ impl Scsynth {
     }
 
     /// Release our client slot on scsynth (`/notify 0`) — for shutdown. Live
-    /// session groups are freed individually first, by [`crate::server`].
+    /// session groups are freed individually first, by [`crate::core::server`].
     pub async fn unregister(&self) {
         if !self.inner.bridge.has_route("/notify") {
             return;

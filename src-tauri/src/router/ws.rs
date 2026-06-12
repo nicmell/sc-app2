@@ -5,7 +5,7 @@
 //! uplink binary frames are dispatched to the matching peer; peer replies (from
 //! the bridge's fan-out) are written back. `/scope/*` frames are claimed for
 //! the session's [`SessionScopes`] instead of routed — all scope semantics
-//! (subscriptions, span gating, chunk staging) live in [`crate::scope`]; this
+//! (subscriptions, span gating, chunk staging) live in [`crate::core::scope`]; this
 //! loop only routes frames and ferries bytes.
 //!
 //! [`routes`] is the `/ws` sub-router, merged into the app in
@@ -23,8 +23,8 @@ use uuid::Uuid;
 
 use crate::core::osc::peek_address;
 use crate::core::blocks::SessionBlock;
-use crate::scope::{self, SessionScopes};
-use crate::server::Server;
+use crate::core::scope::{self, SessionScopes};
+use crate::core::server::Server;
 
 /// The `/ws` route.
 pub fn routes() -> Router<Server> {
@@ -112,7 +112,7 @@ async fn ws_handler(
 async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
     let mut replies = server.bridge().subscribe();
     // This session's whole scope state — subscriptions, span gating, chunk
-    // staging — owned here, semantics in crate::scope.
+    // staging — owned here, semantics in crate::core::scope.
     let mut scopes = SessionScopes::new(block);
     let mut poll = scope::poll_interval();
     loop {

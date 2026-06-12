@@ -1,6 +1,6 @@
 //! The HTTP layer: route assembly, listener binding, serving, and the
 //! per-WebSocket pump. Pure transport — all app logic lives on
-//! [`Server`](crate::server::Server), which this layer holds as axum `State`
+//! [`Server`](crate::core::server::Server), which this layer holds as axum `State`
 //! and drives through its public API (`router → server → core`).
 //!
 //! Routes are assembled in [`router`] from per-feature sub-routers
@@ -20,7 +20,7 @@ use axum::extract::Request;
 use axum::Router;
 use tokio::net::TcpListener;
 
-use crate::server::Server;
+use crate::core::server::Server;
 use assets::AssetResolver;
 
 /// Bind a localhost listener on the server's configured port and log its

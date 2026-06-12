@@ -1,17 +1,17 @@
 //! The `/api/session` HTTP routes: mint / fetch-or-revive / save / drop.
 //!
-//! `POST` asks [`Server::create_session`](crate::server::Server::create_session)
+//! `POST` asks [`Server::create_session`](crate::core::server::Server::create_session)
 //! to allocate a group id + node-id range and returns them (plus the scsynth
 //! address for the footer); the frontend creates the session group itself
 //! (`/g_new` at the tail of scsynth's root group) once its WebSocket is open,
 //! and the session ends when that WebSocket closes (see `router/ws.rs`).
 //!
-//! The dashboard layout is persisted server-side ([`crate::layouts`]):
+//! The dashboard layout is persisted server-side ([`crate::core::layouts`]):
 //! the frontend periodically `PUT`s it, and at boot `GET` either returns the
 //! live session or **revives** a saved one under the same id (fresh block) so
 //! the layout survives across app runs. `DELETE` ends a live session
 //! explicitly (kept for future use). The session store and the id math live
-//! on [`Server`](crate::server) — this is just the transport.
+//! on [`Server`](crate::core::server) — this is just the transport.
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -22,8 +22,8 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::core::blocks::SessionBlock;
-use crate::layouts;
-use crate::server::Server;
+use crate::core::layouts;
+use crate::core::server::Server;
 
 /// The `/api/session` routes (mint / fetch-or-revive / save / drop).
 pub fn routes() -> Router<Server> {

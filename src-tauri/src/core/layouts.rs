@@ -3,7 +3,7 @@
 //! periodically PUTs, persisted in the app data dir next to the plugins —
 //! `sessions/<id>.json` holds the layout (opaque JSON; the server never
 //! interprets it) and `sessions.json` is the registry, mirroring the plugin
-//! one ([`crate::plugin::manager`]). Stateless fs functions, consumed by the
+//! one ([`crate::core::plugin::manager`]). Stateless fs functions, consumed by the
 //! `/api/session` router: a stored frontend id is revived from here at boot.
 //!
 //! TODO: saved sessions grow without bound — a browser that clears its
@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
-use crate::config;
+use crate::core::config;
 
 /// One registry entry: a session with a saved layout.
 #[derive(Serialize, Deserialize, Clone)]

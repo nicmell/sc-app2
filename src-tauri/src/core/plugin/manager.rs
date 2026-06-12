@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::config;
+use crate::core::config;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetInfo {

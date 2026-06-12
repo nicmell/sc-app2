@@ -15,13 +15,13 @@ use std::time::Duration;
 
 use uuid::Uuid;
 
-use crate::config::AppConfig;
+use crate::core::config::AppConfig;
 use crate::core::bridge::Bridge;
 use crate::core::blocks::{session_block, SessionBlock};
 use crate::core::scsynth::Scsynth;
 use crate::core::sessions::SessionStore;
-use crate::logger::Logger;
-use crate::scope::ScopeShm;
+use crate::core::logger::Logger;
+use crate::core::scope::ScopeShm;
 
 /// How long to wait for scsynth registration (clientID) before failing a POST.
 const CLIENT_ID_WAIT: Duration = Duration::from_secs(5);

@@ -2,90 +2,42 @@
 //!
 //! * `serve [--config <path>]` → headless HTTP server (API + frontend).
 //! * `plugin <validate|add|remove|list>` → manage plugin bundles from the
-//!   command line (no server; see [`plugin::cli`]).
+//!   command line (no server; see [`cli::plugin`]).
 //! * `config <write|validate>` → write the default `config.json` / validate
-//!   one (no server; see [`config::cli`]).
+//!   one (no server; see [`cli::config`]).
 //! * no subcommand → native GUI (stock Tauri: `tauri://` assets + IPC),
 //!   which also runs the HTTP server (API + frontend) for external clients.
 //!
-//! [`run`] does the work common to both modes (parse CLI, load config,
-//! initialize logging), then dispatches. [`start`] is the shared composition
-//! root: it connects the OSC [`core::bridge::Bridge`], starts the
-//! [`core::scsynth::Scsynth`] supervisor on top of it, builds the web-layer
-//! [`router::Server`], and binds its listener. The two run modes differ only in
-//! where the frontend assets come from and how/when they serve. The GUI webview
-//! learns the server's base URL through an injected `window.HTTP_BASE_URL`
-//! (its window is built after the listener binds, with an initialization
-//! script); browsers are same-origin.
+//! [`run`] does the work common to both modes (parse CLI via [`cli`], load
+//! config, initialize logging), then dispatches. [`start`] is the shared
+//! composition root: it connects the OSC [`core::bridge::Bridge`], starts the
+//! [`core::scsynth::Scsynth`] supervisor on top of it, builds the app-layer
+//! [`core::server::Server`], and binds its listener. The two run modes differ
+//! only in where the frontend assets come from and how/when they serve. The
+//! GUI webview learns the server's base URL through an injected
+//! `window.HTTP_BASE_URL` (its window is built after the listener binds, with
+//! an initialization script); browsers are same-origin.
 
-mod config;
+mod cli;
 mod core;
-mod logger;
-mod plugin;
 mod router;
-mod layouts;
-mod scope;
-mod server;
 
-use std::path::PathBuf;
 use std::sync::Arc;
 
-use clap::{Parser, Subcommand};
 use tauri::Manager;
 use tokio::net::TcpListener;
 
-use crate::config::AppConfig;
+use crate::cli::Command;
 use crate::core::bridge::Bridge;
+use crate::core::config::{self, AppConfig};
+use crate::core::logger::Logger;
 use crate::core::scsynth::Scsynth;
-use crate::logger::Logger;
-use crate::server::Server;
-
-#[derive(Parser)]
-#[command(name = "sc-app2", version, about = "SCSynth controller")]
-struct Cli {
-    #[command(subcommand)]
-    command: Option<Command>,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    /// Run the HTTP server headlessly on localhost (no GUI).
-    Serve {
-        /// Path to config.json. Defaults to the canonical app config dir.
-        #[arg(long)]
-        config: Option<PathBuf>,
-        /// Directory for the rotated JSON log file. Overrides config `log_dir`.
-        #[arg(long)]
-        log_dir: Option<PathBuf>,
-    },
-    /// Manage plugin bundles (validate / add / remove / list).
-    #[command(subcommand)]
-    Plugin(plugin::cli::PluginCommand),
-    /// Manage config.json (write the default / validate one).
-    #[command(subcommand)]
-    Config(config::cli::ConfigCommand),
-}
-
-/// Report a CLI subcommand's outcome and exit (0 on success, 1 with the error
-/// on stderr otherwise).
-fn exit_cli(result: Result<(), String>) -> ! {
-    match result {
-        Ok(()) => std::process::exit(0),
-        Err(e) => {
-            eprintln!("Error: {e}");
-            std::process::exit(1);
-        }
-    }
-}
+use crate::core::server::Server;
 
 pub fn run() {
-    // The plugin/config subcommands are plain filesystem operations — no
-    // logger or server involved; run them and exit before any of that boots.
-    let command = match Cli::parse().command {
-        Some(Command::Plugin(cmd)) => exit_cli(plugin::cli::run(cmd)),
-        Some(Command::Config(cmd)) => exit_cli(config::cli::run(cmd)),
-        other => other,
-    };
+    // The plugin/config subcommands run + exit inside parse_and_dispatch —
+    // only Serve / GUI (none) survive to boot the stack.
+    let command = cli::parse_and_dispatch();
     // serve reads --config / --log-dir; GUI uses the canonical config location.
     let (config_path, cli_log_dir) = match &command {
         Some(Command::Serve { config, log_dir }) => (config.clone(), log_dir.clone()),
@@ -96,11 +48,11 @@ pub fn run() {
     // Effective log dir: --log-dir flag (serve only) > config `log_dir`.
     let log_dir = cli_log_dir.or_else(|| config.log_dir.clone());
     // Initialize logging once, up front, so both run modes log identically.
-    let logger = logger::Logger::init(log_dir.as_deref());
+    let logger = Logger::init(log_dir.as_deref());
 
     match command {
         Some(Command::Serve { .. }) => run_serve(config, context, logger),
-        Some(Command::Plugin(_) | Command::Config(_)) => unreachable!("handled above"),
+        Some(Command::Plugin(_) | Command::Config(_)) => unreachable!("handled by cli"),
         None => run_gui(config, context, logger),
     }
 }

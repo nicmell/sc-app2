@@ -33,10 +33,9 @@ export class ScScope extends ScElement {
   readonly chunkRef: { current: DecodedScopeChunk | null } = { current: null };
   loaded = false;
   private tapNodeId = 0;
-  private subId = 0;
   private scopeIdx = -1;
-  /** Unsubscribe from the decoded /scope/chunk stream, while loaded. */
-  private offChunk?: () => void;
+  /** The chunk stream handle (subId + the off that also stops it). */
+  private stream?: { subId: number; off: () => void };
 
   validate(): void {
     requireNoScChildren(this);
@@ -60,11 +59,10 @@ export class ScScope extends ScElement {
       oscClient.sessionGroupId,
       { inBus: this.bus, scopeNum: this.scopeIdx },
     );
-    // Subscribe, then register the chunk handler: safe in the same sync task
-    // — the first chunk needs a bridge poll tick + a WS round-trip.
-    this.subId = oscClient.subscribeScope(this.scopeIdx, this.channels, SCOPE_CHUNK_SIZE);
-    this.offChunk = oscClient.onScopeChunk((chunk) => {
-      if (chunk.subId === this.subId) this.chunkRef.current = chunk;
+    // One call wires the whole stream: the handler is registered under the
+    // minted subId before the subscribe goes out, and dispatch is keyed.
+    this.stream = oscClient.subscribeScope(this.scopeIdx, this.channels, SCOPE_CHUNK_SIZE, (chunk) => {
+      this.chunkRef.current = chunk;
     });
     this.loaded = true;
   }
@@ -75,14 +73,12 @@ export class ScScope extends ScElement {
   unload(): void {
     super.unload();
     if (!this.loaded) return;
-    oscClient.unsubscribeScope(this.subId);
+    this.stream?.off(); // drops the handler + sends /scope/unsubscribe
+    this.stream = undefined;
     oscClient.freeSynth(this.tapNodeId);
-    this.offChunk?.();
-    this.offChunk = undefined;
     oscClient.freeScopeIndex(this.scopeIdx);
     this.chunkRef.current = null;
     this.tapNodeId = 0;
-    this.subId = 0;
     this.scopeIdx = -1;
     this.loaded = false;
   }

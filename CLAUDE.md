@@ -105,11 +105,12 @@ lib/                     non-React infrastructure
                          (→ /n_go, returning the allocated node id),
                          sendSynthDef (/d_recv + embedded /sync ack),
                          freeGroup/freeSynthDef/freeSynth/setControl,
-                         subscribeScope (mints the subId) / unsubscribeScope /
-                         onScopeChunk (decoded chunks, dispatched from
-                         handleReply) + the scope-slot allocator
-                         (allocScopeIndex/freeScopeIndex over the session's
-                         server-assigned span))
+                         subscribeScope(…, onChunk) → {subId, off} (handler
+                         registered under the minted subId before the send;
+                         decoded chunks dispatch by subId from handleReply;
+                         off also stops the bridge stream) + the scope-slot
+                         allocator (allocScopeIndex/freeScopeIndex over the
+                         session's server-assigned span))
                          → OscWorkerPlugin (osc-js Plugin impl, a thin
                            adapter over lib/worker's WorkerClient)
   worker/                the worker-backed WebSocket transport:

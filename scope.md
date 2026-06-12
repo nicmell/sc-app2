@@ -155,6 +155,11 @@ handshake). Instead it samples `_stage` and copies `_state[stage]`:
 
 Consequences of being a non-participant reader:
 
+- **Cross-process ordering is explicit**: `_status` and `_stage` are read
+  with acquire loads (`MmapRegion::read_i32_acquire`), pairing with the
+  writer's C++ release stores — the published slot's samples and header are
+  guaranteed visible after the load, on weakly-ordered hosts too (Apple
+  Silicon), not just by x86 habit.
 - **Freshness detection is `_stage` equality**, not the `changed` flag.
 - **Torn reads are detected, not prevented**: a push swaps `_in` ↔ `_stage`,
   so the slot being copied becomes the writer's next target — a push landing
@@ -169,8 +174,14 @@ Consequences of being a non-participant reader:
 `router/ws.rs` keeps a `HashMap<subId, ScopeSubscription>` per socket — one
 entry per mounted `<sc-scope>`. A 5 ms `tokio::interval` arm (gated on the
 map being non-empty) polls every subscription; each poll is the `_stage`
-peek, and only a fresh slot pays the copy + encode + WS send. Chunks ride
-the same binary WS frames as every other OSC reply.
+peek, and only a fresh slot pays the copy + encode. Chunks ride the same
+binary WS frames as every other OSC reply, but **never delay them**: the
+poll arm only stages encoded frames into a latest-only `pending` map (a
+newer chunk replaces an unsent older one — chunks are disposable, control
+replies are not), and a `biased` select drains one pending chunk per pass,
+ranked beneath uplink commands and bridge replies — so a slow socket
+degrades the scope's frame rate, never the `/n_go`/`/synced` acks the load
+pass gates on.
 
 `/scope/subscribe` and `/scope/unsubscribe` are **bridge-internal**: the WS
 pump claims them by address peek before bridge dispatch — they are never
@@ -223,13 +234,15 @@ Conventions:
 
 - `allocScopeIndex()` / `freeScopeIndex(i)` — the span free-list (armed on
   connect from the session payload).
-- `subscribeScope(scope, channels, chunkSize): subId` / `unsubscribeScope(subId)`
-  — thin senders (no reply to await; the bridge handles them internally).
-- `onScopeChunk(cb): off` — `/scope/chunk` is decoded **once** in
-  `handleReply` (`parseScopeChunkArgs`) and fanned out to the subscribers;
-  each filters on its own `subId`. The message is kept out of the console
-  log (it streams at ~47 Hz per scope). `handleReply` is also the unit-test
-  seam — tests feed chunks straight into it.
+- `subscribeScope(scope, channels, chunkSize, onChunk): { subId, off }` —
+  one call wires the whole stream: the handler is registered under the
+  minted subId *before* the subscribe is sent (no arrival race), and `off`
+  both drops it and sends `/scope/unsubscribe`. `/scope/chunk` is decoded
+  **once** in `handleReply` (`parseScopeChunkArgs`) and dispatched by subId
+  (a map lookup, no fan-out filtering); the message is kept out of the
+  console log (it streams at ~47 Hz per scope). `handleReply` is also the
+  unit-test seam — tests feed chunks straight into it. The handler map is
+  cleared on connect (fresh subId space).
 
 `<sc-scope bus channels>` (defaults `0` / `2`) owns the lifecycle through the
 element load pass:
@@ -239,11 +252,11 @@ load():   slot = allocScopeIndex()
           sendSynthDef(scopeTap<channels>ch_1024)        → awaits /synced
           tap = createSynth(def, sessionGroup tail,
                             { inBus: bus, scopeNum: slot }) → awaits /n_go
-          subId = subscribeScope(slot, channels, 1024)
-          offChunk = onScopeChunk(chunk if subId matches → chunkRef.current)
+          stream = subscribeScope(slot, channels, 1024,
+                                  chunk → chunkRef.current)
 
-unload(): unsubscribeScope(subId); freeSynth(tap); offChunk();
-          freeScopeIndex(slot); chunkRef.current = null
+unload(): stream.off()   [drops the handler + /scope/unsubscribe]
+          freeSynth(tap); freeScopeIndex(slot); chunkRef.current = null
 ```
 
 Because this rides the standard load/unload pass, taps re-arm automatically
@@ -275,8 +288,17 @@ unmount / disconnect:
   → slot 8 back to the free list (reused by the next mount; subIds are not)
 ```
 
-## 7. Known limitations
+## 7. Known limitations & deliberate trade-offs
 
+- **Identical taps are not shared**: every `<sc-scope>` owns its own tap,
+  so two elements watching the same `(bus, channels)` — e.g. two boxes both
+  scoping the master out — run two ScopeOut2 synths, two SHM slots, and two
+  chunk streams of identical samples. Deliberate: a refcounted share keyed
+  by `(bus, channels)` would halve that, but it reintroduces exactly the
+  shared-controller lifecycle the per-element design removed (who frees the
+  tap, who survives whose unload). Revisit only if real dashboards show
+  duplicate taps are common; the budget (8 slots/session) prices the
+  duplication in.
 - **Tap ordering**: a master-out tap created before later plugin mounts
   won't hear them (node-tree order); re-created on reconnect, or remount the
   scope's plugin.

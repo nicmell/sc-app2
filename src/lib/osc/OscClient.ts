@@ -102,9 +102,9 @@ export class OscClient {
   private statusTimer: ReturnType<typeof setTimeout> | null = null;
   /** Pending one-shot reply waiters (FIFO per address+match). */
   private waiters: ReplyWaiter[] = [];
-  /** /scope/chunk subscribers (one per loaded sc-scope), fed decoded chunks
-   *  from handleReply — each filters on its own subId. */
-  private scopeChunkSubs = new Set<(chunk: DecodedScopeChunk) => void>();
+  /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
+   *  decoded chunk dispatches straight to its subscriber from handleReply. */
+  private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
 
   constructor() {
     // Always-on subscriptions (osc-js handlers survive reconnects; nothing
@@ -156,7 +156,8 @@ export class OscClient {
         this.scopeCount = session.scopeIndexCount;
         this.scopeUsed = 0;
         this.freeScopeSlots = [];
-        this.nextSubId = 1;
+        this.nextSubId = 1; // fresh subId space → drop any leaked handlers
+        this.scopeChunkSubs.clear();
         // The session is freshly minted (it dies with the previous WebSocket),
         // so its group never pre-exists: create it at the tail of scsynth's
         // root group, after SuperDirt's output monitors.
@@ -343,26 +344,25 @@ export class OscClient {
   }
 
   /** Start a scope-slot chunk stream (the bridge intercepts the message —
-   *  no scsynth reply). Returns the minted subId; `/scope/chunk` frames echo
-   *  it, so subscribers filter on it. */
-  subscribeScope(scope: number, channels: number, chunkSize: number): number {
+   *  no scsynth reply). The handler is registered under the minted subId
+   *  BEFORE the subscribe is sent (no arrival race), and decoded
+   *  `/scope/chunk` frames dispatch to it straight from `handleReply` (also
+   *  the unit-test seam). Returns the subId + `off`, which drops the handler
+   *  and stops the bridge stream. */
+  subscribeScope(
+    scope: number,
+    channels: number,
+    chunkSize: number,
+    onChunk: (chunk: DecodedScopeChunk) => void,
+  ): { subId: number; off: () => void } {
     const subId = this.nextSubId++;
+    this.scopeChunkSubs.set(subId, onChunk);
     this.send(scopeSubscribe({ subId, scope, channels, chunkSize }));
-    return subId;
-  }
-
-  /** Stop a scope-slot chunk stream. */
-  unsubscribeScope(subId: number): void {
-    this.send(scopeUnsubscribe(subId));
-  }
-
-  /** Subscribe to the decoded `/scope/chunk` stream (dispatched straight
-   *  from `handleReply` — also the unit-test seam). Returns the
-   *  unsubscriber. Subscribers filter on their own subId. */
-  onScopeChunk(callback: (chunk: DecodedScopeChunk) => void): () => void {
-    this.scopeChunkSubs.add(callback);
-    return () => {
-      this.scopeChunkSubs.delete(callback);
+    return {
+      subId,
+      off: () => {
+        if (this.scopeChunkSubs.delete(subId)) this.send(scopeUnsubscribe(subId));
+      },
     };
   }
 
@@ -399,8 +399,8 @@ export class OscClient {
       waiter.resolve(reply);
     }
     if (reply.address === SCOPE_CHUNK_ADDRESS) {
-      // Streams at ~47 Hz per scope: dispatch to the sc-scope subscribers
-      // and keep it out of the console log.
+      // Streams at ~47 Hz per scope: dispatch by subId to the sc-scope
+      // subscriber and keep it out of the console log.
       if (this.scopeChunkSubs.size > 0) {
         let chunk: DecodedScopeChunk;
         try {
@@ -409,7 +409,7 @@ export class OscClient {
           console.error("[osc] bad /scope/chunk:", err);
           return;
         }
-        for (const cb of [...this.scopeChunkSubs]) cb(chunk);
+        this.scopeChunkSubs.get(chunk.subId)?.(chunk);
       }
       return;
     }

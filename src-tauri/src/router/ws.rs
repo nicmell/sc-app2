@@ -123,23 +123,21 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
     // subId — one per mounted <sc-scope>. `/scope/*` is bridge-internal —
     // claimed below, never routed.
     let mut scopes: HashMap<i32, ScopeSubscription> = HashMap::new();
+    // Encoded chunks waiting for the socket, latest-only per subId: chunks
+    // are DISPOSABLE (a fresh one supersedes them ~chunk-cadence later), so
+    // a newer chunk replaces an unsent older one, and the drain arm below
+    // ranks beneath uplink + replies — stream data never delays the control
+    // acks (/n_go, /synced) the load pass gates on.
+    let mut pending: HashMap<i32, Vec<u8>> = HashMap::new();
     let mut poll = tokio::time::interval(SCOPE_POLL);
     // The poll arm is gated on active subscriptions; skip the tick burst
     // the interval would otherwise replay when a scope re-enables it.
     poll.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     loop {
         tokio::select! {
-            _ = poll.tick(), if !scopes.is_empty() => {
-                // Each subscription is a cheap `_stage`-only peek; the data
-                // copy + a frame happen only for slots with a fresh chunk.
-                for sub in scopes.values_mut() {
-                    if let Some(chunk) = sub.poll() {
-                        if socket.send(Message::Binary(chunk.into())).await.is_err() {
-                            return;
-                        }
-                    }
-                }
-            }
+            // Priority order: uplink commands, then control replies, then the
+            // chunk poll/drain — re-evaluated between every awaited send.
+            biased;
             msg = socket.recv() => match msg {
                 Some(Ok(Message::Binary(bytes))) => {
                     match peek_address(bytes.as_ref()) {
@@ -153,7 +151,9 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                             }
                         }
                         Some(scope::SCOPE_UNSUBSCRIBE) => {
-                            unsubscribe_scope(&mut scopes, bytes.as_ref());
+                            if let Some(sub_id) = unsubscribe_scope(&mut scopes, bytes.as_ref()) {
+                                pending.remove(&sub_id);
+                            }
                         }
                         _ => server.bridge().dispatch_command(bytes.as_ref()).await,
                     }
@@ -175,6 +175,26 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                 Err(broadcast::error::RecvError::Lagged(_)) => continue,
                 Err(broadcast::error::RecvError::Closed) => break,
             },
+            _ = poll.tick(), if !scopes.is_empty() => {
+                // Each subscription is a cheap `_stage`-only peek; the data
+                // copy + encode happen only for slots with a fresh chunk.
+                // No sends here — frames land in `pending` for the drain arm.
+                for (&sub_id, sub) in scopes.iter_mut() {
+                    if let Some(chunk) = sub.poll() {
+                        pending.insert(sub_id, chunk);
+                    }
+                }
+            }
+            // Always-ready when there is something to drain; with `biased`
+            // it runs only when nothing above is — one chunk per pass, so
+            // replies are re-checked between chunk sends.
+            _ = std::future::ready(()), if !pending.is_empty() => {
+                let sub_id = *pending.keys().next().expect("pending is non-empty");
+                let chunk = pending.remove(&sub_id).expect("key just observed");
+                if socket.send(Message::Binary(chunk.into())).await.is_err() {
+                    break;
+                }
+            }
         }
     }
 }
@@ -204,17 +224,20 @@ async fn subscribe_scope(
     Some((sub_id, ScopeSubscription::new(sub_id, scope_idx, shm)))
 }
 
-/// Drop the subscription named by a `/scope/unsubscribe subId` frame.
+/// Drop the subscription named by a `/scope/unsubscribe subId` frame,
+/// returning the removed subId (the caller prunes its pending chunk too).
 /// Malformed or unknown subIds are ignored (logged) — an unsubscribe racing
 /// a socket close is normal, not an error.
-fn unsubscribe_scope(scopes: &mut HashMap<i32, ScopeSubscription>, bytes: &[u8]) {
+fn unsubscribe_scope(scopes: &mut HashMap<i32, ScopeSubscription>, bytes: &[u8]) -> Option<i32> {
     let Some(sub_id) = decode_message(bytes).as_ref().and_then(scope::parse_unsubscribe) else {
         tracing::debug!("malformed /scope/unsubscribe ignored");
-        return;
+        return None;
     };
     if scopes.remove(&sub_id).is_none() {
         tracing::debug!(sub_id, "unsubscribe for unknown scope subId");
+        return None;
     }
+    Some(sub_id)
 }
 
 #[cfg(test)]
@@ -238,13 +261,13 @@ mod tests {
             (8, ScopeSubscription::new(8, 1, None)),
         ]);
 
-        unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(7)]));
+        assert_eq!(unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(7)])), Some(7));
         assert!(!scopes.contains_key(&7));
         assert!(scopes.contains_key(&8));
 
         // Garbage frames and unknown subIds leave the map untouched.
-        unsubscribe_scope(&mut scopes, b"garbage");
-        unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(99)]));
+        assert_eq!(unsubscribe_scope(&mut scopes, b"garbage"), None);
+        assert_eq!(unsubscribe_scope(&mut scopes, &unsubscribe_frame(vec![OscType::Int(99)])), None);
         assert!(scopes.contains_key(&8));
         assert_eq!(scopes.len(), 1);
     }

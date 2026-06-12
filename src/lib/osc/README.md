@@ -48,11 +48,11 @@ oscClient.send (tx log) → OSC.send → packet.pack()                     [main
 ```
 ══ worker ══ ws message → postMessage({type:"message", data}, transfer)   (zero-copy)
 ══ main ══ plugin.notify(bytes) → osc-js unpacks + dispatches by address
-  → handleReply → parseScopeChunkArgs → the sc-scopes' onScopeChunk
-    subscribers (each filters on its own subId) → chunkRef
+  → handleReply → parseScopeChunkArgs → dispatch by subId to the owning
+    sc-scope's subscribeScope handler → chunkRef
 ```
 
 `/scope/chunk` is an ordinary OSC message — no special-casing anywhere in the
-transport; the client decodes it once in `handleReply` and fans it out to the
-`onScopeChunk` subscribers. Bundles are dispatched
+transport; the client decodes it once in `handleReply` and dispatches it by
+subId to the handler `subscribeScope` registered. Bundles are dispatched
 per-element by osc-js (future timetags are honored with delayed dispatch).

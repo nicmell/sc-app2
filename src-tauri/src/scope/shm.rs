@@ -34,6 +34,7 @@ use std::fs::File;
 use std::os::unix::io::AsRawFd;
 use std::path::PathBuf;
 use std::ptr;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 /// RAII wrapper for an mmap'd file region. Opens read-only, shared (so writes by
 /// scsynth are visible). Drops `munmap` on scope exit.
@@ -95,14 +96,6 @@ impl MmapRegion {
         unsafe { std::slice::from_raw_parts(self.ptr, self.size) }
     }
 
-    /// Read a native-endian i32 at byte offset. Bounds-checked.
-    pub fn read_i32_ne(&self, offset: usize) -> Option<i32> {
-        if offset + 4 > self.size {
-            return None;
-        }
-        let bytes: [u8; 4] = self.as_slice()[offset..offset + 4].try_into().ok()?;
-        Some(i32::from_ne_bytes(bytes))
-    }
 
     /// Read a native-endian u32 at byte offset. Bounds-checked.
     pub fn read_u32_ne(&self, offset: usize) -> Option<u32> {
@@ -111,6 +104,27 @@ impl MmapRegion {
         }
         let bytes: [u8; 4] = self.as_slice()[offset..offset + 4].try_into().ok()?;
         Some(u32::from_ne_bytes(bytes))
+    }
+
+    /// Read an i32 at byte offset with ACQUIRE ordering — for the fields the
+    /// writer publishes with C++ release atomics (`_status`, `_stage`). The
+    /// acquire load synchronizes-with scsynth's release store, so everything
+    /// written before the publication (the slot's samples, the header) is
+    /// visible after it — explicit cross-process ordering instead of relying
+    /// on x86-ish behavior on weakly-ordered hosts (Apple Silicon).
+    /// Bounds- and alignment-checked.
+    pub fn read_i32_acquire(&self, offset: usize) -> Option<i32> {
+        if offset + 4 > self.size {
+            return None;
+        }
+        let addr = self.ptr as usize + offset;
+        if addr % 4 != 0 {
+            return None; // misaligned would be UB for an atomic load
+        }
+        // Safety: in-bounds, 4-aligned, and AtomicI32 is layout-compatible
+        // with i32; the mapping is PROT_READ and an atomic load only reads.
+        let atomic = unsafe { &*(addr as *const AtomicI32) };
+        Some(atomic.load(Ordering::Acquire))
     }
 
     /// Read a native-endian i64 at byte offset. Bounds-checked. Used for
@@ -328,7 +342,7 @@ pub fn read_scope_stage(
     scope_idx: usize,
 ) -> Option<i32> {
     let buf_offset = *layout.scope_offsets.get(scope_idx)?;
-    region.read_i32_ne(buf_offset + SB_OFF_STAGE)
+    region.read_i32_acquire(buf_offset + SB_OFF_STAGE)
 }
 
 /// Read the most-recently-completed slot of `scope_buffer[scope_idx]` via a
@@ -347,8 +361,10 @@ pub fn read_scope_slot(
     }
     let buf_offset = layout.scope_offsets[scope_idx];
 
+    // Acquire: orders the header fields (`_size`, `_channels`) written
+    // before the writer flipped `_status` to initialized.
     let status = region
-        .read_i32_ne(buf_offset)
+        .read_i32_acquire(buf_offset)
         .ok_or_else(|| "scope_buffer status field OOB".to_string())?;
     if status != 1 {
         return Ok(ScopeReadResult::NotInitialized);
@@ -363,8 +379,10 @@ pub fn read_scope_slot(
         return Ok(ScopeReadResult::NotInitialized);
     }
 
+    // Acquire: orders the staged slot's samples (written before the push
+    // published this `_stage` value) ahead of the copy below.
     let stage = region
-        .read_i32_ne(buf_offset + SB_OFF_STAGE)
+        .read_i32_acquire(buf_offset + SB_OFF_STAGE)
         .ok_or_else(|| "scope_buffer _stage field OOB".to_string())?;
     if !(0..=2).contains(&stage) {
         return Err(format!(
@@ -420,7 +438,7 @@ pub fn read_scope_slot(
     // writer's NEXT target. If a push landed mid-copy the data may be torn —
     // drop it; the next poll emits the freshly completed slot instead.
     let stage_after = region
-        .read_i32_ne(buf_offset + SB_OFF_STAGE)
+        .read_i32_acquire(buf_offset + SB_OFF_STAGE)
         .ok_or_else(|| "scope_buffer _stage field OOB".to_string())?;
     if stage_after != stage as i32 {
         return Ok(ScopeReadResult::NoData);

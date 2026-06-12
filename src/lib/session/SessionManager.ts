@@ -17,7 +17,7 @@
 // useSyncExternalStore.
 
 import { SliceName } from "@/constants/store";
-import { LAYOUT_SAVE_INTERVAL_MS, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
+import { LAYOUT_SAVE_INTERVAL_MS, SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { get, HttpError, post, put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
@@ -54,6 +54,9 @@ export class SessionManager {
   private disposed = false;
   /** The layout-autosave timer + the last value it saved (reference compare). */
   private saveTimer: ReturnType<typeof setInterval> | null = null;
+  /** Consecutive quiet 503 boot attempts ("scsynth not registered yet") —
+   *  bounded by SCSYNTH_RETRY_LIMIT before the error modal takes over. */
+  private scsynthAttempts = 0;
   private lastSavedLayout: BoxItem[] | null = null;
 
   /** Revive the stored session (restoring its saved layout) or mint a fresh
@@ -101,14 +104,17 @@ export class SessionManager {
         if (!this.disposed) this.setStatus("error");
       });
       this.startLayoutAutosave(sessionId);
+      this.scsynthAttempts = 0;
       this.setStatus("connected");
     } catch (e) {
       if (this.disposed) return;
       // 503 = the server is up but scsynth hasn't registered yet (the user
       // simply hasn't started it): keep the boot overlay and retry quietly —
-      // the app must not dead-end on a missing scsynth. Anything else is a
-      // real failure and gets the error modal (with its manual Retry).
-      if (e instanceof HttpError && e.status === 503) {
+      // but only for a bounded budget (~20 s), after which the error modal
+      // advises that the connection isn't coming (its Retry restarts the
+      // cycle). Anything else is a real failure and gets the modal at once.
+      if (e instanceof HttpError && e.status === 503 && this.scsynthAttempts < SCSYNTH_RETRY_LIMIT) {
+        this.scsynthAttempts += 1;
         this.started = false;
         setTimeout(() => void this.start(), SCSYNTH_RETRY_MS);
         return;
@@ -150,6 +156,7 @@ export class SessionManager {
     this.teardown();
     this.started = false;
     this.lastSavedLayout = null;
+    this.scsynthAttempts = 0; // a manual retry restarts the quiet-retry budget
     this.setStatus("connecting");
     await this.start();
   }

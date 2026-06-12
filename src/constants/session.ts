@@ -8,3 +8,9 @@ export const LAYOUT_SAVE_INTERVAL_MS = 10_000;
  *  not registered yet"). The server itself long-polls registration for ~5 s
  *  per attempt, so this only spaces the round-trips. */
 export const SCSYNTH_RETRY_MS = 1_000;
+
+/** How many quiet 503 retries before the boot overlay gives way to the
+ *  error modal ("scsynth may be down" + manual Retry, which restarts the
+ *  cycle). Each attempt is the server's ~5 s registration long-poll plus the
+ *  retry pause, so the loading state lasts ~20 s before advising. */
+export const SCSYNTH_RETRY_LIMIT = 3;

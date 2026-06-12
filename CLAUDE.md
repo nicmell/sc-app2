@@ -156,8 +156,11 @@ dashboard layout persist** server-side:
    layout; on any failure fall back to `POST /api/session` (new id, stored back).
    While scsynth is unregistered the server answers 503 (it binds without
    waiting for scsynth, so the GUI window opens regardless) and the
-   SessionManager retries quietly under the boot overlay until it appears;
-   any other failure shows the error modal with its manual Retry.
+   SessionManager retries quietly under the boot overlay — but only within
+   the SCSYNTH_RETRY_LIMIT budget (~20 s), after which the error modal
+   advises that no connection is coming (its Retry restarts the budget).
+   Any other failure, including a WS drop after connecting, shows the error
+   modal immediately.
 2. `oscClient.connect(wsUrl, block)` opens the WS (in the worker) and sends
    `/g_new` — the session group lives **at the tail of scsynth's root group 0**;
    synth ids come from `oscClient.nextNodeId()` over the server-assigned block.

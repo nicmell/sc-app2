@@ -34,6 +34,7 @@ axum = { version = "0.8", features = ["ws"] }
 # CORS for the loopback API: the GUI webview is always cross-origin to the
 # embedded server (tauri://localhost in prod, the Vite devUrl in dev).
 tower-http = { version = "0.6", features = ["cors"] }
+
 # Content-type guessing for served frontend assets.
 mime_guess = "2"
 # Cheap-clone byte buffers fanned out to WS clients (re-exported by axum too).
@@ -62,3 +63,8 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 fastxml = "=0.8.0"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
 
+# Native NSWindow access (already in the tree via tauri): cli/gui.rs clears
+# the full-size-content-view mask tauri-runtime-wry force-adds for the
+# Visible title-bar style, so no webview content renders under the bar.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSResponder"] }

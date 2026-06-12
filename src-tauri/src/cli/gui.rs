@@ -8,15 +8,17 @@
 //! `create: false`, so Tauri doesn't auto-create it and [`run`] can build it
 //! from that config at the right moment.
 //!
-//! The config sets `titleBarStyle: "Transparent"` + a dark `backgroundColor`
-//! deliberately: tauri-runtime-wry maps the DEFAULT style (`Visible`) to a
-//! full-size content view on macOS (a workaround for tauri#10225), which puts
-//! the whole webview — the app header, the boot overlay — UNDER the title
-//! bar. `Transparent` is the one style with a normal-size content view, so
-//! nothing renders beneath the bar; the bar shows the window background
-//! (hence the dark color). Known trade-off inherited from #10225: with a
-//! non-full-size content view, opening the docked devtools can push the
-//! content view around — reopen the window if it ever bites.
+//! The window uses the native `titleBarStyle: "Visible"` bar — but
+//! tauri-runtime-wry force-adds `NSWindowStyleMask::FullSizeContentView` for
+//! that (default) style on macOS as its workaround for tauri#10225, which
+//! puts the whole webview — the app header, the boot overlay — UNDER the
+//! title bar. [`run`] undoes it natively right after building the window
+//! (the official window-customization guide's `ns_window` pattern, via
+//! `objc2-app-kit`): clear the mask, then re-assert the configured inner
+//! size (the mask change re-layouts the content view). Known trade-off
+//! inherited from #10225: without the full-size mask, opening the docked
+//! devtools can push the content view around — reopen the window if it
+//! ever bites.
 
 use tauri::Manager;
 
@@ -45,9 +47,30 @@ pub fn run(context: tauri::Context) {
             // port; its shape comes from tauri.conf.json.
             let window = app.config().app.windows.first()
                 .ok_or("no window declared in tauri.conf.json")?;
-            tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
-                .initialization_script(initialization_script(server.port()))
-                .build()?;
+            let webview_window =
+                tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
+                    .initialization_script(initialization_script(server.port()))
+                    .build()?;
+            // The runtime force-adds the full-size-content-view mask for the
+            // Visible title-bar style (its tauri#10225 workaround), putting
+            // the webview under the bar. Clear it so the content view sits
+            // below the bar, and re-assert the configured inner size (the
+            // mask change re-layouts the content view).
+            #[cfg(target_os = "macos")]
+            {
+                use objc2_app_kit::{NSWindow, NSWindowStyleMask};
+                let ns_window = webview_window.ns_window()? as *const NSWindow;
+                // Safety: setup runs on the main thread and the pointer comes
+                // from the just-built window.
+                unsafe {
+                    let ns_window = &*ns_window;
+                    ns_window.setStyleMask(
+                        ns_window.styleMask() & !NSWindowStyleMask::FullSizeContentView,
+                    );
+                }
+                webview_window
+                    .set_size(tauri::LogicalSize::new(window.width, window.height))?;
+            }
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = router::serve(server, listener, assets).await {
                     tracing::error!(error = %e, "server error");

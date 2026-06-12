@@ -4,7 +4,7 @@
 //! repo root for the full pipeline (scsynth level → bridge → `<sc-scope>`).
 //!
 //! This module owns ALL the scope semantics; the WS pump only routes frames
-//! and ferries bytes (see [`crate::router::ws`]). One file per layer:
+//! and ferries bytes (see [`crate::core::router::ws`]). One file per layer:
 //!
 //! * [`mmap`] — the read-only shared mapping + typed (acquire) reads.
 //! * [`layout`] — the `scope_buffer` memory layout + its heuristic discovery.

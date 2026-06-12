@@ -1,16 +1,21 @@
-//! The command-line surface: the clap definitions plus the no-server
-//! subcommand groups, one file per group ([`plugin`], [`config`]). These are
-//! plain filesystem operations over the same managers the HTTP routes use —
-//! no logger or server involved; [`parse_and_dispatch`] runs them and exits
-//! before any of that boots. The run modes themselves (serve / GUI) stay in
-//! `lib.rs`, the composition root.
+//! The command-line surface: the clap definitions plus one file per command
+//! — [`plugin`] and [`config`] are the no-server subcommand groups (plain
+//! filesystem operations over the same managers the HTTP routes use; they
+//! run and exit before anything boots), [`serve`] and [`gui`] are the run
+//! modes, sharing the [`boot`] prelude and [`core::start`](crate::core::start)
+//! (the composition root).
 
 pub mod config;
+pub mod gui;
 pub mod plugin;
+pub mod serve;
 
-use std::path::PathBuf;
+use std::sync::Arc;
 
 use clap::{Parser, Subcommand};
+
+use crate::core::config::AppConfig;
+use crate::core::logger::Logger;
 
 #[derive(Parser)]
 #[command(name = "sc-app2", version, about = "SCSynth controller")]
@@ -22,14 +27,7 @@ struct Cli {
 #[derive(Subcommand)]
 pub enum Command {
     /// Run the HTTP server headlessly on localhost (no GUI).
-    Serve {
-        /// Path to config.json. Defaults to the canonical app config dir.
-        #[arg(long)]
-        config: Option<PathBuf>,
-        /// Directory for the rotated JSON log file. Overrides config `log_dir`.
-        #[arg(long)]
-        log_dir: Option<PathBuf>,
-    },
+    Serve(serve::ServeArgs),
     /// Manage plugin bundles (validate / add / remove / list).
     #[command(subcommand)]
     Plugin(plugin::PluginCommand),
@@ -38,15 +36,36 @@ pub enum Command {
     Config(config::ConfigCommand),
 }
 
-/// Parse argv and run any no-server subcommand (exiting the process when one
-/// ran); return the surviving command — `Serve` or none (GUI) — for the
-/// composition root to boot.
-pub fn parse_and_dispatch() -> Option<Command> {
+/// Parse argv and run the chosen command — every command's behavior lives in
+/// its own file; this is the single exhaustive dispatch.
+pub fn run() {
     match Cli::parse().command {
         Some(Command::Plugin(cmd)) => exit_cli(plugin::run(cmd)),
         Some(Command::Config(cmd)) => exit_cli(config::run(cmd)),
-        other => other,
+        Some(Command::Serve(args)) => {
+            let (config, context, logger) = boot(Some(&args));
+            serve::run(config, context, logger);
+        }
+        None => {
+            let (config, context, logger) = boot(None);
+            gui::run(config, context, logger);
+        }
     }
+}
+
+/// The run modes' shared prelude: resolve the config (the serve flags
+/// override the canonical locations), embed the tauri context — ONE
+/// `generate_context!` invocation, it embeds the frontend assets into the
+/// binary — and initialize logging, so both modes log identically.
+fn boot(serve: Option<&serve::ServeArgs>) -> (AppConfig, tauri::Context, Arc<Logger>) {
+    let config = crate::core::config::load(serve.and_then(|a| a.config.clone()));
+    let context = tauri::generate_context!();
+    // Effective log dir: --log-dir flag (serve only) > config `log_dir`.
+    let log_dir = serve
+        .and_then(|a| a.log_dir.clone())
+        .or_else(|| config.log_dir.clone());
+    let logger = Logger::init(log_dir.as_deref());
+    (config, context, logger)
 }
 
 /// Report a CLI subcommand's outcome and exit (0 on success, 1 with the error

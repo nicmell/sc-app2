@@ -162,19 +162,21 @@ dashboard layout persist** server-side:
 
 ### Backend (`src-tauri/src/`)
 
-Three top-level modules: `cli/` (the command-line surface), `core/`
-(everything that isn't transport or CLI), `router/` (axum transport);
-`lib.rs` is the run modes + composition root.
+Two layers: `cli/` (the argv surface, one file per command) over `core/`
+(the whole application engine, incl. the axum `router/` transport, composed
+by `core::start`); `lib.rs` is just the module tree + `run()`.
 
 ```
-lib.rs            run modes (serve | GUI) + composition root
-                  (bridge → scsynth → server → router)
-cli/              the command-line surface: mod.rs (clap definitions +
-                  parse_and_dispatch — the no-server subcommands run and
-                  exit before the stack boots) + one file per subcommand
-                  group: plugin.rs (validate|add|remove|list, over
-                  core/plugin's manager), config.rs (write|validate)
-core/
+lib.rs            module tree + pub fn run() → cli::run()
+cli/              mod.rs (clap definitions + the single exhaustive dispatch
+                  + the run modes' shared `boot` prelude: config load, the
+                  ONE tauri generate_context!, logger init);
+                  serve.rs (ServeArgs + the headless run mode),
+                  gui.rs (the Tauri run mode: window + injected base URL),
+                  plugin.rs (validate|add|remove|list, over core/plugin's
+                  manager), config.rs (write|validate)
+core/             mod.rs also exports start(): bridge → scsynth supervisor →
+                  Server → router::listen — the composition root
   bridge.rs       UDP peers (scsynth, strudel) ⇄ broadcast fan-out, routing
   osc.rs/peer.rs  generic OSC helpers / connected UDP peers
   scsynth.rs      protocol + supervisor: /notify registration, clientID,
@@ -200,7 +202,7 @@ core/
                   SessionScopes — one session's subscriptions, span gating,
                   latest-only chunk staging, owned by the WS task; ws.rs
                   stays pure transport). See scope.md
-router/           axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
+  router/         axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
 ```

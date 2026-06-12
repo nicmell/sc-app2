@@ -111,7 +111,7 @@ A compile-time guard pins that the span divides the pool, so a span never
 straddles the boundary.
 
 The span travels in the session payload (`scopeIndexBase` /
-`scopeIndexCount`, `src-tauri/src/router/session.rs` →
+`scopeIndexCount`, `src-tauri/src/core/router/session.rs` →
 `src/types/api.d.ts`), and the frontend allocates one slot per mounted
 `<sc-scope>` from it (`oscClient.allocScopeIndex()` — a free-list allocator,
 re-armed on every connect; freed slots are reused, and exhaustion past 8
@@ -119,7 +119,7 @@ live scopes throws). The bridge **enforces** the span: a `/scope/subscribe`
 naming a slot outside the session's block is logged and ignored
 (`SessionBlock::owns_scope_index`, gated in `SessionScopes::subscribe`).
 
-## 3. The bridge (`src-tauri/src/core/scope/`, `router/ws.rs`, `server.rs`)
+## 3. The bridge (`src-tauri/src/core/scope/`, `core/router/ws.rs`, `core/server.rs`)
 
 ### Opening the segment
 
@@ -175,7 +175,7 @@ All the per-session scope state lives on one type, `scope::SessionScopes` —
 the subId-keyed subscriptions (one per mounted `<sc-scope>`), the span-gated
 subscribe/unsubscribe frame handling, and the latest-only chunk staging. The
 WS task **owns** it (a session lives exactly as long as its socket, so the
-state needs no locking and drops with the task); `router/ws.rs` itself stays
+state needs no locking and drops with the task); `core/router/ws.rs` itself stays
 pure transport — it only peeks addresses to claim `/scope/*` frames and
 ferries bytes. A 5 ms `tokio::interval` arm (gated on `is_active()`) runs
 `poll()`: a `_stage` peek per subscription, with only fresh slots paying the

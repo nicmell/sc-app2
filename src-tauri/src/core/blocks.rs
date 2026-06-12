@@ -11,7 +11,7 @@
 //!
 //! The app layer ([`crate::core::server`]) allocates the per-session `index` (via
 //! [`sessions`](super::sessions)); the consumers are the session payload
-//! ([`crate::router::session`]) and the scope subscribe gate
+//! ([`crate::core::router::session`]) and the scope subscribe gate
 //! ([`crate::core::scope`]). The session *group* (`/g_new` at the tail of scsynth's
 //! root group 0) is created by the frontend once its WebSocket is open — the
 //! bridge only frees groups (session end / shutdown).

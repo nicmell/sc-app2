@@ -1,5 +1,5 @@
 //! The application logic layer: session lifecycle on top of the OSC
-//! [`core`](crate::core), consumed by the HTTP [`router`](crate::router).
+//! [`core`](crate::core), consumed by the HTTP [`router`](crate::core::router).
 //!
 //! Layering is one-directional: `router → server → core`. [`Server`] owns the
 //! per-session bookkeeping (the Uuid↔index map) and the scope SHM mapping, and

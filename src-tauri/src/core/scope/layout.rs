@@ -68,7 +68,7 @@ pub fn find_scope_buffer_array(region: &MmapRegion) -> Result<ScopeBufferLayout,
     // Mark each 8-byte slot as a valid offset_ptr resolving to a scope_buffer.
     let n_slots = bytes.len() / 8;
     let mut valid: Vec<bool> = vec![false; n_slots];
-    for slot in 0..n_slots {
+    for (slot, valid_slot) in valid.iter_mut().enumerate() {
         let off = slot * 8;
         let raw = i64::from_ne_bytes(bytes[off..off + 8].try_into().unwrap_or([0; 8]));
         // offset_ptr semantics: target = field_offset + raw (raw 0/1 = useless).
@@ -82,7 +82,7 @@ pub fn find_scope_buffer_array(region: &MmapRegion) -> Result<ScopeBufferLayout,
             continue;
         }
         if scope_set.contains(&(target as usize)) {
-            valid[slot] = true;
+            *valid_slot = true;
         }
     }
 
@@ -144,19 +144,29 @@ fn find_scope_buffer_candidates(bytes: &[u8]) -> Vec<usize> {
     }
     let max = bytes.len() - 12;
     let mut i = 0;
-    while i <= max && i.checked_add(SB_OFF_STAGE + 12).map_or(false, |e| e <= bytes.len()) {
+    while i <= max
+        && i.checked_add(SB_OFF_STAGE + 12)
+            .is_some_and(|e| e <= bytes.len())
+    {
         let status = i32::from_ne_bytes(bytes[i..i + 4].try_into().unwrap());
         if status != 0 && status != 1 {
             i += 4;
             continue;
         }
-        let stage =
-            i32::from_ne_bytes(bytes[i + SB_OFF_STAGE..i + SB_OFF_STAGE + 4].try_into().unwrap());
+        let stage = i32::from_ne_bytes(
+            bytes[i + SB_OFF_STAGE..i + SB_OFF_STAGE + 4]
+                .try_into()
+                .unwrap(),
+        );
         let in_ = i32::from_ne_bytes(
-            bytes[i + SB_OFF_STAGE + 4..i + SB_OFF_STAGE + 8].try_into().unwrap(),
+            bytes[i + SB_OFF_STAGE + 4..i + SB_OFF_STAGE + 8]
+                .try_into()
+                .unwrap(),
         );
         let out_ = i32::from_ne_bytes(
-            bytes[i + SB_OFF_STAGE + 8..i + SB_OFF_STAGE + 12].try_into().unwrap(),
+            bytes[i + SB_OFF_STAGE + 8..i + SB_OFF_STAGE + 12]
+                .try_into()
+                .unwrap(),
         );
         if (0..=2).contains(&stage)
             && (0..=2).contains(&in_)

@@ -10,7 +10,7 @@ use std::time::Duration;
 use crate::core::blocks::SessionBlock;
 use crate::core::osc::decode_message;
 
-use super::reader::{read_scope_stage, read_scope_slot, ScopeReadResult};
+use super::reader::{read_scope_slot, read_scope_stage, ScopeReadResult};
 use super::wire::{encode_scope_chunk, parse_subscribe, parse_unsubscribe};
 use super::ScopeShm;
 
@@ -67,7 +67,12 @@ impl ScopeSubscription {
             return None;
         }
         match read_scope_slot(&shm.region, &shm.layout, self.scope_idx) {
-            Ok(ScopeReadResult::Data { samples, channels, stage, frames }) => {
+            Ok(ScopeReadResult::Data {
+                samples,
+                channels,
+                stage,
+                frames,
+            }) => {
                 self.last_stage = stage as i32;
                 self.tick = self.tick.wrapping_add(1);
                 self.idle_polls = 0;
@@ -147,7 +152,11 @@ pub struct SessionScopes {
 
 impl SessionScopes {
     pub fn new(block: SessionBlock) -> Self {
-        Self { block, subs: HashMap::new(), pending: HashMap::new() }
+        Self {
+            block,
+            subs: HashMap::new(),
+            pending: HashMap::new(),
+        }
     }
 
     /// Whether the pump's poll timer should run at all.
@@ -167,22 +176,29 @@ impl SessionScopes {
     /// subscription. Re-subscribing an existing subId replaces it (fresh
     /// SHM cursor). Malformed frames are ignored.
     pub fn subscribe(&mut self, bytes: &[u8], shm: Option<Arc<ScopeShm>>) {
-        let Some((sub_id, scope_idx)) =
-            decode_message(bytes).as_ref().and_then(parse_subscribe)
+        let Some((sub_id, scope_idx)) = decode_message(bytes).as_ref().and_then(parse_subscribe)
         else {
             tracing::debug!("malformed /scope/subscribe ignored");
             return;
         };
         if !self.block.owns_scope_index(scope_idx) {
             tracing::warn!(
-                sub_id, scope_idx,
-                base = self.block.scope_index_base, count = self.block.scope_index_count,
+                sub_id,
+                scope_idx,
+                base = self.block.scope_index_base,
+                count = self.block.scope_index_count,
                 "scope subscribe outside session block; ignored"
             );
             return;
         }
-        tracing::debug!(sub_id, scope_idx, have_shm = shm.is_some(), "scope subscribe");
-        self.subs.insert(sub_id, ScopeSubscription::new(sub_id, scope_idx, shm));
+        tracing::debug!(
+            sub_id,
+            scope_idx,
+            have_shm = shm.is_some(),
+            "scope subscribe"
+        );
+        self.subs
+            .insert(sub_id, ScopeSubscription::new(sub_id, scope_idx, shm));
     }
 
     /// Handle a `/scope/unsubscribe subId` frame: drop that subscription and
@@ -219,20 +235,28 @@ impl SessionScopes {
 
 #[cfg(test)]
 mod tests {
+    use super::super::wire::{SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE};
     use super::*;
     use crate::core::blocks::session_block;
-    use super::super::wire::{SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE};
     use rosc::{OscMessage, OscPacket, OscType};
 
     fn frame(addr: &str, args: Vec<OscType>) -> Vec<u8> {
-        rosc::encoder::encode(&OscPacket::Message(OscMessage { addr: addr.into(), args }))
-            .expect("encode frame")
+        rosc::encoder::encode(&OscPacket::Message(OscMessage {
+            addr: addr.into(),
+            args,
+        }))
+        .expect("encode frame")
     }
 
     fn subscribe_frame(sub_id: i32, scope: i32) -> Vec<u8> {
         frame(
             SCOPE_SUBSCRIBE,
-            vec![OscType::Int(sub_id), OscType::Int(scope), OscType::Int(2), OscType::Int(1024)],
+            vec![
+                OscType::Int(sub_id),
+                OscType::Int(scope),
+                OscType::Int(2),
+                OscType::Int(1024),
+            ],
         )
     }
 

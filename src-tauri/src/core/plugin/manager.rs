@@ -33,18 +33,24 @@ const XSD_SCHEMA: &str = include_str!("xsd/sc-plugin-schema.xsd");
 const SUPPORTED_ASSET_TYPES: &[&str] = &["png", "jpeg"];
 
 fn is_valid_name(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    !s.is_empty()
+        && s.chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
 fn is_valid_version(s: &str) -> bool {
     let parts: Vec<&str> = s.split('.').collect();
-    parts.len() == 3 && parts.iter().all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit()))
+    parts.len() == 3
+        && parts
+            .iter()
+            .all(|p| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit()))
 }
 
 /// A relative path with no `..`/absolute components (zip path-traversal guard).
 pub fn is_safe_path(name: &str) -> bool {
     let path = std::path::Path::new(name);
-    path.components().all(|c| matches!(c, std::path::Component::Normal(_)))
+    path.components()
+        .all(|c| matches!(c, std::path::Component::Normal(_)))
 }
 
 pub fn asset_type_to_mime(t: &str) -> &'static str {
@@ -56,7 +62,9 @@ pub fn asset_type_to_mime(t: &str) -> &'static str {
 }
 
 fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
-    let obj = raw.as_object().ok_or("metadata.json must be a JSON object")?;
+    let obj = raw
+        .as_object()
+        .ok_or("metadata.json must be a JSON object")?;
 
     let get_str = |key: &str| -> Result<String, String> {
         obj.get(key)
@@ -93,16 +101,22 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
                     .and_then(|v| v.as_str())
                     .map(|s| s.trim().to_string())
                     .filter(|s| !s.is_empty())
-                    .ok_or_else(|| format!("metadata.json: assets[{i}].path must be a non-empty string"))?;
+                    .ok_or_else(|| {
+                        format!("metadata.json: assets[{i}].path must be a non-empty string")
+                    })?;
                 if !is_safe_path(&path) {
-                    return Err(format!("metadata.json: assets[{i}].path must be a valid relative path"));
+                    return Err(format!(
+                        "metadata.json: assets[{i}].path must be a valid relative path"
+                    ));
                 }
                 let mime_type = asset_obj
                     .get("type")
                     .and_then(|v| v.as_str())
                     .map(|s| s.trim().to_string())
                     .filter(|s| !s.is_empty())
-                    .ok_or_else(|| format!("metadata.json: assets[{i}].type must be a non-empty string"))?;
+                    .ok_or_else(|| {
+                        format!("metadata.json: assets[{i}].type must be a non-empty string")
+                    })?;
                 if !SUPPORTED_ASSET_TYPES.contains(&mime_type.as_str()) {
                     return Err(format!(
                         "metadata.json: assets[{i}].type \"{mime_type}\" is not supported (expected one of: {SUPPORTED_ASSET_TYPES:?})"
@@ -131,8 +145,8 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
 fn validate_entry_xhtml(entry_content: &str) -> Result<(), String> {
     let ctx = fastxml::create_xml_schema_validation_context_from_buffer(XSD_SCHEMA.as_bytes())
         .map_err(|e| format!("failed to parse XSD schema: {e}"))?;
-    let doc = fastxml::parse(entry_content)
-        .map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
+    let doc =
+        fastxml::parse(entry_content).map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
     let errors = fastxml::validate_document_by_schema_context(&doc, &ctx)
         .map_err(|e| format!("entry file validation failed: {e}"))?;
     if !errors.is_empty() {
@@ -146,14 +160,17 @@ fn validate_entry_xhtml(entry_content: &str) -> Result<(), String> {
 }
 
 fn validate_asset_image(data: &[u8], declared_type: &str) -> Result<(), String> {
-    let format = image::guess_format(data).map_err(|e| format!("failed to detect image format: {e}"))?;
+    let format =
+        image::guess_format(data).map_err(|e| format!("failed to detect image format: {e}"))?;
     let detected = match format {
         image::ImageFormat::Png => "png",
         image::ImageFormat::Jpeg => "jpeg",
         _ => return Err(format!("unsupported image format detected: {format:?}")),
     };
     if detected != declared_type {
-        return Err(format!("image content is {detected} but declared type is \"{declared_type}\""));
+        return Err(format!(
+            "image content is {detected} but declared type is \"{declared_type}\""
+        ));
     }
     Ok(())
 }
@@ -168,11 +185,12 @@ pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
             .by_name("metadata.json")
             .map_err(|_| "zip must contain a metadata.json at its root".to_string())?;
         let mut text = String::new();
-        file.read_to_string(&mut text).map_err(|e| format!("failed to read metadata.json: {e}"))?;
+        file.read_to_string(&mut text)
+            .map_err(|e| format!("failed to read metadata.json: {e}"))?;
         text
     };
-    let meta_value: serde_json::Value =
-        serde_json::from_str(&metadata_text).map_err(|_| "metadata.json is not valid JSON".to_string())?;
+    let meta_value: serde_json::Value = serde_json::from_str(&metadata_text)
+        .map_err(|_| "metadata.json is not valid JSON".to_string())?;
     let info = validate_metadata(&meta_value)?;
 
     let entry_content = {
@@ -195,7 +213,8 @@ pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
         asset_file
             .read_to_end(&mut bytes)
             .map_err(|e| format!("failed to read asset \"{}\": {e}", asset.path))?;
-        validate_asset_image(&bytes, &asset.mime_type).map_err(|e| format!("asset \"{}\": {e}", asset.path))?;
+        validate_asset_image(&bytes, &asset.mime_type)
+            .map_err(|e| format!("asset \"{}\": {e}", asset.path))?;
     }
 
     Ok(info)
@@ -288,9 +307,10 @@ pub fn read_plugin_file(id: &str, file_path: &str) -> Result<(String, Vec<u8>), 
         }
     };
 
-    let data = std::fs::read(zip_filename(&info)).map_err(|_| "plugin archive missing".to_string())?;
-    let mut archive =
-        zip::ZipArchive::new(std::io::Cursor::new(data)).map_err(|_| "failed to read plugin archive".to_string())?;
+    let data =
+        std::fs::read(zip_filename(&info)).map_err(|_| "plugin archive missing".to_string())?;
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(data))
+        .map_err(|_| "failed to read plugin archive".to_string())?;
     let mut file = archive
         .by_name(file_path)
         .map_err(|_| "file not found in plugin".to_string())?;

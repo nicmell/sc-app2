@@ -60,7 +60,12 @@ struct SessionInfo {
 }
 
 impl SessionInfo {
-    fn new(server: &Server, id: Uuid, block: SessionBlock, layout: Option<serde_json::Value>) -> Self {
+    fn new(
+        server: &Server,
+        id: Uuid,
+        block: SessionBlock,
+        layout: Option<serde_json::Value>,
+    ) -> Self {
         Self {
             session_id: id,
             session_group_id: block.group_id,
@@ -74,14 +79,20 @@ impl SessionInfo {
     }
 }
 
-const SCSYNTH_UNAVAILABLE: (StatusCode, &str) =
-    (StatusCode::SERVICE_UNAVAILABLE, "scsynth not registered yet; retry\n");
+const SCSYNTH_UNAVAILABLE: (StatusCode, &str) = (
+    StatusCode::SERVICE_UNAVAILABLE,
+    "scsynth not registered yet; retry\n",
+);
 
 async fn post_session(State(server): State<Server>) -> Response {
     match server.create_session().await {
         Some((id, block)) => {
             tracing::info!(session = %id, group = block.group_id, "session created");
-            (StatusCode::CREATED, Json(SessionInfo::new(&server, id, block, None))).into_response()
+            (
+                StatusCode::CREATED,
+                Json(SessionInfo::new(&server, id, block, None)),
+            )
+                .into_response()
         }
         None => SCSYNTH_UNAVAILABLE.into_response(),
     }

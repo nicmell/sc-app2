@@ -45,12 +45,15 @@ pub fn run(context: tauri::Context) {
             // The window is built here — not auto-created from the config —
             // so the initialization script can carry the just-bound server
             // port; its shape comes from tauri.conf.json.
-            let window = app.config().app.windows.first()
+            let window = app
+                .config()
+                .app
+                .windows
+                .first()
                 .ok_or("no window declared in tauri.conf.json")?;
-            let webview_window =
-                tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
-                    .initialization_script(initialization_script(server.port()))
-                    .build()?;
+            let webview_window = tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
+                .initialization_script(initialization_script(server.port()))
+                .build()?;
             // The runtime force-adds the full-size-content-view mask for the
             // Visible title-bar style (its tauri#10225 workaround), putting
             // the webview under the bar. Clear it so the content view sits
@@ -68,8 +71,7 @@ pub fn run(context: tauri::Context) {
                         ns_window.styleMask() & !NSWindowStyleMask::FullSizeContentView,
                     );
                 }
-                webview_window
-                    .set_size(tauri::LogicalSize::new(window.width, window.height))?;
+                webview_window.set_size(tauri::LogicalSize::new(window.width, window.height))?;
             }
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = router::serve(server, listener, assets).await {

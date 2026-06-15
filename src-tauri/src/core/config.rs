@@ -6,7 +6,6 @@
 //! learns through the injected `window.HTTP_BASE_URL`), the `peers` the bridge
 //! connects to at startup, and an optional `log_dir`.
 
-
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -61,8 +60,9 @@ fn default_peers() -> Vec<PeerConfig> {
     vec![
         PeerConfig {
             name: "scsynth".into(),
-            pattern: r"^/([sngbcdpu]_|notify|status|sync|cmd|dumpOSC|clearSched|error|quit|version)"
-                .into(),
+            pattern:
+                r"^/([sngbcdpu]_|notify|status|sync|cmd|dumpOSC|clearSched|error|quit|version)"
+                    .into(),
             target: "127.0.0.1:57110".into(),
         },
         PeerConfig {
@@ -131,7 +131,8 @@ pub fn write_default(path: &std::path::Path) -> Result<(), String> {
             .map_err(|e| format!("Error creating \"{}\": {e}", dir.display()))?;
     }
     let json = serde_json::to_string_pretty(&AppConfig::default()).map_err(|e| e.to_string())?;
-    std::fs::write(path, json + "\n").map_err(|e| format!("Error writing \"{}\": {e}", path.display()))
+    std::fs::write(path, json + "\n")
+        .map_err(|e| format!("Error writing \"{}\": {e}", path.display()))
 }
 
 /// Load config from an explicit path (serve `--config`) or the canonical
@@ -264,7 +265,11 @@ mod tests {
     #[test]
     fn default_peers_are_valid() {
         for p in default_peers() {
-            assert!(regex::Regex::new(&p.pattern).is_ok(), "bad regex: {}", p.pattern);
+            assert!(
+                regex::Regex::new(&p.pattern).is_ok(),
+                "bad regex: {}",
+                p.pattern
+            );
             assert!(
                 p.target.parse::<std::net::SocketAddr>().is_ok(),
                 "bad target: {}",
@@ -293,7 +298,10 @@ mod tests {
     fn loads_log_dir() {
         let path = tmp("logdir");
         std::fs::write(&path, r#"{ "log_dir": "/tmp/x" }"#).unwrap();
-        assert_eq!(load(Some(path.clone())).log_dir, Some(PathBuf::from("/tmp/x")));
+        assert_eq!(
+            load(Some(path.clone())).log_dir,
+            Some(PathBuf::from("/tmp/x"))
+        );
         std::fs::remove_file(path).ok();
     }
 }

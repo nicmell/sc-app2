@@ -110,14 +110,16 @@ impl AssetResolver for AppAssets {
 
 /// Resolver over the embedded context (headless serve). `None` in dev.
 pub fn from_context(context: tauri::Context) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev))
-        .then(move || Arc::new(CachedAssets::preloaded(ContextAssets(context))) as Arc<dyn AssetResolver>)
+    (!cfg!(dev)).then(move || {
+        Arc::new(CachedAssets::preloaded(ContextAssets(context))) as Arc<dyn AssetResolver>
+    })
 }
 
 /// Resolver over the running app (GUI, for external clients). `None` in dev.
 pub fn from_app(app: &tauri::App) -> Option<Arc<dyn AssetResolver>> {
-    (!cfg!(dev))
-        .then(|| Arc::new(CachedAssets::preloaded(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>)
+    (!cfg!(dev)).then(|| {
+        Arc::new(CachedAssets::preloaded(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>
+    })
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.
@@ -169,8 +171,14 @@ mod tests {
 
     fn assets() -> Arc<dyn AssetResolver> {
         Arc::new(MapAssets(HashMap::from([
-            ("index.html".to_string(), Bytes::from_static(b"<html>root</html>")),
-            ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
+            (
+                "index.html".to_string(),
+                Bytes::from_static(b"<html>root</html>"),
+            ),
+            (
+                "assets/app.js".to_string(),
+                Bytes::from_static(b"console.log(1)"),
+            ),
         ])))
     }
 
@@ -242,9 +250,15 @@ mod tests {
         }"#;
         let counting: &'static CountingAssets = Box::leak(Box::new(CountingAssets {
             inner: MapAssets(HashMap::from([
-                ("index.html".to_string(), Bytes::from_static(b"<html>root</html>")),
+                (
+                    "index.html".to_string(),
+                    Bytes::from_static(b"<html>root</html>"),
+                ),
                 ("manifest.json".to_string(), Bytes::from_static(manifest)),
-                ("assets/app.js".to_string(), Bytes::from_static(b"console.log(1)")),
+                (
+                    "assets/app.js".to_string(),
+                    Bytes::from_static(b"console.log(1)"),
+                ),
                 ("assets/app.css".to_string(), Bytes::from_static(b"body{}")),
                 // A public/ file: served, but never cached.
                 ("favicon.svg".to_string(), Bytes::from_static(b"<svg/>")),
@@ -257,16 +271,27 @@ mod tests {
 
         // Every manifest-named asset is already cached: repeated requests
         // never reach the underlying resolver again.
-        for path in ["index.html", "manifest.json", "assets/app.js", "assets/app.css"] {
+        for path in [
+            "index.html",
+            "manifest.json",
+            "assets/app.js",
+            "assets/app.css",
+        ] {
             assert!(cached.get(path).is_some(), "missing {path}");
             assert!(cached.get(path).is_some());
         }
-        assert_eq!(counting.hits.load(std::sync::atomic::Ordering::SeqCst), after_boot);
+        assert_eq!(
+            counting.hits.load(std::sync::atomic::Ordering::SeqCst),
+            after_boot
+        );
 
         // The public/ file passes through on every request — not in the
         // manifest, not in the cache.
         assert!(cached.get("favicon.svg").is_some());
         assert!(cached.get("favicon.svg").is_some());
-        assert_eq!(counting.hits.load(std::sync::atomic::Ordering::SeqCst), after_boot + 2);
+        assert_eq!(
+            counting.hits.load(std::sync::atomic::Ordering::SeqCst),
+            after_boot + 2
+        );
     }
 }

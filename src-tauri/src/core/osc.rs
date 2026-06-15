@@ -7,12 +7,15 @@
 //! `rosc`'s message + arg types are re-exported so callers don't depend on
 //! `rosc` directly.
 
-pub use rosc::{OscMessage, OscType};
 use rosc::OscPacket;
+pub use rosc::{OscMessage, OscType};
 
 /// Encode an OSC message (`address` + `args`) to bytes.
 pub fn encode(addr: &str, args: Vec<OscType>) -> Vec<u8> {
-    let packet = OscPacket::Message(OscMessage { addr: addr.into(), args });
+    let packet = OscPacket::Message(OscMessage {
+        addr: addr.into(),
+        args,
+    });
     // A fixed, well-formed message — encoding cannot fail in practice.
     rosc::encoder::encode(&packet).expect("encode OSC message")
 }
@@ -68,7 +71,7 @@ mod tests {
     fn osc_msg(address: &str) -> Vec<u8> {
         let mut v = address.as_bytes().to_vec();
         v.push(0);
-        while v.len() % 4 != 0 {
+        while !v.len().is_multiple_of(4) {
             v.push(0);
         }
         v
@@ -76,7 +79,10 @@ mod tests {
 
     #[test]
     fn encode_then_decode_roundtrips() {
-        let bytes = encode("/dirt/play", vec![OscType::Int(7), OscType::String("hi".into())]);
+        let bytes = encode(
+            "/dirt/play",
+            vec![OscType::Int(7), OscType::String("hi".into())],
+        );
         let msg = decode_message(&bytes).expect("decode");
         assert_eq!(msg.addr, "/dirt/play");
         assert_eq!(int_arg(&msg.args[0]), Some(7));

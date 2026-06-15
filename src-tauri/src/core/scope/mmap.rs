@@ -84,7 +84,7 @@ impl MmapRegion {
             return None;
         }
         let addr = self.ptr as usize + offset;
-        if addr % 4 != 0 {
+        if !addr.is_multiple_of(4) {
             return None; // misaligned would be UB for an atomic load
         }
         // Safety: in-bounds, 4-aligned, and AtomicI32 is layout-compatible

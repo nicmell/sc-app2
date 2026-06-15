@@ -65,7 +65,10 @@ pub fn save_layout(id: &Uuid, layout: &serde_json::Value) -> Result<(), String> 
     std::fs::write(layout_path(id), json).map_err(|e| e.to_string())?;
     let mut registry = read_registry()?;
     registry.retain(|s| s.id != *id);
-    registry.push(SavedSessionInfo { id: *id, saved_at: now_ms() });
+    registry.push(SavedSessionInfo {
+        id: *id,
+        saved_at: now_ms(),
+    });
     write_registry(&registry)
 }
 

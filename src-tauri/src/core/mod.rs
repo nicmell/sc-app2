@@ -12,8 +12,8 @@
 //! * [`scope`] — SHM scope streaming (the tap buffers → `/scope/chunk`).
 //!
 //! Sessions:
-//! * [`blocks`] — the per-session id-partitioning scheme (node-id sub-blocks
-//!   + scope-slot spans). Pure math; consumed by [`sessions`], the session
+//! * [`blocks`] — the per-session id-partitioning scheme (node-id sub-blocks +
+//!   scope-slot spans). Pure math; consumed by [`sessions`], the session
 //!   payload, and the scope subscribe gate.
 //! * [`sessions`] — per-client LIVE session store: node-id sub-block
 //!   allocation + liveness bookkeeping (the data structure; eviction is

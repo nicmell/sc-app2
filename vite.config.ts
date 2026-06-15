@@ -54,7 +54,11 @@ export default defineConfig(() => ({
   // parse engine in a simulated DOM — the fast runtime gate next to the full
   // CDP harness (scripts/validate-examples.mjs) — plus React component tests
   // (.tsx, e.g. the connection overlay). Each suite lives in a `__tests__/`
-  // folder beside the unit under test.
+  // folder beside the unit under test. This config is the app suite; the
+  // synthdef-compiler package runs its own (node) suite in a separate process
+  // — `yarn test` chains both (its fn.toString() compiler tests are sensitive
+  // to the Vite transform, so they need the package's own config, not a shared
+  // projects pipeline). Rust tests run via `cargo test` / `yarn test:all`.
   test: {
     environment: "happy-dom",
     include: ["src/**/*.test.{ts,tsx}"],
@@ -64,10 +68,10 @@ export default defineConfig(() => ({
     // beforeEach hooks, so freshly-installed spies survive into the test).
     restoreMocks: true,
     // The Strudel editor stack is browser-only and won't import under
-    // happy-dom; alias the offending modules to inert stubs globally (the
-    // parse engine never drives them). The codemirror stub records the
-    // constructed editors for the suites that assert on them. Suites that need
-    // bespoke behaviour can still vi.spyOn the stub's methods.
+    // happy-dom; alias the offending modules to inert stubs (the parse engine
+    // never drives them). The codemirror stub records the constructed editors
+    // for the suites that assert on them; suites that need bespoke behaviour
+    // can still vi.spyOn the stub's methods.
     alias: {
       "@strudel/codemirror": fileURLToPath(
         new URL("./src/lib/utils/test/stubs/strudel-codemirror.ts", import.meta.url),

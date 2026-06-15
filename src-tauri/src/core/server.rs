@@ -15,13 +15,13 @@ use std::time::Duration;
 
 use uuid::Uuid;
 
-use crate::core::config::AppConfig;
-use crate::core::bridge::Bridge;
 use crate::core::blocks::{session_block, SessionBlock};
-use crate::core::scsynth::Scsynth;
-use crate::core::sessions::SessionStore;
+use crate::core::bridge::Bridge;
+use crate::core::config::AppConfig;
 use crate::core::logger::Logger;
 use crate::core::scope::ScopeShm;
+use crate::core::scsynth::Scsynth;
+use crate::core::sessions::SessionStore;
 
 /// How long a session request long-polls scsynth registration (clientID)
 /// before answering 503. Just enough to absorb the common race (server up,
@@ -100,7 +100,11 @@ impl Server {
     /// `None` if scsynth never registers within [`CLIENT_ID_WAIT`].
     pub(crate) async fn create_session(&self) -> Option<(Uuid, SessionBlock)> {
         let cid = self.inner.scsynth.await_client_id(CLIENT_ID_WAIT).await?;
-        Some(self.inner.sessions.create(|index| session_block(cid, index)))
+        Some(
+            self.inner
+                .sessions
+                .create(|index| session_block(cid, index)),
+        )
     }
 
     /// Mint a live session under a caller-supplied id — the revive path, where
@@ -108,7 +112,11 @@ impl Server {
     /// never registers within [`CLIENT_ID_WAIT`].
     pub(crate) async fn create_session_with_id(&self, id: Uuid) -> Option<SessionBlock> {
         let cid = self.inner.scsynth.await_client_id(CLIENT_ID_WAIT).await?;
-        Some(self.inner.sessions.create_with_id(id, |index| session_block(cid, index)))
+        Some(
+            self.inner
+                .sessions
+                .create_with_id(id, |index| session_block(cid, index)),
+        )
     }
 
     /// End a session: drop it from the store and free its scsynth group (and
@@ -153,13 +161,15 @@ impl Server {
                 return shm.clone();
             }
         }
-        let shm = self.scsynth_port().and_then(|port| match ScopeShm::open(port) {
-            Ok(shm) => Some(Arc::new(shm)),
-            Err(e) => {
-                tracing::warn!(error = %e, "scope SHM unavailable");
-                None
-            }
-        });
+        let shm = self
+            .scsynth_port()
+            .and_then(|port| match ScopeShm::open(port) {
+                Ok(shm) => Some(Arc::new(shm)),
+                Err(e) => {
+                    tracing::warn!(error = %e, "scope SHM unavailable");
+                    None
+                }
+            });
         *cached = Some((generation, shm.clone()));
         shm
     }

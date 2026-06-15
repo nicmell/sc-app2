@@ -65,7 +65,11 @@ impl SessionStore {
     /// session is already live (e.g. two concurrent revives of the same
     /// stored id), the existing block is returned instead of overwriting the
     /// entry (which would leak its index).
-    pub fn create_with_id(&self, id: Uuid, make_block: impl Fn(u32) -> SessionBlock) -> SessionBlock {
+    pub fn create_with_id(
+        &self,
+        id: Uuid,
+        make_block: impl Fn(u32) -> SessionBlock,
+    ) -> SessionBlock {
         let mut st = self.0.lock().unwrap();
         if let Some(existing) = st.sessions.get(&id) {
             return existing.block;
@@ -76,7 +80,14 @@ impl SessionStore {
             i
         });
         let block = make_block(index);
-        st.sessions.insert(id, SessionEntry { block, index, attached: false });
+        st.sessions.insert(
+            id,
+            SessionEntry {
+                block,
+                index,
+                attached: false,
+            },
+        );
         block
     }
 

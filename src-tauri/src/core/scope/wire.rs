@@ -74,10 +74,16 @@ mod tests {
 
     #[test]
     fn parse_unsubscribe_extracts_sub_id() {
-        let msg = |args: Vec<OscType>| OscMessage { addr: SCOPE_UNSUBSCRIBE.into(), args };
+        let msg = |args: Vec<OscType>| OscMessage {
+            addr: SCOPE_UNSUBSCRIBE.into(),
+            args,
+        };
         assert_eq!(parse_unsubscribe(&msg(vec![OscType::Int(7)])), Some(7));
         assert_eq!(parse_unsubscribe(&msg(vec![])), None);
-        assert_eq!(parse_unsubscribe(&msg(vec![OscType::String("7".into())])), None);
+        assert_eq!(
+            parse_unsubscribe(&msg(vec![OscType::String("7".into())])),
+            None
+        );
     }
 
     /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args

@@ -88,7 +88,11 @@ async fn dumptree(State(server): State<Server>) -> Response {
             vec![OscType::Int(0), OscType::Int(1)],
         ))
         .await;
-    (StatusCode::ACCEPTED, "sent /g_dumpTree 0 1 — see scsynth stdout\n").into_response()
+    (
+        StatusCode::ACCEPTED,
+        "sent /g_dumpTree 0 1 — see scsynth stdout\n",
+    )
+        .into_response()
 }
 
 // ── /g_queryTree.reply parsing ─────────────────────────────────────────────

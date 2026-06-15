@@ -31,7 +31,10 @@ pub const SCOPE_BUFFER_COUNT: u32 = 128;
 pub const SCOPE_SPAN: u32 = 8;
 // Spans must tile the pool exactly, or a wrapped span would straddle the
 // boundary and leak into another session's slots.
-const _: () = assert!(SCOPE_BUFFER_COUNT % SCOPE_SPAN == 0, "spans must tile the scope pool");
+const _: () = assert!(
+    SCOPE_BUFFER_COUNT.is_multiple_of(SCOPE_SPAN),
+    "spans must tile the scope pool"
+);
 
 /// A session's allocated slice: its group id and the contiguous synth-id range
 /// the frontend allocates from.
@@ -57,8 +60,7 @@ impl SessionBlock {
     /// Whether `idx` falls inside this session's assigned scope-slot span —
     /// the subscribe gate that keeps sessions off each other's SHM slots.
     pub fn owns_scope_index(&self, idx: usize) -> bool {
-        (self.scope_index_base as usize
-            ..(self.scope_index_base + self.scope_index_count) as usize)
+        (self.scope_index_base as usize..(self.scope_index_base + self.scope_index_count) as usize)
             .contains(&idx)
     }
 }

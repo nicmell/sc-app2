@@ -66,8 +66,10 @@ fn is_valid_target(target: &str) -> bool {
 }
 
 fn cmd_validate(path: &str) -> Result<(), String> {
-    let text = std::fs::read_to_string(path).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
-    let config = config::parse(&text).map_err(|e| format!("\"{path}\" is not a valid config: {e}"))?;
+    let text =
+        std::fs::read_to_string(path).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+    let config =
+        config::parse(&text).map_err(|e| format!("\"{path}\" is not a valid config: {e}"))?;
 
     for peer in &config.peers {
         regex::Regex::new(&peer.pattern)
@@ -121,14 +123,18 @@ mod tests {
             r#"{ "peers": [{ "name": "bad", "pattern": "(", "target": "127.0.0.1:1" }] }"#,
         )
         .unwrap();
-        assert!(cmd_validate(path.to_str().unwrap()).unwrap_err().contains("pattern"));
+        assert!(cmd_validate(path.to_str().unwrap())
+            .unwrap_err()
+            .contains("pattern"));
 
         std::fs::write(
             &path,
             r#"{ "peers": [{ "name": "bad", "pattern": "^/x", "target": "nonsense" }] }"#,
         )
         .unwrap();
-        assert!(cmd_validate(path.to_str().unwrap()).unwrap_err().contains("host:port"));
+        assert!(cmd_validate(path.to_str().unwrap())
+            .unwrap_err()
+            .contains("host:port"));
         std::fs::remove_file(path).ok();
     }
 

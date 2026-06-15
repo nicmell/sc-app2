@@ -189,8 +189,14 @@ impl Scsynth {
 
     /// Free a group and everything in it (`/g_freeAll` + `/n_free`).
     pub async fn free_group(&self, group_id: i32) {
-        self.inner.bridge.dispatch_command(&g_free_all_packet(group_id)).await;
-        self.inner.bridge.dispatch_command(&n_free_packet(group_id)).await;
+        self.inner
+            .bridge
+            .dispatch_command(&g_free_all_packet(group_id))
+            .await;
+        self.inner
+            .bridge
+            .dispatch_command(&n_free_packet(group_id))
+            .await;
     }
 
     /// Release our client slot on scsynth (`/notify 0`) — for shutdown. Live
@@ -199,7 +205,10 @@ impl Scsynth {
         if !self.inner.bridge.has_route("/notify") {
             return;
         }
-        self.inner.bridge.dispatch_command(&notify_packet(false)).await;
+        self.inner
+            .bridge
+            .dispatch_command(&notify_packet(false))
+            .await;
         tracing::info!("sent /notify 0 (unregistered from scsynth)");
     }
 
@@ -217,7 +226,11 @@ impl Scsynth {
             Reply::Status => {
                 self.inner.status_replies.fetch_add(1, Ordering::Relaxed);
             }
-            Reply::Fail { command, message, extras } => {
+            Reply::Fail {
+                command,
+                message,
+                extras,
+            } => {
                 tracing::warn!(%command, %message, ?extras, "scsynth /fail");
             }
             Reply::Late(seconds) => tracing::warn!(seconds, "scsynth /late bundle"),
@@ -249,7 +262,10 @@ impl Scsynth {
             }
             // Not connected (registration failed, or the heartbeat just died).
             if !down {
-                tracing::warn!("scsynth not responding; retrying every {}s", RETRY_INTERVAL.as_secs());
+                tracing::warn!(
+                    "scsynth not responding; retrying every {}s",
+                    RETRY_INTERVAL.as_secs()
+                );
                 down = true;
             }
             tokio::time::sleep(RETRY_INTERVAL).await;
@@ -259,7 +275,10 @@ impl Scsynth {
     /// One registration attempt: `/notify 1` → wait for the `/done /notify`
     /// ack. Quiet — `observe`/`run` log the transitions.
     async fn register(&self) -> bool {
-        self.inner.bridge.dispatch_command(&notify_packet(true)).await;
+        self.inner
+            .bridge
+            .dispatch_command(&notify_packet(true))
+            .await;
         // (clientID 0 is valid, so the ack test is "populated", not "> 0".)
         let mut cid = self.inner.client_id.subscribe();
         tokio::time::timeout(REPLY_TIMEOUT, cid.wait_for(Option::is_some))
@@ -304,13 +323,19 @@ mod tests {
     #[test]
     fn packets_encode_expected_addresses() {
         assert_eq!(message_of(&notify_packet(true)).args, vec![OscType::Int(1)]);
-        assert_eq!(message_of(&notify_packet(false)).args, vec![OscType::Int(0)]);
+        assert_eq!(
+            message_of(&notify_packet(false)).args,
+            vec![OscType::Int(0)]
+        );
         assert_eq!(message_of(&status_packet()).addr, "/status");
     }
 
     #[test]
     fn classifies_done_notify() {
-        let ok = osc::encode("/done", vec![OscType::String("/notify".into()), OscType::Int(7)]);
+        let ok = osc::encode(
+            "/done",
+            vec![OscType::String("/notify".into()), OscType::Int(7)],
+        );
         assert!(matches!(classify_reply(&ok), Reply::DoneNotify(7)));
         let other = osc::encode("/done", vec![OscType::String("/quit".into())]);
         assert!(matches!(classify_reply(&other), Reply::Other));
@@ -318,8 +343,14 @@ mod tests {
 
     #[test]
     fn classifies_status_and_other() {
-        assert!(matches!(classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])), Reply::Status));
-        assert!(matches!(classify_reply(&osc::encode("/n_go", vec![])), Reply::Other));
+        assert!(matches!(
+            classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])),
+            Reply::Status
+        ));
+        assert!(matches!(
+            classify_reply(&osc::encode("/n_go", vec![])),
+            Reply::Other
+        ));
         assert!(matches!(classify_reply(b"garbage"), Reply::Other));
     }
 
@@ -334,7 +365,11 @@ mod tests {
             ],
         );
         match classify_reply(&bytes) {
-            Reply::Fail { command, message, extras } => {
+            Reply::Fail {
+                command,
+                message,
+                extras,
+            } => {
                 assert_eq!(command, "/s_new");
                 assert_eq!(message, "SynthDef not found");
                 assert!(extras.is_empty());
@@ -351,7 +386,9 @@ mod tests {
             ],
         );
         match classify_reply(&with_extra) {
-            Reply::Fail { command, extras, .. } => {
+            Reply::Fail {
+                command, extras, ..
+            } => {
                 assert_eq!(command, "/b_read");
                 assert_eq!(extras, vec![4]);
             }
@@ -366,5 +403,4 @@ mod tests {
             Reply::Late(_)
         ));
     }
-
 }

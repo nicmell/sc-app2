@@ -45,7 +45,9 @@ async fn remove(Path(id): Path<String>) -> Response {
 
 async fn serve_file(Path((id, file)): Path<(String, String)>) -> Response {
     match manager::read_plugin_file(&id, &file) {
-        Ok((content_type, bytes)) => ([(header::CONTENT_TYPE, content_type)], bytes).into_response(),
+        Ok((content_type, bytes)) => {
+            ([(header::CONTENT_TYPE, content_type)], bytes).into_response()
+        }
         Err(e) => (StatusCode::NOT_FOUND, e).into_response(),
     }
 }

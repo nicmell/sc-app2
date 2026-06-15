@@ -42,13 +42,23 @@ impl Peer {
     /// Compile the pattern, resolve the target, bind+connect a UDP socket,
     /// and spawn the receive task publishing into `inbound`. Fails on invalid
     /// regex, unresolvable target, or socket bind/connect errors.
-    pub async fn connect(config: &PeerConfig, inbound: broadcast::Sender<Bytes>) -> Result<Arc<Peer>> {
-        let pattern = Regex::new(&config.pattern)
-            .with_context(|| format!("invalid regex for peer '{}': {}", config.name, config.pattern))?;
+    pub async fn connect(
+        config: &PeerConfig,
+        inbound: broadcast::Sender<Bytes>,
+    ) -> Result<Arc<Peer>> {
+        let pattern = Regex::new(&config.pattern).with_context(|| {
+            format!(
+                "invalid regex for peer '{}': {}",
+                config.name, config.pattern
+            )
+        })?;
 
-        let target = resolve(&config.target)
-            .await
-            .with_context(|| format!("resolving target for peer '{}': {}", config.name, config.target))?;
+        let target = resolve(&config.target).await.with_context(|| {
+            format!(
+                "resolving target for peer '{}': {}",
+                config.name, config.target
+            )
+        })?;
 
         let socket = UdpSocket::bind("0.0.0.0:0")
             .await
@@ -107,7 +117,10 @@ fn spawn_recv(peer: Arc<Peer>, inbound: broadcast::Sender<Bytes>) {
 
 /// Connect every configured peer, logging each by `name`. Failures are skipped
 /// (a typo'd peer shouldn't block boot).
-pub async fn connect_all(configs: &[PeerConfig], inbound: broadcast::Sender<Bytes>) -> Vec<Arc<Peer>> {
+pub async fn connect_all(
+    configs: &[PeerConfig],
+    inbound: broadcast::Sender<Bytes>,
+) -> Vec<Arc<Peer>> {
     let mut peers = Vec::with_capacity(configs.len());
     for config in configs {
         match Peer::connect(config, inbound.clone()).await {
@@ -153,9 +166,12 @@ mod tests {
         let remote = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         let remote_addr = remote.local_addr().unwrap();
 
-        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()), channel())
-            .await
-            .expect("connect");
+        let peer = Peer::connect(
+            &peer_config("test", "^/x", &remote_addr.to_string()),
+            channel(),
+        )
+        .await
+        .expect("connect");
         assert_eq!(peer.target, remote_addr);
     }
 
@@ -166,9 +182,12 @@ mod tests {
 
         let inbound = channel();
         let mut rx = inbound.subscribe();
-        let peer = Peer::connect(&peer_config("test", "^/x", &remote_addr.to_string()), inbound)
-            .await
-            .expect("connect");
+        let peer = Peer::connect(
+            &peer_config("test", "^/x", &remote_addr.to_string()),
+            inbound,
+        )
+        .await
+        .expect("connect");
 
         // Send to the peer's local port; its connected socket receives it.
         let peer_addr = peer.socket.local_addr().unwrap();
@@ -183,7 +202,11 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_regex_errors() {
-        assert!(Peer::connect(&peer_config("bad", "(", "127.0.0.1:1"), channel()).await.is_err());
+        assert!(
+            Peer::connect(&peer_config("bad", "(", "127.0.0.1:1"), channel())
+                .await
+                .is_err()
+        );
     }
 
     #[tokio::test]
@@ -199,8 +222,14 @@ mod tests {
         )
         .await;
 
-        assert_eq!(route_for(&peers, "/dirt/play").map(|p| p.name.as_str()), Some("strudel"));
-        assert_eq!(route_for(&peers, "/s_new").map(|p| p.name.as_str()), Some("scsynth"));
+        assert_eq!(
+            route_for(&peers, "/dirt/play").map(|p| p.name.as_str()),
+            Some("strudel")
+        );
+        assert_eq!(
+            route_for(&peers, "/s_new").map(|p| p.name.as_str()),
+            Some("scsynth")
+        );
         assert!(route_for(&peers, "/nonsense").is_none());
     }
 

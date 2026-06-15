@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
+import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   // `yarn lint` targets `src packages` (see package.json), so only build output
@@ -43,4 +44,6 @@ export default tseslint.config(
     languageOptions: { sourceType: "commonjs", globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
+  // Last: turn off any lint rules that would conflict with Prettier formatting.
+  eslintConfigPrettier,
 );

@@ -2934,6 +2934,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"domelementtype@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "domelementtype@npm:3.0.0"
+  checksum: 10c0/26e8ef992769c4f9bce941eb0cff7ce2ba3f1b3bf77710bb4b029055030625892e83da326cc36b1e444cf3bfdea7d1954791ee2227746387465da9929d16d954
+  languageName: node
+  linkType: hard
+
+"domhandler@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "domhandler@npm:6.0.1"
+  dependencies:
+    domelementtype: "npm:^3.0.0"
+  checksum: 10c0/8655204dd9612b55813d5880e3e87e134d6dfb2de4bd80f342b3c97f41b167576a8c66c0449c2423999953aedfcda290f7be253a6f9bf71e815afa85f939d44e
+  languageName: node
+  linkType: hard
+
 "electron-to-chromium@npm:^1.5.328":
   version: 1.5.364
   resolution: "electron-to-chromium@npm:1.5.364"
@@ -2952,6 +2968,13 @@ __metadata:
   version: 7.0.1
   resolution: "entities@npm:7.0.1"
   checksum: 10c0/b4fb9937bb47ecb00aaaceb9db9cdd1cc0b0fb649c0e843d05cf5dbbd2e9d2df8f98721d8b1b286445689c72af7b54a7242fc2d63ef7c9739037a8c73363e7ca
+  languageName: node
+  linkType: hard
+
+"entities@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "entities@npm:8.0.0"
+  checksum: 10c0/938e631664c19451823344a351aeeafd74fae2d5fa51e4d5b6ff635afaefd4bacf0f609989888c04c42733f46ffdac15211608267ebb02488005891a4793e94d
   languageName: node
   linkType: hard
 
@@ -3281,6 +3304,18 @@ __metadata:
   bin:
     eslint-config-prettier: bin/cli.js
   checksum: 10c0/e1bcfadc9eccd526c240056b1e59c5cd26544fe59feb85f38f4f1f116caed96aea0b3b87868e68b3099e55caaac3f2e5b9f58110f85db893e83a332751192682
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-lit@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "eslint-plugin-lit@npm:2.3.1"
+  dependencies:
+    parse5: "npm:^8.0.1"
+    parse5-htmlparser2-tree-adapter: "npm:^8.0.1"
+  peerDependencies:
+    eslint: ">= 8"
+  checksum: 10c0/7d5ff953e0c2f35663a8307f75f261313a72d13d5cbe58c96f6561954b849d32a12a5120ae2ecd080c26427b1455de920c74e2054bcb4efb3e8b4d6255048bf7
   languageName: node
   linkType: hard
 
@@ -4210,6 +4245,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"parse5-htmlparser2-tree-adapter@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "parse5-htmlparser2-tree-adapter@npm:8.0.1"
+  dependencies:
+    domhandler: "npm:^6.0.1"
+    parse5: "npm:^8.0.0"
+  checksum: 10c0/d69e83f6164b014918b4382bd10b0a5904ebf50af6aaf6c5733282e85f1c7e51fe98a23408b9267beea918c141d3e4cd4f2f156878e809de49077ceec5a2c94b
+  languageName: node
+  linkType: hard
+
+"parse5@npm:^8.0.0, parse5@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "parse5@npm:8.0.1"
+  dependencies:
+    entities: "npm:^8.0.0"
+  checksum: 10c0/c3c1c5aab55f6e4be5245599790e56e64be7764a4a0edd7f98db4fe3bb380f63add752fa047dff0496446c25f4104f0c7c1967723de640bde92306a7bb67ed2f
+  languageName: node
+  linkType: hard
+
 "path-exists@npm:^4.0.0":
   version: 4.0.0
   resolution: "path-exists@npm:4.0.0"
@@ -4729,6 +4783,7 @@ __metadata:
     concurrently: "npm:^9.2.1"
     eslint: "npm:^10.0.0"
     eslint-config-prettier: "npm:^10.1.8"
+    eslint-plugin-lit: "npm:^2.3.1"
     eslint-plugin-react-hooks: "npm:^7.0.1"
     globals: "npm:^17.6.0"
     happy-dom: "npm:^20.10.2"

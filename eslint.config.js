@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
+import lit from "eslint-plugin-lit";
 import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
@@ -43,6 +44,11 @@ export default tseslint.config(
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: { sourceType: "commonjs", globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
+  // The Lit web components live under sc-elements — lint their html`` templates.
+  {
+    files: ["src/sc-elements/**/*.ts"],
+    extends: [lit.configs["flat/recommended"]],
   },
   // Last: turn off any lint rules that would conflict with Prettier formatting.
   eslintConfigPrettier,

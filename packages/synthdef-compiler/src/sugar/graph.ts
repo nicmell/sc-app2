@@ -58,7 +58,8 @@ function buildUgen(
         if (typeof provided !== 'number' || !Number.isInteger(provided) || provided < 1) {
           throw new Error(
             `${entry.name}.${rateMethodName(rate)}: argument "${argSpec.name}" ` +
-              `must be a positive integer (number of output channels), got ${String(provided)}`,
+              `must be a positive integer (number of output channels), got ` +
+              `${typeof provided === "number" ? provided : typeof provided}`,
           );
         }
         numOutputsOverride = provided;

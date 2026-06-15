@@ -10,7 +10,7 @@
     "dev": "vite",
     "dev:full": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev\" \"yarn serve\"",
     "build": "tsc && vite build",
-    "lint": "eslint .",
+    "lint": "eslint src packages",
     "test": "vitest run",
     "preview": "vite preview",
     "tauri": "tauri",

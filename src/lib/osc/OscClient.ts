@@ -425,8 +425,8 @@ export class OscClient {
     // toast banner. Either way they still fall through to the OSC console as
     // the full history.
     if (reply.address === OSC_REPLIES.FAIL) {
-      const command = String(reply.args[0] ?? "?");
-      const message = String(reply.args[1] ?? "(no message)");
+      const command = formatOscArg(reply.args[0] ?? "?");
+      const message = formatOscArg(reply.args[1] ?? "(no message)");
       console.error(`[scsynth] ${command}: ${message}`);
       this.pushError(command, message, "error");
     } else if (reply.address === OSC_REPLIES.LATE) {

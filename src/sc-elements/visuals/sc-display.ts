@@ -12,7 +12,10 @@ import { ScInput } from "@/sc-elements/internal/sc-input";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
-export function formatValue(template: string, value: unknown): string {
+export function formatValue(
+  template: string,
+  value: string | number | boolean | null | undefined,
+): string {
   if (typeof value === "boolean") return template.replace("%b", value ? "true" : "false");
   if (typeof value === "string") return template.replace("%s", value);
   if (typeof value === "number") {

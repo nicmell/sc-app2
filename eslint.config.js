@@ -4,9 +4,9 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  // Global ignores MUST be the sole key in their config object, or they stop
-  // being global (the sc-app/strudeldirt submodules would get linted).
-  { ignores: ["dist", "src-tauri", "sc-app", "strudeldirt"] },
+  // `yarn lint` targets `src packages` (see package.json), so only build output
+  // under those needs ignoring — node_modules is ignored by default.
+  { ignores: ["**/dist"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -33,26 +33,14 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-return": "off",
-      // Dynamic OSC args and bound control/display values are stringified for
-      // logs and UI; their static types are broad (OscArg, unknown), so this
-      // rule is noise here.
-      "@typescript-eslint/no-base-to-string": "off",
     },
   },
-  // Node-side tooling: the CDP harness script (node + browser globals it drives).
-  {
-    files: ["scripts/**/*.{js,mjs}"],
-    languageOptions: { globals: { ...globals.node, ...globals.browser } },
-  },
-  // CommonJS config files (e.g. postcss.config.cjs).
+  // postcss.config.cjs is the only non-TS file in scope: CommonJS, not part of
+  // any tsconfig, so no type-aware linting.
   {
     files: ["**/*.cjs"],
+    extends: [tseslint.configs.disableTypeChecked],
     languageOptions: { sourceType: "commonjs", globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
-  },
-  // JS/config files aren't part of any tsconfig — no type-aware linting.
-  {
-    files: ["**/*.{js,mjs,cjs}"],
-    extends: [tseslint.configs.disableTypeChecked],
   },
 );

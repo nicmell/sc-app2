@@ -5,7 +5,7 @@
 // `validate()` overrides build on, plus checkDuplicateNames over a sibling
 // scope. Process-time: the bind-resolution machinery the `resolveRuntime`
 // overrides build on. The error messages are the runtime gate's contract —
-// pinned verbatim by tests/examples.test.ts and the CDP harness.
+// pinned verbatim by src/sc-elements/examples.test.ts and the CDP harness.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { parseBind } from "@/lib/utils/expression";

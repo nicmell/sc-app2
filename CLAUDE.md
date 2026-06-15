@@ -360,7 +360,7 @@ further `sc-*` element:
    parentNode, path}) shared by all siblings. The default is the
    self-contained leaf. Extend `lib/utils/guards.ts` if the element joins a
    category (state/node/parent). Add the element's examples to the unit
-   suite's expectations (`tests/examples.test.ts`) if it ships a new
+   suite's expectations (`src/sc-elements/examples.test.ts`) if it ships a new
    fixture.
 6. The registry (`@/runtime/registry`) maps ids to the live components
    themselves (identity pinned by the unit suite and the dashboard probe),
@@ -432,8 +432,14 @@ fails), which the old app never hit because it locked 0.8.0.
 
 ## Validating example plugins (the two gates)
 
-**Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom
-(`tests/examples.test.ts`). Loads every example entry via `import.meta.glob`,
+**Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom.
+Tests are co-located next to the unit under test (`*.test.ts(x)` beside the
+source — vite.config.ts `test.include` is `src/**/*.test.{ts,tsx}`, setup in
+`src/test-setup.ts`); cross-cutting suites sit at their directory root
+(`src/sc-elements/{examples,controls}.test.ts`,
+`src/sc-elements/widgets/widgets.test.ts`). The build excludes `*.test.*` from
+`tsc` (tsconfig.json), so tests run only through Vitest's glob.
+`src/sc-elements/examples.test.ts` loads every example entry via `import.meta.glob`,
 mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
 and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean, and every parsed
@@ -444,10 +450,11 @@ runtime `bad-*` fixtures must fail with their **exact** message; plus
 structural assertions (flat runtime merge, range bind targets, `_element`
 identity). The strudel editor stack is vi.mock'ed (browser-only deps); the
 five upload fixtures are backend validation and are excluded here.
-`tests/controls.test.ts` adds the lifecycle gate (load pass send order, store
-seeding, /n_set wiring, unmount cleanup — against a scripted scsynth
-auto-responder through `handleReply`), `tests/compile-synthdef.test.ts` the
-compiler, and `tests/osc-client.test.ts` the telemetry + `once()` waiters.
+`src/sc-elements/controls.test.ts` adds the lifecycle gate (load pass send
+order, store seeding, /n_set wiring, unmount cleanup — against a scripted
+scsynth auto-responder through `handleReply`),
+`src/lib/synthdef/compileSynthDef.test.ts` the compiler, and
+`src/lib/osc/OscClient.test.ts` the telemetry + `once()` waiters.
 
 **End-to-end gate (the harness technique)**: when elements/parsers change,
 validate every example through the real stack: run
@@ -510,7 +517,7 @@ steps, each independently shippable:
    path). Remaining: the knob/slider/switch/combobox internals, sc-if
    condition logic, sc-select/sc-radio-group dispatch, sc-var expression
    re-evaluation (`evalExpr`, ported and waiting). Testing seam (in place,
-   tests/controls.test.ts): spy `oscClient.send` with an auto-responder
+   src/sc-elements/controls.test.ts): spy `oscClient.send` with an auto-responder
    through `handleReply`; interaction tests fire `input`/`change` events in
    happy-dom. Also note: a bindless `sc-run` should require its parent to
    be a node when /n_run lands.

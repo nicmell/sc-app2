@@ -79,13 +79,19 @@ function armScopeAllocator(): void {
   c.nextSubId = 1;
 }
 
+const xml = (bodyXml: string) => (`
+<?xml version="1.0" encoding="UTF-8"?>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <body>${bodyXml}</body>
+</html>
+`)
+
 function disarmScopeAllocator(): void {
   (oscClient as unknown as { scopeCount: number }).scopeCount = 0;
 }
 
 async function mountXml(bodyXml: string): Promise<ScPlugin> {
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml"><body>${bodyXml}</body></html>`;
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const doc = new DOMParser().parseFromString(xml(bodyXml), "text/xml");
   if (doc.querySelector("parsererror")) {
     throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
   }

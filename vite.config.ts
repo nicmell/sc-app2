@@ -53,11 +53,13 @@ export default defineConfig(async () => ({
   // Unit tests (`yarn test`): the example plugins through the sc-elements
   // parse engine in a simulated DOM — the fast runtime gate next to the full
   // CDP harness (scripts/validate-examples.mjs) — plus React component tests
-  // (.tsx, e.g. the connection overlay).
+  // (.tsx, e.g. the connection overlay). Tests are co-located next to the
+  // unit under test (`*.test.ts(x)` beside the source); cross-cutting suites
+  // (examples/controls/widgets) sit at their directory root.
   test: {
     environment: "happy-dom",
-    include: ["tests/**/*.test.{ts,tsx}"],
-    setupFiles: ["tests/setup.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["src/test-setup.ts"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

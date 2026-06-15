@@ -8,34 +8,16 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mirrors = vi.hoisted(
-  () =>
-    [] as Array<{
-      opts: Record<string, any>;
-      stop: ReturnType<typeof import("vitest").vi.fn>;
-    }>,
-);
-vi.mock("@strudel/codemirror", () => ({
-  StrudelMirror: class {
-    opts: Record<string, any>;
-    stop = vi.fn();
-    clear = vi.fn();
-    evaluate = vi.fn();
-    constructor(opts: Record<string, any>) {
-      this.opts = opts;
-      mirrors.push(this as any);
-    }
-  },
-}));
-vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
-vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
-
 import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
 import { installScsynthMock, mountPlugin, wrapXml, SESSION_GROUP } from "@/lib/utils/test/test-utils";
+// @strudel/codemirror is aliased to this recording stub globally
+// (vite.config.ts test.alias); strudelMirrors holds the editors sc-strudel
+// constructed this test, in order.
+import { strudelMirrors } from "@/lib/utils/test/stubs/strudel-codemirror";
 
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
@@ -79,7 +61,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  mirrors.length = 0;
+  strudelMirrors.length = 0;
   ({ sent } = installScsynthMock());
   armScopeAllocator();
 });
@@ -258,8 +240,8 @@ describe("sc-strudel", () => {
     const host = await mountXml('<sc-strudel>s("bd hh*2")</sc-strudel>');
     const strudel = host.querySelector("sc-strudel") as ScStrudel;
     await strudel.updateComplete;
-    expect(mirrors).toHaveLength(1);
-    expect(mirrors[0].opts.initialCode).toBe('s("bd hh*2")');
+    expect(strudelMirrors).toHaveLength(1);
+    expect(strudelMirrors[0].opts.initialCode).toBe('s("bd hh*2")');
     // The raw code text was cleared before the editor rendered.
     expect(strudel.querySelector(".strudel-editor")).not.toBeNull();
     expect(strudel.textContent).not.toContain('s("bd hh*2")');
@@ -268,7 +250,7 @@ describe("sc-strudel", () => {
   it("stamps its orbit onto dirt events the pattern didn't route", async () => {
     const host = await mountXml('<sc-strudel orbit="2"></sc-strudel>');
     await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
-    const out = mirrors[0].opts.defaultOutput as (
+    const out = strudelMirrors[0].opts.defaultOutput as (
       hap: { value: unknown }, d: number, du: number, cps: number, t: number,
     ) => void;
 
@@ -285,9 +267,9 @@ describe("sc-strudel", () => {
     const host = await mountXml("<sc-strudel></sc-strudel>");
     const strudel = host.querySelector("sc-strudel") as ScStrudel;
     await strudel.updateComplete;
-    mirrors[0].opts.onToggle(true); // playing
+    strudelMirrors[0].opts.onToggle(true); // playing
     strudel.unload();
-    expect(mirrors[0].stop).toHaveBeenCalled();
+    expect(strudelMirrors[0].stop).toHaveBeenCalled();
   });
 
   it("rejects a negative orbit at parse", async () => {

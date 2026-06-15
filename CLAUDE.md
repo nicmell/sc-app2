@@ -451,8 +451,12 @@ load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
 registry is plain data, happy-dom-safe); the
 runtime `bad-*` fixtures must fail with their **exact** message; plus
 structural assertions (flat runtime merge, range bind targets, `_element`
-identity). The strudel editor stack is vi.mock'ed (browser-only deps); the
-five upload fixtures are backend validation and are excluded here.
+identity). The strudel editor stack (browser-only deps that won't import under
+happy-dom — @strudel/codemirror, @strudel/transpiler, @strudel/core) is aliased
+to inert stubs globally (vite.config.ts `test.alias` → `src/lib/utils/test/
+stubs/`); the codemirror stub records constructed editors in `strudelMirrors`
+for widgets.test.ts. The five upload fixtures are backend validation and are
+excluded here.
 `src/sc-elements/controls.test.ts` adds the lifecycle gate (load pass send
 order, store seeding, /n_set wiring, unmount cleanup — against a scripted
 scsynth auto-responder through `handleReply`),

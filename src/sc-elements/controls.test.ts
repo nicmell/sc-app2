@@ -10,16 +10,8 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@strudel/codemirror", () => ({
-  StrudelMirror: class {
-    stop() {}
-    clear() {}
-    evaluate() {}
-  },
-}));
-vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
-vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
-
+// @strudel/codemirror is browser-only (aliased to an inert stub globally in
+// vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";

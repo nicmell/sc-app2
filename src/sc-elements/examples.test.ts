@@ -8,20 +8,11 @@
 // table). The five upload-time fixtures are backend (zip/XSD) validation and
 // stay harness-only.
 
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
-// sc-strudel's editor stack doesn't resolve under Node (browser-only
-// packages); the parse engine never touches it — stub the imports.
-vi.mock("@strudel/codemirror", () => ({
-  StrudelMirror: class {
-    stop() {}
-    clear() {}
-    evaluate() {}
-  },
-}));
-vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
-vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
-
+// sc-strudel's editor stack (@strudel/codemirror) is browser-only and won't
+// import under happy-dom; it's aliased to an inert stub globally
+// (vite.config.ts test.alias). The parse engine never drives it.
 import { registerScElements, type ScControl, type ScElement, type ScRange, type ScSynthDef } from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
 import { parsePlugin as parseExample } from "@/lib/utils/test/test-utils";

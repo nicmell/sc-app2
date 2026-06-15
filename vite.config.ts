@@ -60,6 +60,22 @@ export default defineConfig(async () => ({
     environment: "happy-dom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["src/lib/utils/test/test-setup.ts"],
+    // The Strudel editor stack is browser-only and won't import under
+    // happy-dom; alias the offending modules to inert stubs globally (the
+    // parse engine never drives them). The codemirror stub records the
+    // constructed editors for the suites that assert on them. Suites that need
+    // bespoke behaviour can still vi.spyOn the stub's methods.
+    alias: {
+      "@strudel/codemirror": fileURLToPath(
+        new URL("./src/lib/utils/test/stubs/strudel-codemirror.ts", import.meta.url),
+      ),
+      "@strudel/transpiler": fileURLToPath(
+        new URL("./src/lib/utils/test/stubs/strudel-transpiler.ts", import.meta.url),
+      ),
+      "@strudel/core": fileURLToPath(
+        new URL("./src/lib/utils/test/stubs/strudel-core.ts", import.meta.url),
+      ),
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

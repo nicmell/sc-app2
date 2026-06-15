@@ -1,0 +1,6 @@
+# Revisions to skip in `git blame` (bulk reformats, no behavioural changes).
+# Enable locally with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub uses it automatically.)
+
+# Apply Prettier formatting across src + packages
+999c111041e462f42444482ce880a45b4dc826d9

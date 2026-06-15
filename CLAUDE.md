@@ -144,9 +144,9 @@ lib/                     non-React infrastructure
 Conventions: `@/` alias = `src/` (tsconfig `paths` + vite `resolve.alias`);
 cross-directory imports use `@/…`, same-directory imports stay relative. Module
 singletons (`oscClient`, `session`) are exported by their defining module.
-ESLint (flat config, `eslint.config.js`: `@eslint/js` + `typescript-eslint` +
-`react-hooks`) via `yarn lint`; no formatter — TypeScript strict mode + existing
-patterns.
+ESLint (flat config, `eslint.config.js`: `@eslint/js` + `typescript-eslint`
+type-checked + `react-hooks`) via `yarn lint`; Prettier (`printWidth` 100) via
+`yarn format`; TypeScript strict mode.
 
 ### Session lifecycle
 

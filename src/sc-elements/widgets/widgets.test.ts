@@ -6,7 +6,7 @@
 // gate exactly as against a live server. The scope-slot allocator is armed
 // directly on the client (connect() needs a live worker).
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mirrors = vi.hoisted(
   () =>
@@ -30,38 +30,17 @@ vi.mock("@strudel/codemirror", () => ({
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
 
-import { decode, flattenPacket, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
+import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
-import { registerScElements, type ScElement, type ScPlugin } from "@/sc-elements";
+import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
+import { installScsynthMock, mountPlugin, wrapXml, SESSION_GROUP } from "@/lib/utils/test/test-utils";
 
-const SESSION_GROUP = 1;
-const FIRST_NODE_ID = 2000;
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
 
-let send: MockInstance<(packet: OscPacket) => void>;
 let sent: OSC.Message[];
-
-function autoRespond(msg: OSC.Message): void {
-  const nGo = (nodeId: number) =>
-    oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
-  switch (msg.address) {
-    case "/g_new":
-    case "/s_new": {
-      nGo(msg.address === "/g_new" ? (msg.args[0] as number) : (msg.args[1] as number));
-      break;
-    }
-    case "/d_recv": {
-      const completion = decode(msg.args[1] as unknown as Uint8Array);
-      if (isMessage(completion) && completion.address === "/sync") {
-        oscClient.handleReply(new OSC.Message("/synced", completion.args[0] as number));
-      }
-      break;
-    }
-  }
-}
 
 /** Arm the private scope-slot allocator (normally done by connect()). */
 function armScopeAllocator(): void {
@@ -79,32 +58,12 @@ function armScopeAllocator(): void {
   c.nextSubId = 1;
 }
 
-const xml = (bodyXml: string) => (`
-<?xml version="1.0" encoding="UTF-8"?>
-  <html xmlns="http://www.w3.org/1999/xhtml">
-  <body>${bodyXml}</body>
-</html>
-`)
-
 function disarmScopeAllocator(): void {
   (oscClient as unknown as { scopeCount: number }).scopeCount = 0;
 }
 
-async function mountXml(bodyXml: string): Promise<ScPlugin> {
-  const doc = new DOMParser().parseFromString(xml(bodyXml), "text/xml");
-  if (doc.querySelector("parsererror")) {
-    throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
-  }
-  const host = document.createElement("sc-plugin") as ScPlugin;
-  document.body.appendChild(host);
-  host.replaceChildren(
-    ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
-  );
-  host.id = `test-${Math.random().toString(36).slice(2)}`;
-  host.process({ rootNode: host, nodes: new Set<ScElement>(), scope: [host], path: [] });
-  await host.load();
-  return host;
-}
+const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
+  (await mountPlugin(wrapXml(bodyXml))).host;
 
 /** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
  *  channel — the SHM slot's own layout). */
@@ -121,15 +80,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   mirrors.length = 0;
-  sent = [];
-  send = vi.spyOn(oscClient, "send").mockImplementation((packet) => {
-    const msg = packet as OSC.Message;
-    sent.push(msg);
-    autoRespond(msg);
-  });
-  let nextId = FIRST_NODE_ID;
-  vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => nextId++);
-  vi.spyOn(oscClient, "sessionGroupId", "get").mockReturnValue(SESSION_GROUP);
+  ({ sent } = installScsynthMock());
   armScopeAllocator();
 });
 

@@ -22,8 +22,9 @@ vi.mock("@strudel/codemirror", () => ({
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
 
-import { registerScElements, type ScControl, type ScElement, type ScPlugin, type ScRange, type ScSynthDef } from "@/sc-elements";
+import { registerScElements, type ScControl, type ScElement, type ScRange, type ScSynthDef } from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
+import { parsePlugin as parseExample } from "@/lib/utils/test/test-utils";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
 const ENTRIES = import.meta.glob("/examples/*/*/{index,entry}.html", {
@@ -73,28 +74,6 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
 
 const passing = cases.filter((c) => !(c.name in RUNTIME_FAILURES));
 const failing = cases.filter((c) => c.name in RUNTIME_FAILURES);
-
-/** Mount an example entry into a connected <sc-plugin> host (XML parse +
- *  importNode — entries are XHTML with self-closing tags) and run the parse
- *  engine, exactly like the CDP probe. The host IS the parsed root. */
-function parseExample(xml: string): {
-  host: ScPlugin;
-  nodes: Set<ScElement>;
-} {
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
-  if (doc.querySelector("parsererror")) {
-    throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
-  }
-  const host = document.createElement("sc-plugin") as ScPlugin;
-  document.body.appendChild(host); // custom elements only upgrade when connected
-  host.replaceChildren(
-    ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
-  );
-  const nodes = new Set<ScElement>();
-  host.id = `test-${Math.random().toString(36).slice(2)}`;
-  host.process({ rootNode: host, nodes, scope: [host], path: [] });
-  return { host, nodes };
-}
 
 beforeAll(() => {
   registerScElements();

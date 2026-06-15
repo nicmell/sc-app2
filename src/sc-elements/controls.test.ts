@@ -8,7 +8,7 @@
 // payloads, setValue's store + /n_set split, the inputs' read/write wiring
 // and DOM updates, display formatting, and unmount cleanup.
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@strudel/codemirror", () => ({
   StrudelMirror: class {
@@ -20,62 +20,20 @@ vi.mock("@strudel/codemirror", () => ({
 vi.mock("@strudel/transpiler", () => ({ transpiler: () => undefined }));
 vi.mock("@/lib/strudel/prebake", () => ({ ensureStrudelGlobals: async () => undefined }));
 
-import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
+import { OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { setRuntimeValue } from "@/stores/runtime";
 import { registerScElements, type ScControl, type ScDisplay, type ScElement, type ScPlugin, type ScSynth, type ScSynthDef } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
+import { autoRespond, FIRST_NODE_ID, installScsynthMock, mountPlugin, parsePlugin, SESSION_GROUP } from "@/lib/utils/test/test-utils";
 import xml from "/examples/synths/example-plugin/index.html?raw";
 
-const SESSION_GROUP = 1;
-const FIRST_NODE_ID = 2000;
-
-let send: MockInstance<(packet: OscPacket) => void>;
 let sent: OSC.Message[];
+let send: ReturnType<typeof installScsynthMock>["send"];
 
-/** Script the scsynth side of the sequenced commands. Replies go through the
- *  real handleReply, so the load pass only advances when its `once()` waiter
- *  is satisfied — the sequencing itself is under test. */
-function autoRespond(msg: OSC.Message): void {
-  const nGo = (nodeId: number) => oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
-  switch (msg.address) {
-    case "/g_new":
-    case "/s_new": {
-      const nodeId = msg.address === "/g_new" ? (msg.args[0] as number) : (msg.args[1] as number);
-      nGo(nodeId);
-      break;
-    }
-    case "/d_recv": {
-      const completion = decode(msg.args[1] as unknown as Uint8Array);
-      if (isMessage(completion) && completion.address === "/sync") {
-        oscClient.handleReply(new OSC.Message("/synced", completion.args[0] as number));
-      }
-      break;
-    }
-  }
-}
-
-/** Mount the example into a connected <sc-plugin> host, parse, and run the
- *  sequential load pass against the scripted server. */
-async function mountExample(): Promise<{ host: ScPlugin; nodes: Set<ScElement> }> {
-  const { host, nodes } = parseExample();
-  await host.load();
-  return { host, nodes };
-}
-
-function parseExample(): { host: ScPlugin; nodes: Set<ScElement> } {
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
-  const host = document.createElement("sc-plugin") as ScPlugin;
-  document.body.appendChild(host);
-  host.replaceChildren(
-    ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
-  );
-  const nodes = new Set<ScElement>();
-  host.id = `test-${Math.random().toString(36).slice(2)}`;
-  host.process({ rootNode: host, nodes, scope: [host], path: [] });
-  return { host, nodes };
-}
+const parseExample = () => parsePlugin(xml);
+const mountExample = () => mountPlugin(xml);
 
 const control = (host: ScPlugin, key: string) =>
   [...host.querySelectorAll("sc-synth sc-control")].find(
@@ -89,15 +47,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  sent = [];
-  send = vi.spyOn(oscClient, "send").mockImplementation((packet) => {
-    const msg = packet as OSC.Message;
-    sent.push(msg);
-    autoRespond(msg);
-  });
-  let nextId = FIRST_NODE_ID;
-  vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => nextId++);
-  vi.spyOn(oscClient, "sessionGroupId", "get").mockReturnValue(SESSION_GROUP);
+  ({ sent, send } = installScsynthMock());
 });
 
 afterEach(() => {

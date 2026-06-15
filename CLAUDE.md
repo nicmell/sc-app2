@@ -434,11 +434,14 @@ fails), which the old app never hit because it locked 0.8.0.
 
 **Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom.
 Tests are co-located next to the unit under test (`*.test.ts(x)` beside the
-source — vite.config.ts `test.include` is `src/**/*.test.{ts,tsx}`, setup in
-`src/test-setup.ts`); cross-cutting suites sit at their directory root
-(`src/sc-elements/{examples,controls}.test.ts`,
-`src/sc-elements/widgets/widgets.test.ts`). The build excludes `*.test.*` from
-`tsc` (tsconfig.json), so tests run only through Vitest's glob.
+source — vite.config.ts `test.include` is `src/**/*.test.{ts,tsx}`, with the
+happy-dom setup + shared element-suite helpers in `src/lib/utils/test/`
+(`test-setup.ts`, `test-utils.ts`: `parsePlugin`/`mountPlugin` mounting,
+`installScsynthMock`/`autoRespond` load-pass scripting)); cross-cutting suites
+sit at their directory root (`src/sc-elements/{examples,controls}.test.ts`,
+`src/sc-elements/widgets/widgets.test.ts`). The build excludes `*.test.*` and
+`src/lib/utils/test/` from `tsc` (tsconfig.json), so tests run only through
+Vitest's glob.
 `src/sc-elements/examples.test.ts` loads every example entry via `import.meta.glob`,
 mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
 and runs `host.process({rootNode: host, nodes, scope:

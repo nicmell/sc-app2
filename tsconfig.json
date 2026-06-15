@@ -29,8 +29,9 @@
   },
   "include": ["src"],
   /* Co-located tests run through Vitest's own glob, not the build. Exclude
-     them from `tsc` (yarn build) — they use Vite-only imports (`?raw`,
-     `import.meta.glob`) that have no ambient types here. */
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test-setup.ts"],
+     them — and the shared test scaffolding (src/lib/utils/test) — from `tsc`
+     (yarn build): they pull in `vitest` and Vite-only imports (`?raw`,
+     `import.meta.glob`) that don't belong in the app build. */
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/lib/utils/test/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -51,6 +51,9 @@ pub fn run(context: tauri::Context) {
                 .windows
                 .first()
                 .ok_or("no window declared in tauri.conf.json")?;
+            // Built on every platform (the window must exist); only the macOS
+            // block below reads the handle, so it's unused elsewhere.
+            #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
             let webview_window = tauri::WebviewWindowBuilder::from_config(app.handle(), window)?
                 .initialization_script(initialization_script(server.port()))
                 .build()?;

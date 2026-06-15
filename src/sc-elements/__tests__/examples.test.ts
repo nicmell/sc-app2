@@ -18,11 +18,11 @@ import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
 import { parsePlugin as parseExample } from "@/lib/utils/test/test-utils";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
-const ENTRIES = import.meta.glob("/examples/*/*/{index,entry}.html", {
+const ENTRIES = import.meta.glob<string>("/examples/*/*/{index,entry}.html", {
   query: "?raw",
   import: "default",
   eager: true,
-}) as Record<string, string>;
+});
 
 /** Backend (zip/XSD) fixtures — no runtime expectation here. */
 const UPLOAD_FIXTURES = new Set([

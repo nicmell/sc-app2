@@ -51,7 +51,12 @@ export class ScPlugin extends ScNode {
     );
   }
 
-  protected async firstUpdated(): Promise<void> {
+  protected firstUpdated(): void {
+    // Lit ignores the lifecycle return; kick the async boot off explicitly.
+    void this.boot();
+  }
+
+  private async boot(): Promise<void> {
     // The DOM id IS the dashboard box id (assigned by PluginHost's JSX) —
     // resolve the box's assigned plugin from the stores.
     const box = layout.get().find((b) => b.i === this.id);

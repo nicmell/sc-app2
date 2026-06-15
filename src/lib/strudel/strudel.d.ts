@@ -1,6 +1,5 @@
 // Type shims for the @strudel/* packages, which ship JS-only bundles with
 // no TypeScript declarations. We only declare the surface we use.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 declare module "@strudel/codemirror" {
   export class StrudelMirror {

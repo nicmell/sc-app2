@@ -108,6 +108,8 @@ function resolveOne(p: ParsedControl): ResolvedControl {
   // references outer bindings.
   let evaluated: unknown;
   try {
+    // Evaluating the control's default expression is the whole point here.
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const fn = new Function('ar', 'kr', 'ir', `"use strict"; return (${p.defaultExpr});`);
     evaluated = fn(ar, kr, ir);
   } catch (e) {
@@ -115,6 +117,7 @@ function resolveOne(p: ParsedControl): ResolvedControl {
       `synthdef: could not evaluate default for control "${p.name}": ` +
         `${p.defaultExpr} — ${(e as Error).message}. Defaults must be ` +
         `literal numbers or ar()/kr()/ir() wrappers; outer references are not supported.`,
+      { cause: e },
     );
   }
   if (isControlWrapper(evaluated)) {

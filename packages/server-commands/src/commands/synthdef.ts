@@ -8,7 +8,6 @@ import OSC from 'osc-js';
 
 // osc-js's .d.ts types blob args as `Blob` but its runtime check is
 // `instanceof Uint8Array`. Cast at call sites.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const b = (bytes: Uint8Array): any => bytes;
 
 // ── /d_recv ───────────────────────────────────────────────────────────

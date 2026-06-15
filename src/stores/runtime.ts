@@ -10,7 +10,6 @@
 import { SliceName } from "@/constants/store";
 import { appStore } from "./store";
 import type { ReadonlyStore } from "@/lib/utils/reactiveStore";
-import type { PluginRuntimeValues } from "@/types/stores";
 
 const store = appStore.slice(SliceName.RUNTIME);
 
@@ -45,6 +44,6 @@ export function dropPluginRuntime(pluginId: string): void {
   store.update((s) => {
     if (!(pluginId in s)) return s;
     const { [pluginId]: _dropped, ...rest } = s;
-    return rest as Record<string, PluginRuntimeValues>;
+    return rest;
   });
 }

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -27,11 +27,10 @@
       "@/*": ["src/*"]
     }
   },
+  /* The whole src tree — incl. the co-located __tests__ and the shared test
+     scaffolding (src/lib/utils/test) — is type-checked. Vite-only imports
+     (`?raw`, `import.meta.glob`) resolve through vite/client (src/vite-env.d.ts);
+     vitest's types come from its package. */
   "include": ["src"],
-  /* Co-located tests run through Vitest's own glob, not the build. Exclude
-     them — and the shared test scaffolding (src/lib/utils/test) — from `tsc`
-     (yarn build): they pull in `vitest` and Vite-only imports (`?raw`,
-     `import.meta.glob`) that don't belong in the app build. */
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/lib/utils/test/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

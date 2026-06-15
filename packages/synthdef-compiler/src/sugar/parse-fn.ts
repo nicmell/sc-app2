@@ -32,7 +32,7 @@ export interface ParsedCallback {
 }
 
 /** Main entry point. */
-export function parseCallback(fn: Function): ParsedCallback {
+export function parseCallback(fn: (...args: any[]) => any): ParsedCallback {
   const src = fn.toString();
   const paramList = extractParamList(src);
   const params = splitTopLevelCommas(paramList);

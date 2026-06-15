@@ -108,7 +108,7 @@ function normaliseVariadic(
   // Accept a single UGenInputLike — matches sclang where a "list of
   // signals" can be a single signal in the one-channel case.
   if (typeof provided === 'number' || typeof provided === 'object') {
-    return [toUGenInput(provided as UGenInputLike)];
+    return [toUGenInput(provided)];
   }
   throw new Error(
     `${className}.${rateMethodName(rate)}: argument "${argName}" must be a ` +

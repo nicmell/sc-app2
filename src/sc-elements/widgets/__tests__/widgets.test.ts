@@ -6,7 +6,7 @@
 // gate exactly as against a live server. The scope-slot allocator is armed
 // directly on the client (connect() needs a live worker).
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
@@ -48,12 +48,14 @@ const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
   (await mountPlugin(wrapXml(bodyXml))).host;
 
 /** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
- *  channel — the SHM slot's own layout). */
-function beBlob(floats: number[]): Uint8Array {
+ *  channel — the SHM slot's own layout). osc-js types message blob args as
+ *  `Blob` though the runtime uses Uint8Array, so return it cast (as the
+ *  package's own command constructors do). */
+function beBlob(floats: number[]): Blob {
   const bytes = new Uint8Array(floats.length * 4);
   const dv = new DataView(bytes.buffer);
   floats.forEach((f, i) => dv.setFloat32(i * 4, f, false));
-  return bytes;
+  return bytes as unknown as Blob;
 }
 
 beforeAll(() => {
@@ -69,7 +71,6 @@ beforeEach(() => {
 afterEach(() => {
   document.body.replaceChildren();
   disarmScopeAllocator();
-  vi.restoreAllMocks();
 });
 
 describe("sc-scope", () => {

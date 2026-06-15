@@ -175,7 +175,8 @@ export class ScStrudel extends ScElement {
   private bridgeEditorStyles(): void {
     if (!("adoptedStyleSheets" in document)) return;
     // Walk exactly like CodeMirror's root detection (assignedSlot first).
-    let node: Node | null = this;
+    // Start one step up: the element itself is never a ShadowRoot.
+    let node: Node | null = this.assignedSlot ?? this.parentNode;
     while (node && !(node instanceof ShadowRoot)) {
       node = (node instanceof Element ? node.assignedSlot : null) ?? node.parentNode;
     }

@@ -6,5 +6,5 @@
     "paths": {},
     "types": ["node"]
   },
-  "include": ["src", "tests", "examples", "scripts"]
+  "include": ["src", "tests", "examples", "scripts", "vitest.config.ts"]
 }

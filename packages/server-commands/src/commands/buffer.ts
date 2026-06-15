@@ -7,9 +7,7 @@ import OSC from 'osc-js';
 // osc-js's .d.ts types blob args as `Blob`; its runtime check is
 // `instanceof Uint8Array`. Widen via cast at every call site that
 // takes a `completionMsg` blob.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const anyArr = (xs: ReadonlyArray<unknown>): any[] => xs as any[];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const b = (bytes: Uint8Array): any => bytes;
 
 // ── /b_alloc[Read][Channel] ───────────────────────────────────────────

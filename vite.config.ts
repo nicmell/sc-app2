@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig(() => ({
   plugins: [react()],
 
   // Lower standard (stage-3) decorators in the per-file esbuild transform —
@@ -53,13 +53,16 @@ export default defineConfig(async () => ({
   // Unit tests (`yarn test`): the example plugins through the sc-elements
   // parse engine in a simulated DOM — the fast runtime gate next to the full
   // CDP harness (scripts/validate-examples.mjs) — plus React component tests
-  // (.tsx, e.g. the connection overlay). Tests are co-located next to the
-  // unit under test (`*.test.ts(x)` beside the source); cross-cutting suites
-  // (examples/controls/widgets) sit at their directory root.
+  // (.tsx, e.g. the connection overlay). Each suite lives in a `__tests__/`
+  // folder beside the unit under test.
   test: {
     environment: "happy-dom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["src/lib/utils/test/test-setup.ts"],
+    // Restore every spy/mock to its original before each test, so suites don't
+    // need a manual `vi.restoreAllMocks()` in afterEach (runs before the
+    // beforeEach hooks, so freshly-installed spies survive into the test).
+    restoreMocks: true,
     // The Strudel editor stack is browser-only and won't import under
     // happy-dom; alias the offending modules to inert stubs globally (the
     // parse engine never drives them). The codemirror stub records the

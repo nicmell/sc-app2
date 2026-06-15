@@ -404,7 +404,7 @@ export class OscClient {
       if (this.scopeChunkSubs.size > 0) {
         let chunk: DecodedScopeChunk;
         try {
-          chunk = parseScopeChunkArgs(reply.args as unknown[]);
+          chunk = parseScopeChunkArgs(reply.args);
         } catch (err) {
           console.error("[osc] bad /scope/chunk:", err);
           return;

@@ -43,7 +43,6 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount());
   container.remove();
-  vi.restoreAllMocks();
 });
 
 describe("ConnectionOverlay", () => {
@@ -69,9 +68,10 @@ describe("ConnectionOverlay", () => {
   });
 
   it("Retry click calls session.retry(); the loader returns when status flips", () => {
-    const retry = vi.spyOn(session, "retry").mockImplementation(async () => {
+    const retry = vi.spyOn(session, "retry").mockImplementation(() => {
       // What the real retry does first: flip back to "connecting".
       sessionSlice.update((s) => ({ ...s, status: "connecting" }));
+      return Promise.resolve();
     });
     setStatus("error");
     const button = container.querySelector(".modal-actions button");

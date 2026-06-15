@@ -4,4 +4,4 @@
 // prebake's evalScope only runs when the editor calls its prebake hook, which
 // the stubbed StrudelMirror never does — so an inert export is enough.
 
-export const evalScope = async (..._modules: unknown[]): Promise<undefined> => undefined;
+export const evalScope = (..._modules: unknown[]): Promise<undefined> => Promise.resolve(undefined);

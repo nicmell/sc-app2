@@ -9,7 +9,6 @@ import type { OscArg } from '../types';
 // osc-js's .d.ts types blob args as `Blob`; runtime accepts Uint8Array.
 // Widen via cast here so our `OscArg` (which includes Uint8Array) is
 // accepted at construction.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const anyArr = (xs: ReadonlyArray<OscArg>): any[] => xs as any[];
 
 // ── Argless ───────────────────────────────────────────────────────────

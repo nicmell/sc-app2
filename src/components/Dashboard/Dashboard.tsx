@@ -65,7 +65,7 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
     const boxMap = new Map(items.map((item) => [item.i, item]));
     const active = current
       .filter((item) => !isPlaceholder(item))
-      .map(({ i, x, y, w, h }) => ({ i, x, y, w, h, plugin: boxMap.get(i)?.plugin }) as BoxItem);
+      .map(({ i, x, y, w, h }) => ({ i, x, y, w, h, plugin: boxMap.get(i)?.plugin }));
     setLayout(active);
   };
 

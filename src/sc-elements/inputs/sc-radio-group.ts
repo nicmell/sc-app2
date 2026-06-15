@@ -13,7 +13,9 @@ export class ScRadioGroup extends ScInput {
   validate(): void {
     requireProp(this, "bind", this.bind);
     if (this.orientation !== "horizontal" && this.orientation !== "vertical") {
-      failValidation(this, `"orientation" attribute must be horizontal|vertical (got "${this.orientation}")`);
+      // The prop is typed as the valid union, so TS narrows this branch to
+      // `never`; the attribute is arbitrary at runtime, so stringify it.
+      failValidation(this, `"orientation" attribute must be horizontal|vertical (got "${String(this.orientation)}")`);
     }
   }
 

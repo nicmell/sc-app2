@@ -44,7 +44,7 @@ export class WorkerClient implements WorkerTransport {
 
   /** Relay one packed OSC frame, transferring the buffer (fresh per pack()). */
   send(data: Uint8Array): void {
-    this.post({ type: "send", data }, [data.buffer as ArrayBuffer]);
+    this.post({ type: "send", data }, [data.buffer]);
   }
 
   onEvent(cb: (msg: TransportEvent) => void): void {

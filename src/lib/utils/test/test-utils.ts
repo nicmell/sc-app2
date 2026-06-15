@@ -71,7 +71,7 @@ export function autoRespond(msg: OSC.Message): void {
     case "/d_recv": {
       const completion = decode(msg.args[1] as unknown as Uint8Array);
       if (isMessage(completion) && completion.address === "/sync") {
-        oscClient.handleReply(new OSC.Message("/synced", completion.args[0] as number));
+        oscClient.handleReply(new OSC.Message("/synced", completion.args[0]));
       }
       break;
     }
@@ -81,7 +81,8 @@ export function autoRespond(msg: OSC.Message): void {
 /** Install the scsynth-facing spies for a load-pass test: oscClient.send into
  *  a recording auto-responder, plus deterministic node ids and session group.
  *  Returns the recorded sends and the `send` spy (re-mock it to script a
- *  stalled or partial server). Pair with vi.restoreAllMocks() in afterEach. */
+ *  stalled or partial server). Spies auto-restore between tests via the
+ *  config's `restoreMocks: true`. */
 export function installScsynthMock(): {
   sent: OSC.Message[];
   send: MockInstance<(packet: OscPacket) => void>;

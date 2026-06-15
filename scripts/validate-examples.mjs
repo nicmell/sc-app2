@@ -35,7 +35,7 @@ let tab = tabs.find((t) => t.url.startsWith("http://localhost:1420"));
 if (!tab) tab = await (await fetch("http://127.0.0.1:9222/json/new?http://localhost:1420/", { method: "PUT" })).json();
 const ws = await new Promise((res, rej) => { const s = new WebSocket(tab.webSocketDebuggerUrl); s.onopen = () => res(s); s.onerror = () => rej(new Error("cdp")); });
 let seq = 0; const pending = new Map();
-ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(JSON.stringify(m.error))) : p.resolve(m.result); } };
+ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); if (m.error) p.reject(new Error(JSON.stringify(m.error))); else p.resolve(m.result); } };
 const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++seq; pending.set(id, { resolve, reject }); ws.send(JSON.stringify({ id, method, params })); });
 const evaluate = async (expr) => (await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true })).result.value;
 await send("Runtime.enable");

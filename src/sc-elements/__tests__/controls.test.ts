@@ -44,7 +44,6 @@ beforeEach(() => {
 
 afterEach(() => {
   document.body.replaceChildren(); // disconnects → unload paths run
-  vi.restoreAllMocks();
   appStore.update((s) => ({ ...s, runtime: {}, osc: { ...s.osc, connected: false } }));
 });
 

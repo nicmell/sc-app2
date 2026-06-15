@@ -56,7 +56,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
 
       {!onSelect && (
         <>
-          <input ref={fileRef} type="file" accept=".zip" hidden onChange={onFile} />
+          <input ref={fileRef} type="file" accept=".zip" hidden onChange={(e) => void onFile(e)} />
           <button type="button" data-variant="secondary" onClick={() => fileRef.current?.click()}>
             Add plugin…
           </button>

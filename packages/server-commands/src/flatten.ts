@@ -2,7 +2,7 @@
 // recurses to its inner messages. Useful for decoding inbound rx and for logging
 // outbound tx (where the caller already holds the packet, no need to re-decode).
 
-import { isBundle, isMessage, type OscPacket } from './encode';
+import { isBundle, isMessage, type OscPacket } from "./encode";
 
 export interface FlatOsc {
   address: string;

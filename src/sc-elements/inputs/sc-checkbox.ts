@@ -9,7 +9,7 @@ import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { isControlRuntime } from "@/lib/utils/guards";
-import type {  } from "@/types/runtime";
+import type {} from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 

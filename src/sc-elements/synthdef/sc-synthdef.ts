@@ -56,9 +56,9 @@ export class ScSynthDef extends ScElement {
     // constraint makes that a valid build order); collecting validates that
     // every ugen input has a bind or value. Compilation waits for load.
     const params = collectControlParams(this as ScElement as ScParentElement);
-    const specs = this._scChildren!
-      .filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN)
-      .map((c) => ({ name: c.name, type: c.ugen, rate: c.rate, op: c.op, inputs: collectUgenInputs(c) }));
+    const specs = this._scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
+      (c) => ({ name: c.name, type: c.ugen, rate: c.rate, op: c.op, inputs: collectUgenInputs(c) }),
+    );
     return { ...baseRuntime(ctx), loaded: false, params, specs };
   }
 

@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Blip",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "numharm", default: 200 },
@@ -19,12 +19,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz (control rate)" },
-      { name: "numharm", doc: "Number of harmonics. This may be lowered internally if it would cause aliasing." },
+      {
+        name: "numharm",
+        doc: "Number of harmonics. This may be lowered internally if it would cause aliasing.",
+      },
     ],
   },
   {
     name: "FSinOsc",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -41,7 +44,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Klang",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "specs", default: null },
       { name: "freqscale", default: 1 },
@@ -54,13 +57,19 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freqoffset", doc: "an offset added to all frequencies at initialization time." },
-      { name: "freqscale", doc: "a scale factor multiplied by all frequencies at initialization time." },
-      { name: "specs", doc: "An array of three arrays frequencies, amplitudes and phases: 1) an array of filter frequencies, 2) an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0, 3) an Array of initial phases, or nil. If nil, then phases default to 0.0." },
+      {
+        name: "freqscale",
+        doc: "a scale factor multiplied by all frequencies at initialization time.",
+      },
+      {
+        name: "specs",
+        doc: "An array of three arrays frequencies, amplitudes and phases: 1) an array of filter frequencies, 2) an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0, 3) an Array of initial phases, or nil. If nil, then phases default to 0.0.",
+      },
     ],
   },
   {
     name: "Klank",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "specs", default: null },
       { name: "input", default: null },
@@ -74,16 +83,25 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Klank is a bank of fixed frequency resonators which can be used to simulate the resonant modes of an object. Each mode is given a ring time, which is the time for the mode to decay by 60 dB. The specs can't be changed after it has been started. For a modulatable but less efficient version, see dyn-klank.",
     signalRange: null,
     argDocs: [
-      { name: "decayscale", doc: "a scale factor multiplied by all ring times at initialization time." },
+      {
+        name: "decayscale",
+        doc: "a scale factor multiplied by all ring times at initialization time.",
+      },
       { name: "freqoffset", doc: "an offset added to all frequencies at initialization time." },
-      { name: "freqscale", doc: "a scale factor multiplied by all frequencies at initialization time." },
+      {
+        name: "freqscale",
+        doc: "a scale factor multiplied by all frequencies at initialization time.",
+      },
       { name: "input", doc: "the excitation input to the resonant filter bank." },
-      { name: "specs", doc: "An array of three arrays: frequencies, amplitudes and ring times: *all arrays should have the same length* 1) an Array of filter frequencies. 2) an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0 3) an Array of 60 dB decay times for the filters." },
+      {
+        name: "specs",
+        doc: "An array of three arrays: frequencies, amplitudes and ring times: *all arrays should have the same length* 1) an Array of filter frequencies. 2) an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0 3) an Array of 60 dB decay times for the filters.",
+      },
     ],
   },
   {
     name: "PSinGrain",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "dur", default: 0.20000000298023224 },
@@ -102,7 +120,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Pulse",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "width", default: 0.5 },
@@ -114,22 +132,21 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz (control rate)" },
-      { name: "width", doc: "Pulse width ratio from zero to one. 0.5 makes a square wave (control rate)" },
+      {
+        name: "width",
+        doc: "Pulse width ratio from zero to one. 0.5 makes a square wave (control rate)",
+      },
     ],
   },
   {
     name: "Saw",
-    rates: ['audio'],
-    defaults: [
-      { name: "freq", default: 440 },
-    ],
+    rates: ["audio"],
+    defaults: [{ name: "freq", default: 440 }],
     numOutputs: null,
     extends: null,
     summary: "band limited sawtooth wave generator",
     doc: "The sawtooth wave produces even and odd harmonics in series and therefore produces a bright sound that is an excellent starting point for brassy, raspy sounds. It's also suitable for creating the gritty, bright sounds needed for leads and raspy basses. Due to its harmonic richness it's extremely suitable for use with sounds that will be filter swept.",
     signalRange: null,
-    argDocs: [
-      { name: "freq", doc: "Frequency in Hertz (control rate)." },
-    ],
+    argDocs: [{ name: "freq", doc: "Frequency in Hertz (control rate)." }],
   },
 ];

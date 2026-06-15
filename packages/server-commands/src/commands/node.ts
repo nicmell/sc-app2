@@ -7,8 +7,8 @@
  * `"c10"` / `"a2"` — osc-js's type inference tags them correctly.
  */
 
-import OSC from 'osc-js';
-import type { ControlKey, ControlValue } from '../types';
+import OSC from "osc-js";
+import type { ControlKey, ControlValue } from "../types";
 
 // ── Add-action constants (shared with /g_new, /n_order) ───────────────
 
@@ -36,7 +36,7 @@ export function sNew(
   for (const [k, v] of Object.entries(controls)) {
     args.push(k, v);
   }
-  return new OSC.Message('/s_new', ...args);
+  return new OSC.Message("/s_new", ...args);
 }
 
 /** Lower-level form accepting explicit `(key, value)` pairs — lets
@@ -50,45 +50,39 @@ export function sNewPairs(
 ): OSC.Message {
   const args: (string | number)[] = [defName, nodeId, addAction, targetId];
   for (const [k, v] of pairs) args.push(k, v);
-  return new OSC.Message('/s_new', ...args);
+  return new OSC.Message("/s_new", ...args);
 }
 
 // ── /s_get, /s_getn, /s_noid ──────────────────────────────────────────
 
 export const sGet = (nodeId: number, ...keys: ControlKey[]): OSC.Message =>
-  new OSC.Message('/s_get', nodeId, ...keys);
+  new OSC.Message("/s_get", nodeId, ...keys);
 
 export const sGetn = (
   nodeId: number,
   ...ranges: ReadonlyArray<[ControlKey, number]>
-): OSC.Message => new OSC.Message('/s_getn', nodeId, ...ranges.flat());
+): OSC.Message => new OSC.Message("/s_getn", nodeId, ...ranges.flat());
 
-export const sNoid = (...nodeIds: number[]): OSC.Message =>
-  new OSC.Message('/s_noid', ...nodeIds);
+export const sNoid = (...nodeIds: number[]): OSC.Message => new OSC.Message("/s_noid", ...nodeIds);
 
 // ── /n_run ────────────────────────────────────────────────────────────
 
-export const nRun = (
-  ...pairs: ReadonlyArray<[number, 0 | 1]>
-): OSC.Message => new OSC.Message('/n_run', ...pairs.flat());
+export const nRun = (...pairs: ReadonlyArray<[number, 0 | 1]>): OSC.Message =>
+  new OSC.Message("/n_run", ...pairs.flat());
 
 export const nRunOne = (nodeId: number, flag: 0 | 1): OSC.Message =>
-  new OSC.Message('/n_run', nodeId, flag);
+  new OSC.Message("/n_run", nodeId, flag);
 
 // ── /n_free ───────────────────────────────────────────────────────────
 
-export const nFree = (...nodeIds: number[]): OSC.Message =>
-  new OSC.Message('/n_free', ...nodeIds);
+export const nFree = (...nodeIds: number[]): OSC.Message => new OSC.Message("/n_free", ...nodeIds);
 
 // ── /n_set / /n_setn / /n_fill ────────────────────────────────────────
 
-export const nSet = (
-  nodeId: number,
-  controls: SNewControls,
-): OSC.Message => {
+export const nSet = (nodeId: number, controls: SNewControls): OSC.Message => {
   const args: (string | number)[] = [nodeId];
   for (const [k, v] of Object.entries(controls)) args.push(k, v);
-  return new OSC.Message('/n_set', ...args);
+  return new OSC.Message("/n_set", ...args);
 };
 
 export const nSetPairs = (
@@ -97,61 +91,50 @@ export const nSetPairs = (
 ): OSC.Message => {
   const args: (string | number)[] = [nodeId];
   for (const [k, v] of pairs) args.push(k, v);
-  return new OSC.Message('/n_set', ...args);
+  return new OSC.Message("/n_set", ...args);
 };
 
 export const nSetn = (
   nodeId: number,
   ...ranges: ReadonlyArray<[ControlKey, number, ...number[]]>
-): OSC.Message =>
-  new OSC.Message('/n_setn', nodeId, ...ranges.flat() as (string | number)[]);
+): OSC.Message => new OSC.Message("/n_setn", nodeId, ...(ranges.flat() as (string | number)[]));
 
 export const nFill = (
   nodeId: number,
   ...ranges: ReadonlyArray<[ControlKey, number, number]>
-): OSC.Message =>
-  new OSC.Message('/n_fill', nodeId, ...ranges.flat() as (string | number)[]);
+): OSC.Message => new OSC.Message("/n_fill", nodeId, ...(ranges.flat() as (string | number)[]));
 
 // ── /n_map* ───────────────────────────────────────────────────────────
 
-export const nMap = (
-  nodeId: number,
-  ...pairs: ReadonlyArray<[ControlKey, number]>
-): OSC.Message => new OSC.Message('/n_map', nodeId, ...pairs.flat() as (string | number)[]);
+export const nMap = (nodeId: number, ...pairs: ReadonlyArray<[ControlKey, number]>): OSC.Message =>
+  new OSC.Message("/n_map", nodeId, ...(pairs.flat() as (string | number)[]));
 
 export const nMapn = (
   nodeId: number,
   ...triples: ReadonlyArray<[ControlKey, number, number]>
-): OSC.Message => new OSC.Message('/n_mapn', nodeId, ...triples.flat() as (string | number)[]);
+): OSC.Message => new OSC.Message("/n_mapn", nodeId, ...(triples.flat() as (string | number)[]));
 
-export const nMapa = (
-  nodeId: number,
-  ...pairs: ReadonlyArray<[ControlKey, number]>
-): OSC.Message => new OSC.Message('/n_mapa', nodeId, ...pairs.flat() as (string | number)[]);
+export const nMapa = (nodeId: number, ...pairs: ReadonlyArray<[ControlKey, number]>): OSC.Message =>
+  new OSC.Message("/n_mapa", nodeId, ...(pairs.flat() as (string | number)[]));
 
 export const nMapan = (
   nodeId: number,
   ...triples: ReadonlyArray<[ControlKey, number, number]>
-): OSC.Message => new OSC.Message('/n_mapan', nodeId, ...triples.flat() as (string | number)[]);
+): OSC.Message => new OSC.Message("/n_mapan", nodeId, ...(triples.flat() as (string | number)[]));
 
 // ── /n_before, /n_after, /n_order, /n_query, /n_trace ─────────────────
 
-export const nBefore = (
-  ...pairs: ReadonlyArray<[number, number]>
-): OSC.Message => new OSC.Message('/n_before', ...pairs.flat());
+export const nBefore = (...pairs: ReadonlyArray<[number, number]>): OSC.Message =>
+  new OSC.Message("/n_before", ...pairs.flat());
 
-export const nAfter = (
-  ...pairs: ReadonlyArray<[number, number]>
-): OSC.Message => new OSC.Message('/n_after', ...pairs.flat());
+export const nAfter = (...pairs: ReadonlyArray<[number, number]>): OSC.Message =>
+  new OSC.Message("/n_after", ...pairs.flat());
 
-export const nOrder = (
-  addAction: number,
-  targetId: number,
-  ...nodeIds: number[]
-): OSC.Message => new OSC.Message('/n_order', addAction, targetId, ...nodeIds);
+export const nOrder = (addAction: number, targetId: number, ...nodeIds: number[]): OSC.Message =>
+  new OSC.Message("/n_order", addAction, targetId, ...nodeIds);
 
 export const nQuery = (...nodeIds: number[]): OSC.Message =>
-  new OSC.Message('/n_query', ...nodeIds);
+  new OSC.Message("/n_query", ...nodeIds);
 
 export const nTrace = (...nodeIds: number[]): OSC.Message =>
-  new OSC.Message('/n_trace', ...nodeIds);
+  new OSC.Message("/n_trace", ...nodeIds);

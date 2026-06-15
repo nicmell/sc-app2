@@ -24,11 +24,20 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
-import { SCOPE_CHANNELS, SCOPE_CHUNK_SIZE, SCOPE_INPUT_BUS, SCOPE_MAX_FRAMES } from "@/constants/osc";
+import {
+  SCOPE_CHANNELS,
+  SCOPE_CHUNK_SIZE,
+  SCOPE_INPUT_BUS,
+  SCOPE_MAX_FRAMES,
+} from "@/constants/osc";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
 import { findTriggerOffset } from "@/lib/scope/trigger";
 import { oscClient } from "@/stores/osc";
-import { failValidation, requireNoScChildren, requireNumeric } from "@/sc-elements/internal/validation";
+import {
+  failValidation,
+  requireNoScChildren,
+  requireNumeric,
+} from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 /** Padding factor: ±1 (after `gain`) maps to this fraction of the lane. */
@@ -81,17 +90,26 @@ export class ScScope extends ScElement {
       failValidation(this, `"bus" attribute must be a non-negative integer (got "${this.bus}")`);
     }
     if (!Number.isInteger(this.channels) || this.channels < 1) {
-      failValidation(this, `"channels" attribute must be a positive integer (got "${this.channels}")`);
+      failValidation(
+        this,
+        `"channels" attribute must be a positive integer (got "${this.channels}")`,
+      );
     }
     requireNumeric(this, "frames", this.frames);
     if (!Number.isInteger(this.frames) || this.frames < 1) {
       failValidation(this, `"frames" attribute must be a positive integer (got "${this.frames}")`);
     }
     if (this.frames > SCOPE_MAX_FRAMES) {
-      failValidation(this, `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this.frames}")`);
+      failValidation(
+        this,
+        `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this.frames}")`,
+      );
     }
     if (!(TRIGGER_MODES as readonly string[]).includes(this.trigger)) {
-      failValidation(this, `"trigger" attribute must be one of auto|normal|off (got "${this.trigger}")`);
+      failValidation(
+        this,
+        `"trigger" attribute must be one of auto|normal|off (got "${this.trigger}")`,
+      );
     }
     if (!(SLOPES as readonly string[]).includes(this.slope)) {
       failValidation(this, `"slope" attribute must be one of rising|falling (got "${this.slope}")`);
@@ -102,7 +120,10 @@ export class ScScope extends ScElement {
       failValidation(this, `"gain" attribute must be a positive number (got "${this.gain}")`);
     }
     if (!(LAYOUTS as readonly string[]).includes(this.layout)) {
-      failValidation(this, `"layout" attribute must be one of overlay|split (got "${this.layout}")`);
+      failValidation(
+        this,
+        `"layout" attribute must be one of overlay|split (got "${this.layout}")`,
+      );
     }
   }
 

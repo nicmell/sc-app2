@@ -17,7 +17,12 @@
 // useSyncExternalStore.
 
 import { SliceName } from "@/constants/store";
-import { LAYOUT_SAVE_INTERVAL_MS, SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
+import {
+  LAYOUT_SAVE_INTERVAL_MS,
+  SCSYNTH_RETRY_LIMIT,
+  SCSYNTH_RETRY_MS,
+  SESSION_KEY,
+} from "@/constants/session";
 import { get, HttpError, post, put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
@@ -76,7 +81,15 @@ export class SessionManager {
       // back to minting a fresh session.
       const stored = localStorage.getItem(SESSION_KEY);
       const info = (stored ? await fetchSession(stored) : null) ?? (await createSession());
-      const { sessionId, sessionGroupId, nodeIdBase, nodeIdCount, scopeIndexBase, scopeIndexCount, scsynthAddress } = info;
+      const {
+        sessionId,
+        sessionGroupId,
+        nodeIdBase,
+        nodeIdCount,
+        scopeIndexBase,
+        scopeIndexCount,
+        scsynthAddress,
+      } = info;
       if (this.disposed) return;
       localStorage.setItem(SESSION_KEY, sessionId);
       this.state.update((s) => ({ ...s, scsynthAddress }));
@@ -115,7 +128,11 @@ export class SessionManager {
       // but only for a bounded budget (~20 s), after which the error modal
       // advises that the connection isn't coming (its Retry restarts the
       // cycle). Anything else is a real failure and gets the modal at once.
-      if (e instanceof HttpError && e.status === 503 && this.scsynthAttempts < SCSYNTH_RETRY_LIMIT) {
+      if (
+        e instanceof HttpError &&
+        e.status === 503 &&
+        this.scsynthAttempts < SCSYNTH_RETRY_LIMIT
+      ) {
         this.scsynthAttempts += 1;
         this.started = false;
         setTimeout(() => void this.start(), SCSYNTH_RETRY_MS);

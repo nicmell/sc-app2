@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** current number of channels of soundfile in buffer */
 export class BufChannels {
@@ -16,16 +16,16 @@ export class BufChannels {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufChannels {
     const b = new BufChannels();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufChannels {
     const b = new BufChannels();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -43,7 +43,7 @@ export class BufChannels {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufChannels", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -57,16 +57,16 @@ export class BufDur {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufDur {
     const b = new BufDur();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufDur {
     const b = new BufDur();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -84,7 +84,7 @@ export class BufDur {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufDur", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -101,16 +101,16 @@ export class BufFrames {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufFrames {
     const b = new BufFrames();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufFrames {
     const b = new BufFrames();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -128,7 +128,7 @@ export class BufFrames {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufFrames", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -142,16 +142,16 @@ export class BufRateScale {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufRateScale {
     const b = new BufRateScale();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufRateScale {
     const b = new BufRateScale();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -169,7 +169,7 @@ export class BufRateScale {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufRateScale", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -183,16 +183,16 @@ export class BufSampleRate {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufSampleRate {
     const b = new BufSampleRate();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufSampleRate {
     const b = new BufSampleRate();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -210,7 +210,7 @@ export class BufSampleRate {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufSampleRate", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -224,16 +224,16 @@ export class BufSamples {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufSamples {
     const b = new BufSamples();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): BufSamples {
     const b = new BufSamples();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -251,7 +251,7 @@ export class BufSamples {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("BufSamples", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -271,20 +271,20 @@ export class CheckBadValues {
   /** Build at kr rate (Rate::Control). */
   static kr(): CheckBadValues {
     const b = new CheckBadValues();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
-    b._post = { tag: 'constant', val: 2 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
+    b._post = { tag: "constant", val: 2 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): CheckBadValues {
     const b = new CheckBadValues();
-    b._calcRate = 'scalar';
-    b._in = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
-    b._post = { tag: 'constant', val: 2 };
+    b._calcRate = "scalar";
+    b._in = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
+    b._post = { tag: "constant", val: 2 };
     return b;
   }
 
@@ -320,7 +320,7 @@ export class CheckBadValues {
     inputs.push(this._id);
     inputs.push(this._post);
     const idx = def.addUgen("CheckBadValues", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -333,7 +333,7 @@ export class ControlDur {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): ControlDur {
     const b = new ControlDur();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -344,7 +344,7 @@ export class ControlDur {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("ControlDur", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -357,7 +357,7 @@ export class ControlRate {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): ControlRate {
     const b = new ControlRate();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -368,7 +368,7 @@ export class ControlRate {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("ControlRate", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -381,7 +381,7 @@ export class NumAudioBuses {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumAudioBuses {
     const b = new NumAudioBuses();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -392,7 +392,7 @@ export class NumAudioBuses {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumAudioBuses", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -405,7 +405,7 @@ export class NumBuffers {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumBuffers {
     const b = new NumBuffers();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -416,7 +416,7 @@ export class NumBuffers {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumBuffers", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -429,7 +429,7 @@ export class NumControlBuses {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumControlBuses {
     const b = new NumControlBuses();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -440,7 +440,7 @@ export class NumControlBuses {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumControlBuses", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -456,7 +456,7 @@ export class NumInputBuses {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumInputBuses {
     const b = new NumInputBuses();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -467,7 +467,7 @@ export class NumInputBuses {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumInputBuses", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -484,7 +484,7 @@ export class NumOutputBuses {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumOutputBuses {
     const b = new NumOutputBuses();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -495,7 +495,7 @@ export class NumOutputBuses {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumOutputBuses", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -508,14 +508,14 @@ export class NumRunningSynths {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NumRunningSynths {
     const b = new NumRunningSynths();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): NumRunningSynths {
     const b = new NumRunningSynths();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     return b;
   }
 
@@ -526,7 +526,7 @@ export class NumRunningSynths {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("NumRunningSynths", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -546,22 +546,22 @@ export class Poll {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Poll {
     const b = new Poll();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._label = { tag: 'constant', val: 0 };
-    b._trigId = { tag: 'constant', val: -1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._label = { tag: "constant", val: 0 };
+    b._trigId = { tag: "constant", val: -1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Poll {
     const b = new Poll();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._label = { tag: 'constant', val: 0 };
-    b._trigId = { tag: 'constant', val: -1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._label = { tag: "constant", val: 0 };
+    b._trigId = { tag: "constant", val: -1 };
     return b;
   }
 
@@ -603,7 +603,7 @@ export class Poll {
     inputs.push(this._label);
     inputs.push(this._trigId);
     const idx = def.addUgen("Poll", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -615,7 +615,7 @@ export class RadiansPerSample {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): RadiansPerSample {
     const b = new RadiansPerSample();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -626,7 +626,7 @@ export class RadiansPerSample {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("RadiansPerSample", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -639,7 +639,7 @@ export class SampleDur {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): SampleDur {
     const b = new SampleDur();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -650,7 +650,7 @@ export class SampleDur {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("SampleDur", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -663,7 +663,7 @@ export class SampleRate {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): SampleRate {
     const b = new SampleRate();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -674,7 +674,7 @@ export class SampleRate {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("SampleRate", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -687,7 +687,7 @@ export class SubsampleOffset {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): SubsampleOffset {
     const b = new SubsampleOffset();
-    b._calcRate = 'scalar';
+    b._calcRate = "scalar";
     return b;
   }
 
@@ -698,6 +698,6 @@ export class SubsampleOffset {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("SubsampleOffset", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

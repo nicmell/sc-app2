@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Equal power panning balances two channels; by panning, you are favouring one
@@ -25,11 +25,11 @@ export class Balance2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Balance2 {
     const b = new Balance2();
-    b._calcRate = 'audio';
-    b._left = { tag: 'constant', val: 0 };
-    b._right = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._left = { tag: "constant", val: 0 };
+    b._right = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -68,7 +68,7 @@ export class Balance2 {
     inputs.push(this._pos);
     inputs.push(this._level);
     const idx = def.addUgen("Balance2", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -90,22 +90,22 @@ export class BiPanB2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BiPanB2 {
     const b = new BiPanB2();
-    b._calcRate = 'audio';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): BiPanB2 {
     const b = new BiPanB2();
-    b._calcRate = 'control';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -147,7 +147,7 @@ export class BiPanB2 {
     inputs.push(this._azimuth);
     inputs.push(this._gain);
     const idx = def.addUgen("BiPanB2", this._calcRate, inputs, 3, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -170,11 +170,11 @@ export class DecodeB2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DecodeB2 {
     const b = new DecodeB2();
-    b._calcRate = 'audio';
-    b._w = { tag: 'constant', val: 0 };
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._orientation = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._w = { tag: "constant", val: 0 };
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._orientation = { tag: "constant", val: 0.5 };
     b._numChannels = 1;
     return b;
   }
@@ -182,11 +182,11 @@ export class DecodeB2 {
   /** Build at kr rate (Rate::Control). */
   static kr(): DecodeB2 {
     const b = new DecodeB2();
-    b._calcRate = 'control';
-    b._w = { tag: 'constant', val: 0 };
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._orientation = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._w = { tag: "constant", val: 0 };
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._orientation = { tag: "constant", val: 0.5 };
     b._numChannels = 1;
     return b;
   }
@@ -237,7 +237,7 @@ export class DecodeB2 {
     inputs.push(this._y);
     inputs.push(this._orientation);
     const idx = def.addUgen("DecodeB2", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -256,20 +256,20 @@ export class LinPan2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LinPan2 {
     const b = new LinPan2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LinPan2 {
     const b = new LinPan2();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -301,7 +301,7 @@ export class LinPan2 {
     inputs.push(this._pos);
     inputs.push(this._level);
     const idx = def.addUgen("LinPan2", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -318,22 +318,22 @@ export class LinXFade2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LinXFade2 {
     const b = new LinXFade2();
-    b._calcRate = 'audio';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._pan = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LinXFade2 {
     const b = new LinXFade2();
-    b._calcRate = 'control';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._pan = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -372,7 +372,7 @@ export class LinXFade2 {
     inputs.push(this._pan);
     inputs.push(this._level);
     const idx = def.addUgen("LinXFade2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -388,20 +388,20 @@ export class Pan2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Pan2 {
     const b = new Pan2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Pan2 {
     const b = new Pan2();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -433,7 +433,7 @@ export class Pan2 {
     inputs.push(this._pos);
     inputs.push(this._level);
     const idx = def.addUgen("Pan2", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -453,22 +453,22 @@ export class Pan4 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Pan4 {
     const b = new Pan4();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._xpos = { tag: 'constant', val: 0 };
-    b._ypos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._xpos = { tag: "constant", val: 0 };
+    b._ypos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Pan4 {
     const b = new Pan4();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._xpos = { tag: 'constant', val: 0 };
-    b._ypos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._xpos = { tag: "constant", val: 0 };
+    b._ypos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -507,7 +507,7 @@ export class Pan4 {
     inputs.push(this._ypos);
     inputs.push(this._level);
     const idx = def.addUgen("Pan4", this._calcRate, inputs, 4, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -526,12 +526,12 @@ export class PanAz {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PanAz {
     const b = new PanAz();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._width = { tag: 'constant', val: 2 };
-    b._orientation = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._width = { tag: "constant", val: 2 };
+    b._orientation = { tag: "constant", val: 0.5 };
     b._numChannels = 1;
     return b;
   }
@@ -539,12 +539,12 @@ export class PanAz {
   /** Build at kr rate (Rate::Control). */
   static kr(): PanAz {
     const b = new PanAz();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._width = { tag: 'constant', val: 2 };
-    b._orientation = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._width = { tag: "constant", val: 2 };
+    b._orientation = { tag: "constant", val: 0.5 };
     b._numChannels = 1;
     return b;
   }
@@ -615,7 +615,7 @@ export class PanAz {
     inputs.push(this._width);
     inputs.push(this._orientation);
     const idx = def.addUgen("PanAz", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -632,22 +632,22 @@ export class PanB {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PanB {
     const b = new PanB();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._elevation = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._elevation = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PanB {
     const b = new PanB();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._elevation = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._elevation = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -686,7 +686,7 @@ export class PanB {
     inputs.push(this._elevation);
     inputs.push(this._gain);
     const idx = def.addUgen("PanB", this._calcRate, inputs, 4, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -702,20 +702,20 @@ export class PanB2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PanB2 {
     const b = new PanB2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PanB2 {
     const b = new PanB2();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._azimuth = { tag: 'constant', val: 0 };
-    b._gain = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._azimuth = { tag: "constant", val: 0 };
+    b._gain = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -750,7 +750,7 @@ export class PanB2 {
     inputs.push(this._azimuth);
     inputs.push(this._gain);
     const idx = def.addUgen("PanB2", this._calcRate, inputs, 3, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -774,20 +774,20 @@ export class Rotate2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Rotate2 {
     const b = new Rotate2();
-    b._calcRate = 'audio';
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Rotate2 {
     const b = new Rotate2();
-    b._calcRate = 'control';
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._pos = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -822,7 +822,7 @@ export class Rotate2 {
     inputs.push(this._y);
     inputs.push(this._pos);
     const idx = def.addUgen("Rotate2", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -839,22 +839,22 @@ export class XFade2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): XFade2 {
     const b = new XFade2();
-    b._calcRate = 'audio';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._pan = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): XFade2 {
     const b = new XFade2();
-    b._calcRate = 'control';
-    b._inA = { tag: 'constant', val: 0 };
-    b._inB = { tag: 'constant', val: 0 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._inA = { tag: "constant", val: 0 };
+    b._inB = { tag: "constant", val: 0 };
+    b._pan = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -896,6 +896,6 @@ export class XFade2 {
     inputs.push(this._pan);
     inputs.push(this._level);
     const idx = def.addUgen("XFade2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

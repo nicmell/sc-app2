@@ -8,7 +8,13 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
       <aside className="drawer" data-open={open} aria-hidden={!open}>
         <header className="drawer-header">
           <h2>Plugins</h2>
-          <button type="button" data-variant="ghost" data-size="sm" aria-label="Close" onClick={onClose}>
+          <button
+            type="button"
+            data-variant="ghost"
+            data-size="sm"
+            aria-label="Close"
+            onClick={onClose}
+          >
             ×
           </button>
         </header>

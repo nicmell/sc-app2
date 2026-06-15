@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** models the path of a bouncing object that is reflected by a vibrating surface */
 export class Ball {
@@ -19,11 +19,11 @@ export class Ball {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Ball {
     const b = new Ball();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._g = { tag: 'constant', val: 1 };
-    b._damp = { tag: 'constant', val: 0 };
-    b._friction = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._g = { tag: "constant", val: 1 };
+    b._damp = { tag: "constant", val: 0 };
+    b._friction = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -62,7 +62,7 @@ export class Ball {
     inputs.push(this._damp);
     inputs.push(this._friction);
     const idx = def.addUgen("Ball", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -82,11 +82,11 @@ export class FreeVerb {
   /** Build at ar rate (Rate::Audio). */
   static ar(): FreeVerb {
     const b = new FreeVerb();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._mix = { tag: 'constant', val: 0.33 };
-    b._room = { tag: 'constant', val: 0.5 };
-    b._damp = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._mix = { tag: "constant", val: 0.33 };
+    b._room = { tag: "constant", val: 0.5 };
+    b._damp = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -125,7 +125,7 @@ export class FreeVerb {
     inputs.push(this._room);
     inputs.push(this._damp);
     const idx = def.addUgen("FreeVerb", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -146,12 +146,12 @@ export class FreeVerb2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): FreeVerb2 {
     const b = new FreeVerb2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._in2 = { tag: 'constant', val: 0 };
-    b._mix = { tag: 'constant', val: 0.33 };
-    b._room = { tag: 'constant', val: 0.5 };
-    b._damp = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._in2 = { tag: "constant", val: 0 };
+    b._mix = { tag: "constant", val: 0.33 };
+    b._room = { tag: "constant", val: 0.5 };
+    b._damp = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -197,7 +197,7 @@ export class FreeVerb2 {
     inputs.push(this._room);
     inputs.push(this._damp);
     const idx = def.addUgen("FreeVerb2", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -218,10 +218,10 @@ export class FreqShift {
   /** Build at ar rate (Rate::Audio). */
   static ar(): FreqShift {
     const b = new FreqShift();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -253,7 +253,7 @@ export class FreqShift {
     inputs.push(this._freq);
     inputs.push(this._phase);
     const idx = def.addUgen("FreqShift", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -285,34 +285,34 @@ export class Gendy1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Gendy1 {
     const b = new Gendy1();
-    b._calcRate = 'audio';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._minfreq = { tag: 'constant', val: 440 };
-    b._maxfreq = { tag: 'constant', val: 660 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
+    b._calcRate = "audio";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._minfreq = { tag: "constant", val: 440 };
+    b._maxfreq = { tag: "constant", val: 660 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Gendy1 {
     const b = new Gendy1();
-    b._calcRate = 'control';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._minfreq = { tag: 'constant', val: 440 };
-    b._maxfreq = { tag: 'constant', val: 660 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
+    b._calcRate = "control";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._minfreq = { tag: "constant", val: 440 };
+    b._maxfreq = { tag: "constant", val: 660 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
     return b;
   }
 
@@ -428,7 +428,7 @@ export class Gendy1 {
     inputs.push(this._initCps);
     inputs.push(this._knum);
     const idx = def.addUgen("Gendy1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -457,38 +457,38 @@ export class Gendy2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Gendy2 {
     const b = new Gendy2();
-    b._calcRate = 'audio';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._minfreq = { tag: 'constant', val: 440 };
-    b._maxfreq = { tag: 'constant', val: 660 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
-    b._a = { tag: 'constant', val: 1.17 };
-    b._c = { tag: 'constant', val: 0.31 };
+    b._calcRate = "audio";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._minfreq = { tag: "constant", val: 440 };
+    b._maxfreq = { tag: "constant", val: 660 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
+    b._a = { tag: "constant", val: 1.17 };
+    b._c = { tag: "constant", val: 0.31 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Gendy2 {
     const b = new Gendy2();
-    b._calcRate = 'control';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._minfreq = { tag: 'constant', val: 440 };
-    b._maxfreq = { tag: 'constant', val: 660 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
-    b._a = { tag: 'constant', val: 1.17 };
-    b._c = { tag: 'constant', val: 0.31 };
+    b._calcRate = "control";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._minfreq = { tag: "constant", val: 440 };
+    b._maxfreq = { tag: "constant", val: 660 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
+    b._a = { tag: "constant", val: 1.17 };
+    b._c = { tag: "constant", val: 0.31 };
     return b;
   }
 
@@ -621,7 +621,7 @@ export class Gendy2 {
     inputs.push(this._a);
     inputs.push(this._c);
     const idx = def.addUgen("Gendy2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -651,32 +651,32 @@ export class Gendy3 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Gendy3 {
     const b = new Gendy3();
-    b._calcRate = 'audio';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
+    b._calcRate = "audio";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._freq = { tag: "constant", val: 440 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Gendy3 {
     const b = new Gendy3();
-    b._calcRate = 'control';
-    b._ampdist = { tag: 'constant', val: 1 };
-    b._durdist = { tag: 'constant', val: 1 };
-    b._adparam = { tag: 'constant', val: 1 };
-    b._ddparam = { tag: 'constant', val: 1 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._ampscale = { tag: 'constant', val: 0.5 };
-    b._durscale = { tag: 'constant', val: 0.5 };
-    b._initCps = { tag: 'constant', val: 12 };
-    b._knum = { tag: 'constant', val: 12 };
+    b._calcRate = "control";
+    b._ampdist = { tag: "constant", val: 1 };
+    b._durdist = { tag: "constant", val: 1 };
+    b._adparam = { tag: "constant", val: 1 };
+    b._ddparam = { tag: "constant", val: 1 };
+    b._freq = { tag: "constant", val: 440 };
+    b._ampscale = { tag: "constant", val: 0.5 };
+    b._durscale = { tag: "constant", val: 0.5 };
+    b._initCps = { tag: "constant", val: 12 };
+    b._knum = { tag: "constant", val: 12 };
     return b;
   }
 
@@ -779,7 +779,7 @@ export class Gendy3 {
     inputs.push(this._initCps);
     inputs.push(this._knum);
     const idx = def.addUgen("Gendy3", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -807,17 +807,17 @@ export class GVerb {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GVerb {
     const b = new GVerb();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._roomsize = { tag: 'constant', val: 10 };
-    b._revtime = { tag: 'constant', val: 3 };
-    b._damping = { tag: 'constant', val: 0.5 };
-    b._inputbw = { tag: 'constant', val: 0.5 };
-    b._spread = { tag: 'constant', val: 15 };
-    b._drylevel = { tag: 'constant', val: 1 };
-    b._earlyreflevel = { tag: 'constant', val: 0.7 };
-    b._taillevel = { tag: 'constant', val: 0.5 };
-    b._maxroomsize = { tag: 'constant', val: 300 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._roomsize = { tag: "constant", val: 10 };
+    b._revtime = { tag: "constant", val: 3 };
+    b._damping = { tag: "constant", val: 0.5 };
+    b._inputbw = { tag: "constant", val: 0.5 };
+    b._spread = { tag: "constant", val: 15 };
+    b._drylevel = { tag: "constant", val: 1 };
+    b._earlyreflevel = { tag: "constant", val: 0.7 };
+    b._taillevel = { tag: "constant", val: 0.5 };
+    b._maxroomsize = { tag: "constant", val: 300 };
     return b;
   }
 
@@ -901,7 +901,7 @@ export class GVerb {
     inputs.push(this._taillevel);
     inputs.push(this._maxroomsize);
     const idx = def.addUgen("GVerb", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -914,8 +914,8 @@ export class Hilbert {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Hilbert {
     const b = new Hilbert();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -932,7 +932,7 @@ export class Hilbert {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("Hilbert", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -949,22 +949,22 @@ export class MoogFF {
   /** Build at ar rate (Rate::Audio). */
   static ar(): MoogFF {
     const b = new MoogFF();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 100 };
-    b._gain = { tag: 'constant', val: 2 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 100 };
+    b._gain = { tag: "constant", val: 2 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): MoogFF {
     const b = new MoogFF();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 100 };
-    b._gain = { tag: 'constant', val: 2 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 100 };
+    b._gain = { tag: "constant", val: 2 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1006,7 +1006,7 @@ export class MoogFF {
     inputs.push(this._gain);
     inputs.push(this._reset);
     const idx = def.addUgen("MoogFF", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1031,10 +1031,10 @@ export class PartConv {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PartConv {
     const b = new PartConv();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._fftsize = { tag: 'constant', val: 0 };
-    b._irbufnum = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._fftsize = { tag: "constant", val: 0 };
+    b._irbufnum = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1070,7 +1070,7 @@ export class PartConv {
     inputs.push(this._fftsize);
     inputs.push(this._irbufnum);
     const idx = def.addUgen("PartConv", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1091,12 +1091,12 @@ export class PitchShift {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PitchShift {
     const b = new PitchShift();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._windowSize = { tag: 'constant', val: 0.2 };
-    b._pitchRatio = { tag: 'constant', val: 1 };
-    b._pitchDispersion = { tag: 'constant', val: 0 };
-    b._timeDispersion = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._windowSize = { tag: "constant", val: 0.2 };
+    b._pitchRatio = { tag: "constant", val: 1 };
+    b._pitchDispersion = { tag: "constant", val: 0 };
+    b._timeDispersion = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1147,7 +1147,7 @@ export class PitchShift {
     inputs.push(this._pitchDispersion);
     inputs.push(this._timeDispersion);
     const idx = def.addUgen("PitchShift", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1170,13 +1170,13 @@ export class Pluck {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Pluck {
     const b = new Pluck();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 1 };
-    b._maxdelaytime = { tag: 'constant', val: 0.2 };
-    b._delaytime = { tag: 'constant', val: 0.2 };
-    b._decaytime = { tag: 'constant', val: 1 };
-    b._coef = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 1 };
+    b._maxdelaytime = { tag: "constant", val: 0.2 };
+    b._delaytime = { tag: "constant", val: 0.2 };
+    b._decaytime = { tag: "constant", val: 1 };
+    b._coef = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -1238,7 +1238,7 @@ export class Pluck {
     inputs.push(this._decaytime);
     inputs.push(this._coef);
     const idx = def.addUgen("Pluck", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1254,10 +1254,10 @@ export class Spring {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Spring {
     const b = new Spring();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._spring = { tag: 'constant', val: 0 };
-    b._damp = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._spring = { tag: "constant", val: 0 };
+    b._damp = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1289,7 +1289,7 @@ export class Spring {
     inputs.push(this._spring);
     inputs.push(this._damp);
     const idx = def.addUgen("Spring", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1309,11 +1309,11 @@ export class TBall {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TBall {
     const b = new TBall();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._g = { tag: 'constant', val: 10 };
-    b._damp = { tag: 'constant', val: 0 };
-    b._friction = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._g = { tag: "constant", val: 10 };
+    b._damp = { tag: "constant", val: 0 };
+    b._friction = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -1352,6 +1352,6 @@ export class TBall {
     inputs.push(this._damp);
     inputs.push(this._friction);
     const idx = def.addUgen("TBall", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

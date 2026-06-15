@@ -46,7 +46,13 @@ import {
   type OscArg,
   type OscPacket,
 } from "@sc-app/server-commands";
-import { MAX_ERRORS, MAX_LOG, OSC_REPLIES, REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
+import {
+  MAX_ERRORS,
+  MAX_LOG,
+  OSC_REPLIES,
+  REPLY_TIMEOUT_MS,
+  STATUS_REPLY_TIMEOUT_MS,
+} from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { OscWorkerPlugin } from "./OscWorkerPlugin";
@@ -195,7 +201,9 @@ export class OscClient {
     const recycled = this.freeScopeSlots.pop();
     if (recycled !== undefined) return recycled;
     if (this.scopeUsed >= this.scopeCount) {
-      throw new Error(`OscClient.allocScopeIndex: scope-slot block exhausted (${this.scopeCount} per session)`);
+      throw new Error(
+        `OscClient.allocScopeIndex: scope-slot block exhausted (${this.scopeCount} per session)`,
+      );
     }
     return this.scopeBase + this.scopeUsed++;
   }
@@ -465,9 +473,10 @@ export class OscClient {
       const existing = s.errors.find((e) => e.address === address && e.message === message);
       const errors = existing
         ? s.errors.map((e) => (e === existing ? { ...e, count: e.count + 1, ts: Date.now() } : e))
-        : [...s.errors, { id: this.nextEntryId++, address, message, variant, count: 1, ts: Date.now() }].slice(
-            -MAX_ERRORS,
-          );
+        : [
+            ...s.errors,
+            { id: this.nextEntryId++, address, message, variant, count: 1, ts: Date.now() },
+          ].slice(-MAX_ERRORS);
       return { ...s, errors };
     });
   }
@@ -475,7 +484,9 @@ export class OscClient {
   private append(dir: "tx" | "rx", address: string, args: string[]): void {
     this.state.update((s) => ({
       ...s,
-      log: [...s.log, { ts: Date.now(), dir, address, args, id: this.nextEntryId++ }].slice(-MAX_LOG),
+      log: [...s.log, { ts: Date.now(), dir, address, args, id: this.nextEntryId++ }].slice(
+        -MAX_LOG,
+      ),
     }));
   }
 }

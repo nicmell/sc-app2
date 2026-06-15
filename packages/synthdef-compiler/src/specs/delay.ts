@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "AllpassC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -20,15 +20,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "all pass delay line, cubic interpolation",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "AllpassL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -41,15 +47,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "all pass delay line, linear interpolation",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "AllpassN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -62,15 +74,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "all pass delay line, no interpolation. See also AllpassC which uses cubic interpolation, and AllpassL which uses linear interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "BufAllpassC",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -84,14 +102,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufAllpassL",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -105,14 +126,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufAllpassN",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -126,14 +150,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufCombC",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -147,14 +174,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufCombL",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -168,14 +198,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufCombN",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -189,14 +222,17 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buf", doc: "buffer number" },
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
     ],
   },
   {
     name: "BufDelayC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -215,7 +251,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BufDelayL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -234,7 +270,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BufDelayN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buf", default: 0 },
       { name: "in", default: 0 },
@@ -253,7 +289,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "CombC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -266,15 +302,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "comb delay line, cubic interpolation",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "CombL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -287,15 +329,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "comb delay line, linear interpolation",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "CombN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -308,15 +356,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "comb delay line, no interpolation. See also CombL which uses linear interpolation, and CombC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
     signalRange: null,
     argDocs: [
-      { name: "decayTime", doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower." },
+      {
+        name: "decayTime",
+        doc: "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.",
+      },
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "DelTapRd",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buffer", default: 0 },
       { name: "phase", default: 0 },
@@ -329,15 +383,24 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Tap a delay line from a del-tap-wr UGen",
     signalRange: null,
     argDocs: [
-      { name: "buffer", doc: "buffer where del-tap-wr has written signal. Max delay time is based on buffer size." },
+      {
+        name: "buffer",
+        doc: "buffer where del-tap-wr has written signal. Max delay time is based on buffer size.",
+      },
       { name: "delay", doc: "A delay time in seconds." },
-      { name: "interp", doc: "the kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic." },
-      { name: "phase", doc: "the current phase of the del-tap-wr UGen. This is the output of DelTapWr." },
+      {
+        name: "interp",
+        doc: "the kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic.",
+      },
+      {
+        name: "phase",
+        doc: "the current phase of the del-tap-wr UGen. This is the output of DelTapWr.",
+      },
     ],
   },
   {
     name: "DelTapWr",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buffer", default: 0 },
       { name: "in", default: 0 },
@@ -348,43 +411,38 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Tap a delay line from a del-tap-wr UGen",
     signalRange: null,
     argDocs: [
-      { name: "buffer", doc: "the buffer to write signal into. Max delay time is based on buffer size." },
+      {
+        name: "buffer",
+        doc: "the buffer to write signal into. Max delay time is based on buffer size.",
+      },
       { name: "in", doc: "the signal to write to the buffer." },
     ],
   },
   {
     name: "Delay1",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "delay input signal by one frame of samples. Note: for audio-rate signals the delay is 1 audio frame, and for control-rate signals the delay is 1 control period.",
     signalRange: null,
-    argDocs: [
-      { name: "in", doc: "input to be delayed." },
-    ],
+    argDocs: [{ name: "in", doc: "input to be delayed." }],
   },
   {
     name: "Delay2",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: "Delay1",
     summary: null,
     doc: "delay input signal by two frames of samples",
     signalRange: null,
-    argDocs: [
-      { name: "in", doc: "input to be delayed." },
-    ],
+    argDocs: [{ name: "in", doc: "input to be delayed." }],
   },
   {
     name: "DelayC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -398,12 +456,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "DelayL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -417,12 +478,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
   {
     name: "DelayN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "maxDelayTime", default: 0.20000000298023224 },
@@ -436,7 +500,10 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "delayTime", doc: "delay time in seconds" },
       { name: "in", doc: "the input signal" },
-      { name: "maxDelayTime", doc: "the maximum delay time in seconds. Used to initialize the delay buffer size" },
+      {
+        name: "maxDelayTime",
+        doc: "the maximum delay time in seconds. Used to initialize the delay buffer size",
+      },
     ],
   },
 ];

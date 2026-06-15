@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "BAllPass",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -26,7 +26,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BBandPass",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -45,7 +45,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BBandStop",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -64,7 +64,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BHiPass",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -83,7 +83,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BHiShelf",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -99,12 +99,15 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "db", doc: "gain. boost/cut the center frequency in dBs" },
       { name: "freq", doc: "center frequency" },
       { name: "in", doc: "input signal to be processed" },
-      { name: "rs", doc: "the reciprocal of S. Shell boost/cut slope. When S = 1, the shelf slope is as steep as it can be and remain monotonically increasing or decreasing gain with frequency. The shelf slope, in dB/octave, remains proportional to S for all other values for a fixed freq/SampleRate.ir and db." },
+      {
+        name: "rs",
+        doc: "the reciprocal of S. Shell boost/cut slope. When S = 1, the shelf slope is as steep as it can be and remain monotonically increasing or decreasing gain with frequency. The shelf slope, in dB/octave, remains proportional to S for all other values for a fixed freq/SampleRate.ir and db.",
+      },
     ],
   },
   {
     name: "BLowPass",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -123,7 +126,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BLowShelf",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },
@@ -139,12 +142,15 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "db", doc: "gain. boost/cut the center frequency in dBs" },
       { name: "freq", doc: "center frequency" },
       { name: "in", doc: "input signal to be processed" },
-      { name: "rs", doc: "the reciprocal of S. Shell boost/cut slope. When S = 1, the shelf slope is as steep as it can be and remain monotonically increasing or decreasing gain with frequency. The shelf slope, in dB/octave, remains proportional to S for all other values for a fixed freq/SampleRate.ir and db." },
+      {
+        name: "rs",
+        doc: "the reciprocal of S. Shell boost/cut slope. When S = 1, the shelf slope is as steep as it can be and remain monotonically increasing or decreasing gain with frequency. The shelf slope, in dB/octave, remains proportional to S for all other values for a fixed freq/SampleRate.ir and db.",
+      },
     ],
   },
   {
     name: "BPeakEQ",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "freq", default: 1200 },

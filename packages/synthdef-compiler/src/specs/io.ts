@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "DiskIn",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: null },
       { name: "bufnum", default: null },
@@ -26,7 +26,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "DiskOut",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "channelsArray", default: null },
@@ -43,7 +43,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "In",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bus", default: 0 },
       { name: "numChannels", default: 1 },
@@ -55,12 +55,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bus", doc: "the index of the bus to read in from" },
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef.",
+      },
     ],
   },
   {
     name: "InFeedback",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "bus", default: 0 },
       { name: "numChannels", default: 1 },
@@ -72,12 +75,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bus", doc: "the index of the bus to read in from." },
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef.",
+      },
     ],
   },
   {
     name: "InTrig",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bus", default: 0 },
       { name: "numChannels", default: 1 },
@@ -89,12 +95,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bus", doc: "the index of the bus to read in from." },
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef.",
+      },
     ],
   },
   {
     name: "LagIn",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bus", default: 0 },
       { name: "numChannels", default: 1 },
@@ -108,42 +117,47 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "bus", doc: "the index of the bus to read in from" },
       { name: "lag", doc: "lag factor" },
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. Not modulatable." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. Not modulatable.",
+      },
     ],
   },
   {
     name: "LocalIn",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "numChannels", default: 1 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "numChannels", default: 1 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "defines buses that are local to the enclosing synth. These are like the global buses, but are more convenient if you want to implement a self contained effect that uses a feedback processing loop. There can only be one audio rate and one control rate local-in per SynthDef. The audio can be written to the bus using local-out.",
     signalRange: null,
     argDocs: [
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this argument." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this argument.",
+      },
     ],
   },
   {
     name: "LocalOut",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "channelsArray", default: null },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "channelsArray", default: null }],
     numOutputs: 0,
     extends: null,
     summary: "write to buses local to a synth",
     doc: "local-out writes to buses that are local to the enclosing synth. The buses should have been defined by a local-in ugen. The channelsArray must be the same number of channels as were declared in the LocalIn. These are like the global buses, but are more convenient if you want to implement a self contained effect that uses a feedback processing loop.",
     signalRange: null,
     argDocs: [
-      { name: "channelsArray", doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built." },
+      {
+        name: "channelsArray",
+        doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built.",
+      },
     ],
   },
   {
     name: "OffsetOut",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "bus", default: null },
       { name: "channelsArray", default: null },
@@ -154,13 +168,19 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Output signal to a bus, the sample offset within the bus is kept exactly; i.e. if the synth is scheduled to be started part way through a control cycle, offset-out will maintain the correct offset by buffering the output and delaying it until the exact time that the synth was scheduled for. This ugen is used where sample accurate output is needed.",
     signalRange: null,
     argDocs: [
-      { name: "bus", doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware." },
-      { name: "channelsArray", doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined." },
+      {
+        name: "bus",
+        doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware.",
+      },
+      {
+        name: "channelsArray",
+        doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined.",
+      },
     ],
   },
   {
     name: "Out",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bus", default: null },
       { name: "channelsArray", default: null },
@@ -171,13 +191,19 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "write a signal to a bus, adding to any existing contents N.B. Out is subject to control rate jitter. Where sample accurate output is needed, use OffsetOut. When using an array of bus indexes, the channel array will just be copied to each bus index in the array. So (out:ar [bus1 bus2] channels-array) will be the same as (+ (out:ar bus1 channelsArray) (out:ar bus2 channelsArray)).",
     signalRange: null,
     argDocs: [
-      { name: "bus", doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware." },
-      { name: "channelsArray", doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined." },
+      {
+        name: "bus",
+        doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware.",
+      },
+      {
+        name: "channelsArray",
+        doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined.",
+      },
     ],
   },
   {
     name: "ReplaceOut",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bus", default: null },
       { name: "channelsArray", default: null },
@@ -188,13 +214,19 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Out adds its output to a given bus, making it available to all nodes later in the node tree (See Synth and Order-of-execution for more information). ReplaceOut overwrites those contents. This can make it useful for processing.",
     signalRange: null,
     argDocs: [
-      { name: "bus", doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware." },
-      { name: "channelsArray", doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined." },
+      {
+        name: "bus",
+        doc: "the index of the buss to write to. The lowest index numbers are written to the audio hardware.",
+      },
+      {
+        name: "channelsArray",
+        doc: "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined.",
+      },
     ],
   },
   {
     name: "SharedIn",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bus", default: 0 },
       { name: "numChannels", default: 1 },
@@ -206,12 +238,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bus", doc: "the index of the shared control bus to read from" },
-      { name: "numChannels", doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef." },
+      {
+        name: "numChannels",
+        doc: "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef.",
+      },
     ],
   },
   {
     name: "SharedOut",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bus", default: null },
       { name: "channelsArray", default: null },
@@ -223,12 +258,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bus", doc: "the index of the shared control bus to read from" },
-      { name: "channelsArray", doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built." },
+      {
+        name: "channelsArray",
+        doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built.",
+      },
     ],
   },
   {
     name: "VDiskIn",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: null },
       { name: "bufnum", default: null },
@@ -245,13 +283,19 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "bufnum", doc: "id of buffer" },
       { name: "loop", doc: "Soundfile will loop if 1 otherwise not." },
       { name: "numChannels", doc: "Number of channels in the audio" },
-      { name: "rate", doc: "controls the rate of playback. Values below 4 are probably fine, but the higher the value, the more disk activity there is, and the more likelihood there will be a problem." },
-      { name: "sendID", doc: "send an osc message with this id and the file position each time the buffer is reloaded: ['/diskin', nodeID, sendID, frame]" },
+      {
+        name: "rate",
+        doc: "controls the rate of playback. Values below 4 are probably fine, but the higher the value, the more disk activity there is, and the more likelihood there will be a problem.",
+      },
+      {
+        name: "sendID",
+        doc: "send an osc message with this id and the file position each time the buffer is reloaded: ['/diskin', nodeID, sendID, frame]",
+      },
     ],
   },
   {
     name: "XOut",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bus", default: null },
       { name: "xfade", default: null },
@@ -263,8 +307,14 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "xfade is a level for the crossfade between what is on the bus and what you are sending. The algorithm is equivalent to this: bus_signal = (input_signal * xfade) + (bus_signal * (1 - xfade));",
     signalRange: null,
     argDocs: [
-      { name: "bus", doc: "the index, or array of indexes, of buses to write to. The lowest index numbers are written to the audio hardware." },
-      { name: "channelsArray", doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built." },
+      {
+        name: "bus",
+        doc: "the index, or array of indexes, of buses to write to. The lowest index numbers are written to the audio hardware.",
+      },
+      {
+        name: "channelsArray",
+        doc: "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built.",
+      },
       { name: "xfade", doc: "crossfade level." },
     ],
   },

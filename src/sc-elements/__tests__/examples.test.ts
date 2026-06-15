@@ -13,7 +13,13 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 // sc-strudel's editor stack (@strudel/codemirror) is browser-only and won't
 // import under happy-dom; it's aliased to an inert stub globally
 // (vite.config.ts test.alias). The parse engine never drives it.
-import { registerScElements, type ScControl, type ScElement, type ScRange, type ScSynthDef } from "@/sc-elements";
+import {
+  registerScElements,
+  type ScControl,
+  type ScElement,
+  type ScRange,
+  type ScSynthDef,
+} from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
 import { parsePlugin as parseExample } from "@/lib/utils/test/test-utils";
 
@@ -38,7 +44,8 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-bindings": '<sc-synth name="sine">: duplicate name in scope',
   "bad-node-bind": '<sc-range bind="ghost.freq">: does not match any node in scope',
   "bad-synthdef-bind": '<sc-range bind="sine.freq">: does not match any node in scope',
-  "bad-undeclared-control": '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
+  "bad-undeclared-control":
+    '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
   "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
   "bad-forward-state-ref": '<sc-var>: "b" is referenced before it is declared',

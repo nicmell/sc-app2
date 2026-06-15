@@ -12,11 +12,7 @@ let ready: Promise<unknown> | null = null;
 /** Idempotently expose Strudel's builders globally (awaited before eval). */
 export function ensureStrudelGlobals(): Promise<unknown> {
   if (!ready) {
-    ready = evalScope(
-      import("@strudel/core"),
-      import("@strudel/mini"),
-      import("@strudel/tonal"),
-    );
+    ready = evalScope(import("@strudel/core"), import("@strudel/mini"), import("@strudel/tonal"));
   }
   return ready;
 }

@@ -1,5 +1,5 @@
-import { Rate } from '../rate.js';
-import { ParsedControl } from './parse-fn.js';
+import { Rate } from "../rate.js";
+import { ParsedControl } from "./parse-fn.js";
 
 /**
  * Tagged wrapper used to annotate a control's rate inside a destructuring
@@ -23,22 +23,20 @@ function make(rate: Rate, value: number): ControlWrapper {
 }
 
 export function ar(v: number): ControlWrapper {
-  return make('audio', v);
+  return make("audio", v);
 }
 
 export function kr(v: number): ControlWrapper {
-  return make('control', v);
+  return make("control", v);
 }
 
 export function ir(v: number): ControlWrapper {
-  return make('scalar', v);
+  return make("scalar", v);
 }
 
 function isControlWrapper(v: unknown): v is ControlWrapper {
   return (
-    typeof v === 'object' &&
-    v !== null &&
-    (v as { __scControl?: unknown }).__scControl === true
+    typeof v === "object" && v !== null && (v as { __scControl?: unknown }).__scControl === true
   );
 }
 
@@ -96,11 +94,11 @@ function resolveOne(p: ParsedControl): ResolvedControl {
         `synthdef: control "${p.name}" default ${p.defaultExpr} has a non-finite argument`,
       );
     }
-    const rate = rateName === 'ar' ? 'audio' : rateName === 'ir' ? 'scalar' : 'control';
+    const rate = rateName === "ar" ? "audio" : rateName === "ir" ? "scalar" : "control";
     return { name: p.name, rate, defaultValue: n };
   }
   if (NUMBER_RE.test(p.defaultExpr)) {
-    return { name: p.name, rate: 'control', defaultValue: Number(p.defaultExpr) };
+    return { name: p.name, rate: "control", defaultValue: Number(p.defaultExpr) };
   }
 
   // Fallback: evaluate in an isolated scope with only ar/kr/ir bound.
@@ -110,7 +108,7 @@ function resolveOne(p: ParsedControl): ResolvedControl {
   try {
     // Evaluating the control's default expression is the whole point here.
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const fn = new Function('ar', 'kr', 'ir', `"use strict"; return (${p.defaultExpr});`);
+    const fn = new Function("ar", "kr", "ir", `"use strict"; return (${p.defaultExpr});`);
     evaluated = fn(ar, kr, ir);
   } catch (e) {
     throw new Error(
@@ -123,8 +121,8 @@ function resolveOne(p: ParsedControl): ResolvedControl {
   if (isControlWrapper(evaluated)) {
     return { name: p.name, rate: evaluated.rate, defaultValue: evaluated.value };
   }
-  if (typeof evaluated === 'number' && Number.isFinite(evaluated)) {
-    return { name: p.name, rate: 'control', defaultValue: evaluated };
+  if (typeof evaluated === "number" && Number.isFinite(evaluated)) {
+    return { name: p.name, rate: "control", defaultValue: evaluated };
   }
   throw new Error(
     `synthdef: default for control "${p.name}" must evaluate to a number or ` +

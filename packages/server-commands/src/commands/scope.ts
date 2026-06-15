@@ -21,11 +21,11 @@
  * decodes via `decodeScopeChunkBlob`.
  */
 
-import OSC from 'osc-js';
+import OSC from "osc-js";
 
-export const SCOPE_SUBSCRIBE_ADDRESS = '/scope/subscribe';
-export const SCOPE_UNSUBSCRIBE_ADDRESS = '/scope/unsubscribe';
-export const SCOPE_CHUNK_ADDRESS = '/scope/chunk';
+export const SCOPE_SUBSCRIBE_ADDRESS = "/scope/subscribe";
+export const SCOPE_UNSUBSCRIBE_ADDRESS = "/scope/unsubscribe";
+export const SCOPE_CHUNK_ADDRESS = "/scope/chunk";
 
 export interface ScopeSubscribeParams {
   /** Worker-minted monotonic id; bridge echoes on chunk frames. */
@@ -66,23 +66,17 @@ export interface DecodedScopeChunk {
  *  on the way to a `Float32Array` because osc-js gives us the raw
  *  blob bytes as a `Uint8Array` (host-native float interpretation
  *  isn't safe). */
-export function parseScopeChunkArgs(
-  args: ReadonlyArray<unknown>,
-): DecodedScopeChunk {
+export function parseScopeChunkArgs(args: ReadonlyArray<unknown>): DecodedScopeChunk {
   if (args.length < 5) {
-    throw new Error(
-      `parseScopeChunkArgs: expected 5 args, got ${args.length}`,
-    );
+    throw new Error(`parseScopeChunkArgs: expected 5 args, got ${args.length}`);
   }
-  const subId = expectInt(args[0], 'subId');
-  const tickIndex = expectInt(args[1], 'tickIndex');
-  const isGap = expectInt(args[2], 'isGap') !== 0;
-  const channels = expectInt(args[3], 'channels');
+  const subId = expectInt(args[0], "subId");
+  const tickIndex = expectInt(args[1], "tickIndex");
+  const isGap = expectInt(args[2], "isGap") !== 0;
+  const channels = expectInt(args[3], "channels");
   const blob = args[4];
   if (!(blob instanceof Uint8Array)) {
-    throw new Error(
-      `parseScopeChunkArgs: data arg is not a Uint8Array (got ${typeof blob})`,
-    );
+    throw new Error(`parseScopeChunkArgs: data arg is not a Uint8Array (got ${typeof blob})`);
   }
   if (blob.byteLength % 4 !== 0) {
     throw new Error(
@@ -91,7 +85,7 @@ export function parseScopeChunkArgs(
   }
   const totalFloats = blob.byteLength / 4;
   if (channels === 0) {
-    throw new Error('parseScopeChunkArgs: channels must be > 0');
+    throw new Error("parseScopeChunkArgs: channels must be > 0");
   }
   if (totalFloats % channels !== 0) {
     throw new Error(
@@ -117,7 +111,7 @@ export function decodeBlobFloatsBE(blob: Uint8Array): Float32Array {
 }
 
 function expectInt(v: unknown, name: string): number {
-  if (typeof v !== 'number' || !Number.isFinite(v)) {
+  if (typeof v !== "number" || !Number.isFinite(v)) {
     throw new Error(`${name} must be a finite number, got ${typeof v}`);
   }
   return v | 0;

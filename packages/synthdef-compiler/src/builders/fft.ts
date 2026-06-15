@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * fast fourier transform, converts input data from the time to the frequency
@@ -27,13 +27,13 @@ export class FFT {
   /** Build at kr rate (Rate::Control). */
   static kr(): FFT {
     const b = new FFT();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._hop = { tag: 'constant', val: 0.5 };
-    b._wintype = { tag: 'constant', val: 0 };
-    b._active = { tag: 'constant', val: 1 };
-    b._winsize = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._hop = { tag: "constant", val: 0.5 };
+    b._wintype = { tag: "constant", val: 0 };
+    b._active = { tag: "constant", val: 1 };
+    b._winsize = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -114,7 +114,7 @@ export class FFT {
     inputs.push(this._active);
     inputs.push(this._winsize);
     const idx = def.addUgen("FFT", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -130,10 +130,10 @@ export class FFTTrigger {
   /** Build at kr rate (Rate::Control). */
   static kr(): FFTTrigger {
     const b = new FFTTrigger();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._hop = { tag: 'constant', val: 0.5 };
-    b._polar = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._hop = { tag: "constant", val: 0.5 };
+    b._polar = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -168,7 +168,7 @@ export class FFTTrigger {
     inputs.push(this._hop);
     inputs.push(this._polar);
     const idx = def.addUgen("FFTTrigger", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -189,20 +189,20 @@ export class IFFT {
   /** Build at ar rate (Rate::Audio). */
   static ar(): IFFT {
     const b = new IFFT();
-    b._calcRate = 'audio';
-    b._chain = { tag: 'constant', val: 0 };
-    b._wintype = { tag: 'constant', val: 0 };
-    b._winsize = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._chain = { tag: "constant", val: 0 };
+    b._wintype = { tag: "constant", val: 0 };
+    b._winsize = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): IFFT {
     const b = new IFFT();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._wintype = { tag: 'constant', val: 0 };
-    b._winsize = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._wintype = { tag: "constant", val: 0 };
+    b._winsize = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -242,7 +242,7 @@ export class IFFT {
     inputs.push(this._wintype);
     inputs.push(this._winsize);
     const idx = def.addUgen("IFFT", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -257,9 +257,9 @@ export class PV_Add {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Add {
     const b = new PV_Add();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -284,7 +284,7 @@ export class PV_Add {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Add", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -304,11 +304,11 @@ export class PV_BinScramble {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_BinScramble {
     const b = new PV_BinScramble();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._wipe = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.2 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._wipe = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.2 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -350,7 +350,7 @@ export class PV_BinScramble {
     inputs.push(this._width);
     inputs.push(this._trig);
     const idx = def.addUgen("PV_BinScramble", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -369,10 +369,10 @@ export class PV_BinShift {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_BinShift {
     const b = new PV_BinShift();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._stretch = { tag: 'constant', val: 1 };
-    b._shift = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._stretch = { tag: "constant", val: 1 };
+    b._shift = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -404,7 +404,7 @@ export class PV_BinShift {
     inputs.push(this._stretch);
     inputs.push(this._shift);
     const idx = def.addUgen("PV_BinShift", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -420,10 +420,10 @@ export class PV_BinWipe {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_BinWipe {
     const b = new PV_BinWipe();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
-    b._wipe = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
+    b._wipe = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -459,7 +459,7 @@ export class PV_BinWipe {
     inputs.push(this._bufferB);
     inputs.push(this._wipe);
     const idx = def.addUgen("PV_BinWipe", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -474,9 +474,9 @@ export class PV_BrickWall {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_BrickWall {
     const b = new PV_BrickWall();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._wipe = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._wipe = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -505,7 +505,7 @@ export class PV_BrickWall {
     inputs.push(this._buffer);
     inputs.push(this._wipe);
     const idx = def.addUgen("PV_BrickWall", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -523,8 +523,8 @@ export class PV_Conj {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Conj {
     const b = new PV_Conj();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -542,7 +542,7 @@ export class PV_Conj {
     const inputs: UGenInput[] = [];
     inputs.push(this._buffer);
     const idx = def.addUgen("PV_Conj", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -562,9 +562,9 @@ export class PV_Copy {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Copy {
     const b = new PV_Copy();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -589,7 +589,7 @@ export class PV_Copy {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Copy", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -604,9 +604,9 @@ export class PV_CopyPhase {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_CopyPhase {
     const b = new PV_CopyPhase();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -631,7 +631,7 @@ export class PV_CopyPhase {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_CopyPhase", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -649,9 +649,9 @@ export class PV_Diffuser {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Diffuser {
     const b = new PV_Diffuser();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -676,7 +676,7 @@ export class PV_Diffuser {
     inputs.push(this._buffer);
     inputs.push(this._trig);
     const idx = def.addUgen("PV_Diffuser", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -691,9 +691,9 @@ export class PV_Div {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Div {
     const b = new PV_Div();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -718,7 +718,7 @@ export class PV_Div {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Div", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -736,9 +736,9 @@ export class PV_LocalMax {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_LocalMax {
     const b = new PV_LocalMax();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -763,7 +763,7 @@ export class PV_LocalMax {
     inputs.push(this._buffer);
     inputs.push(this._threshold);
     const idx = def.addUgen("PV_LocalMax", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -778,9 +778,9 @@ export class PV_MagAbove {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagAbove {
     const b = new PV_MagAbove();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -805,7 +805,7 @@ export class PV_MagAbove {
     inputs.push(this._buffer);
     inputs.push(this._threshold);
     const idx = def.addUgen("PV_MagAbove", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -820,9 +820,9 @@ export class PV_MagBelow {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagBelow {
     const b = new PV_MagBelow();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -847,7 +847,7 @@ export class PV_MagBelow {
     inputs.push(this._buffer);
     inputs.push(this._threshold);
     const idx = def.addUgen("PV_MagBelow", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -862,9 +862,9 @@ export class PV_MagClip {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagClip {
     const b = new PV_MagClip();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -889,7 +889,7 @@ export class PV_MagClip {
     inputs.push(this._buffer);
     inputs.push(this._threshold);
     const idx = def.addUgen("PV_MagClip", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -905,10 +905,10 @@ export class PV_MagDiv {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagDiv {
     const b = new PV_MagDiv();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
-    b._zeroed = { tag: 'constant', val: 0.0001 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
+    b._zeroed = { tag: "constant", val: 0.0001 };
     return b;
   }
 
@@ -940,7 +940,7 @@ export class PV_MagDiv {
     inputs.push(this._bufferB);
     inputs.push(this._zeroed);
     const idx = def.addUgen("PV_MagDiv", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -955,9 +955,9 @@ export class PV_MagFreeze {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagFreeze {
     const b = new PV_MagFreeze();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._freeze = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._freeze = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -982,7 +982,7 @@ export class PV_MagFreeze {
     inputs.push(this._buffer);
     inputs.push(this._freeze);
     const idx = def.addUgen("PV_MagFreeze", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -997,9 +997,9 @@ export class PV_MagMul {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagMul {
     const b = new PV_MagMul();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1024,7 +1024,7 @@ export class PV_MagMul {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_MagMul", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1038,8 +1038,8 @@ export class PV_MagNoise {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagNoise {
     const b = new PV_MagNoise();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1057,7 +1057,7 @@ export class PV_MagNoise {
     const inputs: UGenInput[] = [];
     inputs.push(this._buffer);
     const idx = def.addUgen("PV_MagNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1076,10 +1076,10 @@ export class PV_MagShift {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagShift {
     const b = new PV_MagShift();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._stretch = { tag: 'constant', val: 1 };
-    b._shift = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._stretch = { tag: "constant", val: 1 };
+    b._shift = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1111,7 +1111,7 @@ export class PV_MagShift {
     inputs.push(this._stretch);
     inputs.push(this._shift);
     const idx = def.addUgen("PV_MagShift", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1126,9 +1126,9 @@ export class PV_MagSmear {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagSmear {
     const b = new PV_MagSmear();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._bins = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._bins = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1156,7 +1156,7 @@ export class PV_MagSmear {
     inputs.push(this._buffer);
     inputs.push(this._bins);
     const idx = def.addUgen("PV_MagSmear", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1173,8 +1173,8 @@ export class PV_MagSquared {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_MagSquared {
     const b = new PV_MagSquared();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1192,7 +1192,7 @@ export class PV_MagSquared {
     const inputs: UGenInput[] = [];
     inputs.push(this._buffer);
     const idx = def.addUgen("PV_MagSquared", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1207,9 +1207,9 @@ export class PV_Max {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Max {
     const b = new PV_Max();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1234,7 +1234,7 @@ export class PV_Max {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Max", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1249,9 +1249,9 @@ export class PV_Min {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Min {
     const b = new PV_Min();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1276,7 +1276,7 @@ export class PV_Min {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Min", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1294,9 +1294,9 @@ export class PV_Mul {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_Mul {
     const b = new PV_Mul();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1321,7 +1321,7 @@ export class PV_Mul {
     inputs.push(this._bufferA);
     inputs.push(this._bufferB);
     const idx = def.addUgen("PV_Mul", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1336,9 +1336,9 @@ export class PV_PhaseShift {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_PhaseShift {
     const b = new PV_PhaseShift();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._shift = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._shift = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1363,7 +1363,7 @@ export class PV_PhaseShift {
     inputs.push(this._buffer);
     inputs.push(this._shift);
     const idx = def.addUgen("PV_PhaseShift", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1377,8 +1377,8 @@ export class PV_PhaseShift270 {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_PhaseShift270 {
     const b = new PV_PhaseShift270();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1396,7 +1396,7 @@ export class PV_PhaseShift270 {
     const inputs: UGenInput[] = [];
     inputs.push(this._buffer);
     const idx = def.addUgen("PV_PhaseShift270", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1410,8 +1410,8 @@ export class PV_PhaseShift90 {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_PhaseShift90 {
     const b = new PV_PhaseShift90();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1429,7 +1429,7 @@ export class PV_PhaseShift90 {
     const inputs: UGenInput[] = [];
     inputs.push(this._buffer);
     const idx = def.addUgen("PV_PhaseShift90", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1445,10 +1445,10 @@ export class PV_RandComb {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_RandComb {
     const b = new PV_RandComb();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._wipe = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._wipe = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1480,7 +1480,7 @@ export class PV_RandComb {
     inputs.push(this._wipe);
     inputs.push(this._trig);
     const idx = def.addUgen("PV_RandComb", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1497,11 +1497,11 @@ export class PV_RandWipe {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_RandWipe {
     const b = new PV_RandWipe();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
-    b._wipe = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
+    b._wipe = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1540,7 +1540,7 @@ export class PV_RandWipe {
     inputs.push(this._wipe);
     inputs.push(this._trig);
     const idx = def.addUgen("PV_RandWipe", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1557,11 +1557,11 @@ export class PV_RectComb {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_RectComb {
     const b = new PV_RectComb();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._numTeeth = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._numTeeth = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -1600,7 +1600,7 @@ export class PV_RectComb {
     inputs.push(this._phase);
     inputs.push(this._width);
     const idx = def.addUgen("PV_RectComb", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1618,12 +1618,12 @@ export class PV_RectComb2 {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_RectComb2 {
     const b = new PV_RectComb2();
-    b._calcRate = 'control';
-    b._bufferA = { tag: 'constant', val: 0 };
-    b._bufferB = { tag: 'constant', val: 0 };
-    b._numTeeth = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._bufferA = { tag: "constant", val: 0 };
+    b._bufferB = { tag: "constant", val: 0 };
+    b._numTeeth = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -1669,6 +1669,6 @@ export class PV_RectComb2 {
     inputs.push(this._phase);
     inputs.push(this._width);
     const idx = def.addUgen("PV_RectComb2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

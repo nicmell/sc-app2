@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * This ugen has been internalised for scserver compatibility. Please use the
@@ -51,7 +51,7 @@ export class Dbrown {
     inputs.push(this._hi);
     inputs.push(this._step);
     const idx = def.addUgen("Dbrown", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -95,7 +95,7 @@ export class Dbufrd {
     inputs.push(this._phase);
     inputs.push(this._loop);
     const idx = def.addUgen("Dbufrd", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -143,7 +143,7 @@ export class Dbufwr {
     inputs.push(this._input);
     inputs.push(this._loop);
     const idx = def.addUgen("Dbufwr", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -166,20 +166,20 @@ export class Demand {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Demand {
     const b = new Demand();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._demandUgens = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
+    b._demandUgens = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Demand {
     const b = new Demand();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._demandUgens = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
+    b._demandUgens = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -214,7 +214,7 @@ export class Demand {
     inputs.push(this._reset);
     inputs.push(this._demandUgens);
     const idx = def.addUgen("Demand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -240,34 +240,34 @@ export class DemandEnvGen {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DemandEnvGen {
     const b = new DemandEnvGen();
-    b._calcRate = 'audio';
-    b._level = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0 };
-    b._shape = { tag: 'constant', val: 1 };
-    b._curve = { tag: 'constant', val: 0 };
-    b._gate = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 1 };
-    b._levelScale = { tag: 'constant', val: 1 };
-    b._levelBias = { tag: 'constant', val: 0 };
-    b._timeScale = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._level = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0 };
+    b._shape = { tag: "constant", val: 1 };
+    b._curve = { tag: "constant", val: 0 };
+    b._gate = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 1 };
+    b._levelScale = { tag: "constant", val: 1 };
+    b._levelBias = { tag: "constant", val: 0 };
+    b._timeScale = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DemandEnvGen {
     const b = new DemandEnvGen();
-    b._calcRate = 'control';
-    b._level = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0 };
-    b._shape = { tag: 'constant', val: 1 };
-    b._curve = { tag: 'constant', val: 0 };
-    b._gate = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 1 };
-    b._levelScale = { tag: 'constant', val: 1 };
-    b._levelBias = { tag: 'constant', val: 0 };
-    b._timeScale = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._level = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0 };
+    b._shape = { tag: "constant", val: 1 };
+    b._curve = { tag: "constant", val: 0 };
+    b._gate = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 1 };
+    b._levelScale = { tag: "constant", val: 1 };
+    b._levelBias = { tag: "constant", val: 0 };
+    b._timeScale = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -366,7 +366,7 @@ export class DemandEnvGen {
     inputs.push(this._timeScale);
     inputs.push(this._action);
     const idx = def.addUgen("DemandEnvGen", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -408,7 +408,7 @@ export class Dgeom {
     inputs.push(this._start);
     inputs.push(this._grow);
     const idx = def.addUgen("Dgeom", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -457,7 +457,7 @@ export class Dibrown {
     inputs.push(this._hi);
     inputs.push(this._step);
     const idx = def.addUgen("Dibrown", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -499,7 +499,7 @@ export class Diwhite {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Diwhite", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -522,7 +522,7 @@ export class Donce {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("Donce", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -578,7 +578,7 @@ export class Dpoll {
     inputs.push(this._label);
     inputs.push(this._run);
     const idx = def.addUgen("Dpoll", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -614,7 +614,7 @@ export class Drand {
     inputs.push(this._list);
     inputs.push(this._numRepeats);
     const idx = def.addUgen("Drand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -650,7 +650,7 @@ export class Dseq {
     inputs.push(this._list);
     inputs.push(this._numRepeats);
     const idx = def.addUgen("Dseq", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -686,7 +686,7 @@ export class Dser {
     inputs.push(this._list);
     inputs.push(this._count);
     const idx = def.addUgen("Dser", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -728,7 +728,7 @@ export class Dseries {
     inputs.push(this._start);
     inputs.push(this._step);
     const idx = def.addUgen("Dseries", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -764,7 +764,7 @@ export class Dshuf {
     inputs.push(this._list);
     inputs.push(this._numRepeats);
     const idx = def.addUgen("Dshuf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -800,7 +800,7 @@ export class Dstutter {
     inputs.push(this._numRepeats);
     inputs.push(this._in);
     const idx = def.addUgen("Dstutter", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -836,7 +836,7 @@ export class Dswitch {
     inputs.push(this._list);
     inputs.push(this._index);
     const idx = def.addUgen("Dswitch", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -872,7 +872,7 @@ export class Dswitch1 {
     inputs.push(this._list);
     inputs.push(this._index);
     const idx = def.addUgen("Dswitch1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -892,22 +892,22 @@ export class Duty {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Duty {
     const b = new Duty();
-    b._calcRate = 'audio';
-    b._dur = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._dur = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Duty {
     const b = new Duty();
-    b._calcRate = 'control';
-    b._dur = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._dur = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -943,7 +943,7 @@ export class Duty {
     inputs.push(this._action);
     inputs.push(this._level);
     const idx = def.addUgen("Duty", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -985,7 +985,7 @@ export class Dwhite {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Dwhite", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1021,7 +1021,7 @@ export class Dxrand {
     inputs.push(this._list);
     inputs.push(this._numRepeats);
     const idx = def.addUgen("Dxrand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1042,24 +1042,24 @@ export class TDuty {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TDuty {
     const b = new TDuty();
-    b._calcRate = 'audio';
-    b._dur = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._gapFirst = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._dur = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._gapFirst = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): TDuty {
     const b = new TDuty();
-    b._calcRate = 'control';
-    b._dur = { tag: 'constant', val: 1 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._gapFirst = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._dur = { tag: "constant", val: 1 };
+    b._reset = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._gapFirst = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1101,6 +1101,6 @@ export class TDuty {
     inputs.push(this._level);
     inputs.push(this._gapFirst);
     const idx = def.addUgen("TDuty", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

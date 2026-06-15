@@ -48,10 +48,6 @@ export function inFuture(offsetMs: number): Timetag {
  *  drops fractional timetags (see Timetag type comment). The 1-ms
  *  quantization is well below scsynth's audio-callback jitter and the
  *  tick-rate granularity, so it's a no-op for sample-accurate use. */
-export function fromTick(
-  tick0Ms: number,
-  tickIndex: number,
-  tickRate: number,
-): Timetag {
+export function fromTick(tick0Ms: number, tickIndex: number, tickRate: number): Timetag {
   return Math.round(tick0Ms + (tickIndex * 1000) / tickRate);
 }

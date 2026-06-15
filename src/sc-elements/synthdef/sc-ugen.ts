@@ -5,7 +5,12 @@
 import { property } from "lit/decorators.js";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime, failValidation, requireProp, resolveNode } from "@/sc-elements/internal/validation";
+import {
+  baseRuntime,
+  failValidation,
+  requireProp,
+  resolveNode,
+} from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);

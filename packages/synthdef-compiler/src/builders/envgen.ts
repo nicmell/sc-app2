@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** Outputs a one when the src ugen (typically an envelope) has finished */
 export class Done {
@@ -16,8 +16,8 @@ export class Done {
   /** Build at kr rate (Rate::Control). */
   static kr(): Done {
     const b = new Done();
-    b._calcRate = 'control';
-    b._src = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._src = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -35,7 +35,7 @@ export class Done {
     const inputs: UGenInput[] = [];
     inputs.push(this._src);
     const idx = def.addUgen("Done", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -63,26 +63,26 @@ export class EnvGen {
   /** Build at ar rate (Rate::Audio). */
   static ar(): EnvGen {
     const b = new EnvGen();
-    b._calcRate = 'audio';
-    b._envelope = { tag: 'constant', val: 0 };
-    b._gate = { tag: 'constant', val: 1 };
-    b._levelScale = { tag: 'constant', val: 1 };
-    b._levelBias = { tag: 'constant', val: 0 };
-    b._timeScale = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._envelope = { tag: "constant", val: 0 };
+    b._gate = { tag: "constant", val: 1 };
+    b._levelScale = { tag: "constant", val: 1 };
+    b._levelBias = { tag: "constant", val: 0 };
+    b._timeScale = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): EnvGen {
     const b = new EnvGen();
-    b._calcRate = 'control';
-    b._envelope = { tag: 'constant', val: 0 };
-    b._gate = { tag: 'constant', val: 1 };
-    b._levelScale = { tag: 'constant', val: 1 };
-    b._levelBias = { tag: 'constant', val: 0 };
-    b._timeScale = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._envelope = { tag: "constant", val: 0 };
+    b._gate = { tag: "constant", val: 1 };
+    b._levelScale = { tag: "constant", val: 1 };
+    b._levelBias = { tag: "constant", val: 0 };
+    b._timeScale = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -146,7 +146,7 @@ export class EnvGen {
     inputs.push(this._timeScale);
     inputs.push(this._action);
     const idx = def.addUgen("EnvGen", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -161,9 +161,9 @@ export class Free {
   /** Build at kr rate (Rate::Control). */
   static kr(): Free {
     const b = new Free();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -188,7 +188,7 @@ export class Free {
     inputs.push(this._trig);
     inputs.push(this._id);
     const idx = def.addUgen("Free", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -202,8 +202,8 @@ export class FreeSelf {
   /** Build at kr rate (Rate::Control). */
   static kr(): FreeSelf {
     const b = new FreeSelf();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -221,7 +221,7 @@ export class FreeSelf {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("FreeSelf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -238,8 +238,8 @@ export class FreeSelfWhenDone {
   /** Build at kr rate (Rate::Control). */
   static kr(): FreeSelfWhenDone {
     const b = new FreeSelfWhenDone();
-    b._calcRate = 'control';
-    b._src = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._src = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -257,7 +257,7 @@ export class FreeSelfWhenDone {
     const inputs: UGenInput[] = [];
     inputs.push(this._src);
     const idx = def.addUgen("FreeSelfWhenDone", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -271,18 +271,18 @@ export class IEnvGen {
   /** Build at ar rate (Rate::Audio). */
   static ar(): IEnvGen {
     const b = new IEnvGen();
-    b._calcRate = 'audio';
-    b._ienvelope = { tag: 'constant', val: 0 };
-    b._index = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._ienvelope = { tag: "constant", val: 0 };
+    b._index = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): IEnvGen {
     const b = new IEnvGen();
-    b._calcRate = 'control';
-    b._ienvelope = { tag: 'constant', val: 0 };
-    b._index = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._ienvelope = { tag: "constant", val: 0 };
+    b._index = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -307,7 +307,7 @@ export class IEnvGen {
     inputs.push(this._ienvelope);
     inputs.push(this._index);
     const idx = def.addUgen("IEnvGen", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -329,12 +329,12 @@ export class Linen {
   /** Build at kr rate (Rate::Control). */
   static kr(): Linen {
     const b = new Linen();
-    b._calcRate = 'control';
-    b._gate = { tag: 'constant', val: 1 };
-    b._attackTime = { tag: 'constant', val: 0.01 };
-    b._susLevel = { tag: 'constant', val: 1 };
-    b._releaseTime = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._gate = { tag: "constant", val: 1 };
+    b._attackTime = { tag: "constant", val: 0.01 };
+    b._susLevel = { tag: "constant", val: 1 };
+    b._releaseTime = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -380,7 +380,7 @@ export class Linen {
     inputs.push(this._releaseTime);
     inputs.push(this._action);
     const idx = def.addUgen("Linen", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -395,9 +395,9 @@ export class Pause {
   /** Build at kr rate (Rate::Control). */
   static kr(): Pause {
     const b = new Pause();
-    b._calcRate = 'control';
-    b._gate = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._gate = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -422,7 +422,7 @@ export class Pause {
     inputs.push(this._gate);
     inputs.push(this._id);
     const idx = def.addUgen("Pause", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -436,8 +436,8 @@ export class PauseSelf {
   /** Build at kr rate (Rate::Control). */
   static kr(): PauseSelf {
     const b = new PauseSelf();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -455,7 +455,7 @@ export class PauseSelf {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("PauseSelf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -472,8 +472,8 @@ export class PauseSelfWhenDone {
   /** Build at kr rate (Rate::Control). */
   static kr(): PauseSelfWhenDone {
     const b = new PauseSelfWhenDone();
-    b._calcRate = 'control';
-    b._src = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._src = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -491,6 +491,6 @@ export class PauseSelfWhenDone {
     const inputs: UGenInput[] = [];
     inputs.push(this._src);
     const idx = def.addUgen("PauseSelfWhenDone", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "BinaryOpUGen",
-    rates: ['scalar', 'audio', 'control'],
+    rates: ["scalar", "audio", "control"],
     defaults: [
       { name: "a", default: null },
       { name: "b", default: null },
@@ -24,7 +24,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "MulAdd",
-    rates: ['scalar', 'audio', 'control'],
+    rates: ["scalar", "audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "mul", default: null },
@@ -43,17 +43,13 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "UnaryOpUGen",
-    rates: ['scalar', 'audio', 'control'],
-    defaults: [
-      { name: "a", default: null },
-    ],
+    rates: ["scalar", "audio", "control"],
+    defaults: [{ name: "a", default: null }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "Multi-function unary ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)",
     signalRange: null,
-    argDocs: [
-      { name: "a", doc: "input" },
-    ],
+    argDocs: [{ name: "a", doc: "input" }],
   },
 ];

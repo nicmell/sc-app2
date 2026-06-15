@@ -1,9 +1,9 @@
-import { SynthDef } from '../synthdef.js';
-import { UGenInput } from '../ugen-input.js';
-import { resolveControls } from './controls.js';
-import { makeGraph } from './graph.js';
-import type { Graph } from './graph.types.js';
-import { parseCallback } from './parse-fn.js';
+import { SynthDef } from "../synthdef.js";
+import { UGenInput } from "../ugen-input.js";
+import { resolveControls } from "./controls.js";
+import { makeGraph } from "./graph.js";
+import type { Graph } from "./graph.types.js";
+import { parseCallback } from "./parse-fn.js";
 
 /**
  * sclang-style callback form for constructing a `SynthDef`:

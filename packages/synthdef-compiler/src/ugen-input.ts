@@ -6,23 +6,23 @@
  * `SynthDef.addUgen` / `SynthDef.addControl`.
  */
 export type UGenInput =
-  | { readonly tag: 'constant'; readonly val: number }
-  | { readonly tag: 'ugen'; readonly val: number }
-  | { readonly tag: 'ugenOutput'; readonly ugenIdx: number; readonly outputIdx: number };
+  | { readonly tag: "constant"; readonly val: number }
+  | { readonly tag: "ugen"; readonly val: number }
+  | { readonly tag: "ugenOutput"; readonly ugenIdx: number; readonly outputIdx: number };
 
 /** Build a constant input. Convenience constructor. */
 export function k(v: number): UGenInput {
-  return { tag: 'constant', val: v };
+  return { tag: "constant", val: v };
 }
 
 /** Build a UGen output-0 reference. Convenience constructor. */
 export function u(idx: number): UGenInput {
-  return { tag: 'ugen', val: idx };
+  return { tag: "ugen", val: idx };
 }
 
 /** Build a specific UGen output reference. Convenience constructor. */
 export function uo(ugenIdx: number, outputIdx: number): UGenInput {
-  return { tag: 'ugenOutput', ugenIdx, outputIdx };
+  return { tag: "ugenOutput", ugenIdx, outputIdx };
 }
 
 /**
@@ -32,26 +32,26 @@ export function uo(ugenIdx: number, outputIdx: number): UGenInput {
 export type UGenInputLike = number | UGenInput;
 
 export function toUGenInput(v: UGenInputLike): UGenInput {
-  return typeof v === 'number' ? { tag: 'constant', val: v } : v;
+  return typeof v === "number" ? { tag: "constant", val: v } : v;
 }
 
 export function ugenIndex(input: UGenInput): number | null {
   switch (input.tag) {
-    case 'constant':
+    case "constant":
       return null;
-    case 'ugen':
+    case "ugen":
       return input.val;
-    case 'ugenOutput':
+    case "ugenOutput":
       return input.ugenIdx;
   }
 }
 
 export function outputIndex(input: UGenInput): number {
   switch (input.tag) {
-    case 'constant':
-    case 'ugen':
+    case "constant":
+    case "ugen":
       return 0;
-    case 'ugenOutput':
+    case "ugenOutput":
       return input.outputIdx;
   }
 }

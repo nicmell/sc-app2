@@ -1,6 +1,6 @@
-import { CompileError } from './error.js';
-import { Rate, rateToI8, rateFromI8 } from './rate.js';
-import { UGenInput, ugenIndex, outputIndex } from './ugen-input.js';
+import { CompileError } from "./error.js";
+import { Rate, rateToI8, rateFromI8 } from "./rate.js";
+import { UGenInput, ugenIndex, outputIndex } from "./ugen-input.js";
 
 // ---------------------------------------------------------------------------
 // Structured JSON representation — mirrors Rust `SynthDefJson` field-for-field
@@ -119,14 +119,14 @@ export class SynthDef {
       throw new CompileError(`Duplicate control name: "${name}"`);
     }
 
-    const isAudio = rate === 'audio';
+    const isAudio = rate === "audio";
     const alreadyHasThisRate = isAudio
       ? this.audioControlGroup !== null
       : this.controlGroup !== null;
     if (
       alreadyHasThisRate &&
       this.lastParamRate !== null &&
-      (this.lastParamRate === 'audio') !== isAudio
+      (this.lastParamRate === "audio") !== isAudio
     ) {
       throw new CompileError(
         `Duplicate control name: "${name}: rate-interleaved controls are not supported — group all kr params, then all ar params"`,
@@ -138,13 +138,13 @@ export class SynthDef {
     this.lastParamRate = rate;
 
     if (isAudio) {
-      return this.growGroup('audioControlGroup', 'AudioControl', 'audio', paramIndex);
+      return this.growGroup("audioControlGroup", "AudioControl", "audio", paramIndex);
     }
-    return this.growGroup('controlGroup', 'Control', 'control', paramIndex);
+    return this.growGroup("controlGroup", "Control", "control", paramIndex);
   }
 
   private growGroup(
-    groupField: 'controlGroup' | 'audioControlGroup',
+    groupField: "controlGroup" | "audioControlGroup",
     className: string,
     rate: Rate,
     paramIndex: number,
@@ -154,7 +154,7 @@ export class SynthDef {
       const slot = existing.outputCount;
       existing.outputCount += 1;
       this.nodes[existing.nodeIndex].numOutputs = existing.outputCount;
-      return { tag: 'ugenOutput', ugenIdx: existing.nodeIndex, outputIdx: slot };
+      return { tag: "ugenOutput", ugenIdx: existing.nodeIndex, outputIdx: slot };
     }
     const nodeIndex = this.nodes.length;
     this.nodes.push({
@@ -165,7 +165,7 @@ export class SynthDef {
       specialIndex: paramIndex,
     });
     this[groupField] = { nodeIndex, outputCount: 1 };
-    return { tag: 'ugenOutput', ugenIdx: nodeIndex, outputIdx: 0 };
+    return { tag: "ugenOutput", ugenIdx: nodeIndex, outputIdx: 0 };
   }
 
   /** Add a UGen node. Returns its index in the node list. */
@@ -190,7 +190,7 @@ export class SynthDef {
   /** Encode the SynthDef as a complete SCgf version 2 binary file. */
   toBytes(): Uint8Array {
     if (this._name.length === 0) {
-      throw new CompileError('SynthDef name must not be empty');
+      throw new CompileError("SynthDef name must not be empty");
     }
     this.validate();
 
@@ -247,7 +247,7 @@ export class SynthDef {
    */
   toJson(): SynthDefJson {
     if (this._name.length === 0) {
-      throw new CompileError('SynthDef name must not be empty');
+      throw new CompileError("SynthDef name must not be empty");
     }
     this.validate();
 
@@ -306,9 +306,9 @@ export class SynthDef {
           if (c === undefined) {
             throw new CompileError(`UGen index ${cIdx} out of range`);
           }
-          return { tag: 'constant', val: c };
+          return { tag: "constant", val: c };
         }
-        return { tag: 'ugenOutput', ugenIdx: i.ugenIndex, outputIdx: i.outputIndex };
+        return { tag: "ugenOutput", ugenIdx: i.ugenIndex, outputIdx: i.outputIndex };
       });
       def.nodes.push({
         className: u.className,
@@ -358,7 +358,7 @@ export class SynthDef {
     const constantMap = new Map<number, number>();
     for (const node of this.nodes) {
       for (const input of node.inputs) {
-        if (input.tag === 'constant') {
+        if (input.tag === "constant") {
           const bits = f32Bits(input.val);
           if (!constantMap.has(bits)) {
             constantMap.set(bits, constants.length);
@@ -393,14 +393,14 @@ function f32Bits(v: number): number {
 
 function resolveInputSpec(input: UGenInput, constantMap: Map<number, number>): InputSpec {
   switch (input.tag) {
-    case 'constant': {
+    case "constant": {
       const idx = constantMap.get(f32Bits(input.val));
-      if (idx === undefined) throw new CompileError('constant not collected');
+      if (idx === undefined) throw new CompileError("constant not collected");
       return { ugenIndex: -1, outputIndex: idx };
     }
-    case 'ugen':
+    case "ugen":
       return { ugenIndex: input.val, outputIndex: 0 };
-    case 'ugenOutput':
+    case "ugenOutput":
       return { ugenIndex: input.ugenIdx, outputIndex: input.outputIdx };
   }
 }
@@ -494,9 +494,7 @@ class ByteReader {
 
   private need(n: number): void {
     if (this.pos + n > this.buf.length) {
-      throw new CompileError(
-        `Invalid SCgf: truncated: need ${n} bytes at offset ${this.pos}`,
-      );
+      throw new CompileError(`Invalid SCgf: truncated: need ${n} bytes at offset ${this.pos}`);
     }
   }
 
@@ -533,7 +531,7 @@ class ByteReader {
     const len = this.view.getUint8(this.pos);
     this.pos += 1;
     this.need(len);
-    let s = '';
+    let s = "";
     for (let i = 0; i < len; i++) {
       s += String.fromCharCode(this.view.getUint8(this.pos + i));
     }
@@ -560,12 +558,7 @@ class ByteWriter {
   f32(v: number): void {
     SHARED_F32[0] = v;
     const bits = SHARED_U32[0];
-    this.chunks.push(
-      (bits >>> 24) & 0xff,
-      (bits >>> 16) & 0xff,
-      (bits >>> 8) & 0xff,
-      bits & 0xff,
-    );
+    this.chunks.push((bits >>> 24) & 0xff, (bits >>> 16) & 0xff, (bits >>> 8) & 0xff, bits & 0xff);
   }
 
   pstring(s: string): void {

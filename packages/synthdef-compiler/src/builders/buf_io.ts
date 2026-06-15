@@ -2,13 +2,13 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Read the contents of a buffer at a specified index
- * 
+ *
  * reads the contents of a buffer at a given index.
  */
 export class BufRd {
@@ -24,11 +24,11 @@ export class BufRd {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufRd {
     const b = new BufRd();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._interpolation = { tag: 'constant', val: 2 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
+    b._interpolation = { tag: "constant", val: 2 };
     b._numChannels = 1;
     return b;
   }
@@ -36,11 +36,11 @@ export class BufRd {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufRd {
     const b = new BufRd();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._interpolation = { tag: 'constant', val: 2 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
+    b._interpolation = { tag: "constant", val: 2 };
     b._numChannels = 1;
     return b;
   }
@@ -95,7 +95,7 @@ export class BufRd {
     inputs.push(this._loop);
     inputs.push(this._interpolation);
     const idx = def.addUgen("BufRd", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -115,10 +115,10 @@ export class BufWr {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufWr {
     const b = new BufWr();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
     b._inputArray = [];
     return b;
   }
@@ -126,10 +126,10 @@ export class BufWr {
   /** Build at kr rate (Rate::Control). */
   static kr(): BufWr {
     const b = new BufWr();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
     b._inputArray = [];
     return b;
   }
@@ -171,7 +171,7 @@ export class BufWr {
     inputs.push(this._loop);
     inputs.push(...this._inputArray);
     const idx = def.addUgen("BufWr", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -184,8 +184,8 @@ export class ClearBuf {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): ClearBuf {
     const b = new ClearBuf();
-    b._calcRate = 'scalar';
-    b._buf = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._buf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -202,7 +202,7 @@ export class ClearBuf {
     const inputs: UGenInput[] = [];
     inputs.push(this._buf);
     const idx = def.addUgen("ClearBuf", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -216,8 +216,8 @@ export class LocalBuf {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): LocalBuf {
     const b = new LocalBuf();
-    b._calcRate = 'scalar';
-    b._numFrames = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._numFrames = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -240,7 +240,7 @@ export class LocalBuf {
     const inputs: UGenInput[] = [];
     inputs.push(this._numFrames);
     const idx = def.addUgen("LocalBuf", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -253,8 +253,8 @@ export class MaxLocalBufs {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): MaxLocalBufs {
     const b = new MaxLocalBufs();
-    b._calcRate = 'scalar';
-    b._numLocalBufs = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._numLocalBufs = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -271,7 +271,7 @@ export class MaxLocalBufs {
     const inputs: UGenInput[] = [];
     inputs.push(this._numLocalBufs);
     const idx = def.addUgen("MaxLocalBufs", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -291,13 +291,13 @@ export class PlayBuf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PlayBuf {
     const b = new PlayBuf();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._trigger = { tag: 'constant', val: 1 };
-    b._startPos = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._trigger = { tag: "constant", val: 1 };
+    b._startPos = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -305,13 +305,13 @@ export class PlayBuf {
   /** Build at kr rate (Rate::Control). */
   static kr(): PlayBuf {
     const b = new PlayBuf();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._trigger = { tag: 'constant', val: 1 };
-    b._startPos = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 0 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._trigger = { tag: "constant", val: 1 };
+    b._startPos = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 0 };
+    b._action = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -389,7 +389,7 @@ export class PlayBuf {
     inputs.push(this._loop);
     inputs.push(this._action);
     const idx = def.addUgen("PlayBuf", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -417,15 +417,15 @@ export class RecordBuf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): RecordBuf {
     const b = new RecordBuf();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._offset = { tag: 'constant', val: 0 };
-    b._recLevel = { tag: 'constant', val: 1 };
-    b._preLevel = { tag: 'constant', val: 0 };
-    b._run = { tag: 'constant', val: 1 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._trigger = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._offset = { tag: "constant", val: 0 };
+    b._recLevel = { tag: "constant", val: 1 };
+    b._preLevel = { tag: "constant", val: 0 };
+    b._run = { tag: "constant", val: 1 };
+    b._loop = { tag: "constant", val: 1 };
+    b._trigger = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     b._inputArray = [];
     return b;
   }
@@ -433,15 +433,15 @@ export class RecordBuf {
   /** Build at kr rate (Rate::Control). */
   static kr(): RecordBuf {
     const b = new RecordBuf();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._offset = { tag: 'constant', val: 0 };
-    b._recLevel = { tag: 'constant', val: 1 };
-    b._preLevel = { tag: 'constant', val: 0 };
-    b._run = { tag: 'constant', val: 1 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._trigger = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._offset = { tag: "constant", val: 0 };
+    b._recLevel = { tag: "constant", val: 1 };
+    b._preLevel = { tag: "constant", val: 0 };
+    b._run = { tag: "constant", val: 1 };
+    b._loop = { tag: "constant", val: 1 };
+    b._trigger = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     b._inputArray = [];
     return b;
   }
@@ -525,7 +525,7 @@ export class RecordBuf {
     inputs.push(this._action);
     inputs.push(...this._inputArray);
     const idx = def.addUgen("RecordBuf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -539,8 +539,8 @@ export class ScopeOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ScopeOut {
     const b = new ScopeOut();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
     b._inputArray = [];
     return b;
   }
@@ -566,7 +566,7 @@ export class ScopeOut {
     inputs.push(this._bufnum);
     inputs.push(...this._inputArray);
     const idx = def.addUgen("ScopeOut", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -582,10 +582,10 @@ export class ScopeOut2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ScopeOut2 {
     const b = new ScopeOut2();
-    b._calcRate = 'audio';
-    b._scopeNum = { tag: 'constant', val: 0 };
-    b._maxFrames = { tag: 'constant', val: 4096 };
-    b._scopeFrames = { tag: 'constant', val: 4096 };
+    b._calcRate = "audio";
+    b._scopeNum = { tag: "constant", val: 0 };
+    b._maxFrames = { tag: "constant", val: 4096 };
+    b._scopeFrames = { tag: "constant", val: 4096 };
     b._inputArray = [];
     return b;
   }
@@ -593,10 +593,10 @@ export class ScopeOut2 {
   /** Build at kr rate (Rate::Control). */
   static kr(): ScopeOut2 {
     const b = new ScopeOut2();
-    b._calcRate = 'control';
-    b._scopeNum = { tag: 'constant', val: 0 };
-    b._maxFrames = { tag: 'constant', val: 4096 };
-    b._scopeFrames = { tag: 'constant', val: 4096 };
+    b._calcRate = "control";
+    b._scopeNum = { tag: "constant", val: 0 };
+    b._maxFrames = { tag: "constant", val: 4096 };
+    b._scopeFrames = { tag: "constant", val: 4096 };
     b._inputArray = [];
     return b;
   }
@@ -634,7 +634,7 @@ export class ScopeOut2 {
     inputs.push(this._scopeFrames);
     inputs.push(...this._inputArray);
     const idx = def.addUgen("ScopeOut2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -649,20 +649,20 @@ export class SetBuf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SetBuf {
     const b = new SetBuf();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._values = { tag: 'constant', val: 0 };
-    b._offset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._values = { tag: "constant", val: 0 };
+    b._offset = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SetBuf {
     const b = new SetBuf();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
-    b._values = { tag: 'constant', val: 0 };
-    b._offset = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
+    b._values = { tag: "constant", val: 0 };
+    b._offset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -691,7 +691,7 @@ export class SetBuf {
     inputs.push(this._values);
     inputs.push(this._offset);
     const idx = def.addUgen("SetBuf", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -718,15 +718,15 @@ export class TGrains {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TGrains {
     const b = new TGrains();
-    b._calcRate = 'audio';
-    b._trigger = { tag: 'constant', val: 0 };
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._centerPos = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._amp = { tag: 'constant', val: 0.1 };
-    b._interp = { tag: 'constant', val: 4 };
+    b._calcRate = "audio";
+    b._trigger = { tag: "constant", val: 0 };
+    b._bufnum = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._centerPos = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
+    b._pan = { tag: "constant", val: 0 };
+    b._amp = { tag: "constant", val: 0.1 };
+    b._interp = { tag: "constant", val: 4 };
     b._numChannels = 2;
     return b;
   }
@@ -817,6 +817,6 @@ export class TGrains {
     inputs.push(this._amp);
     inputs.push(this._interp);
     const idx = def.addUgen("TGrains", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "BufRd",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "bufnum", default: 0 },
@@ -22,15 +22,24 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bufnum", doc: "The index of the buffer to use" },
-      { name: "interpolation", doc: "1 means no interpolation, 2 is linear, 4 is cubic interpolation" },
+      {
+        name: "interpolation",
+        doc: "1 means no interpolation, 2 is linear, 4 is cubic interpolation",
+      },
       { name: "loop", doc: "1 means true, 0 means false. This is modulatable." },
-      { name: "numChannels", doc: "The number of channels of the supplied buffer. This must be a fixed integer and not a signal or a control proxy. The architecture of the synth design cannot change after it is compiled. (Warning: if you supply a bufnum of a buffer that has a different number of channels than you have specified to buf-rd , it will fail silently)." },
-      { name: "phase", doc: "Audio rate modulatable index into the buffer. Warning: The phase argument only offers precision for addressing 2**24 samples (about 6.3 minutes at 44100Hz)" },
+      {
+        name: "numChannels",
+        doc: "The number of channels of the supplied buffer. This must be a fixed integer and not a signal or a control proxy. The architecture of the synth design cannot change after it is compiled. (Warning: if you supply a bufnum of a buffer that has a different number of channels than you have specified to buf-rd , it will fail silently).",
+      },
+      {
+        name: "phase",
+        doc: "Audio rate modulatable index into the buffer. Warning: The phase argument only offers precision for addressing 2**24 samples (about 6.3 minutes at 44100Hz)",
+      },
     ],
   },
   {
     name: "BufWr",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inputArray", default: null },
       { name: "bufnum", default: 0 },
@@ -51,21 +60,18 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "ClearBuf",
-    rates: ['scalar'],
-    defaults: [
-      { name: "buf", default: null },
-    ],
+    rates: ["scalar"],
+    defaults: [{ name: "buf", default: null }],
     numOutputs: 0,
     extends: null,
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "LocalBuf",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "numFrames", default: null },
@@ -75,26 +81,22 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "MaxLocalBufs",
-    rates: ['scalar'],
-    defaults: [
-      { name: "numLocalBufs", default: null },
-    ],
+    rates: ["scalar"],
+    defaults: [{ name: "numLocalBufs", default: null }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "PlayBuf",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "numChannels", default: null },
       { name: "bufnum", default: 0 },
@@ -110,18 +112,30 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Plays back a sample resident in a buffer",
     signalRange: null,
     argDocs: [
-      { name: "action", doc: "an integer representing an action to be executed when the buffer is finished playing. This can be used to free the enclosing synth. Action is only evaluated if loop is 0" },
+      {
+        name: "action",
+        doc: "an integer representing an action to be executed when the buffer is finished playing. This can be used to free the enclosing synth. Action is only evaluated if loop is 0",
+      },
       { name: "bufnum", doc: "The index of the buffer to use." },
       { name: "loop", doc: "1 means true, 0 means false. This is modulateable." },
-      { name: "numChannels", doc: "The number of channels that the buffer will be. This must be a fixed integer. The architechture of the SynthDef cannot change after it is compiled. Warning: if you supply a bufnum of a buffer that has a different numChannels then you have specified to the play-buf, it will fail silently." },
-      { name: "rate", doc: "1.0 is the server's sample rate, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate ... etc. Interpolation is cubic. Note: if the buffer's sample rate is different from the server's, you will need to multiply the desired playback rate by (file's rate / server's rate). The UGen (buf-rate-scale bufnum) returns this factor." },
+      {
+        name: "numChannels",
+        doc: "The number of channels that the buffer will be. This must be a fixed integer. The architechture of the SynthDef cannot change after it is compiled. Warning: if you supply a bufnum of a buffer that has a different numChannels then you have specified to the play-buf, it will fail silently.",
+      },
+      {
+        name: "rate",
+        doc: "1.0 is the server's sample rate, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate ... etc. Interpolation is cubic. Note: if the buffer's sample rate is different from the server's, you will need to multiply the desired playback rate by (file's rate / server's rate). The UGen (buf-rate-scale bufnum) returns this factor.",
+      },
       { name: "startPos", doc: "Sample frame to start playback." },
-      { name: "trigger", doc: "A trigger causes a jump to the startPos. A trigger occurs when a signal changes from <= 0 to > 0." },
+      {
+        name: "trigger",
+        doc: "A trigger causes a jump to the startPos. A trigger occurs when a signal changes from <= 0 to > 0.",
+      },
     ],
   },
   {
     name: "RecordBuf",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inputArray", default: null },
       { name: "bufnum", default: 0 },
@@ -139,20 +153,29 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the defsynth, it cannot vary depending on which buffer you use.",
     signalRange: null,
     argDocs: [
-      { name: "action", doc: "an integer representing an action to be executed when the buffer is finished playing. This can be used to free the enclosing synth. Action is only evaluated if loop is 0" },
+      {
+        name: "action",
+        doc: "an integer representing an action to be executed when the buffer is finished playing. This can be used to free the enclosing synth. Action is only evaluated if loop is 0",
+      },
       { name: "bufnum", doc: "the index of the buffer to use" },
       { name: "inputArray", doc: "an Array of input channels" },
       { name: "loop", doc: "If zero then don't loop, otherwise do. This is modulate-able." },
       { name: "offset", doc: "an offset into the buffer in frames," },
-      { name: "preLevel", doc: "value to multiply to existing data in buffer before mixing with input" },
+      {
+        name: "preLevel",
+        doc: "value to multiply to existing data in buffer before mixing with input",
+      },
       { name: "recLevel", doc: "value to multiply by input before mixing with existing data." },
       { name: "run", doc: "If zero, then recording stops, otherwise recording proceeds." },
-      { name: "trigger", doc: "a trigger causes a jump to the offset position in the Buffer. A trigger occurs when a signal changes from <= 0 to > 0." },
+      {
+        name: "trigger",
+        doc: "a trigger causes a jump to the offset position in the Buffer. A trigger occurs when a signal changes from <= 0 to > 0.",
+      },
     ],
   },
   {
     name: "ScopeOut",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "inputArray", default: null },
       { name: "bufnum", default: 0 },
@@ -162,12 +185,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "ScopeOut2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inputArray", default: null },
       { name: "scopeNum", default: 0 },
@@ -179,12 +201,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "SetBuf",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buf", default: null },
       { name: "values", default: null },
@@ -195,12 +216,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "TGrains",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 2 },
       { name: "trigger", default: 0 },
@@ -219,14 +239,32 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "amp", doc: "amplitude of the grain." },
-      { name: "bufnum", doc: "the index of the buffer to use. It must be a one channel (mono) buffer." },
-      { name: "centerPos", doc: "the position in the buffer in seconds at which the grain envelope will reach maximum amplitude." },
+      {
+        name: "bufnum",
+        doc: "the index of the buffer to use. It must be a one channel (mono) buffer.",
+      },
+      {
+        name: "centerPos",
+        doc: "the position in the buffer in seconds at which the grain envelope will reach maximum amplitude.",
+      },
       { name: "dur", doc: "duration of the grain in seconds" },
-      { name: "interp", doc: "1,2,or 4. Determines whether the grain uses (1) no interpolation, (2) linear interpolation, or (4) cubic interpolation." },
+      {
+        name: "interp",
+        doc: "1,2,or 4. Determines whether the grain uses (1) no interpolation, (2) linear interpolation, or (4) cubic interpolation.",
+      },
       { name: "numChannels", doc: "number of output channels" },
-      { name: "pan", doc: "a value from -1 to 1. Determines where to pan the output in the same manner as PanAz." },
-      { name: "rate", doc: "1.0 is normal, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate. Unlike PlayBuf, the rate is multiplied by BufRate, so you needn't do that yourself." },
-      { name: "trigger", doc: "at each trigger, the following arguments are sampled and used as the arguments of a new grain. A trigger occurs when a signal changes from <= 0 to > 0. If the trigger is audio rate then the grains will start with sample accuracy." },
+      {
+        name: "pan",
+        doc: "a value from -1 to 1. Determines where to pan the output in the same manner as PanAz.",
+      },
+      {
+        name: "rate",
+        doc: "1.0 is normal, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate. Unlike PlayBuf, the rate is multiplied by BufRate, so you needn't do that yourself.",
+      },
+      {
+        name: "trigger",
+        doc: "at each trigger, the following arguments are sampled and used as the arguments of a new grain. A trigger occurs when a signal changes from <= 0 to > 0. If the trigger is audio rate then the grains will start with sample accuracy.",
+      },
     ],
   },
 ];

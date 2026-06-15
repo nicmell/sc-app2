@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Multiply the input source by mul then add the add value. Equivalent to, but
@@ -21,30 +21,30 @@ export class MulAdd {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): MulAdd {
     const b = new MulAdd();
-    b._calcRate = 'scalar';
-    b._in = { tag: 'constant', val: 0 };
-    b._mul = { tag: 'constant', val: 0 };
-    b._add = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._in = { tag: "constant", val: 0 };
+    b._mul = { tag: "constant", val: 0 };
+    b._add = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ar rate (Rate::Audio). */
   static ar(): MulAdd {
     const b = new MulAdd();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._mul = { tag: 'constant', val: 0 };
-    b._add = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._mul = { tag: "constant", val: 0 };
+    b._add = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): MulAdd {
     const b = new MulAdd();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._mul = { tag: 'constant', val: 0 };
-    b._add = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._mul = { tag: "constant", val: 0 };
+    b._add = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -76,6 +76,6 @@ export class MulAdd {
     inputs.push(this._mul);
     inputs.push(this._add);
     const idx = def.addUgen("MulAdd", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

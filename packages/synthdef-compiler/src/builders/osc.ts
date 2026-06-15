@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Chorusing wavetable lookup oscillator. Produces sum of two signals at (freq
@@ -22,20 +22,20 @@ export class COsc {
   /** Build at ar rate (Rate::Audio). */
   static ar(): COsc {
     const b = new COsc();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._beats = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._beats = { tag: "constant", val: 0.5 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): COsc {
     const b = new COsc();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._beats = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._beats = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -67,7 +67,7 @@ export class COsc {
     inputs.push(this._freq);
     inputs.push(this._beats);
     const idx = def.addUgen("COsc", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -86,20 +86,20 @@ export class DegreeToKey {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DegreeToKey {
     const b = new DegreeToKey();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._octave = { tag: 'constant', val: 12 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._octave = { tag: "constant", val: 12 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DegreeToKey {
     const b = new DegreeToKey();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._octave = { tag: 'constant', val: 12 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._octave = { tag: "constant", val: 12 };
     return b;
   }
 
@@ -131,7 +131,7 @@ export class DegreeToKey {
     inputs.push(this._in);
     inputs.push(this._octave);
     const idx = def.addUgen("DegreeToKey", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -146,18 +146,18 @@ export class DetectIndex {
   /** Build at kr rate (Rate::Control). */
   static kr(): DetectIndex {
     const b = new DetectIndex();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): DetectIndex {
     const b = new DetectIndex();
-    b._calcRate = 'scalar';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -180,7 +180,7 @@ export class DetectIndex {
     inputs.push(this._bufnum);
     inputs.push(this._in);
     const idx = def.addUgen("DetectIndex", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -201,10 +201,10 @@ export class Formant {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Formant {
     const b = new Formant();
-    b._calcRate = 'audio';
-    b._fundfreq = { tag: 'constant', val: 440 };
-    b._formfreq = { tag: 'constant', val: 1760 };
-    b._bwfreq = { tag: 'constant', val: 880 };
+    b._calcRate = "audio";
+    b._fundfreq = { tag: "constant", val: 440 };
+    b._formfreq = { tag: "constant", val: 1760 };
+    b._bwfreq = { tag: "constant", val: 880 };
     return b;
   }
 
@@ -239,7 +239,7 @@ export class Formant {
     inputs.push(this._formfreq);
     inputs.push(this._bwfreq);
     const idx = def.addUgen("Formant", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -257,18 +257,18 @@ export class Impulse {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Impulse {
     const b = new Impulse();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Impulse {
     const b = new Impulse();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -293,7 +293,7 @@ export class Impulse {
     inputs.push(this._freq);
     inputs.push(this._phase);
     const idx = def.addUgen("Impulse", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -311,18 +311,18 @@ export class Index {
   /** Build at kr rate (Rate::Control). */
   static kr(): Index {
     const b = new Index();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): Index {
     const b = new Index();
-    b._calcRate = 'scalar';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -345,7 +345,7 @@ export class Index {
     inputs.push(this._bufnum);
     inputs.push(this._in);
     const idx = def.addUgen("Index", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -363,18 +363,18 @@ export class IndexInBetween {
   /** Build at kr rate (Rate::Control). */
   static kr(): IndexInBetween {
     const b = new IndexInBetween();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): IndexInBetween {
     const b = new IndexInBetween();
-    b._calcRate = 'scalar';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -397,7 +397,7 @@ export class IndexInBetween {
     inputs.push(this._bufnum);
     inputs.push(this._in);
     const idx = def.addUgen("IndexInBetween", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -412,18 +412,18 @@ export class LFCub {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFCub {
     const b = new LFCub();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFCub {
     const b = new LFCub();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -451,7 +451,7 @@ export class LFCub {
     inputs.push(this._freq);
     inputs.push(this._iphase);
     const idx = def.addUgen("LFCub", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -474,24 +474,24 @@ export class LFGauss {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFGauss {
     const b = new LFGauss();
-    b._calcRate = 'audio';
-    b._duration = { tag: 'constant', val: 1 };
-    b._width = { tag: 'constant', val: 0.1 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._duration = { tag: "constant", val: 1 };
+    b._width = { tag: "constant", val: 0.1 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFGauss {
     const b = new LFGauss();
-    b._calcRate = 'control';
-    b._duration = { tag: 'constant', val: 1 };
-    b._width = { tag: 'constant', val: 0.1 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 1 };
-    b._action = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._duration = { tag: "constant", val: 1 };
+    b._width = { tag: "constant", val: 0.1 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 1 };
+    b._action = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -540,7 +540,7 @@ export class LFGauss {
     inputs.push(this._loop);
     inputs.push(this._action);
     const idx = def.addUgen("LFGauss", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -558,18 +558,18 @@ export class LFPar {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFPar {
     const b = new LFPar();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFPar {
     const b = new LFPar();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -597,7 +597,7 @@ export class LFPar {
     inputs.push(this._freq);
     inputs.push(this._iphase);
     const idx = def.addUgen("LFPar", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -616,20 +616,20 @@ export class LFPulse {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFPulse {
     const b = new LFPulse();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFPulse {
     const b = new LFPulse();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -661,7 +661,7 @@ export class LFPulse {
     inputs.push(this._iphase);
     inputs.push(this._width);
     const idx = def.addUgen("LFPulse", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -676,18 +676,18 @@ export class LFSaw {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFSaw {
     const b = new LFSaw();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFSaw {
     const b = new LFSaw();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -715,13 +715,13 @@ export class LFSaw {
     inputs.push(this._freq);
     inputs.push(this._iphase);
     const idx = def.addUgen("LFSaw", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * a non-band-limited triangle oscillator
- * 
+ *
  * The triangle wave shape features two linear slopes and is not as harmonically
  * rich as a sawtooth wave since it only contains odd harmonics (partials).
  * Ideally, this type of wave form is mixed with a sine, square or pulse wave to
@@ -738,18 +738,18 @@ export class LFTri {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFTri {
     const b = new LFTri();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFTri {
     const b = new LFTri();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -777,7 +777,7 @@ export class LFTri {
     inputs.push(this._freq);
     inputs.push(this._iphase);
     const idx = def.addUgen("LFTri", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -802,20 +802,20 @@ export class Osc {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Osc {
     const b = new Osc();
-    b._calcRate = 'audio';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._buffer = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Osc {
     const b = new Osc();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -847,7 +847,7 @@ export class Osc {
     inputs.push(this._freq);
     inputs.push(this._phase);
     const idx = def.addUgen("Osc", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -862,8 +862,8 @@ export class Select {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Select {
     const b = new Select();
-    b._calcRate = 'audio';
-    b._which = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._which = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -871,8 +871,8 @@ export class Select {
   /** Build at kr rate (Rate::Control). */
   static kr(): Select {
     const b = new Select();
-    b._calcRate = 'control';
-    b._which = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._which = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -900,7 +900,7 @@ export class Select {
     inputs.push(this._which);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("Select", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -915,18 +915,18 @@ export class Shaper {
   /** Build at kr rate (Rate::Control). */
   static kr(): Shaper {
     const b = new Shaper();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): Shaper {
     const b = new Shaper();
-    b._calcRate = 'scalar';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -949,13 +949,13 @@ export class Shaper {
     inputs.push(this._bufnum);
     inputs.push(this._in);
     const idx = def.addUgen("Shaper", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Sine table lookup oscillator
- * 
+ *
  * Outputs a sine wave with values oscillating between -1 and 1 similar to osc
  * except that the table has already been fixed as a sine table of 8192 entries.
  * Sine waves are often used for creating sub-basses or are mixed with other
@@ -976,18 +976,18 @@ export class SinOsc {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SinOsc {
     const b = new SinOsc();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SinOsc {
     const b = new SinOsc();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1012,13 +1012,13 @@ export class SinOsc {
     inputs.push(this._freq);
     inputs.push(this._phase);
     const idx = def.addUgen("SinOsc", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Sine oscillator with phase modulation feedback
- * 
+ *
  * Different feedback values results in a modulation between a sine wave and a
  * sawtooth like wave. Overmodulation causes chaotic oscillation.
  */
@@ -1032,18 +1032,18 @@ export class SinOscFB {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SinOscFB {
     const b = new SinOscFB();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._feedback = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._feedback = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SinOscFB {
     const b = new SinOscFB();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._feedback = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._feedback = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1068,13 +1068,13 @@ export class SinOscFB {
     inputs.push(this._freq);
     inputs.push(this._feedback);
     const idx = def.addUgen("SinOscFB", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * hard sync sawtooth wave oscillator
- * 
+ *
  * A sawtooth wave that is hard synched to a fundamental pitch. This produces an
  * effect similar to moving formants or pulse width modulation. The sawtooth
  * oscillator has its phase reset when the sync oscillator completes a cycle.
@@ -1090,18 +1090,18 @@ export class SyncSaw {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SyncSaw {
     const b = new SyncSaw();
-    b._calcRate = 'audio';
-    b._syncFreq = { tag: 'constant', val: 440 };
-    b._sawFreq = { tag: 'constant', val: 440 };
+    b._calcRate = "audio";
+    b._syncFreq = { tag: "constant", val: 440 };
+    b._sawFreq = { tag: "constant", val: 440 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SyncSaw {
     const b = new SyncSaw();
-    b._calcRate = 'control';
-    b._syncFreq = { tag: 'constant', val: 440 };
-    b._sawFreq = { tag: 'constant', val: 440 };
+    b._calcRate = "control";
+    b._syncFreq = { tag: "constant", val: 440 };
+    b._sawFreq = { tag: "constant", val: 440 };
     return b;
   }
 
@@ -1129,7 +1129,7 @@ export class SyncSaw {
     inputs.push(this._syncFreq);
     inputs.push(this._sawFreq);
     const idx = def.addUgen("SyncSaw", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1145,20 +1145,20 @@ export class VarSaw {
   /** Build at ar rate (Rate::Audio). */
   static ar(): VarSaw {
     const b = new VarSaw();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): VarSaw {
     const b = new VarSaw();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -1193,13 +1193,13 @@ export class VarSaw {
     inputs.push(this._iphase);
     inputs.push(this._width);
     const idx = def.addUgen("VarSaw", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Models a slow frequency modulation.
- * 
+ *
  * Vibrato is a slow frequency modulation. Consider the systematic deviation in
  * pitch of a singer around a fundamental frequency, or a violinist whose finger
  * wobbles in position on the fingerboard, slightly tightening and loosening the
@@ -1228,30 +1228,30 @@ export class Vibrato {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Vibrato {
     const b = new Vibrato();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._rate = { tag: 'constant', val: 6 };
-    b._depth = { tag: 'constant', val: 0.02 };
-    b._delay = { tag: 'constant', val: 0 };
-    b._onset = { tag: 'constant', val: 0 };
-    b._rateVariation = { tag: 'constant', val: 0.04 };
-    b._depthVariation = { tag: 'constant', val: 0.1 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._rate = { tag: "constant", val: 6 };
+    b._depth = { tag: "constant", val: 0.02 };
+    b._delay = { tag: "constant", val: 0 };
+    b._onset = { tag: "constant", val: 0 };
+    b._rateVariation = { tag: "constant", val: 0.04 };
+    b._depthVariation = { tag: "constant", val: 0.1 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Vibrato {
     const b = new Vibrato();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._rate = { tag: 'constant', val: 6 };
-    b._depth = { tag: 'constant', val: 0.02 };
-    b._delay = { tag: 'constant', val: 0 };
-    b._onset = { tag: 'constant', val: 0 };
-    b._rateVariation = { tag: 'constant', val: 0.04 };
-    b._depthVariation = { tag: 'constant', val: 0.1 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._rate = { tag: "constant", val: 6 };
+    b._depth = { tag: "constant", val: 0.02 };
+    b._delay = { tag: "constant", val: 0 };
+    b._onset = { tag: "constant", val: 0 };
+    b._rateVariation = { tag: "constant", val: 0.04 };
+    b._depthVariation = { tag: "constant", val: 0.1 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1344,7 +1344,7 @@ export class Vibrato {
     inputs.push(this._depthVariation);
     inputs.push(this._iphase);
     const idx = def.addUgen("Vibrato", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1367,20 +1367,20 @@ export class VOsc {
   /** Build at ar rate (Rate::Audio). */
   static ar(): VOsc {
     const b = new VOsc();
-    b._calcRate = 'audio';
-    b._bufpos = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufpos = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): VOsc {
     const b = new VOsc();
-    b._calcRate = 'control';
-    b._bufpos = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._phase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufpos = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 440 };
+    b._phase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1415,7 +1415,7 @@ export class VOsc {
     inputs.push(this._freq);
     inputs.push(this._phase);
     const idx = def.addUgen("VOsc", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1441,22 +1441,22 @@ export class VOsc3 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): VOsc3 {
     const b = new VOsc3();
-    b._calcRate = 'audio';
-    b._bufpos = { tag: 'constant', val: 0 };
-    b._freq1 = { tag: 'constant', val: 110 };
-    b._freq2 = { tag: 'constant', val: 220 };
-    b._freq3 = { tag: 'constant', val: 440 };
+    b._calcRate = "audio";
+    b._bufpos = { tag: "constant", val: 0 };
+    b._freq1 = { tag: "constant", val: 110 };
+    b._freq2 = { tag: "constant", val: 220 };
+    b._freq3 = { tag: "constant", val: 440 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): VOsc3 {
     const b = new VOsc3();
-    b._calcRate = 'control';
-    b._bufpos = { tag: 'constant', val: 0 };
-    b._freq1 = { tag: 'constant', val: 110 };
-    b._freq2 = { tag: 'constant', val: 220 };
-    b._freq3 = { tag: 'constant', val: 440 };
+    b._calcRate = "control";
+    b._bufpos = { tag: "constant", val: 0 };
+    b._freq1 = { tag: "constant", val: 110 };
+    b._freq2 = { tag: "constant", val: 220 };
+    b._freq3 = { tag: "constant", val: 440 };
     return b;
   }
 
@@ -1498,7 +1498,7 @@ export class VOsc3 {
     inputs.push(this._freq2);
     inputs.push(this._freq3);
     const idx = def.addUgen("VOsc3", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1516,18 +1516,18 @@ export class WrapIndex {
   /** Build at kr rate (Rate::Control). */
   static kr(): WrapIndex {
     const b = new WrapIndex();
-    b._calcRate = 'control';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): WrapIndex {
     const b = new WrapIndex();
-    b._calcRate = 'scalar';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1550,6 +1550,6 @@ export class WrapIndex {
     inputs.push(this._bufnum);
     inputs.push(this._in);
     const idx = def.addUgen("WrapIndex", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

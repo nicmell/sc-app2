@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "COsc",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "freq", default: 440 },
@@ -26,7 +26,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "DegreeToKey",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -38,14 +38,17 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values (indices wrap around the table)",
     signalRange: null,
     argDocs: [
-      { name: "bufnum", doc: "Index of the buffer which contains the steps for each scale degree." },
+      {
+        name: "bufnum",
+        doc: "Index of the buffer which contains the steps for each scale degree.",
+      },
       { name: "in", doc: "The input signal." },
       { name: "octave", doc: "The number of steps per octave in the scale. The default is 12." },
     ],
   },
   {
     name: "DetectIndex",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -55,12 +58,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "search a buffer for a value",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Formant",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "fundfreq", default: 440 },
       { name: "formfreq", default: 1760 },
@@ -72,14 +74,17 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Generates a set of harmonics around a formant frequency at a given fundamental frequency. The frequency inputs are read at control rate only, so if you use an audio rate UGen as an input, it will only be sampled at the start of each audio synthesis block.",
     signalRange: null,
     argDocs: [
-      { name: "bwfreq", doc: "Pulse width frequency in Hertz. Controls the bandwidth of the formant (control rate)" },
+      {
+        name: "bwfreq",
+        doc: "Pulse width frequency in Hertz. Controls the bandwidth of the formant (control rate)",
+      },
       { name: "formfreq", doc: "Formant frequency in Hertz (control rate)" },
       { name: "fundfreq", doc: "Fundamental frequency in Hertz (control rate)" },
     ],
   },
   {
     name: "Impulse",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "phase", default: 0 },
@@ -96,7 +101,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Index",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -106,12 +111,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "the input signal value is truncated to an integer and used as an index into the table",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "IndexInBetween",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -121,12 +125,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "finds the (lowest) point in the buffer at which the input signal lies in-between the two values, and returns the index",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "LFCub",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -138,12 +141,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz" },
-      { name: "iphase", doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2." },
+      {
+        name: "iphase",
+        doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2.",
+      },
     ],
   },
   {
     name: "LFGauss",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "duration", default: 1 },
       { name: "width", default: 0.10000000149011612 },
@@ -160,13 +166,19 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "action", doc: "Action to be evaluated after cycle completes. Default: NO-ACTION." },
       { name: "duration", doc: "Duration of one full cycle ( for freq input: dur = 1 / freq )" },
       { name: "iphase", doc: "Initial offset" },
-      { name: "loop", doc: "If loop is > 0, UGen oscillates. Otherwise it calls the done action after one cycle" },
-      { name: "width", doc: "Relative width of the bell. Best to keep below 0.25 when used as envelope." },
+      {
+        name: "loop",
+        doc: "If loop is > 0, UGen oscillates. Otherwise it calls the done action after one cycle",
+      },
+      {
+        name: "width",
+        doc: "Relative width of the bell. Best to keep below 0.25 when used as envelope.",
+      },
     ],
   },
   {
     name: "LFPar",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -178,12 +190,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz" },
-      { name: "iphase", doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2." },
+      {
+        name: "iphase",
+        doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2.",
+      },
     ],
   },
   {
     name: "LFPulse",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -202,7 +217,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LFSaw",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -214,12 +229,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz" },
-      { name: "iphase", doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2." },
+      {
+        name: "iphase",
+        doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2.",
+      },
     ],
   },
   {
     name: "LFTri",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -231,12 +249,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz" },
-      { name: "iphase", doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2." },
+      {
+        name: "iphase",
+        doc: "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2.",
+      },
     ],
   },
   {
     name: "Osc",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "freq", default: 440 },
@@ -255,7 +276,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Select",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "which", default: null },
       { name: "channelsArray", default: null },
@@ -272,7 +293,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Shaper",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -282,12 +303,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "performs waveshaping on the input signal by indexing into a table",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "SinOsc",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "phase", default: 0 },
@@ -304,7 +324,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "SinOscFB",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "feedback", default: 0 },
@@ -321,7 +341,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "SyncSaw",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "syncFreq", default: 440 },
       { name: "sawFreq", default: 440 },
@@ -332,13 +352,16 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "A sawtooth wave that is hard synched to a fundamental pitch. This produces an effect similar to moving formants or pulse width modulation. The sawtooth oscillator has its phase reset when the sync oscillator completes a cycle. This is not a band limited waveform, so it may alias.",
     signalRange: null,
     argDocs: [
-      { name: "sawFreq", doc: "Frequency of the slave synched sawtooth wave. saw-freq should always be greater than sync-freq." },
+      {
+        name: "sawFreq",
+        doc: "Frequency of the slave synched sawtooth wave. saw-freq should always be greater than sync-freq.",
+      },
       { name: "syncFreq", doc: "Frequency of the fundamental." },
     ],
   },
   {
     name: "VOsc",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufpos", default: null },
       { name: "freq", default: 440 },
@@ -350,14 +373,17 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables. This oscillator requires at least two buffers to be filled with a wavetable format signal. This preprocesses the Signal into a form which can be used efficiently by the Oscillator. The buffer size must be a power of 2.",
     signalRange: null,
     argDocs: [
-      { name: "bufpos", doc: "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size." },
+      {
+        name: "bufpos",
+        doc: "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size.",
+      },
       { name: "freq", doc: "Frequency in Hertz" },
       { name: "phase", doc: "Phase offset of modulator in radians" },
     ],
   },
   {
     name: "VOsc3",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufpos", default: null },
       { name: "freq1", default: 110 },
@@ -370,7 +396,10 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Three variable wavetable oscillators. A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables. This unit generator contains three oscillators at different frequencies, mixed together. This oscillator requires at least two buffers to be filled with a wavetable format signal. This preprocesses the Signal into a form which can be used efficiently by the Oscillator. The buffer size must be a power of 2.",
     signalRange: null,
     argDocs: [
-      { name: "bufpos", doc: "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size." },
+      {
+        name: "bufpos",
+        doc: "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size.",
+      },
       { name: "freq1", doc: "Frequency in Hertz of first oscillator" },
       { name: "freq2", doc: "Frequency in Hertz of second oscillator" },
       { name: "freq3", doc: "Frequency in Hertz of third oscillator" },
@@ -378,7 +407,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "VarSaw",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "iphase", default: 0 },
@@ -392,12 +421,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "freq", doc: "Frequency in Hertz" },
       { name: "iphase", doc: "Initial phase offset in cycles ( 0..1 )" },
-      { name: "width", doc: "Duty cycle from zero to one. (0 = downward sawtooth, 0.5 = triangle, 1 = upward sawtooth)" },
+      {
+        name: "width",
+        doc: "Duty cycle from zero to one. (0 = downward sawtooth, 0.5 = triangle, 1 = upward sawtooth)",
+      },
     ],
   },
   {
     name: "Vibrato",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "rate", default: 6 },
@@ -414,19 +446,43 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Vibrato is a slow frequency modulation. Consider the systematic deviation in pitch of a singer around a fundamental frequency, or a violinist whose finger wobbles in position on the fingerboard, slightly tightening and loosening the string to add shimmer to the pitch. There is often also a delay before vibrato is established on a note. This UGen models these processes; by setting more extreme settings, you can get back to the timbres of FM synthesis. You can also add in some noise to the vibrato rate and vibrato size (modulation depth) to make for a more realistic motor pattern. The vibrato output is a waveform based on a squared envelope shape with four stages marking out 0.0 to 1.0, 1.0 to 0.0, 0.0 to -1.0, and -1.0 back to 0.0. Vibrato rate determines how quickly you move through these stages.",
     signalRange: null,
     argDocs: [
-      { name: "delay", doc: "Delay before vibrato is established in seconds (a singer tends to attack a note and then stabilise with vibrato, for instance)." },
-      { name: "depth", doc: "Size of vibrato frequency deviation around the fundamental, as a proportion of the fundamental. 0.02 = 2% of the fundamental." },
-      { name: "depthVariation", doc: "Noise on the depth of modulation, expressed as a proportion of the depth; can change once per cycle of vibrato. The noise affects independently the up and the down part of vibrato shape within a cycle." },
-      { name: "freq", doc: "Fundamental frequency in Hertz. If the Vibrato UGen is running at audio rate, this must not be a constant, but an actual audio rate UGen" },
-      { name: "iphase", doc: "Initial phase of vibrato modulation, allowing starting above or below the fundamental rather than on it." },
-      { name: "onset", doc: "Transition time in seconds from no vibrato to full vibrato after the initial delay time." },
-      { name: "rate", doc: "Vibrato rate, speed of wobble in Hertz. Note that if this is set to a low value (and definitely with 0.0), you may never get vibrato back, since the rate input is only checked at the end of a cycle." },
-      { name: "rateVariation", doc: "Noise on the rate, expressed as a proportion of the rate; can change once per cycle of vibrato." },
+      {
+        name: "delay",
+        doc: "Delay before vibrato is established in seconds (a singer tends to attack a note and then stabilise with vibrato, for instance).",
+      },
+      {
+        name: "depth",
+        doc: "Size of vibrato frequency deviation around the fundamental, as a proportion of the fundamental. 0.02 = 2% of the fundamental.",
+      },
+      {
+        name: "depthVariation",
+        doc: "Noise on the depth of modulation, expressed as a proportion of the depth; can change once per cycle of vibrato. The noise affects independently the up and the down part of vibrato shape within a cycle.",
+      },
+      {
+        name: "freq",
+        doc: "Fundamental frequency in Hertz. If the Vibrato UGen is running at audio rate, this must not be a constant, but an actual audio rate UGen",
+      },
+      {
+        name: "iphase",
+        doc: "Initial phase of vibrato modulation, allowing starting above or below the fundamental rather than on it.",
+      },
+      {
+        name: "onset",
+        doc: "Transition time in seconds from no vibrato to full vibrato after the initial delay time.",
+      },
+      {
+        name: "rate",
+        doc: "Vibrato rate, speed of wobble in Hertz. Note that if this is set to a low value (and definitely with 0.0), you may never get vibrato back, since the rate input is only checked at the end of a cycle.",
+      },
+      {
+        name: "rateVariation",
+        doc: "Noise on the rate, expressed as a proportion of the rate; can change once per cycle of vibrato.",
+      },
     ],
   },
   {
     name: "WrapIndex",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -436,7 +492,6 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "the input signal value is truncated to an integer value and used as an index into the table (out of range index values are wrapped)",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
 ];

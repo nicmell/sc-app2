@@ -28,10 +28,14 @@ const cache = new Map<string, Uint8Array>();
 
 export function compileScopeTapSynthDef(channels: number, chunkSize: number): Uint8Array {
   if (!Number.isInteger(channels) || channels < 1) {
-    throw new Error(`compileScopeTapSynthDef: channels must be a positive integer, got ${channels}`);
+    throw new Error(
+      `compileScopeTapSynthDef: channels must be a positive integer, got ${channels}`,
+    );
   }
   if (!Number.isInteger(chunkSize) || chunkSize < 1) {
-    throw new Error(`compileScopeTapSynthDef: chunkSize must be a positive integer, got ${chunkSize}`);
+    throw new Error(
+      `compileScopeTapSynthDef: chunkSize must be a positive integer, got ${chunkSize}`,
+    );
   }
   const name = scopeTapSynthDefName(channels, chunkSize);
   const cached = cache.get(name);

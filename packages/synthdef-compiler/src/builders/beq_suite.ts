@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** All pass filter based on the Second Order Section (SOS) biquad UGen */
 export class BAllPass {
@@ -18,10 +18,10 @@ export class BAllPass {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BAllPass {
     const b = new BAllPass();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rq = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rq = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -53,7 +53,7 @@ export class BAllPass {
     inputs.push(this._freq);
     inputs.push(this._rq);
     const idx = def.addUgen("BAllPass", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -69,10 +69,10 @@ export class BBandPass {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BBandPass {
     const b = new BBandPass();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._bw = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._bw = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -104,7 +104,7 @@ export class BBandPass {
     inputs.push(this._freq);
     inputs.push(this._bw);
     const idx = def.addUgen("BBandPass", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -120,10 +120,10 @@ export class BBandStop {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BBandStop {
     const b = new BBandStop();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._bw = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._bw = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -155,7 +155,7 @@ export class BBandStop {
     inputs.push(this._freq);
     inputs.push(this._bw);
     const idx = def.addUgen("BBandStop", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -174,10 +174,10 @@ export class BHiPass {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BHiPass {
     const b = new BHiPass();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rq = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rq = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -209,7 +209,7 @@ export class BHiPass {
     inputs.push(this._freq);
     inputs.push(this._rq);
     const idx = def.addUgen("BHiPass", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -226,11 +226,11 @@ export class BHiShelf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BHiShelf {
     const b = new BHiShelf();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rs = { tag: 'constant', val: 1 };
-    b._db = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rs = { tag: "constant", val: 1 };
+    b._db = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -274,7 +274,7 @@ export class BHiShelf {
     inputs.push(this._rs);
     inputs.push(this._db);
     const idx = def.addUgen("BHiShelf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -293,10 +293,10 @@ export class BLowPass {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BLowPass {
     const b = new BLowPass();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rq = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rq = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -328,7 +328,7 @@ export class BLowPass {
     inputs.push(this._freq);
     inputs.push(this._rq);
     const idx = def.addUgen("BLowPass", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -345,11 +345,11 @@ export class BLowShelf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BLowShelf {
     const b = new BLowShelf();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rs = { tag: 'constant', val: 1 };
-    b._db = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rs = { tag: "constant", val: 1 };
+    b._db = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -393,7 +393,7 @@ export class BLowShelf {
     inputs.push(this._rs);
     inputs.push(this._db);
     const idx = def.addUgen("BLowShelf", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -410,11 +410,11 @@ export class BPeakEQ {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BPeakEQ {
     const b = new BPeakEQ();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._freq = { tag: 'constant', val: 1200 };
-    b._rq = { tag: 'constant', val: 1 };
-    b._db = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._freq = { tag: "constant", val: 1200 };
+    b._rq = { tag: "constant", val: 1 };
+    b._db = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -453,6 +453,6 @@ export class BPeakEQ {
     inputs.push(this._rq);
     inputs.push(this._db);
     const idx = def.addUgen("BPeakEQ", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

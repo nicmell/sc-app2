@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "APF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -18,12 +18,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "BPF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -42,21 +41,18 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BPZ2",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two zero fixed midpass which cuts out 0 Hz and the Nyquist frequency. Implements the formula: out(i) = 0.5 * (in(i) - in(i-2))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "BRF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -75,21 +71,18 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BRZ2",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two zero fixed midcut which cuts out frequencies around 1/2 of the Nyquist frequency. Implements the formula: out(i) = 0.5 * (in(i) + in(i-2))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Decay",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "decayTime", default: 1 },
@@ -106,7 +99,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Decay2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "attackTime", default: 0.009999999776482582 },
@@ -125,7 +118,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "DetectSilence",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "amp", default: 0.00009999999747378752 },
@@ -141,12 +134,15 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "action", doc: "the action to perform when silence is detected. Default: NO-ACTION" },
       { name: "amp", doc: "when input falls below this, evaluate done action" },
       { name: "in", doc: "any source" },
-      { name: "time", doc: "the minimum duration of the input signal which input must fall below thresh before this triggers. The default is 0.1 seconds" },
+      {
+        name: "time",
+        doc: "the minimum duration of the input signal which input must fall below thresh before this triggers. The default is 0.1 seconds",
+      },
     ],
   },
   {
     name: "FOS",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "a0", default: 0 },
@@ -167,7 +163,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Formlet",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -188,7 +184,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "HPF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -205,35 +201,29 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "HPZ1",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two point difference filter. Implements the formula: out(i) = 0.5 * (in(i) - in(i-1))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "HPZ2",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two zero fixed highpass. Implements the formula: out(i) = 0.25 * (in(i) - (2*in(i-1)) + in(i-2))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Integrator",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "coef", default: 1 },
@@ -250,7 +240,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LPF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -267,35 +257,29 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LPZ1",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two point average filter. Implements the formula: out(i) = 0.5 * (in(i) + in(i-1))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "LPZ2",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "two zero fixed lowpass. Implements the formula: out(i) = 0.25 * (in(i) + (2*in(i-1)) + in(i-2))",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Lag",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTime", default: 0.10000000149011612 },
@@ -312,7 +296,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Lag2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTime", default: 0.10000000149011612 },
@@ -329,7 +313,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Lag2UD",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTimeUp", default: 0.10000000149011612 },
@@ -348,7 +332,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Lag3",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTime", default: 0.10000000149011612 },
@@ -365,7 +349,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Lag3UD",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTimeUp", default: 0.10000000149011612 },
@@ -384,7 +368,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LagUD",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTimeUp", default: 0.10000000149011612 },
@@ -403,7 +387,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LeakDC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "coef", default: 0.9950000047683716 },
@@ -414,13 +398,16 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "removes a DC offset from signal. For example, a square wave contains prolonged sections of the cycle which are at +1 and -1 (the top and bottom of the square sections). If you were to pass this wave through leak-dc, then these top parts would taper back towards 0 with a greater slope as you move coef from 1 to 0.. Good starting point coef values are to 0.995 for audio rate and 0.9 for control rate",
     signalRange: null,
     argDocs: [
-      { name: "coef", doc: "leak coefficient. A value of 1 indicates no leakage and 0 indicates high leakage - essentially the rate at which the offset will return back to 0" },
+      {
+        name: "coef",
+        doc: "leak coefficient. A value of 1 indicates no leakage and 0 indicates high leakage - essentially the rate at which the offset will return back to 0",
+      },
       { name: "in", doc: "input signal" },
     ],
   },
   {
     name: "Median",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "length", default: 3 },
       { name: "in", default: 0 },
@@ -432,12 +419,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal to be processed" },
-      { name: "length", doc: "number of input points in which to find the median. Must be an odd number from 1 to 31. If length is 1 then Median has no effect." },
+      {
+        name: "length",
+        doc: "number of input points in which to find the median. Must be an odd number from 1 to 31. If length is 1 then Median has no effect.",
+      },
     ],
   },
   {
     name: "MidEQ",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -458,7 +448,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "OnePole",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "coef", default: 0.5 },
@@ -475,7 +465,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "OneZero",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "coef", default: 0.5 },
@@ -486,13 +476,16 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "A one zero filter. Implements the formula : out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))",
     signalRange: null,
     argDocs: [
-      { name: "coef", doc: "feed forward coefficient. +0.5 makes a two point averaging filter (see also lpz1), -0.5 makes a differentiator (see also hpz1), +1 makes a single sample delay (see also delay1), -1 makes an inverted single sample delay." },
+      {
+        name: "coef",
+        doc: "feed forward coefficient. +0.5 makes a two point averaging filter (see also lpz1), -0.5 makes a differentiator (see also hpz1), +1 makes a single sample delay (see also delay1), -1 makes an inverted single sample delay.",
+      },
       { name: "in", doc: "input signal to be processed" },
     ],
   },
   {
     name: "RHPF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -506,12 +499,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "freq", doc: "cutoff frequency" },
       { name: "in", doc: "input signal to be processed" },
-      { name: "rq", doc: "the reciprocal of Q. bandwidth / cutoffFreq. A lower rq results in more resonance" },
+      {
+        name: "rq",
+        doc: "the reciprocal of Q. bandwidth / cutoffFreq. A lower rq results in more resonance",
+      },
     ],
   },
   {
     name: "RLPF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -525,12 +521,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "freq", doc: "cutoff frequency" },
       { name: "in", doc: "input signal to be processed" },
-      { name: "rq", doc: "the reciprocal of Q. bandwidth / cutoffFreq. A lower rq results in more resonance." },
+      {
+        name: "rq",
+        doc: "the reciprocal of Q. bandwidth / cutoffFreq. A lower rq results in more resonance.",
+      },
     ],
   },
   {
     name: "Ramp",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lagTime", default: 0.10000000149011612 },
@@ -547,7 +546,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Resonz",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -556,7 +555,7 @@ export const UGENS: UGenRegistryEntry[] = [
     numOutputs: null,
     extends: null,
     summary: null,
-    doc: "A Note on Constant-Gain Digital Resonators,\\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.\\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.",
+    doc: 'A Note on Constant-Gain Digital Resonators,\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.',
     signalRange: null,
     argDocs: [
       { name: "bwr", doc: "bandwidth ratio (reciprocal of Q). rq = bandwidth / centerFreq" },
@@ -566,7 +565,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Ringz",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -585,7 +584,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "SOS",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "a0", default: 0 },
@@ -610,7 +609,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Slew",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "up", default: 1 },
@@ -629,22 +628,18 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Slope",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "Measures the rate of change per second of a signal. Formula implemented is: out[i] = (in[i] - in[i-1]) * sampling_rate",
     signalRange: null,
-    argDocs: [
-      { name: "in", doc: "input signal to measure" },
-    ],
+    argDocs: [{ name: "in", doc: "input signal to measure" }],
   },
   {
     name: "TwoPole",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },
@@ -663,7 +658,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TwoZero",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "freq", default: 440 },

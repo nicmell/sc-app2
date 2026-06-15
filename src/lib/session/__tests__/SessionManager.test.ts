@@ -40,7 +40,9 @@ afterEach(() => {
 
 describe("SessionManager boot", () => {
   it("retries 503s quietly within the budget, then advises with the error modal", async () => {
-    http.post.mockRejectedValue(new HttpError(503, "Service Unavailable", "scsynth not registered yet; retry\n"));
+    http.post.mockRejectedValue(
+      new HttpError(503, "Service Unavailable", "scsynth not registered yet; retry\n"),
+    );
     const manager = new SessionManager();
 
     await manager.start();

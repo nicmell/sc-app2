@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** all pass delay line, cubic interpolation */
 export class AllpassC {
@@ -19,22 +19,22 @@ export class AllpassC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): AllpassC {
     const b = new AllpassC();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): AllpassC {
     const b = new AllpassC();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -77,7 +77,7 @@ export class AllpassC {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("AllpassC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -94,22 +94,22 @@ export class AllpassL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): AllpassL {
     const b = new AllpassL();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): AllpassL {
     const b = new AllpassL();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -152,7 +152,7 @@ export class AllpassL {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("AllpassL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -174,22 +174,22 @@ export class AllpassN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): AllpassN {
     const b = new AllpassN();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): AllpassN {
     const b = new AllpassN();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -232,7 +232,7 @@ export class AllpassN {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("AllpassN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -249,11 +249,11 @@ export class BufAllpassC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufAllpassC {
     const b = new BufAllpassC();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -296,7 +296,7 @@ export class BufAllpassC {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufAllpassC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -313,11 +313,11 @@ export class BufAllpassL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufAllpassL {
     const b = new BufAllpassL();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -360,7 +360,7 @@ export class BufAllpassL {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufAllpassL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -382,11 +382,11 @@ export class BufAllpassN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufAllpassN {
     const b = new BufAllpassN();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -429,7 +429,7 @@ export class BufAllpassN {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufAllpassN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -446,11 +446,11 @@ export class BufCombC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufCombC {
     const b = new BufCombC();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -493,7 +493,7 @@ export class BufCombC {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufCombC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -510,11 +510,11 @@ export class BufCombL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufCombL {
     const b = new BufCombL();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -557,7 +557,7 @@ export class BufCombL {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufCombL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -579,11 +579,11 @@ export class BufCombN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufCombN {
     const b = new BufCombN();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -626,7 +626,7 @@ export class BufCombN {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("BufCombN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -642,20 +642,20 @@ export class BufDelayC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufDelayC {
     const b = new BufDelayC();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): BufDelayC {
     const b = new BufDelayC();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -687,7 +687,7 @@ export class BufDelayC {
     inputs.push(this._in);
     inputs.push(this._delayTime);
     const idx = def.addUgen("BufDelayC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -703,20 +703,20 @@ export class BufDelayL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufDelayL {
     const b = new BufDelayL();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): BufDelayL {
     const b = new BufDelayL();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -748,7 +748,7 @@ export class BufDelayL {
     inputs.push(this._in);
     inputs.push(this._delayTime);
     const idx = def.addUgen("BufDelayL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -769,20 +769,20 @@ export class BufDelayN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BufDelayN {
     const b = new BufDelayN();
-    b._calcRate = 'audio';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): BufDelayN {
     const b = new BufDelayN();
-    b._calcRate = 'control';
-    b._buf = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._buf = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -814,7 +814,7 @@ export class BufDelayN {
     inputs.push(this._in);
     inputs.push(this._delayTime);
     const idx = def.addUgen("BufDelayN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -831,22 +831,22 @@ export class CombC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): CombC {
     const b = new CombC();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): CombC {
     const b = new CombC();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -889,7 +889,7 @@ export class CombC {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("CombC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -906,22 +906,22 @@ export class CombL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): CombL {
     const b = new CombL();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): CombL {
     const b = new CombL();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -964,7 +964,7 @@ export class CombL {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("CombL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -985,22 +985,22 @@ export class CombN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): CombN {
     const b = new CombN();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): CombN {
     const b = new CombN();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
-    b._decayTime = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
+    b._decayTime = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -1043,7 +1043,7 @@ export class CombN {
     inputs.push(this._delayTime);
     inputs.push(this._decayTime);
     const idx = def.addUgen("CombN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1061,16 +1061,16 @@ export class Delay1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Delay1 {
     const b = new Delay1();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Delay1 {
     const b = new Delay1();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1088,7 +1088,7 @@ export class Delay1 {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("Delay1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1102,16 +1102,16 @@ export class Delay2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Delay2 {
     const b = new Delay2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Delay2 {
     const b = new Delay2();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1129,7 +1129,7 @@ export class Delay2 {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("Delay2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1145,20 +1145,20 @@ export class DelayC {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DelayC {
     const b = new DelayC();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DelayC {
     const b = new DelayC();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -1190,7 +1190,7 @@ export class DelayC {
     inputs.push(this._maxDelayTime);
     inputs.push(this._delayTime);
     const idx = def.addUgen("DelayC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1206,20 +1206,20 @@ export class DelayL {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DelayL {
     const b = new DelayL();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DelayL {
     const b = new DelayL();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -1251,7 +1251,7 @@ export class DelayL {
     inputs.push(this._maxDelayTime);
     inputs.push(this._delayTime);
     const idx = def.addUgen("DelayL", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1271,20 +1271,20 @@ export class DelayN {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DelayN {
     const b = new DelayN();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DelayN {
     const b = new DelayN();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._maxDelayTime = { tag: 'constant', val: 0.2 };
-    b._delayTime = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._maxDelayTime = { tag: "constant", val: 0.2 };
+    b._delayTime = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -1316,7 +1316,7 @@ export class DelayN {
     inputs.push(this._maxDelayTime);
     inputs.push(this._delayTime);
     const idx = def.addUgen("DelayN", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1333,22 +1333,22 @@ export class DelTapRd {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DelTapRd {
     const b = new DelTapRd();
-    b._calcRate = 'audio';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._delay = { tag: 'constant', val: 0 };
-    b._interp = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._buffer = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._delay = { tag: "constant", val: 0 };
+    b._interp = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DelTapRd {
     const b = new DelTapRd();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._phase = { tag: 'constant', val: 0 };
-    b._delay = { tag: 'constant', val: 0 };
-    b._interp = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._phase = { tag: "constant", val: 0 };
+    b._delay = { tag: "constant", val: 0 };
+    b._interp = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -1390,7 +1390,7 @@ export class DelTapRd {
     inputs.push(this._delay);
     inputs.push(this._interp);
     const idx = def.addUgen("DelTapRd", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1405,18 +1405,18 @@ export class DelTapWr {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DelTapWr {
     const b = new DelTapWr();
-    b._calcRate = 'audio';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._buffer = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): DelTapWr {
     const b = new DelTapWr();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1441,6 +1441,6 @@ export class DelTapWr {
     inputs.push(this._buffer);
     inputs.push(this._in);
     const idx = def.addUgen("DelTapWr", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

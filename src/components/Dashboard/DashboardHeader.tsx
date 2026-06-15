@@ -20,7 +20,13 @@ export function DashboardHeader({ onToggleDrawer }: { onToggleDrawer: () => void
         {status}
       </span>
       <span className="header-spacer" />
-      <button type="button" data-variant="secondary" data-size="sm" onClick={onToggleDrawer} aria-label="Manage plugins">
+      <button
+        type="button"
+        data-variant="secondary"
+        data-size="sm"
+        onClick={onToggleDrawer}
+        aria-label="Manage plugins"
+      >
         Plugins
       </button>
     </header>

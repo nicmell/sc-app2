@@ -5,6 +5,7 @@ element styles, and a small set of semantic-class primitives.
 Pure CSS — no JS, no React, no Sass.
 
 Shared between two consumers:
+
 1. The React host (`src/ui/*`) — imports the entry once at
    `src/main.tsx`.
 2. Future runtime HTML plugins (trusted, light DOM) — load
@@ -49,22 +50,21 @@ remove or rename only with a major-version bump.
 
 ### Token vocabulary (`tokens/semantic.css`)
 
-*To be filled in Phase 28b. Will document the full --color-* /
---space-* / --radius-* / typography / shadow vocabulary.*
+_To be filled in Phase 28b. Will document the full --color-_ /
+--space-_ / --radius-_ / typography / shadow vocabulary.\*
 
 ### Element variants
 
 ```html
-<button data-variant="primary | secondary | ghost | danger"
-        data-size="sm">
+<button data-variant="primary | secondary | ghost | danger" data-size="sm"></button>
 ```
 
-*Full element + attribute table lands with Phase 28b.*
+_Full element + attribute table lands with Phase 28b._
 
 ### Component classes
 
-*Concrete HTML shapes for each `.panel` / `.status-pill` / etc.
-land with Phase 28d.*
+_Concrete HTML shapes for each `.panel` / `.status-pill` / etc.
+land with Phase 28d._
 
 ## Build
 

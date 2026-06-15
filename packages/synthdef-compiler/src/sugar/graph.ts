@@ -1,19 +1,19 @@
-import { binaryOpIndex, unaryOpIndex } from '../operators.js';
-import { Rate } from '../rate.js';
-import { lookupUgen, UGenRegistryEntry, ugensByCategory } from '../registry.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
-import type { Graph, GraphOperators } from './graph.types.js';
+import { binaryOpIndex, unaryOpIndex } from "../operators.js";
+import { Rate } from "../rate.js";
+import { lookupUgen, UGenRegistryEntry, ugensByCategory } from "../registry.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
+import type { Graph, GraphOperators } from "./graph.types.js";
 
 /**
  * Variadic `Vec<UGenInput>` arg names — collected separately in `buildUgen`
  * and appended to the input list after all non-variadic args, matching
  * what the Rust typed builders emit at wire time.
  */
-const VARIADIC_ARGS = new Set(['channelsArray', 'inputArray']);
+const VARIADIC_ARGS = new Set(["channelsArray", "inputArray"]);
 
 /** Arg names that drive `num_outputs` instead of adding an input wire. */
-const NUM_OUTPUTS_ARGS = new Set(['numChannels']);
+const NUM_OUTPUTS_ARGS = new Set(["numChannels"]);
 
 /**
  * Build a ready-to-use graph namespace for the given SynthDef. Exposes
@@ -27,9 +27,8 @@ export function makeGraph(def: SynthDef): Graph {
     for (const entry of slice) {
       const methods: Record<string, (...args: UGenInputLike[]) => UGenInput> = {};
       for (const rate of entry.rates) {
-        const method = rate === 'audio' ? 'ar' : rate === 'control' ? 'kr' : 'ir';
-        methods[method] = (...args: UGenInputLike[]) =>
-          buildUgen(def, entry, rate, args);
+        const method = rate === "audio" ? "ar" : rate === "control" ? "kr" : "ir";
+        methods[method] = (...args: UGenInputLike[]) => buildUgen(def, entry, rate, args);
       }
       g[entry.name] = methods;
     }
@@ -55,7 +54,7 @@ function buildUgen(
     const provided = args[i];
     if (NUM_OUTPUTS_ARGS.has(argSpec.name)) {
       if (provided !== undefined) {
-        if (typeof provided !== 'number' || !Number.isInteger(provided) || provided < 1) {
+        if (typeof provided !== "number" || !Number.isInteger(provided) || provided < 1) {
           throw new Error(
             `${entry.name}.${rateMethodName(rate)}: argument "${argSpec.name}" ` +
               `must be a positive integer (number of output channels), got ` +
@@ -81,7 +80,7 @@ function buildUgen(
     if (provided !== undefined) {
       nonVariadic.push(toUGenInput(provided));
     } else if (argSpec.default !== null) {
-      nonVariadic.push({ tag: 'constant', val: argSpec.default });
+      nonVariadic.push({ tag: "constant", val: argSpec.default });
     } else {
       throw new Error(
         `${entry.name}.${rateMethodName(rate)}: missing required argument "${argSpec.name}"`,
@@ -90,10 +89,9 @@ function buildUgen(
   }
 
   const inputs = [...nonVariadic, ...variadic];
-  const numOutputs =
-    numOutputsOverride !== null ? numOutputsOverride : entry.numOutputs ?? 1;
+  const numOutputs = numOutputsOverride !== null ? numOutputsOverride : (entry.numOutputs ?? 1);
   const idx = def.addUgen(entry.name, rate, inputs, numOutputs, 0);
-  return { tag: 'ugen', val: idx };
+  return { tag: "ugen", val: idx };
 }
 
 function normaliseVariadic(
@@ -108,7 +106,7 @@ function normaliseVariadic(
   }
   // Accept a single UGenInputLike — matches sclang where a "list of
   // signals" can be a single signal in the one-channel case.
-  if (typeof provided === 'number' || typeof provided === 'object') {
+  if (typeof provided === "number" || typeof provided === "object") {
     return [toUGenInput(provided)];
   }
   throw new Error(
@@ -118,25 +116,25 @@ function normaliseVariadic(
 }
 
 function rateMethodName(rate: Rate): string {
-  return rate === 'audio' ? 'ar' : rate === 'control' ? 'kr' : 'ir';
+  return rate === "audio" ? "ar" : rate === "control" ? "kr" : "ir";
 }
 
 // ─── Operator helpers ───────────────────────────────────────────────────
 
 function makeOperators(def: SynthDef): GraphOperators {
   const rateOf = (input: UGenInput): Rate => {
-    if (input.tag === 'constant') return 'scalar';
-    const idx = input.tag === 'ugen' ? input.val : input.ugenIdx;
+    if (input.tag === "constant") return "scalar";
+    const idx = input.tag === "ugen" ? input.val : input.ugenIdx;
     return def.getNodeRate(idx);
   };
 
   const combinedRate = (...inputs: UGenInput[]): Rate => {
     // Highest rate wins: audio > control > scalar.
-    let best: Rate = 'scalar';
+    let best: Rate = "scalar";
     for (const i of inputs) {
       const r = rateOf(i);
-      if (r === 'audio') return 'audio';
-      if (r === 'control') best = 'control';
+      if (r === "audio") return "audio";
+      if (r === "control") best = "control";
     }
     return best;
   };
@@ -148,8 +146,8 @@ function makeOperators(def: SynthDef): GraphOperators {
       const ai = toUGenInput(a);
       const bi = toUGenInput(b);
       const rate = combinedRate(ai, bi);
-      const idx = def.addUgen('BinaryOpUGen', rate, [ai, bi], 1, special);
-      return { tag: 'ugen', val: idx };
+      const idx = def.addUgen("BinaryOpUGen", rate, [ai, bi], 1, special);
+      return { tag: "ugen", val: idx };
     };
   };
 
@@ -159,27 +157,27 @@ function makeOperators(def: SynthDef): GraphOperators {
     return (a) => {
       const ai = toUGenInput(a);
       const rate = combinedRate(ai);
-      const idx = def.addUgen('UnaryOpUGen', rate, [ai], 1, special);
-      return { tag: 'ugen', val: idx };
+      const idx = def.addUgen("UnaryOpUGen", rate, [ai], 1, special);
+      return { tag: "ugen", val: idx };
     };
   };
 
   return {
-    mul: binOp('*'),
-    add: binOp('+'),
-    sub: binOp('-'),
-    div: binOp('/'),
-    mod: binOp('%'),
-    pow: binOp('pow'),
-    min: binOp('min'),
-    max: binOp('max'),
-    neg: unOp('neg'),
-    abs: unOp('abs'),
-    reciprocal: unOp('reciprocal'),
-    midicps: unOp('midicps'),
-    cpsmidi: unOp('cpsmidi'),
-    ampdb: unOp('ampdb'),
-    dbamp: unOp('dbamp'),
+    mul: binOp("*"),
+    add: binOp("+"),
+    sub: binOp("-"),
+    div: binOp("/"),
+    mod: binOp("%"),
+    pow: binOp("pow"),
+    min: binOp("min"),
+    max: binOp("max"),
+    neg: unOp("neg"),
+    abs: unOp("abs"),
+    reciprocal: unOp("reciprocal"),
+    midicps: unOp("midicps"),
+    cpsmidi: unOp("cpsmidi"),
+    ampdb: unOp("ampdb"),
+    dbamp: unOp("dbamp"),
   };
 }
 

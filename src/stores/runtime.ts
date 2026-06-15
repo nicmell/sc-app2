@@ -19,9 +19,7 @@ export const runtime = store;
  *  reload keeps user-moved values while fresh mounts get the attribute. */
 export function seedRuntimeValue(pluginId: string, key: string, value: number): void {
   store.update((s) =>
-    s[pluginId]?.[key] !== undefined
-      ? s
-      : { ...s, [pluginId]: { ...s[pluginId], [key]: value } },
+    s[pluginId]?.[key] !== undefined ? s : { ...s, [pluginId]: { ...s[pluginId], [key]: value } },
   );
 }
 
@@ -35,7 +33,10 @@ export function getRuntimeValue(pluginId: string, key: string): number | undefin
 
 /** A read-only view onto one runtime value — fires `undefined` when the
  *  plugin's map is dropped (subscribers ignore it). */
-export function selectRuntimeValue(pluginId: string, key: string): ReadonlyStore<number | undefined> {
+export function selectRuntimeValue(
+  pluginId: string,
+  key: string,
+): ReadonlyStore<number | undefined> {
   return store.select((s) => s[pluginId]?.[key]);
 }
 

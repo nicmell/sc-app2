@@ -12,8 +12,5 @@
 // postcss-nested or sass.
 
 module.exports = {
-  plugins: [
-    require('postcss-import')(),
-    require('autoprefixer')(),
-  ],
+  plugins: [require("postcss-import")(), require("autoprefixer")()],
 };

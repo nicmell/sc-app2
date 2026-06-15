@@ -5,7 +5,7 @@
 // helpers on the root. Positional arguments follow each UGen's
 // registry order; args with defaults are optional.
 
-import type { UGenInput, UGenInputLike } from '../ugen-input.js';
+import type { UGenInput, UGenInputLike } from "../ugen-input.js";
 
 export interface GraphOperators {
   /** `a * b` — BinaryOpUGen (specialIndex 2). */
@@ -49,16 +49,46 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, freq?: UGenInputLike, radius?: UGenInputLike): UGenInput;
   };
   readonly AllpassC: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly AllpassL: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly AllpassN: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly AmpComp: {
     ir(freq?: UGenInputLike, root?: UGenInputLike, exp?: UGenInputLike): UGenInput;
@@ -66,9 +96,24 @@ export interface GraphUGens {
     kr(freq?: UGenInputLike, root?: UGenInputLike, exp?: UGenInputLike): UGenInput;
   };
   readonly AmpCompA: {
-    ir(freq?: UGenInputLike, root?: UGenInputLike, minAmp?: UGenInputLike, rootAmp?: UGenInputLike): UGenInput;
-    ar(freq?: UGenInputLike, root?: UGenInputLike, minAmp?: UGenInputLike, rootAmp?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, root?: UGenInputLike, minAmp?: UGenInputLike, rootAmp?: UGenInputLike): UGenInput;
+    ir(
+      freq?: UGenInputLike,
+      root?: UGenInputLike,
+      minAmp?: UGenInputLike,
+      rootAmp?: UGenInputLike,
+    ): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      root?: UGenInputLike,
+      minAmp?: UGenInputLike,
+      rootAmp?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      root?: UGenInputLike,
+      minAmp?: UGenInputLike,
+      rootAmp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Amplitude: {
     ar(in_?: UGenInputLike, attackTime?: UGenInputLike, releaseTime?: UGenInputLike): UGenInput;
@@ -115,20 +160,47 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike): UGenInput;
   };
   readonly Balance2: {
-    ar(left: UGenInputLike, right: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike): UGenInput;
+    ar(
+      left: UGenInputLike,
+      right: UGenInputLike,
+      pos?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Ball: {
-    ar(in_?: UGenInputLike, g?: UGenInputLike, damp?: UGenInputLike, friction?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      g?: UGenInputLike,
+      damp?: UGenInputLike,
+      friction?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BeatTrack: {
     kr(chain: UGenInputLike, lock?: UGenInputLike): UGenInput;
   };
   readonly BeatTrack2: {
-    kr(busindex: UGenInputLike, numfeatures: UGenInputLike, windowsize?: UGenInputLike, phaseaccuracy?: UGenInputLike, lock?: UGenInputLike, weightingscheme?: UGenInputLike): UGenInput;
+    kr(
+      busindex: UGenInputLike,
+      numfeatures: UGenInputLike,
+      windowsize?: UGenInputLike,
+      phaseaccuracy?: UGenInputLike,
+      lock?: UGenInputLike,
+      weightingscheme?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BiPanB2: {
-    ar(inA: UGenInputLike, inB: UGenInputLike, azimuth: UGenInputLike, gain?: UGenInputLike): UGenInput;
-    kr(inA: UGenInputLike, inB: UGenInputLike, azimuth: UGenInputLike, gain?: UGenInputLike): UGenInput;
+    ar(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      azimuth: UGenInputLike,
+      gain?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      azimuth: UGenInputLike,
+      gain?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BinaryOpUGen: {
     ir(a: UGenInputLike, b: UGenInputLike): UGenInput;
@@ -143,26 +215,56 @@ export interface GraphUGens {
     kr(): UGenInput;
   };
   readonly BufAllpassC: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufAllpassL: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufAllpassN: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufChannels: {
     kr(buf?: UGenInputLike): UGenInput;
     ir(buf?: UGenInputLike): UGenInput;
   };
   readonly BufCombC: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufCombL: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufCombN: {
-    ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      buf?: UGenInputLike,
+      in_?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufDelayC: {
     ar(buf?: UGenInputLike, in_?: UGenInputLike, delayTime?: UGenInputLike): UGenInput;
@@ -189,8 +291,20 @@ export interface GraphUGens {
     ir(buf?: UGenInputLike): UGenInput;
   };
   readonly BufRd: {
-    ar(numChannels?: number, bufnum?: UGenInputLike, phase?: UGenInputLike, loop?: UGenInputLike, interpolation?: UGenInputLike): UGenInput;
-    kr(numChannels?: number, bufnum?: UGenInputLike, phase?: UGenInputLike, loop?: UGenInputLike, interpolation?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      bufnum?: UGenInputLike,
+      phase?: UGenInputLike,
+      loop?: UGenInputLike,
+      interpolation?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      numChannels?: number,
+      bufnum?: UGenInputLike,
+      phase?: UGenInputLike,
+      loop?: UGenInputLike,
+      interpolation?: UGenInputLike,
+    ): UGenInput;
   };
   readonly BufSampleRate: {
     kr(buf?: UGenInputLike): UGenInput;
@@ -201,8 +315,18 @@ export interface GraphUGens {
     ir(buf?: UGenInputLike): UGenInput;
   };
   readonly BufWr: {
-    ar(inputArray: UGenInputLike | UGenInputLike[], bufnum?: UGenInputLike, phase?: UGenInputLike, loop?: UGenInputLike): UGenInput;
-    kr(inputArray: UGenInputLike | UGenInputLike[], bufnum?: UGenInputLike, phase?: UGenInputLike, loop?: UGenInputLike): UGenInput;
+    ar(
+      inputArray: UGenInputLike | UGenInputLike[],
+      bufnum?: UGenInputLike,
+      phase?: UGenInputLike,
+      loop?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inputArray: UGenInputLike | UGenInputLike[],
+      bufnum?: UGenInputLike,
+      phase?: UGenInputLike,
+      loop?: UGenInputLike,
+    ): UGenInput;
   };
   readonly COsc: {
     ar(bufnum: UGenInputLike, freq?: UGenInputLike, beats?: UGenInputLike): UGenInput;
@@ -227,19 +351,57 @@ export interface GraphUGens {
     ir(prob: UGenInputLike, trig: UGenInputLike): UGenInput;
   };
   readonly CombC: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly CombL: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly CombN: {
-    ar(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, maxDelayTime?: UGenInputLike, delayTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      maxDelayTime?: UGenInputLike,
+      delayTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Compander: {
-    ar(in_?: UGenInputLike, control?: UGenInputLike, thresh?: UGenInputLike, slopeBelow?: UGenInputLike, slopeAbove?: UGenInputLike, clampTime?: UGenInputLike, relaxTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      control?: UGenInputLike,
+      thresh?: UGenInputLike,
+      slopeBelow?: UGenInputLike,
+      slopeAbove?: UGenInputLike,
+      clampTime?: UGenInputLike,
+      relaxTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly ControlDur: {
     ir(): UGenInput;
@@ -251,14 +413,35 @@ export interface GraphUGens {
     ar(in_: UGenInputLike, kernel: UGenInputLike, framesize?: UGenInputLike): UGenInput;
   };
   readonly Convolution2: {
-    ar(in_: UGenInputLike, kernel: UGenInputLike, trigger: UGenInputLike, framesize?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      kernel: UGenInputLike,
+      trigger: UGenInputLike,
+      framesize?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Convolution2L: {
-    ar(in_: UGenInputLike, kernel: UGenInputLike, trigger: UGenInputLike, framesize?: UGenInputLike, crossfade?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      kernel: UGenInputLike,
+      trigger: UGenInputLike,
+      framesize?: UGenInputLike,
+      crossfade?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Convolution3: {
-    ar(in_: UGenInputLike, kernel: UGenInputLike, trigger?: UGenInputLike, framesize?: UGenInputLike): UGenInput;
-    kr(in_: UGenInputLike, kernel: UGenInputLike, trigger?: UGenInputLike, framesize?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      kernel: UGenInputLike,
+      trigger?: UGenInputLike,
+      framesize?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_: UGenInputLike,
+      kernel: UGenInputLike,
+      trigger?: UGenInputLike,
+      framesize?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Crackle: {
     ar(chaosParam?: UGenInputLike): UGenInput;
@@ -276,12 +459,9 @@ export interface GraphUGens {
     ar(in_: UGenInputLike): UGenInput;
     kr(in_: UGenInputLike): UGenInput;
   };
-  readonly Dbrown: {
-  };
-  readonly Dbufrd: {
-  };
-  readonly Dbufwr: {
-  };
+  readonly Dbrown: {};
+  readonly Dbufrd: {};
+  readonly Dbufwr: {};
   readonly Decay: {
     ar(in_?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
     kr(in_?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
@@ -291,16 +471,38 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, attackTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
   };
   readonly DecodeB2: {
-    ar(numChannels: number, w: UGenInputLike, x: UGenInputLike, y: UGenInputLike, orientation?: UGenInputLike): UGenInput;
-    kr(numChannels: number, w: UGenInputLike, x: UGenInputLike, y: UGenInputLike, orientation?: UGenInputLike): UGenInput;
+    ar(
+      numChannels: number,
+      w: UGenInputLike,
+      x: UGenInputLike,
+      y: UGenInputLike,
+      orientation?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      numChannels: number,
+      w: UGenInputLike,
+      x: UGenInputLike,
+      y: UGenInputLike,
+      orientation?: UGenInputLike,
+    ): UGenInput;
   };
   readonly DegreeToKey: {
     ar(bufnum: UGenInputLike, in_?: UGenInputLike, octave?: UGenInputLike): UGenInput;
     kr(bufnum: UGenInputLike, in_?: UGenInputLike, octave?: UGenInputLike): UGenInput;
   };
   readonly DelTapRd: {
-    ar(buffer?: UGenInputLike, phase?: UGenInputLike, delay?: UGenInputLike, interp?: UGenInputLike): UGenInput;
-    kr(buffer?: UGenInputLike, phase?: UGenInputLike, delay?: UGenInputLike, interp?: UGenInputLike): UGenInput;
+    ar(
+      buffer?: UGenInputLike,
+      phase?: UGenInputLike,
+      delay?: UGenInputLike,
+      interp?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      buffer?: UGenInputLike,
+      phase?: UGenInputLike,
+      delay?: UGenInputLike,
+      interp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly DelTapWr: {
     ar(buffer?: UGenInputLike, in_?: UGenInputLike): UGenInput;
@@ -331,52 +533,71 @@ export interface GraphUGens {
     kr(trig: UGenInputLike, reset?: UGenInputLike, demandUgens?: UGenInputLike): UGenInput;
   };
   readonly DemandEnvGen: {
-    ar(level: UGenInputLike, dur: UGenInputLike, shape?: UGenInputLike, curve?: UGenInputLike, gate?: UGenInputLike, reset?: UGenInputLike, levelScale?: UGenInputLike, levelBias?: UGenInputLike, timeScale?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(level: UGenInputLike, dur: UGenInputLike, shape?: UGenInputLike, curve?: UGenInputLike, gate?: UGenInputLike, reset?: UGenInputLike, levelScale?: UGenInputLike, levelBias?: UGenInputLike, timeScale?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      level: UGenInputLike,
+      dur: UGenInputLike,
+      shape?: UGenInputLike,
+      curve?: UGenInputLike,
+      gate?: UGenInputLike,
+      reset?: UGenInputLike,
+      levelScale?: UGenInputLike,
+      levelBias?: UGenInputLike,
+      timeScale?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      level: UGenInputLike,
+      dur: UGenInputLike,
+      shape?: UGenInputLike,
+      curve?: UGenInputLike,
+      gate?: UGenInputLike,
+      reset?: UGenInputLike,
+      levelScale?: UGenInputLike,
+      levelBias?: UGenInputLike,
+      timeScale?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly DetectIndex: {
     kr(bufnum: UGenInputLike, in_?: UGenInputLike): UGenInput;
     ir(bufnum: UGenInputLike, in_?: UGenInputLike): UGenInput;
   };
   readonly DetectSilence: {
-    ar(in_?: UGenInputLike, amp?: UGenInputLike, time?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, amp?: UGenInputLike, time?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      amp?: UGenInputLike,
+      time?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      amp?: UGenInputLike,
+      time?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
-  readonly Dgeom: {
-  };
-  readonly Dibrown: {
-  };
+  readonly Dgeom: {};
+  readonly Dibrown: {};
   readonly DiskIn: {
     ar(numChannels: number, bufnum: UGenInputLike, loop?: UGenInputLike): UGenInput;
   };
   readonly DiskOut: {
     ar(bufnum: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
   };
-  readonly Diwhite: {
-  };
-  readonly Donce: {
-  };
+  readonly Diwhite: {};
+  readonly Donce: {};
   readonly Done: {
     kr(src: UGenInputLike): UGenInput;
   };
-  readonly Dpoll: {
-  };
-  readonly Drand: {
-  };
-  readonly Dseq: {
-  };
-  readonly Dser: {
-  };
-  readonly Dseries: {
-  };
-  readonly Dshuf: {
-  };
-  readonly Dstutter: {
-  };
-  readonly Dswitch: {
-  };
-  readonly Dswitch1: {
-  };
+  readonly Dpoll: {};
+  readonly Drand: {};
+  readonly Dseq: {};
+  readonly Dser: {};
+  readonly Dseries: {};
+  readonly Dshuf: {};
+  readonly Dstutter: {};
+  readonly Dswitch: {};
+  readonly Dswitch1: {};
   readonly Dust: {
     ar(density?: UGenInputLike): UGenInput;
     kr(density?: UGenInputLike): UGenInput;
@@ -386,34 +607,111 @@ export interface GraphUGens {
     kr(density?: UGenInputLike): UGenInput;
   };
   readonly Duty: {
-    ar(dur?: UGenInputLike, reset?: UGenInputLike, action?: UGenInputLike, level?: UGenInputLike): UGenInput;
-    kr(dur?: UGenInputLike, reset?: UGenInputLike, action?: UGenInputLike, level?: UGenInputLike): UGenInput;
+    ar(
+      dur?: UGenInputLike,
+      reset?: UGenInputLike,
+      action?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      dur?: UGenInputLike,
+      reset?: UGenInputLike,
+      action?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
   };
-  readonly Dwhite: {
-  };
-  readonly Dxrand: {
-  };
+  readonly Dwhite: {};
+  readonly Dxrand: {};
   readonly EnvGen: {
-    ar(envelope: UGenInputLike, gate?: UGenInputLike, levelScale?: UGenInputLike, levelBias?: UGenInputLike, timeScale?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(envelope: UGenInputLike, gate?: UGenInputLike, levelScale?: UGenInputLike, levelBias?: UGenInputLike, timeScale?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      envelope: UGenInputLike,
+      gate?: UGenInputLike,
+      levelScale?: UGenInputLike,
+      levelBias?: UGenInputLike,
+      timeScale?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      envelope: UGenInputLike,
+      gate?: UGenInputLike,
+      levelScale?: UGenInputLike,
+      levelBias?: UGenInputLike,
+      timeScale?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly ExpRand: {
     ir(lo?: UGenInputLike, hi?: UGenInputLike): UGenInput;
   };
   readonly FBSineC: {
-    ar(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FBSineL: {
-    ar(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FBSineN: {
-    ar(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, im?: UGenInputLike, fb?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      im?: UGenInputLike,
+      fb?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FFT: {
-    kr(buffer: UGenInputLike, in_?: UGenInputLike, hop?: UGenInputLike, wintype?: UGenInputLike, active?: UGenInputLike, winsize?: UGenInputLike): UGenInput;
+    kr(
+      buffer: UGenInputLike,
+      in_?: UGenInputLike,
+      hop?: UGenInputLike,
+      wintype?: UGenInputLike,
+      active?: UGenInputLike,
+      winsize?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FFTTrigger: {
     kr(buffer: UGenInputLike, hop?: UGenInputLike, polar?: UGenInputLike): UGenInput;
@@ -434,8 +732,18 @@ export interface GraphUGens {
     ar(fundfreq?: UGenInputLike, formfreq?: UGenInputLike, bwfreq?: UGenInputLike): UGenInput;
   };
   readonly Formlet: {
-    ar(in_?: UGenInputLike, freq?: UGenInputLike, attackTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, freq?: UGenInputLike, attackTime?: UGenInputLike, decayTime?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      attackTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      attackTime?: UGenInputLike,
+      decayTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Free: {
     kr(trig: UGenInputLike, id: UGenInputLike): UGenInput;
@@ -447,16 +755,38 @@ export interface GraphUGens {
     kr(src: UGenInputLike): UGenInput;
   };
   readonly FreeVerb: {
-    ar(in_: UGenInputLike, mix?: UGenInputLike, room?: UGenInputLike, damp?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      mix?: UGenInputLike,
+      room?: UGenInputLike,
+      damp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FreeVerb2: {
-    ar(in_: UGenInputLike, in2: UGenInputLike, mix?: UGenInputLike, room?: UGenInputLike, damp?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      in2: UGenInputLike,
+      mix?: UGenInputLike,
+      room?: UGenInputLike,
+      damp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly FreqShift: {
     ar(in_: UGenInputLike, freq?: UGenInputLike, phase?: UGenInputLike): UGenInput;
   };
   readonly GVerb: {
-    ar(in_: UGenInputLike, roomsize?: UGenInputLike, revtime?: UGenInputLike, damping?: UGenInputLike, inputbw?: UGenInputLike, spread?: UGenInputLike, drylevel?: UGenInputLike, earlyreflevel?: UGenInputLike, taillevel?: UGenInputLike, maxroomsize?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      roomsize?: UGenInputLike,
+      revtime?: UGenInputLike,
+      damping?: UGenInputLike,
+      inputbw?: UGenInputLike,
+      spread?: UGenInputLike,
+      drylevel?: UGenInputLike,
+      earlyreflevel?: UGenInputLike,
+      taillevel?: UGenInputLike,
+      maxroomsize?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Gate: {
     ar(in_?: UGenInputLike, trig?: UGenInputLike): UGenInput;
@@ -471,28 +801,133 @@ export interface GraphUGens {
     kr(freq?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
   };
   readonly Gendy1: {
-    ar(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, minfreq?: UGenInputLike, maxfreq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike): UGenInput;
-    kr(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, minfreq?: UGenInputLike, maxfreq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike): UGenInput;
+    ar(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      minfreq?: UGenInputLike,
+      maxfreq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      minfreq?: UGenInputLike,
+      maxfreq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Gendy2: {
-    ar(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, minfreq?: UGenInputLike, maxfreq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike): UGenInput;
-    kr(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, minfreq?: UGenInputLike, maxfreq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike): UGenInput;
+    ar(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      minfreq?: UGenInputLike,
+      maxfreq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      minfreq?: UGenInputLike,
+      maxfreq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Gendy3: {
-    ar(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, freq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike): UGenInput;
-    kr(ampdist?: UGenInputLike, durdist?: UGenInputLike, adparam?: UGenInputLike, ddparam?: UGenInputLike, freq?: UGenInputLike, ampscale?: UGenInputLike, durscale?: UGenInputLike, initCps?: UGenInputLike, knum?: UGenInputLike): UGenInput;
+    ar(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      freq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      ampdist?: UGenInputLike,
+      durdist?: UGenInputLike,
+      adparam?: UGenInputLike,
+      ddparam?: UGenInputLike,
+      freq?: UGenInputLike,
+      ampscale?: UGenInputLike,
+      durscale?: UGenInputLike,
+      initCps?: UGenInputLike,
+      knum?: UGenInputLike,
+    ): UGenInput;
   };
   readonly GrainBuf: {
-    ar(numChannels?: number, trigger?: UGenInputLike, dur?: UGenInputLike, sndbuf?: UGenInputLike, rate?: UGenInputLike, pos?: UGenInputLike, interp?: UGenInputLike, pan?: UGenInputLike, envbufnum?: UGenInputLike, maxGrains?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      trigger?: UGenInputLike,
+      dur?: UGenInputLike,
+      sndbuf?: UGenInputLike,
+      rate?: UGenInputLike,
+      pos?: UGenInputLike,
+      interp?: UGenInputLike,
+      pan?: UGenInputLike,
+      envbufnum?: UGenInputLike,
+      maxGrains?: UGenInputLike,
+    ): UGenInput;
   };
   readonly GrainFM: {
-    ar(numChannels?: number, trigger?: UGenInputLike, dur?: UGenInputLike, carFreq?: UGenInputLike, modFreq?: UGenInputLike, index?: UGenInputLike, pan?: UGenInputLike, envbufnum?: UGenInputLike, maxGrains?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      trigger?: UGenInputLike,
+      dur?: UGenInputLike,
+      carFreq?: UGenInputLike,
+      modFreq?: UGenInputLike,
+      index?: UGenInputLike,
+      pan?: UGenInputLike,
+      envbufnum?: UGenInputLike,
+      maxGrains?: UGenInputLike,
+    ): UGenInput;
   };
   readonly GrainIn: {
-    ar(numChannels?: number, trigger?: UGenInputLike, dur?: UGenInputLike, in_?: UGenInputLike, pan?: UGenInputLike, envbufnum?: UGenInputLike, maxGrains?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      trigger?: UGenInputLike,
+      dur?: UGenInputLike,
+      in_?: UGenInputLike,
+      pan?: UGenInputLike,
+      envbufnum?: UGenInputLike,
+      maxGrains?: UGenInputLike,
+    ): UGenInput;
   };
   readonly GrainSin: {
-    ar(numChannels?: number, trigger?: UGenInputLike, dur?: UGenInputLike, freq?: UGenInputLike, pan?: UGenInputLike, envbufnum?: UGenInputLike, maxGrains?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      trigger?: UGenInputLike,
+      dur?: UGenInputLike,
+      freq?: UGenInputLike,
+      pan?: UGenInputLike,
+      envbufnum?: UGenInputLike,
+      maxGrains?: UGenInputLike,
+    ): UGenInput;
   };
   readonly GrayNoise: {
     ar(): UGenInput;
@@ -513,16 +948,52 @@ export interface GraphUGens {
     ar(in_?: UGenInputLike): UGenInput;
   };
   readonly HenonC: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
   };
   readonly HenonL: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
   };
   readonly HenonN: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, x0?: UGenInputLike, x1?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      x0?: UGenInputLike,
+      x1?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Hilbert: {
     ar(in_: UGenInputLike): UGenInput;
@@ -554,8 +1025,22 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, lo?: UGenInputLike, hi?: UGenInputLike): UGenInput;
   };
   readonly InRect: {
-    ar(x?: UGenInputLike, y?: UGenInputLike, left?: UGenInputLike, top?: UGenInputLike, right?: UGenInputLike, bottom?: UGenInputLike): UGenInput;
-    kr(x?: UGenInputLike, y?: UGenInputLike, left?: UGenInputLike, top?: UGenInputLike, right?: UGenInputLike, bottom?: UGenInputLike): UGenInput;
+    ar(
+      x?: UGenInputLike,
+      y?: UGenInputLike,
+      left?: UGenInputLike,
+      top?: UGenInputLike,
+      right?: UGenInputLike,
+      bottom?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      x?: UGenInputLike,
+      y?: UGenInputLike,
+      left?: UGenInputLike,
+      top?: UGenInputLike,
+      right?: UGenInputLike,
+      bottom?: UGenInputLike,
+    ): UGenInput;
   };
   readonly InTrig: {
     kr(bus?: UGenInputLike, numChannels?: number): UGenInput;
@@ -576,7 +1061,12 @@ export interface GraphUGens {
     ar(in_?: UGenInputLike): UGenInput;
   };
   readonly KeyState: {
-    kr(keycode?: UGenInputLike, minval?: UGenInputLike, maxval?: UGenInputLike, lag?: UGenInputLike): UGenInput;
+    kr(
+      keycode?: UGenInputLike,
+      minval?: UGenInputLike,
+      maxval?: UGenInputLike,
+      lag?: UGenInputLike,
+    ): UGenInput;
   };
   readonly KeyTrack: {
     kr(chain: UGenInputLike, keydecay?: UGenInputLike, chromaleak?: UGenInputLike): UGenInput;
@@ -585,7 +1075,13 @@ export interface GraphUGens {
     ar(specs: UGenInputLike, freqscale?: UGenInputLike, freqoffset?: UGenInputLike): UGenInput;
   };
   readonly Klank: {
-    ar(specs: UGenInputLike, input: UGenInputLike, freqscale?: UGenInputLike, freqoffset?: UGenInputLike, decayscale?: UGenInputLike): UGenInput;
+    ar(
+      specs: UGenInputLike,
+      input: UGenInputLike,
+      freqscale?: UGenInputLike,
+      freqoffset?: UGenInputLike,
+      decayscale?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LFClipNoise: {
     ar(freq?: UGenInputLike): UGenInput;
@@ -612,8 +1108,20 @@ export interface GraphUGens {
     kr(freq?: UGenInputLike): UGenInput;
   };
   readonly LFGauss: {
-    ar(duration?: UGenInputLike, width?: UGenInputLike, iphase?: UGenInputLike, loop?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(duration?: UGenInputLike, width?: UGenInputLike, iphase?: UGenInputLike, loop?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      duration?: UGenInputLike,
+      width?: UGenInputLike,
+      iphase?: UGenInputLike,
+      loop?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      duration?: UGenInputLike,
+      width?: UGenInputLike,
+      iphase?: UGenInputLike,
+      loop?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LFNoise0: {
     ar(freq?: UGenInputLike): UGenInput;
@@ -691,16 +1199,64 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, trig?: UGenInputLike): UGenInput;
   };
   readonly LatoocarfianC: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LatoocarfianL: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LatoocarfianN: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LeakDC: {
     ar(in_?: UGenInputLike, coef?: UGenInputLike): UGenInput;
@@ -714,20 +1270,68 @@ export interface GraphUGens {
     ar(in_: UGenInputLike, level?: UGenInputLike, dur?: UGenInputLike): UGenInput;
   };
   readonly LinCongC: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LinCongL: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LinCongN: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, c?: UGenInputLike, m?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      c?: UGenInputLike,
+      m?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LinExp: {
-    ar(in_?: UGenInputLike, srclo?: UGenInputLike, srchi?: UGenInputLike, dstlo?: UGenInputLike, dsthi?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, srclo?: UGenInputLike, srchi?: UGenInputLike, dstlo?: UGenInputLike, dsthi?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      srclo?: UGenInputLike,
+      srchi?: UGenInputLike,
+      dstlo?: UGenInputLike,
+      dsthi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      srclo?: UGenInputLike,
+      srchi?: UGenInputLike,
+      dstlo?: UGenInputLike,
+      dsthi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LinPan2: {
     ar(in_: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike): UGenInput;
@@ -737,15 +1341,41 @@ export interface GraphUGens {
     ir(lo?: UGenInputLike, hi?: UGenInputLike, minmax?: UGenInputLike): UGenInput;
   };
   readonly LinXFade2: {
-    ar(inA: UGenInputLike, inB: UGenInputLike, pan?: UGenInputLike, level?: UGenInputLike): UGenInput;
-    kr(inA: UGenInputLike, inB: UGenInputLike, pan?: UGenInputLike, level?: UGenInputLike): UGenInput;
+    ar(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      pan?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      pan?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Line: {
-    ar(start?: UGenInputLike, end?: UGenInputLike, dur?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(start?: UGenInputLike, end?: UGenInputLike, dur?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      dur?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      dur?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Linen: {
-    kr(gate?: UGenInputLike, attackTime?: UGenInputLike, susLevel?: UGenInputLike, releaseTime?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    kr(
+      gate?: UGenInputLike,
+      attackTime?: UGenInputLike,
+      susLevel?: UGenInputLike,
+      releaseTime?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly LocalBuf: {
     ir(numChannels?: number, numFrames?: UGenInputLike): UGenInput;
@@ -762,8 +1392,26 @@ export interface GraphUGens {
     ar(chaosParam?: UGenInputLike, freq?: UGenInputLike, init?: UGenInputLike): UGenInput;
   };
   readonly LorenzL: {
-    ar(freq?: UGenInputLike, s?: UGenInputLike, r?: UGenInputLike, b?: UGenInputLike, h?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike, zi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, s?: UGenInputLike, r?: UGenInputLike, b?: UGenInputLike, h?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike, zi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      s?: UGenInputLike,
+      r?: UGenInputLike,
+      b?: UGenInputLike,
+      h?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+      zi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      s?: UGenInputLike,
+      r?: UGenInputLike,
+      b?: UGenInputLike,
+      h?: UGenInputLike,
+      xi?: UGenInputLike,
+      yi?: UGenInputLike,
+      zi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Loudness: {
     kr(chain: UGenInputLike, smask?: UGenInputLike, tmask?: UGenInputLike): UGenInput;
@@ -782,12 +1430,32 @@ export interface GraphUGens {
     kr(length?: UGenInputLike, in_?: UGenInputLike): UGenInput;
   };
   readonly MidEQ: {
-    ar(in_?: UGenInputLike, freq?: UGenInputLike, rq?: UGenInputLike, db?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, freq?: UGenInputLike, rq?: UGenInputLike, db?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      rq?: UGenInputLike,
+      db?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      rq?: UGenInputLike,
+      db?: UGenInputLike,
+    ): UGenInput;
   };
   readonly MoogFF: {
-    ar(in_?: UGenInputLike, freq?: UGenInputLike, gain?: UGenInputLike, reset?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, freq?: UGenInputLike, gain?: UGenInputLike, reset?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      gain?: UGenInputLike,
+      reset?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      freq?: UGenInputLike,
+      gain?: UGenInputLike,
+      reset?: UGenInputLike,
+    ): UGenInput;
   };
   readonly MostChange: {
     ar(a?: UGenInputLike, b?: UGenInputLike): UGenInput;
@@ -797,10 +1465,20 @@ export interface GraphUGens {
     kr(up?: UGenInputLike, down?: UGenInputLike, lag?: UGenInputLike): UGenInput;
   };
   readonly MouseX: {
-    kr(min?: UGenInputLike, max?: UGenInputLike, warp?: UGenInputLike, lag?: UGenInputLike): UGenInput;
+    kr(
+      min?: UGenInputLike,
+      max?: UGenInputLike,
+      warp?: UGenInputLike,
+      lag?: UGenInputLike,
+    ): UGenInput;
   };
   readonly MouseY: {
-    kr(min?: UGenInputLike, max?: UGenInputLike, warp?: UGenInputLike, lag?: UGenInputLike): UGenInput;
+    kr(
+      min?: UGenInputLike,
+      max?: UGenInputLike,
+      warp?: UGenInputLike,
+      lag?: UGenInputLike,
+    ): UGenInput;
   };
   readonly MulAdd: {
     ir(in_: UGenInputLike, mul: UGenInputLike, add: UGenInputLike): UGenInput;
@@ -844,7 +1522,17 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, coef?: UGenInputLike): UGenInput;
   };
   readonly Onsets: {
-    kr(chain: UGenInputLike, threshold?: UGenInputLike, odftype?: UGenInputLike, relaxtime?: UGenInputLike, floor?: UGenInputLike, mingap?: UGenInputLike, medianspan?: UGenInputLike, whtype?: UGenInputLike, rawodf?: UGenInputLike): UGenInput;
+    kr(
+      chain: UGenInputLike,
+      threshold?: UGenInputLike,
+      odftype?: UGenInputLike,
+      relaxtime?: UGenInputLike,
+      floor?: UGenInputLike,
+      mingap?: UGenInputLike,
+      medianspan?: UGenInputLike,
+      whtype?: UGenInputLike,
+      rawodf?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Osc: {
     ar(buffer: UGenInputLike, freq?: UGenInputLike, phase?: UGenInputLike): UGenInput;
@@ -861,7 +1549,12 @@ export interface GraphUGens {
     kr(bufferA: UGenInputLike, bufferB: UGenInputLike): UGenInput;
   };
   readonly PV_BinScramble: {
-    kr(buffer: UGenInputLike, wipe?: UGenInputLike, width?: UGenInputLike, trig?: UGenInputLike): UGenInput;
+    kr(
+      buffer: UGenInputLike,
+      wipe?: UGenInputLike,
+      width?: UGenInputLike,
+      trig?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PV_BinShift: {
     kr(buffer: UGenInputLike, stretch?: UGenInputLike, shift?: UGenInputLike): UGenInput;
@@ -891,10 +1584,24 @@ export interface GraphUGens {
     kr(bufferA: UGenInputLike, bufferB: UGenInputLike): UGenInput;
   };
   readonly PV_HainsworthFoote: {
-    ar(buffer: UGenInputLike, proph?: UGenInputLike, propf?: UGenInputLike, threshold?: UGenInputLike, waitTime?: UGenInputLike): UGenInput;
+    ar(
+      buffer: UGenInputLike,
+      proph?: UGenInputLike,
+      propf?: UGenInputLike,
+      threshold?: UGenInputLike,
+      waitTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PV_JensenAndersen: {
-    ar(buffer: UGenInputLike, propsc?: UGenInputLike, prophfe?: UGenInputLike, prophfc?: UGenInputLike, propsf?: UGenInputLike, threshold?: UGenInputLike, waitTime?: UGenInputLike): UGenInput;
+    ar(
+      buffer: UGenInputLike,
+      propsc?: UGenInputLike,
+      prophfe?: UGenInputLike,
+      prophfc?: UGenInputLike,
+      propsf?: UGenInputLike,
+      threshold?: UGenInputLike,
+      waitTime?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PV_LocalMax: {
     kr(buffer: UGenInputLike, threshold?: UGenInputLike): UGenInput;
@@ -951,29 +1658,79 @@ export interface GraphUGens {
     kr(buffer: UGenInputLike, wipe?: UGenInputLike, trig?: UGenInputLike): UGenInput;
   };
   readonly PV_RandWipe: {
-    kr(bufferA: UGenInputLike, bufferB: UGenInputLike, wipe?: UGenInputLike, trig?: UGenInputLike): UGenInput;
+    kr(
+      bufferA: UGenInputLike,
+      bufferB: UGenInputLike,
+      wipe?: UGenInputLike,
+      trig?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PV_RectComb: {
-    kr(buffer: UGenInputLike, numTeeth?: UGenInputLike, phase?: UGenInputLike, width?: UGenInputLike): UGenInput;
+    kr(
+      buffer: UGenInputLike,
+      numTeeth?: UGenInputLike,
+      phase?: UGenInputLike,
+      width?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PV_RectComb2: {
-    kr(bufferA: UGenInputLike, bufferB: UGenInputLike, numTeeth?: UGenInputLike, phase?: UGenInputLike, width?: UGenInputLike): UGenInput;
+    kr(
+      bufferA: UGenInputLike,
+      bufferB: UGenInputLike,
+      numTeeth?: UGenInputLike,
+      phase?: UGenInputLike,
+      width?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Pan2: {
     ar(in_: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike): UGenInput;
     kr(in_: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike): UGenInput;
   };
   readonly Pan4: {
-    ar(in_: UGenInputLike, xpos?: UGenInputLike, ypos?: UGenInputLike, level?: UGenInputLike): UGenInput;
-    kr(in_: UGenInputLike, xpos?: UGenInputLike, ypos?: UGenInputLike, level?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      xpos?: UGenInputLike,
+      ypos?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_: UGenInputLike,
+      xpos?: UGenInputLike,
+      ypos?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PanAz: {
-    ar(numChannels: number, in_: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike, width?: UGenInputLike, orientation?: UGenInputLike): UGenInput;
-    kr(numChannels: number, in_: UGenInputLike, pos?: UGenInputLike, level?: UGenInputLike, width?: UGenInputLike, orientation?: UGenInputLike): UGenInput;
+    ar(
+      numChannels: number,
+      in_: UGenInputLike,
+      pos?: UGenInputLike,
+      level?: UGenInputLike,
+      width?: UGenInputLike,
+      orientation?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      numChannels: number,
+      in_: UGenInputLike,
+      pos?: UGenInputLike,
+      level?: UGenInputLike,
+      width?: UGenInputLike,
+      orientation?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PanB: {
-    ar(in_: UGenInputLike, azimuth?: UGenInputLike, elevation?: UGenInputLike, gain?: UGenInputLike): UGenInput;
-    kr(in_: UGenInputLike, azimuth?: UGenInputLike, elevation?: UGenInputLike, gain?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      azimuth?: UGenInputLike,
+      elevation?: UGenInputLike,
+      gain?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_: UGenInputLike,
+      azimuth?: UGenInputLike,
+      elevation?: UGenInputLike,
+      gain?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PanB2: {
     ar(in_: UGenInputLike, azimuth?: UGenInputLike, gain?: UGenInputLike): UGenInput;
@@ -1000,29 +1757,92 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike, decay?: UGenInputLike): UGenInput;
   };
   readonly Phasor: {
-    ar(trig?: UGenInputLike, rate?: UGenInputLike, start?: UGenInputLike, end?: UGenInputLike, resetPos?: UGenInputLike): UGenInput;
-    kr(trig?: UGenInputLike, rate?: UGenInputLike, start?: UGenInputLike, end?: UGenInputLike, resetPos?: UGenInputLike): UGenInput;
+    ar(
+      trig?: UGenInputLike,
+      rate?: UGenInputLike,
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      resetPos?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      trig?: UGenInputLike,
+      rate?: UGenInputLike,
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      resetPos?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PinkNoise: {
     ar(): UGenInput;
     kr(): UGenInput;
   };
   readonly Pitch: {
-    kr(in_: UGenInputLike, initFreq?: UGenInputLike, minFreq?: UGenInputLike, maxFreq?: UGenInputLike, execFreq?: UGenInputLike, maxBinsPerOctave?: UGenInputLike, median?: UGenInputLike, ampThreshold?: UGenInputLike, peakThreshold?: UGenInputLike, downSample?: UGenInputLike, clar?: UGenInputLike): UGenInput;
+    kr(
+      in_: UGenInputLike,
+      initFreq?: UGenInputLike,
+      minFreq?: UGenInputLike,
+      maxFreq?: UGenInputLike,
+      execFreq?: UGenInputLike,
+      maxBinsPerOctave?: UGenInputLike,
+      median?: UGenInputLike,
+      ampThreshold?: UGenInputLike,
+      peakThreshold?: UGenInputLike,
+      downSample?: UGenInputLike,
+      clar?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PitchShift: {
-    ar(in_: UGenInputLike, windowSize?: UGenInputLike, pitchRatio?: UGenInputLike, pitchDispersion?: UGenInputLike, timeDispersion?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      windowSize?: UGenInputLike,
+      pitchRatio?: UGenInputLike,
+      pitchDispersion?: UGenInputLike,
+      timeDispersion?: UGenInputLike,
+    ): UGenInput;
   };
   readonly PlayBuf: {
-    ar(numChannels: number, bufnum?: UGenInputLike, rate?: UGenInputLike, trigger?: UGenInputLike, startPos?: UGenInputLike, loop?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(numChannels: number, bufnum?: UGenInputLike, rate?: UGenInputLike, trigger?: UGenInputLike, startPos?: UGenInputLike, loop?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      numChannels: number,
+      bufnum?: UGenInputLike,
+      rate?: UGenInputLike,
+      trigger?: UGenInputLike,
+      startPos?: UGenInputLike,
+      loop?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      numChannels: number,
+      bufnum?: UGenInputLike,
+      rate?: UGenInputLike,
+      trigger?: UGenInputLike,
+      startPos?: UGenInputLike,
+      loop?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Pluck: {
-    ar(in_?: UGenInputLike, trig?: UGenInputLike, maxdelaytime?: UGenInputLike, delaytime?: UGenInputLike, decaytime?: UGenInputLike, coef?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      trig?: UGenInputLike,
+      maxdelaytime?: UGenInputLike,
+      delaytime?: UGenInputLike,
+      decaytime?: UGenInputLike,
+      coef?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Poll: {
-    ar(trig?: UGenInputLike, in_?: UGenInputLike, label?: UGenInputLike, trigId?: UGenInputLike): UGenInput;
-    kr(trig?: UGenInputLike, in_?: UGenInputLike, label?: UGenInputLike, trigId?: UGenInputLike): UGenInput;
+    ar(
+      trig?: UGenInputLike,
+      in_?: UGenInputLike,
+      label?: UGenInputLike,
+      trigId?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      trig?: UGenInputLike,
+      in_?: UGenInputLike,
+      label?: UGenInputLike,
+      trigId?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Pulse: {
     ar(freq?: UGenInputLike, width?: UGenInputLike): UGenInput;
@@ -1036,16 +1856,52 @@ export interface GraphUGens {
     kr(trig?: UGenInputLike, div?: UGenInputLike, startVal?: UGenInputLike): UGenInput;
   };
   readonly QuadC: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly QuadL: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly QuadN: {
-    ar(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, xi?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      xi?: UGenInputLike,
+    ): UGenInput;
   };
   readonly RHPF: {
     ar(in_?: UGenInputLike, freq?: UGenInputLike, rq?: UGenInputLike): UGenInput;
@@ -1074,8 +1930,28 @@ export interface GraphUGens {
     kr(trig?: UGenInputLike, seed?: UGenInputLike): UGenInput;
   };
   readonly RecordBuf: {
-    ar(inputArray: UGenInputLike | UGenInputLike[], bufnum?: UGenInputLike, offset?: UGenInputLike, recLevel?: UGenInputLike, preLevel?: UGenInputLike, run?: UGenInputLike, loop?: UGenInputLike, trigger?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(inputArray: UGenInputLike | UGenInputLike[], bufnum?: UGenInputLike, offset?: UGenInputLike, recLevel?: UGenInputLike, preLevel?: UGenInputLike, run?: UGenInputLike, loop?: UGenInputLike, trigger?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      inputArray: UGenInputLike | UGenInputLike[],
+      bufnum?: UGenInputLike,
+      offset?: UGenInputLike,
+      recLevel?: UGenInputLike,
+      preLevel?: UGenInputLike,
+      run?: UGenInputLike,
+      loop?: UGenInputLike,
+      trigger?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inputArray: UGenInputLike | UGenInputLike[],
+      bufnum?: UGenInputLike,
+      offset?: UGenInputLike,
+      recLevel?: UGenInputLike,
+      preLevel?: UGenInputLike,
+      run?: UGenInputLike,
+      loop?: UGenInputLike,
+      trigger?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly ReplaceOut: {
     ar(bus: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
@@ -1106,8 +1982,22 @@ export interface GraphUGens {
     kr(in_: UGenInputLike, numsamp?: UGenInputLike): UGenInput;
   };
   readonly SOS: {
-    ar(in_?: UGenInputLike, a0?: UGenInputLike, a1?: UGenInputLike, a2?: UGenInputLike, b1?: UGenInputLike, b2?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, a0?: UGenInputLike, a1?: UGenInputLike, a2?: UGenInputLike, b1?: UGenInputLike, b2?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      a0?: UGenInputLike,
+      a1?: UGenInputLike,
+      a2?: UGenInputLike,
+      b1?: UGenInputLike,
+      b2?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      a0?: UGenInputLike,
+      a1?: UGenInputLike,
+      a2?: UGenInputLike,
+      b1?: UGenInputLike,
+      b2?: UGenInputLike,
+    ): UGenInput;
   };
   readonly SampleDur: {
     ir(): UGenInput;
@@ -1126,16 +2016,36 @@ export interface GraphUGens {
     ar(inputArray: UGenInputLike | UGenInputLike[], bufnum?: UGenInputLike): UGenInput;
   };
   readonly ScopeOut2: {
-    ar(inputArray: UGenInputLike | UGenInputLike[], scopeNum?: UGenInputLike, maxFrames?: UGenInputLike, scopeFrames?: UGenInputLike): UGenInput;
-    kr(inputArray: UGenInputLike | UGenInputLike[], scopeNum?: UGenInputLike, maxFrames?: UGenInputLike, scopeFrames?: UGenInputLike): UGenInput;
+    ar(
+      inputArray: UGenInputLike | UGenInputLike[],
+      scopeNum?: UGenInputLike,
+      maxFrames?: UGenInputLike,
+      scopeFrames?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inputArray: UGenInputLike | UGenInputLike[],
+      scopeNum?: UGenInputLike,
+      maxFrames?: UGenInputLike,
+      scopeFrames?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Select: {
     ar(which: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
     kr(which: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
   };
   readonly SendReply: {
-    ar(trig?: UGenInputLike, cmdName?: UGenInputLike, values?: UGenInputLike, replyId?: UGenInputLike): UGenInput;
-    kr(trig?: UGenInputLike, cmdName?: UGenInputLike, values?: UGenInputLike, replyId?: UGenInputLike): UGenInput;
+    ar(
+      trig?: UGenInputLike,
+      cmdName?: UGenInputLike,
+      values?: UGenInputLike,
+      replyId?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      trig?: UGenInputLike,
+      cmdName?: UGenInputLike,
+      values?: UGenInputLike,
+      replyId?: UGenInputLike,
+    ): UGenInput;
   };
   readonly SendTrig: {
     ar(in_?: UGenInputLike, id?: UGenInputLike, value?: UGenInputLike): UGenInput;
@@ -1199,11 +2109,32 @@ export interface GraphUGens {
     kr(freq?: UGenInputLike, k?: UGenInputLike, xi?: UGenInputLike, yi?: UGenInputLike): UGenInput;
   };
   readonly Stepper: {
-    ar(trig?: UGenInputLike, reset?: UGenInputLike, min?: UGenInputLike, max?: UGenInputLike, step?: UGenInputLike, resetval?: UGenInputLike): UGenInput;
-    kr(trig?: UGenInputLike, reset?: UGenInputLike, min?: UGenInputLike, max?: UGenInputLike, step?: UGenInputLike, resetval?: UGenInputLike): UGenInput;
+    ar(
+      trig?: UGenInputLike,
+      reset?: UGenInputLike,
+      min?: UGenInputLike,
+      max?: UGenInputLike,
+      step?: UGenInputLike,
+      resetval?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      trig?: UGenInputLike,
+      reset?: UGenInputLike,
+      min?: UGenInputLike,
+      max?: UGenInputLike,
+      step?: UGenInputLike,
+      resetval?: UGenInputLike,
+    ): UGenInput;
   };
   readonly StereoConvolution2L: {
-    ar(in_: UGenInputLike, kernelL: UGenInputLike, kernelR: UGenInputLike, trigger: UGenInputLike, framesize?: UGenInputLike, crossfade?: UGenInputLike): UGenInput;
+    ar(
+      in_: UGenInputLike,
+      kernelL: UGenInputLike,
+      kernelR: UGenInputLike,
+      trigger: UGenInputLike,
+      framesize?: UGenInputLike,
+      crossfade?: UGenInputLike,
+    ): UGenInput;
   };
   readonly SubsampleOffset: {
     ir(): UGenInput;
@@ -1223,22 +2154,49 @@ export interface GraphUGens {
     kr(in_?: UGenInputLike): UGenInput;
   };
   readonly TBall: {
-    ar(in_?: UGenInputLike, g?: UGenInputLike, damp?: UGenInputLike, friction?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      g?: UGenInputLike,
+      damp?: UGenInputLike,
+      friction?: UGenInputLike,
+    ): UGenInput;
   };
   readonly TDelay: {
     ar(trig?: UGenInputLike, dur?: UGenInputLike): UGenInput;
     kr(trig?: UGenInputLike, dur?: UGenInputLike): UGenInput;
   };
   readonly TDuty: {
-    ar(dur?: UGenInputLike, reset?: UGenInputLike, action?: UGenInputLike, level?: UGenInputLike, gapFirst?: UGenInputLike): UGenInput;
-    kr(dur?: UGenInputLike, reset?: UGenInputLike, action?: UGenInputLike, level?: UGenInputLike, gapFirst?: UGenInputLike): UGenInput;
+    ar(
+      dur?: UGenInputLike,
+      reset?: UGenInputLike,
+      action?: UGenInputLike,
+      level?: UGenInputLike,
+      gapFirst?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      dur?: UGenInputLike,
+      reset?: UGenInputLike,
+      action?: UGenInputLike,
+      level?: UGenInputLike,
+      gapFirst?: UGenInputLike,
+    ): UGenInput;
   };
   readonly TExpRand: {
     ar(lo?: UGenInputLike, hi?: UGenInputLike, trig?: UGenInputLike): UGenInput;
     kr(lo?: UGenInputLike, hi?: UGenInputLike, trig?: UGenInputLike): UGenInput;
   };
   readonly TGrains: {
-    ar(numChannels?: number, trigger?: UGenInputLike, bufnum?: UGenInputLike, rate?: UGenInputLike, centerPos?: UGenInputLike, dur?: UGenInputLike, pan?: UGenInputLike, amp?: UGenInputLike, interp?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      trigger?: UGenInputLike,
+      bufnum?: UGenInputLike,
+      rate?: UGenInputLike,
+      centerPos?: UGenInputLike,
+      dur?: UGenInputLike,
+      pan?: UGenInputLike,
+      amp?: UGenInputLike,
+      interp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly TIRand: {
     kr(lo?: UGenInputLike, hi?: UGenInputLike, trig?: UGenInputLike): UGenInput;
@@ -1249,8 +2207,16 @@ export interface GraphUGens {
     ar(lo?: UGenInputLike, hi?: UGenInputLike, trig?: UGenInputLike): UGenInput;
   };
   readonly TWindex: {
-    ar(trig: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[], normalize?: UGenInputLike): UGenInput;
-    kr(trig: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[], normalize?: UGenInputLike): UGenInput;
+    ar(
+      trig: UGenInputLike,
+      channelsArray: UGenInputLike | UGenInputLike[],
+      normalize?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      trig: UGenInputLike,
+      channelsArray: UGenInputLike | UGenInputLike[],
+      normalize?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Timer: {
     ar(trig?: UGenInputLike): UGenInput;
@@ -1261,8 +2227,20 @@ export interface GraphUGens {
     kr(trig?: UGenInputLike): UGenInput;
   };
   readonly Trapezoid: {
-    ar(in_?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike): UGenInput;
-    kr(in_?: UGenInputLike, a?: UGenInputLike, b?: UGenInputLike, c?: UGenInputLike, d?: UGenInputLike): UGenInput;
+    ar(
+      in_?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      in_?: UGenInputLike,
+      a?: UGenInputLike,
+      b?: UGenInputLike,
+      c?: UGenInputLike,
+      d?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Trig: {
     ar(trig?: UGenInputLike, dur?: UGenInputLike): UGenInput;
@@ -1286,26 +2264,70 @@ export interface GraphUGens {
     kr(a: UGenInputLike): UGenInput;
   };
   readonly VDiskIn: {
-    ar(numChannels: number, bufnum: UGenInputLike, rate?: UGenInputLike, loop?: UGenInputLike, sendID?: UGenInputLike): UGenInput;
+    ar(
+      numChannels: number,
+      bufnum: UGenInputLike,
+      rate?: UGenInputLike,
+      loop?: UGenInputLike,
+      sendID?: UGenInputLike,
+    ): UGenInput;
   };
   readonly VOsc: {
     ar(bufpos: UGenInputLike, freq?: UGenInputLike, phase?: UGenInputLike): UGenInput;
     kr(bufpos: UGenInputLike, freq?: UGenInputLike, phase?: UGenInputLike): UGenInput;
   };
   readonly VOsc3: {
-    ar(bufpos: UGenInputLike, freq1?: UGenInputLike, freq2?: UGenInputLike, freq3?: UGenInputLike): UGenInput;
-    kr(bufpos: UGenInputLike, freq1?: UGenInputLike, freq2?: UGenInputLike, freq3?: UGenInputLike): UGenInput;
+    ar(
+      bufpos: UGenInputLike,
+      freq1?: UGenInputLike,
+      freq2?: UGenInputLike,
+      freq3?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      bufpos: UGenInputLike,
+      freq1?: UGenInputLike,
+      freq2?: UGenInputLike,
+      freq3?: UGenInputLike,
+    ): UGenInput;
   };
   readonly VarSaw: {
     ar(freq?: UGenInputLike, iphase?: UGenInputLike, width?: UGenInputLike): UGenInput;
     kr(freq?: UGenInputLike, iphase?: UGenInputLike, width?: UGenInputLike): UGenInput;
   };
   readonly Vibrato: {
-    ar(freq?: UGenInputLike, rate?: UGenInputLike, depth?: UGenInputLike, delay?: UGenInputLike, onset?: UGenInputLike, rateVariation?: UGenInputLike, depthVariation?: UGenInputLike, iphase?: UGenInputLike): UGenInput;
-    kr(freq?: UGenInputLike, rate?: UGenInputLike, depth?: UGenInputLike, delay?: UGenInputLike, onset?: UGenInputLike, rateVariation?: UGenInputLike, depthVariation?: UGenInputLike, iphase?: UGenInputLike): UGenInput;
+    ar(
+      freq?: UGenInputLike,
+      rate?: UGenInputLike,
+      depth?: UGenInputLike,
+      delay?: UGenInputLike,
+      onset?: UGenInputLike,
+      rateVariation?: UGenInputLike,
+      depthVariation?: UGenInputLike,
+      iphase?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      freq?: UGenInputLike,
+      rate?: UGenInputLike,
+      depth?: UGenInputLike,
+      delay?: UGenInputLike,
+      onset?: UGenInputLike,
+      rateVariation?: UGenInputLike,
+      depthVariation?: UGenInputLike,
+      iphase?: UGenInputLike,
+    ): UGenInput;
   };
   readonly Warp1: {
-    ar(numChannels?: number, bufnum?: UGenInputLike, pointer?: UGenInputLike, freqScale?: UGenInputLike, windowSize?: UGenInputLike, envbufnum?: UGenInputLike, overlaps?: UGenInputLike, windowRandRatio?: UGenInputLike, interp?: UGenInputLike): UGenInput;
+    ar(
+      numChannels?: number,
+      bufnum?: UGenInputLike,
+      pointer?: UGenInputLike,
+      freqScale?: UGenInputLike,
+      windowSize?: UGenInputLike,
+      envbufnum?: UGenInputLike,
+      overlaps?: UGenInputLike,
+      windowRandRatio?: UGenInputLike,
+      interp?: UGenInputLike,
+    ): UGenInput;
   };
   readonly WhiteNoise: {
     ar(): UGenInput;
@@ -1320,16 +2342,44 @@ export interface GraphUGens {
     ir(bufnum: UGenInputLike, in_?: UGenInputLike): UGenInput;
   };
   readonly XFade2: {
-    ar(inA: UGenInputLike, inB: UGenInputLike, pan?: UGenInputLike, level?: UGenInputLike): UGenInput;
-    kr(inA: UGenInputLike, inB: UGenInputLike, pan?: UGenInputLike, level?: UGenInputLike): UGenInput;
+    ar(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      pan?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      inA: UGenInputLike,
+      inB: UGenInputLike,
+      pan?: UGenInputLike,
+      level?: UGenInputLike,
+    ): UGenInput;
   };
   readonly XLine: {
-    ar(start?: UGenInputLike, end?: UGenInputLike, dur?: UGenInputLike, action?: UGenInputLike): UGenInput;
-    kr(start?: UGenInputLike, end?: UGenInputLike, dur?: UGenInputLike, action?: UGenInputLike): UGenInput;
+    ar(
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      dur?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
+    kr(
+      start?: UGenInputLike,
+      end?: UGenInputLike,
+      dur?: UGenInputLike,
+      action?: UGenInputLike,
+    ): UGenInput;
   };
   readonly XOut: {
-    ar(bus: UGenInputLike, xfade: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
-    kr(bus: UGenInputLike, xfade: UGenInputLike, channelsArray: UGenInputLike | UGenInputLike[]): UGenInput;
+    ar(
+      bus: UGenInputLike,
+      xfade: UGenInputLike,
+      channelsArray: UGenInputLike | UGenInputLike[],
+    ): UGenInput;
+    kr(
+      bus: UGenInputLike,
+      xfade: UGenInputLike,
+      channelsArray: UGenInputLike | UGenInputLike[],
+    ): UGenInput;
   };
   readonly ZeroCrossing: {
     ar(in_?: UGenInputLike): UGenInput;

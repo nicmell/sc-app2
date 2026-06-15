@@ -16,9 +16,24 @@ import { OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { setRuntimeValue } from "@/stores/runtime";
-import { registerScElements, type ScControl, type ScDisplay, type ScElement, type ScPlugin, type ScSynth, type ScSynthDef } from "@/sc-elements";
+import {
+  registerScElements,
+  type ScControl,
+  type ScDisplay,
+  type ScElement,
+  type ScPlugin,
+  type ScSynth,
+  type ScSynthDef,
+} from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
-import { autoRespond, FIRST_NODE_ID, installScsynthMock, mountPlugin, parsePlugin, SESSION_GROUP } from "@/lib/utils/test/test-utils";
+import {
+  autoRespond,
+  FIRST_NODE_ID,
+  installScsynthMock,
+  mountPlugin,
+  parsePlugin,
+  SESSION_GROUP,
+} from "@/lib/utils/test/test-utils";
 import xml from "/examples/synths/example-plugin/index.html?raw";
 
 let sent: OSC.Message[];
@@ -78,8 +93,18 @@ describe("load pass", () => {
     const synth = host.querySelector("sc-synth") as ScSynth;
     expect(synth.loaded).toBe(true);
     expect(sent[2].args).toEqual([
-      "sine", synth.nodeId, 1, groupId,
-      "freq", 440, "amp", 0.2, "pan", 0, "mute", 0,
+      "sine",
+      synth.nodeId,
+      1,
+      groupId,
+      "freq",
+      440,
+      "amp",
+      0.2,
+      "pan",
+      0,
+      "mute",
+      0,
     ]);
 
     expect(host.nodeId).toBe(groupId);
@@ -95,7 +120,10 @@ describe("load pass", () => {
     });
     const { host } = parseExample();
     let settled = false;
-    const loading = host.load().catch(() => {}).finally(() => (settled = true));
+    const loading = host
+      .load()
+      .catch(() => {})
+      .finally(() => (settled = true));
     await new Promise((r) => setTimeout(r, 10));
     expect(settled).toBe(false);
     expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv"]);
@@ -126,7 +154,9 @@ describe("ScControl.setValue", () => {
   it("a direct store write is UI-only: views refresh, no /n_set", async () => {
     const { host } = await mountExample();
     const freq = control(host, "freq");
-    const range = host.querySelector("sc-range") as ScElement & { updateComplete: Promise<boolean> };
+    const range = host.querySelector("sc-range") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
 
     setRuntimeValue(host.id, "s1.freq", 660);
     await range.updateComplete;
@@ -158,7 +188,9 @@ describe("inputs and display", () => {
   it("checkbox maps checked to 1/0 and follows external store writes", async () => {
     const { host } = await mountExample();
     const synth = host.querySelector("sc-synth") as ScSynth;
-    const checkbox = host.querySelector("sc-checkbox") as ScElement & { updateComplete: Promise<boolean> };
+    const checkbox = host.querySelector("sc-checkbox") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
     const input = checkbox.querySelector("input") as HTMLInputElement;
     expect(input.checked).toBe(false); // seeded default 0
 
@@ -246,13 +278,25 @@ describe("disconnect / reconnect", () => {
     // Fresh node ids from the new block; the /s_new bakes in the moved value.
     expect(synth.nodeId).not.toBe(firstSynthId);
     expect(sent[2].args).toEqual([
-      "sine", synth.nodeId, 1, host.nodeId,
-      "freq", 880, "amp", 0.2, "pan", 0, "mute", 0,
+      "sine",
+      synth.nodeId,
+      1,
+      host.nodeId,
+      "freq",
+      880,
+      "amp",
+      0.2,
+      "pan",
+      0,
+      "mute",
+      0,
     ]);
 
     // The store wiring was rebuilt, not duplicated: an external write still
     // refreshes the input through the fresh subscription.
-    const range = host.querySelector('sc-range[bind="s1.freq"]') as ScElement & { updateComplete: Promise<boolean> };
+    const range = host.querySelector('sc-range[bind="s1.freq"]') as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
     setRuntimeValue(host.id, "s1.freq", 700);
     await range.updateComplete;
     expect((range.querySelector("input") as HTMLInputElement).value).toBe("700");

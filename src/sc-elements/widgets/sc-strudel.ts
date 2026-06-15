@@ -53,7 +53,10 @@ export class ScStrudel extends ScElement {
   validate(): void {
     requireNoScChildren(this);
     if (this.orbit !== undefined && (!Number.isInteger(this.orbit) || this.orbit < 0)) {
-      failValidation(this, `"orbit" attribute must be a non-negative integer (got "${this.orbit}")`);
+      failValidation(
+        this,
+        `"orbit" attribute must be a non-negative integer (got "${this.orbit}")`,
+      );
     }
   }
 
@@ -192,7 +195,9 @@ export class ScStrudel extends ScElement {
       <section class="strudel">
         <header class="strudel-header">
           <h1>strudel</h1>
-          <span class="status-pill" data-variant=${STATUS_VARIANT[this.status]}>${this.status}</span>
+          <span class="status-pill" data-variant=${STATUS_VARIANT[this.status]}
+            >${this.status}</span
+          >
           <button
             type="button"
             ?disabled=${this.status !== "connected"}

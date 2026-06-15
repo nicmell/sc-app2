@@ -7,30 +7,30 @@
  * `msg.address` and `msg.args` directly.
  */
 
-import type OSC from 'osc-js';
+import type OSC from "osc-js";
 
 // ── Reply address constants ───────────────────────────────────────────
 
-export const ADDR_DONE = '/done';
-export const ADDR_FAIL = '/fail';
-export const ADDR_LATE = '/late';
-export const ADDR_STATUS_REPLY = '/status.reply';
-export const ADDR_VERSION_REPLY = '/version.reply';
-export const ADDR_SYNCED = '/synced';
-export const ADDR_N_GO = '/n_go';
-export const ADDR_N_END = '/n_end';
-export const ADDR_N_ON = '/n_on';
-export const ADDR_N_OFF = '/n_off';
-export const ADDR_N_MOVE = '/n_move';
-export const ADDR_N_INFO = '/n_info';
-export const ADDR_TR = '/tr';
-export const ADDR_B_INFO = '/b_info';
-export const ADDR_B_SET = '/b_set';
-export const ADDR_B_SETN = '/b_setn';
-export const ADDR_C_SET = '/c_set';
-export const ADDR_C_SETN = '/c_setn';
-export const ADDR_G_QUERY_TREE_REPLY = '/g_queryTree.reply';
-export const ADDR_N_QUERY_REPLY = '/n_query.reply';
+export const ADDR_DONE = "/done";
+export const ADDR_FAIL = "/fail";
+export const ADDR_LATE = "/late";
+export const ADDR_STATUS_REPLY = "/status.reply";
+export const ADDR_VERSION_REPLY = "/version.reply";
+export const ADDR_SYNCED = "/synced";
+export const ADDR_N_GO = "/n_go";
+export const ADDR_N_END = "/n_end";
+export const ADDR_N_ON = "/n_on";
+export const ADDR_N_OFF = "/n_off";
+export const ADDR_N_MOVE = "/n_move";
+export const ADDR_N_INFO = "/n_info";
+export const ADDR_TR = "/tr";
+export const ADDR_B_INFO = "/b_info";
+export const ADDR_B_SET = "/b_set";
+export const ADDR_B_SETN = "/b_setn";
+export const ADDR_C_SET = "/c_set";
+export const ADDR_C_SETN = "/c_setn";
+export const ADDR_G_QUERY_TREE_REPLY = "/g_queryTree.reply";
+export const ADDR_N_QUERY_REPLY = "/n_query.reply";
 
 // ── Typed accessors for the common cases ──────────────────────────────
 

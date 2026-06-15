@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * When it receives a trigger, it tosses a coin, and either passes the trigger or
@@ -20,18 +20,18 @@ export class CoinGate {
   /** Build at kr rate (Rate::Control). */
   static kr(): CoinGate {
     const b = new CoinGate();
-    b._calcRate = 'control';
-    b._prob = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._prob = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ir rate (Rate::Scalar). */
   static ir(): CoinGate {
     const b = new CoinGate();
-    b._calcRate = 'scalar';
-    b._prob = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._prob = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -56,7 +56,7 @@ export class CoinGate {
     inputs.push(this._prob);
     inputs.push(this._trig);
     const idx = def.addUgen("CoinGate", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -74,9 +74,9 @@ export class ExpRand {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): ExpRand {
     const b = new ExpRand();
-    b._calcRate = 'scalar';
-    b._lo = { tag: 'constant', val: 0.01 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "scalar";
+    b._lo = { tag: "constant", val: 0.01 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -101,7 +101,7 @@ export class ExpRand {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("ExpRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -116,9 +116,9 @@ export class IRand {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): IRand {
     const b = new IRand();
-    b._calcRate = 'scalar';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 127 };
+    b._calcRate = "scalar";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 127 };
     return b;
   }
 
@@ -143,7 +143,7 @@ export class IRand {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("IRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -162,10 +162,10 @@ export class LinRand {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): LinRand {
     const b = new LinRand();
-    b._calcRate = 'scalar';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._minmax = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
+    b._minmax = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -197,7 +197,7 @@ export class LinRand {
     inputs.push(this._hi);
     inputs.push(this._minmax);
     const idx = def.addUgen("LinRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -218,10 +218,10 @@ export class NRand {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): NRand {
     const b = new NRand();
-    b._calcRate = 'scalar';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._n = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
+    b._n = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -253,7 +253,7 @@ export class NRand {
     inputs.push(this._hi);
     inputs.push(this._n);
     const idx = def.addUgen("NRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -267,9 +267,9 @@ export class Rand {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): Rand {
     const b = new Rand();
-    b._calcRate = 'scalar';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "scalar";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -292,7 +292,7 @@ export class Rand {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Rand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -310,16 +310,16 @@ export class RandID {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): RandID {
     const b = new RandID();
-    b._calcRate = 'scalar';
-    b._seed = { tag: 'constant', val: 0 };
+    b._calcRate = "scalar";
+    b._seed = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): RandID {
     const b = new RandID();
-    b._calcRate = 'control';
-    b._seed = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._seed = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -337,7 +337,7 @@ export class RandID {
     const inputs: UGenInput[] = [];
     inputs.push(this._seed);
     const idx = def.addUgen("RandID", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -356,18 +356,18 @@ export class RandSeed {
   /** Build at ir rate (Rate::Scalar). */
   static ir(): RandSeed {
     const b = new RandSeed();
-    b._calcRate = 'scalar';
-    b._trig = { tag: 'constant', val: 0 };
-    b._seed = { tag: 'constant', val: 56789 };
+    b._calcRate = "scalar";
+    b._trig = { tag: "constant", val: 0 };
+    b._seed = { tag: "constant", val: 56789 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): RandSeed {
     const b = new RandSeed();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._seed = { tag: 'constant', val: 56789 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._seed = { tag: "constant", val: 56789 };
     return b;
   }
 
@@ -392,7 +392,7 @@ export class RandSeed {
     inputs.push(this._trig);
     inputs.push(this._seed);
     const idx = def.addUgen("RandSeed", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -412,20 +412,20 @@ export class TExpRand {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TExpRand {
     const b = new TExpRand();
-    b._calcRate = 'audio';
-    b._lo = { tag: 'constant', val: 0.01 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._lo = { tag: "constant", val: 0.01 };
+    b._hi = { tag: "constant", val: 1 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): TExpRand {
     const b = new TExpRand();
-    b._calcRate = 'control';
-    b._lo = { tag: 'constant', val: 0.01 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._lo = { tag: "constant", val: 0.01 };
+    b._hi = { tag: "constant", val: 1 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -457,7 +457,7 @@ export class TExpRand {
     inputs.push(this._hi);
     inputs.push(this._trig);
     const idx = def.addUgen("TExpRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -476,20 +476,20 @@ export class TIRand {
   /** Build at kr rate (Rate::Control). */
   static kr(): TIRand {
     const b = new TIRand();
-    b._calcRate = 'control';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 127 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 127 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ar rate (Rate::Audio). */
   static ar(): TIRand {
     const b = new TIRand();
-    b._calcRate = 'audio';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 127 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 127 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -521,7 +521,7 @@ export class TIRand {
     inputs.push(this._hi);
     inputs.push(this._trig);
     const idx = def.addUgen("TIRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -540,20 +540,20 @@ export class TRand {
   /** Build at kr rate (Rate::Control). */
   static kr(): TRand {
     const b = new TRand();
-    b._calcRate = 'control';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at ar rate (Rate::Audio). */
   static ar(): TRand {
     const b = new TRand();
-    b._calcRate = 'audio';
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -585,6 +585,6 @@ export class TRand {
     inputs.push(this._hi);
     inputs.push(this._trig);
     const idx = def.addUgen("TRand", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

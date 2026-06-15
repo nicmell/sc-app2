@@ -41,7 +41,8 @@ async function request(
   options?: RequestOptions,
 ): Promise<Response> {
   const resp = await fetch(`${HTTP_BASE_URL}${path}`, { ...options, method, body });
-  if (!resp.ok) throw new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
+  if (!resp.ok)
+    throw new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
   return resp;
 }
 
@@ -49,15 +50,27 @@ export function get(path: string, options?: RequestOptions): Promise<Response> {
   return request(path, "GET", null, options);
 }
 
-export function post(path: string, body?: BodyInit | null, options?: RequestOptions): Promise<Response> {
+export function post(
+  path: string,
+  body?: BodyInit | null,
+  options?: RequestOptions,
+): Promise<Response> {
   return request(path, "POST", body, options);
 }
 
-export function put(path: string, body?: BodyInit | null, options?: RequestOptions): Promise<Response> {
+export function put(
+  path: string,
+  body?: BodyInit | null,
+  options?: RequestOptions,
+): Promise<Response> {
   return request(path, "PUT", body, options);
 }
 
-export function patch(path: string, body?: BodyInit | null, options?: RequestOptions): Promise<Response> {
+export function patch(
+  path: string,
+  body?: BodyInit | null,
+  options?: RequestOptions,
+): Promise<Response> {
   return request(path, "PATCH", body, options);
 }
 

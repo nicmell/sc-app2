@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Toggles between two values when a key on the keyboard is up or down. Note that
@@ -22,11 +22,11 @@ export class KeyState {
   /** Build at kr rate (Rate::Control). */
   static kr(): KeyState {
     const b = new KeyState();
-    b._calcRate = 'control';
-    b._keycode = { tag: 'constant', val: 0 };
-    b._minval = { tag: 'constant', val: 0 };
-    b._maxval = { tag: 'constant', val: 1 };
-    b._lag = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._keycode = { tag: "constant", val: 0 };
+    b._minval = { tag: "constant", val: 0 };
+    b._maxval = { tag: "constant", val: 1 };
+    b._lag = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -65,7 +65,7 @@ export class KeyState {
     inputs.push(this._maxval);
     inputs.push(this._lag);
     const idx = def.addUgen("KeyState", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -81,10 +81,10 @@ export class MouseButton {
   /** Build at kr rate (Rate::Control). */
   static kr(): MouseButton {
     const b = new MouseButton();
-    b._calcRate = 'control';
-    b._up = { tag: 'constant', val: 0 };
-    b._down = { tag: 'constant', val: 1 };
-    b._lag = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._up = { tag: "constant", val: 0 };
+    b._down = { tag: "constant", val: 1 };
+    b._lag = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -116,7 +116,7 @@ export class MouseButton {
     inputs.push(this._down);
     inputs.push(this._lag);
     const idx = def.addUgen("MouseButton", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -133,11 +133,11 @@ export class MouseX {
   /** Build at kr rate (Rate::Control). */
   static kr(): MouseX {
     const b = new MouseX();
-    b._calcRate = 'control';
-    b._min = { tag: 'constant', val: 0 };
-    b._max = { tag: 'constant', val: 1 };
-    b._warp = { tag: 'constant', val: 0 };
-    b._lag = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._min = { tag: "constant", val: 0 };
+    b._max = { tag: "constant", val: 1 };
+    b._warp = { tag: "constant", val: 0 };
+    b._lag = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -179,7 +179,7 @@ export class MouseX {
     inputs.push(this._warp);
     inputs.push(this._lag);
     const idx = def.addUgen("MouseX", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -196,11 +196,11 @@ export class MouseY {
   /** Build at kr rate (Rate::Control). */
   static kr(): MouseY {
     const b = new MouseY();
-    b._calcRate = 'control';
-    b._min = { tag: 'constant', val: 0 };
-    b._max = { tag: 'constant', val: 1 };
-    b._warp = { tag: 'constant', val: 0 };
-    b._lag = { tag: 'constant', val: 0.2 };
+    b._calcRate = "control";
+    b._min = { tag: "constant", val: 0 };
+    b._max = { tag: "constant", val: 1 };
+    b._warp = { tag: "constant", val: 0 };
+    b._lag = { tag: "constant", val: 0.2 };
     return b;
   }
 
@@ -242,6 +242,6 @@ export class MouseY {
     inputs.push(this._warp);
     inputs.push(this._lag);
     const idx = def.addUgen("MouseY", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

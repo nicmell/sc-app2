@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "FFT",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "in", default: 0 },
@@ -22,17 +22,35 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands) Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand.",
     signalRange: null,
     argDocs: [
-      { name: "active", doc: "is a simple control allowing FFT analysis to be active (>0) or inactive (<=0). This is mainly useful for signal analysis processes which are only intended to analyse at specific times rather than continuously" },
-      { name: "buffer", doc: "The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place. Use buffer-2n if you wish to create an external buffer." },
-      { name: "hop", doc: "the amount of offset from one FFT analysis frame to the next, measured in multiples of the analysis frame size. This can range between zero and one, and the default is 0.5 (meaning each frame has a 50% overlap with the preceding/following frames)." },
-      { name: "in", doc: "the signal to be analyzed. The signal's rate determines the rate at which the input is read." },
-      { name: "winsize", doc: "the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding." },
-      { name: "wintype", doc: "defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work." },
+      {
+        name: "active",
+        doc: "is a simple control allowing FFT analysis to be active (>0) or inactive (<=0). This is mainly useful for signal analysis processes which are only intended to analyse at specific times rather than continuously",
+      },
+      {
+        name: "buffer",
+        doc: "The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place. Use buffer-2n if you wish to create an external buffer.",
+      },
+      {
+        name: "hop",
+        doc: "the amount of offset from one FFT analysis frame to the next, measured in multiples of the analysis frame size. This can range between zero and one, and the default is 0.5 (meaning each frame has a 50% overlap with the preceding/following frames).",
+      },
+      {
+        name: "in",
+        doc: "the signal to be analyzed. The signal's rate determines the rate at which the input is read.",
+      },
+      {
+        name: "winsize",
+        doc: "the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding.",
+      },
+      {
+        name: "wintype",
+        doc: "defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.",
+      },
     ],
   },
   {
     name: "FFTTrigger",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "hop", default: 0.5 },
@@ -46,12 +64,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "buffer", doc: "a buffer to condition for FFT use" },
       { name: "hop", doc: "the hop size for timing triggers" },
-      { name: "polar", doc: "a flag. If 0.0, the buffer will be prepared for complex data, if > 0.0, polar data is set up." },
+      {
+        name: "polar",
+        doc: "a flag. If 0.0, the buffer will be prepared for complex data, if > 0.0, polar data is set up.",
+      },
     ],
   },
   {
     name: "IFFT",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "chain", default: null },
       { name: "wintype", default: 0 },
@@ -63,14 +84,23 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "inverse fast fourier transform, converts buffer data from frequency domain to time domain The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and overlap-adds the result to produce a continuous signal at its output.",
     signalRange: null,
     argDocs: [
-      { name: "chain", doc: "The FFT chain signal coming originally from an FFT UGen, perhaps via other PV UGens." },
-      { name: "winsize", doc: "can be used to account for zero-padding, in the same way as the FFT UGen." },
-      { name: "wintype", doc: "defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work." },
+      {
+        name: "chain",
+        doc: "The FFT chain signal coming originally from an FFT UGen, perhaps via other PV UGens.",
+      },
+      {
+        name: "winsize",
+        doc: "can be used to account for zero-padding, in the same way as the FFT UGen.",
+      },
+      {
+        name: "wintype",
+        doc: "defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.",
+      },
     ],
   },
   {
     name: "PV_Add",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -87,7 +117,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_BinScramble",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "wipe", default: 0 },
@@ -102,13 +132,16 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "buffer", doc: "fft buffer" },
       { name: "trig", doc: "a trigger selects a new random ordering." },
-      { name: "width", doc: "a value from zero to one, indicating the maximum randomized distance of a bin from its original location in the spectrum." },
+      {
+        name: "width",
+        doc: "a value from zero to one, indicating the maximum randomized distance of a bin from its original location in the spectrum.",
+      },
       { name: "wipe", doc: "scrambles more bins as wipe moves from zero to one." },
     ],
   },
   {
     name: "PV_BinShift",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "stretch", default: 1 },
@@ -127,7 +160,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_BinWipe",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -141,12 +174,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "bufferA", doc: "fft buffer A" },
       { name: "bufferB", doc: "fft buffer B" },
-      { name: "wipe", doc: "can range between -1 and +1; if wipe == 0 then the output is the same as inA; if wipe > 0 then it begins replacing with bins from inB from the bottom up;if wipe < 0 then it begins replacing with bins from inB from the top down." },
+      {
+        name: "wipe",
+        doc: "can range between -1 and +1; if wipe == 0 then the output is the same as inA; if wipe > 0 then it begins replacing with bins from inB from the bottom up;if wipe < 0 then it begins replacing with bins from inB from the top down.",
+      },
     ],
   },
   {
     name: "PV_BrickWall",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "wipe", default: 0 },
@@ -158,27 +194,26 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buffer", doc: "fft buffer" },
-      { name: "wipe", doc: "can range between -1 and +1. if wipe == 0 then there is no effect; if wipe > 0 then it acts like a high pass filter, clearing bins from the bottom up; if wipe < 0 then it acts like a low pass filter, clearing bins from the top down." },
+      {
+        name: "wipe",
+        doc: "can range between -1 and +1. if wipe == 0 then there is no effect; if wipe > 0 then it acts like a high pass filter, clearing bins from the bottom up; if wipe < 0 then it acts like a low pass filter, clearing bins from the top down.",
+      },
     ],
   },
   {
     name: "PV_Conj",
-    rates: ['control'],
-    defaults: [
-      { name: "buffer", default: null },
-    ],
+    rates: ["control"],
+    defaults: [{ name: "buffer", default: null }],
     numOutputs: null,
     extends: "PV_MagSquared",
     summary: null,
     doc: "converts the FFT frames to their complex conjugate (i.e. reverses the sign of their imaginary part). This is not usually a useful audio effect in itself, but may be a component of other analysis or transformation processes...",
     signalRange: null,
-    argDocs: [
-      { name: "buffer", doc: "fft buffer" },
-    ],
+    argDocs: [{ name: "buffer", doc: "fft buffer" }],
   },
   {
     name: "PV_Copy",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -195,7 +230,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_CopyPhase",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -212,7 +247,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_Diffuser",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "trig", default: 0 },
@@ -229,7 +264,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_Div",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -246,7 +281,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_LocalMax",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "threshold", default: 0 },
@@ -263,7 +298,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagAbove",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "threshold", default: 0 },
@@ -280,7 +315,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagBelow",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "threshold", default: 0 },
@@ -297,7 +332,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagClip",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "threshold", default: 0 },
@@ -314,7 +349,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagDiv",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -328,12 +363,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "bufferA", doc: "fft buffer A." },
       { name: "bufferB", doc: "fft buffer B." },
-      { name: "zeroed", doc: "number to use when bins are zeroed out, i.e. causing division by zero" },
+      {
+        name: "zeroed",
+        doc: "number to use when bins are zeroed out, i.e. causing division by zero",
+      },
     ],
   },
   {
     name: "PV_MagFreeze",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "freeze", default: 0 },
@@ -350,7 +388,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagMul",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -367,22 +405,18 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagNoise",
-    rates: ['control'],
-    defaults: [
-      { name: "buffer", default: null },
-    ],
+    rates: ["control"],
+    defaults: [{ name: "buffer", default: null }],
     numOutputs: null,
     extends: "PV_MagSquared",
     summary: null,
     doc: "magnitudes are multiplied with noise",
     signalRange: null,
-    argDocs: [
-      { name: "buffer", doc: "fft buffer" },
-    ],
+    argDocs: [{ name: "buffer", doc: "fft buffer" }],
   },
   {
     name: "PV_MagShift",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "stretch", default: 1 },
@@ -401,7 +435,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_MagSmear",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "bins", default: 0 },
@@ -412,28 +446,27 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "average a bin's magnitude with its neighbors",
     signalRange: null,
     argDocs: [
-      { name: "bins", doc: "number of bins to average on each side of bin. As this number rises, so will CPU usage." },
+      {
+        name: "bins",
+        doc: "number of bins to average on each side of bin. As this number rises, so will CPU usage.",
+      },
       { name: "buffer", doc: "fft buffer" },
     ],
   },
   {
     name: "PV_MagSquared",
-    rates: ['control'],
-    defaults: [
-      { name: "buffer", default: null },
-    ],
+    rates: ["control"],
+    defaults: [{ name: "buffer", default: null }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: "squares the magnitudes and renormalizes to previous peak. This makes weak bins weaker.",
     signalRange: null,
-    argDocs: [
-      { name: "buffer", doc: "fft buffer" },
-    ],
+    argDocs: [{ name: "buffer", doc: "fft buffer" }],
   },
   {
     name: "PV_Max",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -450,7 +483,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_Min",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -467,7 +500,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_Mul",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -484,7 +517,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_PhaseShift",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "shift", default: null },
@@ -501,37 +534,29 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_PhaseShift270",
-    rates: ['control'],
-    defaults: [
-      { name: "buffer", default: null },
-    ],
+    rates: ["control"],
+    defaults: [{ name: "buffer", default: null }],
     numOutputs: null,
     extends: "PV_MagSquared",
     summary: null,
     doc: "shift phase of all bins by 270 degrees",
     signalRange: null,
-    argDocs: [
-      { name: "buffer", doc: "fft buffer" },
-    ],
+    argDocs: [{ name: "buffer", doc: "fft buffer" }],
   },
   {
     name: "PV_PhaseShift90",
-    rates: ['control'],
-    defaults: [
-      { name: "buffer", default: null },
-    ],
+    rates: ["control"],
+    defaults: [{ name: "buffer", default: null }],
     numOutputs: null,
     extends: "PV_MagSquared",
     summary: null,
     doc: "shift phase of all bins by 90 degrees",
     signalRange: null,
-    argDocs: [
-      { name: "buffer", doc: "fft buffer" },
-    ],
+    argDocs: [{ name: "buffer", doc: "fft buffer" }],
   },
   {
     name: "PV_RandComb",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "wipe", default: 0 },
@@ -550,7 +575,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_RandWipe",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },
@@ -571,7 +596,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_RectComb",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "numTeeth", default: 0 },
@@ -592,7 +617,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PV_RectComb2",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "bufferA", default: null },
       { name: "bufferB", default: null },

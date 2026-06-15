@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Convolution",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "kernel", default: null },
@@ -26,7 +26,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Convolution2",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "kernel", default: null },
@@ -39,15 +39,21 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Strict convolution with fixed kernel which can be updated using a trigger signal. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http:// www.dspguide.com/ch18.htm",
     signalRange: null,
     argDocs: [
-      { name: "framesize", doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16 = 65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard." },
+      {
+        name: "framesize",
+        doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16 = 65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard.",
+      },
       { name: "in", doc: "processing target" },
-      { name: "kernel", doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger" },
+      {
+        name: "kernel",
+        doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger",
+      },
       { name: "trigger", doc: "update the kernel on a change from <= 0 to > 0" },
     ],
   },
   {
     name: "Convolution2L",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "kernel", default: null },
@@ -61,16 +67,25 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http://www.dspguide.com/ch18.htm",
     signalRange: null,
     argDocs: [
-      { name: "crossfade", doc: "The number of periods over which a crossfade is made. The default is 1. This must be an integer." },
-      { name: "framesize", doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard." },
+      {
+        name: "crossfade",
+        doc: "The number of periods over which a crossfade is made. The default is 1. This must be an integer.",
+      },
+      {
+        name: "framesize",
+        doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard.",
+      },
       { name: "in", doc: "processing target" },
-      { name: "kernel", doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger" },
+      {
+        name: "kernel",
+        doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger",
+      },
       { name: "trigger", doc: "update the kernel on a change from <= 0 to > 0" },
     ],
   },
   {
     name: "Convolution3",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "kernel", default: null },
@@ -85,13 +100,16 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "framesize", doc: "size of FFT frame, does not have to be a power of two." },
       { name: "in", doc: "processing target" },
-      { name: "kernel", doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger" },
+      {
+        name: "kernel",
+        doc: "buffer index for the fixed kernel, may be modulated in combination with the trigger",
+      },
       { name: "trigger", doc: "update the kernel on a change from <= 0 to > 0" },
     ],
   },
   {
     name: "PV_ConformalMap",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "buffer", default: null },
       { name: "areal", default: 0 },
@@ -105,12 +123,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "aimag", doc: "imaginary part of a." },
       { name: "areal", doc: "real part of a." },
-      { name: "buffer", doc: "buffer number of buffer to act on, passed in through a chain (see examples below)." },
+      {
+        name: "buffer",
+        doc: "buffer number of buffer to act on, passed in through a chain (see examples below).",
+      },
     ],
   },
   {
     name: "PV_HainsworthFoote",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buffer", default: null },
       { name: "proph", default: 0 },
@@ -125,15 +146,21 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "buffer", doc: "FFT buffer to read from" },
-      { name: "propf", doc: "What strength of detection signal from Foote metric to use. The Foote metric is normalised to [0.0,1.0]" },
+      {
+        name: "propf",
+        doc: "What strength of detection signal from Foote metric to use. The Foote metric is normalised to [0.0,1.0]",
+      },
       { name: "proph", doc: "What strength of detection signal from Hainsworth metric to use." },
       { name: "threshold", doc: "Threshold hold level for allowing a detection" },
-      { name: "waitTime", doc: "If triggered, minimum wait until a further frame can cause another spot (useful to stop multiple detects on heavy signals)" },
+      {
+        name: "waitTime",
+        doc: "If triggered, minimum wait until a further frame can cause another spot (useful to stop multiple detects on heavy signals)",
+      },
     ],
   },
   {
     name: "PV_JensenAndersen",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "buffer", default: null },
       { name: "propsc", default: 0.25 },
@@ -155,12 +182,15 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "propsc", doc: "Proportion of spectral centroid feature." },
       { name: "propsf", doc: "Proportion of spectral flux feature." },
       { name: "threshold", doc: "Threshold level for allowing a detection" },
-      { name: "waitTime", doc: "If triggered, minimum wait until a further frame can cause another spot (useful to stop multiple detects on heavy signals)" },
+      {
+        name: "waitTime",
+        doc: "If triggered, minimum wait until a further frame can cause another spot (useful to stop multiple detects on heavy signals)",
+      },
     ],
   },
   {
     name: "RunningSum",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "numsamp", default: 40 },
@@ -172,12 +202,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal" },
-      { name: "numsamp", doc: "How many samples to take the running sum over (initialisation time only, not modulatable." },
+      {
+        name: "numsamp",
+        doc: "How many samples to take the running sum over (initialisation time only, not modulatable.",
+      },
     ],
   },
   {
     name: "StereoConvolution2L",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "in", default: null },
       { name: "kernelL", default: null },
@@ -192,11 +225,23 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change. Like convolution2L, but convolves with two buffers and outputs a stereo signal. This saves one FFT transformation per period, as compared to using two copies of convolution2L. Useful applications could include stereo reverberation or HRTF convolution. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http://www.dspguide.com/ch18.htm",
     signalRange: null,
     argDocs: [
-      { name: "crossfade", doc: "The number of periods over which a crossfade is made. This must be an integer." },
-      { name: "framesize", doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard." },
+      {
+        name: "crossfade",
+        doc: "The number of periods over which a crossfade is made. This must be an integer.",
+      },
+      {
+        name: "framesize",
+        doc: "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard.",
+      },
       { name: "in", doc: "processing target" },
-      { name: "kernelL", doc: "buffer index for the fixed kernel of the left channel, may be modulated in combination with the trigger" },
-      { name: "kernelR", doc: "buffer index for the fixed kernel of the right channel, may be modulated in combination with the trigger" },
+      {
+        name: "kernelL",
+        doc: "buffer index for the fixed kernel of the left channel, may be modulated in combination with the trigger",
+      },
+      {
+        name: "kernelR",
+        doc: "buffer index for the fixed kernel of the right channel, may be modulated in combination with the trigger",
+      },
       { name: "trigger", doc: "update the kernel on a change from <= 0 to > 0" },
     ],
   },

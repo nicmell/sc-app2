@@ -42,8 +42,8 @@ export function parseCallback(fn: (...args: any[]) => any): ParsedCallback {
   const second = stripTypeAnnotation(params[1]).trim();
   // Remove a trailing default of `= {}` — common defensive pattern so the
   // callback doesn't crash when invoked with no second arg.
-  const withoutOuterDefault = second.replace(/\s*=\s*\{\s*\}\s*$/, '');
-  if (!withoutOuterDefault.startsWith('{') || !withoutOuterDefault.endsWith('}')) {
+  const withoutOuterDefault = second.replace(/\s*=\s*\{\s*\}\s*$/, "");
+  if (!withoutOuterDefault.startsWith("{") || !withoutOuterDefault.endsWith("}")) {
     throw new Error(
       `synthdef: expected second parameter to be a destructuring pattern ` +
         `(\`{ foo = 1 }\`), got: ${second}`,
@@ -69,7 +69,7 @@ function extractParamList(src: string): string {
   // its parameter list — function / arrow forms all start with
   // `function name?(` or `(...) =>` / `async (...) =>`. No strings can
   // appear before it.
-  const open = src.indexOf('(');
+  const open = src.indexOf("(");
   if (open < 0) {
     throw new Error(`synthdef: callback has no parameter list: ${src.slice(0, 80)}`);
   }
@@ -81,8 +81,8 @@ function extractParamList(src: string): string {
       i = skipString(src, i);
       continue;
     }
-    if (c === '(') depth++;
-    else if (c === ')') {
+    if (c === "(") depth++;
+    else if (c === ")") {
       depth--;
       if (depth === 0) return src.slice(open + 1, i);
     }
@@ -103,12 +103,12 @@ function extractParamList(src: string): string {
  * outer-scope `bus`). The control is always named by the property key.
  */
 function parseField(field: string): ParsedControl {
-  if (field.startsWith('...')) {
+  if (field.startsWith("...")) {
     throw new Error(`synthdef: rest elements are not supported: ${field}`);
   }
   // Split on the first top-level `:` (aliased form) and `=` (default).
-  const colon = findTopLevelChar(field, ':');
-  const eq = findTopLevelChar(field, '=');
+  const colon = findTopLevelChar(field, ":");
+  const eq = findTopLevelChar(field, "=");
   let name: string;
   let defaultExpr: string;
   if (colon >= 0 && (eq < 0 || colon < eq)) {
@@ -117,14 +117,14 @@ function parseField(field: string): ParsedControl {
     // the default — the alias is the local binding inside the callback
     // and has no API-visible role.
     const afterColon = field.slice(colon + 1);
-    const eq2 = findTopLevelChar(afterColon, '=');
-    defaultExpr = eq2 >= 0 ? afterColon.slice(eq2 + 1).trim() : '';
+    const eq2 = findTopLevelChar(afterColon, "=");
+    defaultExpr = eq2 >= 0 ? afterColon.slice(eq2 + 1).trim() : "";
   } else if (eq >= 0) {
     name = field.slice(0, eq).trim();
     defaultExpr = field.slice(eq + 1).trim();
   } else {
     name = field.trim();
-    defaultExpr = '';
+    defaultExpr = "";
   }
   if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name)) {
     throw new Error(`synthdef: invalid control name: ${name}`);
@@ -141,7 +141,7 @@ function parseField(field: string): ParsedControl {
 function stripTypeAnnotation(param: string): string {
   // Find the outermost `{...}` — if present, the type annotation follows.
   const p = param.trim();
-  if (!p.startsWith('{')) return p;
+  if (!p.startsWith("{")) return p;
   let depth = 0;
   let i = 0;
   while (i < p.length) {
@@ -150,18 +150,18 @@ function stripTypeAnnotation(param: string): string {
       i = skipString(p, i);
       continue;
     }
-    if (c === '{') depth++;
-    else if (c === '}') {
+    if (c === "{") depth++;
+    else if (c === "}") {
       depth--;
       if (depth === 0) {
         const rest = p.slice(i + 1).trim();
-        if (rest.startsWith(':')) {
+        if (rest.startsWith(":")) {
           // Drop ": ...[= ...]" — preserve `= defaultValue` if any by
           // finding the `=` at top level of the annotation.
           const annotation = rest.slice(1);
-          const eq = findTopLevelChar(annotation, '=');
+          const eq = findTopLevelChar(annotation, "=");
           if (eq < 0) return p.slice(0, i + 1);
-          return p.slice(0, i + 1) + ' ' + annotation.slice(eq).trim();
+          return p.slice(0, i + 1) + " " + annotation.slice(eq).trim();
         }
         return p;
       }
@@ -184,9 +184,9 @@ export function splitTopLevelCommas(s: string): string[] {
       i = skipString(s, i);
       continue;
     }
-    if (c === '(' || c === '[' || c === '{') depth++;
-    else if (c === ')' || c === ']' || c === '}') depth--;
-    else if (c === ',' && depth === 0) {
+    if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") depth--;
+    else if (c === "," && depth === 0) {
       out.push(s.slice(start, i));
       start = i + 1;
     }
@@ -205,8 +205,8 @@ function findTopLevelChar(s: string, target: string): number {
       i = skipString(s, i);
       continue;
     }
-    if (c === '(' || c === '[' || c === '{') depth++;
-    else if (c === ')' || c === ']' || c === '}') depth--;
+    if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") depth--;
     else if (c === target && depth === 0) return i;
     i++;
   }
@@ -214,7 +214,7 @@ function findTopLevelChar(s: string, target: string): number {
 }
 
 function isStringQuote(c: string): boolean {
-  return c === '"' || c === "'" || c === '`';
+  return c === '"' || c === "'" || c === "`";
 }
 
 /**
@@ -229,11 +229,11 @@ function skipString(s: string, i: number): number {
   let j = i + 1;
   while (j < s.length) {
     const c = s[j];
-    if (c === '\\') {
+    if (c === "\\") {
       j += 2;
       continue;
     }
-    if (quote === '`' && c === '$' && s[j + 1] === '{') {
+    if (quote === "`" && c === "$" && s[j + 1] === "{") {
       // Skip a `${…}` template hole — recursively handle nested braces.
       let depth = 1;
       j += 2;
@@ -243,8 +243,8 @@ function skipString(s: string, i: number): number {
           j = skipString(s, j);
           continue;
         }
-        if (cc === '{') depth++;
-        else if (cc === '}') depth--;
+        if (cc === "{") depth++;
+        else if (cc === "}") depth--;
         j++;
       }
       continue;

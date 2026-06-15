@@ -28,9 +28,9 @@ All three produce the same SCgf v2 bytes.
 ### sclang-style callback (recommended)
 
 ```ts
-import { synthdef, ar } from '@sc-app/synthdef-compiler';
+import { synthdef, ar } from "@sc-app/synthdef-compiler";
 
-const def = synthdef('sine', (g, { freq = 440, amp = 0.5 }) => {
+const def = synthdef("sine", (g, { freq = 440, amp = 0.5 }) => {
   const osc = g.SinOsc.ar(freq, 0);
   g.Out.ar(0, g.mul(osc, amp));
 });
@@ -59,11 +59,11 @@ plus arithmetic helpers: `g.mul`, `g.add`, `g.sub`, `g.div`, `g.mod`,
 ### Typed chainable builders
 
 ```ts
-import { SynthDef } from '@sc-app/synthdef-compiler';
-import { Out, SinOsc } from '@sc-app/synthdef-compiler/builders';
+import { SynthDef } from "@sc-app/synthdef-compiler";
+import { Out, SinOsc } from "@sc-app/synthdef-compiler/builders";
 
-const def = new SynthDef('sine');
-const freq = def.addControl('freq', 440, 'control');
+const def = new SynthDef("sine");
+const freq = def.addControl("freq", 440, "control");
 const osc = SinOsc.ar().freq(freq).phase(0).build(def);
 Out.ar().bus(0).channelsArray([osc]).build(def);
 
@@ -77,19 +77,19 @@ want to construct graphs programmatically outside a callback.
 ### Round-trip / inspection
 
 ```ts
-import { SynthDef } from '@sc-app/synthdef-compiler';
+import { SynthDef } from "@sc-app/synthdef-compiler";
 
 const def = SynthDef.fromBytes(bytes);
-const json = def.toJson();          // for diffs / debugging
+const json = def.toJson(); // for diffs / debugging
 const back = SynthDef.fromJson(json);
 ```
 
 ### UGen catalogue access
 
 ```ts
-import { lookupUgen, ugensByCategory } from '@sc-app/synthdef-compiler';
+import { lookupUgen, ugensByCategory } from "@sc-app/synthdef-compiler";
 
-const spec = lookupUgen('SinOsc');
+const spec = lookupUgen("SinOsc");
 console.log(`${spec!.name}: ${spec!.defaults.length} inputs`);
 
 for (const [category, ugens] of ugensByCategory()) {

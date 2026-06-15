@@ -2,13 +2,13 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * stream audio in from disk file
- * 
+ *
  * Continuously play a longer soundfile from disk. This requires a buffer to be
  * preloaded with one buffer size of sound. If loop is set to 1, the soundfile
  * will loop.
@@ -24,9 +24,9 @@ export class DiskIn {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DiskIn {
     const b = new DiskIn();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._loop = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._loop = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -58,13 +58,13 @@ export class DiskIn {
     inputs.push(this._bufnum);
     inputs.push(this._loop);
     const idx = def.addUgen("DiskIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * stream audio out to disk file
- * 
+ *
  * The output of DiskOut is the number of frames written to disk. Note that the
  * number of channels in the buffer and the channelsArray must be the same,
  * otherwise DiskOut will fail silently (and not write anything to your file).
@@ -79,8 +79,8 @@ export class DiskOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): DiskOut {
     const b = new DiskOut();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -108,13 +108,13 @@ export class DiskOut {
     inputs.push(this._bufnum);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("DiskOut", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Read a signal from a bus.
- * 
+ *
  * in:kr is functionally similar to in-feedback. That is it reads all data on the
  * bus whether it is from the current cycle or not. This allows for it to receive
  * data from later in the node order. in:ar reads only data from the current
@@ -134,8 +134,8 @@ export class In {
   /** Build at ar rate (Rate::Audio). */
   static ar(): In {
     const b = new In();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -143,8 +143,8 @@ export class In {
   /** Build at kr rate (Rate::Control). */
   static kr(): In {
     const b = new In();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -172,13 +172,13 @@ export class In {
     const inputs: UGenInput[] = [];
     inputs.push(this._bus);
     const idx = def.addUgen("In", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * read signal from a bus with a current or one cycle old timestamp
- * 
+ *
  * When the various output ugens (out, offsetOut, x-out) write data to a bus,
  * they mix it with any data from the current cycle, but overwrite any data from
  * the previous cycle. (replace-out overwrites all data regardless.) Thus
@@ -218,8 +218,8 @@ export class InFeedback {
   /** Build at ar rate (Rate::Audio). */
   static ar(): InFeedback {
     const b = new InFeedback();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -247,13 +247,13 @@ export class InFeedback {
     const inputs: UGenInput[] = [];
     inputs.push(this._bus);
     const idx = def.addUgen("InFeedback", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * generates a trigger any time the bus is set
- * 
+ *
  * Any time the bus is 'touched' ie. has its value set (using \"/c_set\" etc.), a
  * single impulse trigger will be generated. Its amplitude is the value that the
  * bus was set to.
@@ -268,8 +268,8 @@ export class InTrig {
   /** Build at kr rate (Rate::Control). */
   static kr(): InTrig {
     const b = new InTrig();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -297,13 +297,13 @@ export class InTrig {
     const inputs: UGenInput[] = [];
     inputs.push(this._bus);
     const idx = def.addUgen("InTrig", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Read a control signal from a bus with a lag.
- * 
+ *
  * Please document me
  */
 export class LagIn {
@@ -317,9 +317,9 @@ export class LagIn {
   /** Build at kr rate (Rate::Control). */
   static kr(): LagIn {
     const b = new LagIn();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
-    b._lag = { tag: 'constant', val: 0.1 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
+    b._lag = { tag: "constant", val: 0.1 };
     b._numChannels = 1;
     return b;
   }
@@ -351,7 +351,7 @@ export class LagIn {
     inputs.push(this._bus);
     inputs.push(this._lag);
     const idx = def.addUgen("LagIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -371,7 +371,7 @@ export class LocalIn {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LocalIn {
     const b = new LocalIn();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     b._numChannels = 1;
     return b;
   }
@@ -379,7 +379,7 @@ export class LocalIn {
   /** Build at kr rate (Rate::Control). */
   static kr(): LocalIn {
     const b = new LocalIn();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     b._numChannels = 1;
     return b;
   }
@@ -400,13 +400,13 @@ export class LocalIn {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("LocalIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * write to buses local to a synth
- * 
+ *
  * local-out writes to buses that are local to the enclosing synth. The buses
  * should have been defined by a local-in ugen. The channelsArray must be the
  * same number of channels as were declared in the LocalIn. These are like the
@@ -422,7 +422,7 @@ export class LocalOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LocalOut {
     const b = new LocalOut();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     b._channelsArray = [];
     return b;
   }
@@ -430,7 +430,7 @@ export class LocalOut {
   /** Build at kr rate (Rate::Control). */
   static kr(): LocalOut {
     const b = new LocalOut();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     b._channelsArray = [];
     return b;
   }
@@ -454,13 +454,13 @@ export class LocalOut {
     const inputs: UGenInput[] = [];
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("LocalOut", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * write signal to a bus with sample accurate timing
- * 
+ *
  * Output signal to a bus, the sample offset within the bus is kept exactly; i.e.
  * if the synth is scheduled to be started part way through a control cycle,
  * offset-out will maintain the correct offset by buffering the output and
@@ -477,8 +477,8 @@ export class OffsetOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): OffsetOut {
     const b = new OffsetOut();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -512,13 +512,13 @@ export class OffsetOut {
     inputs.push(this._bus);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("OffsetOut", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * write a signal to a bus, adding to previous contents.
- * 
+ *
  * write a signal to a bus, adding to any existing contents N.B. Out is subject
  * to control rate jitter. Where sample accurate output is needed, use OffsetOut.
  * When using an array of bus indexes, the channel array will just be copied to
@@ -535,8 +535,8 @@ export class Out {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Out {
     const b = new Out();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -544,8 +544,8 @@ export class Out {
   /** Build at kr rate (Rate::Control). */
   static kr(): Out {
     const b = new Out();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -579,13 +579,13 @@ export class Out {
     inputs.push(this._bus);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("Out", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Send signal to a bus, overwriting previous contents.
- * 
+ *
  * Out adds its output to a given bus, making it available to all nodes later in
  * the node tree (See Synth and Order-of-execution for more information).
  * ReplaceOut overwrites those contents. This can make it useful for processing.
@@ -600,8 +600,8 @@ export class ReplaceOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ReplaceOut {
     const b = new ReplaceOut();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -609,8 +609,8 @@ export class ReplaceOut {
   /** Build at kr rate (Rate::Control). */
   static kr(): ReplaceOut {
     const b = new ReplaceOut();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -644,13 +644,13 @@ export class ReplaceOut {
     inputs.push(this._bus);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("ReplaceOut", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * read from a shared control bus (internal dsp only)
- * 
+ *
  * Reads from a control bus shared between the internal server and the SC client.
  * Control rate only. Writing to a shared control bus from the client is
  * synchronous. When not using the internal server use node arguments or the set
@@ -666,8 +666,8 @@ export class SharedIn {
   /** Build at kr rate (Rate::Control). */
   static kr(): SharedIn {
     const b = new SharedIn();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -695,7 +695,7 @@ export class SharedIn {
     const inputs: UGenInput[] = [];
     inputs.push(this._bus);
     const idx = def.addUgen("SharedIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -714,8 +714,8 @@ export class SharedOut {
   /** Build at kr rate (Rate::Control). */
   static kr(): SharedOut {
     const b = new SharedOut();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -746,13 +746,13 @@ export class SharedOut {
     inputs.push(this._bus);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("SharedOut", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * stream in audio from a file (with variable rate)
- * 
+ *
  * Continuously play a longer soundfile from disk. This requires a buffer to be
  * preloaded with one buffer size of sound.
  */
@@ -769,11 +769,11 @@ export class VDiskIn {
   /** Build at ar rate (Rate::Audio). */
   static ar(): VDiskIn {
     const b = new VDiskIn();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._loop = { tag: 'constant', val: 0 };
-    b._sendId = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._loop = { tag: "constant", val: 0 };
+    b._sendId = { tag: "constant", val: 0 };
     b._numChannels = 1;
     return b;
   }
@@ -826,13 +826,13 @@ export class VDiskIn {
     inputs.push(this._loop);
     inputs.push(this._sendId);
     const idx = def.addUgen("VDiskIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * write signal to a bus, crossfading with the existing content
- * 
+ *
  * xfade is a level for the crossfade between what is on the bus and what you are
  * sending. The algorithm is equivalent to this: bus_signal = (input_signal *
  * xfade) + (bus_signal * (1 - xfade));
@@ -848,9 +848,9 @@ export class XOut {
   /** Build at ar rate (Rate::Audio). */
   static ar(): XOut {
     const b = new XOut();
-    b._calcRate = 'audio';
-    b._bus = { tag: 'constant', val: 0 };
-    b._xfade = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._bus = { tag: "constant", val: 0 };
+    b._xfade = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -858,9 +858,9 @@ export class XOut {
   /** Build at kr rate (Rate::Control). */
   static kr(): XOut {
     const b = new XOut();
-    b._calcRate = 'control';
-    b._bus = { tag: 'constant', val: 0 };
-    b._xfade = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
+    b._xfade = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -901,6 +901,6 @@ export class XOut {
     inputs.push(this._xfade);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("XOut", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -2,13 +2,13 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Clip a signal outside given thresholds.
- * 
+ *
  * Clip a signal outside given thresholds. This differs from the ugen clip2 in
  * that it allows one to set both low and high thresholds.
  */
@@ -23,20 +23,20 @@ export class Clip {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Clip {
     const b = new Clip();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Clip {
     const b = new Clip();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -68,13 +68,13 @@ export class Clip {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Clip", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Fold a signal outside given thresholds.
- * 
+ *
  * Folds input wave to within the lo and hi thresholds. This differs from the
  * ugen fold2 in that it allows one to set both low and high thresholds.
  */
@@ -89,20 +89,20 @@ export class Fold {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Fold {
     const b = new Fold();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Fold {
     const b = new Fold();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -134,13 +134,13 @@ export class Fold {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Fold", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Gate or hold
- * 
+ *
  * Lets signal flow when trig is positive, otherwise holds last input value
  */
 export class Gate {
@@ -153,18 +153,18 @@ export class Gate {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Gate {
     const b = new Gate();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Gate {
     const b = new Gate();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -192,13 +192,13 @@ export class Gate {
     inputs.push(this._in);
     inputs.push(this._trig);
     const idx = def.addUgen("Gate", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Tests if a signal is within a given range
- * 
+ *
  * If in is >= lo and <= hi output 1.0, otherwise output 0.0. Output is initially
  * zero.
  */
@@ -213,20 +213,20 @@ export class InRange {
   /** Build at ar rate (Rate::Audio). */
   static ar(): InRange {
     const b = new InRange();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): InRange {
     const b = new InRange();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -258,13 +258,13 @@ export class InRange {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("InRange", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Test if a point is within a given rectangle.
- * 
+ *
  * Outputs one if the 2d coordinate of x,y input values falls inside a rectangle,
  * else zero
  */
@@ -282,26 +282,26 @@ export class InRect {
   /** Build at ar rate (Rate::Audio). */
   static ar(): InRect {
     const b = new InRect();
-    b._calcRate = 'audio';
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._left = { tag: 'constant', val: 0 };
-    b._top = { tag: 'constant', val: 0 };
-    b._right = { tag: 'constant', val: 0 };
-    b._bottom = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._left = { tag: "constant", val: 0 };
+    b._top = { tag: "constant", val: 0 };
+    b._right = { tag: "constant", val: 0 };
+    b._bottom = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): InRect {
     const b = new InRect();
-    b._calcRate = 'control';
-    b._x = { tag: 'constant', val: 0 };
-    b._y = { tag: 'constant', val: 0 };
-    b._left = { tag: 'constant', val: 0 };
-    b._top = { tag: 'constant', val: 0 };
-    b._right = { tag: 'constant', val: 0 };
-    b._bottom = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._x = { tag: "constant", val: 0 };
+    b._y = { tag: "constant", val: 0 };
+    b._left = { tag: "constant", val: 0 };
+    b._top = { tag: "constant", val: 0 };
+    b._right = { tag: "constant", val: 0 };
+    b._bottom = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -350,13 +350,13 @@ export class InRect {
     inputs.push(this._right);
     inputs.push(this._bottom);
     const idx = def.addUgen("InRect", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Output the last value before the input changed
- * 
+ *
  * Output the last value before the input changed by a threshold of diff
  */
 export class LastValue {
@@ -369,18 +369,18 @@ export class LastValue {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LastValue {
     const b = new LastValue();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._diff = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._diff = { tag: "constant", val: 0.01 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LastValue {
     const b = new LastValue();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._diff = { tag: 'constant', val: 0.01 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._diff = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -405,13 +405,13 @@ export class LastValue {
     inputs.push(this._in);
     inputs.push(this._diff);
     const idx = def.addUgen("LastValue", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Sample and hold
- * 
+ *
  * Holds input signal value when triggered.
  */
 export class Latch {
@@ -424,18 +424,18 @@ export class Latch {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Latch {
     const b = new Latch();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Latch {
     const b = new Latch();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -463,13 +463,13 @@ export class Latch {
     inputs.push(this._in);
     inputs.push(this._trig);
     const idx = def.addUgen("Latch", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Output least changed
- * 
+ *
  * output whichever signal changed the least
  */
 export class LeastChange {
@@ -482,18 +482,18 @@ export class LeastChange {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LeastChange {
     const b = new LeastChange();
-    b._calcRate = 'audio';
-    b._a = { tag: 'constant', val: 0 };
-    b._b = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._a = { tag: "constant", val: 0 };
+    b._b = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LeastChange {
     const b = new LeastChange();
-    b._calcRate = 'control';
-    b._a = { tag: 'constant', val: 0 };
-    b._b = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._a = { tag: "constant", val: 0 };
+    b._b = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -518,13 +518,13 @@ export class LeastChange {
     inputs.push(this._a);
     inputs.push(this._b);
     const idx = def.addUgen("LeastChange", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Output most changed
- * 
+ *
  * output whichever signal changed the most
  */
 export class MostChange {
@@ -537,18 +537,18 @@ export class MostChange {
   /** Build at ar rate (Rate::Audio). */
   static ar(): MostChange {
     const b = new MostChange();
-    b._calcRate = 'audio';
-    b._a = { tag: 'constant', val: 0 };
-    b._b = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._a = { tag: "constant", val: 0 };
+    b._b = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): MostChange {
     const b = new MostChange();
-    b._calcRate = 'control';
-    b._a = { tag: 'constant', val: 0 };
-    b._b = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._a = { tag: "constant", val: 0 };
+    b._b = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -573,13 +573,13 @@ export class MostChange {
     inputs.push(this._a);
     inputs.push(this._b);
     const idx = def.addUgen("MostChange", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Track peak signal amplitude
- * 
+ *
  * Outputs the peak amplitude of the signal so far, a trigger resets to current
  * value
  */
@@ -593,18 +593,18 @@ export class Peak {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Peak {
     const b = new Peak();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Peak {
     const b = new Peak();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -632,13 +632,13 @@ export class Peak {
     inputs.push(this._trig);
     inputs.push(this._reset);
     const idx = def.addUgen("Peak", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Track peak signal amplitude
- * 
+ *
  * Outputs the peak signal amplitude, falling with decay over time until reaching
  * signal level
  */
@@ -652,18 +652,18 @@ export class PeakFollower {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PeakFollower {
     const b = new PeakFollower();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._decay = { tag: 'constant', val: 0.999 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._decay = { tag: "constant", val: 0.999 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PeakFollower {
     const b = new PeakFollower();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._decay = { tag: 'constant', val: 0.999 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._decay = { tag: "constant", val: 0.999 };
     return b;
   }
 
@@ -688,13 +688,13 @@ export class PeakFollower {
     inputs.push(this._in);
     inputs.push(this._decay);
     const idx = def.addUgen("PeakFollower", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Resettable linear ramp between two levels
- * 
+ *
  * Phasor is a linear ramp between start and end values. When its trigger input
  * crosses from non-positive to positive, Phasor's output will jump to its reset
  * position. Upon reaching the end of its ramp Phasor will wrap back to its
@@ -714,24 +714,24 @@ export class Phasor {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Phasor {
     const b = new Phasor();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._start = { tag: 'constant', val: 0 };
-    b._end = { tag: 'constant', val: 1 };
-    b._resetPos = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._start = { tag: "constant", val: 0 };
+    b._end = { tag: "constant", val: 1 };
+    b._resetPos = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Phasor {
     const b = new Phasor();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._start = { tag: 'constant', val: 0 };
-    b._end = { tag: 'constant', val: 1 };
-    b._resetPos = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._start = { tag: "constant", val: 0 };
+    b._end = { tag: "constant", val: 1 };
+    b._resetPos = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -783,13 +783,13 @@ export class Phasor {
     inputs.push(this._end);
     inputs.push(this._resetPos);
     const idx = def.addUgen("Phasor", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Autocorrelation pitch follower
- * 
+ *
  * This is a better pitch follower than zero-crossing, but more costly of CPU.
  * For most purposes the default settings can be used and only in needs to be
  * supplied. Pitch returns two values (via an Array of OutputProxys, a freq which
@@ -818,18 +818,18 @@ export class Pitch {
   /** Build at kr rate (Rate::Control). */
   static kr(): Pitch {
     const b = new Pitch();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._initFreq = { tag: 'constant', val: 440 };
-    b._minFreq = { tag: 'constant', val: 60 };
-    b._maxFreq = { tag: 'constant', val: 4000 };
-    b._execFreq = { tag: 'constant', val: 100 };
-    b._maxBinsPerOctave = { tag: 'constant', val: 16 };
-    b._median = { tag: 'constant', val: 1 };
-    b._ampThreshold = { tag: 'constant', val: 0.01 };
-    b._peakThreshold = { tag: 'constant', val: 0.5 };
-    b._downSample = { tag: 'constant', val: 1 };
-    b._clar = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._initFreq = { tag: "constant", val: 440 };
+    b._minFreq = { tag: "constant", val: 60 };
+    b._maxFreq = { tag: "constant", val: 4000 };
+    b._execFreq = { tag: "constant", val: 100 };
+    b._maxBinsPerOctave = { tag: "constant", val: 16 };
+    b._median = { tag: "constant", val: 1 };
+    b._ampThreshold = { tag: "constant", val: 0.01 };
+    b._peakThreshold = { tag: "constant", val: 0.5 };
+    b._downSample = { tag: "constant", val: 1 };
+    b._clar = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -937,13 +937,13 @@ export class Pitch {
     inputs.push(this._downSample);
     inputs.push(this._clar);
     const idx = def.addUgen("Pitch", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Pulse counter
- * 
+ *
  * Each input trigger increments a counter value that is output.
  */
 export class PulseCount {
@@ -956,18 +956,18 @@ export class PulseCount {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PulseCount {
     const b = new PulseCount();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PulseCount {
     const b = new PulseCount();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -995,13 +995,13 @@ export class PulseCount {
     inputs.push(this._trig);
     inputs.push(this._reset);
     const idx = def.addUgen("PulseCount", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Pulse divider
- * 
+ *
  * Outputs a trigger every div input triggers
  */
 export class PulseDivider {
@@ -1015,20 +1015,20 @@ export class PulseDivider {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PulseDivider {
     const b = new PulseDivider();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._div = { tag: 'constant', val: 2 };
-    b._startVal = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._div = { tag: "constant", val: 2 };
+    b._startVal = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PulseDivider {
     const b = new PulseDivider();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._div = { tag: 'constant', val: 2 };
-    b._startVal = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._div = { tag: "constant", val: 2 };
+    b._startVal = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1067,13 +1067,13 @@ export class PulseDivider {
     inputs.push(this._div);
     inputs.push(this._startVal);
     const idx = def.addUgen("PulseDivider", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Track maximum level
- * 
+ *
  * Outputs the maximum value received at the input. When triggered, the maximum
  * output value is reset to the current value.
  */
@@ -1087,18 +1087,18 @@ export class RunningMax {
   /** Build at ar rate (Rate::Audio). */
   static ar(): RunningMax {
     const b = new RunningMax();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): RunningMax {
     const b = new RunningMax();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1126,13 +1126,13 @@ export class RunningMax {
     inputs.push(this._in);
     inputs.push(this._trig);
     const idx = def.addUgen("RunningMax", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Track minimum level
- * 
+ *
  * Outputs the minimum value received at the input. When triggered, the minimum
  * output value is reset to the current value.
  */
@@ -1146,18 +1146,18 @@ export class RunningMin {
   /** Build at ar rate (Rate::Audio). */
   static ar(): RunningMin {
     const b = new RunningMin();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): RunningMin {
     const b = new RunningMin();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1185,13 +1185,13 @@ export class RunningMin {
     inputs.push(this._in);
     inputs.push(this._trig);
     const idx = def.addUgen("RunningMin", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Schmidt trigger
- * 
+ *
  * Outout one when signal greater than high, and zero when lower than low.
  */
 export class Schmidt {
@@ -1205,20 +1205,20 @@ export class Schmidt {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Schmidt {
     const b = new Schmidt();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Schmidt {
     const b = new Schmidt();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -1250,13 +1250,13 @@ export class Schmidt {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Schmidt", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Send information via OSC to Overtone
- * 
+ *
  * Send an array of values from the server via an message. The OSC message is
  * formed with cmd-name as the path, followed by two compulsary args: node-id
  * (the id of the node that sent the message) and reply-id (the value specified
@@ -1278,22 +1278,22 @@ export class SendReply {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SendReply {
     const b = new SendReply();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._cmdName = { tag: 'constant', val: 0 };
-    b._values = { tag: 'constant', val: 0 };
-    b._replyId = { tag: 'constant', val: -1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._cmdName = { tag: "constant", val: 0 };
+    b._values = { tag: "constant", val: 0 };
+    b._replyId = { tag: "constant", val: -1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SendReply {
     const b = new SendReply();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._cmdName = { tag: 'constant', val: 0 };
-    b._values = { tag: 'constant', val: 0 };
-    b._replyId = { tag: 'constant', val: -1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._cmdName = { tag: "constant", val: 0 };
+    b._values = { tag: "constant", val: 0 };
+    b._replyId = { tag: "constant", val: -1 };
     return b;
   }
 
@@ -1332,13 +1332,13 @@ export class SendReply {
     inputs.push(this._values);
     inputs.push(this._replyId);
     const idx = def.addUgen("SendReply", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Send a /tr OSC message to Overtone
- * 
+ *
  * On receiving a trigger sends a :trigger event with id and value. This command
  * is the mechanism that synths can use to trigger events in clients. The trigger
  * message sent back to the client is this: int - node ID int - trigger ID float
@@ -1359,20 +1359,20 @@ export class SendTrig {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SendTrig {
     const b = new SendTrig();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
-    b._value = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
+    b._value = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SendTrig {
     const b = new SendTrig();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._id = { tag: 'constant', val: 0 };
-    b._value = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._id = { tag: "constant", val: 0 };
+    b._value = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1411,13 +1411,13 @@ export class SendTrig {
     inputs.push(this._id);
     inputs.push(this._value);
     const idx = def.addUgen("SendTrig", this._calcRate, inputs, 0, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Set-reset flip flop
- * 
+ *
  * When a trigger is received the output is set to 1.0 Subsequent triggers have
  * no effect When a trigger is received in the reset input, the output is set
  * back to 0.0 One use of this is to have some precipitating event cause
@@ -1433,18 +1433,18 @@ export class SetResetFF {
   /** Build at ar rate (Rate::Audio). */
   static ar(): SetResetFF {
     const b = new SetResetFF();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): SetResetFF {
     const b = new SetResetFF();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1472,13 +1472,13 @@ export class SetResetFF {
     inputs.push(this._trig);
     inputs.push(this._reset);
     const idx = def.addUgen("SetResetFF", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Pulse counter
- * 
+ *
  * Triggers increment a counter which is output as a signal. The counter loops
  * around from max to min by step increments
  */
@@ -1496,26 +1496,26 @@ export class Stepper {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Stepper {
     const b = new Stepper();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._min = { tag: 'constant', val: 0 };
-    b._max = { tag: 'constant', val: 7 };
-    b._step = { tag: 'constant', val: 1 };
-    b._resetval = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
+    b._min = { tag: "constant", val: 0 };
+    b._max = { tag: "constant", val: 7 };
+    b._step = { tag: "constant", val: 1 };
+    b._resetval = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Stepper {
     const b = new Stepper();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._reset = { tag: 'constant', val: 0 };
-    b._min = { tag: 'constant', val: 0 };
-    b._max = { tag: 'constant', val: 7 };
-    b._step = { tag: 'constant', val: 1 };
-    b._resetval = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._reset = { tag: "constant", val: 0 };
+    b._min = { tag: "constant", val: 0 };
+    b._max = { tag: "constant", val: 7 };
+    b._step = { tag: "constant", val: 1 };
+    b._resetval = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -1571,13 +1571,13 @@ export class Stepper {
     inputs.push(this._step);
     inputs.push(this._resetval);
     const idx = def.addUgen("Stepper", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Triggered linear ramp
- * 
+ *
  * outputs a linear increasing signal by rate/second when trig input crosses from
  * non-positive to positive
  */
@@ -1591,18 +1591,18 @@ export class Sweep {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Sweep {
     const b = new Sweep();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Sweep {
     const b = new Sweep();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -1627,13 +1627,13 @@ export class Sweep {
     inputs.push(this._trig);
     inputs.push(this._rate);
     const idx = def.addUgen("Sweep", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Trigger delay
- * 
+ *
  * Delays an input trigger by dur, ignoring other triggers in the meantime
  */
 export class TDelay {
@@ -1646,18 +1646,18 @@ export class TDelay {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TDelay {
     const b = new TDelay();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): TDelay {
     const b = new TDelay();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
@@ -1682,13 +1682,13 @@ export class TDelay {
     inputs.push(this._trig);
     inputs.push(this._dur);
     const idx = def.addUgen("TDelay", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Trigger timer
- * 
+ *
  * Outputs time since last trigger
  */
 export class Timer {
@@ -1700,16 +1700,16 @@ export class Timer {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Timer {
     const b = new Timer();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Timer {
     const b = new Timer();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1727,13 +1727,13 @@ export class Timer {
     const inputs: UGenInput[] = [];
     inputs.push(this._trig);
     const idx = def.addUgen("Timer", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Toggle flip flop
- * 
+ *
  * Flip-flops between zero and one each trigger
  */
 export class ToggleFF {
@@ -1745,16 +1745,16 @@ export class ToggleFF {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ToggleFF {
     const b = new ToggleFF();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): ToggleFF {
     const b = new ToggleFF();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -1772,7 +1772,7 @@ export class ToggleFF {
     const inputs: UGenInput[] = [];
     inputs.push(this._trig);
     const idx = def.addUgen("ToggleFF", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -1789,24 +1789,24 @@ export class Trapezoid {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Trapezoid {
     const b = new Trapezoid();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._a = { tag: 'constant', val: 0.2 };
-    b._b = { tag: 'constant', val: 0.4 };
-    b._c = { tag: 'constant', val: 0.6 };
-    b._d = { tag: 'constant', val: 0.8 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._a = { tag: "constant", val: 0.2 };
+    b._b = { tag: "constant", val: 0.4 };
+    b._c = { tag: "constant", val: 0.6 };
+    b._d = { tag: "constant", val: 0.8 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Trapezoid {
     const b = new Trapezoid();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._a = { tag: 'constant', val: 0.2 };
-    b._b = { tag: 'constant', val: 0.4 };
-    b._c = { tag: 'constant', val: 0.6 };
-    b._d = { tag: 'constant', val: 0.8 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._a = { tag: "constant", val: 0.2 };
+    b._b = { tag: "constant", val: 0.4 };
+    b._c = { tag: "constant", val: 0.6 };
+    b._d = { tag: "constant", val: 0.8 };
     return b;
   }
 
@@ -1847,13 +1847,13 @@ export class Trapezoid {
     inputs.push(this._c);
     inputs.push(this._d);
     const idx = def.addUgen("Trapezoid", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Timed trigger
- * 
+ *
  * When a nonpositive to positive transition occurs at the input, Trig outputs
  * the level of the triggering input for the specified duration, otherwise it
  * outputs zero.
@@ -1868,18 +1868,18 @@ export class Trig {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Trig {
     const b = new Trig();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Trig {
     const b = new Trig();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
@@ -1907,13 +1907,13 @@ export class Trig {
     inputs.push(this._trig);
     inputs.push(this._dur);
     const idx = def.addUgen("Trig", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Timed trigger
- * 
+ *
  * Outputs one for dur seconds whenever the input goes from negative to positive,
  * otherwise outputs 0.
  */
@@ -1927,18 +1927,18 @@ export class Trig1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Trig1 {
     const b = new Trig1();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Trig1 {
     const b = new Trig1();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 0.1 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 0.1 };
     return b;
   }
 
@@ -1966,13 +1966,13 @@ export class Trig1 {
     inputs.push(this._trig);
     inputs.push(this._dur);
     const idx = def.addUgen("Trig1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Triggered window
- * 
+ *
  * When triggered, returns a random index value based on array as a list of
  * probabilities. By default the list of probabilities should sum to 1.0, when
  * the normalize flag is set to 1, the values get normalized by the ugen (less
@@ -1989,9 +1989,9 @@ export class TWindex {
   /** Build at ar rate (Rate::Audio). */
   static ar(): TWindex {
     const b = new TWindex();
-    b._calcRate = 'audio';
-    b._trig = { tag: 'constant', val: 0 };
-    b._normalize = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._trig = { tag: "constant", val: 0 };
+    b._normalize = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -1999,9 +1999,9 @@ export class TWindex {
   /** Build at kr rate (Rate::Control). */
   static kr(): TWindex {
     const b = new TWindex();
-    b._calcRate = 'control';
-    b._trig = { tag: 'constant', val: 0 };
-    b._normalize = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._normalize = { tag: "constant", val: 0 };
     b._channelsArray = [];
     return b;
   }
@@ -2039,13 +2039,13 @@ export class TWindex {
     inputs.push(this._normalize);
     inputs.push(...this._channelsArray);
     const idx = def.addUgen("TWindex", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Wrap a signal outside given thresholds.
- * 
+ *
  * Wraps input wave to the low and high thresholds. This differs from the ugen
  * wrap2 in that it allows one to set both low and high thresholds.
  */
@@ -2060,20 +2060,20 @@ export class Wrap {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Wrap {
     const b = new Wrap();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Wrap {
     const b = new Wrap();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._lo = { tag: 'constant', val: 0 };
-    b._hi = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -2105,13 +2105,13 @@ export class Wrap {
     inputs.push(this._lo);
     inputs.push(this._hi);
     const idx = def.addUgen("Wrap", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Zero crossing frequency follower
- * 
+ *
  * Outputs a frequency based upon the distance between interceptions of the X
  * axis. The X intercepts are determined via linear interpolation so this gives
  * better than just integer wavelength resolution. This is a very crude pitch
@@ -2126,16 +2126,16 @@ export class ZeroCrossing {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ZeroCrossing {
     const b = new ZeroCrossing();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): ZeroCrossing {
     const b = new ZeroCrossing();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -2153,6 +2153,6 @@ export class ZeroCrossing {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("ZeroCrossing", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -66,7 +66,13 @@ export function computePlaceholders(layout: BoxItem[], rows: number, cols: numbe
 
   let rect: ReturnType<typeof findMaxRect>;
   while ((rect = findMaxRect(grid, rows, cols))) {
-    placeholders.push({ i: `${PLACEHOLDER_PREFIX}-${id++}`, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+    placeholders.push({
+      i: `${PLACEHOLDER_PREFIX}-${id++}`,
+      x: rect.x,
+      y: rect.y,
+      w: rect.w,
+      h: rect.h,
+    });
     for (let r = rect.y; r < rect.y + rect.h; r++) {
       for (let c = rect.x; c < rect.x + rect.w; c++) {
         grid[r][c] = 1;
@@ -77,7 +83,12 @@ export function computePlaceholders(layout: BoxItem[], rows: number, cols: numbe
   return placeholders;
 }
 
-export function toPixelStyle(item: BoxItem, containerWidth: number, cols: number, rowHeight: number) {
+export function toPixelStyle(
+  item: BoxItem,
+  containerWidth: number,
+  cols: number,
+  rowHeight: number,
+) {
   const [mx, my] = MARGIN;
   const colWidth = (containerWidth - mx * (cols + 1)) / cols;
 

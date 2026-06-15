@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "CoinGate",
-    rates: ['control', 'scalar'],
+    rates: ["control", "scalar"],
     defaults: [
       { name: "prob", default: null },
       { name: "trig", default: null },
@@ -24,7 +24,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "ExpRand",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "lo", default: 0.009999999776482582 },
       { name: "hi", default: 1 },
@@ -41,7 +41,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "IRand",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 127 },
@@ -58,7 +58,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinRand",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 1 },
@@ -77,7 +77,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "NRand",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 1 },
@@ -96,7 +96,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Rand",
-    rates: ['scalar'],
+    rates: ["scalar"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 1 },
@@ -106,27 +106,22 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "RandID",
-    rates: ['scalar', 'control'],
-    defaults: [
-      { name: "seed", default: 0 },
-    ],
+    rates: ["scalar", "control"],
+    defaults: [{ name: "seed", default: 0 }],
     numOutputs: 1,
     extends: null,
     summary: null,
     doc: "Choose which random number generator to use for this synth. All synths that use the same generator reproduce the same sequence of numbers when the same seed is set again.",
     signalRange: null,
-    argDocs: [
-      { name: "seed", doc: "Seed id" },
-    ],
+    argDocs: [{ name: "seed", doc: "Seed id" }],
   },
   {
     name: "RandSeed",
-    rates: ['scalar', 'control'],
+    rates: ["scalar", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "seed", default: 56789 },
@@ -143,7 +138,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TExpRand",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "lo", default: 0.009999999776482582 },
       { name: "hi", default: 1 },
@@ -162,7 +157,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TIRand",
-    rates: ['control', 'audio'],
+    rates: ["control", "audio"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 127 },
@@ -181,7 +176,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TRand",
-    rates: ['control', 'audio'],
+    rates: ["control", "audio"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 1 },

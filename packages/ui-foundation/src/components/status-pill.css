@@ -38,30 +38,40 @@
   border-color: var(--color-ok-strong);
   color: var(--color-ok-text);
 }
-.status-pill[data-variant="ok"] > .dot { color: var(--color-ok); }
+.status-pill[data-variant="ok"] > .dot {
+  color: var(--color-ok);
+}
 
 .status-pill[data-variant="warn"] {
   background: var(--color-warn-bg);
   border-color: var(--color-warn-border);
   color: var(--color-warn-text);
 }
-.status-pill[data-variant="warn"] > .dot { color: var(--color-warn); }
+.status-pill[data-variant="warn"] > .dot {
+  color: var(--color-warn);
+}
 
 .status-pill[data-variant="error"] {
   background: var(--color-error-bg);
   border-color: var(--color-error-border);
   color: var(--color-error-text);
 }
-.status-pill[data-variant="error"] > .dot { color: var(--color-danger); }
+.status-pill[data-variant="error"] > .dot {
+  color: var(--color-danger);
+}
 
 .status-pill[data-variant="info"] {
   background: var(--color-info-bg);
   border-color: var(--color-info-border);
   color: var(--color-info-text);
 }
-.status-pill[data-variant="info"] > .dot { color: var(--color-primary); }
+.status-pill[data-variant="info"] > .dot {
+  color: var(--color-primary);
+}
 
 /* "muted" is the default — pill renders with surface-2 chrome
    already; the dot uses --color-text-mute. Listed for
    completeness. */
-.status-pill[data-variant="muted"] > .dot { color: var(--color-text-mute); }
+.status-pill[data-variant="muted"] > .dot {
+  color: var(--color-text-mute);
+}

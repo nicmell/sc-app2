@@ -64,7 +64,12 @@ export function nameOf(el: Element): string | undefined {
 
 /** The runtime core every element shares. */
 export function baseRuntime(ctx: RuntimeContext): BaseRuntime {
-  return { _rootScNode: ctx.rootNode, _parentScNode: ctx.parentNode, path: ctx.path, enabled: true };
+  return {
+    _rootScNode: ctx.rootNode,
+    _parentScNode: ctx.parentNode,
+    path: ctx.path,
+    enabled: true,
+  };
 }
 
 function walkPath(node: ScElement, path: string[]): ScElement | undefined {
@@ -82,7 +87,11 @@ function walkPath(node: ScElement, path: string[]): ScElement | undefined {
  *  their references in DOM order (a name matching a later, not-yet-processed
  *  element is an explicit error; a name matching nothing falls through to
  *  the caller's own error). */
-export function resolveNode(el: Element, ctx: RuntimeContext, path: string[]): ScElement | undefined {
+export function resolveNode(
+  el: Element,
+  ctx: RuntimeContext,
+  path: string[],
+): ScElement | undefined {
   const [name, ...rest] = path;
   const target = ctx.scope.find((s) => nameOf(s) === name);
   if (!target) return undefined;
@@ -139,13 +148,17 @@ export function resolveStateBind(
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path);
-    const targetState = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName) as ScState;
+    const targetState = target._scChildren!.find(
+      (c) => isStateRuntime(c) && nameOf(c) === controlName,
+    ) as ScState;
     // With references restricted to already-processed elements, processing
     // order strictly decreases along any bind chain — the targets graph is a
     // DAG by construction. The only cycle left is the self-reference (an
     // element can still name itself through its mid-processing parent).
     if (targetState === el) {
-      throw new Error(`<${el.tagName.toLowerCase()} name="${nameOf(el)}">: circular bind reference detected`);
+      throw new Error(
+        `<${el.tagName.toLowerCase()} name="${nameOf(el)}">: circular bind reference detected`,
+      );
     }
     targets[path] = targetState;
   }

@@ -70,9 +70,7 @@ class UGenGraphBuilder {
       if (!rate) throw new Error(`Unknown rate: "${spec.rate}"`);
 
       const numChannelsAttr = findMatchingInput(spec.inputs, "numChannels");
-      const numOutputs = numChannelsAttr
-        ? parseInt(numChannelsAttr, 10)
-        : (entry.numOutputs ?? 1);
+      const numOutputs = numChannelsAttr ? parseInt(numChannelsAttr, 10) : (entry.numOutputs ?? 1);
       const inputs = this.resolveStandardInputs(spec, entry.defaults);
       const specialIndex = resolveSpecialIndex(spec);
       this.ugenIndices.set(

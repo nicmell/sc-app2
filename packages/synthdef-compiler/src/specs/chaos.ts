@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "CuspL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -28,7 +28,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "CuspN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -49,7 +49,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "FBSineC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "im", default: 1 },
@@ -76,7 +76,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "FBSineL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "im", default: 1 },
@@ -103,7 +103,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "FBSineN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "im", default: 1 },
@@ -130,7 +130,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "GbmanL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "xi", default: 1.2000000476837158 },
@@ -149,7 +149,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "GbmanN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "xi", default: 1.2000000476837158 },
@@ -168,7 +168,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "HenonC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.399999976158142 },
@@ -191,7 +191,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "HenonL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.399999976158142 },
@@ -214,7 +214,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "HenonN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.399999976158142 },
@@ -237,7 +237,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LatoocarfianC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -264,7 +264,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LatoocarfianL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -291,7 +291,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LatoocarfianN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -318,7 +318,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinCongC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.100000023841858 },
@@ -341,7 +341,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinCongL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.100000023841858 },
@@ -364,7 +364,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinCongN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1.100000023841858 },
@@ -387,7 +387,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LorenzL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "s", default: 10 },
@@ -416,7 +416,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "QuadC",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -439,7 +439,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "QuadL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -462,7 +462,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "QuadN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "a", default: 1 },
@@ -485,7 +485,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "StandardL",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "k", default: 1 },
@@ -506,7 +506,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "StandardN",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 22050 },
       { name: "k", default: 1 },

@@ -2,13 +2,13 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Amplitude follower
- * 
+ *
  * Tracks the peak amplitude of a signal.
  */
 export class Amplitude {
@@ -22,20 +22,20 @@ export class Amplitude {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Amplitude {
     const b = new Amplitude();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._attackTime = { tag: 'constant', val: 0.01 };
-    b._releaseTime = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._attackTime = { tag: "constant", val: 0.01 };
+    b._releaseTime = { tag: "constant", val: 0.01 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Amplitude {
     const b = new Amplitude();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._attackTime = { tag: 'constant', val: 0.01 };
-    b._releaseTime = { tag: 'constant', val: 0.01 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._attackTime = { tag: "constant", val: 0.01 };
+    b._releaseTime = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -67,13 +67,13 @@ export class Amplitude {
     inputs.push(this._attackTime);
     inputs.push(this._releaseTime);
     const idx = def.addUgen("Amplitude", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * General purpose hard-knee dynamic range processor.
- * 
+ *
  * The compander will modify the amplitude of the in signal based on an analysis
  * of the control signal. Typically the in and control signals are the same. The
  * amplitude of the control signal is calcuated using RMS (Root Mean Square) and
@@ -110,14 +110,14 @@ export class Compander {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Compander {
     const b = new Compander();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._control = { tag: 'constant', val: 0 };
-    b._thresh = { tag: 'constant', val: 0.5 };
-    b._slopeBelow = { tag: 'constant', val: 1 };
-    b._slopeAbove = { tag: 'constant', val: 1 };
-    b._clampTime = { tag: 'constant', val: 0.01 };
-    b._relaxTime = { tag: 'constant', val: 0.1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._control = { tag: "constant", val: 0 };
+    b._thresh = { tag: "constant", val: 0.5 };
+    b._slopeBelow = { tag: "constant", val: 1 };
+    b._slopeAbove = { tag: "constant", val: 1 };
+    b._clampTime = { tag: "constant", val: 0.01 };
+    b._relaxTime = { tag: "constant", val: 0.1 };
     return b;
   }
 
@@ -198,7 +198,7 @@ export class Compander {
     inputs.push(this._clampTime);
     inputs.push(this._relaxTime);
     const idx = def.addUgen("Compander", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -219,10 +219,10 @@ export class Limiter {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Limiter {
     const b = new Limiter();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._dur = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._dur = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -258,7 +258,7 @@ export class Limiter {
     inputs.push(this._level);
     inputs.push(this._dur);
     const idx = def.addUgen("Limiter", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -278,10 +278,10 @@ export class Normalizer {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Normalizer {
     const b = new Normalizer();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._level = { tag: 'constant', val: 1 };
-    b._dur = { tag: 'constant', val: 0.01 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    b._dur = { tag: "constant", val: 0.01 };
     return b;
   }
 
@@ -317,6 +317,6 @@ export class Normalizer {
     inputs.push(this._level);
     inputs.push(this._dur);
     const idx = def.addUgen("Normalizer", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

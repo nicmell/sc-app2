@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /** Granular synthesis with sound stored in a buffer */
 export class GrainBuf {
@@ -25,16 +25,16 @@ export class GrainBuf {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GrainBuf {
     const b = new GrainBuf();
-    b._calcRate = 'audio';
-    b._trigger = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 1 };
-    b._sndbuf = { tag: 'constant', val: 0 };
-    b._rate = { tag: 'constant', val: 1 };
-    b._pos = { tag: 'constant', val: 1 };
-    b._interp = { tag: 'constant', val: 2 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._envbufnum = { tag: 'constant', val: -1 };
-    b._maxGrains = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._trigger = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 1 };
+    b._sndbuf = { tag: "constant", val: 0 };
+    b._rate = { tag: "constant", val: 1 };
+    b._pos = { tag: "constant", val: 1 };
+    b._interp = { tag: "constant", val: 2 };
+    b._pan = { tag: "constant", val: 0 };
+    b._envbufnum = { tag: "constant", val: -1 };
+    b._maxGrains = { tag: "constant", val: 512 };
     b._numChannels = 1;
     return b;
   }
@@ -138,7 +138,7 @@ export class GrainBuf {
     inputs.push(this._envbufnum);
     inputs.push(this._maxGrains);
     const idx = def.addUgen("GrainBuf", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -160,15 +160,15 @@ export class GrainFM {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GrainFM {
     const b = new GrainFM();
-    b._calcRate = 'audio';
-    b._trigger = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 1 };
-    b._carFreq = { tag: 'constant', val: 440 };
-    b._modFreq = { tag: 'constant', val: 440 };
-    b._index = { tag: 'constant', val: 1 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._envbufnum = { tag: 'constant', val: -1 };
-    b._maxGrains = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._trigger = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 1 };
+    b._carFreq = { tag: "constant", val: 440 };
+    b._modFreq = { tag: "constant", val: 440 };
+    b._index = { tag: "constant", val: 1 };
+    b._pan = { tag: "constant", val: 0 };
+    b._envbufnum = { tag: "constant", val: -1 };
+    b._maxGrains = { tag: "constant", val: 512 };
     b._numChannels = 1;
     return b;
   }
@@ -256,7 +256,7 @@ export class GrainFM {
     inputs.push(this._envbufnum);
     inputs.push(this._maxGrains);
     const idx = def.addUgen("GrainFM", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -276,13 +276,13 @@ export class GrainIn {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GrainIn {
     const b = new GrainIn();
-    b._calcRate = 'audio';
-    b._trigger = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 1 };
-    b._in = { tag: 'constant', val: 0 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._envbufnum = { tag: 'constant', val: -1 };
-    b._maxGrains = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._trigger = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 1 };
+    b._in = { tag: "constant", val: 0 };
+    b._pan = { tag: "constant", val: 0 };
+    b._envbufnum = { tag: "constant", val: -1 };
+    b._maxGrains = { tag: "constant", val: 512 };
     b._numChannels = 1;
     return b;
   }
@@ -356,7 +356,7 @@ export class GrainIn {
     inputs.push(this._envbufnum);
     inputs.push(this._maxGrains);
     const idx = def.addUgen("GrainIn", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -376,13 +376,13 @@ export class GrainSin {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GrainSin {
     const b = new GrainSin();
-    b._calcRate = 'audio';
-    b._trigger = { tag: 'constant', val: 0 };
-    b._dur = { tag: 'constant', val: 1 };
-    b._freq = { tag: 'constant', val: 440 };
-    b._pan = { tag: 'constant', val: 0 };
-    b._envbufnum = { tag: 'constant', val: -1 };
-    b._maxGrains = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._trigger = { tag: "constant", val: 0 };
+    b._dur = { tag: "constant", val: 1 };
+    b._freq = { tag: "constant", val: 440 };
+    b._pan = { tag: "constant", val: 0 };
+    b._envbufnum = { tag: "constant", val: -1 };
+    b._maxGrains = { tag: "constant", val: 512 };
     b._numChannels = 1;
     return b;
   }
@@ -456,7 +456,7 @@ export class GrainSin {
     inputs.push(this._envbufnum);
     inputs.push(this._maxGrains);
     const idx = def.addUgen("GrainSin", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -482,15 +482,15 @@ export class Warp1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Warp1 {
     const b = new Warp1();
-    b._calcRate = 'audio';
-    b._bufnum = { tag: 'constant', val: 0 };
-    b._pointer = { tag: 'constant', val: 0 };
-    b._freqScale = { tag: 'constant', val: 1 };
-    b._windowSize = { tag: 'constant', val: 0.1 };
-    b._envbufnum = { tag: 'constant', val: -1 };
-    b._overlaps = { tag: 'constant', val: 8 };
-    b._windowRandRatio = { tag: 'constant', val: 0 };
-    b._interp = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._pointer = { tag: "constant", val: 0 };
+    b._freqScale = { tag: "constant", val: 1 };
+    b._windowSize = { tag: "constant", val: 0.1 };
+    b._envbufnum = { tag: "constant", val: -1 };
+    b._overlaps = { tag: "constant", val: 8 };
+    b._windowRandRatio = { tag: "constant", val: 0 };
+    b._interp = { tag: "constant", val: 1 };
     b._numChannels = 1;
     return b;
   }
@@ -579,6 +579,6 @@ export class Warp1 {
     inputs.push(this._windowRandRatio);
     inputs.push(this._interp);
     const idx = def.addUgen("Warp1", this._calcRate, inputs, this._numChannels, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Strict convolution of two continuously changing inputs. Also see convolution2
@@ -24,10 +24,10 @@ export class Convolution {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Convolution {
     const b = new Convolution();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernel = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._kernel = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
     return b;
   }
 
@@ -59,7 +59,7 @@ export class Convolution {
     inputs.push(this._kernel);
     inputs.push(this._framesize);
     const idx = def.addUgen("Convolution", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -80,11 +80,11 @@ export class Convolution2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Convolution2 {
     const b = new Convolution2();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernel = { tag: 'constant', val: 0 };
-    b._trigger = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._kernel = { tag: "constant", val: 0 };
+    b._trigger = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
     return b;
   }
 
@@ -131,7 +131,7 @@ export class Convolution2 {
     inputs.push(this._trigger);
     inputs.push(this._framesize);
     const idx = def.addUgen("Convolution2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -154,12 +154,12 @@ export class Convolution2L {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Convolution2L {
     const b = new Convolution2L();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernel = { tag: 'constant', val: 0 };
-    b._trigger = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
-    b._crossfade = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._kernel = { tag: "constant", val: 0 };
+    b._trigger = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
+    b._crossfade = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -216,7 +216,7 @@ export class Convolution2L {
     inputs.push(this._framesize);
     inputs.push(this._crossfade);
     const idx = def.addUgen("Convolution2L", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -238,22 +238,22 @@ export class Convolution3 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Convolution3 {
     const b = new Convolution3();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernel = { tag: 'constant', val: 0 };
-    b._trigger = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._kernel = { tag: "constant", val: 0 };
+    b._trigger = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Convolution3 {
     const b = new Convolution3();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernel = { tag: 'constant', val: 0 };
-    b._trigger = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._kernel = { tag: "constant", val: 0 };
+    b._trigger = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
     return b;
   }
 
@@ -295,7 +295,7 @@ export class Convolution3 {
     inputs.push(this._trigger);
     inputs.push(this._framesize);
     const idx = def.addUgen("Convolution3", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -318,10 +318,10 @@ export class PV_ConformalMap {
   /** Build at kr rate (Rate::Control). */
   static kr(): PV_ConformalMap {
     const b = new PV_ConformalMap();
-    b._calcRate = 'control';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._areal = { tag: 'constant', val: 0 };
-    b._aimag = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._buffer = { tag: "constant", val: 0 };
+    b._areal = { tag: "constant", val: 0 };
+    b._aimag = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -356,7 +356,7 @@ export class PV_ConformalMap {
     inputs.push(this._areal);
     inputs.push(this._aimag);
     const idx = def.addUgen("PV_ConformalMap", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -383,12 +383,12 @@ export class PV_HainsworthFoote {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PV_HainsworthFoote {
     const b = new PV_HainsworthFoote();
-    b._calcRate = 'audio';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._proph = { tag: 'constant', val: 0 };
-    b._propf = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 1 };
-    b._waitTime = { tag: 'constant', val: 0.04 };
+    b._calcRate = "audio";
+    b._buffer = { tag: "constant", val: 0 };
+    b._proph = { tag: "constant", val: 0 };
+    b._propf = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 1 };
+    b._waitTime = { tag: "constant", val: 0.04 };
     return b;
   }
 
@@ -440,7 +440,7 @@ export class PV_HainsworthFoote {
     inputs.push(this._threshold);
     inputs.push(this._waitTime);
     const idx = def.addUgen("PV_HainsworthFoote", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -466,14 +466,14 @@ export class PV_JensenAndersen {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PV_JensenAndersen {
     const b = new PV_JensenAndersen();
-    b._calcRate = 'audio';
-    b._buffer = { tag: 'constant', val: 0 };
-    b._propsc = { tag: 'constant', val: 0.25 };
-    b._prophfe = { tag: 'constant', val: 0.25 };
-    b._prophfc = { tag: 'constant', val: 0.25 };
-    b._propsf = { tag: 'constant', val: 0.25 };
-    b._threshold = { tag: 'constant', val: 1 };
-    b._waitTime = { tag: 'constant', val: 0.04 };
+    b._calcRate = "audio";
+    b._buffer = { tag: "constant", val: 0 };
+    b._propsc = { tag: "constant", val: 0.25 };
+    b._prophfe = { tag: "constant", val: 0.25 };
+    b._prophfc = { tag: "constant", val: 0.25 };
+    b._propsf = { tag: "constant", val: 0.25 };
+    b._threshold = { tag: "constant", val: 1 };
+    b._waitTime = { tag: "constant", val: 0.04 };
     return b;
   }
 
@@ -536,7 +536,7 @@ export class PV_JensenAndersen {
     inputs.push(this._threshold);
     inputs.push(this._waitTime);
     const idx = def.addUgen("PV_JensenAndersen", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -554,18 +554,18 @@ export class RunningSum {
   /** Build at ar rate (Rate::Audio). */
   static ar(): RunningSum {
     const b = new RunningSum();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._numsamp = { tag: 'constant', val: 40 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._numsamp = { tag: "constant", val: 40 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): RunningSum {
     const b = new RunningSum();
-    b._calcRate = 'control';
-    b._in = { tag: 'constant', val: 0 };
-    b._numsamp = { tag: 'constant', val: 40 };
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._numsamp = { tag: "constant", val: 40 };
     return b;
   }
 
@@ -593,7 +593,7 @@ export class RunningSum {
     inputs.push(this._in);
     inputs.push(this._numsamp);
     const idx = def.addUgen("RunningSum", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -620,13 +620,13 @@ export class StereoConvolution2L {
   /** Build at ar rate (Rate::Audio). */
   static ar(): StereoConvolution2L {
     const b = new StereoConvolution2L();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._kernelL = { tag: 'constant', val: 0 };
-    b._kernelR = { tag: 'constant', val: 0 };
-    b._trigger = { tag: 'constant', val: 0 };
-    b._framesize = { tag: 'constant', val: 512 };
-    b._crossfade = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._kernelL = { tag: "constant", val: 0 };
+    b._kernelR = { tag: "constant", val: 0 };
+    b._trigger = { tag: "constant", val: 0 };
+    b._framesize = { tag: "constant", val: 512 };
+    b._crossfade = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -690,6 +690,6 @@ export class StereoConvolution2L {
     inputs.push(this._framesize);
     inputs.push(this._crossfade);
     const idx = def.addUgen("StereoConvolution2L", this._calcRate, inputs, 2, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Clip",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },
@@ -26,7 +26,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Fold",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },
@@ -45,7 +45,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Gate",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "trig", default: 0 },
@@ -57,12 +57,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "InRange",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },
@@ -81,7 +84,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "InRect",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "x", default: 0 },
       { name: "y", default: 0 },
@@ -102,7 +105,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LastValue",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "diff", default: 0.009999999776482582 },
@@ -119,7 +122,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Latch",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "trig", default: 0 },
@@ -131,12 +134,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "LeastChange",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "a", default: 0 },
       { name: "b", default: 0 },
@@ -153,7 +159,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "MostChange",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "a", default: 0 },
       { name: "b", default: 0 },
@@ -170,7 +176,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Peak",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "reset", default: 0 },
@@ -182,12 +188,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "reset", doc: "Resets the counter to zero when triggered." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "PeakFollower",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "decay", default: 0.9990000128746033 },
@@ -204,7 +213,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Phasor",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "rate", default: 1 },
@@ -219,15 +228,21 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "end", doc: "End point of the ramp" },
-      { name: "rate", doc: "The amount of change per sample i.e at a rate of 1 the value of each sample will be 1 greater than the preceding sample" },
+      {
+        name: "rate",
+        doc: "The amount of change per sample i.e at a rate of 1 the value of each sample will be 1 greater than the preceding sample",
+      },
       { name: "resetPos", doc: "The value to jump to upon receiving a trigger" },
       { name: "start", doc: "Starting point of the ramp" },
-      { name: "trig", doc: "When triggered, reset value to reset-pos (default: 0, phasor outputs start initially)" },
+      {
+        name: "trig",
+        doc: "When triggered, reset value to reset-pos (default: 0, phasor outputs start initially)",
+      },
     ],
   },
   {
     name: "Pitch",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "in", default: null },
       { name: "initFreq", default: 440 },
@@ -247,22 +262,43 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "This is a better pitch follower than zero-crossing, but more costly of CPU. For most purposes the default settings can be used and only in needs to be supplied. Pitch returns two values (via an Array of OutputProxys, a freq which is the pitch estimate and has-freq, which tells whether a pitch was found. Some vowels are still problematic, for instance a wide open mouth sound somewhere between a low pitched short 'a' sound as in 'sat', and long 'i' sound as in 'fire', contains enough overtone energy to confuse the algorithm. None of these settings are time variable.",
     signalRange: null,
     argDocs: [
-      { name: "ampThreshold", doc: "Minum peak to peak amplitude of input signal before pitch estimation is performed." },
-      { name: "clar", doc: "Clarity measurement (purity of the pitched signal) if greater than 0." },
-      { name: "downSample", doc: "Down sample the input signal by an integer factor. Helps reduce CPU overthead. Also reduces pitch resolution." },
-      { name: "execFreq", doc: "The target rate to periodically execute in cps. Clipped between min-freq and max-freq." },
+      {
+        name: "ampThreshold",
+        doc: "Minum peak to peak amplitude of input signal before pitch estimation is performed.",
+      },
+      {
+        name: "clar",
+        doc: "Clarity measurement (purity of the pitched signal) if greater than 0.",
+      },
+      {
+        name: "downSample",
+        doc: "Down sample the input signal by an integer factor. Helps reduce CPU overthead. Also reduces pitch resolution.",
+      },
+      {
+        name: "execFreq",
+        doc: "The target rate to periodically execute in cps. Clipped between min-freq and max-freq.",
+      },
       { name: "in", doc: "Input signal" },
       { name: "initFreq", doc: "Value of output pitch until first pitch detected." },
-      { name: "maxBinsPerOctave", doc: "Number of lags for course search. A larger value will cause the coarse search to take longer, a smaller value will cause the subsequent fine search to take longer." },
+      {
+        name: "maxBinsPerOctave",
+        doc: "Number of lags for course search. A larger value will cause the coarse search to take longer, a smaller value will cause the subsequent fine search to take longer.",
+      },
       { name: "maxFreq", doc: "Maximum frequency of execution." },
-      { name: "median", doc: "Median filter value of length median on the output estimation. Helps eliminate outliers and jitter. Value of 1 means no filter." },
+      {
+        name: "median",
+        doc: "Median filter value of length median on the output estimation. Helps eliminate outliers and jitter. Value of 1 means no filter.",
+      },
       { name: "minFreq", doc: "Minimum frequency of execution." },
-      { name: "peakThreshold", doc: "Finds the next peak that is above peak-threshold times the amplitude of the peak at lag zero. A value of 0.5 does a pretty good job of eliminating overtones." },
+      {
+        name: "peakThreshold",
+        doc: "Finds the next peak that is above peak-threshold times the amplitude of the peak at lag zero. A value of 0.5 does a pretty good job of eliminating overtones.",
+      },
     ],
   },
   {
     name: "PulseCount",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "reset", default: 0 },
@@ -274,12 +310,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "reset", doc: "Resets the counter to zero when triggered." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "PulseDivider",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "div", default: 2 },
@@ -292,13 +331,19 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "div", doc: "Number of pulses to divide by." },
-      { name: "startVal", doc: "Starting value for the trigger count. This lets you start somewhere in the middle of a count, or if startCount is negative it adds that many counts to the first time the output is triggers." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "startVal",
+        doc: "Starting value for the trigger count. This lets you start somewhere in the middle of a count, or if startCount is negative it adds that many counts to the first time the output is triggers.",
+      },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "RunningMax",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "trig", default: 0 },
@@ -310,12 +355,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "RunningMin",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "trig", default: 0 },
@@ -327,12 +375,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "in", doc: "Input signal." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Schmidt",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },
@@ -351,7 +402,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "SendReply",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "cmdName", default: null },
@@ -361,7 +412,7 @@ export const UGENS: UGenRegistryEntry[] = [
     numOutputs: 0,
     extends: null,
     summary: "Send information via OSC to Overtone",
-    doc: "Send an array of values from the server via an message. The OSC message is formed with cmd-name as the path, followed by two compulsary args: node-id (the id of the node that sent the message) and reply-id (the value specified in the params). These args are then followed by the list of values specified in the params. For example, if the ugen is used as follows: (send-reply tr \\\"/foobar\\\" [1 2 3] 42) When the trig tr triggers, Overtone will receive an event that looks like the following (where 32 represents the node-id of the synth that sent the message): {:path \\\"/foobar\\",
+    doc: 'Send an array of values from the server via an message. The OSC message is formed with cmd-name as the path, followed by two compulsary args: node-id (the id of the node that sent the message) and reply-id (the value specified in the params). These args are then followed by the list of values specified in the params. For example, if the ugen is used as follows: (send-reply tr \\"/foobar\\" [1 2 3] 42) When the trig tr triggers, Overtone will receive an event that looks like the following (where 32 represents the node-id of the synth that sent the message): {:path \\"/foobar\\',
     signalRange: null,
     argDocs: [
       { name: "cmdName", doc: "A string or symbol, as a message name." },
@@ -372,7 +423,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "SendTrig",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "id", default: 0 },
@@ -381,17 +432,23 @@ export const UGENS: UGenRegistryEntry[] = [
     numOutputs: 0,
     extends: null,
     summary: "Send a /tr OSC message to Overtone",
-    doc: "On receiving a trigger sends a :trigger event with id and value. This command is the mechanism that synths can use to trigger events in clients. The trigger message sent back to the client is this: int - node ID int - trigger ID float - trigger value This is then presented as an event on the event-stream which is a map containing the key :path with the string \\\"/tr\\\" and the key :args containing a sequence of the values in the above order. i.e. {:path /tr, :args (34 3 123.0)} See on-trigger, on-latest-trigger and on-sync-trigger for registering handlers for trigger events.",
+    doc: 'On receiving a trigger sends a :trigger event with id and value. This command is the mechanism that synths can use to trigger events in clients. The trigger message sent back to the client is this: int - node ID int - trigger ID float - trigger value This is then presented as an event on the event-stream which is a map containing the key :path with the string \\"/tr\\" and the key :args containing a sequence of the values in the above order. i.e. {:path /tr, :args (34 3 123.0)} See on-trigger, on-latest-trigger and on-sync-trigger for registering handlers for trigger events.',
     signalRange: null,
     argDocs: [
-      { name: "id", doc: "an integer that will be passed with the trigger message. This is useful if you have more than one send-trig in a synth design. Consider using trig-id to genearate a unique id." },
+      {
+        name: "id",
+        doc: "an integer that will be passed with the trigger message. This is useful if you have more than one send-trig in a synth design. Consider using trig-id to genearate a unique id.",
+      },
       { name: "in", doc: "input trigger signal" },
-      { name: "value", doc: "A ugen or float that will be polled at the time of trigger, and its value passed with the trigger message" },
+      {
+        name: "value",
+        doc: "A ugen or float that will be polled at the time of trigger, and its value passed with the trigger message",
+      },
     ],
   },
   {
     name: "SetResetFF",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "reset", default: 0 },
@@ -403,12 +460,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "reset", doc: "Resets the counter to zero when triggered." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Stepper",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "reset", default: 0 },
@@ -426,14 +486,20 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "max", doc: "maximum value of the counter." },
       { name: "min", doc: "minimum value of the counter." },
       { name: "reset", doc: "Resets the counter to resetval when triggered." },
-      { name: "resetval", doc: "value to which the counter is reset when it receives a reset trigger." },
+      {
+        name: "resetval",
+        doc: "value to which the counter is reset when it receives a reset trigger.",
+      },
       { name: "step", doc: "step value each trigger. May be negative." },
-      { name: "trig", doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Sweep",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "rate", default: 1 },
@@ -450,7 +516,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TDelay",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "dur", default: 0.10000000149011612 },
@@ -467,7 +533,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TWindex",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: null },
       { name: "channelsArray", default: null },
@@ -481,42 +547,37 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "channelsArray", doc: "list of probabilities" },
       { name: "normalize", doc: "normalise flag - 0 off, 1 on" },
-      { name: "trig", doc: "Trigger - can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Trigger - can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Timer",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "trig", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "trig", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: "Trigger timer",
     doc: "Outputs time since last trigger",
     signalRange: null,
-    argDocs: [
-      { name: "trig", doc: "trigger input" },
-    ],
+    argDocs: [{ name: "trig", doc: "trigger input" }],
   },
   {
     name: "ToggleFF",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "trig", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "trig", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: "Toggle flip flop",
     doc: "Flip-flops between zero and one each trigger",
     signalRange: null,
-    argDocs: [
-      { name: "trig", doc: "trigger input" },
-    ],
+    argDocs: [{ name: "trig", doc: "trigger input" }],
   },
   {
     name: "Trapezoid",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "a", default: 0.20000000298023224 },
@@ -529,12 +590,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Trig",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "dur", default: 0.10000000149011612 },
@@ -546,12 +606,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "dur", doc: "duration of the trigger output in seconds." },
-      { name: "trig", doc: "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Trig1",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "dur", default: 0.10000000149011612 },
@@ -563,12 +626,15 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "dur", doc: "duration of the trigger output in seconds." },
-      { name: "trig", doc: "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "Wrap",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },
@@ -587,17 +653,13 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "ZeroCrossing",
-    rates: ['audio', 'control'],
-    defaults: [
-      { name: "in", default: 0 },
-    ],
+    rates: ["audio", "control"],
+    defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
     summary: "Zero crossing frequency follower",
     doc: "Outputs a frequency based upon the distance between interceptions of the X axis. The X intercepts are determined via linear interpolation so this gives better than just integer wavelength resolution. This is a very crude pitch follower, but can be useful in some situations.",
     signalRange: null,
-    argDocs: [
-      { name: "in", doc: "input signal" },
-    ],
+    argDocs: [{ name: "in", doc: "input signal" }],
   },
 ];

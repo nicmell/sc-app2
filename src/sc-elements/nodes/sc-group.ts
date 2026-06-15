@@ -3,7 +3,7 @@
 // migration step.
 
 import { property } from "lit/decorators.js";
-import type {  } from "@/types/runtime";
+import type {} from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 

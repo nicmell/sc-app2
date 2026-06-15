@@ -4,7 +4,7 @@
  * only place where bytes enter or leave.
  */
 
-import OSC from 'osc-js';
+import OSC from "osc-js";
 
 export type OscPacket = OSC.Message | OSC.Bundle;
 

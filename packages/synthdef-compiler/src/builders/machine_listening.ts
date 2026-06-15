@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Autocorrelation based beat tracker" , :rates #{:kr} :num-outs 4 :doc "The
@@ -22,7 +22,7 @@ import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
  * obviously best at transient 4/4 heavy material without much expressive tempo
  * variation), and can form the basis of computer processing that is decidedly
  * faster than human.
- * 
+ *
  * The underlying model assumes 4/4, but it should work on any isochronous beat
  * structure, though there are biases to 100-120 bpm; a fast 7/8 may not be
  * tracked in that sense. There are four k-rate outputs, being ticks at quarter,
@@ -48,9 +48,9 @@ export class BeatTrack {
   /** Build at kr rate (Rate::Control). */
   static kr(): BeatTrack {
     const b = new BeatTrack();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._lock = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._lock = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -84,7 +84,7 @@ export class BeatTrack {
     inputs.push(this._chain);
     inputs.push(this._lock);
     const idx = def.addUgen("BeatTrack", this._calcRate, inputs, 4, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -120,13 +120,13 @@ export class BeatTrack2 {
   /** Build at kr rate (Rate::Control). */
   static kr(): BeatTrack2 {
     const b = new BeatTrack2();
-    b._calcRate = 'control';
-    b._busindex = { tag: 'constant', val: 0 };
-    b._numfeatures = { tag: 'constant', val: 0 };
-    b._windowsize = { tag: 'constant', val: 2 };
-    b._phaseaccuracy = { tag: 'constant', val: 0.02 };
-    b._lock = { tag: 'constant', val: 0 };
-    b._weightingscheme = { tag: 'constant', val: -2.1 };
+    b._calcRate = "control";
+    b._busindex = { tag: "constant", val: 0 };
+    b._numfeatures = { tag: "constant", val: 0 };
+    b._windowsize = { tag: "constant", val: 2 };
+    b._phaseaccuracy = { tag: "constant", val: 0.02 };
+    b._lock = { tag: "constant", val: 0 };
+    b._weightingscheme = { tag: "constant", val: -2.1 };
     return b;
   }
 
@@ -203,7 +203,7 @@ export class BeatTrack2 {
     inputs.push(this._lock);
     inputs.push(this._weightingscheme);
     const idx = def.addUgen("BeatTrack2", this._calcRate, inputs, 6, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -224,10 +224,10 @@ export class KeyTrack {
   /** Build at kr rate (Rate::Control). */
   static kr(): KeyTrack {
     const b = new KeyTrack();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._keydecay = { tag: 'constant', val: 2 };
-    b._chromaleak = { tag: 'constant', val: 0.5 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._keydecay = { tag: "constant", val: 2 };
+    b._chromaleak = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -265,7 +265,7 @@ export class KeyTrack {
     inputs.push(this._keydecay);
     inputs.push(this._chromaleak);
     const idx = def.addUgen("KeyTrack", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -288,10 +288,10 @@ export class Loudness {
   /** Build at kr rate (Rate::Control). */
   static kr(): Loudness {
     const b = new Loudness();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._smask = { tag: 'constant', val: 0.25 };
-    b._tmask = { tag: 'constant', val: 1 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._smask = { tag: "constant", val: 0.25 };
+    b._tmask = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -329,7 +329,7 @@ export class Loudness {
     inputs.push(this._smask);
     inputs.push(this._tmask);
     const idx = def.addUgen("Loudness", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -343,9 +343,9 @@ export class MFCC {
   /** Build at kr rate (Rate::Control). */
   static kr(): MFCC {
     const b = new MFCC();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._numcoeff = { tag: 'constant', val: 13 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._numcoeff = { tag: "constant", val: 13 };
     return b;
   }
 
@@ -370,7 +370,7 @@ export class MFCC {
     inputs.push(this._chain);
     inputs.push(this._numcoeff);
     const idx = def.addUgen("MFCC", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -402,16 +402,16 @@ export class Onsets {
   /** Build at kr rate (Rate::Control). */
   static kr(): Onsets {
     const b = new Onsets();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._threshold = { tag: 'constant', val: 0.5 };
-    b._odftype = { tag: 'constant', val: 3 };
-    b._relaxtime = { tag: 'constant', val: 1 };
-    b._floor = { tag: 'constant', val: 0.1 };
-    b._mingap = { tag: 'constant', val: 10 };
-    b._medianspan = { tag: 'constant', val: 11 };
-    b._whtype = { tag: 'constant', val: 1 };
-    b._rawodf = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._threshold = { tag: "constant", val: 0.5 };
+    b._odftype = { tag: "constant", val: 3 };
+    b._relaxtime = { tag: "constant", val: 1 };
+    b._floor = { tag: "constant", val: 0.1 };
+    b._mingap = { tag: "constant", val: 10 };
+    b._medianspan = { tag: "constant", val: 11 };
+    b._whtype = { tag: "constant", val: 1 };
+    b._rawodf = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -504,7 +504,7 @@ export class Onsets {
     inputs.push(this._whtype);
     inputs.push(this._rawodf);
     const idx = def.addUgen("Onsets", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -522,8 +522,8 @@ export class SpecCentroid {
   /** Build at kr rate (Rate::Control). */
   static kr(): SpecCentroid {
     const b = new SpecCentroid();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -541,7 +541,7 @@ export class SpecCentroid {
     const inputs: UGenInput[] = [];
     inputs.push(this._chain);
     const idx = def.addUgen("SpecCentroid", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -562,8 +562,8 @@ export class SpecFlatness {
   /** Build at kr rate (Rate::Control). */
   static kr(): SpecFlatness {
     const b = new SpecFlatness();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -581,7 +581,7 @@ export class SpecFlatness {
     const inputs: UGenInput[] = [];
     inputs.push(this._chain);
     const idx = def.addUgen("SpecFlatness", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -596,7 +596,7 @@ export class SpecFlatness {
  * interpolate specifies whether interpolation should be used to try and make the
  * percentile frequency estimate more accurate, at the cost of a little higher
  * CPU usage. Set it to 1 to enable this.
- * 
+ *
  * Given an FFT chain this calculates the cumulative distribution of the
  * frequency spectrum, and outputs the frequency value which corresponds to the
  * desired percentile. For example, to find the frequency at which 90% of the
@@ -618,10 +618,10 @@ export class SpecPcile {
   /** Build at kr rate (Rate::Control). */
   static kr(): SpecPcile {
     const b = new SpecPcile();
-    b._calcRate = 'control';
-    b._chain = { tag: 'constant', val: 0 };
-    b._fraction = { tag: 'constant', val: 0.5 };
-    b._interpolate = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._chain = { tag: "constant", val: 0 };
+    b._fraction = { tag: "constant", val: 0.5 };
+    b._interpolate = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -653,6 +653,6 @@ export class SpecPcile {
     inputs.push(this._fraction);
     inputs.push(this._interpolate);
     const idx = def.addUgen("SpecPcile", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

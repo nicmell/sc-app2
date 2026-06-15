@@ -22,7 +22,12 @@ const stopDrag = (e: React.MouseEvent) => e.stopPropagation();
 export function DashboardPanel(props: DashboardPanelProps) {
   const { title, children, onClose, onEdit, ref, style, className, ...rest } = props;
   return (
-    <div ref={ref} style={style} className={["dashboard-panel", className].filter(Boolean).join(" ")} {...rest}>
+    <div
+      ref={ref}
+      style={style}
+      className={["dashboard-panel", className].filter(Boolean).join(" ")}
+      {...rest}
+    >
       <div className="dashboard-panel-header">
         <span className="dashboard-panel-title">{title}</span>
         <button

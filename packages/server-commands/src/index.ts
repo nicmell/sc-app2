@@ -17,23 +17,23 @@
  */
 
 // Re-export osc-js as the default "OSC" symbol for ergonomic imports.
-export { default as OSC } from 'osc-js';
+export { default as OSC } from "osc-js";
 
 // Binary <-> osc-js.
-export { encode, decode, isBundle, isMessage, type OscPacket } from './encode';
+export { encode, decode, isBundle, isMessage, type OscPacket } from "./encode";
 
 // Flatten a packet/bundle into per-message (address, args) entries.
-export { flattenPacket, formatOscArg, type FlatOsc } from './flatten';
+export { flattenPacket, formatOscArg, type FlatOsc } from "./flatten";
 
 // Timetag helpers.
-export * as timetag from './timetag';
-export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } from './timetag';
+export * as timetag from "./timetag";
+export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } from "./timetag";
 
 // Type primitives.
-export type { OscArg, ControlKey, ControlValue } from './types';
+export type { OscArg, ControlKey, ControlValue } from "./types";
 
 // Command constructors.
-export * from './commands';
+export * from "./commands";
 
 // Typed reply accessors.
-export * from './replies';
+export * from "./replies";

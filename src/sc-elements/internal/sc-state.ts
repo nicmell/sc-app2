@@ -8,7 +8,13 @@
 
 import { property } from "lit/decorators.js";
 import type { Expr, RuntimeContext, StateRuntime } from "@/types/runtime";
-import { baseRuntime, failValidation, requireNumeric, requireProp, resolveStateBind } from "@/sc-elements/internal/validation";
+import {
+  baseRuntime,
+  failValidation,
+  requireNumeric,
+  requireProp,
+  resolveStateBind,
+} from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {

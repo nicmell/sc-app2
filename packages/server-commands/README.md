@@ -22,10 +22,10 @@ import OSC, {
   inFuture,
   AddToHead,
   Tr,
-} from '@sc-app/server-commands';
+} from "@sc-app/server-commands";
 
 // Construct a message.
-const msg = sNew('sine', 1001, AddToHead, 100, { freq: 440, amp: 0.5 });
+const msg = sNew("sine", 1001, AddToHead, 100, { freq: 440, amp: 0.5 });
 
 // Schedule it ~200 ms in the future (sclang's `s.latency` idiom).
 const bundle = new OSC.Bundle([msg], inFuture(200));
@@ -34,7 +34,7 @@ const bytes = encode(bundle);
 
 // Decode inbound bytes.
 const reply = decode(incomingBytes);
-if (!(reply instanceof OSC.Bundle) && reply.address === '/tr') {
+if (!(reply instanceof OSC.Bundle) && reply.address === "/tr") {
   const trigId = Tr.triggerId(reply);
   const value = Tr.value(reply);
   // …

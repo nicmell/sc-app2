@@ -45,7 +45,11 @@ function computeRowHeight(numRows: number, viewportHeight: number): number {
 export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   const items = useStore(layout);
   const installed = useStore(plugins);
-  const { width: containerWidth, containerRef, mounted } = useContainerWidth({ measureBeforeMount: true });
+  const {
+    width: containerWidth,
+    containerRef,
+    mounted,
+  } = useContainerWidth({ measureBeforeMount: true });
   const viewportHeight = useSyncExternalStore(subscribeToResize, getViewportHeight);
   const rowHeight = computeRowHeight(NUM_ROWS, viewportHeight);
 

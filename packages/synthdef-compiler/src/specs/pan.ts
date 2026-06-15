@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Balance2",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "left", default: null },
       { name: "right", default: null },
@@ -28,7 +28,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "BiPanB2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inA", default: null },
       { name: "inB", default: null },
@@ -41,7 +41,10 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Encode a two channel signal to two dimensional ambisonic B-format. This puts two channels at opposite poles of a 2D ambisonic field. This is one way to map a stereo sound onto a soundfield. It is equivalent to: PanB2(inA, azimuth, gain) + PanB2(inB, azimuth + 1, gain)",
     signalRange: null,
     argDocs: [
-      { name: "azimuth", doc: "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind." },
+      {
+        name: "azimuth",
+        doc: "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind.",
+      },
       { name: "gain", doc: "amplitude control" },
       { name: "inA", doc: "input signal A" },
       { name: "inB", doc: "input signal B" },
@@ -49,7 +52,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "DecodeB2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "numChannels", default: null },
       { name: "w", default: null },
@@ -64,7 +67,10 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "numChannels", doc: "number of output speakers. Typically 4 to 8." },
-      { name: "orientation", doc: "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5." },
+      {
+        name: "orientation",
+        doc: "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5.",
+      },
       { name: "w", doc: "B-format signal" },
       { name: "x", doc: "B-format signal" },
       { name: "y", doc: "B-format signal" },
@@ -72,7 +78,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinPan2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "pos", default: 0 },
@@ -91,7 +97,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "LinXFade2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inA", default: null },
       { name: "inB", default: null },
@@ -112,7 +118,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Pan2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "pos", default: 0 },
@@ -131,7 +137,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Pan4",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "xpos", default: 0 },
@@ -152,7 +158,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PanAz",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "numChannels", default: null },
       { name: "in", default: null },
@@ -170,14 +176,23 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "in", doc: "input signal" },
       { name: "level", doc: "a control rate level input." },
       { name: "numChannels", doc: "number of output channels" },
-      { name: "orientation", doc: "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5." },
-      { name: "pos", doc: "pan position. Channels are evenly spaced over a cyclic period of 2.0 with 0.0 equal to the position directly in front, 2.0/numChans a clockwise shift 1/numChans of the way around the ring, 4.0/numChans equal to a shift of 2/numChans, etc. Thus all channels will be cyclically panned through if a sawtooth wave from -1 to +1 is used to modulate the pos. N.B. Front may or may not correspond to a speaker depending on the setting of the orientation arg, see below." },
-      { name: "width", doc: "The width of the panning envelope. Nominally this is 2.0 which pans between pairs of adjacent speakers. Width values greater than two will spread the pan over greater numbers of speakers. Width values less than one will leave silent gaps between speakers." },
+      {
+        name: "orientation",
+        doc: "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5.",
+      },
+      {
+        name: "pos",
+        doc: "pan position. Channels are evenly spaced over a cyclic period of 2.0 with 0.0 equal to the position directly in front, 2.0/numChans a clockwise shift 1/numChans of the way around the ring, 4.0/numChans equal to a shift of 2/numChans, etc. Thus all channels will be cyclically panned through if a sawtooth wave from -1 to +1 is used to modulate the pos. N.B. Front may or may not correspond to a speaker depending on the setting of the orientation arg, see below.",
+      },
+      {
+        name: "width",
+        doc: "The width of the panning envelope. Nominally this is 2.0 which pans between pairs of adjacent speakers. Width values greater than two will spread the pan over greater numbers of speakers. Width values less than one will leave silent gaps between speakers.",
+      },
     ],
   },
   {
     name: "PanB",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "azimuth", default: 0 },
@@ -198,7 +213,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "PanB2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "azimuth", default: 0 },
@@ -210,14 +225,17 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Encode a mono signal to two dimensional ambisonic B-format.",
     signalRange: null,
     argDocs: [
-      { name: "azimuth", doc: "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind." },
+      {
+        name: "azimuth",
+        doc: "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind.",
+      },
       { name: "gain", doc: "amplitude control" },
       { name: "in", doc: "input signal" },
     ],
   },
   {
     name: "Rotate2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "x", default: null },
       { name: "y", default: null },
@@ -229,14 +247,17 @@ export const UGENS: UGenRegistryEntry[] = [
     doc: "Rotate2 can be used for rotating an ambisonic B-format sound field around an axis. Rotate2 does an equal power rotation so it also works well on stereo sounds. It takes two audio inputs (x, y) and an angle control (pos). It outputs two channels (x, y). It computes this: xout = cos(angle) * xin + sin(angle) * yin; yout = cos(angle) * yin - sin(angle) * xin; where angle = pos * pi, so that -1 becomes -pi and +1 becomes +pi. This allows you to use an LFSaw to do continuous rotation around a circle.",
     signalRange: null,
     argDocs: [
-      { name: "pos", doc: "angle to rotate around the circle from -1 to +1. -1 is 180 degrees, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind." },
+      {
+        name: "pos",
+        doc: "angle to rotate around the circle from -1 to +1. -1 is 180 degrees, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind.",
+      },
       { name: "x", doc: "input signal" },
       { name: "y", doc: "input signal" },
     ],
   },
   {
     name: "XFade2",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inA", default: null },
       { name: "inB", default: null },
@@ -252,7 +273,10 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "inA", doc: "input signal A" },
       { name: "inB", doc: "input signal B" },
       { name: "level", doc: "Output level - 0 being silent and 1 being original volume" },
-      { name: "pan", doc: "Pan between the two input signals with -1 being inA only and 1 being inB only with values between being a mix of the two." },
+      {
+        name: "pan",
+        doc: "Pan between the two input signals with -1 being inA only and 1 being inB only with values between being a mix of the two.",
+      },
     ],
   },
 ];

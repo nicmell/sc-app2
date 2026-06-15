@@ -13,7 +13,12 @@ import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
-import { installScsynthMock, mountPlugin, wrapXml, SESSION_GROUP } from "@/lib/utils/test/test-utils";
+import {
+  installScsynthMock,
+  mountPlugin,
+  wrapXml,
+  SESSION_GROUP,
+} from "@/lib/utils/test/test-utils";
 // @strudel/codemirror is aliased to this recording stub globally
 // (vite.config.ts test.alias); strudelMirrors holds the editors sc-strudel
 // constructed this test, in order.
@@ -171,14 +176,22 @@ describe("sc-scope", () => {
     );
     const scope = host.querySelector("sc-scope") as ScScope;
     expect([scope.trigger, scope.slope, scope.level, scope.gain, scope.layout]).toEqual([
-      "normal", "falling", 0.1, 2, "split",
+      "normal",
+      "falling",
+      0.1,
+      2,
+      "split",
     ]);
 
     document.body.replaceChildren();
     const bare = await mountXml("<sc-scope/>");
     const def = bare.querySelector("sc-scope") as ScScope;
     expect([def.trigger, def.slope, def.level, def.gain, def.layout]).toEqual([
-      "auto", "rising", 0, 1, "overlay",
+      "auto",
+      "rising",
+      0,
+      1,
+      "overlay",
     ]);
   });
 
@@ -202,19 +215,28 @@ describe("sc-scope", () => {
 
   it("resolves the drawn window per trigger mode: pin, fallback, hold", async () => {
     const mkChunk = (data: Float32Array) => ({
-      subId: 1, tickIndex: 0, isGap: false, channels: 1, frameCount: data.length, data,
+      subId: 1,
+      tickIndex: 0,
+      isGap: false,
+      channels: 1,
+      frameCount: data.length,
+      data,
     });
     // 8 cycles in 1024 samples starting at the trough: rising zero-crossing
     // at sample 32 — inside the 256-sample search headroom.
     const periodic = new Float32Array(1024);
-    for (let i = 0; i < 1024; i++) periodic[i] = 0.5 * Math.sin(-Math.PI / 2 + (2 * Math.PI * 8 * i) / 1024);
+    for (let i = 0; i < 1024; i++)
+      periodic[i] = 0.5 * Math.sin(-Math.PI / 2 + (2 * Math.PI * 8 * i) / 1024);
     const triggerless = new Float32Array(1024).fill(0.5); // DC — never crosses
 
     const host = await mountXml('<sc-scope channels="1" trigger="normal"/>');
     const scope = host.querySelector("sc-scope") as ScScope;
     const resolve = (c: ReturnType<typeof mkChunk>) =>
-      (scope as unknown as { resolveWindow(c: unknown): { chunk: unknown; offset: number; span: number } | null })
-        .resolveWindow(c);
+      (
+        scope as unknown as {
+          resolveWindow(c: unknown): { chunk: unknown; offset: number; span: number } | null;
+        }
+      ).resolveWindow(c);
 
     // Triggered: pinned to the crossing, ¾ window after the search headroom.
     const a = resolve(mkChunk(periodic));
@@ -252,7 +274,11 @@ describe("sc-strudel", () => {
     const host = await mountXml('<sc-strudel orbit="2"></sc-strudel>');
     await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
     const out = strudelMirrors[0].opts.defaultOutput as (
-      hap: { value: unknown }, d: number, du: number, cps: number, t: number,
+      hap: { value: unknown },
+      d: number,
+      du: number,
+      cps: number,
+      t: number,
     ) => void;
 
     sent.length = 0;

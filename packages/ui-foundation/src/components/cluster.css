@@ -21,6 +21,12 @@
   flex-wrap: wrap;
 }
 
-.cluster[data-gap="sm"] { gap: var(--space-2xs); }
-.cluster[data-gap="md"] { gap: var(--space-sm); }
-.cluster[data-gap="lg"] { gap: var(--space-md); }
+.cluster[data-gap="sm"] {
+  gap: var(--space-2xs);
+}
+.cluster[data-gap="md"] {
+  gap: var(--space-sm);
+}
+.cluster[data-gap="lg"] {
+  gap: var(--space-md);
+}

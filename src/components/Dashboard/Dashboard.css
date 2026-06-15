@@ -68,7 +68,9 @@
   color: var(--color-text-mute);
   cursor: pointer;
   user-select: none;
-  transition: border-color var(--transition-base), color var(--transition-base);
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base);
 }
 .add-box-placeholder:hover {
   border-color: var(--color-text-dim);

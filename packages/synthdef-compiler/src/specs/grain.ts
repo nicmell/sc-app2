@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "GrainBuf",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "trigger", default: 0 },
@@ -27,20 +27,44 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "dur", doc: "size of the grain (in seconds)." },
-      { name: "envbufnum", doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope." },
-      { name: "interp", doc: "the interpolation method used for pitchshifting grains: 1 = no interpolation 2 = linear 4 = cubic interpolation (more computationally intensive)" },
-      { name: "maxGrains", doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory." },
-      { name: "numChannels", doc: "the number of channels to output. If 1, mono is returned and pan is ignored." },
-      { name: "pan", doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if num-channels > 2, pannins is the same as PanAz." },
-      { name: "pos", doc: "the playback position for the grain to start with (0 is beginning, 1 is end of file)" },
+      {
+        name: "envbufnum",
+        doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope.",
+      },
+      {
+        name: "interp",
+        doc: "the interpolation method used for pitchshifting grains: 1 = no interpolation 2 = linear 4 = cubic interpolation (more computationally intensive)",
+      },
+      {
+        name: "maxGrains",
+        doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory.",
+      },
+      {
+        name: "numChannels",
+        doc: "the number of channels to output. If 1, mono is returned and pan is ignored.",
+      },
+      {
+        name: "pan",
+        doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if num-channels > 2, pannins is the same as PanAz.",
+      },
+      {
+        name: "pos",
+        doc: "the playback position for the grain to start with (0 is beginning, 1 is end of file)",
+      },
       { name: "rate", doc: "the playback rate of the sampled sound" },
-      { name: "sndbuf", doc: "the buffer holding a mono audio signal. If using multi-channel files, use Buffer.readChannel." },
-      { name: "trigger", doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate." },
+      {
+        name: "sndbuf",
+        doc: "the buffer holding a mono audio signal. If using multi-channel files, use Buffer.readChannel.",
+      },
+      {
+        name: "trigger",
+        doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate.",
+      },
     ],
   },
   {
     name: "GrainFM",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "trigger", default: 0 },
@@ -60,18 +84,33 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "carFreq", doc: "the frequency of the FM grain's carrier oscillator" },
       { name: "dur", doc: "size of the grain." },
-      { name: "envbufnum", doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope." },
+      {
+        name: "envbufnum",
+        doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope.",
+      },
       { name: "index", doc: "the FM index" },
-      { name: "maxGrains", doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory." },
+      {
+        name: "maxGrains",
+        doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory.",
+      },
       { name: "modFreq", doc: "the frequency of the FM grain's modulating oscillator" },
-      { name: "numChannels", doc: "the number of channels to output. If 1, mono is returned and pan is ignored." },
-      { name: "pan", doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if numChannels > 2, pannins is the same as PanAz." },
-      { name: "trigger", doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate." },
+      {
+        name: "numChannels",
+        doc: "the number of channels to output. If 1, mono is returned and pan is ignored.",
+      },
+      {
+        name: "pan",
+        doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if numChannels > 2, pannins is the same as PanAz.",
+      },
+      {
+        name: "trigger",
+        doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate.",
+      },
     ],
   },
   {
     name: "GrainIn",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "trigger", default: 0 },
@@ -88,17 +127,32 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "dur", doc: "size of the grain." },
-      { name: "envbufnum", doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope." },
+      {
+        name: "envbufnum",
+        doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope.",
+      },
       { name: "in", doc: "the input to granulate" },
-      { name: "maxGrains", doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory." },
-      { name: "numChannels", doc: "the number of channels to output. If 1, mono is returned and pan is ignored." },
-      { name: "pan", doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if num-channels > 2, pannins is the same as PanAz." },
-      { name: "trigger", doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate." },
+      {
+        name: "maxGrains",
+        doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory.",
+      },
+      {
+        name: "numChannels",
+        doc: "the number of channels to output. If 1, mono is returned and pan is ignored.",
+      },
+      {
+        name: "pan",
+        doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if num-channels > 2, pannins is the same as PanAz.",
+      },
+      {
+        name: "trigger",
+        doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate.",
+      },
     ],
   },
   {
     name: "GrainSin",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "trigger", default: 0 },
@@ -115,17 +169,32 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "dur", doc: "size of the grain." },
-      { name: "envbufnum", doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope." },
+      {
+        name: "envbufnum",
+        doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope.",
+      },
       { name: "freq", doc: "the frequency of the grain's oscillator" },
-      { name: "maxGrains", doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory." },
-      { name: "numChannels", doc: "the number of channels to output. If 1, mono is returned and pan is ignored." },
-      { name: "pan", doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if numChannels > 2, pannins is the same as PanAz." },
-      { name: "trigger", doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate." },
+      {
+        name: "maxGrains",
+        doc: "the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more efficient use of memory.",
+      },
+      {
+        name: "numChannels",
+        doc: "the number of channels to output. If 1, mono is returned and pan is ignored.",
+      },
+      {
+        name: "pan",
+        doc: "Determines where to pan the output. If num-channels = 1, no panning is done; if num-channels = 2, panning is similar to Pan2; if numChannels > 2, pannins is the same as PanAz.",
+      },
+      {
+        name: "trigger",
+        doc: "a kr or ar trigger to start a new grain. If ar, grains after the start of the synth are sample accurate.",
+      },
     ],
   },
   {
     name: "Warp1",
-    rates: ['audio'],
+    rates: ["audio"],
     defaults: [
       { name: "numChannels", default: 1 },
       { name: "bufnum", default: 0 },
@@ -144,13 +213,28 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "bufnum", doc: "the buffer number of a mono soundfile." },
-      { name: "envbufnum", doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope." },
-      { name: "freqScale", doc: "the amount of frequency shift. 1.0 is normal, 0.5 is one octave down, 2.0 is one octave up. Negative values play the soundfile backwards." },
-      { name: "interp", doc: "the interpolation method used for pitchshifting grains. 1 = no interpolation. 2 = linear. 4 = cubic interpolation (more computationally intensive)." },
+      {
+        name: "envbufnum",
+        doc: "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope.",
+      },
+      {
+        name: "freqScale",
+        doc: "the amount of frequency shift. 1.0 is normal, 0.5 is one octave down, 2.0 is one octave up. Negative values play the soundfile backwards.",
+      },
+      {
+        name: "interp",
+        doc: "the interpolation method used for pitchshifting grains. 1 = no interpolation. 2 = linear. 4 = cubic interpolation (more computationally intensive).",
+      },
       { name: "numChannels", doc: "the number of channels in the soundfile used in bufnum." },
       { name: "overlaps", doc: "the number of overlaping windows." },
-      { name: "pointer", doc: "the position in the buffer. The value should be between 0 and 1, with 0 being the begining of the buffer, and 1 the end." },
-      { name: "windowRandRatio", doc: "the amount of randomness to the windowing function. Must be between 0 (no randomness) to 1.0 (probably to random actually)" },
+      {
+        name: "pointer",
+        doc: "the position in the buffer. The value should be between 0 and 1, with 0 being the begining of the buffer, and 1 the end.",
+      },
+      {
+        name: "windowRandRatio",
+        doc: "the amount of randomness to the windowing function. Must be between 0 (no randomness) to 1.0 (probably to random actually)",
+      },
       { name: "windowSize", doc: "the size of each grain window." },
     ],
   },

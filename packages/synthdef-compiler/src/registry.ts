@@ -1,5 +1,5 @@
-import { Rate } from './rate.js';
-import { ALL_SLICES } from './specs/index.js';
+import { Rate } from "./rate.js";
+import { ALL_SLICES } from "./specs/index.js";
 
 export interface UGenRegistryDefault {
   name: string;
@@ -58,10 +58,7 @@ export function ugensByCategory(): readonly (readonly [string, readonly UGenRegi
   return ALL_SLICES;
 }
 
-function binarySearch(
-  slice: readonly UGenRegistryEntry[],
-  name: string,
-): UGenRegistryEntry | null {
+function binarySearch(slice: readonly UGenRegistryEntry[], name: string): UGenRegistryEntry | null {
   let lo = 0;
   let hi = slice.length;
   while (lo < hi) {

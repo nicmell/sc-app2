@@ -2,9 +2,9 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Band Limited Impulse generator. All harmonics have equal amplitude. This is
@@ -27,9 +27,9 @@ export class Blip {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Blip {
     const b = new Blip();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._numharm = { tag: 'constant', val: 200 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._numharm = { tag: "constant", val: 200 };
     return b;
   }
 
@@ -57,7 +57,7 @@ export class Blip {
     inputs.push(this._freq);
     inputs.push(this._numharm);
     const idx = def.addUgen("Blip", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -80,18 +80,18 @@ export class FSinOsc {
   /** Build at ar rate (Rate::Audio). */
   static ar(): FSinOsc {
     const b = new FSinOsc();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): FSinOsc {
     const b = new FSinOsc();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 440 };
-    b._iphase = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._iphase = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -116,7 +116,7 @@ export class FSinOsc {
     inputs.push(this._freq);
     inputs.push(this._iphase);
     const idx = def.addUgen("FSinOsc", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -137,10 +137,10 @@ export class Klang {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Klang {
     const b = new Klang();
-    b._calcRate = 'audio';
-    b._specs = { tag: 'constant', val: 0 };
-    b._freqscale = { tag: 'constant', val: 1 };
-    b._freqoffset = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._specs = { tag: "constant", val: 0 };
+    b._freqscale = { tag: "constant", val: 1 };
+    b._freqoffset = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -177,7 +177,7 @@ export class Klang {
     inputs.push(this._freqscale);
     inputs.push(this._freqoffset);
     const idx = def.addUgen("Klang", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -200,12 +200,12 @@ export class Klank {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Klank {
     const b = new Klank();
-    b._calcRate = 'audio';
-    b._specs = { tag: 'constant', val: 0 };
-    b._input = { tag: 'constant', val: 0 };
-    b._freqscale = { tag: 'constant', val: 1 };
-    b._freqoffset = { tag: 'constant', val: 0 };
-    b._decayscale = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._specs = { tag: "constant", val: 0 };
+    b._input = { tag: "constant", val: 0 };
+    b._freqscale = { tag: "constant", val: 1 };
+    b._freqoffset = { tag: "constant", val: 0 };
+    b._decayscale = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -256,7 +256,7 @@ export class Klank {
     inputs.push(this._freqoffset);
     inputs.push(this._decayscale);
     const idx = def.addUgen("Klank", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -275,10 +275,10 @@ export class PSinGrain {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PSinGrain {
     const b = new PSinGrain();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._dur = { tag: 'constant', val: 0.2 };
-    b._amp = { tag: 'constant', val: 1 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._dur = { tag: "constant", val: 0.2 };
+    b._amp = { tag: "constant", val: 1 };
     return b;
   }
 
@@ -310,13 +310,13 @@ export class PSinGrain {
     inputs.push(this._dur);
     inputs.push(this._amp);
     const idx = def.addUgen("PSinGrain", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * band limited pulse wave generator with pulse width modulation.
- * 
+ *
  * Pulse waves are a general form of square wave that allow for the width of the
  * pulses to be varied. A square wave is therefore a pulse with a width of 0.5
  * i.e. the width of the high and low states is identical. Adjusting the ratio of
@@ -334,9 +334,9 @@ export class Pulse {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Pulse {
     const b = new Pulse();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
-    b._width = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    b._width = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -361,13 +361,13 @@ export class Pulse {
     inputs.push(this._freq);
     inputs.push(this._width);
     const idx = def.addUgen("Pulse", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * band limited sawtooth wave generator
- * 
+ *
  * The sawtooth wave produces even and odd harmonics in series and therefore
  * produces a bright sound that is an excellent starting point for brassy, raspy
  * sounds. It's also suitable for creating the gritty, bright sounds needed for
@@ -383,8 +383,8 @@ export class Saw {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Saw {
     const b = new Saw();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 440 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
     return b;
   }
 
@@ -402,6 +402,6 @@ export class Saw {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("Saw", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

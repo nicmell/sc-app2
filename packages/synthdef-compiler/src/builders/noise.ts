@@ -2,13 +2,13 @@
 //
 // Auto-generated builders — one class per bundled UGen.
 
-import { Rate } from '../rate.js';
-import { SynthDef } from '../synthdef.js';
-import { UGenInput, UGenInputLike, toUGenInput } from '../ugen-input.js';
+import { Rate } from "../rate.js";
+import { SynthDef } from "../synthdef.js";
+import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 
 /**
  * Noise whose spectrum falls off in power by 6 dB per octave.
- * 
+ *
  * Useful for generating percussive sounds such as snares and hand claps. Also
  * useful for simulating wind or sea effects, for producing breath effects in
  * wind instrument timbres or for producing the typical trance leads.
@@ -21,14 +21,14 @@ export class BrownNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): BrownNoise {
     const b = new BrownNoise();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): BrownNoise {
     const b = new BrownNoise();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     return b;
   }
 
@@ -39,13 +39,13 @@ export class BrownNoise {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("BrownNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Noise whose values are either -1 or 1.
- * 
+ *
  * This produces the maximum energy for the least peak to peak amplitude. Useful
  * for generating percussive sounds such as snares and hand claps. Also useful
  * for simulating wind or sea effects, for producing breath effects in wind
@@ -59,7 +59,7 @@ export class ClipNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): ClipNoise {
     const b = new ClipNoise();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     return b;
   }
 
@@ -70,13 +70,13 @@ export class ClipNoise {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("ClipNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Chaotic noise generator
- * 
+ *
  * A noise generator based on a chaotic function. Useful for generating
  * percussive sounds such as snares and hand claps. Also useful for simulating
  * wind or sea effects, for producing breath effects in wind instrument timbres
@@ -91,16 +91,16 @@ export class Crackle {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Crackle {
     const b = new Crackle();
-    b._calcRate = 'audio';
-    b._chaosParam = { tag: 'constant', val: 1.5 };
+    b._calcRate = "audio";
+    b._chaosParam = { tag: "constant", val: 1.5 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Crackle {
     const b = new Crackle();
-    b._calcRate = 'control';
-    b._chaosParam = { tag: 'constant', val: 1.5 };
+    b._calcRate = "control";
+    b._chaosParam = { tag: "constant", val: 1.5 };
     return b;
   }
 
@@ -121,7 +121,7 @@ export class Crackle {
     const inputs: UGenInput[] = [];
     inputs.push(this._chaosParam);
     const idx = def.addUgen("Crackle", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -135,16 +135,16 @@ export class Dust {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Dust {
     const b = new Dust();
-    b._calcRate = 'audio';
-    b._density = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._density = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Dust {
     const b = new Dust();
-    b._calcRate = 'control';
-    b._density = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._density = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -162,7 +162,7 @@ export class Dust {
     const inputs: UGenInput[] = [];
     inputs.push(this._density);
     const idx = def.addUgen("Dust", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -176,16 +176,16 @@ export class Dust2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Dust2 {
     const b = new Dust2();
-    b._calcRate = 'audio';
-    b._density = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._density = { tag: "constant", val: 0 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): Dust2 {
     const b = new Dust2();
-    b._calcRate = 'control';
-    b._density = { tag: 'constant', val: 0 };
+    b._calcRate = "control";
+    b._density = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -203,13 +203,13 @@ export class Dust2 {
     const inputs: UGenInput[] = [];
     inputs.push(this._density);
     const idx = def.addUgen("Dust2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Random impulses from -1 to +1 given a density
- * 
+ *
  * Creates a sequence of random impulses from -1 to +1. Generates noise which
  * results from flipping random bits in a word. This type of noise has a high RMS
  * level relative to its peak to peak level. The spectrum is emphasized towards
@@ -226,7 +226,7 @@ export class GrayNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): GrayNoise {
     const b = new GrayNoise();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     return b;
   }
 
@@ -237,7 +237,7 @@ export class GrayNoise {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("GrayNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -255,8 +255,8 @@ export class Hasher {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Hasher {
     const b = new Hasher();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
     return b;
   }
 
@@ -274,7 +274,7 @@ export class Hasher {
     const inputs: UGenInput[] = [];
     inputs.push(this._in);
     const idx = def.addUgen("Hasher", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -292,16 +292,16 @@ export class LFClipNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFClipNoise {
     const b = new LFClipNoise();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFClipNoise {
     const b = new LFClipNoise();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -319,7 +319,7 @@ export class LFClipNoise {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFClipNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -341,16 +341,16 @@ export class LFDClipNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFDClipNoise {
     const b = new LFDClipNoise();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFDClipNoise {
     const b = new LFDClipNoise();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -368,7 +368,7 @@ export class LFDClipNoise {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFDClipNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -389,16 +389,16 @@ export class LFDNoise0 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFDNoise0 {
     const b = new LFDNoise0();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFDNoise0 {
     const b = new LFDNoise0();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -416,7 +416,7 @@ export class LFDNoise0 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFDNoise0", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -438,16 +438,16 @@ export class LFDNoise1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFDNoise1 {
     const b = new LFDNoise1();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFDNoise1 {
     const b = new LFDNoise1();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -465,7 +465,7 @@ export class LFDNoise1 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFDNoise1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -487,16 +487,16 @@ export class LFDNoise3 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFDNoise3 {
     const b = new LFDNoise3();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFDNoise3 {
     const b = new LFDNoise3();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -514,7 +514,7 @@ export class LFDNoise3 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFDNoise3", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -531,16 +531,16 @@ export class LFNoise0 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFNoise0 {
     const b = new LFNoise0();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFNoise0 {
     const b = new LFNoise0();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -558,7 +558,7 @@ export class LFNoise0 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFNoise0", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -575,16 +575,16 @@ export class LFNoise1 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFNoise1 {
     const b = new LFNoise1();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFNoise1 {
     const b = new LFNoise1();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -602,7 +602,7 @@ export class LFNoise1 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFNoise1", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -623,16 +623,16 @@ export class LFNoise2 {
   /** Build at ar rate (Rate::Audio). */
   static ar(): LFNoise2 {
     const b = new LFNoise2();
-    b._calcRate = 'audio';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): LFNoise2 {
     const b = new LFNoise2();
-    b._calcRate = 'control';
-    b._freq = { tag: 'constant', val: 500 };
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 500 };
     return b;
   }
 
@@ -650,7 +650,7 @@ export class LFNoise2 {
     const inputs: UGenInput[] = [];
     inputs.push(this._freq);
     const idx = def.addUgen("LFNoise2", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -672,10 +672,10 @@ export class Logistic {
   /** Build at ar rate (Rate::Audio). */
   static ar(): Logistic {
     const b = new Logistic();
-    b._calcRate = 'audio';
-    b._chaosParam = { tag: 'constant', val: 3 };
-    b._freq = { tag: 'constant', val: 1000 };
-    b._init = { tag: 'constant', val: 0.5 };
+    b._calcRate = "audio";
+    b._chaosParam = { tag: "constant", val: 3 };
+    b._freq = { tag: "constant", val: 1000 };
+    b._init = { tag: "constant", val: 0.5 };
     return b;
   }
 
@@ -714,7 +714,7 @@ export class Logistic {
     inputs.push(this._freq);
     inputs.push(this._init);
     const idx = def.addUgen("Logistic", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
@@ -733,9 +733,9 @@ export class MantissaMask {
   /** Build at ar rate (Rate::Audio). */
   static ar(): MantissaMask {
     const b = new MantissaMask();
-    b._calcRate = 'audio';
-    b._in = { tag: 'constant', val: 0 };
-    b._bits = { tag: 'constant', val: 3 };
+    b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._bits = { tag: "constant", val: 3 };
     return b;
   }
 
@@ -760,13 +760,13 @@ export class MantissaMask {
     inputs.push(this._in);
     inputs.push(this._bits);
     const idx = def.addUgen("MantissaMask", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Noise whose spectrum falls off in power by 3 dB per octave.
- * 
+ *
  * Noise that gives equal power over the span of each octave. Useful for
  * generating percussive sounds such as snares and hand claps. Also useful for
  * simulating wind or sea effects, for producing breath effects in wind
@@ -781,14 +781,14 @@ export class PinkNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): PinkNoise {
     const b = new PinkNoise();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): PinkNoise {
     const b = new PinkNoise();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     return b;
   }
 
@@ -799,13 +799,13 @@ export class PinkNoise {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("PinkNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }
 
 /**
  * Noise whose spectrum has equal power at all frequencies.
- * 
+ *
  * Noise that contains equal amounts of energy at every frequency - comparable to
  * radio static. Useful for generating percussive sounds such as snares and hand
  * claps. Also useful for simulating wind or sea effects, for producing breath
@@ -819,14 +819,14 @@ export class WhiteNoise {
   /** Build at ar rate (Rate::Audio). */
   static ar(): WhiteNoise {
     const b = new WhiteNoise();
-    b._calcRate = 'audio';
+    b._calcRate = "audio";
     return b;
   }
 
   /** Build at kr rate (Rate::Control). */
   static kr(): WhiteNoise {
     const b = new WhiteNoise();
-    b._calcRate = 'control';
+    b._calcRate = "control";
     return b;
   }
 
@@ -837,6 +837,6 @@ export class WhiteNoise {
   build(def: SynthDef): UGenInput {
     const inputs: UGenInput[] = [];
     const idx = def.addUgen("WhiteNoise", this._calcRate, inputs, 1, 0);
-    return { tag: 'ugen', val: idx };
+    return { tag: "ugen", val: idx };
   }
 }

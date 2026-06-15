@@ -2,7 +2,7 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
@@ -19,9 +19,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dbrown cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity" },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity" }],
   },
   {
     name: "Dbufrd",
@@ -56,12 +54,11 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dbufwr cgen instead.",
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Demand",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "trig", default: null },
       { name: "reset", default: 0 },
@@ -75,12 +72,15 @@ export const UGENS: UGenRegistryEntry[] = [
     argDocs: [
       { name: "demandUgens", doc: "list of demand rate ugens" },
       { name: "reset", doc: "Resets the list of ugens when triggered." },
-      { name: "trig", doc: "Can be any signal. A trigger happens when the signal changes from non-positive to positive." },
+      {
+        name: "trig",
+        doc: "Can be any signal. A trigger happens when the signal changes from non-positive to positive.",
+      },
     ],
   },
   {
     name: "DemandEnvGen",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "level", default: null },
       { name: "dur", default: null },
@@ -100,14 +100,26 @@ export const UGENS: UGenRegistryEntry[] = [
     signalRange: null,
     argDocs: [
       { name: "action", doc: "Default: NO-ACTION" },
-      { name: "curve", doc: "demand ugen (or other ugen) returning curve values - if shape is 5, this is the curve factor. The possible values are: 0 - flat segments, 1 - linear segments, the default, 2 - natural exponential growth and decay. In this case, the levels must all be nonzero and the have the same sign, 3 - sinusoidal S shaped segments, 4 - sinusoidal segments shaped like the sides of a Welch window, a Float - a curvature value for all segments, an Array of Floats - curvature values for each segments." },
+      {
+        name: "curve",
+        doc: "demand ugen (or other ugen) returning curve values - if shape is 5, this is the curve factor. The possible values are: 0 - flat segments, 1 - linear segments, the default, 2 - natural exponential growth and decay. In this case, the levels must all be nonzero and the have the same sign, 3 - sinusoidal S shaped segments, 4 - sinusoidal segments shaped like the sides of a Welch window, a Float - a curvature value for all segments, an Array of Floats - curvature values for each segments.",
+      },
       { name: "dur", doc: "demand ugen (or other ugen) returning time values" },
-      { name: "gate", doc: "control rate gate if gate is x >= 1, the ugen runs, if gate is 0 > x > 1, the ugen is released at the next level (doneAction), if gate is x <= 0, the ugen is sampled end held" },
+      {
+        name: "gate",
+        doc: "control rate gate if gate is x >= 1, the ugen runs, if gate is 0 > x > 1, the ugen is released at the next level (doneAction), if gate is x <= 0, the ugen is sampled end held",
+      },
       { name: "level", doc: "demand ugen (or other ugen) returning level values" },
       { name: "levelBias", doc: "demand ugen returning level offset values" },
       { name: "levelScale", doc: "demand ugen returning level scaling values" },
-      { name: "reset", doc: "if reset crosses from nonpositive to positive, the ugen is reset at the next level. If it is > 1, it is reset immediately." },
-      { name: "shape", doc: "demand ugen (or other ugen) returning shape number - the number given is the shape number" },
+      {
+        name: "reset",
+        doc: "if reset crosses from nonpositive to positive, the ugen is reset at the next level. If it is > 1, it is reset immediately.",
+      },
+      {
+        name: "shape",
+        doc: "demand ugen (or other ugen) returning shape number - the number given is the shape number",
+      },
       { name: "timeScale", doc: "demand ugen returning time scaling values" },
     ],
   },
@@ -124,9 +136,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dgeom cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity" },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity" }],
   },
   {
     name: "Dibrown",
@@ -142,9 +152,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dibrown cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity" },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity" }],
   },
   {
     name: "Diwhite",
@@ -159,23 +167,18 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the diwhite cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity" },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity" }],
   },
   {
     name: "Donce",
     rates: [],
-    defaults: [
-      { name: "in", default: null },
-    ],
+    defaults: [{ name: "in", default: null }],
     numOutputs: null,
     extends: null,
     summary: null,
     doc: null,
     signalRange: null,
-    argDocs: [
-    ],
+    argDocs: [],
   },
   {
     name: "Dpoll",
@@ -195,7 +198,10 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "in", doc: "demand ugen to poll values from" },
       { name: "label", doc: "a label string" },
       { name: "run", doc: "activation switch 0 or 1 (can be a demand ugen)" },
-      { name: "trigId", doc: "if greater than 0, a '/tr' message is sent back to the client (similar to send-trig)" },
+      {
+        name: "trigId",
+        doc: "if greater than 0, a '/tr' message is sent back to the client (similar to send-trig)",
+      },
     ],
   },
   {
@@ -262,9 +268,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dseries cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity." },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity." }],
   },
   {
     name: "Dshuf",
@@ -336,7 +340,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Duty",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "dur", default: 1 },
       { name: "reset", default: 0 },
@@ -348,9 +352,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the duty cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "action", doc: "Default: NO-ACTION" },
-    ],
+    argDocs: [{ name: "action", doc: "Default: NO-ACTION" }],
   },
   {
     name: "Dwhite",
@@ -365,9 +367,7 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the dwhite cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "length", doc: "Default: positive infinity" },
-    ],
+    argDocs: [{ name: "length", doc: "Default: positive infinity" }],
   },
   {
     name: "Dxrand",
@@ -388,7 +388,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TDuty",
-    rates: ['audio', 'control'],
+    rates: ["audio", "control"],
     defaults: [
       { name: "dur", default: 1 },
       { name: "reset", default: 0 },
@@ -401,8 +401,6 @@ export const UGENS: UGenRegistryEntry[] = [
     summary: null,
     doc: "This ugen has been internalised for scserver compatibility. Please use the tduty cgen instead.",
     signalRange: null,
-    argDocs: [
-      { name: "action", doc: "Default: NO-ACTION" },
-    ],
+    argDocs: [{ name: "action", doc: "Default: NO-ACTION" }],
   },
 ];

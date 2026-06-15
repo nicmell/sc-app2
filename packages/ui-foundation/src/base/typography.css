@@ -14,17 +14,32 @@ html {
   line-height: var(--line-height-normal);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   letter-spacing: 0.02em;
 }
 
-h1 { font-size: var(--font-size-xl); }
-h2 { font-size: var(--font-size-lg); }
-h3 { font-size: var(--font-size-md); }
-h4, h5, h6 { font-size: var(--font-size-sm); }
+h1 {
+  font-size: var(--font-size-xl);
+}
+h2 {
+  font-size: var(--font-size-lg);
+}
+h3 {
+  font-size: var(--font-size-md);
+}
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-sm);
+}
 
 p {
   margin: 0;

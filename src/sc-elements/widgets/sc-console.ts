@@ -21,7 +21,6 @@ export class ScConsole extends ScElement {
 
   private off: (() => void) | null = null;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this.off = oscClient.log.subscribe(() => this.requestUpdate());

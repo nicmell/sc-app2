@@ -2,12 +2,12 @@
 //
 // Auto-generated UGen spec data — one file per source category.
 
-import { UGenRegistryEntry } from '../registry.js';
+import { UGenRegistryEntry } from "../registry.js";
 
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "KeyState",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "keycode", default: 0 },
       { name: "minval", default: 0 },
@@ -28,7 +28,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "MouseButton",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "up", default: 0 },
       { name: "down", default: 1 },
@@ -47,7 +47,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "MouseX",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "min", default: 0 },
       { name: "max", default: 1 },
@@ -63,12 +63,15 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "lag", doc: "lag factor to dezipper cursor movement." },
       { name: "max", doc: "maximum value (when mouse is at the right of the screen)" },
       { name: "min", doc: "minimum value (when mouse is at the left of the screen)" },
-      { name: "warp", doc: "mapping curve - either LINEAR or EXPONENTIAL (LIN and EXP abbreviations are allowed). Default is LINEAR." },
+      {
+        name: "warp",
+        doc: "mapping curve - either LINEAR or EXPONENTIAL (LIN and EXP abbreviations are allowed). Default is LINEAR.",
+      },
     ],
   },
   {
     name: "MouseY",
-    rates: ['control'],
+    rates: ["control"],
     defaults: [
       { name: "min", default: 0 },
       { name: "max", default: 1 },
@@ -84,7 +87,10 @@ export const UGENS: UGenRegistryEntry[] = [
       { name: "lag", doc: "lag factor to smooth out cursor movement." },
       { name: "max", doc: "maximum value (when mouse is at the bottom of the screen)" },
       { name: "min", doc: "minimum value (when mouse is at the top of the screen)" },
-      { name: "warp", doc: "mapping curve - either LINEAR or EXPONENTIAL (LIN and EXP abbreviations are allowed). Default is LINEAR" },
+      {
+        name: "warp",
+        doc: "mapping curve - either LINEAR or EXPONENTIAL (LIN and EXP abbreviations are allowed). Default is LINEAR",
+      },
     ],
   },
 ];

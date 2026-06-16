@@ -1,4 +1,7 @@
 import "@sc-app/ui-components";
+// Phosphor icon font — fill weight only (the one weight sc-icon-base supports).
+// Provides the global `.ph-fill` / `.ph-<name>` classes <sc-icon-base> emits.
+import "@phosphor-icons/web/fill";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

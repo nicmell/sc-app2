@@ -28,11 +28,15 @@
     "open-props": "^1.7.15"
   },
   "peerDependencies": {
+    "@phosphor-icons/web": "^2.1.2",
     "lit": "^3.3.3",
     "react": "^19",
     "react-dom": "^19"
   },
   "peerDependenciesMeta": {
+    "@phosphor-icons/web": {
+      "optional": true
+    },
     "react": {
       "optional": true
     },

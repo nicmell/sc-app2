@@ -1157,6 +1157,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@phosphor-icons/web@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@phosphor-icons/web@npm:2.1.2"
+  checksum: 10c0/2da148aca2c97f51b632216aac7949e5d2ca8e4d573133dad9d0b47efb4b05512d844ef470a1fe9bfaf15c89f492586c1a39b1890516667664195d7d646ae410
+  languageName: node
+  linkType: hard
+
 "@replit/codemirror-emacs@npm:^6.1.0":
   version: 6.1.0
   resolution: "@replit/codemirror-emacs@npm:6.1.0"
@@ -1537,10 +1544,13 @@ __metadata:
     vite: "npm:^6.0.3"
     vitest: "npm:^4.1.8"
   peerDependencies:
+    "@phosphor-icons/web": ^2.1.2
     lit: ^3.3.3
     react: ^19
     react-dom: ^19
   peerDependenciesMeta:
+    "@phosphor-icons/web":
+      optional: true
     react:
       optional: true
     react-dom:
@@ -4803,6 +4813,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@lit/react": "npm:^1.0.6"
+    "@phosphor-icons/web": "npm:^2.1.2"
     "@sc-app/server-commands": "workspace:*"
     "@sc-app/synthdef-compiler": "workspace:*"
     "@sc-app/ui-components": "workspace:*"

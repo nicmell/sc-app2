@@ -11,6 +11,7 @@ import { ScOptionBase } from "./sc-option";
 import { ScRadioBase } from "./sc-radio";
 import { ScRadioGroupBase } from "./sc-radio-group";
 import { ScSelectBase } from "./sc-select";
+import { ScIconBase } from "./sc-icon";
 
 export { ScInputBase } from "./internal/sc-input-base";
 export type { ScSize, ScVariant } from "./internal/sc-input-base";
@@ -22,6 +23,7 @@ export { ScOptionBase } from "./sc-option";
 export { ScRadioBase } from "./sc-radio";
 export { ScRadioGroupBase } from "./sc-radio-group";
 export { ScSelectBase, type ScSelectOption } from "./sc-select";
+export { ScIconBase, type ScIconSize } from "./sc-icon";
 
 /** Tag → constructor for every registrable `-base` widget. */
 export const REGISTRY = {
@@ -33,6 +35,7 @@ export const REGISTRY = {
   "sc-radio-base": ScRadioBase,
   "sc-radio-group-base": ScRadioGroupBase,
   "sc-select-base": ScSelectBase,
+  "sc-icon-base": ScIconBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -52,5 +55,6 @@ declare global {
     "sc-radio-base": ScRadioBase;
     "sc-radio-group-base": ScRadioGroupBase;
     "sc-select-base": ScSelectBase;
+    "sc-icon-base": ScIconBase;
   }
 }

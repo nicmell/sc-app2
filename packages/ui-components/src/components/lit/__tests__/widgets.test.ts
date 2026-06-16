@@ -20,7 +20,8 @@ type WidgetTag =
   | "sc-option-base"
   | "sc-radio-base"
   | "sc-radio-group-base"
-  | "sc-select-base";
+  | "sc-select-base"
+  | "sc-icon-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -218,5 +219,29 @@ describe("sc-select-base", () => {
   it("shows the selected option's label in the combobox", async () => {
     const el = await mount("sc-select-base", { options: OPTIONS, value: 1 });
     expect(el.querySelector(".sc-select__label")!.textContent!.trim()).toBe("Saw");
+  });
+});
+
+describe("sc-icon-base", () => {
+  it("renders the fill icon classes, decorative by default", async () => {
+    const el = await mount("sc-icon-base", { name: "play" });
+    const i = el.querySelector("i")!;
+    expect(i.classList.contains("sc-icon")).toBe(true);
+    expect(i.classList.contains("ph-fill")).toBe(true);
+    expect(i.classList.contains("ph-play")).toBe(true);
+    expect(i.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("applies the size modifier when given", async () => {
+    const el = await mount("sc-icon-base", { name: "play", size: "lg" });
+    expect(el.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
+  });
+
+  it("becomes labelled (role=img) when given a label", async () => {
+    const el = await mount("sc-icon-base", { name: "play", label: "Play" });
+    const i = el.querySelector("i")!;
+    expect(i.getAttribute("role")).toBe("img");
+    expect(i.getAttribute("aria-label")).toBe("Play");
+    expect(i.hasAttribute("aria-hidden")).toBe(false);
   });
 });

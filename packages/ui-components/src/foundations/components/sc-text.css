@@ -1,0 +1,88 @@
+/* <sc-text-base> — typography primitive. Host-only element styled by its own
+   reflected attributes (size/weight/tone/font/align/truncate/inline). The
+   defaults (md / regular / sans / default tone / start) are the base rule; only
+   non-default values get an override. */
+
+sc-text-base {
+  display: block;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+}
+
+sc-text-base[inline] {
+  display: inline;
+}
+
+/* Size */
+sc-text-base[size="xs"] {
+  font-size: var(--font-size-xs);
+}
+sc-text-base[size="sm"] {
+  font-size: var(--font-size-sm);
+}
+sc-text-base[size="lg"] {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-tight);
+}
+sc-text-base[size="xl"] {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+/* Weight */
+sc-text-base[weight="medium"] {
+  font-weight: var(--font-weight-medium);
+}
+sc-text-base[weight="bold"] {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Font family */
+sc-text-base[font="mono"] {
+  font-family: var(--font-mono);
+}
+
+/* Tone (colour) — readable text tints on the surface. */
+sc-text-base[tone="dim"] {
+  color: var(--color-text-dim);
+}
+sc-text-base[tone="mute"] {
+  color: var(--color-text-mute);
+}
+sc-text-base[tone="faint"] {
+  color: var(--color-text-faint);
+}
+sc-text-base[tone="primary"] {
+  color: var(--color-primary);
+}
+sc-text-base[tone="ok"] {
+  color: var(--color-ok-text);
+}
+sc-text-base[tone="warn"] {
+  color: var(--color-warn-text);
+}
+sc-text-base[tone="error"] {
+  color: var(--color-error-text);
+}
+sc-text-base[tone="info"] {
+  color: var(--color-info-text);
+}
+
+/* Alignment */
+sc-text-base[align="center"] {
+  text-align: center;
+}
+sc-text-base[align="end"] {
+  text-align: end;
+}
+
+/* Truncation (single line). */
+sc-text-base[truncate] {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

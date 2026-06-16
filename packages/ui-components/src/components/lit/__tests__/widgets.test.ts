@@ -28,7 +28,8 @@ type WidgetTag =
   | "sc-chip-base"
   | "sc-input-base"
   | "sc-inputnumber-base"
-  | "sc-textarea-base";
+  | "sc-textarea-base"
+  | "sc-text-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -448,5 +449,33 @@ describe("sc-textarea-base", () => {
     ta.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("multi\nline");
     expect(values).toEqual(["multi\nline"]);
+  });
+});
+
+describe("sc-text-base", () => {
+  it("preserves child content and reflects typography props to attributes", async () => {
+    const el = document.createElement("sc-text-base");
+    el.textContent = "Heading";
+    el.size = "xl";
+    el.weight = "bold";
+    el.tone = "dim";
+    el.font = "mono";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.textContent).toBe("Heading");
+    expect(el.getAttribute("size")).toBe("xl");
+    expect(el.getAttribute("weight")).toBe("bold");
+    expect(el.getAttribute("tone")).toBe("dim");
+    expect(el.getAttribute("font")).toBe("mono");
+  });
+
+  it("reflects the boolean truncate/inline flags", async () => {
+    const el = document.createElement("sc-text-base");
+    el.truncate = true;
+    el.inline = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.hasAttribute("truncate")).toBe(true);
+    expect(el.hasAttribute("inline")).toBe(true);
   });
 });

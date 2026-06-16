@@ -159,6 +159,39 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
+        <p class="demo-cap">sizes</p>
+        <div class="stack stack--sm">
+          <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
+          <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
+          <sc-text-base size="md">Medium (default body)</sc-text-base>
+          <sc-text-base size="sm">Small</sc-text-base>
+          <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
+        </div>
+        <p class="demo-cap">tones</p>
+        <div class="cluster cluster--md">
+          <sc-text-base>default</sc-text-base>
+          <sc-text-base tone="dim">dim</sc-text-base>
+          <sc-text-base tone="mute">mute</sc-text-base>
+          <sc-text-base tone="primary">primary</sc-text-base>
+          <sc-text-base tone="ok">ok</sc-text-base>
+          <sc-text-base tone="warn">warn</sc-text-base>
+          <sc-text-base tone="error">error</sc-text-base>
+          <sc-text-base tone="info">info</sc-text-base>
+        </div>
+        <p class="demo-cap">inline (flows in text) + rich children</p>
+        <sc-text-base>
+          Status:
+          <sc-text-base inline weight="bold" tone="ok">connected</sc-text-base> — body text with an
+          <a href="#">inline link</a> and <code>code</code>.
+        </sc-text-base>
+        <p class="demo-cap">truncate</p>
+        <sc-text-base truncate style="max-width: 16rem">
+          This line is intentionally long enough to be clipped with an ellipsis at the edge.
+        </sc-text-base>
+      </section>
+
+      <section class="demo-section">
         <h2 class="demo-section-title">Disclosure</h2>
         <details>
           <summary>Details summary (click to expand)</summary>

@@ -19,6 +19,7 @@ import { ScChipBase } from "./sc-chip";
 import { ScInputBase } from "./sc-input";
 import { ScInputNumberBase } from "./sc-inputnumber";
 import { ScTextareaBase } from "./sc-textarea";
+import { ScTextBase } from "./sc-text";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -38,6 +39,14 @@ export { ScChipBase, type ScChipVariant } from "./sc-chip";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
+export {
+  ScTextBase,
+  type ScTextSize,
+  type ScTextWeight,
+  type ScTextTone,
+  type ScTextFont,
+  type ScTextAlign,
+} from "./sc-text";
 
 /** Tag → constructor for every registrable `-base` widget. */
 export const REGISTRY = {
@@ -57,6 +66,7 @@ export const REGISTRY = {
   "sc-input-base": ScInputBase,
   "sc-inputnumber-base": ScInputNumberBase,
   "sc-textarea-base": ScTextareaBase,
+  "sc-text-base": ScTextBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -84,5 +94,6 @@ declare global {
     "sc-input-base": ScInputBase;
     "sc-inputnumber-base": ScInputNumberBase;
     "sc-textarea-base": ScTextareaBase;
+    "sc-text-base": ScTextBase;
   }
 }

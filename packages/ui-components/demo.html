@@ -535,6 +535,46 @@ function dirtPlay(event) {
           </span>
         </div>
       </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-button-base&gt;</h2>
+        <p class="demo-cap">variants</p>
+        <div class="demo-row">
+          <sc-button-base label="Primary"></sc-button-base>
+          <sc-button-base label="Secondary" variant="secondary"></sc-button-base>
+          <sc-button-base label="Ghost" variant="ghost"></sc-button-base>
+          <sc-button-base label="Danger" variant="danger"></sc-button-base>
+          <sc-button-base label="Disabled" disabled></sc-button-base>
+        </div>
+        <p class="demo-cap">sizes</p>
+        <div class="demo-row">
+          <sc-button-base label="Small" size="sm"></sc-button-base>
+          <sc-button-base label="Medium" size="md"></sc-button-base>
+          <sc-button-base label="Large" size="lg"></sc-button-base>
+        </div>
+        <p class="demo-cap">with icons (leading / trailing)</p>
+        <div class="demo-row">
+          <sc-button-base label="Play" icon="play"></sc-button-base>
+          <sc-button-base label="Record" icon="record" variant="danger"></sc-button-base>
+          <sc-button-base
+            label="Options"
+            trailing-icon="caret-down"
+            variant="secondary"
+          ></sc-button-base>
+        </div>
+        <p class="demo-cap">icon-only (label = accessible name)</p>
+        <div class="demo-row">
+          <sc-button-base icon="play" icon-only label="Play"></sc-button-base>
+          <sc-button-base
+            icon="pause"
+            icon-only
+            label="Pause"
+            variant="secondary"
+          ></sc-button-base>
+          <sc-button-base icon="x" icon-only label="Close" variant="ghost"></sc-button-base>
+          <sc-button-base icon="gear" icon-only label="Settings" size="lg"></sc-button-base>
+        </div>
+      </section>
     </div>
 
     <script type="module">

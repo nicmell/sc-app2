@@ -21,7 +21,8 @@ type WidgetTag =
   | "sc-radio-base"
   | "sc-radio-group-base"
   | "sc-select-base"
-  | "sc-icon-base";
+  | "sc-icon-base"
+  | "sc-button-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -243,5 +244,52 @@ describe("sc-icon-base", () => {
     expect(i.getAttribute("role")).toBe("img");
     expect(i.getAttribute("aria-label")).toBe("Play");
     expect(i.hasAttribute("aria-hidden")).toBe(false);
+  });
+});
+
+describe("sc-button-base", () => {
+  it("renders a typed button with variant/size classes and label text", async () => {
+    const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
+    const btn = el.querySelector("button")!;
+    expect(btn.getAttribute("type")).toBe("button");
+    expect(btn.classList.contains("sc-button")).toBe(true);
+    expect(btn.classList.contains("sc-button--danger")).toBe(true);
+    expect(btn.classList.contains("sc-button--lg")).toBe(true);
+    expect(el.querySelector(".sc-button__label")!.textContent).toBe("Run");
+  });
+
+  it("renders leading and trailing icons", async () => {
+    const el = await mount("sc-button-base", {
+      label: "Open",
+      icon: "folder",
+      trailingIcon: "caret-down",
+    });
+    const names = Array.from(el.querySelectorAll("sc-icon-base")).map((i) => i.getAttribute("name"));
+    expect(names).toEqual(["folder", "caret-down"]);
+  });
+
+  it("icon-only: square modifier, no label text, label used as aria-label", async () => {
+    const el = await mount("sc-button-base", { icon: "play", iconOnly: true, label: "Play" });
+    const btn = el.querySelector("button")!;
+    expect(btn.classList.contains("sc-button--icon")).toBe(true);
+    expect(el.querySelector(".sc-button__label")).toBeNull();
+    expect(el.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
+    expect(btn.getAttribute("aria-label")).toBe("Play");
+  });
+
+  it("fires a bubbling click from the inner button", async () => {
+    const el = await mount("sc-button-base", { label: "Go" });
+    let clicks = 0;
+    el.addEventListener("click", () => (clicks += 1));
+    el.querySelector("button")!.click();
+    expect(clicks).toBe(1);
+  });
+
+  it("does not click when disabled", async () => {
+    const el = await mount("sc-button-base", { label: "Go", disabled: true });
+    let clicks = 0;
+    el.addEventListener("click", () => (clicks += 1));
+    el.querySelector("button")!.click();
+    expect(clicks).toBe(0);
   });
 });

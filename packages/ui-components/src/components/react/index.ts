@@ -20,3 +20,4 @@ export { ScRadio } from "./sc-radio";
 export { ScRadioGroup } from "./sc-radio-group";
 export { ScSelect } from "./sc-select";
 export { ScIcon } from "./sc-icon";
+export { ScButton } from "./sc-button";

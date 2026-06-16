@@ -54,10 +54,13 @@ export const REGISTRY = {
   "sc-switch-base": ScSwitchBase,
   "sc-knob-base": ScKnobBase,
   "sc-slider-base": ScSliderBase,
-  "sc-option-base": ScOptionBase,
-  "sc-radio-base": ScRadioBase,
+  // Context providers must be defined BEFORE their consumers so that, when a
+  // page's existing markup upgrades, the provider is listening before a child
+  // requests context (radio-group before radio; select before option).
   "sc-radio-group-base": ScRadioGroupBase,
+  "sc-radio-base": ScRadioBase,
   "sc-select-base": ScSelectBase,
+  "sc-option-base": ScOptionBase,
   "sc-icon-base": ScIconBase,
   "sc-button-base": ScButtonBase,
   "sc-badge-base": ScBadgeBase,

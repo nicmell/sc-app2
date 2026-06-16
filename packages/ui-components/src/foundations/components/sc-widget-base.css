@@ -37,9 +37,8 @@
   border: 0;
 }
 
-/* Interactive blocks render as <button>; strip the base button chrome so the
+/* The select combobox renders as <button>; strip the base button chrome so the
    per-widget styling is the only source of truth. */
-.sc-radio,
 .sc-select__combobox {
   appearance: none;
   margin: 0;

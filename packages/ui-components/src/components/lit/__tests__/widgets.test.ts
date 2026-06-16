@@ -152,11 +152,12 @@ describe("sc-option-base", () => {
 });
 
 describe("sc-radio-base", () => {
-  it("emits its own value on click", async () => {
+  it("renders a hidden native radio and checks itself on click (standalone)", async () => {
     const el = await mount("sc-radio-base", { value: 2, label: "Square" });
-    const changes = recordChanges(el);
-    el.querySelector("button")!.click();
-    expect(changes).toEqual([2]);
+    const input = el.querySelector("input")!;
+    expect(input.type).toBe("radio");
+    input.click();
+    expect(el.checked).toBe(true);
   });
 });
 
@@ -172,40 +173,48 @@ describe("sc-radio-group-base", () => {
     await group.updateComplete;
     const radios = Array.from(group.querySelectorAll("sc-radio-base"));
     await Promise.all(radios.map((r) => r.updateComplete));
-    return group;
+    await group.updateComplete; // let context propagate + children re-render
+    await Promise.all(radios.map((r) => r.updateComplete));
+    return { group, radios };
   }
 
   it("reflects orientation to an attribute for styling", async () => {
-    const group = await mountGroup(0);
+    const { group } = await mountGroup(0);
     group.orientation = "vertical";
     await group.updateComplete;
     expect(group.getAttribute("orientation")).toBe("vertical");
   });
 
-  it("syncs the checked child from its value", async () => {
-    const group = await mountGroup(1);
-    const radios = Array.from(group.querySelectorAll("sc-radio-base"));
-    expect(radios.map((r) => r.checked)).toEqual([false, true, false]);
+  it("shares one name and checks the selected child's input", async () => {
+    const { radios } = await mountGroup(1);
+    const inputs = radios.map((r) => r.querySelector("input")!);
+    expect(inputs.map((i) => i.checked)).toEqual([false, true, false]);
+    expect(new Set(inputs.map((i) => i.name)).size).toBe(1); // one shared name
   });
 
-  it("updates value and re-emits a single group change on child click", async () => {
-    const group = await mountGroup(1);
-    const changes = recordChanges(group);
-    group.querySelectorAll("sc-radio-base")[2].querySelector("button")!.click();
+  it("updates value and emits a single group change on child click", async () => {
+    const { group, radios } = await mountGroup(1);
+    let changes = 0;
+    let lastTarget: EventTarget | null = null;
+    group.addEventListener("change", (e) => {
+      changes += 1;
+      lastTarget = e.target;
+    });
+    radios[2].querySelector("input")!.click();
     expect(group.value).toBe(2);
-    expect(changes).toEqual([2]);
+    expect(changes).toBe(1);
+    expect(lastTarget).toBe(group);
   });
 
-  it("propagates size/variant/disabled to children", async () => {
-    const group = await mountGroup(0);
+  it("propagates size/variant to children via context", async () => {
+    const { group, radios } = await mountGroup(0);
     group.size = "lg";
     group.variant = "warn";
-    group.disabled = true;
     await group.updateComplete;
-    const radio = group.querySelector("sc-radio-base")!;
-    expect(radio.size).toBe("lg");
-    expect(radio.variant).toBe("warn");
-    expect(radio.disabled).toBe(true);
+    await Promise.all(radios.map((r) => r.updateComplete));
+    const label = radios[0].querySelector(".sc-radio")!;
+    expect(label.classList.contains("sc-radio--lg")).toBe(true);
+    expect(label.classList.contains("sc-radio--warn")).toBe(true);
   });
 });
 

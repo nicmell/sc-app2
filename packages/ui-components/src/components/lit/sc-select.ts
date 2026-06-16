@@ -6,14 +6,14 @@
 import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import cx from "classnames";
-import { ScInputBase } from "./internal/sc-input-base";
+import { ScWidgetBase } from "./internal/sc-widget-base";
 
 export interface ScSelectOption {
   value: number;
   label: string;
 }
 
-export class ScSelectBase extends ScInputBase {
+export class ScSelectBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property({ attribute: false }) accessor options: ScSelectOption[] = [];
   @property() accessor placeholder = "";

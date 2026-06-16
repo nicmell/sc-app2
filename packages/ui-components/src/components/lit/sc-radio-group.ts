@@ -9,10 +9,10 @@
 // re-emits at group level.
 
 import { property } from "lit/decorators.js";
-import { ScInputBase } from "./internal/sc-input-base";
+import { ScWidgetBase } from "./internal/sc-widget-base";
 import type { ScRadioBase } from "./sc-radio";
 
-export class ScRadioGroupBase extends ScInputBase {
+export class ScRadioGroupBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   // Reflected so the host can be styled by attribute (no rendered root to carry
   // a class), which also avoids racing a React-set className on the host.

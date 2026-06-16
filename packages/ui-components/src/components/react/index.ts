@@ -24,3 +24,5 @@ export { ScButton } from "./sc-button";
 export { ScBadge } from "./sc-badge";
 export { ScToast } from "./sc-toast";
 export { ScChip } from "./sc-chip";
+export { ScInput } from "./sc-input";
+export { ScInputNumber } from "./sc-inputnumber";

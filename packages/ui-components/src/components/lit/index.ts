@@ -16,9 +16,11 @@ import { ScButtonBase } from "./sc-button";
 import { ScBadgeBase } from "./sc-badge";
 import { ScToastBase } from "./sc-toast";
 import { ScChipBase } from "./sc-chip";
+import { ScInputBase } from "./sc-input";
+import { ScInputNumberBase } from "./sc-inputnumber";
 
-export { ScInputBase } from "./internal/sc-input-base";
-export type { ScSize, ScVariant } from "./internal/sc-input-base";
+export { ScWidgetBase } from "./internal/sc-widget-base";
+export type { ScSize, ScVariant } from "./internal/sc-widget-base";
 export { ScCheckboxBase } from "./sc-checkbox";
 export { ScSwitchBase } from "./sc-switch";
 export { ScKnobBase } from "./sc-knob";
@@ -32,6 +34,8 @@ export { ScButtonBase, type ScButtonVariant } from "./sc-button";
 export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge";
 export { ScToastBase, type ScToastVariant } from "./sc-toast";
 export { ScChipBase, type ScChipVariant } from "./sc-chip";
+export { ScInputBase, type ScInputSize } from "./sc-input";
+export { ScInputNumberBase } from "./sc-inputnumber";
 
 /** Tag → constructor for every registrable `-base` widget. */
 export const REGISTRY = {
@@ -48,6 +52,8 @@ export const REGISTRY = {
   "sc-badge-base": ScBadgeBase,
   "sc-toast-base": ScToastBase,
   "sc-chip-base": ScChipBase,
+  "sc-input-base": ScInputBase,
+  "sc-inputnumber-base": ScInputNumberBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -72,5 +78,7 @@ declare global {
     "sc-badge-base": ScBadgeBase;
     "sc-toast-base": ScToastBase;
     "sc-chip-base": ScChipBase;
+    "sc-input-base": ScInputBase;
+    "sc-inputnumber-base": ScInputNumberBase;
   }
 }

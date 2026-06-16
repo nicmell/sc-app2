@@ -3,13 +3,13 @@
 // via `label` + optional leading/trailing Phosphor icons, plus an icon-only
 // mode. `variant` here is button *appearance* (primary/secondary/ghost/danger),
 // distinct from the accent `variant` on the input widgets — so this does not
-// extend ScInputBase. Click is the native event bubbling from the inner button;
+// extend ScWidgetBase. Click is the native event bubbling from the inner button;
 // no custom event is dispatched.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import type { ScSize } from "./internal/sc-input-base";
+import type { ScSize } from "./internal/sc-widget-base";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 

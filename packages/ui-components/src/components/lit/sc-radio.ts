@@ -4,9 +4,9 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import { ScInputBase } from "./internal/sc-input-base";
+import { ScWidgetBase } from "./internal/sc-widget-base";
 
-export class ScRadioBase extends ScInputBase {
+export class ScRadioBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
   @property({ type: Boolean }) accessor checked = false;

@@ -20,7 +20,7 @@ export type ScSize = "sm" | "md" | "lg";
 /** Token-backed colour variant — the single accent channel each widget tints. */
 export type ScVariant = "primary" | "neutral" | "ok" | "warn" | "danger";
 
-export abstract class ScInputBase extends LitElement {
+export abstract class ScWidgetBase extends LitElement {
   /** Size variant → `sc-<block>--{sm,md,lg}` (drives token-backed dimensions). */
   @property() accessor size: ScSize = "md";
   /** Colour variant → `sc-<block>--{primary,…}` (sets `--_accent`). */

@@ -47,10 +47,11 @@
 @import "./components/toast.css";
 
 /* Graphical input widgets — the styling for the `-base` Lit/React components
-   in src/components (checkbox, switch, knob, slider, option, radio,
-   radio-group, select). sc-input-base holds the shared host display, button
-   reset, disabled affordance, and variant → --_accent mapping. */
-@import "./components/sc-input-base.css";
+   in src/components. sc-widget-base holds the shared host display, button
+   reset, disabled affordance, and variant → --_accent mapping for the
+   interactive widgets (checkbox, switch, knob, slider, option, radio,
+   radio-group, select). */
+@import "./components/sc-widget-base.css";
 @import "./components/sc-checkbox.css";
 @import "./components/sc-switch.css";
 @import "./components/sc-knob.css";
@@ -61,3 +62,5 @@
 @import "./components/sc-select.css";
 @import "./components/sc-icon.css";
 @import "./components/sc-button.css";
+@import "./components/sc-input.css";
+@import "./components/sc-inputnumber.css";

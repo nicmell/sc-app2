@@ -6,9 +6,9 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import { ScInputBase } from "./internal/sc-input-base";
+import { ScWidgetBase } from "./internal/sc-widget-base";
 
-export class ScKnobBase extends ScInputBase {
+export class ScKnobBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;

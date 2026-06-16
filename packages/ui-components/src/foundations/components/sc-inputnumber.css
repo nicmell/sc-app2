@@ -1,0 +1,73 @@
+/* <sc-inputnumber-base> — the numeric field plus its custom up/down steppers.
+   Native spin buttons are hidden by base/elements.css; these themed arrows
+   replace them. Arrows are CSS triangles in currentColor, so they follow the
+   text tokens (dim → bright on hover). */
+
+.sc-inputnumber {
+  position: relative;
+  display: inline-block;
+}
+
+.sc-inputnumber__field {
+  /* Leave room for the stepper column on the right. */
+  padding-right: 1.6rem;
+}
+
+.sc-inputnumber__spinners {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  display: flex;
+  flex-direction: column;
+  width: 1.25rem;
+  border-left: 1px solid var(--color-border-stronger);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  overflow: hidden;
+}
+
+.sc-inputnumber__step {
+  flex: 1 1 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface-3);
+  border: none;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.sc-inputnumber__step:first-child {
+  border-bottom: 1px solid var(--color-border-stronger);
+}
+
+/* Brighten the arrow on hover; no bg change (the column already has a fill). */
+.sc-inputnumber__step:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.sc-inputnumber__step:disabled {
+  cursor: not-allowed;
+}
+
+.sc-inputnumber__arrow {
+  width: 0;
+  height: 0;
+  border-left: 0.25rem solid transparent;
+  border-right: 0.25rem solid transparent;
+}
+
+.sc-inputnumber__arrow--up {
+  border-bottom: 0.3rem solid currentColor;
+}
+
+.sc-inputnumber__arrow--down {
+  border-top: 0.3rem solid currentColor;
+}
+
+.sc-inputnumber--disabled {
+  opacity: 0.5;
+}

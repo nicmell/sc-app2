@@ -3,9 +3,9 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import { ScInputBase } from "./internal/sc-input-base";
+import { ScWidgetBase } from "./internal/sc-widget-base";
 
-export class ScCheckboxBase extends ScInputBase {
+export class ScCheckboxBase extends ScWidgetBase {
   @property({ type: Boolean }) accessor checked = false;
   @property() accessor label = "";
 

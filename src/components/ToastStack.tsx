@@ -1,9 +1,10 @@
-// scsynth error/warning banners, rendered with the ui-components `.toast`
+// scsynth error/warning banners, rendered with the ui-components <sc-toast-base>
 // primitive: a bottom-right stack, portaled to <body>. Each banner auto-dismisses
 // after a timeout (reset when a coalesced repeat refreshes its `ts`) and can be
 // closed manually. Driven by the OscClient's coalescing error store.
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { ScToast } from "@sc-app/ui-components/react";
 import { oscClient, useScsynthErrors } from "@/stores/osc";
 import type { ScsynthError } from "@/types/stores";
 
@@ -19,21 +20,13 @@ function Toast({ error }: { error: ScsynthError }) {
   }, [error.id, error.ts]);
 
   const label = error.address ? `${error.address}: ${error.message}` : error.message;
+  const message = error.count > 1 ? `${label} ×${error.count}` : label;
   return (
-    <div className="toast" data-variant={error.variant} role="status">
-      <span className="toast-message">
-        {label}
-        {error.count > 1 && ` ×${error.count}`}
-      </span>
-      <button
-        type="button"
-        className="toast-close"
-        aria-label="Dismiss"
-        onClick={() => oscClient.dismissError(error.id)}
-      >
-        ×
-      </button>
-    </div>
+    <ScToast
+      variant={error.variant}
+      message={message}
+      onDismiss={() => oscClient.dismissError(error.id)}
+    />
   );
 }
 

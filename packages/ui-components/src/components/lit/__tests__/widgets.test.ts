@@ -22,7 +22,9 @@ type WidgetTag =
   | "sc-radio-group-base"
   | "sc-select-base"
   | "sc-icon-base"
-  | "sc-button-base";
+  | "sc-button-base"
+  | "sc-badge-base"
+  | "sc-toast-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -291,5 +293,41 @@ describe("sc-button-base", () => {
     el.addEventListener("click", () => (clicks += 1));
     el.querySelector("button")!.click();
     expect(clicks).toBe(0);
+  });
+});
+
+describe("sc-badge-base", () => {
+  it("renders the label; ok is the base class with no modifier", async () => {
+    const el = await mount("sc-badge-base", { label: "connected" });
+    const span = el.querySelector(".badge")!;
+    expect(span.textContent!.trim()).toBe("connected");
+    expect(span.classList.contains("badge--ok")).toBe(false);
+  });
+
+  it("applies the variant modifier class", async () => {
+    const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
+    expect(el.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
+  });
+});
+
+describe("sc-toast-base", () => {
+  it("renders the message; default has no variant modifier", async () => {
+    const el = await mount("sc-toast-base", { message: "Saved." });
+    const toast = el.querySelector(".toast")!;
+    expect(el.querySelector(".toast-message")!.textContent!.trim()).toBe("Saved.");
+    expect(toast.className).toBe("toast");
+  });
+
+  it("applies the variant modifier class", async () => {
+    const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
+    expect(el.querySelector(".toast")!.classList.contains("toast--warn")).toBe(true);
+  });
+
+  it("dispatches a bubbling dismiss event on close", async () => {
+    const el = await mount("sc-toast-base", { message: "x" });
+    let dismissed = 0;
+    el.addEventListener("dismiss", () => (dismissed += 1));
+    el.querySelector<HTMLButtonElement>(".toast-close")!.click();
+    expect(dismissed).toBe(1);
   });
 });

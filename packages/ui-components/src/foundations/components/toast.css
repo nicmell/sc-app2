@@ -2,23 +2,22 @@
  * .toast-stack + .toast — bottom-right anchored notification
  * stack with per-variant accents.
  *
- * HTML shape:
- *   <div class="toast-stack" aria-live="polite">
- *     <div class="toast" data-variant="success" role="status">
- *       <span class="toast-message">Saved.</span>
- *       <button class="toast-close" aria-label="Dismiss">×</button>
- *     </div>
- *     ...
- *   </div>
+ * The individual card is rendered by <sc-toast-base>
+ * (src/components); the variant is a classnames modifier, not a
+ * data attribute. The `.toast-stack` is a plain fixed-position
+ * layout container — a <sc-toast-base> just lives inside it.
  *
  * The stack uses `pointer-events: none` so users can click
- * through the gaps between toasts; individual `.toast` elements
- * re-enable pointer events for their dismiss button + body.
+ * through the gaps; the `.toast` re-enables them (and
+ * pointer-events inherits, so it works through the host).
  *
- * Variants: success (ok), warn, error, info. Default (no
- * data-variant) is muted — same chrome but with the standard
- * border-strong colour, useful for neutral status messages.
+ * Variants: success (ok), warn, error, info. Default (none) is
+ * muted — same chrome with the standard border colour.
  */
+
+:where(sc-toast-base) {
+  display: block;
+}
 
 .toast-stack {
   position: fixed;
@@ -49,19 +48,19 @@
   animation: toast-slide-in var(--transition-base);
 }
 
-.toast[data-variant="success"] {
+.toast--success {
   border-left-color: var(--color-ok);
 }
 
-.toast[data-variant="warn"] {
+.toast--warn {
   border-left-color: var(--color-warn);
 }
 
-.toast[data-variant="error"] {
+.toast--error {
   border-left-color: var(--color-danger);
 }
 
-.toast[data-variant="info"] {
+.toast--info {
   border-left-color: var(--color-primary);
 }
 

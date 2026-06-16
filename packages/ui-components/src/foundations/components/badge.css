@@ -1,14 +1,11 @@
 /**
  * .badge — uppercase pill, distinct from .status-pill in two
  * ways: (1) no leading dot — body content is the whole badge;
- * (2) tighter padding + uppercase tracking. The dashboard
- * shell's "connected" indicator was the original instance.
+ * (2) tighter padding + uppercase tracking.
  *
- * HTML shape:
- *   <span class="badge">connected</span>
- *   <span class="badge" data-variant="warn">degraded</span>
- *
- * Variants: ok (default) | warn | error.
+ * Rendered by <sc-badge-base> (src/components); variant is a
+ * classnames modifier, not a data attribute. ok is the default
+ * (the base `.badge`). Variants: ok | warn | error.
  */
 
 .badge {
@@ -24,13 +21,13 @@
   color: var(--color-ok-text);
 }
 
-.badge[data-variant="warn"] {
+.badge--warn {
   background: var(--color-warn-bg);
   border-color: var(--color-warn-border);
   color: var(--color-warn-text);
 }
 
-.badge[data-variant="error"] {
+.badge--error {
   background: var(--color-error-bg);
   border-color: var(--color-error-border);
   color: var(--color-error-text);

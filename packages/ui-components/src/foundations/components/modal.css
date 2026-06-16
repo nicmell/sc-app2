@@ -5,21 +5,18 @@
  *
  * HTML shape:
  *   <div class="modal-backdrop">
- *     <div class="modal" data-variant="danger">
+ *     <div class="modal">
  *       <h2 class="modal-title">…</h2>
  *       <p class="modal-body">…</p>
- *       <div class="modal-actions cluster" data-gap="sm">
- *         <button data-variant="secondary">Cancel</button>
- *         <button data-variant="danger">Reinitialize</button>
+ *       <div class="modal-actions cluster cluster--sm">
+ *         <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
+ *         <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
  *       </div>
  *     </div>
  *   </div>
  *
- * The action-button styling is intentionally NOT redefined
- * here — it comes from base/elements.css's button rules with
- * data-variant attributes. .modal[data-variant] only tints
- * the card's accent (currently a no-op, reserved for future
- * "danger card" framing if we want a red top stripe).
+ * The card itself has no variant — the action buttons carry the
+ * intent (e.g. a danger confirm via <sc-button-base>).
  */
 
 .modal-backdrop {

@@ -3,8 +3,9 @@
  * .cluster. Used for "column of stacked things" — modal
  * sections, panel internal sections, sidebars.
  *
- * HTML shape:
- *   <div class="stack" data-gap="md">
+ * Gap modifiers are plain classes (applied directly or via
+ * classnames), not data attributes:
+ *   <div class="stack stack--md">
  *     <h3>Title</h3>
  *     <p>Body</p>
  *   </div>
@@ -16,12 +17,12 @@
   gap: var(--space-xs);
 }
 
-.stack[data-gap="sm"] {
+.stack--sm {
   gap: var(--space-2xs);
 }
-.stack[data-gap="md"] {
+.stack--md {
   gap: var(--space-sm);
 }
-.stack[data-gap="lg"] {
+.stack--lg {
   gap: var(--space-md);
 }

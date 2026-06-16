@@ -3,9 +3,9 @@
  * gap and wrap. The bread-and-butter "row of inline things"
  * (toolbar buttons, label + input, status pill + readout, …).
  *
- * Replaces the legacy global `.row` and per-panel `.toolbar`
- * declarations. Default gap is small; data-gap overrides:
- *   <div class="cluster" data-gap="md">
+ * Default gap is small; gap modifiers are plain classes
+ * (applied directly or via classnames), not data attributes:
+ *   <div class="cluster cluster--md">
  *
  * HTML shape:
  *   <div class="cluster">
@@ -21,12 +21,12 @@
   flex-wrap: wrap;
 }
 
-.cluster[data-gap="sm"] {
+.cluster--sm {
   gap: var(--space-2xs);
 }
-.cluster[data-gap="md"] {
+.cluster--md {
   gap: var(--space-sm);
 }
-.cluster[data-gap="lg"] {
+.cluster--lg {
   gap: var(--space-md);
 }

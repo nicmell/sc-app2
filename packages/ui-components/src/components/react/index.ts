@@ -21,3 +21,5 @@ export { ScRadioGroup } from "./sc-radio-group";
 export { ScSelect } from "./sc-select";
 export { ScIcon } from "./sc-icon";
 export { ScButton } from "./sc-button";
+export { ScBadge } from "./sc-badge";
+export { ScToast } from "./sc-toast";

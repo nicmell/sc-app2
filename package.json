@@ -14,7 +14,7 @@
     "format": "prettier --write src packages",
     "format:check": "prettier --check src packages",
     "typecheck": "tsc --noEmit && yarn workspace @sc-app/ui-components typecheck",
-    "test": "vitest run && yarn workspace @sc-app/synthdef-compiler test",
+    "test": "vitest run && yarn workspace @sc-app/synthdef-compiler test && yarn workspace @sc-app/ui-components test",
     "test:all": "yarn test && cargo test --manifest-path src-tauri/Cargo.toml",
     "clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml",

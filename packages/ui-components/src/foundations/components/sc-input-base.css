@@ -22,10 +22,6 @@
   display: inline-block;
 }
 
-:where(sc-radio-group-base) {
-  display: inline-flex;
-}
-
 /* Interactive blocks render as <button>; strip the base button chrome so the
    per-widget styling is the only source of truth. */
 .sc-checkbox,
@@ -53,6 +49,13 @@
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* The group has no class of its own; disabling it disables its children (the
+   element propagates `disabled` to each <sc-radio-base>). */
+sc-radio-group-base[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Variant → accent colour. `--_accent` is the one channel each widget tints

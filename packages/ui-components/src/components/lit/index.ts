@@ -41,3 +41,16 @@ export function registerUiComponents(): void {
     if (!customElements.get(tag)) customElements.define(tag, ctor);
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "sc-checkbox-base": ScCheckboxBase;
+    "sc-switch-base": ScSwitchBase;
+    "sc-knob-base": ScKnobBase;
+    "sc-slider-base": ScSliderBase;
+    "sc-option-base": ScOptionBase;
+    "sc-radio-base": ScRadioBase;
+    "sc-radio-group-base": ScRadioGroupBase;
+    "sc-select-base": ScSelectBase;
+  }
+}

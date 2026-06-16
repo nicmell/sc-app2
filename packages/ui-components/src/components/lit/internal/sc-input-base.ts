@@ -25,8 +25,9 @@ export abstract class ScInputBase extends LitElement {
   @property() accessor size: ScSize = "md";
   /** Colour variant → `sc-<block>--{primary,…}` (sets `--_accent`). */
   @property() accessor variant: ScVariant = "primary";
-  /** Disabled affordance → `sc-<block>--disabled` + `aria-disabled`. */
-  @property({ type: Boolean }) accessor disabled = false;
+  /** Disabled affordance → `sc-<block>--disabled` + `aria-disabled`. Reflected
+   *  so host-only elements (the radio group) can be styled by `[disabled]`. */
+  @property({ type: Boolean, reflect: true }) accessor disabled = false;
 
   /** Render into the light DOM so the global foundation classes apply. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {

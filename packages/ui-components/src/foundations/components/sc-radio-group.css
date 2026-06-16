@@ -1,13 +1,14 @@
-/* <sc-radio-group-base> — lays out its <sc-radio-base> children. The host
-   carries these classes (set imperatively by the element). */
+/* <sc-radio-group-base> — lays out its <sc-radio-base> children. The element
+   has no rendered root, so it's styled directly off its (reflected)
+   `orientation` attribute rather than a class. */
 
-.sc-radio-group {
+sc-radio-group-base {
   display: inline-flex;
   gap: var(--space-xs);
   align-items: center;
 }
 
-.sc-radio-group--vertical {
+sc-radio-group-base[orientation="vertical"] {
   flex-direction: column;
   align-items: flex-start;
 }

@@ -1,0 +1,61 @@
+/* <sc-checkbox-base> — styled box + optional label. Accent = --_accent. */
+
+.sc-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-mono);
+  color: var(--color-text-dim);
+}
+
+.sc-checkbox__box {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--_box, 1rem);
+  block-size: var(--_box, 1rem);
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-stronger);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sc-checkbox--sm {
+  --_box: 0.875rem;
+  font-size: var(--font-size-xs);
+}
+.sc-checkbox--md {
+  --_box: 1rem;
+  font-size: var(--font-size-sm);
+}
+.sc-checkbox--lg {
+  --_box: 1.25rem;
+  font-size: var(--font-size-md);
+}
+
+.sc-checkbox__check {
+  inline-size: 60%;
+  block-size: 60%;
+  border-radius: var(--radius-xs);
+  background: var(--_accent);
+  transform: scale(0);
+  transition: transform var(--transition-fast);
+}
+
+.sc-checkbox--on .sc-checkbox__box {
+  border-color: var(--_accent);
+}
+.sc-checkbox--on .sc-checkbox__check {
+  transform: scale(1);
+}
+
+.sc-checkbox:focus-visible {
+  outline: none;
+}
+.sc-checkbox:focus-visible .sc-checkbox__box {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}

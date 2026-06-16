@@ -1,5 +1,5 @@
 /**
- * Tokens-only entry. Importable as `@sc-app/ui-foundation/tokens`
+ * Tokens-only entry. Importable as `@sc-app/ui-components/tokens`
  * for consumers that want just the token vocabulary without the
  * reset / element / component layers (e.g. a plugin that brings
  * its own component library but wants to match the host palette).

@@ -1,5 +1,5 @@
 /* Dashboard shell + grid, restyled from upstream Dashboard.scss onto
-   ui-foundation tokens. react-grid-layout owns positioning (inline styles +
+   ui-components tokens. react-grid-layout owns positioning (inline styles +
    its own css); this file owns the look. */
 
 /* Snappy reposition: kill the grid item's move/resize transition. */

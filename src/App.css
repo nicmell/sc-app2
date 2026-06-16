@@ -1,5 +1,5 @@
 /* App layout. Palette, buttons, status pills, panels, modals come from
-   @sc-app/ui-foundation (imported in main.tsx); the dashboard shell + grid live
+   @sc-app/ui-components (imported in main.tsx); the dashboard shell + grid live
    in components/Dashboard/Dashboard.css. This file owns the app container, the
    plugin drawer, and the three sc-elements' internal layout. */
 
@@ -30,7 +30,7 @@ sc-plugin {
 }
 
 /* ── connection overlay ── */
-/* Width for the bare loading bar (ui-foundation's .modal-progress is
+/* Width for the bare loading bar (ui-components's .modal-progress is
    width: 100% and would span the window inside the flex backdrop). */
 .connection-loader {
   width: min(320px, 60vw);

@@ -19,7 +19,7 @@
 // bands instead of superimposing them.
 //
 // The canvas + RAF loop render the latest chunk. Light DOM (no shadow) so
-// ui-foundation tokens + the .sc-scope CSS apply; styled in App.css.
+// ui-components tokens + the .sc-scope CSS apply; styled in App.css.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";

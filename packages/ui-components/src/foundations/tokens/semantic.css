@@ -3,7 +3,7 @@
  * that don't flip between dark and light. The colour palette
  * lives in themes/{dark,light}.css.
  *
- * Every name below is part of @sc-app/ui-foundation's PUBLIC
+ * Every name below is part of @sc-app/ui-components's PUBLIC
  * API: plugin authors and host code consume these and the
  * underlying source (Open Props primitives, raw rems, etc.) is
  * replaceable behind them. Renaming any of these is a breaking

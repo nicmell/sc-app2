@@ -1,4 +1,4 @@
-import "@sc-app/ui-foundation";
+import "@sc-app/ui-components";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

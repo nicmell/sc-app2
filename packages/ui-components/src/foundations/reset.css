@@ -8,7 +8,7 @@
  *
  * Doesn't touch html/body — those are styled in
  * base/elements.css so a consumer importing only the reset
- * (`@sc-app/ui-foundation/reset`) doesn't get coloured
+ * (`@sc-app/ui-components/reset`) doesn't get coloured
  * automatically. Importable independently for plugins that
  * want just the box-sizing baseline.
  */

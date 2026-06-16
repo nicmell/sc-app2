@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>@sc-app/ui-foundation — demo</title>
+    <title>@sc-app/ui-components — demo</title>
+    <!-- The widgets section needs the TS modules transpiled, so serve this
+         file through Vite: `npx vite` from this package dir, then open the
+         printed URL. (Opening the file directly still shows the CSS-only
+         foundation sections, just not the interactive widgets.) -->
     <link rel="stylesheet" href="./dist/index.css" />
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
@@ -39,16 +43,30 @@
         gap: var(--space-sm);
         align-items: center;
       }
+      .demo-cap {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-xs);
+        color: var(--color-text-mute);
+      }
+      .demo-listbox {
+        width: 12rem;
+        padding: var(--space-3xs);
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-sm);
+      }
     </style>
   </head>
   <body>
     <div class="demo-shell">
-      <h1>@sc-app/ui-foundation</h1>
+      <h1>@sc-app/ui-components</h1>
       <p>
-        Phase 28b — tokens + reset + base elements. Raw HTML below; no React, no classes for
-        variants (other than <code>data-*</code>
-        attributes). If anything looks off here, the foundation is leaking — fix before migrating
-        panels.
+        The CSS foundation (tokens + reset + base elements + component classes) followed by the
+        graphical <code>-base</code> input widgets (Lit web components). If anything looks off in
+        the foundation sections, the foundation is leaking — fix before migrating panels. The
+        widgets at the bottom need the TS modules transpiled, so serve this file through Vite
+        (<code>npx vite</code> from this package dir).
       </p>
 
       <section class="demo-section">
@@ -327,6 +345,189 @@ function dirtPlay(event) {
           ></span>
         </div>
       </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-checkbox-base&gt;</h2>
+        <p class="demo-cap">sizes</p>
+        <div class="demo-row">
+          <sc-checkbox-base size="sm" label="sm" checked></sc-checkbox-base>
+          <sc-checkbox-base size="md" label="md" checked></sc-checkbox-base>
+          <sc-checkbox-base size="lg" label="lg" checked></sc-checkbox-base>
+        </div>
+        <p class="demo-cap">variants</p>
+        <div class="demo-row">
+          <sc-checkbox-base variant="primary" label="primary" checked></sc-checkbox-base>
+          <sc-checkbox-base variant="neutral" label="neutral" checked></sc-checkbox-base>
+          <sc-checkbox-base variant="ok" label="ok" checked></sc-checkbox-base>
+          <sc-checkbox-base variant="warn" label="warn" checked></sc-checkbox-base>
+          <sc-checkbox-base variant="danger" label="danger" checked></sc-checkbox-base>
+        </div>
+        <p class="demo-cap">states</p>
+        <div class="demo-row">
+          <sc-checkbox-base label="unchecked"></sc-checkbox-base>
+          <sc-checkbox-base label="checked" checked></sc-checkbox-base>
+          <sc-checkbox-base label="no label"></sc-checkbox-base>
+          <sc-checkbox-base label="disabled" disabled></sc-checkbox-base>
+          <sc-checkbox-base label="disabled on" checked disabled></sc-checkbox-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-switch-base&gt;</h2>
+        <p class="demo-cap">sizes</p>
+        <div class="demo-row">
+          <sc-switch-base size="sm" checked></sc-switch-base>
+          <sc-switch-base size="md" checked></sc-switch-base>
+          <sc-switch-base size="lg" checked></sc-switch-base>
+        </div>
+        <p class="demo-cap">variants</p>
+        <div class="demo-row">
+          <sc-switch-base variant="primary" checked></sc-switch-base>
+          <sc-switch-base variant="neutral" checked></sc-switch-base>
+          <sc-switch-base variant="ok" checked></sc-switch-base>
+          <sc-switch-base variant="warn" checked></sc-switch-base>
+          <sc-switch-base variant="danger" checked></sc-switch-base>
+        </div>
+        <p class="demo-cap">states</p>
+        <div class="demo-row">
+          <sc-switch-base></sc-switch-base>
+          <sc-switch-base checked></sc-switch-base>
+          <sc-switch-base disabled></sc-switch-base>
+          <sc-switch-base checked disabled></sc-switch-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-knob-base&gt;</h2>
+        <p class="demo-cap">sizes (drag vertically / scroll to change)</p>
+        <div class="demo-row">
+          <sc-knob-base size="sm" value="0.5"></sc-knob-base>
+          <sc-knob-base size="md" value="0.5"></sc-knob-base>
+          <sc-knob-base size="lg" value="0.5"></sc-knob-base>
+        </div>
+        <p class="demo-cap">variants</p>
+        <div class="demo-row">
+          <sc-knob-base variant="primary" value="0.7"></sc-knob-base>
+          <sc-knob-base variant="neutral" value="0.7"></sc-knob-base>
+          <sc-knob-base variant="ok" value="0.7"></sc-knob-base>
+          <sc-knob-base variant="warn" value="0.7"></sc-knob-base>
+          <sc-knob-base variant="danger" value="0.7"></sc-knob-base>
+          <sc-knob-base value="0.7" disabled></sc-knob-base>
+        </div>
+        <p class="demo-cap">range (min=20 max=20000 step=10)</p>
+        <div class="demo-row">
+          <sc-knob-base min="20" max="20000" step="10" value="440"></sc-knob-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-slider-base&gt;</h2>
+        <p class="demo-cap">horizontal — sizes</p>
+        <div class="demo-row">
+          <sc-slider-base size="sm" value="0.4"></sc-slider-base>
+          <sc-slider-base size="md" value="0.4"></sc-slider-base>
+          <sc-slider-base size="lg" value="0.4"></sc-slider-base>
+        </div>
+        <p class="demo-cap">horizontal — variants</p>
+        <div class="demo-row">
+          <sc-slider-base variant="primary" value="0.6"></sc-slider-base>
+          <sc-slider-base variant="ok" value="0.6"></sc-slider-base>
+          <sc-slider-base variant="warn" value="0.6"></sc-slider-base>
+          <sc-slider-base variant="danger" value="0.6"></sc-slider-base>
+          <sc-slider-base value="0.6" disabled></sc-slider-base>
+        </div>
+        <p class="demo-cap">vertical</p>
+        <div class="demo-row">
+          <sc-slider-base orientation="vertical" size="sm" value="0.5"></sc-slider-base>
+          <sc-slider-base orientation="vertical" size="md" value="0.5"></sc-slider-base>
+          <sc-slider-base orientation="vertical" size="lg" variant="ok" value="0.7"></sc-slider-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-option-base&gt;</h2>
+        <p class="demo-cap">standalone option rows (click to emit change)</p>
+        <div class="demo-listbox" role="listbox">
+          <sc-option-base value="0" label="Sine" selected></sc-option-base>
+          <sc-option-base value="1" label="Saw"></sc-option-base>
+          <sc-option-base value="2" label="Square"></sc-option-base>
+          <sc-option-base value="3" label="Triangle"></sc-option-base>
+          <sc-option-base value="4" label="disabled" disabled></sc-option-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-radio-base&gt;</h2>
+        <p class="demo-cap">standalone radios — variants (usually composed in a group, below)</p>
+        <div class="demo-row">
+          <sc-radio-base value="0" label="off"></sc-radio-base>
+          <sc-radio-base value="1" label="primary" checked></sc-radio-base>
+          <sc-radio-base value="2" label="ok" variant="ok" checked></sc-radio-base>
+          <sc-radio-base value="3" label="warn" variant="warn" checked></sc-radio-base>
+          <sc-radio-base value="4" label="disabled" disabled></sc-radio-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-radio-group-base&gt;</h2>
+        <p class="demo-cap">horizontal (default)</p>
+        <div class="demo-row">
+          <sc-radio-group-base value="0">
+            <sc-radio-base value="0" label="Sine"></sc-radio-base>
+            <sc-radio-base value="1" label="Saw"></sc-radio-base>
+            <sc-radio-base value="2" label="Square"></sc-radio-base>
+          </sc-radio-group-base>
+        </div>
+        <p class="demo-cap">vertical + variant=ok</p>
+        <div class="demo-row">
+          <sc-radio-group-base orientation="vertical" variant="ok" value="1">
+            <sc-radio-base value="0" label="Low"></sc-radio-base>
+            <sc-radio-base value="1" label="Mid"></sc-radio-base>
+            <sc-radio-base value="2" label="High"></sc-radio-base>
+          </sc-radio-group-base>
+        </div>
+        <p class="demo-cap">disabled</p>
+        <div class="demo-row">
+          <sc-radio-group-base value="1" disabled>
+            <sc-radio-base value="0" label="A"></sc-radio-base>
+            <sc-radio-base value="1" label="B"></sc-radio-base>
+            <sc-radio-base value="2" label="C"></sc-radio-base>
+          </sc-radio-group-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-select-base&gt;</h2>
+        <p class="demo-cap">sizes (options set imperatively — see script)</p>
+        <div class="demo-row">
+          <sc-select-base class="demo-select" size="sm" value="0"></sc-select-base>
+          <sc-select-base class="demo-select" size="md" value="1"></sc-select-base>
+          <sc-select-base class="demo-select" size="lg" value="2"></sc-select-base>
+        </div>
+        <p class="demo-cap">variant + placeholder + disabled</p>
+        <div class="demo-row">
+          <sc-select-base class="demo-select" variant="ok" value="1"></sc-select-base>
+          <sc-select-base class="demo-select" placeholder="choose…"></sc-select-base>
+          <sc-select-base class="demo-select" value="0" disabled></sc-select-base>
+        </div>
+      </section>
     </div>
+
+    <script type="module">
+      import { registerUiComponents } from "./src/components/lit/index.ts";
+      registerUiComponents();
+      // `options` is a property (not an attribute) — set it imperatively on
+      // every select once the element is defined.
+      customElements.whenDefined("sc-select-base").then(() => {
+        const options = [
+          { value: 0, label: "Sine" },
+          { value: 1, label: "Saw" },
+          { value: 2, label: "Square" },
+        ];
+        for (const select of document.querySelectorAll(".demo-select")) {
+          select.options = options;
+        }
+      });
+    </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-// PostCSS config for `@sc-app/ui-foundation` build.
+// PostCSS config for `@sc-app/ui-components` build.
 //
 // Two transforms only:
 //   - postcss-import: inline the @import chain so the consumer (or

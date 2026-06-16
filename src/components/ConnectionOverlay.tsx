@@ -1,7 +1,7 @@
 import { Modal } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
 
-/** Full-screen connection feedback over the dashboard (ui-foundation modal
+/** Full-screen connection feedback over the dashboard (ui-components modal
  *  primitives): while the session boots, a backdrop with the indeterminate
  *  loading bar; when the connection fails, a modal with a notice and a Retry
  *  button that re-runs the whole connection flow. Renders nothing once

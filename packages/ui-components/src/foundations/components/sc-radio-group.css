@@ -1,0 +1,13 @@
+/* <sc-radio-group-base> — lays out its <sc-radio-base> children. The host
+   carries these classes (set imperatively by the element). */
+
+.sc-radio-group {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.sc-radio-group--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}

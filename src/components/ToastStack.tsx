@@ -1,4 +1,4 @@
-// scsynth error/warning banners, rendered with the ui-foundation `.toast`
+// scsynth error/warning banners, rendered with the ui-components `.toast`
 // primitive: a bottom-right stack, portaled to <body>. Each banner auto-dismisses
 // after a timeout (reset when a coalesced repeat refreshes its `ts`) and can be
 // closed manually. Driven by the OscClient's coalescing error store.

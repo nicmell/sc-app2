@@ -1,6 +1,6 @@
 // The dashboard: a draggable/resizable react-grid-layout of plugin panels, with
 // the empty space carved into clickable "add a panel here" placeholders. Faithful
-// to upstream `sc-app/components/Dashboard`, restyled with ui-foundation and
+// to upstream `sc-app/components/Dashboard`, restyled with ui-components and
 // adapted to our reactiveStores (no redux/runtime/clock):
 //   • layout/geometry  → state/layout (reactiveStore + localStorage)
 //   • installed plugins → state/plugins (mirrored from the Rust router)

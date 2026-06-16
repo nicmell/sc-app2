@@ -40,6 +40,16 @@ export default defineConfig(() => ({
       "@sc-app/server-commands": fileURLToPath(
         new URL("./packages/server-commands/src/index.ts", import.meta.url),
       ),
+      // The ui-components TS entries (Lit web components + their React
+      // wrappers) resolve to source so they get the es2022 decorator-lowering
+      // pass and aren't pre-bundled as a dependency. The bare `.` (CSS) and
+      // other subpaths keep resolving through the package `exports`.
+      "@sc-app/ui-components/lit": fileURLToPath(
+        new URL("./packages/ui-components/src/components/lit/index.ts", import.meta.url),
+      ),
+      "@sc-app/ui-components/react": fileURLToPath(
+        new URL("./packages/ui-components/src/components/react/index.ts", import.meta.url),
+      ),
       // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },

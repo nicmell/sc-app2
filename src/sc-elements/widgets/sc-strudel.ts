@@ -1,7 +1,7 @@
 // <sc-strudel> — the Strudel REPL. Ports the old StrudelConsole: mounts a
 // StrudelMirror editor whose Hap onsets are emitted as `/dirt/play` bundles via
 // the session, with a status pill + Play/Stop controls. Light DOM so the
-// ui-foundation .strudel/.status-pill styles + CodeMirror apply directly.
+// ui-components .strudel/.status-pill styles + CodeMirror apply directly.
 //
 // Parametrized: the element's TEXT CONTENT is the initial pattern code
 // (captured before Lit's first light-DOM render, which would otherwise show

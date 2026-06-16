@@ -1,0 +1,108 @@
+/*
+ * Shared plumbing for the graphical `-base` input widgets (packages/ui-components
+ * src/components/lit). Each widget's own file holds its layout + size scale;
+ * this file holds what they share:
+ *   - host display defaults (custom elements are display:inline otherwise),
+ *   - a reset for the widgets that render as <button>,
+ *   - the disabled affordance,
+ *   - the variant → --_accent mapping (the single colour channel each tints).
+ *
+ * Host display uses :where() (specificity 0) so authors can override freely.
+ */
+
+:where(
+    sc-checkbox-base,
+    sc-switch-base,
+    sc-knob-base,
+    sc-slider-base,
+    sc-option-base,
+    sc-radio-base,
+    sc-select-base
+  ) {
+  display: inline-block;
+}
+
+:where(sc-radio-group-base) {
+  display: inline-flex;
+}
+
+/* Interactive blocks render as <button>; strip the base button chrome so the
+   per-widget styling is the only source of truth. */
+.sc-checkbox,
+.sc-switch,
+.sc-radio,
+.sc-select__combobox {
+  appearance: none;
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+/* Shared disabled affordance. */
+.sc-checkbox--disabled,
+.sc-switch--disabled,
+.sc-radio--disabled,
+.sc-knob--disabled,
+.sc-slider--disabled,
+.sc-option--disabled,
+.sc-select--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Variant → accent colour. `--_accent` is the one channel each widget tints
+   (check fill, switch track-on, knob/slider fill, radio dot, selected text). */
+.sc-checkbox--primary,
+.sc-switch--primary,
+.sc-radio--primary,
+.sc-knob--primary,
+.sc-slider--primary,
+.sc-option--primary,
+.sc-select--primary {
+  --_accent: var(--color-primary);
+}
+
+.sc-checkbox--neutral,
+.sc-switch--neutral,
+.sc-radio--neutral,
+.sc-knob--neutral,
+.sc-slider--neutral,
+.sc-option--neutral,
+.sc-select--neutral {
+  --_accent: var(--color-text-dim);
+}
+
+.sc-checkbox--ok,
+.sc-switch--ok,
+.sc-radio--ok,
+.sc-knob--ok,
+.sc-slider--ok,
+.sc-option--ok,
+.sc-select--ok {
+  --_accent: var(--color-ok);
+}
+
+.sc-checkbox--warn,
+.sc-switch--warn,
+.sc-radio--warn,
+.sc-knob--warn,
+.sc-slider--warn,
+.sc-option--warn,
+.sc-select--warn {
+  --_accent: var(--color-warn);
+}
+
+.sc-checkbox--danger,
+.sc-switch--danger,
+.sc-radio--danger,
+.sc-knob--danger,
+.sc-slider--danger,
+.sc-option--danger,
+.sc-select--danger {
+  --_accent: var(--color-danger);
+}

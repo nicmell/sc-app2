@@ -1,0 +1,11 @@
+import { defineConfig } from "vite";
+
+// Dev-server config for the package's demo.html (`npx vite` / `vite` here).
+// The only thing it needs over the zero-config default is decorator lowering:
+// the `-base` widgets use `@property() accessor` standard decorators, which
+// esbuild only lowers when the target isn't esnext (mirrors the root config).
+export default defineConfig({
+  esbuild: {
+    target: "es2022",
+  },
+});

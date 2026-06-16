@@ -45,9 +45,10 @@ export default tseslint.config(
     languageOptions: { sourceType: "commonjs", globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
-  // The Lit web components live under sc-elements — lint their html`` templates.
+  // The Lit web components live under sc-elements + the ui-components package's
+  // lit/ folder — lint their html`` templates.
   {
-    files: ["src/sc-elements/**/*.ts"],
+    files: ["src/sc-elements/**/*.ts", "packages/ui-components/src/components/lit/**/*.ts"],
     extends: [lit.configs["flat/recommended"]],
   },
   // Last: turn off any lint rules that would conflict with Prettier formatting.

@@ -1,0 +1,54 @@
+{
+  "name": "@sc-app/ui-components",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Framework-agnostic CSS foundation for sc-app: tokens, base element styles, and a small set of semantic-class primitives. Shared between the React host and future runtime HTML plugins.",
+  "exports": {
+    ".": "./src/foundations/index.css",
+    "./dist": "./dist/index.css",
+    "./reset": "./src/foundations/reset.css",
+    "./tokens": "./src/foundations/tokens/index.css",
+    "./themes/dark": "./src/foundations/themes/dark.css",
+    "./themes/light": "./src/foundations/themes/light.css",
+    "./lit": "./src/components/lit/index.ts",
+    "./react": "./src/components/react/index.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "postcss src/foundations/index.css -o dist/index.css",
+    "build:watch": "postcss src/foundations/index.css -o dist/index.css --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lit/react": "^1.0.6",
+    "classnames": "^2.5.1",
+    "open-props": "^1.7.15"
+  },
+  "peerDependencies": {
+    "lit": "^3.3.3",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.20",
+    "lit": "^3.3.3",
+    "postcss": "^8.4.49",
+    "postcss-cli": "^11.0.0",
+    "postcss-import": "^16.1.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3"
+  }
+}

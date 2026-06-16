@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** A ui-foundation modal card on its centered, dimming backdrop. An `onClose`
+/** A ui-components modal card on its centered, dimming backdrop. An `onClose`
  *  enables backdrop-click dismissal (clicks inside the card never dismiss);
  *  omit it for modals that must not be dismissed (e.g. the connection-error
  *  modal — nothing behind it is usable). */

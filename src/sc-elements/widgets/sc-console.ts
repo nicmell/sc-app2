@@ -1,6 +1,6 @@
 // <sc-console> — the OSC message log. Ports the old OscConsole: subscribes to
 // the OscClient's bounded tx/rx log store and renders it as a scrolling list,
-// pinned to the newest row. Light DOM so ui-foundation .osc-* styles apply.
+// pinned to the newest row. Light DOM so ui-components .osc-* styles apply.
 
 import { html } from "lit";
 import { requireNoScChildren } from "@/sc-elements/internal/validation";

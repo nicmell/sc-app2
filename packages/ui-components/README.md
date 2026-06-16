@@ -1,4 +1,4 @@
-# `@sc-app/ui-foundation`
+# `@sc-app/ui-components`
 
 Framework-agnostic CSS foundation for sc-app: tokens, base
 element styles, and a small set of semantic-class primitives.
@@ -78,7 +78,7 @@ The package ships TWO consumable forms:
   loading. Built with PostCSS via `yarn build`.
 
 ```bash
-# from packages/ui-foundation/
+# from packages/ui-components/
 yarn build          # one-shot
 yarn build:watch    # rebuild on change (during local plugin dev)
 ```

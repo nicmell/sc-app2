@@ -22,6 +22,21 @@
   display: inline-block;
 }
 
+/* Visually hidden but still focusable + interactive. The native <input>
+   backing a widget sits under its visual overlay using this; the label/overlay
+   is the visible hit target, while the input owns value + native events. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Interactive blocks render as <button>; strip the base button chrome so the
    per-widget styling is the only source of truth. */
 .sc-checkbox,

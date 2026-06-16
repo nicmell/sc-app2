@@ -1,9 +1,14 @@
 // Shared base for the graphical `-base` input widgets. These are UI-only
-// ("dumb") controls — no OSC, no store, no bind logic. They render, take
-// interaction, and emit a framework-agnostic `change` CustomEvent; the owner
-// of the value is whoever consumes them (a logical sc-element wrapper, or a
-// React parent). See packages/ui-components/README and the foundation CSS in
+// ("dumb") controls — no OSC, no store, no bind logic. The owner of the value
+// is whoever consumes them (a logical sc-element wrapper, or a React parent).
+// See packages/ui-components/README and the foundation CSS in
 // foundations/components/sc-*.css for the class contract.
+//
+// Event model (in migration): each widget renders a hidden native <input>
+// (`.sr-only`) under its visual overlay and lets that input's NATIVE
+// `input`/`change` flow to consumers (who read `e.target.value` / `.checked`) —
+// no CustomEvent. The `emit()` helper below is transitional and stays only
+// until sc-option/sc-select adopt the Lit-context model, then it's removed.
 //
 // Light DOM (createRenderRoot → this) so the foundation's global classes style
 // the rendered markup. Variant/size are enum props resolved to BEM-ish class

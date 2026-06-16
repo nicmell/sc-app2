@@ -97,10 +97,18 @@ describe("sc-switch-base", () => {
   });
 });
 
+/** Native change values from a range-backed widget (read e.target.value). */
+function nativeChanges(el: EventTarget): number[] {
+  const values: number[] = [];
+  el.addEventListener("change", (e) => values.push(Number((e.target as HTMLInputElement).value)));
+  return values;
+}
+
 describe("sc-knob-base", () => {
-  it("steps on wheel (×5 without shift), quantises, and emits", async () => {
+  it("renders a hidden range and steps it on wheel, firing native change", async () => {
     const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0 });
-    const changes = recordChanges(el);
+    expect(el.querySelector("input")!.type).toBe("range");
+    const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(0.05);
     expect(changes).toEqual([0.05]);
@@ -114,7 +122,7 @@ describe("sc-knob-base", () => {
 });
 
 describe("sc-slider-base", () => {
-  it("carries the orientation modifier and steps on wheel", async () => {
+  it("carries the orientation modifier and steps the hidden range on wheel", async () => {
     const el = await mount("sc-slider-base", {
       orientation: "vertical",
       min: 0,
@@ -123,7 +131,8 @@ describe("sc-slider-base", () => {
       value: 0.5,
     });
     expect(el.querySelector(".sc-slider--vertical")).not.toBeNull();
-    const changes = recordChanges(el);
+    expect(el.querySelector("input")!.type).toBe("range");
+    const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(1);
     expect(changes).toEqual([1]);

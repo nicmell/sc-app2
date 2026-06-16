@@ -1,12 +1,11 @@
-// <sc-slider-base> — a UI-only slider, ported from the old sc-app internal
-// sc-slider (track + fill + thumb, pointer-drag + wheel), dropping the
-// sprite-sheet and free-form colour/size props. `orientation` is now an explicit
-// prop (not inferred from width>height). Thumb/fill positions are percentages,
-// so the rendered size comes from the size class; drag sensitivity from the live
-// bounding box. Emits `change` on commit.
+// <sc-slider-base> — a hidden native <input type="range"> under the
+// track/fill/thumb overlay. The range is the value source (native keyboard +
+// native input/change); our ported pointer-drag + wheel feed it. `orientation`
+// only affects the visual; the visual redraws from `value`.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
+import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
 
 export class ScSliderBase extends ScWidgetBase {
@@ -15,6 +14,10 @@ export class ScSliderBase extends ScWidgetBase {
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
+
+  private get _input(): HTMLInputElement {
+    return this.querySelector("input") as HTMLInputElement;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -30,9 +33,30 @@ export class ScSliderBase extends ScWidgetBase {
     this.removeEventListener("wheel", this._onWheel);
   }
 
+  private _onRangeInput = (): void => {
+    this.value = Number(this._input.value);
+  };
+
+  private _quantize(raw: number): number {
+    const precision = Math.round(-Math.log10(this.step));
+    const factor = 10 ** Math.max(0, precision);
+    let v = Math.round((raw - this.min) / this.step) * this.step + this.min;
+    v = Math.round(v * factor) / factor;
+    return Math.max(this.min, Math.min(this.max, v));
+  }
+
+  private _set(raw: number): boolean {
+    const v = this._quantize(raw);
+    if (v === this.value) return false;
+    this._input.value = String(v);
+    this._input.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  }
+
   private _onPointerDown = (e: MouseEvent | TouchEvent): void => {
     if (this.disabled) return;
     e.preventDefault();
+    this._input.focus();
     const ev = "touches" in e ? e.touches[0] : e;
     const startX = ev.clientX;
     const startY = ev.clientY;
@@ -41,6 +65,7 @@ export class ScSliderBase extends ScWidgetBase {
     const vertical = this.orientation === "vertical";
     const rect = this.getBoundingClientRect();
     const sensitivity = (vertical ? rect.height : rect.width) || 100;
+    let moved = false;
 
     const onMove = (me: MouseEvent | TouchEvent): void => {
       me.preventDefault();
@@ -50,7 +75,7 @@ export class ScSliderBase extends ScWidgetBase {
       const d = vertical ? dy : dx;
       let dv = (d / sensitivity) * range;
       if (me instanceof MouseEvent && me.shiftKey) dv *= 0.2;
-      this._commit(startValue + dv);
+      if (this._set(startValue + dv)) moved = true;
     };
 
     const onUp = (): void => {
@@ -59,6 +84,7 @@ export class ScSliderBase extends ScWidgetBase {
       document.removeEventListener("touchmove", onMove);
       document.removeEventListener("touchend", onUp);
       document.removeEventListener("touchcancel", onUp);
+      if (moved) this._input.dispatchEvent(new Event("change", { bubbles: true }));
     };
 
     document.addEventListener("mousemove", onMove);
@@ -73,21 +99,10 @@ export class ScSliderBase extends ScWidgetBase {
     e.preventDefault();
     let delta = e.deltaY > 0 ? -this.step : this.step;
     if (!e.shiftKey) delta *= 5;
-    this._commit(this.value + delta);
-  };
-
-  /** Quantise to `step`, clamp to range, and emit if the value actually moved. */
-  private _commit(raw: number): void {
-    const precision = Math.round(-Math.log10(this.step));
-    const factor = 10 ** Math.max(0, precision);
-    let v = Math.round((raw - this.min) / this.step) * this.step + this.min;
-    v = Math.round(v * factor) / factor;
-    v = Math.max(this.min, Math.min(this.max, v));
-    if (v !== this.value) {
-      this.value = v;
-      this.emit(v);
+    if (this._set(this.value + delta)) {
+      this._input.dispatchEvent(new Event("change", { bubbles: true }));
     }
-  }
+  };
 
   render() {
     const vertical = this.orientation === "vertical";
@@ -103,6 +118,16 @@ export class ScSliderBase extends ScWidgetBase {
           "sc-slider--horizontal": !vertical,
         })}
       >
+        <input
+          class="sc-slider__input sr-only"
+          type="range"
+          min=${this.min}
+          max=${this.max}
+          step=${this.step}
+          .value=${live(String(this.value))}
+          ?disabled=${this.disabled}
+          @input=${this._onRangeInput}
+        />
         <div class="sc-slider__track">
           <div class="sc-slider__fill" style=${fillStyle}></div>
           <div class="sc-slider__thumb" style=${thumbStyle}></div>

@@ -1,3 +1,4 @@
+import { ScButton } from "@sc-app/ui-components/react";
 import { PluginList } from "./PluginList";
 
 /** Right-side slide-in drawer for managing installed plugins. */
@@ -8,15 +9,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
       <aside className="drawer" data-open={open} aria-hidden={!open}>
         <header className="drawer-header">
           <h2>Plugins</h2>
-          <button
-            type="button"
-            data-variant="ghost"
-            data-size="sm"
-            aria-label="Close"
-            onClick={onClose}
-          >
-            ×
-          </button>
+          <ScButton variant="ghost" size="sm" iconOnly icon="x" label="Close" onClick={onClose} />
         </header>
         <div className="drawer-body">
           <PluginList />

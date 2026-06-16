@@ -23,3 +23,4 @@ export { ScIcon } from "./sc-icon";
 export { ScButton } from "./sc-button";
 export { ScBadge } from "./sc-badge";
 export { ScToast } from "./sc-toast";
+export { ScChip } from "./sc-chip";

@@ -2,22 +2,14 @@
  * Raw HTML element styles. After this layer, bare <button> /
  * <input> / <select> / <textarea> / <label> elements look
  * correct without any classes — the load-bearing constraint
- * for the plugin future. Variants are exposed via data-*
- * attributes so plugin HTML can opt in by writing the right
- * attribute, no class boilerplate.
+ * for the plugin future. A bare <button> is the default
+ * (primary) action; variants + sizes live on <sc-button-base>
+ * (src/components), which resolves them to .sc-button--* classes
+ * rather than data attributes.
  *
  * The body rule lives here (not in reset.css) so a consumer
  * importing only the reset doesn't get the host palette
  * forced on it.
- *
- * data-* contract:
- *   button[data-variant="secondary|ghost|danger"]
- *   button[data-size="sm"]
- * (default = primary, default size = normal)
- *
- * Per-app local overrides in src/ui/* scss currently shadow
- * these; that's expected during the Phase 28d migration. By
- * the end of Phase 28 the foundation is the only source.
  */
 
 /* ── Document ──────────────────────────────────────────────── */
@@ -57,41 +49,6 @@ button:hover:not(:disabled) {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-button[data-variant="secondary"] {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
-}
-
-button[data-variant="secondary"]:hover:not(:disabled) {
-  background: var(--color-surface-3);
-  border-color: var(--color-border-stronger);
-}
-
-button[data-variant="ghost"] {
-  background: transparent;
-  color: var(--color-text);
-  border-color: var(--color-border-stronger);
-}
-
-button[data-variant="ghost"]:hover:not(:disabled) {
-  background: var(--color-surface-3);
-}
-
-button[data-variant="danger"] {
-  background: var(--color-danger);
-  color: var(--color-on-primary);
-}
-
-button[data-variant="danger"]:hover:not(:disabled) {
-  background: var(--color-danger-hover);
-}
-
-button[data-size="sm"] {
-  padding: var(--space-2xs) var(--space-sm);
-  font-size: var(--font-size-xs);
 }
 
 /* ── Form fields ───────────────────────────────────────────── */

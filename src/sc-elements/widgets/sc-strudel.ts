@@ -1,7 +1,7 @@
 // <sc-strudel> — the Strudel REPL. Ports the old StrudelConsole: mounts a
 // StrudelMirror editor whose Hap onsets are emitted as `/dirt/play` bundles via
 // the session, with a status pill + Play/Stop controls. Light DOM so the
-// ui-components .strudel/.status-pill styles + CodeMirror apply directly.
+// ui-components .strudel styles + <sc-chip-base>/<sc-button-base> + CodeMirror apply directly.
 //
 // Parametrized: the element's TEXT CONTENT is the initial pattern code
 // (captured before Lit's first light-DOM render, which would otherwise show
@@ -195,24 +195,22 @@ export class ScStrudel extends ScElement {
       <section class="strudel">
         <header class="strudel-header">
           <h1>strudel</h1>
-          <span class="status-pill" data-variant=${STATUS_VARIANT[this.status]}
-            >${this.status}</span
-          >
-          <button
-            type="button"
+          <sc-chip-base
+            dot
+            variant=${STATUS_VARIANT[this.status]}
+            label=${this.status}
+          ></sc-chip-base>
+          <sc-button-base
+            label=${this.playing ? "Update" : "Play"}
             ?disabled=${this.status !== "connected"}
             @click=${() => this.mirror?.evaluate()}
-          >
-            ${this.playing ? "Update" : "Play"}
-          </button>
-          <button
-            type="button"
-            data-variant="secondary"
+          ></sc-button-base>
+          <sc-button-base
+            label="Stop"
+            variant="secondary"
             ?disabled=${!this.playing}
             @click=${() => this.mirror?.stop()}
-          >
-            Stop
-          </button>
+          ></sc-button-base>
         </header>
         <div class="strudel-editor"></div>
         ${this.detail ? html`<p class="strudel-detail">${this.detail}</p>` : ""}

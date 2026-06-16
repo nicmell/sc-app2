@@ -24,7 +24,8 @@ type WidgetTag =
   | "sc-icon-base"
   | "sc-button-base"
   | "sc-badge-base"
-  | "sc-toast-base";
+  | "sc-toast-base"
+  | "sc-chip-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -329,5 +330,22 @@ describe("sc-toast-base", () => {
     el.addEventListener("dismiss", () => (dismissed += 1));
     el.querySelector<HTMLButtonElement>(".toast-close")!.click();
     expect(dismissed).toBe(1);
+  });
+});
+
+describe("sc-chip-base", () => {
+  it("renders the label; neutral is the base class with no modifier or dot", async () => {
+    const el = await mount("sc-chip-base", { label: "idle" });
+    const chip = el.querySelector(".chip")!;
+    expect(chip.textContent!.trim()).toBe("idle");
+    expect(chip.className).toBe("chip");
+    expect(el.querySelector(".chip__dot")).toBeNull();
+  });
+
+  it("applies the variant modifier and shows the dot when enabled", async () => {
+    const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
+    const chip = el.querySelector(".chip")!;
+    expect(chip.classList.contains("chip--ok")).toBe(true);
+    expect(el.querySelector(".chip__dot")).not.toBeNull();
   });
 });

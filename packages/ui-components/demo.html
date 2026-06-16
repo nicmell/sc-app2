@@ -70,24 +70,14 @@
       </p>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Buttons — variants</h2>
+        <h2 class="demo-section-title">Bare &lt;button&gt;</h2>
+        <p class="demo-cap">
+          A bare button is the default (primary) action. Variants/sizes/icons live on
+          <code>&lt;sc-button-base&gt;</code> below.
+        </p>
         <div class="demo-row">
           <button>Primary</button>
-          <button data-variant="secondary">Secondary</button>
-          <button data-variant="ghost">Ghost</button>
-          <button data-variant="danger">Danger</button>
-        </div>
-        <div class="demo-row">
-          <button data-size="sm">Small</button>
-          <button data-variant="secondary" data-size="sm">Small secondary</button>
-          <button data-variant="ghost" data-size="sm">Small ghost</button>
-          <button data-variant="danger" data-size="sm">Small danger</button>
-        </div>
-        <div class="demo-row">
           <button disabled>Disabled</button>
-          <button data-variant="secondary" disabled>Disabled secondary</button>
-          <button data-variant="ghost" disabled>Disabled ghost</button>
-          <button data-variant="danger" disabled>Disabled danger</button>
         </div>
       </section>
 
@@ -154,7 +144,7 @@ function dirtPlay(event) {
           <header>Panel header</header>
           <div class="cluster cluster--md">
             <span>cluster: row of inline things</span>
-            <button data-size="sm">action</button>
+            <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
           </div>
           <div class="stack stack--sm">
             <span>stack item 1</span>
@@ -165,15 +155,13 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Status pills</h2>
+        <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
         <div class="cluster cluster--sm">
-          <span class="status-pill"><span class="dot">●</span>muted</span>
-          <span class="status-pill" data-variant="ok"><span class="dot">●</span>alive</span>
-          <span class="status-pill" data-variant="warn"><span class="dot">●</span>degraded</span>
-          <span class="status-pill" data-variant="error"
-            ><span class="dot">●</span>unreachable</span
-          >
-          <span class="status-pill" data-variant="info"><span class="dot">●</span>probing</span>
+          <sc-chip-base dot label="idle"></sc-chip-base>
+          <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
+          <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
+          <sc-chip-base dot variant="error" label="unreachable"></sc-chip-base>
+          <sc-chip-base dot variant="info" label="probing"></sc-chip-base>
         </div>
       </section>
 
@@ -220,8 +208,8 @@ function dirtPlay(event) {
             already finalised — will be lost when the dashboard reinitializes.
           </p>
           <div class="modal-actions">
-            <button data-variant="secondary">Cancel</button>
-            <button data-variant="danger">Reinitialize</button>
+            <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
+            <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
           </div>
         </div>
         <p>Indeterminate progress (LoadingModal):</p>

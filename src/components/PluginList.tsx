@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ScButton } from "@sc-app/ui-components/react";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -41,15 +42,14 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
             </span>
           )}
           {!onSelect && (
-            <button
-              type="button"
-              data-variant="danger"
-              data-size="sm"
-              aria-label={`Remove ${p.name}`}
+            <ScButton
+              variant="danger"
+              size="sm"
+              iconOnly
+              icon="x"
+              label={`Remove ${p.name}`}
               onClick={() => void deletePlugin(p.id)}
-            >
-              ×
-            </button>
+            />
           )}
         </div>
       ))}
@@ -57,9 +57,11 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
       {!onSelect && (
         <>
           <input ref={fileRef} type="file" accept=".zip" hidden onChange={(e) => void onFile(e)} />
-          <button type="button" data-variant="secondary" onClick={() => fileRef.current?.click()}>
-            Add plugin…
-          </button>
+          <ScButton
+            variant="secondary"
+            label="Add plugin…"
+            onClick={() => fileRef.current?.click()}
+          />
         </>
       )}
       {error && <p className="error">{error}</p>}

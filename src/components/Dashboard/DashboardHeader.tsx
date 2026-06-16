@@ -2,6 +2,7 @@
 // opens the plugin-management drawer. Adapted from upstream (dropped the
 // transport play/stop, clock indicator and settings drawer — we have no per-node
 // runtime or clock service here).
+import { ScButton, ScChip } from "@sc-app/ui-components/react";
 import { useStatus } from "@/stores/session";
 import type { ConnStatus } from "@/types/stores";
 
@@ -16,19 +17,9 @@ export function DashboardHeader({ onToggleDrawer }: { onToggleDrawer: () => void
   return (
     <header className="header">
       <span className="header-title">sc-app2</span>
-      <span className="status-pill" data-variant={STATUS_VARIANT[status]}>
-        {status}
-      </span>
+      <ScChip dot variant={STATUS_VARIANT[status]} label={status} />
       <span className="header-spacer" />
-      <button
-        type="button"
-        data-variant="secondary"
-        data-size="sm"
-        onClick={onToggleDrawer}
-        aria-label="Manage plugins"
-      >
-        Plugins
-      </button>
+      <ScButton variant="secondary" size="sm" label="Plugins" onClick={onToggleDrawer} />
     </header>
   );
 }

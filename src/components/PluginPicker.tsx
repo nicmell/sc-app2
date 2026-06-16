@@ -1,3 +1,4 @@
+import { ScButton } from "@sc-app/ui-components/react";
 import { Modal } from "@/components/ui/Modal";
 import { PluginList } from "./PluginList";
 import type { PluginInfo } from "@/types/api";
@@ -15,9 +16,7 @@ export function PluginPicker({
       <header>Select plugin</header>
       <PluginList onSelect={onSelect} />
       <div className="cluster modal-actions">
-        <button type="button" data-variant="ghost" onClick={onClose}>
-          Cancel
-        </button>
+        <ScButton variant="ghost" label="Cancel" onClick={onClose} />
       </div>
     </Modal>
   );

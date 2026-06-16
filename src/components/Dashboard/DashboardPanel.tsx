@@ -5,6 +5,7 @@
 // its buttons stop mousedown from starting a drag. Faithful to upstream minus the
 // run/log controls (we have no per-node runtime yet).
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { ScButton } from "@sc-app/ui-components/react";
 
 interface DashboardPanelProps {
   title?: string;
@@ -30,26 +31,24 @@ export function DashboardPanel(props: DashboardPanelProps) {
     >
       <div className="dashboard-panel-header">
         <span className="dashboard-panel-title">{title}</span>
-        <button
-          type="button"
-          data-variant="ghost"
-          data-size="sm"
+        <ScButton
+          variant="ghost"
+          size="sm"
+          iconOnly
+          icon="dots-three"
+          label="Change plugin"
           onMouseDown={stopDrag}
           onClick={onEdit}
-          aria-label="Change plugin"
-        >
-          &#8943;
-        </button>
-        <button
-          type="button"
-          data-variant="ghost"
-          data-size="sm"
+        />
+        <ScButton
+          variant="ghost"
+          size="sm"
+          iconOnly
+          icon="x"
+          label="Close panel"
           onMouseDown={stopDrag}
           onClick={onClose}
-          aria-label="Close panel"
-        >
-          &times;
-        </button>
+        />
       </div>
       <div className="dashboard-panel-body">{children}</div>
     </div>

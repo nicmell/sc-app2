@@ -38,7 +38,7 @@
 @import "./components/panel.css";
 @import "./components/cluster.css";
 @import "./components/stack.css";
-@import "./components/status-pill.css";
+@import "./components/chip.css";
 @import "./components/badge.css";
 @import "./components/range-field.css";
 @import "./components/empty-state.css";

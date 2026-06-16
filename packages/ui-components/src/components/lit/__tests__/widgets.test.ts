@@ -27,7 +27,8 @@ type WidgetTag =
   | "sc-toast-base"
   | "sc-chip-base"
   | "sc-input-base"
-  | "sc-inputnumber-base";
+  | "sc-inputnumber-base"
+  | "sc-textarea-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -417,5 +418,35 @@ describe("sc-inputnumber-base", () => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe(42);
     expect(values).toEqual([42]);
+  });
+
+  it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
+    const el = await mount("sc-inputnumber-base", { value: 1 });
+    expect(el.querySelector(".sc-inputnumber__step--up")).not.toBeNull();
+    expect(el.querySelector(".sc-inputnumber__step--down")).not.toBeNull();
+  });
+});
+
+describe("sc-textarea-base", () => {
+  it("renders a textarea with rows + size class", async () => {
+    const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
+    const ta = el.querySelector("textarea")!;
+    expect(ta.getAttribute("rows")).toBe("5");
+    expect(ta.classList.contains("sc-textarea")).toBe(true);
+    expect(ta.classList.contains("sc-textarea--lg")).toBe(true);
+    expect(ta.placeholder).toBe("notes");
+  });
+
+  it("emits a string value on input and updates `value`", async () => {
+    const el = await mount("sc-textarea-base");
+    const values: string[] = [];
+    el.addEventListener("change", (e) =>
+      values.push((e as CustomEvent<{ value: string }>).detail.value),
+    );
+    const ta = el.querySelector("textarea")!;
+    ta.value = "multi\nline";
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(el.value).toBe("multi\nline");
+    expect(values).toEqual(["multi\nline"]);
   });
 });

@@ -88,7 +88,7 @@ export class ScInputNumberBase extends LitElement {
         <span class="sc-inputnumber__spinners">
           <button
             type="button"
-            class="sc-inputnumber__step"
+            class="sc-inputnumber__step sc-inputnumber__step--up"
             tabindex="-1"
             aria-label="Increment"
             ?disabled=${this.disabled}
@@ -98,7 +98,7 @@ export class ScInputNumberBase extends LitElement {
           </button>
           <button
             type="button"
-            class="sc-inputnumber__step"
+            class="sc-inputnumber__step sc-inputnumber__step--down"
             tabindex="-1"
             aria-label="Decrement"
             ?disabled=${this.disabled}

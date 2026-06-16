@@ -114,12 +114,28 @@
           <sc-input-base size="lg" placeholder="large"></sc-input-base>
           <sc-input-base value="disabled" disabled></sc-input-base>
         </div>
-        <p class="demo-cap">number field — themed steppers (drag-free up/down)</p>
+        <p class="demo-cap">number field — sizes</p>
+        <div class="demo-row">
+          <sc-inputnumber-base size="sm" value="3" min="0" max="10"></sc-inputnumber-base>
+          <sc-inputnumber-base size="md" value="3" min="0" max="10"></sc-inputnumber-base>
+          <sc-inputnumber-base size="lg" value="3" min="0" max="10"></sc-inputnumber-base>
+          <sc-inputnumber-base value="42" disabled></sc-inputnumber-base>
+        </div>
+        <p class="demo-cap">number field — ranges/steps</p>
         <div class="demo-row">
           <sc-inputnumber-base value="120" min="0" max="1000" step="10"></sc-inputnumber-base>
           <sc-inputnumber-base value="0.5" min="0" max="1" step="0.1"></sc-inputnumber-base>
-          <sc-inputnumber-base value="3" size="sm"></sc-inputnumber-base>
-          <sc-inputnumber-base value="42" disabled></sc-inputnumber-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
+        <p class="demo-cap">sizes (vertical resize)</p>
+        <div class="stack stack--sm">
+          <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
+          <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
+          <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
+          <sc-textarea-base rows="2" value="disabled" disabled></sc-textarea-base>
         </div>
       </section>
 

@@ -1,0 +1,24 @@
+/* <sc-textarea-base> — multi-line field. The bare textarea{} rule
+   (base/elements.css) gives the surface fill, border, focus ring, sans font,
+   and vertical resize; `.sc-textarea` makes it fill the host and tunes sizing. */
+
+:where(sc-textarea-base) {
+  display: block;
+}
+
+.sc-textarea {
+  box-sizing: border-box;
+  inline-size: 100%;
+}
+
+.sc-textarea--sm {
+  padding: var(--space-3xs) var(--space-2xs);
+  font-size: var(--font-size-xs);
+}
+.sc-textarea--md {
+  font-size: var(--font-size-sm);
+}
+.sc-textarea--lg {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-md);
+}

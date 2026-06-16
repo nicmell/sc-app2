@@ -26,3 +26,4 @@ export { ScToast } from "./sc-toast";
 export { ScChip } from "./sc-chip";
 export { ScInput } from "./sc-input";
 export { ScInputNumber } from "./sc-inputnumber";
+export { ScTextarea } from "./sc-textarea";

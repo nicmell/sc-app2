@@ -45,17 +45,14 @@
   transition: transform var(--transition-fast);
 }
 
-.sc-checkbox--on .sc-checkbox__box {
+.sc-checkbox__input:checked ~ .sc-checkbox__box {
   border-color: var(--_accent);
 }
-.sc-checkbox--on .sc-checkbox__check {
+.sc-checkbox__input:checked ~ .sc-checkbox__box .sc-checkbox__check {
   transform: scale(1);
 }
 
-.sc-checkbox:focus-visible {
-  outline: none;
-}
-.sc-checkbox:focus-visible .sc-checkbox__box {
+.sc-checkbox__input:focus-visible ~ .sc-checkbox__box {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

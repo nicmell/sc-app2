@@ -54,44 +54,46 @@ function recordChanges(el: EventTarget): number[] {
 }
 
 describe("sc-checkbox-base", () => {
-  it("renders a checkbox button with the variant/size classes", async () => {
+  it("renders a hidden native checkbox with the variant/size classes on the label", async () => {
     const el = await mount("sc-checkbox-base", { size: "lg", variant: "ok" });
-    const btn = el.querySelector("button")!;
-    expect(btn.getAttribute("role")).toBe("checkbox");
-    expect(btn.classList.contains("sc-checkbox")).toBe(true);
-    expect(btn.classList.contains("sc-checkbox--lg")).toBe(true);
-    expect(btn.classList.contains("sc-checkbox--ok")).toBe(true);
+    const label = el.querySelector("label")!;
+    const input = el.querySelector("input")!;
+    expect(input.type).toBe("checkbox");
+    expect(input.classList.contains("sr-only")).toBe(true);
+    expect(label.classList.contains("sc-checkbox")).toBe(true);
+    expect(label.classList.contains("sc-checkbox--lg")).toBe(true);
+    expect(label.classList.contains("sc-checkbox--ok")).toBe(true);
   });
 
-  it("toggles and emits 1 then 0 on click", async () => {
+  it("toggles and fires the native change carrying checked", async () => {
     const el = await mount("sc-checkbox-base");
-    const changes = recordChanges(el);
-    el.querySelector("button")!.click();
+    const checks: boolean[] = [];
+    el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
+    const input = el.querySelector("input")!;
+    input.click();
     expect(el.checked).toBe(true);
-    el.querySelector("button")!.click();
+    input.click();
     expect(el.checked).toBe(false);
-    expect(changes).toEqual([1, 0]);
+    expect(checks).toEqual([true, false]);
   });
 
-  it("does not emit when disabled", async () => {
+  it("disables the native input", async () => {
     const el = await mount("sc-checkbox-base", { disabled: true });
-    const changes = recordChanges(el);
-    el.querySelector("button")!.click();
-    expect(changes).toEqual([]);
-    expect(el.checked).toBe(false);
+    expect(el.querySelector("input")!.disabled).toBe(true);
   });
 });
 
 describe("sc-switch-base", () => {
-  it("toggles, emits 1/0, and reflects the --on class", async () => {
+  it("uses a role=switch native input and fires native change", async () => {
     const el = await mount("sc-switch-base");
-    const changes = recordChanges(el);
-    el.querySelector("button")!.click();
-    await el.updateComplete;
+    const checks: boolean[] = [];
+    el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
+    const input = el.querySelector("input")!;
+    expect(input.getAttribute("role")).toBe("switch");
+    input.click();
     expect(el.checked).toBe(true);
-    expect(el.querySelector("button")!.classList.contains("sc-switch--on")).toBe(true);
-    el.querySelector("button")!.click();
-    expect(changes).toEqual([1, 0]);
+    input.click();
+    expect(checks).toEqual([true, false]);
   });
 });
 

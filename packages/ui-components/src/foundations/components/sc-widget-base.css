@@ -39,8 +39,6 @@
 
 /* Interactive blocks render as <button>; strip the base button chrome so the
    per-widget styling is the only source of truth. */
-.sc-checkbox,
-.sc-switch,
 .sc-radio,
 .sc-select__combobox {
   appearance: none;

@@ -41,17 +41,14 @@
   transition: left var(--transition-base);
 }
 
-.sc-switch--on .sc-switch__track {
+.sc-switch__input:checked ~ .sc-switch__track {
   background: var(--_accent);
 }
-.sc-switch--on .sc-switch__thumb {
+.sc-switch__input:checked ~ .sc-switch__track .sc-switch__thumb {
   left: calc(100% - (var(--_h) - 0.3rem) - 0.15rem);
 }
 
-.sc-switch:focus-visible {
-  outline: none;
-}
-.sc-switch:focus-visible .sc-switch__track {
+.sc-switch__input:focus-visible ~ .sc-switch__track {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

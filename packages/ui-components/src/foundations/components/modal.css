@@ -56,6 +56,13 @@
   backdrop-filter: blur(2px);
 }
 
+/* `.modal { display: flex }` overrides the UA `dialog:not([open])` hide, which
+   would leave a mounted-but-closed dialog visible — re-hide it until showModal()
+   sets [open]. Scoped to dialog so a plain div.modal (plugin markup) is unaffected. */
+dialog.modal:not([open]) {
+  display: none;
+}
+
 .modal-title {
   margin: 0;
   font-size: var(--font-size-md);

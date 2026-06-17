@@ -1,5 +1,11 @@
 /* <sc-option-base> — a single option row. Selected text = --_accent. */
 
+/* The host is a custom element (defaults to display:inline); force block so the
+   options stack vertically in the select's fit-content dropdown. */
+:where(sc-option-base) {
+  display: block;
+}
+
 .sc-option {
   display: block;
   padding: var(--space-2xs) var(--space-xs);

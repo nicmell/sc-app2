@@ -607,37 +607,6 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-modal-base&gt;</h2>
-        <p class="demo-cap">
-          centred blocking modal in the top layer (native <code>&lt;dialog&gt;</code>:
-          backdrop + focus trap + Esc); <code>dismissable</code> allows Esc / backdrop close
-        </p>
-        <div class="demo-row">
-          <button class="btn" onclick="document.getElementById('demo-modal').open = true">
-            open modal
-          </button>
-          <sc-modal-base id="demo-modal" dismissable>
-            <h2 class="modal-title">Reinitialize engine?</h2>
-            <p class="modal-body">
-              This frees every live node and rebuilds the session group. Running synths stop.
-            </p>
-            <div class="cluster cluster--sm modal-actions">
-              <sc-button-base
-                label="Cancel"
-                variant="secondary"
-                onclick="document.getElementById('demo-modal').open = false"
-              ></sc-button-base>
-              <sc-button-base
-                label="Reinitialize"
-                variant="danger"
-                onclick="document.getElementById('demo-modal').open = false"
-              ></sc-button-base>
-            </div>
-          </sc-modal-base>
-        </div>
-      </section>
-
-      <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor, fill)</h2>
         <p class="demo-cap">inherits text colour; default size follows font-size</p>
         <div class="demo-row" style="font-size: 1.5rem">

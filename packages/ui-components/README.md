@@ -101,6 +101,9 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
 | `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | native `input`/`change` | multi-line |
 | `sc-text-base` | `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; renders children |
+| `sc-alert-base` | `variant` | — | inline notice card; renders children (generalises legacy `.error`) |
+| `sc-panel-base` | `disabled` | — | feature-surface card; a child `<header>` is the title bar; renders children |
+| `sc-empty-base` | — | — | dashed "nothing here" placeholder; renders children |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
@@ -119,6 +122,7 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 - **`sc-chip-base`** — `neutral` (default) `ok` `warn` `error` `info`.
 - **`sc-toast-base`** — `default` `success` `warn` `error` `info`.
 - **`sc-text-base`** — `tone`: `default` `dim` `mute` `faint` `primary` `ok` `warn` `error` `info`.
+- **`sc-alert-base`** — `variant`: `info` (default) `success` `warn` `error`.
 
 `size` is `sm | md | lg` everywhere it appears (md default).
 
@@ -139,9 +143,13 @@ foundation CSS applies. Four patterns:
    CSS targets those classes (`.sc-badge--warn`). Variant/size resolve to
    **classes, not data attributes** — the migration away from `[data-variant]`.
 
-3. **Host-only + reflected attributes (`sc-text-base`).** Preserves
-   author text/inline children by rendering **no template** (`render()` returns
-   `noChange`); styles the host off reflected props (`sc-text-base[size="lg"]`).
+3. **Host-only + reflected attributes (`sc-text-base`, `sc-alert-base`,
+   `sc-panel-base`, `sc-empty-base`).** Content wrappers that preserve author
+   children by rendering **no template** (`render()` returns `noChange`) and
+   style the host off reflected props (`sc-text-base[size="lg"]`,
+   `sc-alert-base[variant="warn"]`, `sc-panel-base[disabled]`). The alert/panel/
+   empty share their chrome with the legacy `.error`/`.panel`/`.empty` classes
+   (kept for plugin authors), e.g. `:where(sc-alert-base), .error { … }`.
 
 4. **Lit context containers (`sc-radio-group-base`, `sc-select-base`).** A
    `@lit/context` provider coordinates declarative children (the consumers):

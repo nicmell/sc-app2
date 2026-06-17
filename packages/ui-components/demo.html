@@ -206,19 +206,26 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Panel + cluster + stack</h2>
-        <section class="panel">
-          <header>Panel header</header>
-          <div class="cluster cluster--md">
-            <span>cluster: row of inline things</span>
+        <h2 class="demo-section-title">&lt;sc-panel-base&gt; + cluster + stack</h2>
+        <div class="cluster cluster--md" style="align-items: flex-start">
+          <sc-panel-base>
+            <header>Panel header</header>
+            <div class="cluster cluster--md">
+              <span>cluster: row of inline things</span>
+              <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
+            </div>
+            <div class="stack stack--sm">
+              <span>stack item 1</span>
+              <span>stack item 2</span>
+              <span>stack item 3</span>
+            </div>
+          </sc-panel-base>
+          <sc-panel-base disabled>
+            <header>Offline panel</header>
+            <span>muted + non-interactive (disabled)</span>
             <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
-          </div>
-          <div class="stack stack--sm">
-            <span>stack item 1</span>
-            <span>stack item 2</span>
-            <span>stack item 3</span>
-          </div>
-        </section>
+          </sc-panel-base>
+        </div>
       </section>
 
       <section class="demo-section">
@@ -256,9 +263,16 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Empty + error</h2>
-        <p class="empty">no items — click <strong>+ Item</strong> to add one</p>
-        <p class="error">scsynth didn't reply to /status at 127.0.0.1:57110</p>
+        <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
+        <div class="stack stack--sm">
+          <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
+          <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
+          <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
+          <sc-alert-base variant="warn">Warning — scsynth replied late (1240 ms).</sc-alert-base>
+          <sc-alert-base variant="error"
+            >scsynth didn't reply to /status at 127.0.0.1:57110</sc-alert-base
+          >
+        </div>
       </section>
 
       <section class="demo-section">

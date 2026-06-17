@@ -22,6 +22,9 @@ import { ScTextareaBase } from "./sc-textarea";
 import { ScTextBase } from "./sc-text";
 import { ScPopoverBase } from "./sc-popover";
 import { ScModalBase } from "./sc-modal";
+import { ScAlertBase } from "./sc-alert";
+import { ScPanelBase } from "./sc-panel";
+import { ScEmptyBase } from "./sc-empty";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -42,6 +45,9 @@ export { foundationStyles, adoptFoundation } from "./internal/foundation-styles"
 export { PopoverController, type PopoverOptions } from "./internal/popover-controller";
 export { ScPopoverBase } from "./sc-popover";
 export { ScModalBase } from "./sc-modal";
+export { ScAlertBase, type ScAlertVariant } from "./sc-alert";
+export { ScPanelBase } from "./sc-panel";
+export { ScEmptyBase } from "./sc-empty";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
@@ -78,6 +84,9 @@ export const REGISTRY = {
   "sc-text-base": ScTextBase,
   "sc-popover-base": ScPopoverBase,
   "sc-modal-base": ScModalBase,
+  "sc-alert-base": ScAlertBase,
+  "sc-panel-base": ScPanelBase,
+  "sc-empty-base": ScEmptyBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -108,5 +117,8 @@ declare global {
     "sc-text-base": ScTextBase;
     "sc-popover-base": ScPopoverBase;
     "sc-modal-base": ScModalBase;
+    "sc-alert-base": ScAlertBase;
+    "sc-panel-base": ScPanelBase;
+    "sc-empty-base": ScEmptyBase;
   }
 }

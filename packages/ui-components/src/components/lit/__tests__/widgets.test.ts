@@ -604,3 +604,45 @@ describe("sc-modal-base", () => {
     expect(el.open).toBe(false);
   });
 });
+
+// Host-only content wrappers (the sc-text-base pattern): no template, light DOM,
+// children preserved, styling driven by reflected attributes.
+describe("host-only content wrappers", () => {
+  it("sc-alert-base preserves children and reflects variant", async () => {
+    const el = document.createElement("sc-alert-base");
+    el.innerHTML = "scsynth <strong>down</strong>";
+    el.variant = "error";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.renderRoot).toBe(el); // light DOM (host-only)
+    expect(el.querySelector("strong")!.textContent).toBe("down");
+    expect(el.getAttribute("variant")).toBe("error");
+  });
+
+  it("sc-alert-base defaults to the info variant", async () => {
+    const el = document.createElement("sc-alert-base");
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.getAttribute("variant")).toBe("info");
+  });
+
+  it("sc-panel-base preserves its header + content and reflects disabled", async () => {
+    const el = document.createElement("sc-panel-base");
+    el.innerHTML = "<header>Seq</header><span>body</span>";
+    el.disabled = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.querySelector("header")!.textContent).toBe("Seq");
+    expect(el.querySelector("span")!.textContent).toBe("body");
+    expect(el.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("sc-empty-base preserves children", async () => {
+    const el = document.createElement("sc-empty-base");
+    el.textContent = "no items yet";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.renderRoot).toBe(el);
+    expect(el.textContent).toBe("no items yet");
+  });
+});

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ScButton } from "@sc-app/ui-components/react";
+import { ScButton, ScAlert, ScEmpty } from "@sc-app/ui-components/react";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -25,7 +25,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
 
   return (
     <div className="stack">
-      {installed.length === 0 && <div className="empty">No plugins installed yet.</div>}
+      {installed.length === 0 && <ScEmpty>No plugins installed yet.</ScEmpty>}
       {installed.map((p) => (
         <div key={p.id} className="cluster plugin-row">
           {onSelect ? (
@@ -64,7 +64,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
           />
         </>
       )}
-      {error && <p className="error">{error}</p>}
+      {error && <ScAlert variant="error">{error}</ScAlert>}
     </div>
   );
 }

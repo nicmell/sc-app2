@@ -129,8 +129,9 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 - **`sc-alert-base`** — `variant`: `info` (default) `success` `warn` `error`.
 
 `size` is `sm | md | lg` everywhere it appears (md default). `gap` (stack/
-cluster) is `sm | md | lg` too, but **unset = the base gap** and the scale is the
-legacy one (`sm` is *tighter* than the base, `md`/`lg` looser).
+cluster) is a monotonic `xs | sm | md | lg` mapping 1:1 to `--space-{xs,sm,md,lg}`
+(8 / 12 / 16 / 20px), default `xs`. The legacy `.stack--*`/`.cluster--*` classes
+share this scale.
 
 ## Architecture patterns
 

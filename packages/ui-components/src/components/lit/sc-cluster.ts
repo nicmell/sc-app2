@@ -10,7 +10,7 @@ import { property } from "lit/decorators.js";
 import type { ScGap } from "./sc-stack";
 
 export class ScClusterBase extends LitElement {
-  @property({ reflect: true }) accessor gap: ScGap | undefined = undefined;
+  @property({ reflect: true }) accessor gap: ScGap = "xs";
 
   /** Light DOM + no render() ⇒ the children stay; layout is by attribute. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {

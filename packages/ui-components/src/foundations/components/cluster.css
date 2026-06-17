@@ -3,9 +3,10 @@
  * bread-and-butter "row of inline things" (toolbar buttons, label + input,
  * chip + readout, …). Counterpart to .stack.
  *
- * Two entry points share the chrome + the gap scale (one source of truth):
- *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects
- *     to an attribute (unset = base gap).
+ * Two entry points share one monotonic gap scale (single source of truth),
+ * mapping 1:1 to the space tokens — xs (default) / sm / md / lg →
+ * --space-xs/sm/md/lg:
+ *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects.
  *   - `.cluster` + `.cluster--{sm,md,lg}` — the legacy classes (kept for
  *     back-compat / plugin markup).
  */
@@ -20,13 +21,13 @@
 
 :where(sc-cluster-base[gap="sm"]),
 .cluster--sm {
-  gap: var(--space-2xs);
+  gap: var(--space-sm);
 }
 :where(sc-cluster-base[gap="md"]),
 .cluster--md {
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 :where(sc-cluster-base[gap="lg"]),
 .cluster--lg {
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }

@@ -2,9 +2,10 @@
  * Vertical flex layout with gap — a "column of stacked things" (modal sections,
  * panel internals, sidebars). Counterpart to .cluster.
  *
- * Two entry points share the chrome + the gap scale (one source of truth):
- *   - `<sc-stack-base gap="md">` — the host-only web component; `gap` reflects
- *     to an attribute (unset = base gap).
+ * Two entry points share one monotonic gap scale (single source of truth),
+ * mapping 1:1 to the space tokens — xs (default) / sm / md / lg →
+ * --space-xs/sm/md/lg:
+ *   - `<sc-stack-base gap="md">` — the host-only web component; `gap` reflects.
  *   - `.stack` + `.stack--{sm,md,lg}` — the legacy classes (kept for back-compat
  *     / plugin markup).
  */
@@ -18,13 +19,13 @@
 
 :where(sc-stack-base[gap="sm"]),
 .stack--sm {
-  gap: var(--space-2xs);
+  gap: var(--space-sm);
 }
 :where(sc-stack-base[gap="md"]),
 .stack--md {
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 :where(sc-stack-base[gap="lg"]),
 .stack--lg {
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }

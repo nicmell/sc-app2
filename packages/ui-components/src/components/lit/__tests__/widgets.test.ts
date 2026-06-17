@@ -44,15 +44,6 @@ async function mount<K extends WidgetTag>(
   return el;
 }
 
-/** Collect `change` detail values dispatched by an element. */
-function recordChanges(el: EventTarget): number[] {
-  const values: number[] = [];
-  el.addEventListener("change", (e) =>
-    values.push((e as CustomEvent<{ value: number }>).detail.value),
-  );
-  return values;
-}
-
 describe("sc-checkbox-base", () => {
   it("renders a hidden native checkbox with the variant/size classes on the label", async () => {
     const el = await mount("sc-checkbox-base", { size: "lg", variant: "ok" });
@@ -140,14 +131,12 @@ describe("sc-slider-base", () => {
 });
 
 describe("sc-option-base", () => {
-  it("emits its value on click and marks selection", async () => {
-    const el = await mount("sc-option-base", { value: 7, label: "Saw", selected: true });
+  it("renders an option row with its label (standalone, no context)", async () => {
+    const el = await mount("sc-option-base", { value: 7, label: "Saw" });
     const row = el.querySelector(".sc-option")!;
-    expect(row.classList.contains("sc-option--selected")).toBe(true);
-    expect(row.getAttribute("aria-selected")).toBe("true");
-    const changes = recordChanges(el);
-    (row as HTMLElement).click();
-    expect(changes).toEqual([7]);
+    expect(row.getAttribute("role")).toBe("option");
+    expect(row.textContent!.trim()).toBe("Saw");
+    expect(row.getAttribute("aria-selected")).toBe("false");
   });
 });
 
@@ -219,34 +208,54 @@ describe("sc-radio-group-base", () => {
 });
 
 describe("sc-select-base", () => {
-  const OPTIONS = [
-    { value: 0, label: "Sine" },
-    { value: 1, label: "Saw" },
-  ];
+  async function mountSelect(value: number) {
+    const select = document.createElement("sc-select-base");
+    select.innerHTML =
+      '<sc-option-base value="0" label="Sine"></sc-option-base>' +
+      '<sc-option-base value="1" label="Saw"></sc-option-base>' +
+      '<sc-option-base value="2" label="Square"></sc-option-base>';
+    select.value = value;
+    document.body.appendChild(select);
+    await select.updateComplete;
+    const options = Array.from(select.querySelectorAll("sc-option-base"));
+    await Promise.all(options.map((o) => o.updateComplete));
+    return { select, options };
+  }
 
-  it("opens on combobox click and renders one row per option", async () => {
-    const el = await mount("sc-select-base", { options: OPTIONS });
-    expect(el.querySelector(".sc-select__dropdown")).toBeNull();
-    el.querySelector("button")!.click();
-    await el.updateComplete;
-    expect(el.querySelectorAll(".sc-select__option").length).toBe(2);
+  const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
+  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector(".dropdown");
+
+  it("shows the selected option label and opens on combobox click", async () => {
+    const { select } = await mountSelect(1);
+    expect(combobox(select).textContent!.trim()).toBe("Saw");
+    expect(dropdown(select)).toBeNull();
+    combobox(select).click();
+    await select.updateComplete;
+    expect(dropdown(select)).not.toBeNull();
   });
 
-  it("picks an option: emits the value and closes", async () => {
-    const el = await mount("sc-select-base", { options: OPTIONS });
-    el.querySelector("button")!.click();
-    await el.updateComplete;
-    const changes = recordChanges(el);
-    el.querySelectorAll<HTMLElement>(".sc-select__option")[1].click();
-    await el.updateComplete;
-    expect(el.value).toBe(1);
-    expect(changes).toEqual([1]);
-    expect(el.querySelector(".sc-select__dropdown")).toBeNull();
+  it("picks an option via context: updates value, fires change, closes", async () => {
+    const { select, options } = await mountSelect(0);
+    combobox(select).click();
+    await select.updateComplete;
+    let changes = 0;
+    select.addEventListener("change", () => (changes += 1));
+    options[2].querySelector<HTMLElement>(".sc-option")!.click();
+    await select.updateComplete;
+    expect(select.value).toBe(2);
+    expect(changes).toBe(1);
+    expect(dropdown(select)).toBeNull();
   });
 
-  it("shows the selected option's label in the combobox", async () => {
-    const el = await mount("sc-select-base", { options: OPTIONS, value: 1 });
-    expect(el.querySelector(".sc-select__label")!.textContent!.trim()).toBe("Saw");
+  it("marks the selected option via context", async () => {
+    const { options } = await mountSelect(1);
+    await Promise.all(options.map((o) => o.updateComplete));
+    const rows = options.map((o) => o.querySelector(".sc-option")!);
+    expect(rows.map((r) => r.classList.contains("sc-option--selected"))).toEqual([
+      false,
+      true,
+      false,
+    ]);
   });
 });
 

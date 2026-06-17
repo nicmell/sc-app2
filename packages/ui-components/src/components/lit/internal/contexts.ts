@@ -21,3 +21,12 @@ export interface RadioGroupContext {
 }
 
 export const radioGroupContext = createContext<RadioGroupContext>("sc-radio-group");
+
+export interface SelectContext {
+  /** The select's current value. */
+  value: number;
+  /** An option calls this on click to request selection. */
+  select(value: number): void;
+}
+
+export const selectContext = createContext<SelectContext>("sc-select");

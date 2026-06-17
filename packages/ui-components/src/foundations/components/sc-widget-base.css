@@ -3,11 +3,12 @@
  * src/components/lit). Each widget's own file holds its layout + size scale;
  * this file holds what they share:
  *   - host display defaults (custom elements are display:inline otherwise),
- *   - a reset for the widgets that render as <button>,
+ *   - the .sr-only helper for the hidden native <input> each widget sits over,
  *   - the disabled affordance,
  *   - the variant → --_accent mapping (the single colour channel each tints).
  *
  * Host display uses :where() (specificity 0) so authors can override freely.
+ * (sc-select-base sets its own :host display — it's the one shadow-DOM widget.)
  */
 
 :where(
@@ -16,8 +17,7 @@
     sc-knob-base,
     sc-slider-base,
     sc-option-base,
-    sc-radio-base,
-    sc-select-base
+    sc-radio-base
   ) {
   display: inline-block;
 }
@@ -37,27 +37,13 @@
   border: 0;
 }
 
-/* The select combobox renders as <button>; strip the base button chrome so the
-   per-widget styling is the only source of truth. */
-.sc-select__combobox {
-  appearance: none;
-  margin: 0;
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-}
-
 /* Shared disabled affordance. */
 .sc-checkbox--disabled,
 .sc-switch--disabled,
 .sc-radio--disabled,
 .sc-knob--disabled,
 .sc-slider--disabled,
-.sc-option--disabled,
-.sc-select--disabled {
+.sc-option--disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
@@ -77,8 +63,7 @@ sc-radio-group-base[disabled] {
 .sc-radio--primary,
 .sc-knob--primary,
 .sc-slider--primary,
-.sc-option--primary,
-.sc-select--primary {
+.sc-option--primary {
   --_accent: var(--color-primary);
 }
 
@@ -87,8 +72,7 @@ sc-radio-group-base[disabled] {
 .sc-radio--neutral,
 .sc-knob--neutral,
 .sc-slider--neutral,
-.sc-option--neutral,
-.sc-select--neutral {
+.sc-option--neutral {
   --_accent: var(--color-text-dim);
 }
 
@@ -97,8 +81,7 @@ sc-radio-group-base[disabled] {
 .sc-radio--ok,
 .sc-knob--ok,
 .sc-slider--ok,
-.sc-option--ok,
-.sc-select--ok {
+.sc-option--ok {
   --_accent: var(--color-ok);
 }
 
@@ -107,8 +90,7 @@ sc-radio-group-base[disabled] {
 .sc-radio--warn,
 .sc-knob--warn,
 .sc-slider--warn,
-.sc-option--warn,
-.sc-select--warn {
+.sc-option--warn {
   --_accent: var(--color-warn);
 }
 
@@ -117,7 +99,6 @@ sc-radio-group-base[disabled] {
 .sc-radio--danger,
 .sc-knob--danger,
 .sc-slider--danger,
-.sc-option--danger,
-.sc-select--danger {
+.sc-option--danger {
   --_accent: var(--color-danger);
 }

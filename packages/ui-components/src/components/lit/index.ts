@@ -30,7 +30,7 @@ export { ScSliderBase } from "./sc-slider";
 export { ScOptionBase } from "./sc-option";
 export { ScRadioBase } from "./sc-radio";
 export { ScRadioGroupBase } from "./sc-radio-group";
-export { ScSelectBase, type ScSelectOption } from "./sc-select";
+export { ScSelectBase } from "./sc-select";
 export { ScIconBase, type ScIconSize } from "./sc-icon";
 export { ScButtonBase, type ScButtonVariant } from "./sc-button";
 export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge";

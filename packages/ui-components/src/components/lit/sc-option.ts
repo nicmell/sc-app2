@@ -1,27 +1,35 @@
-// <sc-option-base> — a UI-only option row (a single choice). Click emits
-// `change` with its own `value`. `selected` is driven by the parent. Standalone
-// (the logical sc-select wrapper later derives its `options` from these).
+// <sc-option-base> — a declarative option row and a ContextConsumer of its
+// <sc-select-base>. Selection comes from context (selected = ctx.value ===
+// value); clicking reports back via ctx.select. Light DOM so the global
+// `.sc-option` CSS styles it (it's slotted into the select's dropdown).
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
+import { ContextConsumer } from "@lit/context";
+import cx from "classnames";
 import { ScWidgetBase } from "./internal/sc-widget-base";
+import { selectContext } from "./internal/contexts";
 
 export class ScOptionBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
-  @property({ type: Boolean }) accessor selected = false;
+
+  #select = new ContextConsumer(this, { context: selectContext, subscribe: true });
 
   private _onClick = (): void => {
-    if (!this.disabled) this.emit(this.value);
+    if (!this.disabled) this.#select.value?.select(this.value);
   };
 
   render() {
+    const selected = this.#select.value?.value === this.value;
     return html`
       <div
-        class=${this.blockClasses("sc-option", { "sc-option--selected": this.selected })}
+        class=${cx("sc-option", `sc-option--${this.size}`, {
+          "sc-option--selected": selected,
+          "sc-option--disabled": this.disabled,
+        })}
         role="option"
-        aria-selected=${this.selected}
-        aria-disabled=${this.disabled}
+        aria-selected=${selected}
         @click=${this._onClick}
       >
         ${this.label}

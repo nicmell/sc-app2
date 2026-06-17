@@ -497,18 +497,6 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-option-base&gt;</h2>
-        <p class="demo-cap">standalone option rows (click to emit change)</p>
-        <div class="demo-listbox" role="listbox">
-          <sc-option-base value="0" label="Sine" selected></sc-option-base>
-          <sc-option-base value="1" label="Saw"></sc-option-base>
-          <sc-option-base value="2" label="Square"></sc-option-base>
-          <sc-option-base value="3" label="Triangle"></sc-option-base>
-          <sc-option-base value="4" label="disabled" disabled></sc-option-base>
-        </div>
-      </section>
-
-      <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-radio-base&gt;</h2>
         <p class="demo-cap">standalone radios — variants (usually composed in a group, below)</p>
         <div class="demo-row">
@@ -549,18 +537,41 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-select-base&gt;</h2>
-        <p class="demo-cap">sizes (options set imperatively — see script)</p>
+        <h2 class="demo-section-title">&lt;sc-select-base&gt; + &lt;sc-option-base&gt;</h2>
+        <p class="demo-cap">declarative options; sizes</p>
         <div class="demo-row">
-          <sc-select-base class="demo-select" size="sm" value="0"></sc-select-base>
-          <sc-select-base class="demo-select" size="md" value="1"></sc-select-base>
-          <sc-select-base class="demo-select" size="lg" value="2"></sc-select-base>
+          <sc-select-base size="sm" value="0">
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+            <sc-option-base value="2" label="Square"></sc-option-base>
+          </sc-select-base>
+          <sc-select-base size="md" value="1">
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+            <sc-option-base value="2" label="Square"></sc-option-base>
+          </sc-select-base>
+          <sc-select-base size="lg" value="2">
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+            <sc-option-base value="2" label="Square"></sc-option-base>
+          </sc-select-base>
         </div>
-        <p class="demo-cap">variant + placeholder + disabled</p>
+        <p class="demo-cap">variant accent + placeholder + disabled</p>
         <div class="demo-row">
-          <sc-select-base class="demo-select" variant="ok" value="1"></sc-select-base>
-          <sc-select-base class="demo-select" placeholder="choose…"></sc-select-base>
-          <sc-select-base class="demo-select" value="0" disabled></sc-select-base>
+          <sc-select-base variant="ok" value="1">
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+            <sc-option-base value="2" label="Square"></sc-option-base>
+          </sc-select-base>
+          <sc-select-base placeholder="choose…">
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+            <sc-option-base value="2" label="Square"></sc-option-base>
+          </sc-select-base>
+          <sc-select-base value="0" disabled>
+            <sc-option-base value="0" label="Sine"></sc-option-base>
+            <sc-option-base value="1" label="Saw"></sc-option-base>
+          </sc-select-base>
         </div>
       </section>
 
@@ -634,18 +645,6 @@ function dirtPlay(event) {
       import "@phosphor-icons/web/fill";
       import { registerUiComponents } from "./src/components/lit/index.ts";
       registerUiComponents();
-      // `options` is a property (not an attribute) — set it imperatively on
-      // every select once the element is defined.
-      customElements.whenDefined("sc-select-base").then(() => {
-        const options = [
-          { value: 0, label: "Sine" },
-          { value: 1, label: "Saw" },
-          { value: 2, label: "Square" },
-        ];
-        for (const select of document.querySelectorAll(".demo-select")) {
-          select.options = options;
-        }
-      });
     </script>
   </body>
 </html>

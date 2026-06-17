@@ -25,8 +25,7 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(2px);
+  background: var(--color-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,11 +48,10 @@
   overflow: auto;
 }
 
-/* When `.modal` is the native <dialog> (sc-modal-base), dim + blur the page
-   behind it. The UA centres a modal <dialog> in the top layer (margin:auto). */
+/* When `.modal` is the native <dialog> (sc-modal-base), dim the page behind it
+   (shared --color-scrim). The UA centres a modal <dialog> in the top layer. */
 .modal::backdrop {
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(2px);
+  background: var(--color-scrim);
 }
 
 /* `.modal { display: flex }` overrides the UA `dialog:not([open])` hide, which

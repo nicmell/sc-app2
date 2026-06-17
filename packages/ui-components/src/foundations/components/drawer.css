@@ -22,6 +22,8 @@
 }
 
 .drawer {
+  display: flex;
+  flex-direction: column;
   position: fixed;
   margin: 0;
   inset: 0 0 0 auto; /* top right bottom left → pinned to the right edge */
@@ -46,9 +48,14 @@
     display var(--transition-base) allow-discrete;
 }
 
+/* `.drawer { display: flex }` overrides the UA `dialog:not([open])` hide — the
+   same mechanism as .modal: re-hide the closed dialog until showModal() sets
+   [open]. (allow-discrete on `display` keeps it shown through the slide-out.) */
+dialog.drawer:not([open]) {
+  display: none;
+}
+
 .drawer[open] {
-  display: flex;
-  flex-direction: column;
   translate: 0 0;
 }
 
@@ -75,10 +82,9 @@
   }
 }
 
-/* Dim + blur the page behind it, matching the modal backdrop, and fade it. */
+/* Dim the page behind it (shared --color-scrim, matching the modal), and fade it. */
 .drawer::backdrop {
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(2px);
+  background: var(--color-scrim);
   opacity: 0;
   transition:
     opacity var(--transition-base),

@@ -63,8 +63,9 @@ import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 import "@phosphor-icons/web/fill";  // powers <sc-icon-base>
 ```
 
-Components are **light DOM** (except `sc-select-base`, see below), so the
-foundation's global CSS styles them. **Events are native, not custom**: each
+Components are **light DOM** (except the shadow-DOM overlays `sc-select-base` /
+`sc-popover-base` / `sc-modal-base`, see below), so the foundation's global CSS
+styles them. **Events are native, not custom**: each
 form widget renders a hidden native `<input>` under its visual overlay and lets
 that input's real `input`/`change` flow to consumers — read `e.target.value` /
 `e.target.checked`. The React wrappers expose `onChange` (+ `onInput` for live
@@ -95,7 +96,7 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-option-base` | `value` `label` `size` `disabled` | — (reports via select context) | declarative child of `sc-select-base` |
 | `sc-radio-base` | `value` `label` `checked` `size` `variant` `disabled` | — (reports via group context) | hidden `<input type=radio>` + ring/dot |
 | `sc-radio-group-base` | `value` `orientation` `size` `variant` `disabled` | host `change` | context provider for `sc-radio-base` children |
-| `sc-select-base` | `value` `placeholder` `size` `variant` `disabled` | host `change` | **shadow DOM**; combobox + dropdown of `<sc-option-base>` children |
+| `sc-select-base` | `value` `placeholder` `size` `variant` `disabled` | host `change` | **shadow DOM**; combobox + **top-layer** dropdown of `<sc-option-base>` children |
 | `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | native `input`/`change` | text field over native `<input>` |
 | `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
 | `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | native `input`/`change` | multi-line |
@@ -104,7 +105,9 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
-| `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` |
+| `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` (top-layer popover) |
+| `sc-popover-base` | `open` `placement` `anchor` | `toggle` | **shadow DOM**; top-layer anchored panel (slots content) |
+| `sc-modal-base` | `open` `dismissable` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content) |
 
 ### Variant vocabularies (intentionally different)
 
@@ -167,6 +170,45 @@ object* into their roots (`static styles = [foundationStyles]`). Adopting by
 reference does **not** copy it — the browser parses/stores it once and shares it
 across the document and every shadow root, so the foundation ships once. Any
 future shadow component just reuses `foundationStyles` — nothing per-component.
+
+> Per-component `:host` rules in the shared sheet are scoped to their tag
+> (`:host(sc-select-base)`, `:host(sc-popover-base)`): a bare `:host` would
+> match in **every** shadow root that adopts the one shared sheet. At the
+> document level `:host(...)` matches nothing (inert).
+
+### Overlays (top layer)
+
+Dropdowns, modals, and toasts must escape clipping and stacking: an
+`overflow`/`transform` ancestor (e.g. a `react-grid-layout` dashboard cell)
+traps an absolutely-positioned child, and `z-index` battles are fragile. The
+only correct escape is the browser **top layer**, reached two ways:
+
+- **`PopoverController`** (`internal/popover-controller.ts`) — a Lit
+  `ReactiveController` that turns a panel into a `popover="auto"` element
+  (top layer + native light-dismiss: outside-click + Esc) and positions it
+  against an anchor with [`@floating-ui/dom`](https://floating-ui.com)
+  (`offset`/`flip`/`shift`, `strategy: "fixed"`, re-positioned via `autoUpdate`).
+  Used by **`sc-popover-base`** (a generic anchored panel; anchors to its
+  `anchor` property or previous sibling) and directly by **`sc-select-base`**
+  (the combobox carries `popovertarget`, so the browser owns the toggle +
+  light-dismiss; the controller only positions). Guarded — degrades to
+  in-flow CSS positioning where the Popover API is absent.
+
+- **Native `<dialog>`** for **`sc-modal-base`** — `showModal()` gives the top
+  layer, a `::backdrop`, a focus trap, and Esc for free; no anchoring, so no
+  floating-ui. `dismissable` gates Esc + backdrop-click; a blocking modal
+  swallows `cancel` and re-asserts itself if the UA force-closes it.
+
+The app's **toast stack** is a `popover="manual"` element for the same reason
+(never clipped). A modal `<dialog>` still renders above popovers in the top
+layer, so toasts don't cover an open modal — but they're corner-placed and
+modals are centred, so they don't overlap.
+
+> **Platform note:** macOS Tauri runs in WKWebView (WebKit), where CSS anchor
+> positioning isn't available — hence `@floating-ui/dom` for the math and the
+> Popover API (Safari 17+) for the layer. happy-dom has no top layer or layout,
+> so the open/close/positioning behaviour is verified in a real browser via the
+> CDP harness; unit tests cover structure + state + events only.
 
 ## Build
 

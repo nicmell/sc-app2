@@ -1,19 +1,16 @@
 /**
- * .cluster — horizontal flex layout, centred cross-axis, with
- * gap and wrap. The bread-and-butter "row of inline things"
- * (toolbar buttons, label + input, status pill + readout, …).
+ * Horizontal flex layout, centred cross-axis, with gap + wrap — the
+ * bread-and-butter "row of inline things" (toolbar buttons, label + input,
+ * chip + readout, …). Counterpart to .stack.
  *
- * Default gap is small; gap modifiers are plain classes
- * (applied directly or via classnames), not data attributes:
- *   <div class="cluster cluster--md">
- *
- * HTML shape:
- *   <div class="cluster">
- *     <button>One</button>
- *     <button>Two</button>
- *   </div>
+ * Two entry points share the chrome + the gap scale (one source of truth):
+ *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects
+ *     to an attribute (unset = base gap).
+ *   - `.cluster` + `.cluster--{sm,md,lg}` — the legacy classes (kept for
+ *     back-compat / plugin markup).
  */
 
+:where(sc-cluster-base),
 .cluster {
   display: flex;
   align-items: center;
@@ -21,12 +18,15 @@
   flex-wrap: wrap;
 }
 
+:where(sc-cluster-base[gap="sm"]),
 .cluster--sm {
   gap: var(--space-2xs);
 }
+:where(sc-cluster-base[gap="md"]),
 .cluster--md {
   gap: var(--space-sm);
 }
+:where(sc-cluster-base[gap="lg"]),
 .cluster--lg {
   gap: var(--space-md);
 }

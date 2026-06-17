@@ -192,17 +192,38 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Disclosure</h2>
-        <details>
-          <summary>Details summary (click to expand)</summary>
-          <p>
-            Hidden content revealed on click. Inherits body typography; no extra classes needed.
-          </p>
-        </details>
-        <details open>
-          <summary>Open by default</summary>
-          <p>Already showing.</p>
-        </details>
+        <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
+        <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
+        <div class="stack stack--sm">
+          <sc-disclosure-base>
+            <span slot="summary">Details summary (click to expand)</span>
+            <sc-text-base size="sm" tone="dim">
+              Hidden content revealed on click — the native &lt;details&gt; owns the toggle.
+            </sc-text-base>
+          </sc-disclosure-base>
+          <sc-disclosure-base open>
+            <span slot="summary">Open by default</span>
+            <sc-text-base size="sm" tone="dim">Already showing.</sc-text-base>
+          </sc-disclosure-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-stack-base&gt; + &lt;sc-cluster-base&gt;</h2>
+        <p class="demo-cap">layout primitives — vertical / horizontal flex with a gap scale</p>
+        <sc-stack-base gap="md">
+          <sc-cluster-base>
+            <sc-button-base label="one" size="sm" variant="secondary"></sc-button-base>
+            <sc-button-base label="two" size="sm" variant="secondary"></sc-button-base>
+            <sc-chip-base dot variant="ok" label="cluster (base gap)"></sc-chip-base>
+          </sc-cluster-base>
+          <sc-cluster-base gap="lg">
+            <sc-button-base label="one" size="sm" variant="secondary"></sc-button-base>
+            <sc-button-base label="two" size="sm" variant="secondary"></sc-button-base>
+            <sc-chip-base dot variant="info" label="cluster gap=lg"></sc-chip-base>
+          </sc-cluster-base>
+          <sc-chip-base label="stack gap=md between rows"></sc-chip-base>
+        </sc-stack-base>
       </section>
 
       <section class="demo-section">

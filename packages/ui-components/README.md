@@ -104,6 +104,9 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-alert-base` | `variant` | — | inline notice card; renders children (generalises legacy `.error`) |
 | `sc-panel-base` | `disabled` | — | feature-surface card; a child `<header>` is the title bar; renders children |
 | `sc-empty-base` | — | — | dashed "nothing here" placeholder; renders children |
+| `sc-stack-base` | `gap` | — | vertical flex layout; renders children (shares scale with `.stack`) |
+| `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children (shares scale with `.cluster`) |
+| `sc-disclosure-base` | `open` | `toggle` | **shadow DOM**; collapsible card over native `<details>` (`summary` slot + content) |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
@@ -125,7 +128,9 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 - **`sc-text-base`** — `tone`: `default` `dim` `mute` `faint` `primary` `ok` `warn` `error` `info`.
 - **`sc-alert-base`** — `variant`: `info` (default) `success` `warn` `error`.
 
-`size` is `sm | md | lg` everywhere it appears (md default).
+`size` is `sm | md | lg` everywhere it appears (md default). `gap` (stack/
+cluster) is `sm | md | lg` too, but **unset = the base gap** and the scale is the
+legacy one (`sm` is *tighter* than the base, `md`/`lg` looser).
 
 ## Architecture patterns
 
@@ -145,12 +150,19 @@ foundation CSS applies. Four patterns:
    **classes, not data attributes** — the migration away from `[data-variant]`.
 
 3. **Host-only + reflected attributes (`sc-text-base`, `sc-alert-base`,
-   `sc-panel-base`, `sc-empty-base`).** Content wrappers that preserve author
-   children by rendering **no template** (`render()` returns `noChange`) and
-   style the host off reflected props (`sc-text-base[size="lg"]`,
-   `sc-alert-base[variant="warn"]`, `sc-panel-base[disabled]`). The alert/panel/
-   empty share their chrome with the legacy `.error`/`.panel`/`.empty` classes
-   (kept for plugin authors), e.g. `:where(sc-alert-base), .error { … }`.
+   `sc-panel-base`, `sc-empty-base`, `sc-stack-base`, `sc-cluster-base`).**
+   Content wrappers + layout primitives that preserve author children by
+   rendering **no template** (`render()` returns `noChange`) and style the host
+   off reflected props (`sc-text-base[size="lg"]`, `sc-alert-base[variant="warn"]`,
+   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`). Each shares its chrome
+   (and, for stack/cluster, the gap scale) with the legacy `.error`/`.panel`/
+   `.empty`/`.stack`/`.cluster` classes — one source of truth via a grouped
+   selector, e.g. `:where(sc-stack-base[gap="md"]), .stack--md { … }`.
+
+   **`sc-disclosure-base`** is the exception that proves the rule: it's the one
+   shadow-DOM wrapper here — it renders a native `<details>`/`<summary>` (so the
+   open/close + a11y are free) and projects the author's `summary` slot + body,
+   syncing the native `toggle` back into a controllable `open` prop.
 
 4. **Lit context containers (`sc-radio-group-base`, `sc-select-base`).** A
    `@lit/context` provider coordinates declarative children (the consumers):

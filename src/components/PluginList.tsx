@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ScButton, ScAlert, ScEmpty } from "@sc-app/ui-components/react";
+import { ScButton, ScAlert, ScEmpty, ScStack, ScCluster } from "@sc-app/ui-components/react";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -24,10 +24,10 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
   };
 
   return (
-    <div className="stack">
+    <ScStack>
       {installed.length === 0 && <ScEmpty>No plugins installed yet.</ScEmpty>}
       {installed.map((p) => (
-        <div key={p.id} className="cluster plugin-row">
+        <ScCluster key={p.id} className="plugin-row">
           {onSelect ? (
             <button type="button" className="plugin-pick" onClick={() => onSelect(p)}>
               <span className="plugin-name">{p.name}</span>
@@ -51,7 +51,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
               onClick={() => void deletePlugin(p.id)}
             />
           )}
-        </div>
+        </ScCluster>
       ))}
 
       {!onSelect && (
@@ -65,6 +65,6 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
         </>
       )}
       {error && <ScAlert variant="error">{error}</ScAlert>}
-    </div>
+    </ScStack>
   );
 }

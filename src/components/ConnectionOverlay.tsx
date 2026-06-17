@@ -1,3 +1,4 @@
+import { ScCluster } from "@sc-app/ui-components/react";
 import { Modal } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
 
@@ -25,11 +26,11 @@ export function ConnectionOverlay() {
       <p className="modal-body">
         The session could not be established — the server or scsynth may be down.
       </p>
-      <div className="cluster modal-actions">
+      <ScCluster className="modal-actions">
         <button type="button" onClick={() => void session.retry()}>
           Retry
         </button>
-      </div>
+      </ScCluster>
     </Modal>
   );
 }

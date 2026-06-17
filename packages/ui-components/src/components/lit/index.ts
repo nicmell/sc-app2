@@ -26,6 +26,9 @@ import { ScDrawerBase } from "./sc-drawer";
 import { ScAlertBase } from "./sc-alert";
 import { ScPanelBase } from "./sc-panel";
 import { ScEmptyBase } from "./sc-empty";
+import { ScStackBase } from "./sc-stack";
+import { ScClusterBase } from "./sc-cluster";
+import { ScDisclosureBase } from "./sc-disclosure";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -50,6 +53,9 @@ export { ScDrawerBase, type ScDrawerSide } from "./sc-drawer";
 export { ScAlertBase, type ScAlertVariant } from "./sc-alert";
 export { ScPanelBase } from "./sc-panel";
 export { ScEmptyBase } from "./sc-empty";
+export { ScStackBase, type ScGap } from "./sc-stack";
+export { ScClusterBase } from "./sc-cluster";
+export { ScDisclosureBase } from "./sc-disclosure";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
@@ -90,6 +96,9 @@ export const REGISTRY = {
   "sc-alert-base": ScAlertBase,
   "sc-panel-base": ScPanelBase,
   "sc-empty-base": ScEmptyBase,
+  "sc-stack-base": ScStackBase,
+  "sc-cluster-base": ScClusterBase,
+  "sc-disclosure-base": ScDisclosureBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -124,5 +133,8 @@ declare global {
     "sc-alert-base": ScAlertBase;
     "sc-panel-base": ScPanelBase;
     "sc-empty-base": ScEmptyBase;
+    "sc-stack-base": ScStackBase;
+    "sc-cluster-base": ScClusterBase;
+    "sc-disclosure-base": ScDisclosureBase;
   }
 }

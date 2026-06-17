@@ -676,4 +676,47 @@ describe("host-only content wrappers", () => {
     expect(el.renderRoot).toBe(el);
     expect(el.textContent).toBe("no items yet");
   });
+
+  it("sc-stack-base / sc-cluster-base preserve children and reflect gap", async () => {
+    for (const tag of ["sc-stack-base", "sc-cluster-base"] as const) {
+      const el = document.createElement(tag);
+      el.innerHTML = "<span>a</span><span>b</span>";
+      el.gap = "md";
+      document.body.appendChild(el);
+      await el.updateComplete;
+      expect(el.renderRoot).toBe(el); // light DOM (host-only)
+      expect(el.querySelectorAll("span").length).toBe(2);
+      expect(el.getAttribute("gap")).toBe("md");
+    }
+  });
+});
+
+// sc-disclosure-base wraps a native <details> in shadow DOM, syncing `open`.
+describe("sc-disclosure-base", () => {
+  it("renders details with slotted summary + content, mirrors open", async () => {
+    const el = document.createElement("sc-disclosure-base");
+    el.innerHTML = '<span slot="summary">Title</span><p>body</p>';
+    el.open = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const details = el.renderRoot.querySelector("details")!;
+    expect(details.open).toBe(true);
+    expect(el.querySelector('[slot="summary"]')!.textContent).toBe("Title");
+  });
+
+  it("mirrors a native toggle back into open + emits toggle", async () => {
+    const el = document.createElement("sc-disclosure-base");
+    el.innerHTML = '<span slot="summary">T</span><p>b</p>';
+    document.body.appendChild(el);
+    await el.updateComplete;
+    let toggles = 0;
+    el.addEventListener("toggle", () => toggles++);
+    const details = el.renderRoot.querySelector("details")!;
+    // Simulate the user opening it. happy-dom fires `toggle` on the open setter;
+    // a real browser fires it async — either way our handler re-emits.
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    expect(el.open).toBe(true);
+    expect(toggles).toBeGreaterThanOrEqual(1);
+  });
 });

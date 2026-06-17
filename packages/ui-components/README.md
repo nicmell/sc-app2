@@ -42,8 +42,13 @@ src/
 ## Using the components
 
 ```ts
-// 1. styling (once, at app boot)
-import "@sc-app/ui-components";
+// 1. styling (once, at app boot) — adopt the ONE shared foundation stylesheet
+//    onto the document. This is the same CSSStyleSheet that shadow-DOM widgets
+//    (sc-select) adopt into their roots, so the foundation is parsed + shipped
+//    once for the whole app. (Plain CSS consumers can still `import
+//    "@sc-app/ui-components"` or <link> the dist instead — e.g. plugin HTML.)
+import { adoptFoundation } from "@sc-app/ui-components/lit";
+adoptFoundation();
 
 // 2a. as web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
@@ -141,14 +146,27 @@ foundation CSS applies. Four patterns:
    `radio-group` is light-DOM (children preserved, no template). `select` is the
    **one shadow-DOM component** — it must render combobox/dropdown chrome *and*
    project the `<sc-option-base>` children into the dropdown via `<slot>`, which
-   a light-DOM render would clobber; its chrome CSS lives in `static styles`
-   (tokens pierce the shadow boundary). Note: providers are registered before
-   consumers so static markup upgrades with the provider already listening.
+   a light-DOM render would clobber. Its chrome therefore lives in
+   `foundations/components/sc-select.css` (`:host` + `.sc-select__*`) like every
+   other component, applied inside the shadow because the select **adopts the
+   shared foundation stylesheet** into its shadow root (see below). Note:
+   providers are registered before consumers so static markup upgrades with the
+   provider already listening.
 
 Shared bits for the form widgets live on `internal/sc-widget-base.ts`
 (`ScWidgetBase`): `size`/`variant`/`disabled`, the light-DOM render root, and the
 `blockClasses()` helper. It is abstract — not a tag. The parent↔child contexts
 live in `internal/contexts.ts`.
+
+### One shared foundation stylesheet
+
+`internal/foundation-styles.ts` builds the foundation CSS (`index.css?inline`)
+into a **single `CSSStyleSheet`** (`foundationStyles`). The app adopts it onto
+the document (`adoptFoundation()`), and shadow-DOM components adopt the *same
+object* into their roots (`static styles = [foundationStyles]`). Adopting by
+reference does **not** copy it — the browser parses/stores it once and shares it
+across the document and every shadow root, so the foundation ships once. Any
+future shadow component just reuses `foundationStyles` — nothing per-component.
 
 ## Build
 

@@ -36,6 +36,7 @@ export { ScButtonBase, type ScButtonVariant } from "./sc-button";
 export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge";
 export { ScToastBase, type ScToastVariant } from "./sc-toast";
 export { ScChipBase, type ScChipVariant } from "./sc-chip";
+export { foundationStyles, adoptFoundation } from "./internal/foundation-styles";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";

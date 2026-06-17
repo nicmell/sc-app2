@@ -18,19 +18,7 @@ import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
-import foundationCss from "../../foundations/index.css?inline";
-
-// One shared sheet for every select shadow root (cheap; unused selectors are
-// harmless). Guarded for non-browser test envs without constructable sheets.
-const foundationSheet: CSSStyleSheet | undefined = (() => {
-  try {
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(foundationCss);
-    return sheet;
-  } catch {
-    return undefined;
-  }
-})();
+import { foundationStyles } from "./internal/foundation-styles";
 
 export class ScSelectBase extends LitElement {
   // Form-associated: it has no native control (shadow DOM), so it submits its
@@ -54,9 +42,9 @@ export class ScSelectBase extends LitElement {
     }
   })();
 
-  // Adopt the foundation into the shadow root; chrome rules live in
+  // Adopt the shared foundation sheet into the shadow root; chrome rules live in
   // foundations/components/sc-select.css.
-  static styles = foundationSheet ? [foundationSheet] : [];
+  static styles = foundationStyles ? [foundationStyles] : [];
 
   #select = (value: number): void => {
     this.open = false;

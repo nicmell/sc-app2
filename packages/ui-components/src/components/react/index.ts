@@ -31,6 +31,7 @@ export { ScTextarea } from "./sc-textarea";
 export { ScText } from "./sc-text";
 export { ScPopover } from "./sc-popover";
 export { ScModal } from "./sc-modal";
+export { ScDrawer } from "./sc-drawer";
 export { ScAlert } from "./sc-alert";
 export { ScPanel } from "./sc-panel";
 export { ScEmpty } from "./sc-empty";

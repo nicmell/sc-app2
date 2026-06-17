@@ -36,49 +36,8 @@ sc-plugin {
   width: min(320px, 60vw);
 }
 
-/* ── drawer ── */
-.drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 50;
-}
-.drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  width: 320px;
-  max-width: 90vw;
-  background: var(--color-surface-1);
-  border-left: 1px solid var(--color-border);
-  box-shadow: var(--shadow-lg);
-  transform: translateX(100%);
-  transition: transform var(--transition-base);
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-}
-.drawer[data-open="true"] {
-  transform: translateX(0);
-}
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--color-border);
-}
-.drawer-header h2 {
-  font-size: var(--font-size-md);
-  margin: 0;
-}
-.drawer-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: var(--space-md);
-}
+/* The plugin drawer chrome (slide-in panel, backdrop, header, body) now lives in
+   @sc-app/ui-components as <sc-drawer-base> (foundations/components/drawer.css). */
 
 /* ── plugin list rows ── */
 .plugin-row {

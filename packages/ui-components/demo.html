@@ -621,6 +621,55 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-drawer-base&gt;</h2>
+        <p class="demo-cap">
+          edge-anchored top-layer panel (native <code>&lt;dialog&gt;</code>: backdrop + focus
+          trap + Esc); slides in, <code>dismissable</code> closes on Esc / backdrop
+        </p>
+        <div class="demo-row">
+          <button class="btn" onclick="document.getElementById('demo-drawer-r').open = true">
+            open right drawer
+          </button>
+          <button class="btn" onclick="document.getElementById('demo-drawer-l').open = true">
+            open left drawer
+          </button>
+          <sc-drawer-base id="demo-drawer-r" side="right" dismissable>
+            <header>
+              <h2>Plugins</h2>
+              <sc-button-base
+                variant="ghost"
+                size="sm"
+                icon-only
+                icon="x"
+                label="Close"
+                onclick="document.getElementById('demo-drawer-r').open = false"
+              ></sc-button-base>
+            </header>
+            <div class="drawer-body stack stack--sm">
+              <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
+              <sc-empty-base>no plugins installed yet</sc-empty-base>
+            </div>
+          </sc-drawer-base>
+          <sc-drawer-base id="demo-drawer-l" side="left" dismissable>
+            <header>
+              <h2>Navigation</h2>
+              <sc-button-base
+                variant="ghost"
+                size="sm"
+                icon-only
+                icon="x"
+                label="Close"
+                onclick="document.getElementById('demo-drawer-l').open = false"
+              ></sc-button-base>
+            </header>
+            <div class="drawer-body">
+              <sc-text-base tone="dim" size="sm">Left-side drawer content.</sc-text-base>
+            </div>
+          </sc-drawer-base>
+        </div>
+      </section>
+
+      <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor, fill)</h2>
         <p class="demo-cap">inherits text colour; default size follows font-size</p>
         <div class="demo-row" style="font-size: 1.5rem">

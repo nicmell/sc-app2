@@ -605,6 +605,37 @@ describe("sc-modal-base", () => {
   });
 });
 
+// sc-drawer-base shares ScDialogBase with the modal; the showModal()/top-layer/
+// slide is CDP-verified. Here: structure, slotted content, side reflection, and
+// the close-event contract.
+describe("sc-drawer-base", () => {
+  it("renders a <dialog class=drawer> slotting its content, side reflected", async () => {
+    const el = document.createElement("sc-drawer-base");
+    el.side = "left";
+    el.innerHTML = "<header><h2>Plugins</h2></header><div>body</div>";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const dialog = el.renderRoot.querySelector("dialog");
+    expect(dialog!.classList.contains("drawer")).toBe(true);
+    expect(el.getAttribute("side")).toBe("left");
+    expect(el.querySelector("header h2")!.textContent).toBe("Plugins");
+  });
+
+  it("defaults to the right side and emits close on dialog close", async () => {
+    const el = document.createElement("sc-drawer-base");
+    el.dismissable = true;
+    el.open = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.getAttribute("side")).toBe("right");
+    let closed = 0;
+    el.addEventListener("close", () => closed++);
+    el.renderRoot.querySelector("dialog")!.dispatchEvent(new Event("close"));
+    expect(closed).toBe(1);
+    expect(el.open).toBe(false);
+  });
+});
+
 // Host-only content wrappers (the sc-text-base pattern): no template, light DOM,
 // children preserved, styling driven by reflected attributes.
 describe("host-only content wrappers", () => {

@@ -111,6 +111,7 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` (top-layer popover) |
 | `sc-popover-base` | `open` `placement` `anchor` | `toggle` | **shadow DOM**; top-layer anchored panel (slots content) |
 | `sc-modal-base` | `open` `dismissable` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content) |
+| `sc-drawer-base` | `open` `side` `dismissable` | `close` | **shadow DOM**; edge-anchored slide-in panel over native `<dialog>` (slots content; child `<header>` = title bar) |
 
 ### Variant vocabularies (intentionally different)
 
@@ -202,10 +203,16 @@ only correct escape is the browser **top layer**, reached two ways:
   light-dismiss; the controller only positions). Guarded — degrades to
   in-flow CSS positioning where the Popover API is absent.
 
-- **Native `<dialog>`** for **`sc-modal-base`** — `showModal()` gives the top
-  layer, a `::backdrop`, a focus trap, and Esc for free; no anchoring, so no
-  floating-ui. `dismissable` gates Esc + backdrop-click; a blocking modal
-  swallows `cancel` and re-asserts itself if the UA force-closes it.
+- **Native `<dialog>`** for **`sc-modal-base`** and **`sc-drawer-base`** —
+  `showModal()` gives the top layer, a `::backdrop`, a focus trap, and Esc for
+  free; no anchoring, so no floating-ui. The shared open/close/dismiss lifecycle
+  lives in `internal/sc-dialog-base.ts` (`dismissable` gates Esc + backdrop; a
+  blocking instance swallows `cancel` and re-asserts itself if the UA
+  force-closes it). The modal is centred; the **drawer** is the same dialog
+  pinned to a viewport edge (`side` = right | left), sliding in/out via native
+  CSS (`@starting-style` + `transition-behavior: allow-discrete`), no JS
+  animation. A drawer is *edge*-anchored, not trigger-anchored — floating-ui
+  would have nothing to do.
 
 The app's **toast stack** is a `popover="manual"` element for the same reason
 (never clipped). A modal `<dialog>` still renders above popovers in the top

@@ -15,16 +15,16 @@
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>).
 //
-// Styling: the foundation stylesheet is adopted into the shadow root as a shared
-// constructable sheet, so the chrome lives in foundations/components/sc-select.css
-// (`:host(sc-select-base)` + `.sc-select__*`) like every other component.
+// Styling: the component owns its chrome via Lit `css` (sc-select.styles.ts) +
+// the shared reset; tokens reach the shadow by inheritance from :root.
 
 import { LitElement, html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
-import { foundationStyles } from "./internal/foundation-styles";
+import { resetStyles } from "./internal/reset.styles";
+import { selectStyles } from "./sc-select.styles";
 import { PopoverController } from "./internal/popover-controller";
 
 const DROPDOWN_ID = "sc-select-dropdown";
@@ -51,9 +51,7 @@ export class ScSelectBase extends LitElement {
     }
   })();
 
-  // Adopt the shared foundation sheet into the shadow root; chrome rules live in
-  // foundations/components/sc-select.css.
-  static styles = foundationStyles ? [foundationStyles] : [];
+  static styles = [resetStyles, selectStyles];
 
   // The dropdown floats in the top layer, anchored to the combobox button.
   #popover = new PopoverController(this, { onToggle: (open) => (this.open = open) });

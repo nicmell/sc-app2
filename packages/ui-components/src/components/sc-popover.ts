@@ -11,7 +11,8 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import type { Placement } from "@floating-ui/dom";
-import { foundationStyles } from "./internal/foundation-styles";
+import { resetStyles } from "./internal/reset.styles";
+import { popoverStyles } from "./sc-popover.styles";
 import { PopoverController } from "./internal/popover-controller";
 
 export class ScPopoverBase extends LitElement {
@@ -20,7 +21,7 @@ export class ScPopoverBase extends LitElement {
   /** Anchor element (set via JS/React); defaults to the previous element sibling. */
   accessor anchor: HTMLElement | null = null;
 
-  static styles = foundationStyles ? [foundationStyles] : [];
+  static styles = [resetStyles, popoverStyles];
 
   #popover = new PopoverController(this, {
     placement: this.placement,

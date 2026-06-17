@@ -262,7 +262,7 @@ describe("sc-select-base", () => {
 describe("sc-icon-base", () => {
   it("renders the fill icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
-    const i = el.querySelector("i")!;
+    const i = el.renderRoot.querySelector("i")!;
     expect(i.classList.contains("sc-icon")).toBe(true);
     expect(i.classList.contains("ph-fill")).toBe(true);
     expect(i.classList.contains("ph-play")).toBe(true);
@@ -271,12 +271,12 @@ describe("sc-icon-base", () => {
 
   it("applies the size modifier when given", async () => {
     const el = await mount("sc-icon-base", { name: "play", size: "lg" });
-    expect(el.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
+    expect(el.renderRoot.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
     const el = await mount("sc-icon-base", { name: "play", label: "Play" });
-    const i = el.querySelector("i")!;
+    const i = el.renderRoot.querySelector("i")!;
     expect(i.getAttribute("role")).toBe("img");
     expect(i.getAttribute("aria-label")).toBe("Play");
     expect(i.hasAttribute("aria-hidden")).toBe(false);

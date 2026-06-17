@@ -12,8 +12,6 @@
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
-import { foundationStyles } from "./foundation-styles";
-
 export abstract class ScDialogBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
   /** Whether Esc / backdrop-click close it. Off = blocking. */
@@ -22,9 +20,9 @@ export abstract class ScDialogBase extends LitElement {
    *  announces an unnamed dialog; set it to the modal/drawer's title. */
   @property() accessor label = "";
 
-  static styles = foundationStyles ? [foundationStyles] : [];
+  // Subclasses provide `static styles` (their own chrome + the shared reset).
 
-  /** The chrome class on the <dialog> (keyed by the matching foundation CSS). */
+  /** The chrome class on the <dialog> (keyed by the subclass's styles). */
   protected abstract get dialogClass(): string;
 
   protected get dialog(): HTMLDialogElement | null {

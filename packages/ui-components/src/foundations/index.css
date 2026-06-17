@@ -40,14 +40,10 @@
 @import "./components/sc-option.css";
 @import "./components/sc-radio.css";
 @import "./components/sc-radio-group.css";
-@import "./components/sc-select.css";
-@import "./components/sc-popover.css";
-@import "./components/sc-icon.css";
 @import "./components/sc-button.css";
 @import "./components/sc-input.css";
 @import "./components/sc-inputnumber.css";
 @import "./components/sc-textarea.css";
-@import "./components/sc-disclosure.css";
 
 /* Opt the document into the dark UA palette (form controls, scrollbars). Was on
    :root in the old themes/dark.css; the colour tokens themselves are generated. */

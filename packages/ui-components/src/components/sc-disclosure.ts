@@ -11,12 +11,12 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { foundationStyles } from "./internal/foundation-styles";
+import { disclosureStyles } from "./sc-disclosure.styles";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
 
-  static styles = foundationStyles ? [foundationStyles] : [];
+  static styles = [disclosureStyles];
 
   get #details(): HTMLDetailsElement | null {
     return this.renderRoot.querySelector("details");

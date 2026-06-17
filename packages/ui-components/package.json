@@ -12,7 +12,7 @@
     "./themes/dark": "./src/foundations/themes/dark.css",
     "./themes/light": "./src/foundations/themes/light.css",
     "./lit": "./src/components/lit/index.ts",
-    "./react": "./src/components/react/index.ts",
+    "./react": "./src/components/react.ts",
     "./package.json": "./package.json"
   },
   "scripts": {

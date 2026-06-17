@@ -26,7 +26,7 @@ src/
   components/
     lit/                   the -base Lit web components + registerUiComponents()
       internal/sc-widget-base.ts   abstract base for the interactive widgets
-    react/                 @lit/react wrappers (one per component) + barrel
+    react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
 ### Entry points (package `exports`)

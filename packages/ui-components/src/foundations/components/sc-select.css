@@ -1,28 +1,29 @@
-/* <sc-select-base> chrome. sc-select is the one shadow-DOM widget: the
-   foundation stylesheet is adopted into its shadow root (constructable sheet),
-   so these `:host` + `.sc-select__*` rules apply *inside* the shadow. At the
-   document level they're inert (`:host` matches nothing; no `.sc-select__*` in
-   light DOM). Tokens reach the shadow by inheritance, as always. */
+/* <sc-select-base> chrome. The shared foundation sheet is adopted into its
+   shadow root, so these `.sc-select__*` rules apply inside the shadow. Host
+   rules are scoped as `:host(sc-select-base…)` — a bare `:host` would leak into
+   every OTHER shadow component that adopts the same shared sheet. At the
+   document level `:host(...)` matches nothing (inert). Tokens reach the shadow
+   by inheritance, as always. */
 
-:host {
+:host(sc-select-base) {
   display: inline-block;
   position: relative;
   font-family: var(--font-mono);
   --_accent: var(--color-primary);
 }
-:host([variant="neutral"]) {
+:host(sc-select-base[variant="neutral"]) {
   --_accent: var(--color-text-dim);
 }
-:host([variant="ok"]) {
+:host(sc-select-base[variant="ok"]) {
   --_accent: var(--color-ok);
 }
-:host([variant="warn"]) {
+:host(sc-select-base[variant="warn"]) {
   --_accent: var(--color-warn);
 }
-:host([variant="danger"]) {
+:host(sc-select-base[variant="danger"]) {
   --_accent: var(--color-danger);
 }
-:host([disabled]) {
+:host(sc-select-base[disabled]) {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -46,10 +47,10 @@
   user-select: none;
   transition: border-color var(--transition-fast);
 }
-:host([size="sm"]) .sc-select__combobox {
+:host(sc-select-base[size="sm"]) .sc-select__combobox {
   font-size: var(--font-size-xs);
 }
-:host([size="lg"]) .sc-select__combobox {
+:host(sc-select-base[size="lg"]) .sc-select__combobox {
   font-size: var(--font-size-md);
 }
 .sc-select__combobox:hover,

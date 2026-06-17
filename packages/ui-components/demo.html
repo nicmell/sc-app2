@@ -576,6 +576,37 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-popover-base&gt;</h2>
+        <p class="demo-cap">
+          top-layer anchored overlay — escapes its <code>overflow: hidden</code> +
+          transformed parent (floating-ui positions it, native light-dismiss closes it)
+        </p>
+        <div class="demo-row">
+          <div
+            style="
+              overflow: hidden;
+              transform: translateZ(0);
+              padding: var(--space-s);
+              border: 1px dashed var(--color-border-strong);
+              border-radius: var(--radius-sm);
+            "
+          >
+            <button class="btn" onclick="this.nextElementSibling.open = !this.nextElementSibling.open">
+              toggle popover
+            </button>
+            <sc-popover-base>
+              <div style="padding: var(--space-s); min-inline-size: 12rem">
+                <sc-text-base size="sm">I render in the top layer.</sc-text-base>
+                <sc-text-base size="xs" tone="dim">
+                  Not clipped by the dashed box, not mis-positioned by its transform.
+                </sc-text-base>
+              </div>
+            </sc-popover-base>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor, fill)</h2>
         <p class="demo-cap">inherits text colour; default size follows font-size</p>
         <div class="demo-row" style="font-size: 1.5rem">

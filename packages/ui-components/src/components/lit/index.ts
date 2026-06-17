@@ -20,6 +20,7 @@ import { ScInputBase } from "./sc-input";
 import { ScInputNumberBase } from "./sc-inputnumber";
 import { ScTextareaBase } from "./sc-textarea";
 import { ScTextBase } from "./sc-text";
+import { ScPopoverBase } from "./sc-popover";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -37,6 +38,8 @@ export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge";
 export { ScToastBase, type ScToastVariant } from "./sc-toast";
 export { ScChipBase, type ScChipVariant } from "./sc-chip";
 export { foundationStyles, adoptFoundation } from "./internal/foundation-styles";
+export { PopoverController, type PopoverOptions } from "./internal/popover-controller";
+export { ScPopoverBase } from "./sc-popover";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
@@ -71,6 +74,7 @@ export const REGISTRY = {
   "sc-inputnumber-base": ScInputNumberBase,
   "sc-textarea-base": ScTextareaBase,
   "sc-text-base": ScTextBase,
+  "sc-popover-base": ScPopoverBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -99,5 +103,6 @@ declare global {
     "sc-inputnumber-base": ScInputNumberBase;
     "sc-textarea-base": ScTextareaBase;
     "sc-text-base": ScTextBase;
+    "sc-popover-base": ScPopoverBase;
   }
 }

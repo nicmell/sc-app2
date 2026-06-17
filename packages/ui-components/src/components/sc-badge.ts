@@ -1,10 +1,11 @@
-// <sc-badge-base> — an uppercase pill label. Light DOM, declarative `label`,
-// colour `variant` resolved to a classnames modifier (replacing the old
-// .badge[data-variant]). ok is the default (the base `.badge`).
+// <sc-badge-base> — an uppercase pill label. Shadow DOM; declarative `label`,
+// colour `variant` resolved to a classnames modifier on the inner `.badge`
+// span (sc-badge.styles.ts). ok is the default.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
+import { badgeStyles } from "./sc-badge.styles";
 
 export type ScBadgeVariant = "ok" | "warn" | "error";
 
@@ -12,9 +13,7 @@ export class ScBadgeBase extends LitElement {
   @property() accessor label = "";
   @property() accessor variant: ScBadgeVariant = "ok";
 
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
+  static styles = [badgeStyles];
 
   render() {
     const cls = cx("badge", { [`badge--${this.variant}`]: this.variant !== "ok" });

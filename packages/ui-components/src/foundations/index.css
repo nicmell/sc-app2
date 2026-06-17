@@ -20,15 +20,9 @@
 @import "./base/elements.css";
 @import "./base/typography.css";
 
-/* Semantic component classes. */
-@import "./components/panel.css";
-@import "./components/cluster.css";
-@import "./components/stack.css";
-@import "./components/chip.css";
-@import "./components/badge.css";
+/* App-level layout classes still used by the React host directly (not -base
+   components). The rest moved into each component's own static styles. */
 @import "./components/range-field.css";
-@import "./components/empty-state.css";
-@import "./components/error-alert.css";
 @import "./components/modal.css";
 @import "./components/drawer.css";
 @import "./components/toast.css";
@@ -53,7 +47,6 @@
 @import "./components/sc-input.css";
 @import "./components/sc-inputnumber.css";
 @import "./components/sc-textarea.css";
-@import "./components/sc-text.css";
 @import "./components/sc-disclosure.css";
 
 /* Opt the document into the dark UA palette (form controls, scrollbars). Was on

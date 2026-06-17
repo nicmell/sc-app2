@@ -333,14 +333,14 @@ describe("sc-button-base", () => {
 describe("sc-badge-base", () => {
   it("renders the label; ok is the base class with no modifier", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.querySelector(".badge")!;
+    const span = el.renderRoot.querySelector(".badge")!;
     expect(span.textContent!.trim()).toBe("connected");
     expect(span.classList.contains("badge--ok")).toBe(false);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(el.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
+    expect(el.renderRoot.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
   });
 });
 
@@ -369,17 +369,17 @@ describe("sc-toast-base", () => {
 describe("sc-chip-base", () => {
   it("renders the label; neutral is the base class with no modifier or dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.querySelector(".chip")!;
+    const chip = el.renderRoot.querySelector(".chip")!;
     expect(chip.textContent!.trim()).toBe("idle");
     expect(chip.className).toBe("chip");
-    expect(el.querySelector(".chip__dot")).toBeNull();
+    expect(el.renderRoot.querySelector(".chip__dot")).toBeNull();
   });
 
   it("applies the variant modifier and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.querySelector(".chip")!;
+    const chip = el.renderRoot.querySelector(".chip")!;
     expect(chip.classList.contains("chip--ok")).toBe(true);
-    expect(el.querySelector(".chip__dot")).not.toBeNull();
+    expect(el.renderRoot.querySelector(".chip__dot")).not.toBeNull();
   });
 });
 
@@ -645,8 +645,8 @@ describe("host-only content wrappers", () => {
     el.variant = "error";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot).toBe(el); // light DOM (host-only)
-    expect(el.querySelector("strong")!.textContent).toBe("down");
+    expect(el.renderRoot.querySelector("slot")).not.toBeNull(); // shadow DOM, content slotted
+    expect(el.querySelector("strong")!.textContent).toBe("down"); // slotted child stays light-DOM
     expect(el.getAttribute("variant")).toBe("error");
   });
 
@@ -673,7 +673,7 @@ describe("host-only content wrappers", () => {
     el.textContent = "no items yet";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot).toBe(el);
+    expect(el.renderRoot.querySelector("slot")).not.toBeNull();
     expect(el.textContent).toBe("no items yet");
   });
 
@@ -684,7 +684,7 @@ describe("host-only content wrappers", () => {
       el.gap = "md";
       document.body.appendChild(el);
       await el.updateComplete;
-      expect(el.renderRoot).toBe(el); // light DOM (host-only)
+      expect(el.renderRoot.querySelector("slot")).not.toBeNull(); // shadow DOM, content slotted
       expect(el.querySelectorAll("span").length).toBe(2);
       expect(el.getAttribute("gap")).toBe("md");
     }

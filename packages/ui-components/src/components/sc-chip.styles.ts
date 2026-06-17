@@ -1,0 +1,57 @@
+import { css } from "lit";
+
+/** <sc-chip-base> — tinted status pill + optional leading dot. */
+export const chipStyles = css`
+  :host {
+    display: inline-flex;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: var(--space-3xs) var(--space-xs);
+    background: var(--color-surface-2);
+    color: var(--color-text-dim);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip__dot {
+    font-size: 0.7em;
+    line-height: 1;
+    color: var(--color-text-mute);
+  }
+  .chip--ok {
+    background: var(--color-ok-bg);
+    border-color: var(--color-ok-strong);
+    color: var(--color-ok-text);
+  }
+  .chip--ok .chip__dot {
+    color: var(--color-ok);
+  }
+  .chip--warn {
+    background: var(--color-warn-bg);
+    border-color: var(--color-warn-border);
+    color: var(--color-warn-text);
+  }
+  .chip--warn .chip__dot {
+    color: var(--color-warn);
+  }
+  .chip--error {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+    color: var(--color-error-text);
+  }
+  .chip--error .chip__dot {
+    color: var(--color-danger);
+  }
+  .chip--info {
+    background: var(--color-info-bg);
+    border-color: var(--color-info-border);
+    color: var(--color-info-text);
+  }
+  .chip--info .chip__dot {
+    color: var(--color-primary);
+  }
+`;

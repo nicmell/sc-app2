@@ -7,7 +7,6 @@
 
 :host(sc-select-base) {
   display: inline-block;
-  position: relative;
   font-family: var(--font-mono);
   --_accent: var(--color-primary);
 }
@@ -72,12 +71,14 @@
   border-top: 0.35rem solid var(--color-text-dim);
 }
 
+/* The dropdown is a top-layer `popover` element positioned `fixed` by the
+   PopoverController, so it needs no absolute/z-index of its own. Reset the UA
+   popover centering (margin:auto/inset:0); width tracks the combobox via the
+   controller's anchor (a sensible min keeps short option lists usable). */
 .sc-select__dropdown {
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 0;
-  right: 0;
-  z-index: 10;
+  margin: 0;
+  inset: auto;
+  min-inline-size: 8rem;
   padding: var(--space-3xs);
   background: var(--color-surface-1);
   border: 1px solid var(--color-border-strong);

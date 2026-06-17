@@ -223,28 +223,28 @@ describe("sc-select-base", () => {
   }
 
   const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".sc-select__combobox")!;
-  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector(".sc-select__dropdown");
+  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLElement>(".sc-select__dropdown")!;
 
-  it("shows the selected option label and opens on combobox click", async () => {
+  // The dropdown is a top-layer `popover` element, always present and toggled
+  // by the browser via `popovertarget` (open/close + light-dismiss aren't
+  // exercisable in happy-dom — that's the CDP harness's job). Here we assert the
+  // wiring + the context selection path, which are framework-level.
+  it("shows the selected option label and wires the combobox to the popover dropdown", async () => {
     const { select } = await mountSelect(1);
     expect(combobox(select).textContent!.trim()).toBe("Saw");
-    expect(dropdown(select)).toBeNull();
-    combobox(select).click();
-    await select.updateComplete;
-    expect(dropdown(select)).not.toBeNull();
+    const panel = dropdown(select);
+    expect(panel.getAttribute("role")).toBe("listbox");
+    expect(combobox(select).getAttribute("popovertarget")).toBe(panel.id);
   });
 
-  it("picks an option via context: updates value, fires change, closes", async () => {
+  it("picks an option via context: updates value, fires change", async () => {
     const { select, options } = await mountSelect(0);
-    combobox(select).click();
-    await select.updateComplete;
     let changes = 0;
     select.addEventListener("change", () => (changes += 1));
     options[2].querySelector<HTMLElement>(".sc-option")!.click();
     await select.updateComplete;
     expect(select.value).toBe(2);
     expect(changes).toBe(1);
-    expect(dropdown(select)).toBeNull();
   });
 
   it("marks the selected option via context", async () => {

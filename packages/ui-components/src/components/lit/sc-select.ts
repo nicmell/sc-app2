@@ -6,19 +6,28 @@
 // `static styles` (tokens pierce the shadow boundary); the slotted options
 // stay light-DOM and are styled by the global `.sc-option` CSS.
 //
+// The dropdown is a TOP-LAYER popover (PopoverController): it escapes any
+// clipping/transformed ancestor (e.g. a dashboard grid cell) and floats above
+// the page, positioned under the combobox by @floating-ui/dom. The combobox
+// button carries `popovertarget` so the browser owns the open/close toggle and
+// native light-dismiss (outside-click + Esc) — no manual document listeners.
+//
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>).
 //
 // Styling: the foundation stylesheet is adopted into the shadow root as a shared
 // constructable sheet, so the chrome lives in foundations/components/sc-select.css
-// (`:host` + `.sc-select__*`) like every other component — no inline css here.
+// (`:host(sc-select-base)` + `.sc-select__*`) like every other component.
 
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
 import { foundationStyles } from "./internal/foundation-styles";
+import { PopoverController } from "./internal/popover-controller";
+
+const DROPDOWN_ID = "sc-select-dropdown";
 
 export class ScSelectBase extends LitElement {
   // Form-associated: it has no native control (shadow DOM), so it submits its
@@ -46,8 +55,11 @@ export class ScSelectBase extends LitElement {
   // foundations/components/sc-select.css.
   static styles = foundationStyles ? [foundationStyles] : [];
 
+  // The dropdown floats in the top layer, anchored to the combobox button.
+  #popover = new PopoverController(this, { onToggle: (open) => (this.open = open) });
+
   #select = (value: number): void => {
-    this.open = false;
+    this.#popover.hide();
     if (value !== this.value) {
       this.value = value;
       this.dispatchEvent(new Event("change", { bubbles: true }));
@@ -60,27 +72,11 @@ export class ScSelectBase extends LitElement {
     return { value: this.value, select: this.#select };
   }
 
-  #toggle = (): void => {
-    if (!this.disabled) this.open = !this.open;
-  };
-
-  #onKeydown = (e: KeyboardEvent): void => {
-    if (e.key === "Escape") this.open = false;
-  };
-
-  // Outside-click closes — composedPath() so a click inside still counts.
-  #onDocClick = (e: MouseEvent): void => {
-    if (this.open && !e.composedPath().includes(this)) this.open = false;
-  };
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    document.addEventListener("click", this.#onDocClick);
+  get #combobox(): HTMLElement | null {
+    return this.renderRoot.querySelector(".sc-select__combobox");
   }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    document.removeEventListener("click", this.#onDocClick);
+  get #dropdown(): HTMLElement | null {
+    return this.renderRoot.querySelector(".sc-select__dropdown");
   }
 
   get #label(): string {
@@ -89,6 +85,12 @@ export class ScSelectBase extends LitElement {
     >;
     const selected = options.find((o) => o.value === this.value);
     return selected ? selected.label : this.placeholder || String(this.value);
+  }
+
+  protected firstUpdated(): void {
+    const panel = this.#dropdown;
+    const anchor = this.#combobox;
+    if (panel && anchor) this.#popover.attach(panel, anchor);
   }
 
   protected updated(): void {
@@ -104,18 +106,15 @@ export class ScSelectBase extends LitElement {
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded=${this.open}
+        popovertarget=${DROPDOWN_ID}
         ?disabled=${this.disabled}
-        @click=${this.#toggle}
-        @keydown=${this.#onKeydown}
       >
         <span class="sc-select__label">${this.#label}</span>
         <span class="sc-select__arrow" aria-hidden="true"></span>
       </button>
-      ${this.open
-        ? html`<div class="sc-select__dropdown" role="listbox">
-            <slot @slotchange=${() => this.requestUpdate()}></slot>
-          </div>`
-        : nothing}
+      <div class="sc-select__dropdown" id=${DROPDOWN_ID} role="listbox">
+        <slot @slotchange=${() => this.requestUpdate()}></slot>
+      </div>
     `;
   }
 }

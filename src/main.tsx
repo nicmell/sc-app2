@@ -1,17 +1,19 @@
 // Phosphor icon font — fill weight only (the one weight sc-icon-base supports).
-// Provides the global `.ph-fill` / `.ph-<name>` classes <sc-icon-base> emits.
+// Registers the @font-face at the document level so the "Phosphor-Fill" font is
+// usable inside <sc-icon-base>'s shadow root (which adopts the glyph CSS itself).
 import "@phosphor-icons/web/fill";
+// The global foundation CSS: design tokens (:root custom properties, which
+// inherit into every shadow root) + reset + base element styles + the few
+// app-level layout classes. Every `-base` component styles itself in its own
+// shadow, so this carries no component classes.
+import "@sc-app/ui-components";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { registerScElements } from "./sc-elements";
-import { registerUiComponents, adoptFoundation } from "@sc-app/ui-components/lit";
+import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
 
-// Adopt the foundation stylesheet onto the document — the SAME shared
-// CSSStyleSheet that shadow-DOM widgets (sc-select) adopt into their roots, so
-// the foundation CSS is parsed once and shipped once (no separate `<style>`).
-adoptFoundation();
 // Define the plugin custom elements + the ui-components `-base` widgets (used by
 // the React shell and inside Lit widgets like sc-strudel), then open the session
 // before first render so injected plugin HTML upgrades and the elements have a

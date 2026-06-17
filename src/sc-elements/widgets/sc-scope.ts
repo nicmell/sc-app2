@@ -23,6 +23,7 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
+import { color } from "@sc-app/ui-components/tokens";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
 import {
   SCOPE_CHANNELS,
@@ -165,9 +166,12 @@ export class ScScope extends ScElement {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private raf = 0;
-  private bg = "#15171b";
-  private zero = "#262930";
-  private chans = ["#8ab4f8", "#96f2a7"];
+  // Canvas fallbacks come straight from the design tokens (TS module), so the
+  // JS-drawn waveform matches the CSS palette without duplicating hexes. The
+  // live values are still read from the computed CSS vars in syncColors().
+  private bg: string = color["surface-2"];
+  private zero: string = color.border;
+  private chans: string[] = [color.tx, color.rx];
   /** What the canvas currently shows — the RAF loop repaints only when the
    *  chunk (each arrives as a fresh object) or the backing size changed:
    *  chunks land at ~47 Hz against a 60 Hz RAF, and a dark scope costs

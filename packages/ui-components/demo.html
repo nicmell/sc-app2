@@ -44,6 +44,20 @@
         gap: var(--space-sm);
         align-items: center;
       }
+      /* Demo-local layout helpers (the foundation's stack/cluster are now the
+         <sc-stack-base>/<sc-cluster-base> elements; these just arrange rows). */
+      .demo-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        align-items: flex-start;
+      }
+      .demo-cluster {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
       .demo-cap {
         margin: 0;
         font-family: var(--font-mono);
@@ -63,11 +77,10 @@
     <div class="demo-shell">
       <h1>@sc-app/ui-components</h1>
       <p>
-        The CSS foundation (tokens + reset + base elements + component classes) followed by the
-        graphical <code>-base</code> input widgets (Lit web components). If anything looks off in
-        the foundation sections, the foundation is leaking — fix before migrating panels. The
-        widgets at the bottom need the TS modules transpiled, so serve this file through Vite
-        (<code>npx vite</code> from this package dir).
+        The CSS foundation (design tokens + reset + base element styles) followed by the
+        <code>-base</code> components — Lit web components that each style themselves in their own
+        shadow root (the tokens inherit in). Serve through Vite (<code>npx vite</code> from this
+        package dir) so the TS modules transpile.
       </p>
 
       <section class="demo-section">
@@ -132,7 +145,7 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <div class="stack stack--sm">
+        <div class="demo-stack">
           <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
           <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
           <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
@@ -162,7 +175,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <div class="stack stack--sm">
+        <div class="demo-stack">
           <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
           <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
           <sc-text-base size="md">Medium (default body)</sc-text-base>
@@ -170,7 +183,7 @@ function dirtPlay(event) {
           <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
         </div>
         <p class="demo-cap">tones</p>
-        <div class="cluster cluster--md">
+        <div class="demo-cluster">
           <sc-text-base>default</sc-text-base>
           <sc-text-base tone="dim">dim</sc-text-base>
           <sc-text-base tone="mute">mute</sc-text-base>
@@ -195,7 +208,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <div class="stack stack--sm">
+        <div class="demo-stack">
           <sc-disclosure-base>
             <span slot="summary">Details summary (click to expand)</span>
             <sc-text-base size="sm" tone="dim">
@@ -229,14 +242,14 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-panel-base&gt; + cluster + stack</h2>
-        <div class="cluster cluster--md" style="align-items: flex-start">
+        <div class="demo-cluster" style="align-items: flex-start">
           <sc-panel-base>
             <header>Panel header</header>
-            <div class="cluster cluster--md">
+            <div class="demo-cluster">
               <span>cluster: row of inline things</span>
               <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
             </div>
-            <div class="stack stack--sm">
+            <div class="demo-stack">
               <span>stack item 1</span>
               <span>stack item 2</span>
               <span>stack item 3</span>
@@ -252,7 +265,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
-        <div class="cluster cluster--sm">
+        <div class="demo-cluster">
           <sc-chip-base dot label="idle"></sc-chip-base>
           <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
           <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
@@ -263,7 +276,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-badge-base&gt;</h2>
-        <div class="cluster cluster--sm">
+        <div class="demo-cluster">
           <sc-badge-base label="connected"></sc-badge-base>
           <sc-badge-base label="degraded" variant="warn"></sc-badge-base>
           <sc-badge-base label="offline" variant="error"></sc-badge-base>
@@ -286,7 +299,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
-        <div class="stack stack--sm">
+        <div class="demo-stack">
           <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
           <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
           <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
@@ -327,14 +340,7 @@ function dirtPlay(event) {
             </div>
           </sc-modal-base>
         </div>
-        <p class="demo-cap">
-          legacy <code>.modal</code> chrome (static preview) + indeterminate
-          <code>.modal-progress</code>:
-        </p>
-        <div class="modal" style="position: static">
-          <h2 class="modal-title">Reinitialize dashboard?</h2>
-          <p class="modal-body">The same card chrome, shown in flow.</p>
-        </div>
+        <p class="demo-cap">indeterminate <code>.modal-progress</code> (the loader bar):</p>
         <div class="modal-progress"></div>
       </section>
 
@@ -345,7 +351,7 @@ function dirtPlay(event) {
           <code>.toast-stack</code> at the bottom-right of the viewport. Below renders the cards
           without the stack so they show in flow.
         </p>
-        <div class="stack">
+        <div class="demo-stack">
           <sc-toast-base message="Default toast — muted accent."></sc-toast-base>
           <sc-toast-base
             variant="info"
@@ -692,7 +698,7 @@ function dirtPlay(event) {
                 onclick="document.getElementById('demo-drawer-r').open = false"
               ></sc-button-base>
             </header>
-            <div class="drawer-body stack stack--sm">
+            <div class="drawer-body demo-stack">
               <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
               <sc-empty-base>no plugins installed yet</sc-empty-base>
             </div>

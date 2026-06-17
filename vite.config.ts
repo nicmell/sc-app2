@@ -50,6 +50,9 @@ export default defineConfig(() => ({
       "@sc-app/ui-components/react": fileURLToPath(
         new URL("./packages/ui-components/src/components/react.ts", import.meta.url),
       ),
+      "@sc-app/ui-components/tokens": fileURLToPath(
+        new URL("./packages/ui-components/src/foundations/generated/tokens.generated.ts", import.meta.url),
+      ),
       // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },

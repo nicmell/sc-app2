@@ -1,0 +1,91 @@
+import { css } from "lit";
+
+/** <sc-button-base> — appearance variants + sizes + icon-only. The `.sc-button`
+ *  rules fully style the inner <button> (no reliance on the base button reset). */
+export const buttonStyles = css`
+  :host {
+    display: inline-block;
+  }
+
+  .sc-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-md);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .sc-button--sm {
+    padding: var(--space-2xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+  }
+  .sc-button--md {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-size-sm);
+  }
+  .sc-button--lg {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+  }
+
+  .sc-button--icon {
+    padding: var(--space-xs);
+  }
+  .sc-button--icon.sc-button--sm {
+    padding: var(--space-2xs);
+  }
+  .sc-button--icon.sc-button--lg {
+    padding: var(--space-sm);
+  }
+
+  .sc-button--primary {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .sc-button--primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+  .sc-button--secondary {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+  }
+  .sc-button--secondary:hover:not(:disabled) {
+    border-color: var(--color-border-stronger);
+  }
+  .sc-button--ghost {
+    background: transparent;
+    color: var(--color-text);
+    border-color: var(--color-border-stronger);
+  }
+  .sc-button--ghost:hover:not(:disabled) {
+    border-color: var(--color-border-focus);
+  }
+  .sc-button--danger {
+    background: var(--color-danger);
+    color: var(--color-on-primary);
+  }
+  .sc-button--danger:hover:not(:disabled) {
+    background: var(--color-danger-hover);
+  }
+
+  .sc-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .sc-button:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+`;

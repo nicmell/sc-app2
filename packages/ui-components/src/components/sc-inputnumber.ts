@@ -9,19 +9,34 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "./sc-input";
+import { resetStyles } from "./internal/reset.styles";
+import { inputStyles } from "./sc-input.styles";
+import { inputnumberStyles } from "./sc-inputnumber.styles";
 
 export class ScInputNumberBase extends LitElement {
+  static formAssociated = true;
+
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = -Infinity;
   @property({ type: Number }) accessor max = Infinity;
   @property({ type: Number }) accessor step = 1;
   @property() accessor placeholder = "";
-  @property() accessor name = "";
+  @property({ reflect: true }) accessor name = "";
   @property() accessor size: ScInputSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
 
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
+  static styles = [resetStyles, inputStyles, inputnumberStyles];
+
+  readonly #internals: ElementInternals | undefined = (() => {
+    try {
+      return this.attachInternals();
+    } catch {
+      return undefined;
+    }
+  })();
+
+  protected updated(): void {
+    this.#internals?.setFormValue(String(this.value));
   }
 
   private _clamp(n: number): number {
@@ -36,21 +51,25 @@ export class ScInputNumberBase extends LitElement {
   }
 
   private get _input(): HTMLInputElement {
-    return this.querySelector("input") as HTMLInputElement;
+    return this.renderRoot.querySelector("input") as HTMLInputElement;
   }
 
   // Free typing: sync the parsed value (no clamp mid-edit); native input bubbles.
+  // Free typing: sync the parsed value (no clamp mid-edit) + re-emit composed
+  // input (native input events don't cross the shadow boundary).
   private _onInput = (e: Event): void => {
     const n = Number.parseFloat((e.target as HTMLInputElement).value);
     if (!Number.isNaN(n)) this.value = n;
+    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
   };
 
-  // Commit (blur/Enter): clamp + reconcile the field; native change bubbles.
+  // Commit (blur/Enter): clamp + reconcile the field, then re-emit composed change.
   private _onChange = (): void => {
     const n = Number.parseFloat(this._input.value);
     const v = Number.isNaN(n) ? this.value : this._clamp(n);
     this.value = v;
     this._input.value = String(v);
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   private _stepBy(dir: 1 | -1): void {

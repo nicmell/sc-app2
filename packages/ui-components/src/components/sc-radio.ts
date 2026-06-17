@@ -11,11 +11,16 @@ import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
 import { ScWidgetBase } from "./internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "./internal/contexts";
+import { resetStyles } from "./internal/reset.styles";
+import { widgetBaseStyles } from "./internal/widget-base.styles";
+import { radioStyles } from "./sc-radio.styles";
 
 export class ScRadioBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
   @property({ type: Boolean }) accessor checked = false;
+
+  static styles = [resetStyles, widgetBaseStyles, radioStyles];
 
   #group = new ContextConsumer(this, { context: radioGroupContext, subscribe: true });
 

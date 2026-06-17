@@ -1,28 +1,13 @@
 /**
- * .toast-stack + .toast — bottom-right anchored notification
- * stack with per-variant accents.
+ * .toast-stack — the bottom-right notification stack container, owned by the
+ * app's React ToastStack (a `popover="manual"` div in light DOM). The toast
+ * CARD chrome (.toast / .toast--*) now lives in the <sc-toast-base> shadow
+ * (sc-toast.styles.ts); a toast just lives inside this stack.
  *
- * The individual card is rendered by <sc-toast-base>
- * (src/components); the variant is a classnames modifier, not a
- * data attribute. The `.toast-stack` is a plain fixed-position
- * layout container — a <sc-toast-base> just lives inside it.
- *
- * The stack uses `pointer-events: none` so users can click
- * through the gaps; the `.toast` re-enables them (and
- * pointer-events inherits, so it works through the host).
- *
- * The stack is shown as a `popover="manual"` element (top layer) so it's never
- * clipped and renders over the page chrome; the `inset:auto` + `margin:0` undo
- * the UA popover centering, and the `z-index` is a fallback for where the
- * Popover API is absent.
- *
- * Variants: success (ok), warn, error, info. Default (none) is
- * muted — same chrome with the standard border colour.
+ * `inset:auto` + `margin:0` undo the UA popover centering; `z-index` is the
+ * fallback for where the Popover API is absent; `pointer-events:none` lets
+ * clicks through the gaps (the toast card re-enables them).
  */
-
-:where(sc-toast-base) {
-  display: block;
-}
 
 .toast-stack {
   position: fixed;
@@ -35,75 +20,4 @@
   gap: var(--space-xs);
   z-index: 1000;
   pointer-events: none;
-}
-
-.toast {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-xs);
-  min-width: 16rem;
-  max-width: 24rem;
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--color-surface-1);
-  color: var(--color-text);
-  border: 1px solid var(--color-border-strong);
-  border-left: 3px solid var(--color-text-mute);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  font-size: var(--font-size-sm);
-  pointer-events: auto;
-  animation: toast-slide-in var(--transition-base);
-}
-
-.toast--success {
-  border-left-color: var(--color-ok);
-}
-
-.toast--warn {
-  border-left-color: var(--color-warn);
-}
-
-.toast--error {
-  border-left-color: var(--color-danger);
-}
-
-.toast--info {
-  border-left-color: var(--color-primary);
-}
-
-.toast-message {
-  flex: 1 1 auto;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  line-height: var(--line-height-normal);
-}
-
-.toast-close {
-  flex: 0 0 auto;
-  padding: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: transparent;
-  border: none;
-  color: var(--color-text-mute);
-  cursor: pointer;
-  font-size: var(--font-size-md);
-  line-height: 1;
-  border-radius: var(--radius-xs);
-}
-
-.toast-close:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface-3);
-}
-
-@keyframes toast-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }

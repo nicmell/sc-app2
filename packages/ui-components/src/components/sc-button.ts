@@ -1,19 +1,25 @@
-// <sc-button-base> — a UI-only button. Light DOM (so the inner <button>
-// participates in forms and the foundation classes apply), declarative content
-// via `label` + optional leading/trailing Phosphor icons, plus an icon-only
-// mode. `variant` here is button *appearance* (primary/secondary/ghost/danger),
-// distinct from the accent `variant` on the input widgets — so this does not
-// extend ScWidgetBase. Click is the native event bubbling from the inner button;
-// no custom event is dispatched.
+// <sc-button-base> — a UI-only button. Shadow DOM; owns its styles via Lit `css`
+// (sc-button.styles.ts). Declarative content via `label` + optional leading/
+// trailing Phosphor icons (nested <sc-icon-base>, which carries the glyph CSS in
+// its own shadow), plus an icon-only mode. `variant` here is button *appearance*
+// (primary/secondary/ghost/danger), distinct from the accent `variant` on the
+// input widgets — so this does not extend ScWidgetBase. Click is the native
+// event bubbling from the inner button (composed); no custom event. Note: a
+// `type="submit"` button inside the shadow won't auto-submit an outer form — the
+// app drives actions via onClick.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "./internal/sc-widget-base";
+import { resetStyles } from "./internal/reset.styles";
+import { buttonStyles } from "./sc-button.styles";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 export class ScButtonBase extends LitElement {
+  static styles = [resetStyles, buttonStyles];
+
   /** Button text + accessible name. Used as the aria-label when `iconOnly`. */
   @property() accessor label = "";
   /** Leading icon (Phosphor name, fill weight via <sc-icon-base>). */
@@ -26,11 +32,6 @@ export class ScButtonBase extends LitElement {
   @property() accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
   @property() accessor type: "button" | "submit" | "reset" = "button";
-
-  /** Light DOM so the inner <button> joins any enclosing form + global CSS. */
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
 
   render() {
     const iconOnly = this.iconOnly && !!this.icon;

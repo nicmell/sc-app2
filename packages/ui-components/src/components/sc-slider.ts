@@ -7,6 +7,9 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
+import { resetStyles } from "./internal/reset.styles";
+import { widgetBaseStyles } from "./internal/widget-base.styles";
+import { sliderStyles } from "./sc-slider.styles";
 
 export class ScSliderBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
@@ -17,6 +20,22 @@ export class ScSliderBase extends ScWidgetBase {
   /** Accessible name for the control (→ aria-label on the range input). */
   @property() accessor label = "";
 
+  static styles = [resetStyles, widgetBaseStyles, sliderStyles];
+
+  static formAssociated = true;
+
+  readonly #internals: ElementInternals | undefined = (() => {
+    try {
+      return this.attachInternals();
+    } catch {
+      return undefined;
+    }
+  })();
+
+  protected updated(): void {
+    this.#internals?.setFormValue(String(this.value));
+  }
+
   /** Value announced by screen readers, rounded to the step's precision. */
   private _valueText(): string {
     const precision = Math.max(0, Math.round(-Math.log10(this.step)));
@@ -24,7 +43,7 @@ export class ScSliderBase extends ScWidgetBase {
   }
 
   private get _input(): HTMLInputElement {
-    return this.querySelector("input") as HTMLInputElement;
+    return this.renderRoot.querySelector("input") as HTMLInputElement;
   }
 
   connectedCallback(): void {
@@ -41,8 +60,12 @@ export class ScSliderBase extends ScWidgetBase {
     this.removeEventListener("wheel", this._onWheel);
   }
 
-  private _onRangeInput = (): void => {
+  private _onRangeInput = (e: Event): void => {
     this.value = Number(this._input.value);
+    this.reemit(e);
+  };
+  private _onRangeChange = (e: Event): void => {
+    this.reemit(e);
   };
 
   private _quantize(raw: number): number {
@@ -138,6 +161,7 @@ export class ScSliderBase extends ScWidgetBase {
           aria-valuetext=${this._valueText()}
           ?disabled=${this.disabled}
           @input=${this._onRangeInput}
+          @change=${this._onRangeChange}
         />
         <div class="sc-slider__track">
           <div class="sc-slider__fill" style=${fillStyle}></div>

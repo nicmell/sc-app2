@@ -1,14 +1,18 @@
-// <sc-radio-group-base> — a Lit ContextProvider coordinating its declarative
-// <sc-radio-base> children (the old sc-app model). It renders no template, so
-// the radio children are preserved; it provides the selected value + a `select`
-// callback + a shared name + size/variant/disabled through context. A child's
-// native `change` is swallowed and the group re-emits a single `change` from
-// the host (consumers read `el.value`, like a native <select>).
+// <sc-radio-group-base> — a Lit ContextProvider coordinating its slotted
+// <sc-radio-base> children. Shadow DOM (renders a <slot>); provides the selected
+// value + a `select` callback + shared name + size/variant/disabled through
+// context (which crosses the shadow boundary). A child reports selection via the
+// context callback, and the group re-emits a single `change` from the host
+// (consumers read `el.value`, like a native <select>). Form-associated
+// (ElementInternals) so the selected value submits under the group's `name`.
 
+import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { ScWidgetBase } from "./internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "./internal/contexts";
+import { resetStyles } from "./internal/reset.styles";
+import { radioGroupStyles } from "./sc-radio-group.styles";
 
 let groupId = 0;
 
@@ -18,8 +22,20 @@ export class ScRadioGroupBase extends ScWidgetBase {
   /** Accessible name for the group (→ aria-label on the role=radiogroup host). */
   @property() accessor label = "";
 
-  // Auto fallback so native grouping works even without a form `name`.
+  static styles = [resetStyles, radioGroupStyles];
+
+  // Shared name fallback (passed to the radios' inner inputs via context).
   readonly #autoName = `sc-radio-group-${++groupId}`;
+
+  static formAssociated = true;
+
+  readonly #internals: ElementInternals | undefined = (() => {
+    try {
+      return this.attachInternals();
+    } catch {
+      return undefined;
+    }
+  })();
 
   #select = (value: number): void => {
     if (this.disabled || value === this.value) return;
@@ -63,7 +79,12 @@ export class ScRadioGroupBase extends ScWidgetBase {
 
   protected updated(): void {
     this.#provider.setValue(this.#ctx());
+    this.#internals?.setFormValue(String(this.value));
     if (this.label) this.setAttribute("aria-label", this.label);
     else this.removeAttribute("aria-label");
+  }
+
+  render() {
+    return html`<slot></slot>`;
   }
 }

@@ -297,24 +297,43 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">Modal (inline preview, not portal)</h2>
-        <p>
-          Below renders a modal card without the fixed-position backdrop, so it shows in flow. In
-          real use the
-          <code>.modal-backdrop</code> wrapper centres + dims.
+        <h2 class="demo-section-title">&lt;sc-modal-base&gt;</h2>
+        <p class="demo-cap">
+          centred blocking modal in the top layer (native <code>&lt;dialog&gt;</code>:
+          backdrop + focus trap + Esc); <code>dismissable</code> closes on Esc / backdrop
+        </p>
+        <div class="demo-row">
+          <button class="btn" onclick="document.getElementById('demo-modal').open = true">
+            open modal
+          </button>
+          <sc-modal-base id="demo-modal" dismissable>
+            <h2 class="modal-title">Reinitialize dashboard?</h2>
+            <p class="modal-body">
+              Active recordings will be stopped, and any recordings in this session — including ones
+              already finalised — will be lost when the dashboard reinitializes.
+            </p>
+            <div class="modal-actions">
+              <sc-button-base
+                label="Cancel"
+                variant="secondary"
+                onclick="document.getElementById('demo-modal').open = false"
+              ></sc-button-base>
+              <sc-button-base
+                label="Reinitialize"
+                variant="danger"
+                onclick="document.getElementById('demo-modal').open = false"
+              ></sc-button-base>
+            </div>
+          </sc-modal-base>
+        </div>
+        <p class="demo-cap">
+          legacy <code>.modal</code> chrome (static preview) + indeterminate
+          <code>.modal-progress</code>:
         </p>
         <div class="modal" style="position: static">
           <h2 class="modal-title">Reinitialize dashboard?</h2>
-          <p class="modal-body">
-            Active recordings will be stopped, and any recordings in this session — including ones
-            already finalised — will be lost when the dashboard reinitializes.
-          </p>
-          <div class="modal-actions">
-            <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
-            <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
-          </div>
+          <p class="modal-body">The same card chrome, shown in flow.</p>
         </div>
-        <p>Indeterminate progress (LoadingModal):</p>
         <div class="modal-progress"></div>
       </section>
 

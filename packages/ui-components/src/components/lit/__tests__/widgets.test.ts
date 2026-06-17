@@ -222,8 +222,8 @@ describe("sc-select-base", () => {
     return { select, options };
   }
 
-  const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
-  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector(".dropdown");
+  const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".sc-select__combobox")!;
+  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector(".sc-select__dropdown");
 
   it("shows the selected option label and opens on combobox click", async () => {
     const { select } = await mountSelect(1);

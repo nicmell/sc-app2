@@ -8,12 +8,29 @@
 //
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>).
+//
+// Styling: the foundation stylesheet is adopted into the shadow root as a shared
+// constructable sheet, so the chrome lives in foundations/components/sc-select.css
+// (`:host` + `.sc-select__*`) like every other component — no inline css here.
 
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
+import foundationCss from "../../foundations/index.css?inline";
+
+// One shared sheet for every select shadow root (cheap; unused selectors are
+// harmless). Guarded for non-browser test envs without constructable sheets.
+const foundationSheet: CSSStyleSheet | undefined = (() => {
+  try {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(foundationCss);
+    return sheet;
+  } catch {
+    return undefined;
+  }
+})();
 
 export class ScSelectBase extends LitElement {
   // Form-associated: it has no native control (shadow DOM), so it submits its
@@ -37,85 +54,9 @@ export class ScSelectBase extends LitElement {
     }
   })();
 
-  static styles = css`
-    :host {
-      display: inline-block;
-      position: relative;
-      font-family: var(--font-mono);
-      --_accent: var(--color-primary);
-    }
-    :host([variant="neutral"]) {
-      --_accent: var(--color-text-dim);
-    }
-    :host([variant="ok"]) {
-      --_accent: var(--color-ok);
-    }
-    :host([variant="warn"]) {
-      --_accent: var(--color-warn);
-    }
-    :host([variant="danger"]) {
-      --_accent: var(--color-danger);
-    }
-    :host([disabled]) {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    .combobox {
-      appearance: none;
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-xs);
-      inline-size: 100%;
-      min-inline-size: 6rem;
-      margin: 0;
-      padding: var(--space-2xs) var(--space-xs);
-      background: var(--color-surface-input);
-      color: var(--color-text);
-      border: 1px solid var(--color-border-stronger);
-      border-radius: var(--radius-sm);
-      font: inherit;
-      font-size: var(--font-size-sm);
-      cursor: pointer;
-      user-select: none;
-      transition: border-color var(--transition-fast);
-    }
-    :host([size="sm"]) .combobox {
-      font-size: var(--font-size-xs);
-    }
-    :host([size="lg"]) .combobox {
-      font-size: var(--font-size-md);
-    }
-    .combobox:hover,
-    .combobox:focus-visible {
-      outline: none;
-      border-color: var(--color-border-focus);
-    }
-    .label {
-      flex: 1 1 auto;
-      text-align: left;
-    }
-    .arrow {
-      inline-size: 0;
-      block-size: 0;
-      border-left: 0.3rem solid transparent;
-      border-right: 0.3rem solid transparent;
-      border-top: 0.35rem solid var(--color-text-dim);
-    }
-    .dropdown {
-      position: absolute;
-      top: calc(100% + 2px);
-      left: 0;
-      right: 0;
-      z-index: 10;
-      padding: var(--space-3xs);
-      background: var(--color-surface-1);
-      border: 1px solid var(--color-border-strong);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-lg);
-      max-block-size: 14rem;
-      overflow-y: auto;
-    }
-  `;
+  // Adopt the foundation into the shadow root; chrome rules live in
+  // foundations/components/sc-select.css.
+  static styles = foundationSheet ? [foundationSheet] : [];
 
   #select = (value: number): void => {
     this.open = false;
@@ -170,7 +111,7 @@ export class ScSelectBase extends LitElement {
   render() {
     return html`
       <button
-        class="combobox"
+        class="sc-select__combobox"
         type="button"
         role="combobox"
         aria-haspopup="listbox"
@@ -179,11 +120,11 @@ export class ScSelectBase extends LitElement {
         @click=${this.#toggle}
         @keydown=${this.#onKeydown}
       >
-        <span class="label">${this.#label}</span>
-        <span class="arrow" aria-hidden="true"></span>
+        <span class="sc-select__label">${this.#label}</span>
+        <span class="sc-select__arrow" aria-hidden="true"></span>
       </button>
       ${this.open
-        ? html`<div class="dropdown" role="listbox">
+        ? html`<div class="sc-select__dropdown" role="listbox">
             <slot @slotchange=${() => this.requestUpdate()}></slot>
           </div>`
         : nothing}

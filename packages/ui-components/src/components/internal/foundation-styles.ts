@@ -7,7 +7,7 @@
 // `undefined` only in environments without constructable-stylesheet support
 // (guarded so importing this never throws under test runners).
 
-import foundationCss from "../../../foundations/index.css?inline";
+import foundationCss from "../../foundations/index.css?inline";
 
 export const foundationStyles: CSSStyleSheet | undefined = (() => {
   try {

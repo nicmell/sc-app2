@@ -23,9 +23,9 @@ src/
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
     components/*.css        styling for the semantic classes + every -base component
-  components/
-    lit/                   the -base Lit web components + registerUiComponents()
-      internal/sc-widget-base.ts   abstract base for the interactive widgets
+  components/              the -base Lit web components (one file each)
+    index.ts               element barrel + registerUiComponents()
+    internal/sc-widget-base.ts   abstract base for the interactive widgets
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 

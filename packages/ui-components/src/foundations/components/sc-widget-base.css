@@ -1,6 +1,6 @@
 /*
  * Shared plumbing for the graphical `-base` input widgets (packages/ui-components
- * src/components/lit). Each widget's own file holds its layout + size scale;
+ * src/components). Each widget's own file holds its layout + size scale;
  * this file holds what they share:
  *   - host display defaults (custom elements are display:inline otherwise),
  *   - the .sr-only helper for the hidden native <input> each widget sits over,

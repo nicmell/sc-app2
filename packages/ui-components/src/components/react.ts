@@ -43,7 +43,7 @@ import {
   ScStackBase,
   ScClusterBase,
   ScDisclosureBase,
-} from "./lit";
+} from "./index";
 
 registerUiComponents();
 

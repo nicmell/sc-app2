@@ -45,7 +45,7 @@ export default defineConfig(() => ({
       // pass and aren't pre-bundled as a dependency. The bare `.` (CSS) and
       // other subpaths keep resolving through the package `exports`.
       "@sc-app/ui-components/lit": fileURLToPath(
-        new URL("./packages/ui-components/src/components/lit/index.ts", import.meta.url),
+        new URL("./packages/ui-components/src/components/index.ts", import.meta.url),
       ),
       "@sc-app/ui-components/react": fileURLToPath(
         new URL("./packages/ui-components/src/components/react.ts", import.meta.url),

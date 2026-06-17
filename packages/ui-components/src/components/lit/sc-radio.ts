@@ -7,7 +7,6 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ifDefined } from "lit/directives/if-defined.js";
 import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
 import { ScWidgetBase } from "./internal/sc-widget-base";
@@ -49,7 +48,8 @@ export class ScRadioBase extends ScWidgetBase {
         <input
           class="sc-radio__input sr-only"
           type="radio"
-          name=${ifDefined(ctx?.name)}
+          name=${ctx?.name ?? this.name}
+          value=${this.value}
           .checked=${live(this.#checked)}
           ?disabled=${this.#disabled}
           @change=${this._onChange}

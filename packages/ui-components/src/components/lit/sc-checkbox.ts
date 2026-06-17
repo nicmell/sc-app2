@@ -23,6 +23,7 @@ export class ScCheckboxBase extends ScWidgetBase {
         <input
           class="sc-checkbox__input sr-only"
           type="checkbox"
+          name=${this.name}
           .checked=${live(this.checked)}
           ?disabled=${this.disabled}
           @change=${this._onChange}

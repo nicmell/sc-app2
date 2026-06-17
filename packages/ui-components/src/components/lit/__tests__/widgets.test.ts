@@ -494,3 +494,53 @@ describe("sc-text-base", () => {
     expect(el.hasAttribute("inline")).toBe(true);
   });
 });
+
+describe("form participation", () => {
+  it("forwards `name` to the native input/textarea", async () => {
+    const input = await mount("sc-input-base", { name: "title" });
+    expect(input.querySelector("input")!.name).toBe("title");
+    const ta = await mount("sc-textarea-base", { name: "notes" });
+    expect(ta.querySelector("textarea")!.name).toBe("notes");
+    const num = await mount("sc-inputnumber-base", { name: "freq" });
+    expect(num.querySelector("input")!.name).toBe("freq");
+    const cb = await mount("sc-checkbox-base", { name: "agree" });
+    expect(cb.querySelector("input")!.name).toBe("agree");
+    const knob = await mount("sc-knob-base", { name: "gain" });
+    expect(knob.querySelector("input")!.name).toBe("gain");
+  });
+
+  it("radio-group shares its name with the radios + value on the checked one", async () => {
+    const group = document.createElement("sc-radio-group-base");
+    group.setAttribute("name", "wave");
+    group.innerHTML =
+      '<sc-radio-base value="0"></sc-radio-base><sc-radio-base value="1"></sc-radio-base>';
+    group.value = 1;
+    document.body.appendChild(group);
+    await group.updateComplete;
+    const radios = Array.from(group.querySelectorAll("sc-radio-base"));
+    await Promise.all(radios.map((r) => r.updateComplete));
+    await group.updateComplete;
+    await Promise.all(radios.map((r) => r.updateComplete));
+    const inputs = radios.map((r) => r.querySelector("input")!);
+    expect(inputs.every((i) => i.name === "wave")).toBe(true);
+    expect(inputs[1].checked).toBe(true);
+    expect(inputs[1].value).toBe("1");
+  });
+
+  it("submits through a <form> via FormData", async () => {
+    const form = document.createElement("form");
+    const cb = document.createElement("sc-checkbox-base");
+    cb.setAttribute("name", "agree");
+    cb.checked = true;
+    const inp = document.createElement("sc-input-base");
+    inp.setAttribute("name", "title");
+    inp.value = "hi";
+    form.append(cb, inp);
+    document.body.appendChild(form);
+    await cb.updateComplete;
+    await inp.updateComplete;
+    const data = new FormData(form);
+    expect(data.get("title")).toBe("hi");
+    expect(data.get("agree")).toBe("on");
+  });
+});

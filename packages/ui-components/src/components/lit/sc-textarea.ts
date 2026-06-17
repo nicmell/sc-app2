@@ -13,6 +13,7 @@ import type { ScInputSize } from "./sc-input";
 export class ScTextareaBase extends LitElement {
   @property() accessor value = "";
   @property() accessor placeholder = "";
+  @property() accessor name = "";
   @property({ type: Number }) accessor rows = 3;
   @property() accessor size: ScInputSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
@@ -29,6 +30,7 @@ export class ScTextareaBase extends LitElement {
     return html`<textarea
       class=${cx("sc-textarea", `sc-textarea--${this.size}`)}
       rows=${this.rows}
+      name=${this.name}
       placeholder=${this.placeholder}
       ?disabled=${this.disabled}
       .value=${live(this.value)}

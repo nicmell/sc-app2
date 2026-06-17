@@ -114,6 +114,7 @@ export class ScKnobBase extends ScWidgetBase {
         <input
           class="sc-knob__input sr-only"
           type="range"
+          name=${this.name}
           min=${this.min}
           max=${this.max}
           step=${this.step}

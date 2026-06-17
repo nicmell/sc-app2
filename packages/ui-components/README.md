@@ -68,6 +68,13 @@ declarative children via Lit context and fire a plain `change` from the host
 (read `e.target.value`). `sc-button-base` uses the native `click` (React
 `onClick`); `sc-toast-base` adds `dismiss`/`onDismiss`.
 
+**Form participation:** every input takes a `name` and submits in a `<form>`
+like a standard control. The hidden native input carries the `name` (checkbox/
+switch/knob/slider, and the text inputs); `sc-radio-group-base` takes the `name`
+and shares it with its radios (the checked one submits its `value`);
+`sc-select-base` is a form-associated custom element (`ElementInternals`) and
+submits its value under `name`.
+
 ## Component catalogue
 
 Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`.

@@ -33,6 +33,9 @@ export abstract class ScWidgetBase extends LitElement {
   /** Disabled affordance → `sc-<block>--disabled` + `aria-disabled`. Reflected
    *  so host-only elements (the radio group) can be styled by `[disabled]`. */
   @property({ type: Boolean, reflect: true }) accessor disabled = false;
+  /** Form field name — forwarded to the widget's hidden native input so it
+   *  submits like a normal form control (empty = unnamed, not submitted). */
+  @property() accessor name = "";
 
   /** Render into the light DOM so the global foundation classes apply. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {

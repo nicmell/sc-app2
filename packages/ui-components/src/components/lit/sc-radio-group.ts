@@ -16,7 +16,8 @@ export class ScRadioGroupBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
 
-  readonly #name = `sc-radio-group-${++groupId}`;
+  // Auto fallback so native grouping works even without a form `name`.
+  readonly #autoName = `sc-radio-group-${++groupId}`;
 
   #select = (value: number): void => {
     if (this.disabled || value === this.value) return;
@@ -32,7 +33,7 @@ export class ScRadioGroupBase extends ScWidgetBase {
     return {
       value: this.value,
       select: this.#select,
-      name: this.#name,
+      name: this.name || this.#autoName,
       size: this.size,
       variant: this.variant,
       disabled: this.disabled,

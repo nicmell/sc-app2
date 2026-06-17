@@ -15,6 +15,7 @@ export class ScInputBase extends LitElement {
   @property() accessor value = "";
   @property() accessor placeholder = "";
   @property() accessor type = "text";
+  @property() accessor name = "";
   @property() accessor size: ScInputSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
 
@@ -31,6 +32,7 @@ export class ScInputBase extends LitElement {
     return html`<input
       class=${cx("sc-input", `sc-input--${this.size}`)}
       type=${this.type}
+      name=${this.name}
       placeholder=${this.placeholder}
       ?disabled=${this.disabled}
       .value=${live(this.value)}

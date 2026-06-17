@@ -16,6 +16,7 @@ export class ScInputNumberBase extends LitElement {
   @property({ type: Number }) accessor max = Infinity;
   @property({ type: Number }) accessor step = 1;
   @property() accessor placeholder = "";
+  @property() accessor name = "";
   @property() accessor size: ScInputSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
 
@@ -72,6 +73,7 @@ export class ScInputNumberBase extends LitElement {
         <input
           class="sc-input sc-inputnumber__field"
           type="number"
+          name=${this.name}
           placeholder=${this.placeholder}
           min=${Number.isFinite(this.min) ? this.min : nothing}
           max=${Number.isFinite(this.max) ? this.max : nothing}

@@ -16,12 +16,26 @@ import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
 
 export class ScSelectBase extends LitElement {
+  // Form-associated: it has no native control (shadow DOM), so it submits its
+  // value through ElementInternals. The form reads the `name` content attribute.
+  static formAssociated = true;
+
   @property({ type: Number }) accessor value = 0;
   @property() accessor placeholder = "";
+  @property({ reflect: true }) accessor name = "";
   @property({ reflect: true }) accessor size: ScSize = "md";
   @property({ reflect: true }) accessor variant: ScVariant = "primary";
   @property({ type: Boolean, reflect: true }) accessor disabled = false;
   @state() accessor open = false;
+
+  // Guarded — some non-browser test envs lack attachInternals.
+  readonly #internals: ElementInternals | undefined = (() => {
+    try {
+      return this.attachInternals();
+    } catch {
+      return undefined;
+    }
+  })();
 
   static styles = css`
     :host {
@@ -150,6 +164,7 @@ export class ScSelectBase extends LitElement {
 
   protected updated(): void {
     this.#provider.setValue(this.#ctx());
+    this.#internals?.setFormValue(String(this.value));
   }
 
   render() {

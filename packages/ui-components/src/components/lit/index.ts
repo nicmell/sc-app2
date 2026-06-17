@@ -21,6 +21,7 @@ import { ScInputNumberBase } from "./sc-inputnumber";
 import { ScTextareaBase } from "./sc-textarea";
 import { ScTextBase } from "./sc-text";
 import { ScPopoverBase } from "./sc-popover";
+import { ScModalBase } from "./sc-modal";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -40,6 +41,7 @@ export { ScChipBase, type ScChipVariant } from "./sc-chip";
 export { foundationStyles, adoptFoundation } from "./internal/foundation-styles";
 export { PopoverController, type PopoverOptions } from "./internal/popover-controller";
 export { ScPopoverBase } from "./sc-popover";
+export { ScModalBase } from "./sc-modal";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
@@ -75,6 +77,7 @@ export const REGISTRY = {
   "sc-textarea-base": ScTextareaBase,
   "sc-text-base": ScTextBase,
   "sc-popover-base": ScPopoverBase,
+  "sc-modal-base": ScModalBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -104,5 +107,6 @@ declare global {
     "sc-textarea-base": ScTextareaBase;
     "sc-text-base": ScTextBase;
     "sc-popover-base": ScPopoverBase;
+    "sc-modal-base": ScModalBase;
   }
 }

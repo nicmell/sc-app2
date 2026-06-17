@@ -1,22 +1,24 @@
 /**
- * .modal-backdrop + .modal — centred overlay card for confirms
- * / alerts / loaders. Renders via portal at document.body in
- * the React host; plugins write the same HTML shape directly.
+ * .modal — centred overlay card for confirms / alerts. Shipped as the chrome of
+ * <sc-modal-base>, which renders a native <dialog class="modal"> in its shadow
+ * root and opens it with showModal() → the browser **top layer** (escapes
+ * clipping/transform/z-index, with a ::backdrop + focus trap). The author's
+ * content is slotted in as light DOM and styled by the global .modal-* classes.
  *
- * HTML shape:
- *   <div class="modal-backdrop">
- *     <div class="modal">
- *       <h2 class="modal-title">…</h2>
- *       <p class="modal-body">…</p>
- *       <div class="modal-actions cluster cluster--sm">
- *         <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
- *         <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
- *       </div>
+ * Content shape (slotted into <sc-modal-base>):
+ *   <sc-modal-base open dismissable>
+ *     <h2 class="modal-title">…</h2>
+ *     <p class="modal-body">…</p>
+ *     <div class="modal-actions cluster cluster--sm">
+ *       <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
+ *       <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
  *     </div>
- *   </div>
+ *   </sc-modal-base>
  *
- * The card itself has no variant — the action buttons carry the
- * intent (e.g. a danger confirm via <sc-button-base>).
+ * The card itself has no variant — the action buttons carry the intent.
+ *
+ * `.modal-backdrop` remains for the non-blocking connection loader (a plain
+ * dimming layer, not a dialog).
  */
 
 .modal-backdrop {
@@ -36,6 +38,7 @@
   gap: var(--space-sm);
   min-width: 320px;
   max-width: 480px;
+  max-block-size: calc(100vh - 2 * var(--space-lg));
   padding: var(--space-md) var(--space-lg);
   background: var(--color-surface-1);
   color: var(--color-text);
@@ -43,6 +46,14 @@
   border-radius: var(--radius-md);
   font-family: var(--font-sans);
   box-shadow: var(--shadow-lg);
+  overflow: auto;
+}
+
+/* When `.modal` is the native <dialog> (sc-modal-base), dim + blur the page
+   behind it. The UA centres a modal <dialog> in the top layer (margin:auto). */
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
 }
 
 .modal-title {

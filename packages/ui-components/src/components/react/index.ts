@@ -30,3 +30,4 @@ export { ScInputNumber } from "./sc-inputnumber";
 export { ScTextarea } from "./sc-textarea";
 export { ScText } from "./sc-text";
 export { ScPopover } from "./sc-popover";
+export { ScModal } from "./sc-modal";

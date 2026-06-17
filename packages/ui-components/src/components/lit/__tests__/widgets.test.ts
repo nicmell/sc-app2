@@ -574,3 +574,33 @@ describe("sc-popover-base", () => {
     expect(toggles).toBeGreaterThanOrEqual(0); // toggle event only fires where the API runs
   });
 });
+
+// showModal()/::backdrop/focus-trap need a real top layer (CDP harness); here we
+// assert the structure, the slotted content, and the dismissable wiring.
+describe("sc-modal-base", () => {
+  it("renders a <dialog class=modal> slotting its content", async () => {
+    const el = document.createElement("sc-modal-base");
+    el.innerHTML = '<h2 class="modal-title">Hi</h2>';
+    document.body.appendChild(el);
+    await el.updateComplete;
+    const dialog = el.renderRoot.querySelector("dialog");
+    expect(dialog).not.toBeNull();
+    expect(dialog!.classList.contains("modal")).toBe(true);
+    // Content stays light-DOM (slotted), reachable from the host.
+    expect(el.querySelector(".modal-title")!.textContent).toBe("Hi");
+  });
+
+  it("emits close + clears open when the dialog closes", async () => {
+    const el = document.createElement("sc-modal-base");
+    el.dismissable = true;
+    el.open = true;
+    document.body.appendChild(el);
+    await el.updateComplete;
+    let closed = 0;
+    el.addEventListener("close", () => closed++);
+    // Simulate the native dialog `close` event (Esc / backdrop / programmatic).
+    el.renderRoot.querySelector("dialog")!.dispatchEvent(new Event("close"));
+    expect(closed).toBe(1);
+    expect(el.open).toBe(false);
+  });
+});

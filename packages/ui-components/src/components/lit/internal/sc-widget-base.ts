@@ -4,11 +4,11 @@
 // See packages/ui-components/README and the foundation CSS in
 // foundations/components/sc-*.css for the class contract.
 //
-// Event model (in migration): each widget renders a hidden native <input>
-// (`.sr-only`) under its visual overlay and lets that input's NATIVE
-// `input`/`change` flow to consumers (who read `e.target.value` / `.checked`) —
-// no CustomEvent. The `emit()` helper below is transitional and stays only
-// until sc-option/sc-select adopt the Lit-context model, then it's removed.
+// Event model: each widget renders a hidden native <input> (`.sr-only`) under
+// its visual overlay and lets that input's NATIVE `input`/`change` flow to
+// consumers (who read `e.target.value` / `.checked`) — no CustomEvent. The
+// container widgets (sc-select / sc-radio-group) coordinate declarative
+// children via Lit context and dispatch a plain `change` from the host.
 //
 // Light DOM (createRenderRoot → this) so the foundation's global classes style
 // the rendered markup. Variant/size are enum props resolved to BEM-ish class
@@ -48,14 +48,6 @@ export abstract class ScWidgetBase extends LitElement {
       `${block}--${this.variant}`,
       { [`${block}--disabled`]: this.disabled },
       extra,
-    );
-  }
-
-  /** Dispatch the framework-agnostic change signal. Numeric `value` everywhere
-   *  (booleans emit 0/1) to match the number-keyed runtime the wrappers feed. */
-  protected emit(value: number): void {
-    this.dispatchEvent(
-      new CustomEvent("change", { detail: { value }, bubbles: true, composed: true }),
     );
   }
 }

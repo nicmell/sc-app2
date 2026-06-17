@@ -2,10 +2,11 @@
 // createComponent over the SAME Lit elements (no reimplementation). Importing
 // this barrel registers the underlying custom elements so the wrappers render.
 //
-// Every wrapper exposes an `onChange` prop receiving the `change` CustomEvent;
-// read the new value from `e.detail.value`. Variant/size/disabled (and per-
-// widget props like value/min/max/step/options/orientation) map straight to the
-// element's reactive properties.
+// Events are NATIVE: form-backed widgets fire the real `input`/`change`
+// (read `e.target.value` / `.checked`); containers (select / radio-group) fire
+// `change` from the host. `onChange`/`onInput` map to those. Props (value, min,
+// max, step, checked, size, variant, disabled, orientation, …) map straight to
+// the element's reactive properties; option/radio compose as children.
 
 import { registerUiComponents } from "../lit";
 

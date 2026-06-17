@@ -58,28 +58,35 @@ import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 import "@phosphor-icons/web/fill";  // powers <sc-icon-base>
 ```
 
-Every component is **light DOM**, so the foundation's global CSS styles it.
-Interactive widgets emit a `change` `CustomEvent` (read `e.detail.value`); the
-React wrappers expose it as `onChange`. `sc-button-base` uses the native `click`
-(React `onClick`); `sc-toast-base` adds `dismiss`/`onDismiss`.
+Components are **light DOM** (except `sc-select-base`, see below), so the
+foundation's global CSS styles them. **Events are native, not custom**: each
+form widget renders a hidden native `<input>` under its visual overlay and lets
+that input's real `input`/`change` flow to consumers — read `e.target.value` /
+`e.target.checked`. The React wrappers expose `onChange` (+ `onInput` for live
+controls). Containers (`sc-select-base`, `sc-radio-group-base`) coordinate their
+declarative children via Lit context and fire a plain `change` from the host
+(read `e.target.value`). `sc-button-base` uses the native `click` (React
+`onClick`); `sc-toast-base` adds `dismiss`/`onDismiss`.
 
 ## Component catalogue
 
 Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`.
 
+All form widgets fire native events; read `e.target.value` / `.checked`.
+
 | component | key props | event | notes |
 |---|---|---|---|
-| `sc-checkbox-base` | `checked` `label` `size` `variant` `disabled` | `change {value:0\|1}` | |
-| `sc-switch-base` | `checked` `size` `variant` `disabled` | `change {value:0\|1}` | track + sliding thumb |
-| `sc-knob-base` | `value` `min` `max` `step` `size` `variant` `disabled` | `change {value:number}` | SVG dial; drag + wheel |
-| `sc-slider-base` | `value` `min` `max` `step` `orientation` `size` `variant` `disabled` | `change {value:number}` | drag + wheel |
-| `sc-option-base` | `value` `label` `selected` `size` `disabled` | `change {value:number}` | single option row |
-| `sc-radio-base` | `value` `label` `checked` `size` `variant` `disabled` | `change {value:number}` | child of radio-group |
-| `sc-radio-group-base` | `value` `orientation` `size` `variant` `disabled` | `change {value:number}` | coordinates `sc-radio-base` children |
-| `sc-select-base` | `value` `options:{value,label}[]` `placeholder` `size` `variant` `disabled` | `change {value:number}` | combobox + dropdown |
-| `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | `change {value:string}` | text field over native `<input>` |
-| `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | `change {value:number}` | native spinners hidden, themed steppers |
-| `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | `change {value:string}` | multi-line |
+| `sc-checkbox-base` | `checked` `label` `size` `variant` `disabled` | native `change` | hidden `<input type=checkbox>` + box overlay |
+| `sc-switch-base` | `checked` `size` `variant` `disabled` | native `change` | hidden checkbox (`role=switch`) + track/thumb |
+| `sc-knob-base` | `value` `min` `max` `step` `size` `variant` `disabled` | native `input`/`change` | hidden `<input type=range>` + SVG dial; drag + wheel |
+| `sc-slider-base` | `value` `min` `max` `step` `orientation` `size` `variant` `disabled` | native `input`/`change` | hidden range + track/fill/thumb; drag + wheel |
+| `sc-option-base` | `value` `label` `size` `disabled` | — (reports via select context) | declarative child of `sc-select-base` |
+| `sc-radio-base` | `value` `label` `checked` `size` `variant` `disabled` | — (reports via group context) | hidden `<input type=radio>` + ring/dot |
+| `sc-radio-group-base` | `value` `orientation` `size` `variant` `disabled` | host `change` | context provider for `sc-radio-base` children |
+| `sc-select-base` | `value` `placeholder` `size` `variant` `disabled` | host `change` | **shadow DOM**; combobox + dropdown of `<sc-option-base>` children |
+| `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | native `input`/`change` | text field over native `<input>` |
+| `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
+| `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | native `input`/`change` | multi-line |
 | `sc-text-base` | `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; renders children |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
@@ -100,28 +107,41 @@ Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`.
 
 `size` is `sm | md | lg` everywhere it appears (md default).
 
-## The two rendering patterns
+## Architecture patterns
 
-Both keep components in **light DOM** (`createRenderRoot() → this`) so the global
-foundation CSS applies. They differ in how a component carries its styling:
+Most components are **light DOM** (`createRenderRoot() → this`) so the global
+foundation CSS applies. Four patterns:
 
-1. **Inner element + `classnames` (most components).** The component renders a
-   template whose root carries `cx("sc-x", \`sc-x--\${variant}\`, …)`. CSS targets
-   those classes (`.sc-checkbox--ok`). Variant/size resolve to **classes, not
-   data attributes** — the deliberate migration away from the old
-   `[data-variant]` pattern. Used by every component that owns its markup.
+1. **Hidden native input + visual overlay (form widgets).** checkbox, switch,
+   knob, slider, radio render a hidden, focusable native `<input>` (`.sr-only`)
+   under their SVG/CSS overlay. The input owns value, keyboard, focus, and fires
+   the genuine native `input`/`change`; the overlay reflects state via CSS
+   sibling selectors (`.sc-x__input:checked ~ …`) or, for knob/slider, redraws
+   from the value. No CustomEvent.
 
-2. **Host-only + reflected attributes (`sc-radio-group-base`, `sc-text-base`).**
-   These must preserve **author-provided children** (radio children; text/inline
-   content), so they render **no template** — `LitElement`'s default `render()`
-   returns `noChange`, leaving children untouched. They style the **host** off
-   reflected props via attribute selectors (`sc-text-base[size="lg"]`).
-   Reflecting (rather than `classList` in `updated()`) avoids racing a host
-   `className` set by React.
+2. **Inner element + `classnames` (badge, chip, button, icon, the inputs'
+   chrome).** A template whose root carries `cx("sc-x", \`sc-x--\${variant}\`, …)`;
+   CSS targets those classes (`.sc-badge--warn`). Variant/size resolve to
+   **classes, not data attributes** — the migration away from `[data-variant]`.
 
-Shared bits for the interactive widgets live on `internal/sc-widget-base.ts`
-(`ScWidgetBase`): `size`/`variant`/`disabled`, the light-DOM render root, the
-`blockClasses()` helper, and `emit(value:number)`. It is abstract — not a tag.
+3. **Host-only + reflected attributes (`sc-text-base`).** Preserves
+   author text/inline children by rendering **no template** (`render()` returns
+   `noChange`); styles the host off reflected props (`sc-text-base[size="lg"]`).
+
+4. **Lit context containers (`sc-radio-group-base`, `sc-select-base`).** A
+   `@lit/context` provider coordinates declarative children (the consumers):
+   selection + size/variant/disabled flow down; the host fires `change`.
+   `radio-group` is light-DOM (children preserved, no template). `select` is the
+   **one shadow-DOM component** — it must render combobox/dropdown chrome *and*
+   project the `<sc-option-base>` children into the dropdown via `<slot>`, which
+   a light-DOM render would clobber; its chrome CSS lives in `static styles`
+   (tokens pierce the shadow boundary). Note: providers are registered before
+   consumers so static markup upgrades with the provider already listening.
+
+Shared bits for the form widgets live on `internal/sc-widget-base.ts`
+(`ScWidgetBase`): `size`/`variant`/`disabled`, the light-DOM render root, and the
+`blockClasses()` helper. It is abstract — not a tag. The parent↔child contexts
+live in `internal/contexts.ts`.
 
 ## Build
 

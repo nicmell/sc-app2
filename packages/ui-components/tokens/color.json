@@ -1,0 +1,52 @@
+{
+  "color": {
+    "bg": { "value": "#12141a", "type": "color" },
+    "surface-1": { "value": "#1b1d22", "type": "color" },
+    "surface-2": { "value": "#15171b", "type": "color" },
+    "surface-3": { "value": "#2c2f36", "type": "color" },
+    "surface-3-hover": { "value": "#4a5060", "type": "color" },
+    "surface-input": { "value": "#242832", "type": "color" },
+    "scrim": { "value": "rgb(0 0 0 / 0.55)" },
+
+    "border": { "value": "#262930", "type": "color" },
+    "border-strong": { "value": "#2c2f36", "type": "color" },
+    "border-stronger": { "value": "#3a3f4b", "type": "color" },
+    "border-focus": { "value": "#5a8fd8", "type": "color" },
+
+    "text": { "value": "#e4e6eb", "type": "color" },
+    "text-dim": { "value": "#9aa0ab", "type": "color" },
+    "text-mute": { "value": "#6c7080", "type": "color" },
+    "text-faint": { "value": "#5a5e68", "type": "color" },
+    "on-primary": { "value": "#ffffff", "type": "color" },
+
+    "primary": { "value": "#3d6ab5", "type": "color" },
+    "primary-hover": { "value": "#4878c4", "type": "color" },
+
+    "ok": { "value": "#6ac46f", "type": "color" },
+    "ok-bg": { "value": "#1f3d26", "type": "color" },
+    "ok-strong": { "value": "#2e5a36", "type": "color" },
+    "ok-text": { "value": "#b4e7b9", "type": "color" },
+
+    "warn": { "value": "#c4a06f", "type": "color" },
+    "warn-bg": { "value": "#3d331f", "type": "color" },
+    "warn-border": { "value": "#5a4a2e", "type": "color" },
+    "warn-text": { "value": "#e7d4b4", "type": "color" },
+
+    "info-bg": { "value": "#2a3a4a", "type": "color" },
+    "info-border": { "value": "#3a4a5a", "type": "color" },
+    "info-text": { "value": "#b8d0e8", "type": "color" },
+
+    "danger": { "value": "#8a3d3d", "type": "color" },
+    "danger-hover": { "value": "#a04848", "type": "color" },
+    "error-bg": { "value": "#3d1f22", "type": "color" },
+    "error-border": { "value": "#6a2d33", "type": "color" },
+    "error-text": { "value": "#f2b5ba", "type": "color" },
+
+    "tx": { "value": "#8ab4f8", "type": "color" },
+    "rx": { "value": "#96f2a7", "type": "color" },
+    "log-info": { "value": "#8ab4f8", "type": "color" },
+    "log-warn": { "value": "#f7d57a", "type": "color" },
+    "log-error": { "value": "#f2b5ba", "type": "color" },
+    "overlay": { "value": "#b4b8c0", "type": "color" }
+  }
+}

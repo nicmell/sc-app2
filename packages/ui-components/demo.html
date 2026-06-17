@@ -8,7 +8,8 @@
          file through Vite: `npx vite` from this package dir, then open the
          printed URL. (Opening the file directly still shows the CSS-only
          foundation sections, just not the interactive widgets.) -->
-    <link rel="stylesheet" href="./dist/index.css" />
+    <!-- Foundation CSS is imported by the module script below (Vite inlines the
+         @import chain incl. the generated tokens); serve through Vite. -->
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
        structure to render the sections side-by-side without
@@ -782,6 +783,7 @@ function dirtPlay(event) {
 
     <script type="module">
       // Phosphor fill-weight font (the only weight sc-icon-base supports).
+      import "./src/foundations/index.css";
       import "@phosphor-icons/web/fill";
       import { registerUiComponents } from "./src/components/index.ts";
       registerUiComponents();

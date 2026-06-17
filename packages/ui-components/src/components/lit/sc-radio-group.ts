@@ -15,6 +15,8 @@ let groupId = 0;
 export class ScRadioGroupBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
   @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
+  /** Accessible name for the group (→ aria-label on the role=radiogroup host). */
+  @property() accessor label = "";
 
   // Auto fallback so native grouping works even without a form `name`.
   readonly #autoName = `sc-radio-group-${++groupId}`;
@@ -42,6 +44,9 @@ export class ScRadioGroupBase extends ScWidgetBase {
 
   connectedCallback(): void {
     super.connectedCallback();
+    // The native radios carry the grouping; mark the container so a screen
+    // reader announces it as one radio group.
+    if (!this.hasAttribute("role")) this.setAttribute("role", "radiogroup");
     this.addEventListener("change", this.#onChildChange);
   }
 
@@ -58,5 +63,7 @@ export class ScRadioGroupBase extends ScWidgetBase {
 
   protected updated(): void {
     this.#provider.setValue(this.#ctx());
+    if (this.label) this.setAttribute("aria-label", this.label);
+    else this.removeAttribute("aria-label");
   }
 }

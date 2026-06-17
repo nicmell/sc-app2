@@ -10,7 +10,7 @@
 // showModal/close); `dismissable` gates Esc + backdrop click (off = blocking).
 // Emits a bubbling `close` on every dismissal so a React host can unmount.
 
-import { LitElement, html } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { foundationStyles } from "./foundation-styles";
 
@@ -18,6 +18,9 @@ export abstract class ScDialogBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
   /** Whether Esc / backdrop-click close it. Off = blocking. */
   @property({ type: Boolean }) accessor dismissable = false;
+  /** Accessible name for the dialog (→ aria-label). Without it a screen reader
+   *  announces an unnamed dialog; set it to the modal/drawer's title. */
+  @property() accessor label = "";
 
   static styles = foundationStyles ? [foundationStyles] : [];
 
@@ -77,6 +80,7 @@ export abstract class ScDialogBase extends LitElement {
     return html`
       <dialog
         class=${this.dialogClass}
+        aria-label=${this.label || nothing}
         @cancel=${this.onCancel}
         @close=${this.onClose}
         @click=${this.onBackdropClick}

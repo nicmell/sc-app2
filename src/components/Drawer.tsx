@@ -5,7 +5,7 @@ import { PluginList } from "./PluginList";
  *  <sc-drawer-base> (native <dialog>): backdrop, focus trap, and Esc are free. */
 export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <ScDrawer open={open} side="right" dismissable onClose={onClose}>
+    <ScDrawer open={open} side="right" dismissable label="Plugins" onClose={onClose}>
       <header>
         <h2>Plugins</h2>
         <ScButton variant="ghost" size="sm" iconOnly icon="x" label="Close" onClick={onClose} />

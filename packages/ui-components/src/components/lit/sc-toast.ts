@@ -24,8 +24,10 @@ export class ScToastBase extends LitElement {
 
   render() {
     const cls = cx("toast", { [`toast--${this.variant}`]: this.variant !== "default" });
+    // Errors/warnings interrupt (assertive); info/success/default are polite.
+    const role = this.variant === "error" || this.variant === "warn" ? "alert" : "status";
     return html`
-      <div class=${cls} role="status">
+      <div class=${cls} role=${role}>
         <span class="toast-message">${this.message}</span>
         <button type="button" class="toast-close" aria-label="Dismiss" @click=${this._dismiss}>
           ×

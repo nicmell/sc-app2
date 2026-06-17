@@ -34,6 +34,14 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Keyboard focus ring — the real <input> is .sr-only, so ring the visible thumb
+   (keeping its drop shadow). */
+.sc-slider__input:focus-visible ~ .sc-slider__track .sc-slider__thumb {
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 2px var(--color-border-focus);
+}
+
 /* Horizontal: track runs left→right, fill grows from the left. */
 .sc-slider--horizontal .sc-slider__track {
   inline-size: var(--_len, 8rem);

@@ -12,7 +12,7 @@ export function PluginPicker({
   onClose: () => void;
 }) {
   return (
-    <Modal onClose={onClose}>
+    <Modal onClose={onClose} label="Select plugin">
       <header>Select plugin</header>
       <PluginList onSelect={onSelect} />
       <ScCluster className="modal-actions">

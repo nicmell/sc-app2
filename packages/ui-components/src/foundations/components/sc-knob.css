@@ -32,6 +32,13 @@
   block-size: 100%;
 }
 
+/* Keyboard focus ring — the real <input> is .sr-only, so show focus on the
+   visible dial (a round ring via box-shadow follows the circle). */
+.sc-knob__input:focus-visible ~ .sc-knob__svg {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-border-focus);
+}
+
 .sc-knob__body {
   fill: var(--color-surface-3);
   stroke: var(--color-border-strong);

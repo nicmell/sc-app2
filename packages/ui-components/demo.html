@@ -306,7 +306,7 @@ function dirtPlay(event) {
           <button class="btn" onclick="document.getElementById('demo-modal').open = true">
             open modal
           </button>
-          <sc-modal-base id="demo-modal" dismissable>
+          <sc-modal-base id="demo-modal" dismissable label="Reinitialize dashboard?">
             <h2 class="modal-title">Reinitialize dashboard?</h2>
             <p class="modal-body">
               Active recordings will be stopped, and any recordings in this session — including ones
@@ -522,7 +522,13 @@ function dirtPlay(event) {
         </div>
         <p class="demo-cap">range (min=20 max=20000 step=10)</p>
         <div class="demo-row">
-          <sc-knob-base min="20" max="20000" step="10" value="440"></sc-knob-base>
+          <sc-knob-base
+            label="Frequency"
+            min="20"
+            max="20000"
+            step="10"
+            value="440"
+          ></sc-knob-base>
         </div>
       </section>
 
@@ -566,7 +572,7 @@ function dirtPlay(event) {
         <h2 class="demo-section-title">&lt;sc-radio-group-base&gt;</h2>
         <p class="demo-cap">horizontal (default)</p>
         <div class="demo-row">
-          <sc-radio-group-base value="0">
+          <sc-radio-group-base value="0" label="Waveform">
             <sc-radio-base value="0" label="Sine"></sc-radio-base>
             <sc-radio-base value="1" label="Saw"></sc-radio-base>
             <sc-radio-base value="2" label="Square"></sc-radio-base>
@@ -574,7 +580,7 @@ function dirtPlay(event) {
         </div>
         <p class="demo-cap">vertical + variant=ok</p>
         <div class="demo-row">
-          <sc-radio-group-base orientation="vertical" variant="ok" value="1">
+          <sc-radio-group-base orientation="vertical" variant="ok" value="1" label="Register">
             <sc-radio-base value="0" label="Low"></sc-radio-base>
             <sc-radio-base value="1" label="Mid"></sc-radio-base>
             <sc-radio-base value="2" label="High"></sc-radio-base>
@@ -673,7 +679,7 @@ function dirtPlay(event) {
           <button class="btn" onclick="document.getElementById('demo-drawer-l').open = true">
             open left drawer
           </button>
-          <sc-drawer-base id="demo-drawer-r" side="right" dismissable>
+          <sc-drawer-base id="demo-drawer-r" side="right" dismissable label="Plugins">
             <header>
               <h2>Plugins</h2>
               <sc-button-base
@@ -690,7 +696,7 @@ function dirtPlay(event) {
               <sc-empty-base>no plugins installed yet</sc-empty-base>
             </div>
           </sc-drawer-base>
-          <sc-drawer-base id="demo-drawer-l" side="left" dismissable>
+          <sc-drawer-base id="demo-drawer-l" side="left" dismissable label="Navigation">
             <header>
               <h2>Navigation</h2>
               <sc-button-base

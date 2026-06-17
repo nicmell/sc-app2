@@ -4,7 +4,7 @@
 // (set value + dispatch native events) rather than emitting a CustomEvent. The
 // SVG overlay is purely visual and redraws from `value`.
 
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
@@ -14,6 +14,15 @@ export class ScKnobBase extends ScWidgetBase {
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;
+  /** Accessible name for the control (→ aria-label on the range input). */
+  @property() accessor label = "";
+
+  /** Value announced by screen readers, rounded to the step's precision so it
+   *  reads "0.80", not a binary-float tail. */
+  private _valueText(): string {
+    const precision = Math.max(0, Math.round(-Math.log10(this.step)));
+    return this.value.toFixed(precision);
+  }
 
   private get _input(): HTMLInputElement {
     return this.querySelector("input") as HTMLInputElement;
@@ -119,6 +128,8 @@ export class ScKnobBase extends ScWidgetBase {
           max=${this.max}
           step=${this.step}
           .value=${live(String(this.value))}
+          aria-label=${this.label || nothing}
+          aria-valuetext=${this._valueText()}
           ?disabled=${this.disabled}
           @input=${this._onRangeInput}
         />

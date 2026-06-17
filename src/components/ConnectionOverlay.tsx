@@ -21,7 +21,7 @@ export function ConnectionOverlay() {
     );
   }
   return (
-    <Modal>
+    <Modal label="Connection failed">
       <h2 className="modal-title">Connection failed</h2>
       <p className="modal-body">
         The session could not be established — the server or scsynth may be down.

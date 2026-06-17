@@ -3,7 +3,7 @@
 // native input/change); our ported pointer-drag + wheel feed it. `orientation`
 // only affects the visual; the visual redraws from `value`.
 
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
@@ -14,6 +14,14 @@ export class ScSliderBase extends ScWidgetBase {
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
+  /** Accessible name for the control (→ aria-label on the range input). */
+  @property() accessor label = "";
+
+  /** Value announced by screen readers, rounded to the step's precision. */
+  private _valueText(): string {
+    const precision = Math.max(0, Math.round(-Math.log10(this.step)));
+    return this.value.toFixed(precision);
+  }
 
   private get _input(): HTMLInputElement {
     return this.querySelector("input") as HTMLInputElement;
@@ -126,6 +134,8 @@ export class ScSliderBase extends ScWidgetBase {
           max=${this.max}
           step=${this.step}
           .value=${live(String(this.value))}
+          aria-label=${this.label || nothing}
+          aria-valuetext=${this._valueText()}
           ?disabled=${this.disabled}
           @input=${this._onRangeInput}
         />

@@ -91,11 +91,11 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 |---|---|---|---|
 | `sc-checkbox-base` | `checked` `label` `size` `variant` `disabled` | native `change` | hidden `<input type=checkbox>` + box overlay |
 | `sc-switch-base` | `checked` `size` `variant` `disabled` | native `change` | hidden checkbox (`role=switch`) + track/thumb |
-| `sc-knob-base` | `value` `min` `max` `step` `size` `variant` `disabled` | native `input`/`change` | hidden `<input type=range>` + SVG dial; drag + wheel |
-| `sc-slider-base` | `value` `min` `max` `step` `orientation` `size` `variant` `disabled` | native `input`/`change` | hidden range + track/fill/thumb; drag + wheel |
+| `sc-knob-base` | `value` `min` `max` `step` `label` `size` `variant` `disabled` | native `input`/`change` | hidden `<input type=range>` + SVG dial; drag + wheel; `label`→aria-label |
+| `sc-slider-base` | `value` `min` `max` `step` `orientation` `label` `size` `variant` `disabled` | native `input`/`change` | hidden range + track/fill/thumb; drag + wheel; `label`→aria-label |
 | `sc-option-base` | `value` `label` `size` `disabled` | — (reports via select context) | declarative child of `sc-select-base` |
 | `sc-radio-base` | `value` `label` `checked` `size` `variant` `disabled` | — (reports via group context) | hidden `<input type=radio>` + ring/dot |
-| `sc-radio-group-base` | `value` `orientation` `size` `variant` `disabled` | host `change` | context provider for `sc-radio-base` children |
+| `sc-radio-group-base` | `value` `orientation` `label` `size` `variant` `disabled` | host `change` | context provider for `sc-radio-base` children; `role=radiogroup`, `label`→aria-label |
 | `sc-select-base` | `value` `placeholder` `size` `variant` `disabled` | host `change` | **shadow DOM**; combobox + **top-layer** dropdown of `<sc-option-base>` children |
 | `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | native `input`/`change` | text field over native `<input>` |
 | `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
@@ -113,8 +113,8 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
 | `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` (top-layer popover) |
 | `sc-popover-base` | `open` `placement` `anchor` | `toggle` | **shadow DOM**; top-layer anchored panel (slots content) |
-| `sc-modal-base` | `open` `dismissable` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content) |
-| `sc-drawer-base` | `open` `side` `dismissable` | `close` | **shadow DOM**; edge-anchored slide-in panel over native `<dialog>` (slots content; child `<header>` = title bar) |
+| `sc-modal-base` | `open` `dismissable` `label` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content); `label`→aria-label |
+| `sc-drawer-base` | `open` `side` `dismissable` `label` | `close` | **shadow DOM**; edge-anchored slide-in panel over native `<dialog>` (slots content; child `<header>` = title bar); `label`→aria-label |
 
 ### Variant vocabularies (intentionally different)
 

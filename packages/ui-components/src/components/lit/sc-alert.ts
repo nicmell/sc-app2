@@ -17,4 +17,10 @@ export class ScAlertBase extends LitElement {
   protected createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
   }
+
+  // Announce to assistive tech when the alert appears / its text changes:
+  // errors interrupt (role=alert, assertive); the rest are polite (role=status).
+  protected updated(): void {
+    this.setAttribute("role", this.variant === "error" ? "alert" : "status");
+  }
 }

@@ -720,3 +720,51 @@ describe("sc-disclosure-base", () => {
     expect(toggles).toBeGreaterThanOrEqual(1);
   });
 });
+
+// Accessibility wiring (Tier 1): names, roles, live regions, value text.
+describe("a11y wiring", () => {
+  it("modal/drawer expose `label` as the dialog aria-label", async () => {
+    for (const tag of ["sc-modal-base", "sc-drawer-base"] as const) {
+      const el = document.createElement(tag);
+      el.label = "Plugins";
+      document.body.appendChild(el);
+      await el.updateComplete;
+      expect(el.renderRoot.querySelector("dialog")!.getAttribute("aria-label")).toBe("Plugins");
+    }
+  });
+
+  it("radio-group is role=radiogroup with its label as aria-label", async () => {
+    const el = document.createElement("sc-radio-group-base");
+    el.label = "Waveform";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.getAttribute("role")).toBe("radiogroup");
+    expect(el.getAttribute("aria-label")).toBe("Waveform");
+  });
+
+  it("alert role tracks severity (error=alert, else status)", async () => {
+    const el = document.createElement("sc-alert-base");
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.getAttribute("role")).toBe("status"); // default info
+    el.variant = "error";
+    await el.updateComplete;
+    expect(el.getAttribute("role")).toBe("alert");
+  });
+
+  it("toast role tracks severity (error/warn=alert, else status)", async () => {
+    const el = await mount("sc-toast-base", { variant: "error" });
+    expect(el.querySelector(".toast")!.getAttribute("role")).toBe("alert");
+    const info = await mount("sc-toast-base", { variant: "info" });
+    expect(info.querySelector(".toast")!.getAttribute("role")).toBe("status");
+  });
+
+  it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
+    for (const tag of ["sc-knob-base", "sc-slider-base"] as const) {
+      const el = await mount(tag, { label: "Gain", value: 0.8, step: 0.01 });
+      const input = el.querySelector("input")!;
+      expect(input.getAttribute("aria-label")).toBe("Gain");
+      expect(input.getAttribute("aria-valuetext")).toBe("0.80");
+    }
+  });
+});

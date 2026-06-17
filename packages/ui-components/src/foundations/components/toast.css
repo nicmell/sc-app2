@@ -11,6 +11,11 @@
  * through the gaps; the `.toast` re-enables them (and
  * pointer-events inherits, so it works through the host).
  *
+ * The stack is shown as a `popover="manual"` element (top layer) so it's never
+ * clipped and renders over the page chrome; the `inset:auto` + `margin:0` undo
+ * the UA popover centering, and the `z-index` is a fallback for where the
+ * Popover API is absent.
+ *
  * Variants: success (ok), warn, error, info. Default (none) is
  * muted — same chrome with the standard border colour.
  */
@@ -21,6 +26,8 @@
 
 .toast-stack {
   position: fixed;
+  inset: auto;
+  margin: 0;
   bottom: var(--space-md);
   right: var(--space-md);
   display: flex;

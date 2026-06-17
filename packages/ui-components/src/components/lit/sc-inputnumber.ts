@@ -1,8 +1,8 @@
 // <sc-inputnumber-base> — a numeric text field. Wraps a native <input
 // type="number"> (whose native spin buttons the foundation hides) and renders
-// its own up/down stepper arrows, themed via tokens. Holds `value` as a number,
-// clamps to min/max, steps by `step`, and dispatches a single `change`
-// CustomEvent ({ value: number }) — the native input/change are swallowed.
+// its own up/down stepper arrows, themed via tokens. The native input/change
+// flow to consumers (read e.target.value); typing is clamped to min/max on
+// commit (change/blur), and the steppers drive the native input directly.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
@@ -34,37 +34,33 @@ export class ScInputNumberBase extends LitElement {
     return Math.round(n * factor) / factor;
   }
 
-  private _commit(n: number): void {
-    const next = this._clamp(this._quantize(n));
-    if (next !== this.value) {
-      this.value = next;
-      this.dispatchEvent(
-        new CustomEvent("change", { detail: { value: next }, bubbles: true, composed: true }),
-      );
-    }
+  private get _input(): HTMLInputElement {
+    return this.querySelector("input") as HTMLInputElement;
   }
+
+  // Free typing: sync the parsed value (no clamp mid-edit); native input bubbles.
+  private _onInput = (e: Event): void => {
+    const n = Number.parseFloat((e.target as HTMLInputElement).value);
+    if (!Number.isNaN(n)) this.value = n;
+  };
+
+  // Commit (blur/Enter): clamp + reconcile the field; native change bubbles.
+  private _onChange = (): void => {
+    const n = Number.parseFloat(this._input.value);
+    const v = Number.isNaN(n) ? this.value : this._clamp(n);
+    this.value = v;
+    this._input.value = String(v);
+  };
 
   private _stepBy(dir: 1 | -1): void {
     if (this.disabled) return;
     const base = Number.isFinite(this.value) ? this.value : 0;
-    this._commit(base + dir * this.step);
+    const v = this._clamp(this._quantize(base + dir * this.step));
+    if (v === this.value) return;
+    this._input.value = String(v);
+    this._input.dispatchEvent(new Event("input", { bubbles: true }));
+    this._input.dispatchEvent(new Event("change", { bubbles: true }));
   }
-
-  // Free typing: emit the parsed value (no clamping mid-edit); ignore empty/NaN.
-  private _onInput = (e: Event): void => {
-    e.stopPropagation();
-    const raw = (e.target as HTMLInputElement).value;
-    const n = Number.parseFloat(raw);
-    if (Number.isNaN(n)) return;
-    this.value = n;
-    this.dispatchEvent(
-      new CustomEvent("change", { detail: { value: n }, bubbles: true, composed: true }),
-    );
-  };
-
-  private _swallow = (e: Event): void => {
-    e.stopPropagation();
-  };
 
   render() {
     return html`
@@ -83,7 +79,7 @@ export class ScInputNumberBase extends LitElement {
           ?disabled=${this.disabled}
           .value=${live(String(this.value))}
           @input=${this._onInput}
-          @change=${this._swallow}
+          @change=${this._onChange}
         />
         <span class="sc-inputnumber__spinners">
           <button

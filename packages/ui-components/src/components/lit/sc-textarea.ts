@@ -1,8 +1,8 @@
 // <sc-textarea-base> — a multi-line text field. Light DOM, wrapping a native
 // <textarea> styled by the foundation (sans font, vertical resize, surface
-// fill, focus ring) plus a `.sc-textarea` class for sizing/full-width. Holds
-// `value` as a property and dispatches a single `change` CustomEvent
-// ({ value: string }) per edit (native input/change are swallowed).
+// fill, focus ring) plus a `.sc-textarea` class for sizing/full-width. The
+// native input/change flow to consumers (read e.target.value); the component
+// just mirrors the value onto its `value` property.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
@@ -22,15 +22,7 @@ export class ScTextareaBase extends LitElement {
   }
 
   private _onInput = (e: Event): void => {
-    e.stopPropagation();
     this.value = (e.target as HTMLTextAreaElement).value;
-    this.dispatchEvent(
-      new CustomEvent("change", { detail: { value: this.value }, bubbles: true, composed: true }),
-    );
-  };
-
-  private _swallow = (e: Event): void => {
-    e.stopPropagation();
   };
 
   render() {
@@ -41,7 +33,6 @@ export class ScTextareaBase extends LitElement {
       ?disabled=${this.disabled}
       .value=${live(this.value)}
       @input=${this._onInput}
-      @change=${this._swallow}
     ></textarea>`;
   }
 }

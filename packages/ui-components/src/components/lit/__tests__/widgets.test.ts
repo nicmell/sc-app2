@@ -393,61 +393,49 @@ describe("sc-input-base", () => {
     expect(input.placeholder).toBe("name");
   });
 
-  it("emits a string value on input and updates `value`", async () => {
+  it("mirrors value on the native input event", async () => {
     const el = await mount("sc-input-base");
-    const values: string[] = [];
-    el.addEventListener("change", (e) =>
-      values.push((e as CustomEvent<{ value: string }>).detail.value),
-    );
+    const inputs: string[] = [];
+    el.addEventListener("input", (e) => inputs.push((e.target as HTMLInputElement).value));
     const input = el.querySelector("input")!;
     input.value = "hello";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("hello");
-    expect(values).toEqual(["hello"]);
+    expect(inputs).toEqual(["hello"]);
   });
 });
 
 describe("sc-inputnumber-base", () => {
-  function changeValues(el: EventTarget): number[] {
-    const values: number[] = [];
-    el.addEventListener("change", (e) =>
-      values.push((e as CustomEvent<{ value: number }>).detail.value),
-    );
-    return values;
-  }
-
   it("renders a number input plus two stepper buttons", async () => {
     const el = await mount("sc-inputnumber-base", { value: 2 });
     expect(el.querySelector("input")!.type).toBe("number");
     expect(el.querySelectorAll(".sc-inputnumber__step").length).toBe(2);
   });
 
-  it("steps up by `step`, emitting the new number", async () => {
+  it("steps up by `step`, firing native change with the new value", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, step: 1, max: 5 });
-    const values = changeValues(el);
+    const changes: number[] = [];
+    el.addEventListener("change", (e) => changes.push(Number((e.target as HTMLInputElement).value)));
     el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0].click();
     expect(el.value).toBe(1);
-    expect(values).toEqual([1]);
+    expect(changes).toEqual([1]);
   });
 
-  it("clamps to max and stops emitting at the bound", async () => {
+  it("clamps to max at the bound", async () => {
     const el = await mount("sc-inputnumber-base", { value: 4.5, step: 1, max: 5 });
-    const values = changeValues(el);
     const up = el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0];
-    up.click(); // 4.5 → clamp(5.5) = 5
-    up.click(); // already 5 → no change
+    up.click(); // 4.5 → clamp(quantize(5.5)) = 5
+    up.click(); // already 5 → no-op
     expect(el.value).toBe(5);
-    expect(values).toEqual([5]);
   });
 
-  it("emits a parsed number on typing", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 0 });
-    const values = changeValues(el);
+  it("clamps a typed out-of-range value on change", async () => {
+    const el = await mount("sc-inputnumber-base", { value: 0, max: 5 });
     const input = el.querySelector("input")!;
-    input.value = "42";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(el.value).toBe(42);
-    expect(values).toEqual([42]);
+    input.value = "999";
+    input.dispatchEvent(new Event("input", { bubbles: true })); // live: 999
+    input.dispatchEvent(new Event("change", { bubbles: true })); // commit: clamps
+    expect(el.value).toBe(5);
   });
 
   it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
@@ -467,17 +455,15 @@ describe("sc-textarea-base", () => {
     expect(ta.placeholder).toBe("notes");
   });
 
-  it("emits a string value on input and updates `value`", async () => {
+  it("mirrors value on the native input event", async () => {
     const el = await mount("sc-textarea-base");
-    const values: string[] = [];
-    el.addEventListener("change", (e) =>
-      values.push((e as CustomEvent<{ value: string }>).detail.value),
-    );
+    const inputs: string[] = [];
+    el.addEventListener("input", (e) => inputs.push((e.target as HTMLTextAreaElement).value));
     const ta = el.querySelector("textarea")!;
     ta.value = "multi\nline";
     ta.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("multi\nline");
-    expect(values).toEqual(["multi\nline"]);
+    expect(inputs).toEqual(["multi\nline"]);
   });
 });
 

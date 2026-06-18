@@ -4,8 +4,9 @@ Cross-platform perf benchmarks for diagnosing scope lag and comparing the
 Raspberry Pi against the dev Mac. Two parts:
 
 - **Host micro-benchmarks** (`run.mjs`) — pure Node, zero-dep: CPU (single +
-  multi-core), scope-style byte-swap, memory bandwidth, disk I/O, and `/dev/shm`
-  tmpfs I/O. Run independently on each machine; emits comparable JSON.
+  multi-core), scope-style byte-swap, memory bandwidth, disk I/O, `/dev/shm`
+  tmpfs I/O, and (with `--network <url>`) HTTP RTT/jitter to a server. Run
+  independently on each machine; emits comparable JSON.
 - **End-to-end scope bench** (`scope-bench.mts`, via `tsx`) — drives the real
   WebSocket scope path (mints a session, stands up a `ScopeOut2` tap, subscribes)
   and measures actual `/scope/chunk` arrival rate + inter-arrival jitter.
@@ -26,7 +27,10 @@ Host micro-benchmarks (on the Pi AND on the Mac):
 ```bash
 node scripts/perf/run.mjs --label "pi5"        # → perf-results/<host>-<arch>-<iso>.json
 node scripts/perf/run.mjs --label "mac" --quick   # faster smoke run
+# network RTT/jitter to the Pi (the WiFi-path metric — run from the Mac):
+node scripts/perf/run.mjs --label "mac" --network http://192.168.178.100:1420
 # options: --only cpu-single,byteswap  --disk-size 1024  --mem-size 256  --stdout
+#          --network <url>  --net-path /  --net-count 100
 ```
 
 End-to-end scope (needs scsynth + the app server running):

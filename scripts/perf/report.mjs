@@ -12,7 +12,18 @@ if (files.length < 1) {
   process.stderr.write("usage: node scripts/perf/report.mjs <result.json> [more.json ...]\n");
   process.exit(1);
 }
-const results = files.map((f) => ({ file: f, ...JSON.parse(fs.readFileSync(f, "utf8")) }));
+const loaded = files.map((f) => ({ file: f, ...JSON.parse(fs.readFileSync(f, "utf8")) }));
+// Only host-bench results have a `benchmarks` map; skip scope-bench JSONs so
+// `report.mjs perf-results/*.json` works without hand-picking files.
+const results = loaded.filter((r) => r.benchmarks);
+const skipped = loaded.filter((r) => !r.benchmarks);
+if (skipped.length) {
+  process.stderr.write(`(skipping ${skipped.length} non-host file(s): ${skipped.map((r) => r.file).join(", ")})\n`);
+}
+if (!results.length) {
+  process.stderr.write("no host-benchmark results to compare\n");
+  process.exit(1);
+}
 
 // Metric extractors: [row label, path, format]. Missing → "—".
 const ROWS = [
@@ -28,6 +39,10 @@ const ROWS = [
   ["disk rand-read p95 (µs)", (b) => b.disk?.metrics?.randReadP95us, "num", "lower"],
   ["tmpfs seq read (MB/s)", (b) => b.tmpfs?.metrics?.seqReadMBs, "int", "higher"],
   ["tmpfs rand-read p95 (µs)", (b) => b.tmpfs?.metrics?.randReadP95us, "num", "lower"],
+  ["net RTT p50 (ms)", (b) => b.network?.metrics?.rttP50Ms, "num", "lower"],
+  ["net RTT p95 (ms)", (b) => b.network?.metrics?.rttP95Ms, "num", "lower"],
+  ["net RTT max (ms)", (b) => b.network?.metrics?.rttMaxMs, "num", "lower"],
+  ["net jitter stddev (ms)", (b) => b.network?.metrics?.jitterStddevMs, "num", "lower"],
 ];
 
 const fmt = (v, kind) => {
@@ -109,6 +124,28 @@ for (const r of results) {
   if (sc && sc.efficiency != null && sc.efficiency > 0.75) {
     note(`[${r.label}] multicore scales near-linearly (eff ${sc.efficiency}) → adding cores won't help the single-threaded scope path.`);
   }
+}
+
+// Network RTT/jitter vs the ~21 ms chunk cadence — the WiFi-path signal.
+const CHUNK_INTERVAL_MS = 1000 / (48000 / 1024); // ~21.3
+for (const r of results) {
+  const n = r.benchmarks.network?.metrics;
+  if (!n || r.benchmarks.network.status !== "ok") continue;
+  const jit = n.jitterStddevMs ?? 0;
+  const p95 = n.rttP95Ms ?? 0;
+  if (jit > 5 || p95 > 15 || (n.rttMaxMs ?? 0) > CHUNK_INTERVAL_MS) {
+    note(
+      `[${r.label}] network to ${n.target}: RTT p50 ${n.rttP50Ms}ms / p95 ${p95}ms / max ${n.rttMaxMs}ms, ` +
+        `jitter ${jit}ms — at the ~${round0(CHUNK_INTERVAL_MS)}ms chunk cadence this jitter directly causes choppy scope updates. ` +
+        `Likely the dominant lag source.`,
+    );
+  } else {
+    note(`[${r.label}] network to ${n.target}: RTT p95 ${p95}ms, jitter ${jit}ms — low; not a scope-lag contributor on this path.`);
+  }
+}
+
+function round0(x) {
+  return Math.round(x);
 }
 
 note(

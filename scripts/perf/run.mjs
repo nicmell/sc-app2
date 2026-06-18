@@ -17,6 +17,7 @@ import { run as cpuMulti } from "./benchmarks/cpu-multi.mjs";
 import { run as memory } from "./benchmarks/memory.mjs";
 import { run as disk } from "./benchmarks/disk.mjs";
 import { run as tmpfs } from "./benchmarks/tmpfs.mjs";
+import { run as network } from "./benchmarks/network.mjs";
 
 const ALL = [
   ["byteswap", byteSwap],
@@ -25,6 +26,7 @@ const ALL = [
   ["memory", memory],
   ["disk", disk],
   ["tmpfs", tmpfs],
+  ["network", network],
 ];
 
 const args = parseArgs(process.argv.slice(2), { warmup: 5, trials: 15 });
@@ -35,6 +37,9 @@ const ctx = {
   trials: args.quick ? 7 : args.trials,
   diskSize: typeof args["disk-size"] === "number" ? args["disk-size"] : undefined,
   memSize: typeof args["mem-size"] === "number" ? args["mem-size"] : undefined,
+  network: typeof args.network === "string" ? args.network : undefined,
+  netPath: typeof args["net-path"] === "string" ? args["net-path"] : undefined,
+  netCount: typeof args["net-count"] === "number" ? args["net-count"] : undefined,
 };
 
 const host = hostInfo();
@@ -77,7 +82,10 @@ if (args.stdout) {
 // One-line summary to stderr.
 const bs = benchmarks.byteSwap?.metrics;
 const cs = benchmarks.cpuSingle?.metrics;
+const net = benchmarks.network?.status === "ok" ? benchmarks.network.metrics : null;
 process.stderr.write(
   `summary [${result.label}] ${host.arch} ${host.cpuModel} x${host.cpuCount}: ` +
-    `cpu1=${cs?.opsPerSec ?? "?"} ops/s, byteSwap=${bs?.headroomVs47Hz ?? "?"}× headroom\n`,
+    `cpu1=${cs?.opsPerSec ?? "?"} ops/s, byteSwap=${bs?.headroomVs47Hz ?? "?"}× headroom` +
+    (net ? `, net RTT p95=${net.rttP95Ms}ms jitter=${net.jitterStddevMs}ms` : "") +
+    "\n",
 );

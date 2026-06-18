@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "label": "pi5",
+  "timestamp": "2026-06-18T12:20:16.418Z",
+  "host": {
+    "hostname": "rpi",
+    "platform": "linux",
+    "arch": "arm64",
+    "osType": "Linux",
+    "osRelease": "6.18.33+rpt-rpi-2712",
+    "cpuModel": "Cortex-A76",
+    "cpuCount": 4,
+    "availableParallelism": 4,
+    "totalMemBytes": 8454012928,
+    "freeMemBytes": 6619004928,
+    "loadAvg": [
+      0.08,
+      0.03,
+      0.01
+    ],
+    "nodeVersion": "v24.16.0",
+    "v8Version": "13.6.233.17-node.49",
+    "cpuTempStartC": 74.9
+  },
+  "fsType": "ext4",
+  "cpuTempEndC": 81,
+  "config": {
+    "quick": false,
+    "warmup": 5,
+    "trials": 15
+  },
+  "benchmarks": {
+    "byteSwap": {
+      "name": "byteSwap",
+      "unit": "MB/s",
+      "status": "ok",
+      "metrics": {
+        "scalarMBs": 1362.2,
+        "swap32MBs": 10659.88,
+        "decodeMBs": 2258.4,
+        "chunksPerSec": 166284.61,
+        "headroomVs47Hz": 3547.4,
+        "cov": 0.003
+      },
+      "notes": "scalar mirrors wire.rs; 166284.61 chunks/s ÷ 46.88 Hz cadence = 3547.4× headroom"
+    },
+    "cpuSingle": {
+      "name": "cpuSingle",
+      "unit": "ops/s",
+      "status": "ok",
+      "metrics": {
+        "opsPerSec": 25146.33,
+        "nsPerOp": 39767.2,
+        "mSamplesPerSec": 103,
+        "cov": 0.05
+      },
+      "checksum": 6292310,
+      "notes": "op = one 4096-sample biquad+MAC pass; checksum must match across hosts"
+    },
+    "cpuMulti": {
+      "name": "cpuMulti",
+      "unit": "ops/s",
+      "status": "ok",
+      "metrics": {
+        "cores": 4,
+        "singleOpsPerSec": 23635.43,
+        "aggOpsPerSec": 68630.63,
+        "scaling": 2.9,
+        "efficiency": 0.73
+      },
+      "notes": "4 workers; scaling 2.9× of single-core (efficiency 0.73)"
+    },
+    "memory": {
+      "name": "memory",
+      "unit": "GB/s",
+      "status": "ok",
+      "metrics": {
+        "bufferMB": 256,
+        "readGBs": 3.27,
+        "copyGBs": 3.95
+      },
+      "notes": "256 MB buffer (sink=4503604030308366)"
+    },
+    "disk": {
+      "name": "disk",
+      "unit": "MB/s",
+      "status": "ok",
+      "metrics": {
+        "sizeMB": 1024,
+        "seqWriteMBs": 71.34,
+        "seqReadMBs": 3646.39,
+        "randReadP50us": 2.7,
+        "randReadP95us": 4.4,
+        "randReadP99us": 5.8,
+        "cacheInfluenced": true
+      },
+      "path": "/home/nick/sc-app2",
+      "notes": "cache-influenced (file<RAM); macOS fsync≠F_FULLFSYNC; disk is NOT in the scope path"
+    },
+    "tmpfs": {
+      "name": "tmpfs",
+      "unit": "MB/s",
+      "status": "ok",
+      "metrics": {
+        "sizeMB": 256,
+        "seqWriteMBs": 3810.2,
+        "seqReadMBs": 3680.17,
+        "randReadP50us": 2.1,
+        "randReadP95us": 2.7,
+        "randReadP99us": 4,
+        "cacheInfluenced": true,
+        "freeShmMB": 5514
+      },
+      "path": "/dev/shm",
+      "notes": "RAM-backed; this is where scsynth's scope SHM segment lives (fsync is a no-op)"
+    }
+  }
+}

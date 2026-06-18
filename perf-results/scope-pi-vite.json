@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "target": {
+    "host": "127.0.0.1",
+    "port": 1420,
+    "proxied": true,
+    "wsUrl": "ws://127.0.0.1:1420/ws?session=0f3f289f-8daa-471e-b41e-4e91031a1d2a"
+  },
+  "platform": {
+    "os": "linux",
+    "arch": "arm64",
+    "node": "v24.16.0",
+    "hostname": "rpi"
+  },
+  "config": {
+    "host": "127.0.0.1",
+    "port": 1420,
+    "proxied": true,
+    "durationMs": 15000,
+    "channels": 2,
+    "chunkSize": 1024,
+    "sampleRate": 48000
+  },
+  "ok": true,
+  "error": null,
+  "setup": {
+    "sessionMintMs": 73.85,
+    "wsConnectMs": 6.46,
+    "dRecvSyncedMs": 54.25,
+    "sNewNGoMs": 15.88,
+    "subscribeToFirstChunkMs": 2.31
+  },
+  "session": {
+    "sessionId": "0f3f289f-8daa-471e-b41e-4e91031a1d2a",
+    "sessionGroupId": 134283264,
+    "nodeIdBase": 134283265,
+    "scopeIndexBase": 0
+  },
+  "throughput": {
+    "chunksReceived": 703,
+    "collectedMs": 14974.81,
+    "chunksPerSec": 46.95,
+    "expectedChunksPerSec": 46.88,
+    "rateRatio": 1
+  },
+  "jitterMs": {
+    "mean": 21.33,
+    "p50": 20.31,
+    "p95": 25.47,
+    "p99": 25.73,
+    "max": 41.59,
+    "stddev": 2.42,
+    "expectedIntervalMs": 21.33
+  },
+  "integrity": {
+    "estimatedDrops": 1,
+    "tickIndexContiguous": true
+  }
+}

@@ -19,6 +19,11 @@ ExecStart=/bin/sh -c 'tail -f /dev/null | sclang /home/nick/sc-app2/scripts/rpi/
 # SuperDirt expands itself (one bank per subdirectory). Clone the samples there:
 #   git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git /home/nick/Dirt-Samples
 Environment=SC_APP_DIRT_SAMPLES=/home/nick/Dirt-Samples/*
+# Let sclang's scheduler run at realtime priority (mirrors scsynth.service).
+# Without RTPRIO, sclang logs the harmless "Couldn't set realtime scheduling
+# priority" warning; granting it tightens language-side event timing.
+LimitRTPRIO=95
+LimitMEMLOCK=infinity
 Restart=on-failure
 RestartSec=5
 

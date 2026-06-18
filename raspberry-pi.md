@@ -177,6 +177,10 @@ Notes:
   it doesn't quit on EOF (there is no TTY under systemd).
 - It runs as `User=nick` so sclang reads that user's quark config. linger (§4)
   keeps it valid.
+- The unit sets `LimitRTPRIO=95` so sclang's scheduler can run at realtime
+  priority. Without it sclang logs `Couldn't set realtime scheduling priority …
+  Operation not permitted` — harmless (SuperDirt still runs), but the limit
+  tightens language-side event timing.
 - Sample playback (`bd`, `sn`, `hh`, …) needs a sample library. Clone
   Dirt-Samples to the path the unit's `SC_APP_DIRT_SAMPLES` points at
   (`/home/nick/Dirt-Samples` by default — ~390 MB, 200+ banks):
@@ -255,4 +259,5 @@ should sound (proves the `/dirt/*` path).
 | `jack_lsp` says "server not running" though jackd is up | JACK shm registry reaped/stale | restart jackd.service (and §4) |
 | StrudelDirt: `Class 'Vowel' not found` / `formLib` error | Vowel quark missing | §5 — install the Vowel quark, restart sclang |
 | StrudelDirt: "Could not open UDP port 57120" | a previous sclang still holds it | `pkill -x sclang`, then restart strudeldirt.service |
+| StrudelDirt: "Couldn't set realtime scheduling priority … not permitted" | the unit lacks the RTPRIO rlimit | harmless; add `LimitRTPRIO=95` to strudeldirt.service (already in the shipped unit) and restart |
 | Rust build fails on `glib-sys`/`gobject-sys` | Tauri's GTK deps not installed | §1 apt packages (or build `--no-default-features` on `headless-setup`) |

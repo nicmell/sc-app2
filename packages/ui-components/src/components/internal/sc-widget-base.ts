@@ -1,8 +1,8 @@
 // Shared base for the graphical `-base` input widgets. These are UI-only
 // ("dumb") controls — no OSC, no store, no bind logic. The owner of the value
 // is whoever consumes them (a logical sc-element wrapper, or a React parent).
-// See packages/ui-components/README and the foundation CSS in
-// foundations/components/sc-*.css for the class contract.
+// See packages/ui-components/README; each widget's chrome lives in its own
+// <name>.styles.ts (shadow DOM) + the shared internal/widget-base.styles.ts.
 //
 // Event model: each widget renders a hidden native <input> (`.sr-only`) under
 // its visual overlay and lets that input's NATIVE `input`/`change` flow to

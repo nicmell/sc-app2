@@ -36,8 +36,100 @@ sc-plugin {
   width: min(320px, 60vw);
 }
 
-/* The plugin drawer chrome (slide-in panel, backdrop, header, body) now lives in
-   @sc-app/ui-components as <sc-drawer-base> (foundations/components/drawer.css). */
+/* ── overlay content (light DOM) ──
+   The ui-components overlays (modal/drawer/toast) style themselves in their
+   shadow roots, but shadow CSS can't reach content the app SLOTS into them, nor
+   the bare connection loader. Those light-DOM classes live here. */
+
+/* Modal: the bare loader backdrop + progress bar (ConnectionOverlay), and the
+   content classes the app slots into <sc-modal-base>. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-progress {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+.modal-progress::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
+  animation: modal-progress-slide 1.4s ease-in-out infinite;
+}
+@keyframes modal-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+.modal-title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+.modal-body {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  line-height: var(--line-height-normal);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+/* Drawer: the title bar + scrolling body slotted into <sc-drawer-base>. */
+sc-drawer-base > header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+sc-drawer-base > header h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+.drawer-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+/* Toast: the fixed bottom-right stack the React ToastStack portals as a
+   top-layer popover (the cards are <sc-toast-base>). */
+.toast-stack {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  z-index: 1000;
+  pointer-events: none;
+}
 
 /* ── plugin list rows ── */
 .plugin-row {
@@ -59,9 +151,6 @@ sc-plugin {
 .plugin-meta {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
-}
-.modal-actions {
-  justify-content: flex-end;
 }
 
 /* ── <sc-strudel> ── */

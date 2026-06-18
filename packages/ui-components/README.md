@@ -23,11 +23,10 @@ tokens/                    design-token source (JSON): space, radius, typography
                            elevation, motion, layout, color
 build-tokens.mjs           Style Dictionary build (`yarn tokens`)
 src/
-  foundations/             the GLOBAL stylesheet (tokens + reset + base + app layout)
+  foundations/             the GLOBAL stylesheet — tokens + reset + base only
     index.css              entry; @imports the generated tokens + reset + base
     generated/tokens.generated.{css,ts}   GENERATED — :root vars + typed TS module
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings
-    components/{modal,drawer,toast,range-field}.css   app-level layout classes only
     reset.css
   components/              the -base Lit web components (one file each)
     index.ts               element barrel + registerUiComponents()

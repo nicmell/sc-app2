@@ -61,3 +61,6 @@ test/scenarios/.realbridge-config.json
 /tmp/var-plugin.zip
 /tmp/waveselect-plugin.zip
 /tmp/
+
+# perf suite output
+perf-results/

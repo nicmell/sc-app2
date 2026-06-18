@@ -24,7 +24,10 @@
     "serve": "cargo run --manifest-path src-tauri/Cargo.toml -- serve --config ./config.json --log-dir ./logs",
     "deps": "./scripts/setup-deps.sh",
     "osc": "./scripts/start-osc.sh",
-    "strudeldirt": "./scripts/start-strudeldirt.sh"
+    "strudeldirt": "./scripts/start-strudeldirt.sh",
+    "perf": "node scripts/perf/run.mjs",
+    "perf:report": "node scripts/perf/report.mjs",
+    "perf:scope": "tsx scripts/perf/scope-bench.mts"
   },
   "dependencies": {
     "@sc-app/server-commands": "workspace:*",

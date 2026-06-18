@@ -1,0 +1,23 @@
+# StrudelDirt (SuperDirt) for sc-app2 — attaches to scsynth.service on :57110
+# and listens for /dirt/* on :57120. Install to /etc/systemd/system/ (see
+# raspberry-pi.md). Edit User/Group and the repo path to match your checkout.
+[Unit]
+Description=StrudelDirt (SuperDirt) for sc-app2
+After=scsynth.service
+Requires=scsynth.service
+
+[Service]
+User=nick
+Group=audio
+# `tail -f /dev/null |` keeps sclang's stdin open so it stays alive (no TTY
+# under systemd; on EOF sclang would exit and tear down SuperDirt). sclang
+# uses the service user's default config, so the Vowel + StrudelDirt quarks
+# installed via Quarks.install are on the class path.
+ExecStart=/bin/sh -c 'tail -f /dev/null | sclang /home/nick/sc-app2/scripts/rpi/strudeldirt-attach.scd'
+# Optional: enable sample-based events by pointing at a Dirt-Samples tree.
+#Environment=SC_APP_DIRT_SAMPLES=/home/nick/Dirt-Samples/*
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

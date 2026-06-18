@@ -15,8 +15,10 @@ Group=audio
 # (Quarks.install) are on the class path and the per-user startup.scd has
 # already pointed `s` at the systemd scsynth on :57110.
 ExecStart=/bin/sh -c 'tail -f /dev/null | sclang /home/nick/sc-app2/scripts/rpi/strudeldirt-attach.scd'
-# Optional: enable sample-based events by pointing at a Dirt-Samples tree.
-#Environment=SC_APP_DIRT_SAMPLES=/home/nick/Dirt-Samples/*
+# Sample library for sample-based events (bd, sn, hh, …). The value is a glob
+# SuperDirt expands itself (one bank per subdirectory). Clone the samples there:
+#   git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git /home/nick/Dirt-Samples
+Environment=SC_APP_DIRT_SAMPLES=/home/nick/Dirt-Samples/*
 Restart=on-failure
 RestartSec=5
 

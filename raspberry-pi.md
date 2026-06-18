@@ -177,10 +177,18 @@ Notes:
   it doesn't quit on EOF (there is no TTY under systemd).
 - It runs as `User=nick` so sclang reads that user's quark config. linger (§4)
   keeps it valid.
-- Sample playback (`bd`, `hh`, …) needs a sample library: uncomment
-  `Environment=SC_APP_DIRT_SAMPLES=/path/to/Dirt-Samples/*` in the unit. Without
-  it, only synth-based events sound. Clone samples with e.g.
-  `git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git`.
+- Sample playback (`bd`, `sn`, `hh`, …) needs a sample library. Clone
+  Dirt-Samples to the path the unit's `SC_APP_DIRT_SAMPLES` points at
+  (`/home/nick/Dirt-Samples` by default — ~390 MB, 200+ banks):
+
+  ```bash
+  git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git /home/nick/Dirt-Samples
+  ```
+
+  SuperDirt loads them asynchronously after `STRUDELDIRT_READY` (the log shows
+  `N existing sample banks`). Without the samples, only synth-based events sound.
+  To use a different location, edit `Environment=SC_APP_DIRT_SAMPLES=…/*` in the
+  unit (the trailing `/*` glob is expanded by SuperDirt, not the shell).
 
 ## 8. Run the app
 

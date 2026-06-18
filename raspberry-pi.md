@@ -138,12 +138,29 @@ them to `~/.config/SuperCollider/sclang_conf.yaml`. Recompile the class library
 grep -E 'StrudelDirt|Vowel' ~/.config/SuperCollider/sclang_conf.yaml
 ```
 
-## 6. StrudelDirt as a service (`scripts/rpi/strudeldirt.service`)
+## 6. Point sclang at the systemd scsynth (per-user `startup.scd`)
+
+So that **every** sclang session (the StrudelDirt service and any interactive
+use) defaults to the systemd scsynth instead of booting its own, install the
+per-user startup file. sclang runs it on every launch, before any script passed
+on the command line:
+
+```bash
+cp scripts/rpi/startup.scd ~/.config/SuperCollider/startup.scd
+```
+
+It configures `s` (`Server.default`) to attach to `127.0.0.1:57110` with
+allocator options matched to `scsynth.service`'s flags (`-i 8 -o 8 -a 8192
+-b 262144 -m 26144 -l 32`) — keep the two in sync if you change the unit. Never
+`s.boot` from sclang; the service owns scsynth's lifecycle (attach with
+`s.doWhenBooted`).
+
+## 7. StrudelDirt as a service (`scripts/rpi/strudeldirt.service`)
 
 Mounts SuperDirt on UDP 57120, attaching to the running scsynth (it never boots
-its own). The startup script is `scripts/rpi/strudeldirt-attach.scd`; its
-`s.options.*` mirror **must match** `scsynth.service`'s flags (see the comments
-in both files).
+its own). The startup script is `scripts/rpi/strudeldirt-attach.scd`; the server
+options/address come from the per-user `startup.scd` installed in §6, so this
+script just mounts SuperDirt.
 
 ```bash
 sudo cp scripts/rpi/strudeldirt.service /etc/systemd/system/
@@ -165,7 +182,7 @@ Notes:
   it, only synth-based events sound. Clone samples with e.g.
   `git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git`.
 
-## 7. Run the app
+## 8. Run the app
 
 With the audio services up, start the bridge + frontend. The app's bridge
 forwards `/[sngbcdpu]_*` to scsynth (57110) and `/dirt/*` to StrudelDirt
@@ -206,7 +223,7 @@ Caveats:
   (`core/router/mod.rs::listen`); that's a code change (a configurable bind
   host), not just a flag. In dev, the Vite `--host` route above avoids it.
 
-## 8. Verification checklist
+## 9. Verification checklist
 
 ```bash
 systemctl is-active jackd.service scsynth.service strudeldirt.service   # active x3
@@ -221,7 +238,7 @@ In the app: drop a plugin with `<sc-scope bus="0">` on the dashboard — it shou
 render the master-out waveform (proves the SHM scope path), and Strudel patterns
 should sound (proves the `/dirt/*` path).
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|

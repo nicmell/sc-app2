@@ -10,9 +10,10 @@ Requires=scsynth.service
 User=nick
 Group=audio
 # `tail -f /dev/null |` keeps sclang's stdin open so it stays alive (no TTY
-# under systemd; on EOF sclang would exit and tear down SuperDirt). sclang
-# uses the service user's default config, so the Vowel + StrudelDirt quarks
-# installed via Quarks.install are on the class path.
+# under systemd; on EOF sclang would exit and tear down SuperDirt). sclang uses
+# the service user's default config, so the Vowel + StrudelDirt quarks
+# (Quarks.install) are on the class path and the per-user startup.scd has
+# already pointed `s` at the systemd scsynth on :57110.
 ExecStart=/bin/sh -c 'tail -f /dev/null | sclang /home/nick/sc-app2/scripts/rpi/strudeldirt-attach.scd'
 # Optional: enable sample-based events by pointing at a Dirt-Samples tree.
 #Environment=SC_APP_DIRT_SAMPLES=/home/nick/Dirt-Samples/*

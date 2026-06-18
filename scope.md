@@ -355,3 +355,18 @@ unmount / disconnect:
 - **scsynth without SHM** (e.g. supernova differences, exotic builds): the
   bridge logs `scope SHM unavailable` once per registration and the scope
   stays dark; everything else works.
+- **Linux + scsynth-as-a-systemd-service: `RemoveIPC` reaps the segment**.
+  systemd-logind defaults to `RemoveIPC=yes`, which deletes all POSIX shared
+  memory (and SysV IPC) owned by a *regular* user (UID ≥ 1000) the moment that
+  user's last login session ends. If scsynth runs under a service as such a
+  user (`User=nick`), the `/dev/shm/SuperColliderServer_<port>` segment it
+  creates at boot is silently removed when you log out of SSH — scsynth keeps
+  running with no segment, so the bridge can't `open()` it and every scope
+  stays dark. (macOS has no `RemoveIPC`, hence the feature only ever worked
+  there.) Fixes, cheapest first: `loginctl enable-linger <user>` (keeps the
+  user's manager alive so logind never reaps its IPC) then restart the scsynth
+  service so it recreates the now-persistent segment; or run scsynth under a
+  *system* user (UID < 1000, exempt from `RemoveIPC`); or set `RemoveIPC=no`
+  in `logind.conf`. Running scsynth in the foreground (`yarn osc`, tied to a
+  live session) is unaffected. The restart matters: the already-running
+  scsynth won't recreate a reaped segment on its own.

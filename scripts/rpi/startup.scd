@@ -7,7 +7,7 @@
 // attach with `s.startAliveThread` / `s.doWhenBooted` instead.
 //
 // These options MUST match scsynth.service's flags:
-//   -u 57110 -i 8 -o 8 -a 8192 -b 262144 -m 26144 -l 32
+//   -u 57110 -i 8 -o 8 -a 8192 -b 262144 -m 262144 -w 2048 -n 32768 -l 32
 // In attach mode sclang doesn't push them to scsynth, but they still drive
 // sclang's LOCAL bus/buffer allocators — a mismatch hands out private audio
 // buses that overlap the real hardware outs, or fails buffer allocation.
@@ -16,7 +16,9 @@ s.options.numInputBusChannels  = 8;       // -i 8
 s.options.numOutputBusChannels = 8;       // -o 8
 s.options.numAudioBusChannels  = 8192;    // -a 8192
 s.options.numBuffers           = 262144;  // -b 262144
-s.options.memSize              = 26144;   // -m 26144 (KB)
+s.options.memSize              = 262144;  // -m 262144 (KB)
+s.options.numWireBufs          = 2048;    // -w 2048
+s.options.maxNodes             = 32768;   // -n 32768
 s.options.maxLogins            = 32;      // -l 32
 s.newAllocators;
 

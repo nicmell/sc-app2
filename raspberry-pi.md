@@ -86,9 +86,13 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now scsynth.service
 ```
 
-Key flags (`-u 57110 -i 8 -o 8 -a 8192 -b 262144 -m 26144 -l 32`): port 57110,
-`-l 32` (maxLogins) so the bridge, sclang/StrudelDirt and extras each get a
-distinct clientID + node-id block.
+Key flags (`-u 57110 -i 8 -o 8 -a 8192 -b 262144 -m 262144 -w 2048 -n 32768
+-l 32`): port 57110; `-l 32` (maxLogins) so the bridge, sclang/StrudelDirt and
+extras each get a distinct clientID + node-id block; and `-m 262144` (256 MB RT
+memory), `-w 2048` (wire buffers), `-n 32768` (max nodes) sized for SuperDirt's
+global effects and complex plugin synthdefs — under-sizing these produces
+`alloc failed, increase server's RT memory` and `exceeded number of interconnect
+buffers` at runtime.
 
 ## 4. The `RemoveIPC` gotcha (REQUIRED for scopes — and stability)
 
@@ -151,7 +155,7 @@ cp scripts/rpi/startup.scd ~/.config/SuperCollider/startup.scd
 
 It configures `s` (`Server.default`) to attach to `127.0.0.1:57110` with
 allocator options matched to `scsynth.service`'s flags (`-i 8 -o 8 -a 8192
--b 262144 -m 26144 -l 32`) — keep the two in sync if you change the unit. Never
+-b 262144 -m 262144 -w 2048 -n 32768 -l 32`) — keep the two in sync if you change the unit. Never
 `s.boot` from sclang; the service owns scsynth's lifecycle (attach with
 `s.doWhenBooted`).
 
@@ -260,4 +264,7 @@ should sound (proves the `/dirt/*` path).
 | StrudelDirt: `Class 'Vowel' not found` / `formLib` error | Vowel quark missing | §5 — install the Vowel quark, restart sclang |
 | StrudelDirt: "Could not open UDP port 57120" | a previous sclang still holds it | `pkill -x sclang`, then restart strudeldirt.service |
 | StrudelDirt: "Couldn't set realtime scheduling priority … not permitted" | the unit lacks the RTPRIO rlimit | harmless; add `LimitRTPRIO=95` to strudeldirt.service (already in the shipped unit) and restart |
+| scsynth: "alloc failed, increase server's RT memory" | `-m` too small | set `-m 262144` in scsynth.service (the shipped unit does) and restart |
+| scsynth: "exceeded number of interconnect buffers" | `-w` too small (defaults to 64) | add `-w 2048` to scsynth.service and restart |
+| scsynth: "UGen 'MouseX' not installed" | StrudelDirt's default-synths use Mouse UGens, not built into this scsynth | harmless on a headless Pi (no mouse to read); that one synth just won't load |
 | Rust build fails on `glib-sys`/`gobject-sys` | Tauri's GTK deps not installed | §1 apt packages (or build `--no-default-features` on `headless-setup`) |

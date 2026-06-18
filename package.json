@@ -22,6 +22,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "serve": "cargo run --manifest-path src-tauri/Cargo.toml -- serve --config ./config.json --log-dir ./logs",
+    "serve:headless": "cargo run --manifest-path src-tauri/Cargo.toml --no-default-features -- serve --config ./config.json --log-dir ./logs",
+    "dev:full:headless": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev\" \"yarn serve:headless\"",
     "deps": "./scripts/setup-deps.sh",
     "osc": "./scripts/start-osc.sh",
     "strudeldirt": "./scripts/start-strudeldirt.sh"

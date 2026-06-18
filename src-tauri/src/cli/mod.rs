@@ -6,6 +6,7 @@
 //! logging, bridge, supervisor, server, listener).
 
 pub mod config;
+#[cfg(feature = "gui")]
 pub mod gui;
 pub mod plugin;
 pub mod serve;
@@ -39,15 +40,23 @@ pub fn run() {
     match Cli::parse().command {
         Some(Command::Plugin(cmd)) => exit_cli(plugin::run(cmd)),
         Some(Command::Config(cmd)) => exit_cli(config::run(cmd)),
-        Some(Command::Serve(args)) => exit_cli(serve::run(args, context())),
+        Some(Command::Serve(args)) => exit_cli(serve::run(args)),
+        #[cfg(feature = "gui")]
         None => gui::run(context()),
+        // Headless builds have no window to open; point the user at `serve`.
+        #[cfg(not(feature = "gui"))]
+        None => exit_cli(Err(
+            "this build has no GUI (compiled with --no-default-features); run `sc-app2 serve`"
+                .to_string(),
+        )),
     }
 }
 
 /// The embedded tauri context. ONE `generate_context!` invocation for the
 /// whole crate — the macro embeds the frontend assets into the binary, so a
 /// second textual invocation would duplicate them.
-fn context() -> tauri::Context {
+#[cfg(feature = "gui")]
+pub(crate) fn context() -> tauri::Context {
     tauri::generate_context!()
 }
 

@@ -1,15 +1,19 @@
 //! Frontend asset resolution + static serving.
 //!
-//! One [`AssetResolver`] trait, two implementations kept in lockstep so the
-//! server serves the frontend the same way regardless of where the bytes come
-//! from:
-//! - [`from_context`] (serve): assets embedded in the `tauri::Context`.
+//! One [`AssetResolver`] trait and a few implementations kept in lockstep so
+//! the server serves the frontend the same way regardless of where the bytes
+//! come from:
+//! - [`from_context`] (GUI-feature serve): assets embedded in the `tauri::Context`.
 //! - [`from_app`] (GUI): the same bytes via the running app's resolver.
+//! - [`from_dir`] (headless serve): assets read from a `dist/` directory on disk.
 //!
-//! Both return `None` in dev, where Vite serves the UI and the server stays
-//! API-only. [`serve_static`] is the axum fallback that uses a resolver.
+//! The Tauri-backed resolvers return `None` in dev, where Vite serves the UI
+//! and the server stays API-only. [`serve_static`] is the axum fallback that
+//! uses a resolver.
 
 use std::collections::HashMap;
+#[cfg(not(feature = "gui"))]
+use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 
 use axum::body::Bytes;
@@ -88,8 +92,10 @@ impl<R: AssetResolver> AssetResolver for CachedAssets<R> {
 }
 
 /// serve: assets embedded in the `tauri::Context`.
+#[cfg(feature = "gui")]
 struct ContextAssets(tauri::Context);
 
+#[cfg(feature = "gui")]
 impl AssetResolver for ContextAssets {
     fn get(&self, path: &str) -> Option<Bytes> {
         self.0
@@ -100,15 +106,18 @@ impl AssetResolver for ContextAssets {
 }
 
 /// GUI: the same embedded assets, reached through the running app.
+#[cfg(feature = "gui")]
 struct AppAssets(tauri::AssetResolver<tauri::Wry>);
 
+#[cfg(feature = "gui")]
 impl AssetResolver for AppAssets {
     fn get(&self, path: &str) -> Option<Bytes> {
         self.0.get(path.to_string()).map(|a| Bytes::from(a.bytes))
     }
 }
 
-/// Resolver over the embedded context (headless serve). `None` in dev.
+/// Resolver over the embedded context (GUI-feature serve). `None` in dev.
+#[cfg(feature = "gui")]
 pub fn from_context(context: tauri::Context) -> Option<Arc<dyn AssetResolver>> {
     (!cfg!(dev)).then(move || {
         Arc::new(CachedAssets::preloaded(ContextAssets(context))) as Arc<dyn AssetResolver>
@@ -116,10 +125,38 @@ pub fn from_context(context: tauri::Context) -> Option<Arc<dyn AssetResolver>> {
 }
 
 /// Resolver over the running app (GUI, for external clients). `None` in dev.
+#[cfg(feature = "gui")]
 pub fn from_app(app: &tauri::App) -> Option<Arc<dyn AssetResolver>> {
     (!cfg!(dev)).then(|| {
         Arc::new(CachedAssets::preloaded(AppAssets(app.asset_resolver()))) as Arc<dyn AssetResolver>
     })
+}
+
+/// Reads built frontend assets from a directory on disk (headless serve, where
+/// there's no embedded Tauri context). Path components are sanitized so a
+/// request can't escape `root` via `..` or absolute paths.
+#[cfg(not(feature = "gui"))]
+struct DirAssets(PathBuf);
+
+#[cfg(not(feature = "gui"))]
+impl AssetResolver for DirAssets {
+    fn get(&self, path: &str) -> Option<Bytes> {
+        let rel = Path::new(path);
+        // Reject anything that isn't a plain relative path under root.
+        if rel.components().any(|c| !matches!(c, Component::Normal(_))) {
+            return None;
+        }
+        std::fs::read(self.0.join(rel)).ok().map(Bytes::from)
+    }
+}
+
+/// Resolver over a `dist/` directory on disk (headless serve). `None` when the
+/// directory doesn't exist — i.e. the dev case, where Vite serves the UI and
+/// the server stays API-only.
+#[cfg(not(feature = "gui"))]
+pub fn from_dir(root: PathBuf) -> Option<Arc<dyn AssetResolver>> {
+    root.is_dir()
+        .then(|| Arc::new(CachedAssets::preloaded(DirAssets(root))) as Arc<dyn AssetResolver>)
 }
 
 /// Serve an asset, falling back to `index.html` for client-side routes.

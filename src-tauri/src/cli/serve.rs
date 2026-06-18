@@ -5,9 +5,11 @@
 //! command's.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use clap::Args;
 
+use crate::core::router::assets::AssetResolver;
 use crate::core::{self, router};
 
 #[derive(Args)]
@@ -20,9 +22,13 @@ pub struct ServeArgs {
     pub log_dir: Option<PathBuf>,
 }
 
-pub fn run(args: ServeArgs, context: tauri::Context) -> Result<(), String> {
-    tauri::async_runtime::block_on(async move {
-        let assets = router::assets::from_context(context);
+pub fn run(args: ServeArgs) -> Result<(), String> {
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .map_err(|e| format!("runtime: {e}"))?;
+    rt.block_on(async move {
+        let assets = serve_assets();
         let (server, listener) = core::start(args.config, args.log_dir)
             .await
             .map_err(|e| format!("server bind: {e}"))?;
@@ -30,4 +36,18 @@ pub fn run(args: ServeArgs, context: tauri::Context) -> Result<(), String> {
             .await
             .map_err(|e| format!("server error: {e}"))
     })
+}
+
+/// The frontend resolver for headless serve. With `gui`, the bytes are
+/// embedded in the Tauri context (the existing behavior); without it, they're
+/// read from a `dist/` directory on disk — `None` (API-only) when neither is
+/// available, which is the dev case (Vite serves the UI).
+#[cfg(feature = "gui")]
+fn serve_assets() -> Option<Arc<dyn AssetResolver>> {
+    router::assets::from_context(super::context())
+}
+
+#[cfg(not(feature = "gui"))]
+fn serve_assets() -> Option<Arc<dyn AssetResolver>> {
+    router::assets::from_dir(PathBuf::from("dist"))
 }

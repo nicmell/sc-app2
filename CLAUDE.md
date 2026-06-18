@@ -48,6 +48,19 @@ cd src-tauri && cargo check && cargo test
 * **Serve** (`sc-app2 serve`): the same server headless; browsers are same-origin
   (or Vite-proxied in dev) and `HTTP_BASE_URL` is `""`.
 
+**Headless builds (no Tauri/GTK).** `tauri` + `tauri-plugin-opener` sit behind a
+default-on `gui` cargo feature; every `tauri::` use (the GUI run mode in
+`cli/gui.rs`, `cli/mod.rs::context`, and the embedded-asset resolvers in
+`core/router/assets.rs`) is `#[cfg(feature = "gui")]`-gated. Building with
+`--no-default-features` (`yarn serve:headless` / `yarn dev:full:headless`) yields
+a pure-axum `serve` binary that links no webview/glib/gtk system libs — the way
+to run on Linux boxes (e.g. a Raspberry Pi) without the Tauri Linux deps. In that
+mode `serve` uses a plain Tokio runtime and resolves the built frontend from a
+`dist/` directory on disk (`assets::from_dir`, `yarn build` first) instead of the
+embedded Tauri context; with no `dist/` it stays API-only (the dev case, Vite
+serves the UI). `build.rs` skips `tauri_build::build()` unless `CARGO_FEATURE_GUI`
+is set, so a headless build needs no embedded `dist/`.
+
 ### Frontend (`src/`)
 
 ```

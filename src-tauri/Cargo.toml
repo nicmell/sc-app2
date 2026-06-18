@@ -14,12 +14,22 @@ edition = "2021"
 name = "sc_app2_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# `gui` (default) links Tauri + its webview runtime (wry/webkit2gtk on Linux,
+# which drags in glib/gtk system libs). Build with `--no-default-features` for
+# a pure-axum headless `serve` binary that needs none of them — see cli/serve.rs
+# and core/router/assets.rs, where every `tauri::` use is cfg-gated behind this.
+default = ["gui"]
+gui = ["dep:tauri", "dep:tauri-plugin-opener"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
+# Optional: only the GUI run mode and embedded-asset serving touch Tauri, both
+# behind the `gui` feature. A headless `serve` build pulls in no webview deps.
+tauri = { version = "2", features = [], optional = true }
+tauri-plugin-opener = { version = "2", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Resolve the app data dir (for config.json) without a Tauri AppHandle,

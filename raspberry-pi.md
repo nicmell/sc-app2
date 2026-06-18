@@ -179,6 +179,33 @@ Open `http://<pi-address>:1420`. (For a production build: `yarn build` then run
 the server; on the `headless-setup` branch, `yarn serve:headless` serves the
 built `dist/` with no GTK deps.)
 
+### Reaching the app from other machines on the LAN
+
+By default Vite binds `127.0.0.1`, so the dashboard is only reachable on the Pi
+itself. Bind it to all interfaces with `--host`:
+
+```bash
+yarn dev:full:lan        # = vite --host (0.0.0.0:1420) + the Rust server
+```
+
+Then browse to `http://<pi-ip>:1420/` from any LAN machine (find the IP with
+`hostname -I`). **Only port 1420 needs to be reachable** — Vite proxies `/api`
+and `/ws` to `127.0.0.1:3000` server-side on the Pi, so the Rust server can stay
+bound to loopback.
+
+Caveats:
+
+- **Use the IP** (e.g. `http://192.168.178.100:1420/`). Vite 6 blocks requests
+  whose `Host` header is an unknown *hostname* (DNS-rebinding protection); IPs
+  are always allowed. To use a name like `raspberrypi.local`, add
+  `server.allowedHosts: [...]` (or `true`) to `vite.config.ts`.
+- This exposes the unauthenticated control API to the whole LAN — fine on a
+  trusted home network, but don't put it on an untrusted one.
+- **Serving the built app directly on :3000** (no Vite, e.g. a production
+  appliance) needs the Rust listener to bind `0.0.0.0` instead of `127.0.0.1`
+  (`core/router/mod.rs::listen`); that's a code change (a configurable bind
+  host), not just a flag. In dev, the Vite `--host` route above avoids it.
+
 ## 8. Verification checklist
 
 ```bash

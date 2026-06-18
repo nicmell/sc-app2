@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev\" \"yarn serve\"",
+    "dev:full:lan": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev --host\" \"yarn serve\"",
     "build": "tsc && vite build",
     "lint": "eslint src packages",
     "format": "prettier --write src packages",

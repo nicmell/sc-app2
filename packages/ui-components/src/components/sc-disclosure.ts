@@ -1,7 +1,7 @@
 // <sc-disclosure-base> — a collapsible section. Wraps the NATIVE <details> (so
 // open/close behaviour + accessibility are free) in a shadow root, adding
 // design-system chrome (card border, padding, a rotating chevron — see
-// sc-disclosure.styles.ts) and a controllable `open` prop.
+// foundations/components/sc-disclosure.css) and a controllable `open` prop.
 //
 // Shadow DOM so it can render the <details>/<summary> structure while projecting
 // the author's content: a `summary` named slot fills the clickable summary, the
@@ -11,12 +11,12 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { disclosureStyles } from "./sc-disclosure.styles";
+import { foundationStyles } from "./internal/foundation-styles";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
 
-  static styles = [disclosureStyles];
+  static styles = foundationStyles ? [foundationStyles] : [];
 
   get #details(): HTMLDetailsElement | null {
     return this.renderRoot.querySelector("details");

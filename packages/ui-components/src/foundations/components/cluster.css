@@ -1,0 +1,33 @@
+/**
+ * Horizontal flex layout, centred cross-axis, with gap + wrap — the
+ * bread-and-butter "row of inline things" (toolbar buttons, label + input,
+ * chip + readout, …). Counterpart to .stack.
+ *
+ * Two entry points share one monotonic gap scale (single source of truth),
+ * mapping 1:1 to the space tokens — xs (default) / sm / md / lg →
+ * --space-xs/sm/md/lg:
+ *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects.
+ *   - `.cluster` + `.cluster--{sm,md,lg}` — the legacy classes (kept for
+ *     back-compat / plugin markup).
+ */
+
+:where(sc-cluster-base),
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+:where(sc-cluster-base[gap="sm"]),
+.cluster--sm {
+  gap: var(--space-sm);
+}
+:where(sc-cluster-base[gap="md"]),
+.cluster--md {
+  gap: var(--space-md);
+}
+:where(sc-cluster-base[gap="lg"]),
+.cluster--lg {
+  gap: var(--space-lg);
+}

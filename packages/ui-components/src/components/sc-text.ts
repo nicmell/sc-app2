@@ -1,12 +1,13 @@
-// <sc-text-base> — the typography primitive. Shadow DOM: slots the author's
-// text/inline children and styles the host off reflected attributes
-// (size/weight/tone/font/align + truncate/inline → `:host([…])`); the inherited
-// font properties flow into the slotted content. Owns its styles via Lit `css`
-// (sc-text.styles.ts); tokens reach the shadow by inheritance from :root.
+// <sc-text-base> — the typography primitive. Light DOM and host-only: it
+// renders NO template (LitElement's default render() returns noChange), so the
+// author's text/inline children are preserved untouched. Styling is driven by
+// reflected props → attribute selectors (foundations/components/sc-text.css),
+// the same pattern as <sc-radio-group-base> — there's no inner element to carry
+// a class, and reflecting avoids racing a host className. Maps to the type
+// tokens: size/weight/tone/font/align (+ truncate/inline).
 
-import { LitElement, html } from "lit";
+import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import { textStyles } from "./sc-text.styles";
 
 export type ScTextSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type ScTextWeight = "regular" | "medium" | "bold";
@@ -25,9 +26,8 @@ export class ScTextBase extends LitElement {
   /** Flow inline (default is a block). */
   @property({ type: Boolean, reflect: true }) accessor inline = false;
 
-  static styles = [textStyles];
-
-  render() {
-    return html`<slot></slot>`;
+  /** Light DOM + no render() ⇒ the text children stay; styling is by attribute. */
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
   }
 }

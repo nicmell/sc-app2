@@ -1,9 +1,0 @@
-{
-  "radius": {
-    "xs": { "value": "3px", "type": "dimension" },
-    "sm": { "value": "4px", "type": "dimension" },
-    "md": { "value": "6px", "type": "dimension" },
-    "lg": { "value": "12px", "type": "dimension" },
-    "pill": { "value": "999px", "type": "dimension" }
-  }
-}

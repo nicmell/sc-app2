@@ -47,8 +47,8 @@ async function mount<K extends WidgetTag>(
 describe("sc-checkbox-base", () => {
   it("renders a hidden native checkbox with the variant/size classes on the label", async () => {
     const el = await mount("sc-checkbox-base", { size: "lg", variant: "ok" });
-    const label = el.renderRoot.querySelector("label")!;
-    const input = el.renderRoot.querySelector("input")!;
+    const label = el.querySelector("label")!;
+    const input = el.querySelector("input")!;
     expect(input.type).toBe("checkbox");
     expect(input.classList.contains("sr-only")).toBe(true);
     expect(label.classList.contains("sc-checkbox")).toBe(true);
@@ -60,7 +60,7 @@ describe("sc-checkbox-base", () => {
     const el = await mount("sc-checkbox-base");
     const checks: boolean[] = [];
     el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     input.click();
     expect(el.checked).toBe(true);
     input.click();
@@ -70,7 +70,7 @@ describe("sc-checkbox-base", () => {
 
   it("disables the native input", async () => {
     const el = await mount("sc-checkbox-base", { disabled: true });
-    expect(el.renderRoot.querySelector("input")!.disabled).toBe(true);
+    expect(el.querySelector("input")!.disabled).toBe(true);
   });
 });
 
@@ -79,7 +79,7 @@ describe("sc-switch-base", () => {
     const el = await mount("sc-switch-base");
     const checks: boolean[] = [];
     el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     expect(input.getAttribute("role")).toBe("switch");
     input.click();
     expect(el.checked).toBe(true);
@@ -98,7 +98,7 @@ function nativeChanges(el: EventTarget): number[] {
 describe("sc-knob-base", () => {
   it("renders a hidden range and steps it on wheel, firing native change", async () => {
     const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0 });
-    expect(el.renderRoot.querySelector("input")!.type).toBe("range");
+    expect(el.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(0.05);
@@ -121,8 +121,8 @@ describe("sc-slider-base", () => {
       step: 0.1,
       value: 0.5,
     });
-    expect(el.renderRoot.querySelector(".sc-slider--vertical")).not.toBeNull();
-    expect(el.renderRoot.querySelector("input")!.type).toBe("range");
+    expect(el.querySelector(".sc-slider--vertical")).not.toBeNull();
+    expect(el.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(1);
@@ -133,7 +133,7 @@ describe("sc-slider-base", () => {
 describe("sc-option-base", () => {
   it("renders an option row with its label (standalone, no context)", async () => {
     const el = await mount("sc-option-base", { value: 7, label: "Saw" });
-    const row = el.renderRoot.querySelector(".sc-option")!;
+    const row = el.querySelector(".sc-option")!;
     expect(row.getAttribute("role")).toBe("option");
     expect(row.textContent!.trim()).toBe("Saw");
     expect(row.getAttribute("aria-selected")).toBe("false");
@@ -143,7 +143,7 @@ describe("sc-option-base", () => {
 describe("sc-radio-base", () => {
   it("renders a hidden native radio and checks itself on click (standalone)", async () => {
     const el = await mount("sc-radio-base", { value: 2, label: "Square" });
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     expect(input.type).toBe("radio");
     input.click();
     expect(el.checked).toBe(true);
@@ -176,7 +176,7 @@ describe("sc-radio-group-base", () => {
 
   it("shares one name and checks the selected child's input", async () => {
     const { radios } = await mountGroup(1);
-    const inputs = radios.map((r) => r.renderRoot.querySelector("input")!);
+    const inputs = radios.map((r) => r.querySelector("input")!);
     expect(inputs.map((i) => i.checked)).toEqual([false, true, false]);
     expect(new Set(inputs.map((i) => i.name)).size).toBe(1); // one shared name
   });
@@ -189,7 +189,7 @@ describe("sc-radio-group-base", () => {
       changes += 1;
       lastTarget = e.target;
     });
-    radios[2].renderRoot.querySelector("input")!.click();
+    radios[2].querySelector("input")!.click();
     expect(group.value).toBe(2);
     expect(changes).toBe(1);
     expect(lastTarget).toBe(group);
@@ -201,7 +201,7 @@ describe("sc-radio-group-base", () => {
     group.variant = "warn";
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const label = radios[0].renderRoot.querySelector(".sc-radio")!;
+    const label = radios[0].querySelector(".sc-radio")!;
     expect(label.classList.contains("sc-radio--lg")).toBe(true);
     expect(label.classList.contains("sc-radio--warn")).toBe(true);
   });
@@ -241,7 +241,7 @@ describe("sc-select-base", () => {
     const { select, options } = await mountSelect(0);
     let changes = 0;
     select.addEventListener("change", () => (changes += 1));
-    options[2].renderRoot.querySelector<HTMLElement>(".sc-option")!.click();
+    options[2].querySelector<HTMLElement>(".sc-option")!.click();
     await select.updateComplete;
     expect(select.value).toBe(2);
     expect(changes).toBe(1);
@@ -250,7 +250,7 @@ describe("sc-select-base", () => {
   it("marks the selected option via context", async () => {
     const { options } = await mountSelect(1);
     await Promise.all(options.map((o) => o.updateComplete));
-    const rows = options.map((o) => o.renderRoot.querySelector(".sc-option")!);
+    const rows = options.map((o) => o.querySelector(".sc-option")!);
     expect(rows.map((r) => r.classList.contains("sc-option--selected"))).toEqual([
       false,
       true,
@@ -262,7 +262,7 @@ describe("sc-select-base", () => {
 describe("sc-icon-base", () => {
   it("renders the fill icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
-    const i = el.renderRoot.querySelector("i")!;
+    const i = el.querySelector("i")!;
     expect(i.classList.contains("sc-icon")).toBe(true);
     expect(i.classList.contains("ph-fill")).toBe(true);
     expect(i.classList.contains("ph-play")).toBe(true);
@@ -271,12 +271,12 @@ describe("sc-icon-base", () => {
 
   it("applies the size modifier when given", async () => {
     const el = await mount("sc-icon-base", { name: "play", size: "lg" });
-    expect(el.renderRoot.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
+    expect(el.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
     const el = await mount("sc-icon-base", { name: "play", label: "Play" });
-    const i = el.renderRoot.querySelector("i")!;
+    const i = el.querySelector("i")!;
     expect(i.getAttribute("role")).toBe("img");
     expect(i.getAttribute("aria-label")).toBe("Play");
     expect(i.hasAttribute("aria-hidden")).toBe(false);
@@ -286,12 +286,12 @@ describe("sc-icon-base", () => {
 describe("sc-button-base", () => {
   it("renders a typed button with variant/size classes and label text", async () => {
     const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
-    const btn = el.renderRoot.querySelector("button")!;
+    const btn = el.querySelector("button")!;
     expect(btn.getAttribute("type")).toBe("button");
     expect(btn.classList.contains("sc-button")).toBe(true);
     expect(btn.classList.contains("sc-button--danger")).toBe(true);
     expect(btn.classList.contains("sc-button--lg")).toBe(true);
-    expect(el.renderRoot.querySelector(".sc-button__label")!.textContent).toBe("Run");
+    expect(el.querySelector(".sc-button__label")!.textContent).toBe("Run");
   });
 
   it("renders leading and trailing icons", async () => {
@@ -300,16 +300,16 @@ describe("sc-button-base", () => {
       icon: "folder",
       trailingIcon: "caret-down",
     });
-    const names = Array.from(el.renderRoot.querySelectorAll("sc-icon-base")).map((i) => i.getAttribute("name"));
+    const names = Array.from(el.querySelectorAll("sc-icon-base")).map((i) => i.getAttribute("name"));
     expect(names).toEqual(["folder", "caret-down"]);
   });
 
   it("icon-only: square modifier, no label text, label used as aria-label", async () => {
     const el = await mount("sc-button-base", { icon: "play", iconOnly: true, label: "Play" });
-    const btn = el.renderRoot.querySelector("button")!;
+    const btn = el.querySelector("button")!;
     expect(btn.classList.contains("sc-button--icon")).toBe(true);
-    expect(el.renderRoot.querySelector(".sc-button__label")).toBeNull();
-    expect(el.renderRoot.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
+    expect(el.querySelector(".sc-button__label")).toBeNull();
+    expect(el.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
     expect(btn.getAttribute("aria-label")).toBe("Play");
   });
 
@@ -317,7 +317,7 @@ describe("sc-button-base", () => {
     const el = await mount("sc-button-base", { label: "Go" });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
-    el.renderRoot.querySelector("button")!.click();
+    el.querySelector("button")!.click();
     expect(clicks).toBe(1);
   });
 
@@ -325,7 +325,7 @@ describe("sc-button-base", () => {
     const el = await mount("sc-button-base", { label: "Go", disabled: true });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
-    el.renderRoot.querySelector("button")!.click();
+    el.querySelector("button")!.click();
     expect(clicks).toBe(0);
   });
 });
@@ -333,35 +333,35 @@ describe("sc-button-base", () => {
 describe("sc-badge-base", () => {
   it("renders the label; ok is the base class with no modifier", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.renderRoot.querySelector(".badge")!;
+    const span = el.querySelector(".badge")!;
     expect(span.textContent!.trim()).toBe("connected");
     expect(span.classList.contains("badge--ok")).toBe(false);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(el.renderRoot.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
+    expect(el.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
   });
 });
 
 describe("sc-toast-base", () => {
   it("renders the message; default has no variant modifier", async () => {
     const el = await mount("sc-toast-base", { message: "Saved." });
-    const toast = el.renderRoot.querySelector(".toast")!;
-    expect(el.renderRoot.querySelector(".toast-message")!.textContent!.trim()).toBe("Saved.");
+    const toast = el.querySelector(".toast")!;
+    expect(el.querySelector(".toast-message")!.textContent!.trim()).toBe("Saved.");
     expect(toast.className).toBe("toast");
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
-    expect(el.renderRoot.querySelector(".toast")!.classList.contains("toast--warn")).toBe(true);
+    expect(el.querySelector(".toast")!.classList.contains("toast--warn")).toBe(true);
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
     const el = await mount("sc-toast-base", { message: "x" });
     let dismissed = 0;
     el.addEventListener("dismiss", () => (dismissed += 1));
-    el.renderRoot.querySelector<HTMLButtonElement>(".toast-close")!.click();
+    el.querySelector<HTMLButtonElement>(".toast-close")!.click();
     expect(dismissed).toBe(1);
   });
 });
@@ -369,24 +369,24 @@ describe("sc-toast-base", () => {
 describe("sc-chip-base", () => {
   it("renders the label; neutral is the base class with no modifier or dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.renderRoot.querySelector(".chip")!;
+    const chip = el.querySelector(".chip")!;
     expect(chip.textContent!.trim()).toBe("idle");
     expect(chip.className).toBe("chip");
-    expect(el.renderRoot.querySelector(".chip__dot")).toBeNull();
+    expect(el.querySelector(".chip__dot")).toBeNull();
   });
 
   it("applies the variant modifier and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.renderRoot.querySelector(".chip")!;
+    const chip = el.querySelector(".chip")!;
     expect(chip.classList.contains("chip--ok")).toBe(true);
-    expect(el.renderRoot.querySelector(".chip__dot")).not.toBeNull();
+    expect(el.querySelector(".chip__dot")).not.toBeNull();
   });
 });
 
 describe("sc-input-base", () => {
   it("renders a text input with the size class", async () => {
     const el = await mount("sc-input-base", { size: "lg", placeholder: "name" });
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     expect(input.type).toBe("text");
     expect(input.classList.contains("sc-input")).toBe(true);
     expect(input.classList.contains("sc-input--lg")).toBe(true);
@@ -397,7 +397,7 @@ describe("sc-input-base", () => {
     const el = await mount("sc-input-base");
     const inputs: string[] = [];
     el.addEventListener("input", (e) => inputs.push((e.target as HTMLInputElement).value));
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     input.value = "hello";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("hello");
@@ -408,22 +408,22 @@ describe("sc-input-base", () => {
 describe("sc-inputnumber-base", () => {
   it("renders a number input plus two stepper buttons", async () => {
     const el = await mount("sc-inputnumber-base", { value: 2 });
-    expect(el.renderRoot.querySelector("input")!.type).toBe("number");
-    expect(el.renderRoot.querySelectorAll(".sc-inputnumber__step").length).toBe(2);
+    expect(el.querySelector("input")!.type).toBe("number");
+    expect(el.querySelectorAll(".sc-inputnumber__step").length).toBe(2);
   });
 
   it("steps up by `step`, firing native change with the new value", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, step: 1, max: 5 });
     const changes: number[] = [];
     el.addEventListener("change", (e) => changes.push(Number((e.target as HTMLInputElement).value)));
-    el.renderRoot.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0].click();
+    el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0].click();
     expect(el.value).toBe(1);
     expect(changes).toEqual([1]);
   });
 
   it("clamps to max at the bound", async () => {
     const el = await mount("sc-inputnumber-base", { value: 4.5, step: 1, max: 5 });
-    const up = el.renderRoot.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0];
+    const up = el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0];
     up.click(); // 4.5 → clamp(quantize(5.5)) = 5
     up.click(); // already 5 → no-op
     expect(el.value).toBe(5);
@@ -431,7 +431,7 @@ describe("sc-inputnumber-base", () => {
 
   it("clamps a typed out-of-range value on change", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, max: 5 });
-    const input = el.renderRoot.querySelector("input")!;
+    const input = el.querySelector("input")!;
     input.value = "999";
     input.dispatchEvent(new Event("input", { bubbles: true })); // live: 999
     input.dispatchEvent(new Event("change", { bubbles: true })); // commit: clamps
@@ -440,15 +440,15 @@ describe("sc-inputnumber-base", () => {
 
   it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
     const el = await mount("sc-inputnumber-base", { value: 1 });
-    expect(el.renderRoot.querySelector(".sc-inputnumber__step--up")).not.toBeNull();
-    expect(el.renderRoot.querySelector(".sc-inputnumber__step--down")).not.toBeNull();
+    expect(el.querySelector(".sc-inputnumber__step--up")).not.toBeNull();
+    expect(el.querySelector(".sc-inputnumber__step--down")).not.toBeNull();
   });
 });
 
 describe("sc-textarea-base", () => {
   it("renders a textarea with rows + size class", async () => {
     const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
-    const ta = el.renderRoot.querySelector("textarea")!;
+    const ta = el.querySelector("textarea")!;
     expect(ta.getAttribute("rows")).toBe("5");
     expect(ta.classList.contains("sc-textarea")).toBe(true);
     expect(ta.classList.contains("sc-textarea--lg")).toBe(true);
@@ -459,7 +459,7 @@ describe("sc-textarea-base", () => {
     const el = await mount("sc-textarea-base");
     const inputs: string[] = [];
     el.addEventListener("input", (e) => inputs.push((e.target as HTMLTextAreaElement).value));
-    const ta = el.renderRoot.querySelector("textarea")!;
+    const ta = el.querySelector("textarea")!;
     ta.value = "multi\nline";
     ta.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("multi\nline");
@@ -498,15 +498,15 @@ describe("sc-text-base", () => {
 describe("form participation", () => {
   it("forwards `name` to the native input/textarea", async () => {
     const input = await mount("sc-input-base", { name: "title" });
-    expect(input.renderRoot.querySelector("input")!.name).toBe("title");
+    expect(input.querySelector("input")!.name).toBe("title");
     const ta = await mount("sc-textarea-base", { name: "notes" });
-    expect(ta.renderRoot.querySelector("textarea")!.name).toBe("notes");
+    expect(ta.querySelector("textarea")!.name).toBe("notes");
     const num = await mount("sc-inputnumber-base", { name: "freq" });
-    expect(num.renderRoot.querySelector("input")!.name).toBe("freq");
+    expect(num.querySelector("input")!.name).toBe("freq");
     const cb = await mount("sc-checkbox-base", { name: "agree" });
-    expect(cb.renderRoot.querySelector("input")!.name).toBe("agree");
+    expect(cb.querySelector("input")!.name).toBe("agree");
     const knob = await mount("sc-knob-base", { name: "gain" });
-    expect(knob.renderRoot.querySelector("input")!.name).toBe("gain");
+    expect(knob.querySelector("input")!.name).toBe("gain");
   });
 
   it("radio-group shares its name with the radios + value on the checked one", async () => {
@@ -521,34 +521,27 @@ describe("form participation", () => {
     await Promise.all(radios.map((r) => r.updateComplete));
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const inputs = radios.map((r) => r.renderRoot.querySelector("input")!);
+    const inputs = radios.map((r) => r.querySelector("input")!);
     expect(inputs.every((i) => i.name === "wave")).toBe(true);
     expect(inputs[1].checked).toBe(true);
     expect(inputs[1].value).toBe("1");
   });
 
-  // The widgets are form-associated custom elements (static formAssociated +
-  // ElementInternals.setFormValue) so they submit in a <form> under their `name`.
-  // happy-dom doesn't wire ElementInternals into FormData, so real submission is
-  // CDP-verified; here we assert the form-association contract + reflected name.
-  it("the input widgets are form-associated and reflect `name`", async () => {
-    const formAssociated = [
-      "sc-input-base",
-      "sc-textarea-base",
-      "sc-inputnumber-base",
-      "sc-checkbox-base",
-      "sc-switch-base",
-      "sc-knob-base",
-      "sc-slider-base",
-      "sc-radio-group-base",
-      "sc-select-base",
-    ] as const;
-    for (const tag of formAssociated) {
-      const ctor = customElements.get(tag) as unknown as { formAssociated?: boolean };
-      expect(ctor.formAssociated).toBe(true);
-    }
-    const input = await mount("sc-input-base", { name: "title" });
-    expect(input.getAttribute("name")).toBe("title");
+  it("submits through a <form> via FormData", async () => {
+    const form = document.createElement("form");
+    const cb = document.createElement("sc-checkbox-base");
+    cb.setAttribute("name", "agree");
+    cb.checked = true;
+    const inp = document.createElement("sc-input-base");
+    inp.setAttribute("name", "title");
+    inp.value = "hi";
+    form.append(cb, inp);
+    document.body.appendChild(form);
+    await cb.updateComplete;
+    await inp.updateComplete;
+    const data = new FormData(form);
+    expect(data.get("title")).toBe("hi");
+    expect(data.get("agree")).toBe("on");
   });
 });
 
@@ -652,8 +645,8 @@ describe("host-only content wrappers", () => {
     el.variant = "error";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot.querySelector("slot")).not.toBeNull(); // shadow DOM, content slotted
-    expect(el.querySelector("strong")!.textContent).toBe("down"); // slotted child stays light-DOM
+    expect(el.renderRoot).toBe(el); // light DOM (host-only)
+    expect(el.querySelector("strong")!.textContent).toBe("down");
     expect(el.getAttribute("variant")).toBe("error");
   });
 
@@ -680,7 +673,7 @@ describe("host-only content wrappers", () => {
     el.textContent = "no items yet";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot.querySelector("slot")).not.toBeNull();
+    expect(el.renderRoot).toBe(el);
     expect(el.textContent).toBe("no items yet");
   });
 
@@ -691,7 +684,7 @@ describe("host-only content wrappers", () => {
       el.gap = "md";
       document.body.appendChild(el);
       await el.updateComplete;
-      expect(el.renderRoot.querySelector("slot")).not.toBeNull(); // shadow DOM, content slotted
+      expect(el.renderRoot).toBe(el); // light DOM (host-only)
       expect(el.querySelectorAll("span").length).toBe(2);
       expect(el.getAttribute("gap")).toBe("md");
     }
@@ -761,15 +754,15 @@ describe("a11y wiring", () => {
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
     const el = await mount("sc-toast-base", { variant: "error" });
-    expect(el.renderRoot.querySelector(".toast")!.getAttribute("role")).toBe("alert");
+    expect(el.querySelector(".toast")!.getAttribute("role")).toBe("alert");
     const info = await mount("sc-toast-base", { variant: "info" });
-    expect(info.renderRoot.querySelector(".toast")!.getAttribute("role")).toBe("status");
+    expect(info.querySelector(".toast")!.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
     for (const tag of ["sc-knob-base", "sc-slider-base"] as const) {
       const el = await mount(tag, { label: "Gain", value: 0.8, step: 0.01 });
-      const input = el.renderRoot.querySelector("input")!;
+      const input = el.querySelector("input")!;
       expect(input.getAttribute("aria-label")).toBe("Gain");
       expect(input.getAttribute("aria-valuetext")).toBe("0.80");
     }

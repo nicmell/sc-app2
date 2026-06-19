@@ -1,0 +1,34 @@
+/**
+ * .badge — uppercase pill, distinct from .chip in two ways:
+ * (1) no leading dot — body content is the whole badge;
+ * (2) tighter padding + uppercase tracking.
+ *
+ * Rendered by <sc-badge-base> (src/components); variant is a
+ * classnames modifier, not a data attribute. ok is the default
+ * (the base `.badge`). Variants: ok | warn | error.
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-ok-bg);
+  border: 1px solid var(--color-ok-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ok-text);
+}
+
+.badge--warn {
+  background: var(--color-warn-bg);
+  border-color: var(--color-warn-border);
+  color: var(--color-warn-text);
+}
+
+.badge--error {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+}

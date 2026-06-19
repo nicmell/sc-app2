@@ -1,6 +1,0 @@
-{
-  "transition": {
-    "fast": { "value": "80ms ease" },
-    "base": { "value": "160ms ease" }
-  }
-}

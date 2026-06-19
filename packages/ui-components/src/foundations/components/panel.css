@@ -1,0 +1,53 @@
+/**
+ * Chrome wrapper for any feature surface (scopes, recordings,
+ * sequencer, dirt console, …): a surface-1 card with a subtle
+ * border, internal padding, and a gap-stack of children. The
+ * single direct-child <header> renders as a small uppercase
+ * title bar.
+ *
+ * Two entry points share the chrome:
+ *   - `<sc-panel-base>` — the host-only web component; a direct-child
+ *     <header> is the title bar, `disabled` mutes the card "out of service".
+ *   - `.panel` — the legacy class (kept for back-compat; plugins compose a
+ *     card-style surface with it directly), with `aria-disabled="true"` for
+ *     the idle state.
+ *
+ *   <sc-panel-base>
+ *     <header>Sequencer</header>
+ *     ... gap-spaced content ...
+ *   </sc-panel-base>
+ */
+
+:where(sc-panel-base),
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-surface-1);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+}
+
+:where(sc-panel-base) > header,
+.panel > header {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  color: var(--color-text-dim);
+}
+
+/* Idle / not-yet-active panel chrome: the card stays visible (so the dashboard
+   layout doesn't reflow on connect/disconnect) but its content is muted to read
+   as "out of service" and stops taking pointer input. Interactive children are
+   expected to honour the state themselves (or be unmounted by the consumer).
+   sc-panel-base exposes it as the `disabled` prop; `.panel` as aria-disabled. */
+sc-panel-base[disabled],
+.panel[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}

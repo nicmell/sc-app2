@@ -1,14 +1,13 @@
 // <sc-empty-base> — placeholder shown when a list/collection has no items yet
-// (dashed border, muted text, centred). Shadow DOM: slots the author's message;
-// styled on `:host` (sc-empty.styles.ts).
+// (dashed border, muted text, centred). Light DOM and host-only: it renders NO
+// template (default render() returns noChange), so the author's message/inline
+// children are preserved. Wraps the legacy `.empty` class (kept for back-compat).
 
-import { LitElement, html } from "lit";
-import { emptyStyles } from "./sc-empty.styles";
+import { LitElement } from "lit";
 
 export class ScEmptyBase extends LitElement {
-  static styles = [emptyStyles];
-
-  render() {
-    return html`<slot></slot>`;
+  /** Light DOM + no render() ⇒ the message children stay; styling is on the host. */
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
   }
 }

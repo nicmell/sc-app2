@@ -5,23 +5,19 @@
 // anchor to, the edge position is pure CSS.
 //
 // The dialog carries `.drawer`; `side` (right default | left) reflects to the
-// host so its styles (sc-drawer.styles.ts) flip the edge + slide direction. The
-// slide in/out is animated natively (@starting-style + transition-behavior:
-// allow-discrete), degrading to an instant toggle where unsupported. Author
-// content is slotted as light DOM; a direct-child <header> (styled by the global
-// `sc-drawer-base > header` / `.drawer-body` classes) is the title bar + body.
+// host so the CSS (foundations/components/drawer.css) flips the edge + slide
+// direction. The slide in/out is animated natively (@starting-style +
+// transition-behavior: allow-discrete), degrading to an instant toggle where
+// unsupported. Author content is slotted as light DOM; a direct-child <header>
+// becomes the title bar.
 
 import { property } from "lit/decorators.js";
 import { ScDialogBase } from "./internal/sc-dialog-base";
-import { resetStyles } from "./internal/reset.styles";
-import { drawerStyles } from "./sc-drawer.styles";
 
 export type ScDrawerSide = "right" | "left";
 
 export class ScDrawerBase extends ScDialogBase {
   @property({ reflect: true }) accessor side: ScDrawerSide = "right";
-
-  static styles = [resetStyles, drawerStyles];
 
   protected get dialogClass(): string {
     return "drawer";

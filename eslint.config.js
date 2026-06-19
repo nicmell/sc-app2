@@ -37,17 +37,18 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "off",
     },
   },
-  // Node build scripts (e.g. the Style Dictionary build) are ESM, not part of
+  // postcss.config.cjs is the only non-TS file in scope: CommonJS, not part of
   // any tsconfig, so no type-aware linting.
   {
-    files: ["**/*.mjs"],
+    files: ["**/*.cjs"],
     extends: [tseslint.configs.disableTypeChecked],
-    languageOptions: { sourceType: "module", globals: globals.node },
+    languageOptions: { sourceType: "commonjs", globals: globals.node },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
   },
   // The Lit web components live under sc-elements + the ui-components package's
-  // components/ folder — lint their html``/css`` templates.
+  // lit/ folder — lint their html`` templates.
   {
-    files: ["src/sc-elements/**/*.ts", "packages/ui-components/src/components/**/*.ts"],
+    files: ["src/sc-elements/**/*.ts", "packages/ui-components/src/components/lit/**/*.ts"],
     extends: [lit.configs["flat/recommended"]],
   },
   // Last: turn off any lint rules that would conflict with Prettier formatting.

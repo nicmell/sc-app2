@@ -8,8 +8,7 @@
          file through Vite: `npx vite` from this package dir, then open the
          printed URL. (Opening the file directly still shows the CSS-only
          foundation sections, just not the interactive widgets.) -->
-    <!-- Foundation CSS is imported by the module script below (Vite inlines the
-         @import chain incl. the generated tokens); serve through Vite. -->
+    <link rel="stylesheet" href="./dist/index.css" />
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
        structure to render the sections side-by-side without
@@ -44,20 +43,6 @@
         gap: var(--space-sm);
         align-items: center;
       }
-      /* Demo-local layout helpers (the foundation's stack/cluster are now the
-         <sc-stack-base>/<sc-cluster-base> elements; these just arrange rows). */
-      .demo-stack {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-sm);
-        align-items: flex-start;
-      }
-      .demo-cluster {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-sm);
-        align-items: center;
-      }
       .demo-cap {
         margin: 0;
         font-family: var(--font-mono);
@@ -71,77 +56,17 @@
         border: 1px solid var(--color-border-strong);
         border-radius: var(--radius-sm);
       }
-
-      /* Demo-local copies of the light-DOM content the app would slot into the
-         overlay components (in the real app these live in src/App.css; the
-         components style only their own shadow). */
-      .modal-title {
-        margin: 0;
-        font-size: var(--font-size-md);
-        font-weight: var(--font-weight-medium);
-      }
-      .modal-body {
-        margin: 0;
-        font-size: var(--font-size-sm);
-        color: var(--color-text-dim);
-      }
-      .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: var(--space-xs);
-      }
-      sc-drawer-base > header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
-        border-bottom: 1px solid var(--color-border);
-      }
-      sc-drawer-base > header h2 {
-        margin: 0;
-        font-size: var(--font-size-md);
-      }
-      .drawer-body {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-        padding: var(--space-md);
-      }
-      .modal-progress {
-        position: relative;
-        width: 100%;
-        height: 4px;
-        background: var(--color-surface-3);
-        border-radius: var(--radius-xs);
-        overflow: hidden;
-      }
-      .modal-progress::before {
-        content: "";
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: 40%;
-        background: linear-gradient(90deg, transparent, var(--color-primary) 50%, transparent);
-        animation: modal-progress-slide 1.4s ease-in-out infinite;
-      }
-      @keyframes modal-progress-slide {
-        0% {
-          transform: translateX(-100%);
-        }
-        100% {
-          transform: translateX(350%);
-        }
-      }
     </style>
   </head>
   <body>
     <div class="demo-shell">
       <h1>@sc-app/ui-components</h1>
       <p>
-        The CSS foundation (design tokens + reset + base element styles) followed by the
-        <code>-base</code> components — Lit web components that each style themselves in their own
-        shadow root (the tokens inherit in). Serve through Vite (<code>npx vite</code> from this
-        package dir) so the TS modules transpile.
+        The CSS foundation (tokens + reset + base elements + component classes) followed by the
+        graphical <code>-base</code> input widgets (Lit web components). If anything looks off in
+        the foundation sections, the foundation is leaking — fix before migrating panels. The
+        widgets at the bottom need the TS modules transpiled, so serve this file through Vite
+        (<code>npx vite</code> from this package dir).
       </p>
 
       <section class="demo-section">
@@ -206,7 +131,7 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <div class="demo-stack">
+        <div class="stack stack--sm">
           <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
           <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
           <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
@@ -236,7 +161,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <div class="demo-stack">
+        <div class="stack stack--sm">
           <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
           <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
           <sc-text-base size="md">Medium (default body)</sc-text-base>
@@ -244,7 +169,7 @@ function dirtPlay(event) {
           <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
         </div>
         <p class="demo-cap">tones</p>
-        <div class="demo-cluster">
+        <div class="cluster cluster--md">
           <sc-text-base>default</sc-text-base>
           <sc-text-base tone="dim">dim</sc-text-base>
           <sc-text-base tone="mute">mute</sc-text-base>
@@ -269,7 +194,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <div class="demo-stack">
+        <div class="stack stack--sm">
           <sc-disclosure-base>
             <span slot="summary">Details summary (click to expand)</span>
             <sc-text-base size="sm" tone="dim">
@@ -303,14 +228,14 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-panel-base&gt; + cluster + stack</h2>
-        <div class="demo-cluster" style="align-items: flex-start">
+        <div class="cluster cluster--md" style="align-items: flex-start">
           <sc-panel-base>
             <header>Panel header</header>
-            <div class="demo-cluster">
+            <div class="cluster cluster--md">
               <span>cluster: row of inline things</span>
               <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
             </div>
-            <div class="demo-stack">
+            <div class="stack stack--sm">
               <span>stack item 1</span>
               <span>stack item 2</span>
               <span>stack item 3</span>
@@ -326,7 +251,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
-        <div class="demo-cluster">
+        <div class="cluster cluster--sm">
           <sc-chip-base dot label="idle"></sc-chip-base>
           <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
           <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
@@ -337,7 +262,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-badge-base&gt;</h2>
-        <div class="demo-cluster">
+        <div class="cluster cluster--sm">
           <sc-badge-base label="connected"></sc-badge-base>
           <sc-badge-base label="degraded" variant="warn"></sc-badge-base>
           <sc-badge-base label="offline" variant="error"></sc-badge-base>
@@ -345,8 +270,22 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
+        <h2 class="demo-section-title">Range field</h2>
+        <label class="range-field">
+          <span class="range-field-label">gain</span>
+          <input type="range" min="0" max="2" step="0.01" value="0.8" />
+          <span class="range-field-value">0.80</span>
+        </label>
+        <label class="range-field">
+          <span class="range-field-label">cutoff</span>
+          <input type="range" min="100" max="8000" step="10" value="800" />
+          <span class="range-field-value">800 Hz</span>
+        </label>
+      </section>
+
+      <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
-        <div class="demo-stack">
+        <div class="stack stack--sm">
           <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
           <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
           <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
@@ -387,7 +326,14 @@ function dirtPlay(event) {
             </div>
           </sc-modal-base>
         </div>
-        <p class="demo-cap">indeterminate <code>.modal-progress</code> (the loader bar):</p>
+        <p class="demo-cap">
+          legacy <code>.modal</code> chrome (static preview) + indeterminate
+          <code>.modal-progress</code>:
+        </p>
+        <div class="modal" style="position: static">
+          <h2 class="modal-title">Reinitialize dashboard?</h2>
+          <p class="modal-body">The same card chrome, shown in flow.</p>
+        </div>
         <div class="modal-progress"></div>
       </section>
 
@@ -398,7 +344,7 @@ function dirtPlay(event) {
           <code>.toast-stack</code> at the bottom-right of the viewport. Below renders the cards
           without the stack so they show in flow.
         </p>
-        <div class="demo-stack">
+        <div class="stack">
           <sc-toast-base message="Default toast — muted accent."></sc-toast-base>
           <sc-toast-base
             variant="info"
@@ -745,7 +691,7 @@ function dirtPlay(event) {
                 onclick="document.getElementById('demo-drawer-r').open = false"
               ></sc-button-base>
             </header>
-            <div class="drawer-body demo-stack">
+            <div class="drawer-body stack stack--sm">
               <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
               <sc-empty-base>no plugins installed yet</sc-empty-base>
             </div>
@@ -836,7 +782,6 @@ function dirtPlay(event) {
 
     <script type="module">
       // Phosphor fill-weight font (the only weight sc-icon-base supports).
-      import "./src/foundations/index.css";
       import "@phosphor-icons/web/fill";
       import { registerUiComponents } from "./src/components/index.ts";
       registerUiComponents();

@@ -8,9 +8,6 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
-import { resetStyles } from "./internal/reset.styles";
-import { widgetBaseStyles } from "./internal/widget-base.styles";
-import { knobStyles } from "./sc-knob.styles";
 
 export class ScKnobBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
@@ -20,22 +17,6 @@ export class ScKnobBase extends ScWidgetBase {
   /** Accessible name for the control (→ aria-label on the range input). */
   @property() accessor label = "";
 
-  static styles = [resetStyles, widgetBaseStyles, knobStyles];
-
-  static formAssociated = true;
-
-  readonly #internals: ElementInternals | undefined = (() => {
-    try {
-      return this.attachInternals();
-    } catch {
-      return undefined;
-    }
-  })();
-
-  protected updated(): void {
-    this.#internals?.setFormValue(String(this.value));
-  }
-
   /** Value announced by screen readers, rounded to the step's precision so it
    *  reads "0.80", not a binary-float tail. */
   private _valueText(): string {
@@ -44,7 +25,7 @@ export class ScKnobBase extends ScWidgetBase {
   }
 
   private get _input(): HTMLInputElement {
-    return this.renderRoot.querySelector("input") as HTMLInputElement;
+    return this.querySelector("input") as HTMLInputElement;
   }
 
   connectedCallback(): void {
@@ -61,14 +42,9 @@ export class ScKnobBase extends ScWidgetBase {
     this.removeEventListener("wheel", this._onWheel);
   }
 
-  /** The range is the source of truth — mirror it onto `value` (redraws SVG) and
-   *  re-emit composed input/change so host listeners see them across the shadow. */
-  private _onRangeInput = (e: Event): void => {
+  /** The range is the source of truth — mirror it onto `value` (redraws SVG). */
+  private _onRangeInput = (): void => {
     this.value = Number(this._input.value);
-    this.reemit(e);
-  };
-  private _onRangeChange = (e: Event): void => {
-    this.reemit(e);
   };
 
   /** Quantise to `step`, clamp to range. */
@@ -156,7 +132,6 @@ export class ScKnobBase extends ScWidgetBase {
           aria-valuetext=${this._valueText()}
           ?disabled=${this.disabled}
           @input=${this._onRangeInput}
-          @change=${this._onRangeChange}
         />
         <svg class="sc-knob__svg" viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
           <circle class="sc-knob__body" cx="50" cy="50" r="47" />

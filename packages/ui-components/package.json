@@ -6,7 +6,6 @@
   "description": "Framework-agnostic CSS foundation for sc-app: tokens, base element styles, and a small set of semantic-class primitives. Shared between the React host and future runtime HTML plugins.",
   "exports": {
     ".": "./src/foundations/index.css",
-    "./dist": "./dist/index.css",
     "./reset": "./src/foundations/reset.css",
     "./tokens": "./src/foundations/tokens/index.css",
     "./themes/dark": "./src/foundations/themes/dark.css",
@@ -16,8 +15,6 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "postcss src/foundations/index.css -o dist/index.css",
-    "build:watch": "postcss src/foundations/index.css -o dist/index.css --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -49,12 +46,8 @@
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.20",
     "happy-dom": "^20.10.2",
     "lit": "^3.3.3",
-    "postcss": "^8.4.49",
-    "postcss-cli": "^11.0.0",
-    "postcss-import": "^16.1.0",
     "react": "^19",
     "react-dom": "^19",
     "typescript": "~5.6.2",

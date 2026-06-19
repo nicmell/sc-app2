@@ -9,9 +9,9 @@ Three consumers:
 1. **The React host** (`src/`) — imports the foundation CSS once in
    `src/main.tsx`, registers the web components, and uses the React wrappers.
 2. **Lit widgets** (`src/sc-elements/*`) — render the `-base` tags directly.
-3. **Runtime HTML plugins** (trusted, light DOM) — load the built
-   `dist/index.css` and use the `-base` tags / foundation classes, inheriting
-   the host's look with no bundle of their own.
+3. **Runtime HTML plugins** (trusted, light DOM) — import `@sc-app/ui-components`
+   (the source foundation CSS) and use the `-base` tags / foundation classes,
+   inheriting the host's look with no bundle of their own.
 
 ## Layout
 
@@ -34,7 +34,6 @@ src/
 | import | what |
 |---|---|
 | `@sc-app/ui-components` | the foundation CSS (source; Vite resolves the `@import` chain) — **required for any styling** |
-| `@sc-app/ui-components/dist` | the bundled, autoprefixed `dist/index.css` for build-less plugin runtime |
 | `@sc-app/ui-components/lit` | the web components + `registerUiComponents()` |
 | `@sc-app/ui-components/react` | the React wrappers (importing the barrel registers the elements) |
 | `@sc-app/ui-components/tokens` `/themes/dark` `/themes/light` `/reset` | individual CSS layers |
@@ -45,8 +44,8 @@ src/
 // 1. styling (once, at app boot) — adopt the ONE shared foundation stylesheet
 //    onto the document. This is the same CSSStyleSheet that shadow-DOM widgets
 //    (sc-select) adopt into their roots, so the foundation is parsed + shipped
-//    once for the whole app. (Plain CSS consumers can still `import
-//    "@sc-app/ui-components"` or <link> the dist instead — e.g. plugin HTML.)
+//    once for the whole app. (Plain CSS consumers can `import
+//    "@sc-app/ui-components"` instead — Vite inlines the @import chain.)
 import { adoptFoundation } from "@sc-app/ui-components/lit";
 adoptFoundation();
 
@@ -241,14 +240,14 @@ modals are centred, so they don't overlap.
 ## Build
 
 ```bash
-yarn build          # PostCSS: inline @imports + autoprefix → dist/index.css
-yarn build:watch
 yarn typecheck      # tsc over the TS components (chained into the root typecheck)
 yarn test           # vitest + happy-dom behaviour suite
 ```
 
-The package ships **source** (`./src/foundations/index.css`, resolved by the
-host's Vite) and a **bundled** `dist/index.css` (for plugin runtime).
+The package is **source-only** — no build step. Consumers import the foundation
+CSS (`./src/foundations/index.css`) and the TS components through their own
+bundler (the host's Vite resolves the `@import` chain, incl. Open Props, and
+transpiles the components).
 
 ## Demo
 
@@ -263,8 +262,8 @@ npx vite            # from packages/ui-components/, then open the printed URL
 
 ## Constraints
 
-- **Plain CSS only** in `foundations/` — no Sass/Tailwind/nesting; PostCSS does
-  only `@import` inlining + autoprefixing.
+- **Plain CSS only** in `foundations/` — no Sass/Tailwind/nesting, no build step;
+  the host's bundler (Vite) inlines the `@import` chain.
 - **Light DOM cascade.** Selectors stay shallow so plugin HTML under the same
   root behaves predictably.
 - **Tokens are the public API.** Renaming a `--color-*` / `--space-*` / selector

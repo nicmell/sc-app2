@@ -5,9 +5,8 @@
  *
  * Every name below is part of @sc-app/ui-components's PUBLIC
  * API: plugin authors and host code consume these and the
- * underlying source (Open Props primitives, raw rems, etc.) is
- * replaceable behind them. Renaming any of these is a breaking
- * change.
+ * underlying raw values are replaceable behind them. Renaming any
+ * of these is a breaking change.
  *
  * Migration policy from the legacy src/styles.scss vocabulary:
  * existing values that don't land on a scale step round to the
@@ -60,12 +59,12 @@
   --font-weight-bold: 700;
 
   /* ── Shadows ─────────────────────────────────────────────────
-     Mapped to Open Props for a sensible elevation curve.
+     Self-contained elevation curve (tuned for the dark surfaces).
      Plugins authoring popovers / modals use --shadow-lg by
      default. */
-  --shadow-sm: var(--shadow-2);
-  --shadow-md: var(--shadow-4);
-  --shadow-lg: var(--shadow-6);
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 0.4), 0 1px 1px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 12px 28px -4px rgb(0 0 0 / 0.5), 0 6px 12px -6px rgb(0 0 0 / 0.4);
 
   /* ── Layout ──────────────────────────────────────────────────
      Single max-width for the dashboard shell; exposed so

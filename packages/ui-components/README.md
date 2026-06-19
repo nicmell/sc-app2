@@ -246,8 +246,8 @@ yarn test           # vitest + happy-dom behaviour suite
 
 The package is **source-only** — no build step. Consumers import the foundation
 CSS (`./src/foundations/index.css`) and the TS components through their own
-bundler (the host's Vite resolves the `@import` chain, incl. Open Props, and
-transpiles the components).
+bundler (the host's Vite resolves the `@import` chain and transpiles the
+components).
 
 ## Demo
 

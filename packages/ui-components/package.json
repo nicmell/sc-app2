@@ -23,8 +23,7 @@
     "@floating-ui/dom": "^1.7.6",
     "@lit/context": "^1.1.6",
     "@lit/react": "^1.0.6",
-    "classnames": "^2.5.1",
-    "open-props": "^1.7.15"
+    "classnames": "^2.5.1"
   },
   "peerDependencies": {
     "@phosphor-icons/web": "^2.1.2",

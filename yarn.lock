@@ -1570,7 +1570,6 @@ __metadata:
     classnames: "npm:^2.5.1"
     happy-dom: "npm:^20.10.2"
     lit: "npm:^3.3.3"
-    open-props: "npm:^1.7.15"
     react: "npm:^19"
     react-dom: "npm:^19"
     typescript: "npm:~5.6.2"
@@ -4100,13 +4099,6 @@ __metadata:
   version: 2.1.2
   resolution: "obug@npm:2.1.2"
   checksum: 10c0/e857080ef23c018bd4ad8553238cd97008cd4ab8472b4b83eafe75c19e9b6f84ac8fe53ef7f50b515a1dbf83e6372dd0b198aece33bc716edfa70366f6f6ed5e
-  languageName: node
-  linkType: hard
-
-"open-props@npm:^1.7.15":
-  version: 1.7.23
-  resolution: "open-props@npm:1.7.23"
-  checksum: 10c0/2fd5db10db38950eef224d54ddec60a54cbf18201e39f5c720f92153c782255a0c0aca420809611da3166692c449467ca8babeaf151dd2e29fd80c94d6729058
   languageName: node
   linkType: hard
 

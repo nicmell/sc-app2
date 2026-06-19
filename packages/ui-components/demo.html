@@ -324,15 +324,34 @@ function dirtPlay(event) {
             </div>
           </sc-modal-base>
         </div>
-        <p class="demo-cap">
-          legacy <code>.modal</code> chrome (static preview) + indeterminate
-          <code>.modal-progress</code>:
-        </p>
+        <p class="demo-cap">legacy <code>.modal</code> chrome (static preview):</p>
         <div class="modal" style="position: static">
           <h2 class="modal-title">Reinitialize dashboard?</h2>
           <p class="modal-body">The same card chrome, shown in flow.</p>
         </div>
-        <div class="modal-progress"></div>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-progress-base&gt;</h2>
+        <p class="demo-cap">
+          indeterminate bar (default) — used by the connection overlay; set
+          <code>value</code> for a determinate fill:
+        </p>
+        <sc-progress-base label="Loading"></sc-progress-base>
+        <sc-progress-base value="60" label="60% loaded"></sc-progress-base>
+        <sc-progress-base size="lg" value="30" label="30% loaded"></sc-progress-base>
+        <p class="demo-cap">spinner — indeterminate, then determinate (sm / md / lg):</p>
+        <div class="demo-row" style="align-items: center; gap: 1rem">
+          <sc-progress-base variant="spinner" size="sm" label="Loading"></sc-progress-base>
+          <sc-progress-base variant="spinner" label="Loading"></sc-progress-base>
+          <sc-progress-base variant="spinner" size="lg" label="Loading"></sc-progress-base>
+          <sc-progress-base
+            variant="spinner"
+            size="lg"
+            value="75"
+            label="75% loaded"
+          ></sc-progress-base>
+        </div>
       </section>
 
       <section class="demo-section">

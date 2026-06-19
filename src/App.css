@@ -30,8 +30,8 @@ sc-plugin {
 }
 
 /* ── connection overlay ── */
-/* Width for the bare loading bar (ui-components's .modal-progress is
-   width: 100% and would span the window inside the flex backdrop). */
+/* Caps the <sc-progress-base> bar (it's width: 100%) so it doesn't span the
+   whole window inside the flex backdrop. */
 .connection-loader {
   width: min(320px, 60vw);
 }

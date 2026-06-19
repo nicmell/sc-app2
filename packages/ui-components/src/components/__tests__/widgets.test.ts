@@ -29,7 +29,8 @@ type WidgetTag =
   | "sc-input-base"
   | "sc-inputnumber-base"
   | "sc-textarea-base"
-  | "sc-text-base";
+  | "sc-text-base"
+  | "sc-progress-base";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -109,6 +110,45 @@ describe("sc-knob-base", () => {
     const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.1, value: 0.95 });
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBe(1);
+  });
+
+  // Drag sensitivity = (width || 40) × 1.5 = 60px for the full range (happy-dom
+  // reports width 0), along whichever axis dominates the gesture. Up increases.
+  function drag(el: HTMLElement, dyUp: number, opts: { shiftKey?: boolean } = {}): void {
+    const startY = 300;
+    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 0, clientY: startY }));
+    document.dispatchEvent(
+      new MouseEvent("mousemove", { bubbles: true, clientX: 0, clientY: startY - dyUp, ...opts }),
+    );
+    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+  }
+
+  it("increases on upward drag", async () => {
+    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    const changes = nativeChanges(el);
+    drag(el, 15); // +15/60 * 1 = +0.25
+    expect(el.value).toBeCloseTo(0.75);
+    expect(changes).toEqual([0.75]);
+  });
+
+  it("decreases on downward drag", async () => {
+    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    drag(el, -30); // -30/60 * 1 = -0.5
+    expect(el.value).toBeCloseTo(0);
+  });
+
+  it("Shift makes the drag finer (×0.2)", async () => {
+    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    drag(el, 15, { shiftKey: true }); // +0.25 * 0.2 = +0.05
+    expect(el.value).toBeCloseTo(0.55);
+  });
+
+  it("follows the dominant axis (horizontal drag also adjusts)", async () => {
+    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 0, clientY: 300 }));
+    document.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 15, clientY: 300 }));
+    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+    expect(el.value).toBeCloseTo(0.75); // dx=15 dominates → +15/60 = +0.25
   });
 });
 
@@ -766,5 +806,54 @@ describe("a11y wiring", () => {
       expect(input.getAttribute("aria-label")).toBe("Gain");
       expect(input.getAttribute("aria-valuetext")).toBe("0.80");
     }
+  });
+});
+
+describe("sc-progress-base", () => {
+  it("defaults to an indeterminate bar (role=progressbar, busy, no valuenow)", async () => {
+    const el = await mount("sc-progress-base");
+    const bar = el.querySelector(".sc-progress")!;
+    expect(bar.classList.contains("sc-progress--bar")).toBe(true);
+    expect(bar.classList.contains("is-indeterminate")).toBe(true);
+    expect(bar.getAttribute("role")).toBe("progressbar");
+    expect(bar.getAttribute("aria-busy")).toBe("true");
+    expect(bar.hasAttribute("aria-valuenow")).toBe(false);
+    expect(el.querySelector(".sc-progress__fill")).not.toBeNull();
+  });
+
+  it("with a value becomes determinate: rounded aria-valuenow + a fill width", async () => {
+    const el = await mount("sc-progress-base", { value: 60 });
+    const bar = el.querySelector(".sc-progress")!;
+    expect(bar.classList.contains("is-determinate")).toBe(true);
+    expect(bar.hasAttribute("aria-busy")).toBe(false);
+    expect(bar.getAttribute("aria-valuenow")).toBe("60");
+    expect(bar.getAttribute("aria-valuemax")).toBe("100");
+    expect((el.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("60%");
+  });
+
+  it("clamps value to [0,max] for the fill width and honours a custom max", async () => {
+    const over = await mount("sc-progress-base", { value: 9999 });
+    expect((over.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("100%");
+    const scaled = await mount("sc-progress-base", { value: 5, max: 10 });
+    expect((scaled.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("50%");
+    expect(scaled.querySelector(".sc-progress")!.getAttribute("aria-valuemax")).toBe("10");
+  });
+
+  it("spinner variant renders the ring host itself with the determinate angle", async () => {
+    const indet = await mount("sc-progress-base", { variant: "spinner" });
+    const ring = indet.querySelector(".sc-progress")!;
+    expect(ring.classList.contains("sc-progress--spinner")).toBe(true);
+    expect(ring.classList.contains("is-indeterminate")).toBe(true);
+    expect(indet.querySelector(".sc-progress__fill")).toBeNull();
+
+    const det = await mount("sc-progress-base", { variant: "spinner", value: 75 });
+    expect((det.querySelector(".sc-progress") as HTMLElement).style.getPropertyValue("--_pct")).toBe(
+      "75",
+    );
+  });
+
+  it("carries the label as the accessible name", async () => {
+    const el = await mount("sc-progress-base", { label: "Connecting…" });
+    expect(el.querySelector(".sc-progress")!.getAttribute("aria-label")).toBe("Connecting…");
   });
 });

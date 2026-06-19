@@ -51,7 +51,7 @@ describe("ConnectionOverlay", () => {
   // tag is). The notice/actions are slotted light-DOM children of the host.
   it("connecting: backdrop with the indeterminate loader, no modal", () => {
     expect(container.querySelector(".modal-backdrop")).not.toBeNull();
-    expect(container.querySelector(".modal-progress")).not.toBeNull();
+    expect(container.querySelector("sc-progress-base")).not.toBeNull();
     expect(container.querySelector("sc-modal-base")).toBeNull();
   });
 
@@ -62,7 +62,7 @@ describe("ConnectionOverlay", () => {
 
   it("error: modal with a notice and a Retry button, no loader", () => {
     setStatus("error");
-    expect(container.querySelector(".modal-progress")).toBeNull();
+    expect(container.querySelector("sc-progress-base")).toBeNull();
     const modal = container.querySelector("sc-modal-base");
     expect(modal).not.toBeNull();
     expect(modal!.querySelector(".modal-title")?.textContent).toMatch(/connection failed/i);
@@ -84,6 +84,6 @@ describe("ConnectionOverlay", () => {
     });
     expect(retry).toHaveBeenCalledTimes(1);
     expect(container.querySelector("sc-modal-base")).toBeNull();
-    expect(container.querySelector(".modal-progress")).not.toBeNull();
+    expect(container.querySelector("sc-progress-base")).not.toBeNull();
   });
 });

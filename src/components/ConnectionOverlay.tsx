@@ -1,4 +1,4 @@
-import { ScCluster } from "@sc-app/ui-components/react";
+import { ScCluster, ScProgress } from "@sc-app/ui-components/react";
 import { Modal } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
 
@@ -15,7 +15,7 @@ export function ConnectionOverlay() {
     return (
       <div className="modal-backdrop">
         <div className="connection-loader">
-          <div className="modal-progress" />
+          <ScProgress label="Connecting to the session…" />
         </div>
       </div>
     );

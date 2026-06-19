@@ -43,6 +43,7 @@ import {
   ScStackBase,
   ScClusterBase,
   ScDisclosureBase,
+  ScProgressBase,
 } from "./index";
 
 registerUiComponents();
@@ -266,4 +267,13 @@ export const ScDisclosure = createComponent({
   tagName: "sc-disclosure-base",
   elementClass: ScDisclosureBase,
   events: { onToggle: "toggle" },
+});
+
+/** <sc-progress-base>. A loading/progress indicator: `variant` (bar | spinner),
+ *  `size` (sm | md | lg). Omit `value` for an indeterminate spinner/bar; set
+ *  `value` (0…`max`) for a determinate one. `label` is the accessible name. */
+export const ScProgress = createComponent({
+  react: React,
+  tagName: "sc-progress-base",
+  elementClass: ScProgressBase,
 });

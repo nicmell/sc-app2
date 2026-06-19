@@ -110,6 +110,7 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
+| `sc-progress-base` | `variant` `value` `max` `size` `label` | — | loading/progress indicator; `bar`/`spinner`, determinate when `value` set else indeterminate; `role=progressbar` |
 | `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` (top-layer popover) |
 | `sc-popover-base` | `open` `placement` `anchor` | `toggle` | **shadow DOM**; top-layer anchored panel (slots content) |
 | `sc-modal-base` | `open` `dismissable` `label` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content); `label`→aria-label |
@@ -126,6 +127,8 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 - **`sc-toast-base`** — `default` `success` `warn` `error` `info`.
 - **`sc-text-base`** — `tone`: `default` `dim` `mute` `faint` `primary` `ok` `warn` `error` `info`.
 - **`sc-alert-base`** — `variant`: `info` (default) `success` `warn` `error`.
+- **`sc-progress-base`** — `variant` is the **shape**, not a colour: `bar`
+  (default) `spinner`.
 
 `size` is `sm | md | lg` everywhere it appears (md default). `gap` (stack/
 cluster) is a monotonic `xs | sm | md | lg` mapping 1:1 to `--space-{xs,sm,md,lg}`

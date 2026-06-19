@@ -29,6 +29,7 @@ import { ScEmptyBase } from "./sc-empty";
 import { ScStackBase } from "./sc-stack";
 import { ScClusterBase } from "./sc-cluster";
 import { ScDisclosureBase } from "./sc-disclosure";
+import { ScProgressBase } from "./sc-progress";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
@@ -56,6 +57,11 @@ export { ScEmptyBase } from "./sc-empty";
 export { ScStackBase, type ScGap } from "./sc-stack";
 export { ScClusterBase } from "./sc-cluster";
 export { ScDisclosureBase } from "./sc-disclosure";
+export {
+  ScProgressBase,
+  type ScProgressVariant,
+  type ScProgressSize,
+} from "./sc-progress";
 export { ScInputBase, type ScInputSize } from "./sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea";
@@ -99,6 +105,7 @@ export const REGISTRY = {
   "sc-stack-base": ScStackBase,
   "sc-cluster-base": ScClusterBase,
   "sc-disclosure-base": ScDisclosureBase,
+  "sc-progress-base": ScProgressBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -136,5 +143,6 @@ declare global {
     "sc-stack-base": ScStackBase;
     "sc-cluster-base": ScClusterBase;
     "sc-disclosure-base": ScDisclosureBase;
+    "sc-progress-base": ScProgressBase;
   }
 }

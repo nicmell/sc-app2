@@ -7,8 +7,8 @@
  * mapping 1:1 to the space tokens — xs (default) / sm / md / lg →
  * --space-xs/sm/md/lg:
  *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects.
- *   - `.cluster` + `.cluster--{sm,md,lg}` — the legacy classes (kept for
- *     back-compat / plugin markup).
+ *   - `.cluster` + `.cluster--{sm,md}` — the legacy plain classes still
+ *     referenced (the demo); lg is component-only (use `<sc-cluster-base gap>`).
  */
 
 :where(sc-cluster-base),
@@ -27,7 +27,6 @@
 .cluster--md {
   gap: var(--space-md);
 }
-:where(sc-cluster-base[gap="lg"]),
-.cluster--lg {
+:where(sc-cluster-base[gap="lg"]) {
   gap: var(--space-lg);
 }

@@ -3,8 +3,7 @@
 // single direct-child <header> renders as a small uppercase title bar. Light DOM
 // and host-only: it renders NO template (default render() returns noChange), so
 // the author's header + content children are preserved. The `disabled` reflected
-// prop mutes the card as "out of service" (replacing the legacy `.panel`'s
-// `aria-disabled="true"` convention; the `.panel` class stays for back-compat).
+// prop mutes the card as "out of service".
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";

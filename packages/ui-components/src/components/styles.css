@@ -1,0 +1,42 @@
+/**
+ * Component-layer stylesheet — aggregates every co-located component's CSS into
+ * one sheet. Each `sc-<tag>.css` sits beside its `sc-<tag>.ts` (1:1); the shared
+ * widget base lives in internal/. Pulled once by foundations/index.css after the
+ * token + reset + base layers, so these rules resolve against the design tokens.
+ *
+ * Order: layout + container primitives first, then the shared widget base
+ * (defines the variant→--_accent + disabled affordances the widgets consume),
+ * then the individual widgets and overlays.
+ */
+
+/* Layout + surface primitives. */
+@import "./sc-panel.css";
+@import "./sc-cluster.css";
+@import "./sc-stack.css";
+@import "./sc-chip.css";
+@import "./sc-badge.css";
+@import "./sc-empty.css";
+@import "./sc-alert.css";
+@import "./sc-modal.css";
+@import "./sc-drawer.css";
+@import "./sc-toast.css";
+@import "./sc-progress.css";
+
+/* Graphical input widgets — shared base first, then each widget. */
+@import "./internal/sc-widget-base.css";
+@import "./sc-checkbox.css";
+@import "./sc-switch.css";
+@import "./sc-knob.css";
+@import "./sc-slider.css";
+@import "./sc-option.css";
+@import "./sc-radio.css";
+@import "./sc-radio-group.css";
+@import "./sc-select.css";
+@import "./sc-popover.css";
+@import "./sc-icon.css";
+@import "./sc-button.css";
+@import "./sc-input.css";
+@import "./sc-inputnumber.css";
+@import "./sc-textarea.css";
+@import "./sc-text.css";
+@import "./sc-disclosure.css";

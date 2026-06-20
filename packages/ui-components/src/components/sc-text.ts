@@ -1,7 +1,7 @@
 // <sc-text-base> — the typography primitive. Light DOM and host-only: it
 // renders NO template (LitElement's default render() returns noChange), so the
 // author's text/inline children are preserved untouched. Styling is driven by
-// reflected props → attribute selectors (foundations/components/sc-text.css),
+// reflected props → attribute selectors (sc-text.css),
 // the same pattern as <sc-radio-group-base> — there's no inner element to carry
 // a class, and reflecting avoids racing a host className. Maps to the type
 // tokens: size/weight/tone/font/align (+ truncate/inline).

@@ -2,7 +2,7 @@
 // things": toolbars, label + input, chip + readout). Centred cross-axis, wraps.
 // Light DOM and host-only: it renders NO template (default render() returns
 // noChange), so the author's children are preserved; the `gap` reflected prop
-// selects the spacing (foundations/components/cluster.css). Shares its chrome
+// selects the spacing (sc-cluster.css). Shares its chrome
 // with the legacy `.cluster` class (kept for back-compat). Reuses ScGap.
 
 import { LitElement } from "lit";

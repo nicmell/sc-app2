@@ -16,7 +16,7 @@
 // (consumers read `e.target.value`, like a native <select>).
 //
 // Styling: the foundation stylesheet is adopted into the shadow root as a shared
-// constructable sheet, so the chrome lives in foundations/components/sc-select.css
+// constructable sheet, so the chrome lives in sc-select.css
 // (`:host(sc-select-base)` + `.sc-select__*`) like every other component.
 
 import { LitElement, html } from "lit";
@@ -52,7 +52,7 @@ export class ScSelectBase extends LitElement {
   })();
 
   // Adopt the shared foundation sheet into the shadow root; chrome rules live in
-  // foundations/components/sc-select.css.
+  // sc-select.css.
   static styles = foundationStyles ? [foundationStyles] : [];
 
   // The dropdown floats in the top layer, anchored to the combobox button.

@@ -5,7 +5,7 @@
 // anchor to, the edge position is pure CSS.
 //
 // The dialog carries `.drawer`; `side` (right default | left) reflects to the
-// host so the CSS (foundations/components/drawer.css) flips the edge + slide
+// host so the CSS (sc-drawer.css) flips the edge + slide
 // direction. The slide in/out is animated natively (@starting-style +
 // transition-behavior: allow-discrete), degrading to an instant toggle where
 // unsupported. Author content is slotted as light DOM; a direct-child <header>

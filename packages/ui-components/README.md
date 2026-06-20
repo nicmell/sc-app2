@@ -17,15 +17,18 @@ Three consumers:
 
 ```
 src/
-  foundations/             pure CSS — tokens, reset, base elements, classes
-    index.css              entry; @imports every layer in cascade order
+  foundations/             pure CSS — tokens, reset, base elements, utilities
+    index.css              entry; @imports every layer + ../components/styles.css
     tokens/semantic.css    --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
-    components/*.css        styling for the semantic classes + every -base component
-  components/              the -base Lit web components (one file each)
+    utilities.css          componentless utility classes (.range-field)
+  components/              the -base Lit web components + their co-located styles
+    sc-<tag>.ts            each component …
+    sc-<tag>.css           … beside its styles (1:1)
+    styles.css             aggregates every sc-<tag>.css into the component layer
     index.ts               element barrel + registerUiComponents()
-    internal/sc-widget-base.ts   abstract base for the interactive widgets
+    internal/sc-widget-base.{ts,css}   abstract base for the interactive widgets
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -174,7 +177,7 @@ foundation CSS applies. Four patterns:
    **one shadow-DOM component** — it must render combobox/dropdown chrome *and*
    project the `<sc-option-base>` children into the dropdown via `<slot>`, which
    a light-DOM render would clobber. Its chrome therefore lives in
-   `foundations/components/sc-select.css` (`:host` + `.sc-select__*`) like every
+   `src/components/sc-select.css` (`:host` + `.sc-select__*`) like every
    other component, applied inside the shadow because the select **adopts the
    shared foundation stylesheet** into its shadow root (see below). Note:
    providers are registered before consumers so static markup upgrades with the

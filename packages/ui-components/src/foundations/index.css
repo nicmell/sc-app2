@@ -1,14 +1,10 @@
 /**
  * @sc-app/ui-components — entry point.
  *
- * Imports run in cascade order: primitives first (so semantic
- * tokens can reference them), then theme (so semantic tokens
- * resolve to a concrete palette), then reset, base elements,
- * components.
- *
- * Phase 28a: this file ships with empty layer files so the
- * @import chain resolves and the app can wire the alias.
- * 28b fills tokens + reset + base; 28d fills components.
+ * Imports run in cascade order: tokens first (so the semantic palette is
+ * defined), then theme (resolving tokens to a concrete palette), reset, base
+ * element styles, utility classes, and finally the component layer
+ * (../components/styles.css, which aggregates every co-located sc-<tag>.css).
  */
 
 /* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
@@ -28,39 +24,9 @@
 @import "./base/elements.css";
 @import "./base/typography.css";
 
-/* Semantic component classes. */
-@import "./components/panel.css";
-@import "./components/cluster.css";
-@import "./components/stack.css";
-@import "./components/chip.css";
-@import "./components/badge.css";
-@import "./components/range-field.css";
-@import "./components/empty-state.css";
-@import "./components/error-alert.css";
-@import "./components/modal.css";
-@import "./components/drawer.css";
-@import "./components/toast.css";
-@import "./components/sc-progress.css";
+/* Componentless utility classes (e.g. .range-field). */
+@import "./utilities.css";
 
-/* Graphical input widgets — the styling for the `-base` Lit/React components
-   in src/components. sc-widget-base holds the shared host display, button
-   reset, disabled affordance, and variant → --_accent mapping for the
-   interactive widgets (checkbox, switch, knob, slider, option, radio,
-   radio-group, select). */
-@import "./components/sc-widget-base.css";
-@import "./components/sc-checkbox.css";
-@import "./components/sc-switch.css";
-@import "./components/sc-knob.css";
-@import "./components/sc-slider.css";
-@import "./components/sc-option.css";
-@import "./components/sc-radio.css";
-@import "./components/sc-radio-group.css";
-@import "./components/sc-select.css";
-@import "./components/sc-popover.css";
-@import "./components/sc-icon.css";
-@import "./components/sc-button.css";
-@import "./components/sc-input.css";
-@import "./components/sc-inputnumber.css";
-@import "./components/sc-textarea.css";
-@import "./components/sc-text.css";
-@import "./components/sc-disclosure.css";
+/* The component layer — each component's styles live beside its source in
+   src/components/ as sc-<tag>.css; styles.css imports them all. */
+@import "../components/styles.css";

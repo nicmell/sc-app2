@@ -1,7 +1,7 @@
 // <sc-stack-base> — vertical flex layout primitive (a "column of stacked
 // things"). Light DOM and host-only: it renders NO template (default render()
 // returns noChange), so the author's children are preserved untouched; the
-// `gap` reflected prop selects the spacing (foundations/components/stack.css),
+// `gap` reflected prop selects the spacing (sc-stack.css),
 // the same host-only pattern as <sc-text-base>. Shares its chrome with the
 // legacy `.stack` class (kept for back-compat).
 

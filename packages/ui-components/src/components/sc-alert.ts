@@ -1,7 +1,7 @@
 // <sc-alert-base> — an inline alert/notice card. Light DOM and host-only: it
 // renders NO template (LitElement's default render() returns noChange), so the
 // author's message/inline children are preserved untouched. The colour `variant`
-// is a reflected prop → attribute selector (foundations/components/error-alert.css),
+// is a reflected prop → attribute selector (sc-alert.css),
 // the same host-only pattern as <sc-text-base>. Generalises the legacy `.error`
 // class (which stays for back-compat) to the full state palette.
 

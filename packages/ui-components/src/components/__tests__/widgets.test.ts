@@ -24,7 +24,6 @@ import progressStyles from "../sc-progress/sc-progress.module.css";
 import selectStyles from "../sc-select/sc-select.module.css";
 import modalStyles from "../sc-modal/sc-modal.module.css";
 import drawerStyles from "../sc-drawer/sc-drawer.module.css";
-import textStyles from "../sc-text/sc-text.module.css";
 import alertStyles from "../sc-alert/sc-alert.module.css";
 import panelStyles from "../sc-panel/sc-panel.module.css";
 import stackStyles from "../sc-stack/sc-stack.module.css";
@@ -540,7 +539,7 @@ describe("sc-textarea-base", () => {
 });
 
 describe("sc-text-base", () => {
-  it("preserves child content and applies typography classes to the host", async () => {
+  it("preserves child content and applies typography classes to the root", async () => {
     const el = document.createElement("sc-text-base");
     el.textContent = "Heading";
     el.size = "xl";
@@ -550,11 +549,11 @@ describe("sc-text-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.textContent).toBe("Heading");
-    expect(el.classList.contains(textStyles.root)).toBe(true);
-    expect(el.classList.contains(textStyles.xl)).toBe(true);
-    expect(el.classList.contains(textStyles.bold)).toBe(true);
-    expect(el.classList.contains(textStyles.dim)).toBe(true);
-    expect(el.classList.contains(textStyles.mono)).toBe(true);
+    const root = el.shadowRoot!.querySelector(".root")!;
+    expect(root.classList.contains("xl")).toBe(true);
+    expect(root.classList.contains("bold")).toBe(true);
+    expect(root.classList.contains("dim")).toBe(true);
+    expect(root.classList.contains("mono")).toBe(true);
   });
 
   it("applies the truncate/inline modifier classes", async () => {
@@ -563,8 +562,9 @@ describe("sc-text-base", () => {
     el.inline = true;
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.classList.contains(textStyles.truncate)).toBe(true);
-    expect(el.classList.contains(textStyles.inline)).toBe(true);
+    const root = el.shadowRoot!.querySelector(".root")!;
+    expect(root.classList.contains("truncate")).toBe(true);
+    expect(root.classList.contains("inline")).toBe(true);
   });
 });
 

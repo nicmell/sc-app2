@@ -7,6 +7,7 @@
 // `undefined` only in environments without constructable-stylesheet support
 // (guarded so importing this never throws under test runners).
 
+import { css, type CSSResultOrNative } from "lit";
 import foundationCss from "../../foundations/index.css?inline";
 
 export const foundationStyles: CSSStyleSheet | undefined = (() => {
@@ -18,6 +19,11 @@ export const foundationStyles: CSSStyleSheet | undefined = (() => {
     return undefined;
   }
 })();
+
+/** The ONE shared foundation, ready to drop into any component's `static styles`
+ *  (`static styles = [foundations, styles]`). Always a valid entry — falls back
+ *  to an empty sheet where constructable stylesheets are unavailable. */
+export const foundations: CSSResultOrNative = foundationStyles ?? css``;
 
 /** Adopt the shared foundation sheet into a document or shadow root (idempotent).
  *  Call once with `document` at app boot to style the light DOM. */

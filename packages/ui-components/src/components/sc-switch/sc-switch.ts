@@ -1,26 +1,32 @@
 // <sc-switch-base> — a hidden native <input type="checkbox" role="switch"> under
-// a track+thumb overlay. The <label> is the hit target; the input owns value +
-// fires the native `change` (read `e.target.checked`); the overlay animates via
-// CSS (`:checked`/`:focus-visible`).
+// a track+thumb overlay. Shadow DOM: the <label> is the hit target; the input
+// owns value and the native `change` is re-emitted (composed) from the host
+// (read `e.target.checked`); the overlay animates via CSS.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
-import styles from "./sc-switch.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { widgetStyles } from "../internal/widget-base.styles";
+import { styles } from "./sc-switch.styles";
 
 export class ScSwitchBase extends ScWidgetBase {
+  static styles = [foundations, widgetStyles, styles];
+
   @property({ type: Boolean }) accessor checked = false;
 
   private _onChange = (e: Event): void => {
+    e.stopPropagation();
     this.checked = (e.target as HTMLInputElement).checked;
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   render() {
     return html`
-      <label class=${this.widgetClasses(styles)}>
+      <label class=${this.widgetClasses()}>
         <input
-          class="${styles.input} sr-only"
+          class="input sr-only"
           type="checkbox"
           role="switch"
           name=${this.name}
@@ -28,7 +34,7 @@ export class ScSwitchBase extends ScWidgetBase {
           ?disabled=${this.disabled}
           @change=${this._onChange}
         />
-        <span class=${styles.track}><span class=${styles.thumb}></span></span>
+        <span class="track"><span class="thumb"></span></span>
       </label>
     `;
   }

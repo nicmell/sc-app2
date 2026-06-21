@@ -71,7 +71,7 @@ export class ScSelectBase extends LitElement {
   #provider = new ContextProvider(this, { context: selectContext, initialValue: this.#ctx() });
 
   #ctx(): SelectContext {
-    return { value: this.value, select: this.#select };
+    return { value: this.value, select: this.#select, size: this.size, variant: this.variant };
   }
 
   get #combobox(): HTMLElement | null {

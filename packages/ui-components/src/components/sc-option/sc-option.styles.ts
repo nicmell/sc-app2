@@ -1,0 +1,34 @@
+// <sc-option-base> styles. A single option row; selected text = `--_accent`
+// (set by the variant class on `.root`, supplied via the select context). The
+// host is block so options stack vertically in the dropdown.
+
+import { css } from "lit";
+
+export const styles = css`
+  :host {
+    display: block;
+  }
+
+  .root {
+    display: block;
+    padding: var(--space-2xs) var(--space-xs);
+    cursor: pointer;
+    user-select: none;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    border-radius: var(--radius-xs);
+  }
+
+  .root.sm {
+    font-size: var(--font-size-xs);
+  }
+  .root.lg {
+    font-size: var(--font-size-md);
+  }
+
+  .root.selected {
+    color: var(--_accent);
+    font-weight: var(--font-weight-medium);
+  }
+`;

@@ -1,35 +1,42 @@
 // <sc-checkbox-base> — a hidden native <input type="checkbox"> under a visual
-// overlay (box + check). The <label> makes the whole widget the hit target;
-// the input owns value + fires the native `change` (read `e.target.checked`).
-// The overlay reflects state purely via CSS (`:checked`/`:focus-visible`).
+// overlay (box + check). Shadow DOM: the <label> makes the whole widget the hit
+// target; the input owns value and the native `change` is re-emitted (composed)
+// from the host so consumers read `e.target.checked`. The overlay reflects state
+// purely via CSS (`:checked`/`:focus-visible`).
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
-import styles from "./sc-checkbox.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { widgetStyles } from "../internal/widget-base.styles";
+import { styles } from "./sc-checkbox.styles";
 
 export class ScCheckboxBase extends ScWidgetBase {
+  static styles = [foundations, widgetStyles, styles];
+
   @property({ type: Boolean }) accessor checked = false;
   @property() accessor label = "";
 
-  // Sync the property; the native `change` keeps bubbling to consumers.
+  // Sync the property, then re-emit a composed `change` from the host.
   private _onChange = (e: Event): void => {
+    e.stopPropagation();
     this.checked = (e.target as HTMLInputElement).checked;
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   render() {
     return html`
-      <label class=${this.widgetClasses(styles)}>
+      <label class=${this.widgetClasses()}>
         <input
-          class="${styles.input} sr-only"
+          class="input sr-only"
           type="checkbox"
           name=${this.name}
           .checked=${live(this.checked)}
           ?disabled=${this.disabled}
           @change=${this._onChange}
         />
-        <span class=${styles.box}><span class=${styles.check}></span></span>
+        <span class="box"><span class="check"></span></span>
         ${this.label ? html`<span>${this.label}</span>` : ""}
       </label>
     `;

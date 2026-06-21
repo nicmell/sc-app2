@@ -1,21 +1,28 @@
 // <sc-radio-group-base> — a Lit ContextProvider coordinating its declarative
-// <sc-radio-base> children (the old sc-app model). It renders no template, so
-// the radio children are preserved; it provides the selected value + a `select`
-// callback + a shared name + size/variant/disabled through context. A child's
-// native `change` is swallowed and the group re-emits a single `change` from
-// the host (consumers read `el.value`, like a native <select>).
+// <sc-radio-base> children (the old sc-app model). Shadow DOM: it renders a
+// `.root` wrapper + <slot>, so the radio children are slotted (still light-DOM
+// children, so their context-request events bubble to the host provider). It
+// provides the selected value + a `select` callback + a shared name +
+// size/variant/disabled through context. A child's native `change` is swallowed
+// and the group re-emits a single `change` from the host (read `el.value`).
 
+import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import { ScWidgetBase, widgetShared as w } from "../internal/sc-widget-base";
+import cx from "classnames";
+import { ScWidgetBase } from "../internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
-import styles from "./sc-radio-group.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { widgetStyles } from "../internal/widget-base.styles";
+import { styles } from "./sc-radio-group.styles";
 
 let groupId = 0;
 
 export class ScRadioGroupBase extends ScWidgetBase {
+  static styles = [foundations, widgetStyles, styles];
+
   @property({ type: Number }) accessor value = 0;
-  @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
+  @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
   /** Accessible name for the group (→ aria-label on the role=radiogroup host). */
   @property() accessor label = "";
 
@@ -25,11 +32,11 @@ export class ScRadioGroupBase extends ScWidgetBase {
   #select = (value: number): void => {
     if (this.disabled || value === this.value) return;
     this.value = value;
-    this.dispatchEvent(new Event("change", { bubbles: true }));
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
-  // Declared after #name/#select so the initializer (which reads them via
-  // #ctx()) doesn't hit the private-field temporal dead zone.
+  // Declared after #select so the initializer (which reads it via #ctx())
+  // doesn't hit the private-field temporal dead zone.
   #provider = new ContextProvider(this, { context: radioGroupContext, initialValue: this.#ctx() });
 
   #ctx(): RadioGroupContext {
@@ -56,22 +63,25 @@ export class ScRadioGroupBase extends ScWidgetBase {
     this.removeEventListener("change", this.#onChildChange);
   }
 
-  // A child radio's native `change` bubbles here — swallow it; the group's own
-  // re-emitted `change` (target === this) is the single event consumers see.
+  // A child radio's native `change` (should it bubble) is swallowed; the group's
+  // own re-emitted `change` (target === this) is the single event consumers see.
   #onChildChange = (e: Event): void => {
     if (e.target !== this) e.stopImmediatePropagation();
   };
 
   protected updated(): void {
-    // Host-only: style the host with scoped classes (overrides ScWidgetBase's
-    // default inline-block host class — the group is its own flex layout).
-    this.syncHost([
-      styles.root,
-      this.orientation === "vertical" && styles.vertical,
-      this.disabled && w.disabled,
-    ]);
     this.#provider.setValue(this.#ctx());
     if (this.label) this.setAttribute("aria-label", this.label);
     else this.removeAttribute("aria-label");
+  }
+
+  render() {
+    return html`<div
+      class=${cx("root", this.orientation === "vertical" && "vertical", {
+        disabled: this.disabled,
+      })}
+    >
+      <slot></slot>
+    </div>`;
   }
 }

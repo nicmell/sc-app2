@@ -1,15 +1,19 @@
 // <sc-knob-base> — a hidden native <input type="range"> under the SVG dial.
-// The value plumbing (range mirror, quantise, pointer-drag, wheel) lives in
-// ScRangeBase; this file is just the dial visual + the knob's drag feel:
-// dragging along whichever axis dominates the gesture, over a travel that
-// scales with the knob's width. The SVG overlay redraws from `value`.
+// The value plumbing (range mirror, quantise, pointer-drag, wheel, composed
+// event re-emit) lives in ScRangeBase; this file is just the dial visual + the
+// knob's drag feel: dragging along whichever axis dominates the gesture, over a
+// travel that scales with the knob's width. The SVG overlay redraws from `value`.
 
 import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
-import styles from "./sc-knob.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { widgetStyles } from "../internal/widget-base.styles";
+import { styles } from "./sc-knob.styles";
 
 export class ScKnobBase extends ScRangeBase {
+  static styles = [foundations, widgetStyles, styles];
+
   /** Dominant axis: up OR right increases (whichever the user moved more). */
   protected dragAxisDelta(dx: number, dy: number): number {
     return Math.abs(dx) > Math.abs(dy) ? dx : dy;
@@ -24,9 +28,9 @@ export class ScKnobBase extends ScRangeBase {
     const ratio = range > 0 ? Math.max(0, Math.min(1, (this.value - this.min) / range)) : 0;
     const angle = -135 + 270 * ratio;
     return html`
-      <div class=${this.widgetClasses(styles)}>
+      <div class=${this.widgetClasses()}>
         <input
-          class="${styles.input} sr-only"
+          class="input sr-only"
           type="range"
           name=${this.name}
           min=${this.min}
@@ -37,11 +41,12 @@ export class ScKnobBase extends ScRangeBase {
           aria-valuetext=${this.valueText()}
           ?disabled=${this.disabled}
           @input=${this.onRangeInput}
+          @change=${this.onRangeChange}
         />
-        <svg class=${styles.svg} viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
-          <circle class=${styles.body} cx="50" cy="50" r="47" />
+        <svg class="svg" viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
+          <circle class="body" cx="50" cy="50" r="47" />
           <line
-            class=${styles.indicator}
+            class="indicator"
             x1="50"
             y1="44"
             x2="50"

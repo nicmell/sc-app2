@@ -27,6 +27,10 @@ export interface SelectContext {
   value: number;
   /** An option calls this on click to request selection. */
   select(value: number): void;
+  /** Shared size/variant so each option self-applies the accent in its own
+   *  shadow (no cross-boundary `--_accent` handoff). */
+  size: ScSize;
+  variant: ScVariant;
 }
 
 export const selectContext = createContext<SelectContext>("sc-select");

@@ -34,7 +34,7 @@ export abstract class ScRangeBase extends ScWidgetBase {
   }
 
   protected get input(): HTMLInputElement {
-    return this.querySelector("input") as HTMLInputElement;
+    return this.renderRoot.querySelector("input") as HTMLInputElement;
   }
 
   connectedCallback(): void {
@@ -52,9 +52,18 @@ export abstract class ScRangeBase extends ScWidgetBase {
   }
 
   /** The range is the source of truth — mirror it onto `value` (redraws the
-   *  visual). Bind as the hidden input's `@input` handler in render(). */
-  protected onRangeInput = (): void => {
+   *  visual) and re-emit a composed `input` from the host (the native event
+   *  doesn't cross the shadow boundary). Bind as the input's `@input` handler. */
+  protected onRangeInput = (e: Event): void => {
+    e.stopPropagation();
     this.value = Number(this.input.value);
+    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+  };
+
+  /** Re-emit a composed `change` from the host. Bind as the input's `@change`. */
+  protected onRangeChange = (e: Event): void => {
+    e.stopPropagation();
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   /** Quantise to `step`, clamp to range. */

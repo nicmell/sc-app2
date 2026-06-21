@@ -1,16 +1,20 @@
 // <sc-slider-base> — a hidden native <input type="range"> under the
 // track/fill/thumb overlay. The value plumbing (range mirror, quantise,
-// pointer-drag, wheel) lives in ScRangeBase; this file is the track visual +
-// the slider's drag feel: dragging along the `orientation` axis over a travel
-// equal to the track length. `orientation` only affects the visual + axis.
+// pointer-drag, wheel, composed event re-emit) lives in ScRangeBase; this file
+// is the track visual + the slider's drag feel: dragging along the `orientation`
+// axis over a travel equal to the track length.
 
 import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
-import styles from "./sc-slider.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { widgetStyles } from "../internal/widget-base.styles";
+import { styles } from "./sc-slider.styles";
 
 export class ScSliderBase extends ScRangeBase {
+  static styles = [foundations, widgetStyles, styles];
+
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   /** Drag along the orientation axis: up (vertical) or right (horizontal). */
@@ -30,14 +34,9 @@ export class ScSliderBase extends ScRangeBase {
     const fillStyle = vertical ? `height:${pct}` : `width:${pct}`;
     const thumbStyle = vertical ? `bottom:${pct}` : `left:${pct}`;
     return html`
-      <div
-        class=${this.widgetClasses(styles, {
-          [styles.vertical]: vertical,
-          [styles.horizontal]: !vertical,
-        })}
-      >
+      <div class=${this.widgetClasses({ vertical, horizontal: !vertical })}>
         <input
-          class="${styles.input} sr-only"
+          class="input sr-only"
           type="range"
           name=${this.name}
           min=${this.min}
@@ -48,10 +47,11 @@ export class ScSliderBase extends ScRangeBase {
           aria-valuetext=${this.valueText()}
           ?disabled=${this.disabled}
           @input=${this.onRangeInput}
+          @change=${this.onRangeChange}
         />
-        <div class=${styles.track}>
-          <div class=${styles.fill} style=${fillStyle}></div>
-          <div class=${styles.thumb} style=${thumbStyle}></div>
+        <div class="track">
+          <div class="fill" style=${fillStyle}></div>
+          <div class="thumb" style=${thumbStyle}></div>
         </div>
       </div>
     `;

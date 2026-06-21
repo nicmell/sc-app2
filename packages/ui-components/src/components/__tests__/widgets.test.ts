@@ -5,14 +5,11 @@
 
 import { beforeAll, describe, expect, it } from "vitest";
 import { registerUiComponents } from "../index";
-// Components now carry scoped CSS-module class names; import the same modules the
-// components use so assertions reference the identical (vitest-stable) locals.
+// Components render shadow DOM with literal (shadow-scoped) class names; converted
+// components assert against `el.shadowRoot` + plain class strings. The components
+// still on the CSS-module delivery import their locals here until converted.
 import badgeStyles from "../sc-badge/sc-badge.module.css";
 import popoverStyles from "../sc-popover/sc-popover.module.css";
-import checkboxStyles from "../sc-checkbox/sc-checkbox.module.css";
-import sliderStyles from "../sc-slider/sc-slider.module.css";
-import optionStyles from "../sc-option/sc-option.module.css";
-import radioStyles from "../sc-radio/sc-radio.module.css";
 import iconStyles from "../sc-icon/sc-icon.module.css";
 import buttonStyles from "../sc-button/sc-button.module.css";
 import toastStyles from "../sc-toast/sc-toast.module.css";
@@ -28,7 +25,6 @@ import alertStyles from "../sc-alert/sc-alert.module.css";
 import panelStyles from "../sc-panel/sc-panel.module.css";
 import stackStyles from "../sc-stack/sc-stack.module.css";
 import clusterStyles from "../sc-cluster/sc-cluster.module.css";
-import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {
   registerUiComponents();
@@ -72,20 +68,20 @@ async function mount<K extends WidgetTag>(
 describe("sc-checkbox-base", () => {
   it("renders a hidden native checkbox with the variant/size classes on the label", async () => {
     const el = await mount("sc-checkbox-base", { size: "lg", variant: "ok" });
-    const label = el.querySelector("label")!;
-    const input = el.querySelector("input")!;
+    const label = el.shadowRoot!.querySelector("label")!;
+    const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("checkbox");
     expect(input.classList.contains("sr-only")).toBe(true);
-    expect(label.classList.contains(checkboxStyles.root)).toBe(true);
-    expect(label.classList.contains(checkboxStyles.lg)).toBe(true);
-    expect(label.classList.contains(widget.ok)).toBe(true);
+    expect(label.classList.contains("root")).toBe(true);
+    expect(label.classList.contains("lg")).toBe(true);
+    expect(label.classList.contains("ok")).toBe(true);
   });
 
-  it("toggles and fires the native change carrying checked", async () => {
+  it("toggles and re-emits a composed change carrying checked", async () => {
     const el = await mount("sc-checkbox-base");
     const checks: boolean[] = [];
-    el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
-    const input = el.querySelector("input")!;
+    el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
+    const input = el.shadowRoot!.querySelector("input")!;
     input.click();
     expect(el.checked).toBe(true);
     input.click();
@@ -95,16 +91,20 @@ describe("sc-checkbox-base", () => {
 
   it("disables the native input", async () => {
     const el = await mount("sc-checkbox-base", { disabled: true });
-    expect(el.querySelector("input")!.disabled).toBe(true);
+    expect(el.shadowRoot!.querySelector("input")!.disabled).toBe(true);
   });
 });
+
+/** The host re-emits change with `e.target` = the host element, which exposes
+ *  `.checked` (checkbox/switch) — not the native input. */
+type ScCheckboxLike = { checked: boolean };
 
 describe("sc-switch-base", () => {
   it("uses a role=switch native input and fires native change", async () => {
     const el = await mount("sc-switch-base");
     const checks: boolean[] = [];
-    el.addEventListener("change", (e) => checks.push((e.target as HTMLInputElement).checked));
-    const input = el.querySelector("input")!;
+    el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
+    const input = el.shadowRoot!.querySelector("input")!;
     expect(input.getAttribute("role")).toBe("switch");
     input.click();
     expect(el.checked).toBe(true);
@@ -123,7 +123,7 @@ function nativeChanges(el: EventTarget): number[] {
 describe("sc-knob-base", () => {
   it("renders a hidden range and steps it on wheel, firing native change", async () => {
     const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0 });
-    expect(el.querySelector("input")!.type).toBe("range");
+    expect(el.shadowRoot!.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(0.05);
@@ -185,8 +185,8 @@ describe("sc-slider-base", () => {
       step: 0.1,
       value: 0.5,
     });
-    expect(el.querySelector("." + sliderStyles.vertical)).not.toBeNull();
-    expect(el.querySelector("input")!.type).toBe("range");
+    expect(el.shadowRoot!.querySelector(".vertical")).not.toBeNull();
+    expect(el.shadowRoot!.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBeCloseTo(1);
@@ -197,7 +197,7 @@ describe("sc-slider-base", () => {
 describe("sc-option-base", () => {
   it("renders an option row with its label (standalone, no context)", async () => {
     const el = await mount("sc-option-base", { value: 7, label: "Saw" });
-    const row = el.querySelector("." + optionStyles.root)!;
+    const row = el.shadowRoot!.querySelector(".root")!;
     expect(row.getAttribute("role")).toBe("option");
     expect(row.textContent!.trim()).toBe("Saw");
     expect(row.getAttribute("aria-selected")).toBe("false");
@@ -207,7 +207,7 @@ describe("sc-option-base", () => {
 describe("sc-radio-base", () => {
   it("renders a hidden native radio and checks itself on click (standalone)", async () => {
     const el = await mount("sc-radio-base", { value: 2, label: "Square" });
-    const input = el.querySelector("input")!;
+    const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("radio");
     input.click();
     expect(el.checked).toBe(true);
@@ -231,16 +231,16 @@ describe("sc-radio-group-base", () => {
     return { group, radios };
   }
 
-  it("reflects orientation to an attribute for styling", async () => {
+  it("applies the orientation modifier class to the root", async () => {
     const { group } = await mountGroup(0);
     group.orientation = "vertical";
     await group.updateComplete;
-    expect(group.getAttribute("orientation")).toBe("vertical");
+    expect(group.shadowRoot!.querySelector(".root")!.classList.contains("vertical")).toBe(true);
   });
 
   it("shares one name and checks the selected child's input", async () => {
     const { radios } = await mountGroup(1);
-    const inputs = radios.map((r) => r.querySelector("input")!);
+    const inputs = radios.map((r) => r.shadowRoot!.querySelector("input")!);
     expect(inputs.map((i) => i.checked)).toEqual([false, true, false]);
     expect(new Set(inputs.map((i) => i.name)).size).toBe(1); // one shared name
   });
@@ -253,7 +253,7 @@ describe("sc-radio-group-base", () => {
       changes += 1;
       lastTarget = e.target;
     });
-    radios[2].querySelector("input")!.click();
+    radios[2].shadowRoot!.querySelector("input")!.click();
     expect(group.value).toBe(2);
     expect(changes).toBe(1);
     expect(lastTarget).toBe(group);
@@ -265,9 +265,9 @@ describe("sc-radio-group-base", () => {
     group.variant = "warn";
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const label = radios[0].querySelector("." + radioStyles.root)!;
-    expect(label.classList.contains(radioStyles.lg)).toBe(true);
-    expect(label.classList.contains(widget.warn)).toBe(true);
+    const label = radios[0].shadowRoot!.querySelector(".root")!;
+    expect(label.classList.contains("lg")).toBe(true);
+    expect(label.classList.contains("warn")).toBe(true);
   });
 });
 
@@ -307,7 +307,7 @@ describe("sc-select-base", () => {
     const { select, options } = await mountSelect(0);
     let changes = 0;
     select.addEventListener("change", () => (changes += 1));
-    options[2].querySelector<HTMLElement>("." + optionStyles.root)!.click();
+    options[2].shadowRoot!.querySelector<HTMLElement>(".root")!.click();
     await select.updateComplete;
     expect(select.value).toBe(2);
     expect(changes).toBe(1);
@@ -316,8 +316,8 @@ describe("sc-select-base", () => {
   it("marks the selected option via context", async () => {
     const { options } = await mountSelect(1);
     await Promise.all(options.map((o) => o.updateComplete));
-    const rows = options.map((o) => o.querySelector("." + optionStyles.root)!);
-    expect(rows.map((r) => r.classList.contains(optionStyles.selected))).toEqual([
+    const rows = options.map((o) => o.shadowRoot!.querySelector(".root")!);
+    expect(rows.map((r) => r.classList.contains("selected"))).toEqual([
       false,
       true,
       false,
@@ -568,7 +568,10 @@ describe("sc-text-base", () => {
   });
 });
 
-describe("form participation", () => {
+// These widgets are shadow DOM and do NOT participate in outer forms (by
+// design — form participation was dropped). They still forward `name` to their
+// hidden native input for radio grouping + a11y.
+describe("name forwarding", () => {
   it("forwards `name` to the native input/textarea", async () => {
     const input = await mount("sc-input-base", { name: "title" });
     expect(input.querySelector("input")!.name).toBe("title");
@@ -577,9 +580,9 @@ describe("form participation", () => {
     const num = await mount("sc-inputnumber-base", { name: "freq" });
     expect(num.querySelector("input")!.name).toBe("freq");
     const cb = await mount("sc-checkbox-base", { name: "agree" });
-    expect(cb.querySelector("input")!.name).toBe("agree");
+    expect(cb.shadowRoot!.querySelector("input")!.name).toBe("agree");
     const knob = await mount("sc-knob-base", { name: "gain" });
-    expect(knob.querySelector("input")!.name).toBe("gain");
+    expect(knob.shadowRoot!.querySelector("input")!.name).toBe("gain");
   });
 
   it("radio-group shares its name with the radios + value on the checked one", async () => {
@@ -594,27 +597,10 @@ describe("form participation", () => {
     await Promise.all(radios.map((r) => r.updateComplete));
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const inputs = radios.map((r) => r.querySelector("input")!);
+    const inputs = radios.map((r) => r.shadowRoot!.querySelector("input")!);
     expect(inputs.every((i) => i.name === "wave")).toBe(true);
     expect(inputs[1].checked).toBe(true);
     expect(inputs[1].value).toBe("1");
-  });
-
-  it("submits through a <form> via FormData", async () => {
-    const form = document.createElement("form");
-    const cb = document.createElement("sc-checkbox-base");
-    cb.setAttribute("name", "agree");
-    cb.checked = true;
-    const inp = document.createElement("sc-input-base");
-    inp.setAttribute("name", "title");
-    inp.value = "hi";
-    form.append(cb, inp);
-    document.body.appendChild(form);
-    await cb.updateComplete;
-    await inp.updateComplete;
-    const data = new FormData(form);
-    expect(data.get("title")).toBe("hi");
-    expect(data.get("agree")).toBe("on");
   });
 });
 
@@ -841,7 +827,7 @@ describe("a11y wiring", () => {
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
     for (const tag of ["sc-knob-base", "sc-slider-base"] as const) {
       const el = await mount(tag, { label: "Gain", value: 0.8, step: 0.01 });
-      const input = el.querySelector("input")!;
+      const input = el.shadowRoot!.querySelector("input")!;
       expect(input.getAttribute("aria-label")).toBe("Gain");
       expect(input.getAttribute("aria-valuetext")).toBe("0.80");
     }

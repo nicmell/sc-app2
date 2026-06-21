@@ -5,8 +5,10 @@
 import { css } from "lit";
 
 export const styles = css`
+  /* display:contents so the rendered .bar fills the parent width (a block box)
+     while the .spinner can still flow inline in text. */
   :host {
-    display: block;
+    display: contents;
   }
 
   /* ── Bar ── */

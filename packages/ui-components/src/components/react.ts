@@ -2,13 +2,13 @@
 // createComponent over the SAME Lit elements (no reimplementation). Importing
 // this module registers the underlying custom elements so the wrappers render.
 //
-// Events: form-backed widgets fire the real native `input`/`change` (read
-// `e.target.value` / `.checked`); containers (select / radio-group) fire
-// `change` from the host. The genuinely-custom events are mapped explicitly via
-// `events:` (toast `dismiss`, modal/drawer `close`, popover/disclosure
-// `toggle`). Props (value, min, max, step, checked, size, variant, disabled,
-// orientation, label, …) map straight to the elements' reactive properties;
-// option/radio compose as children.
+// Events: every component is shadow DOM, so the form widgets re-emit a composed
+// `input`/`change` from the host (read `e.target.value` / `.checked`); containers
+// (select / radio-group) fire `change` from the host. The genuinely-custom events
+// are mapped explicitly via `events:` (toast `dismiss`, modal/drawer `close`,
+// popover/disclosure `toggle`). Props (value, min, max, step, checked, size,
+// variant, disabled, orientation, label, …) map straight to the elements'
+// reactive properties; option/radio compose as children.
 //
 // One file by design: each wrapper is a one-liner, so a folder of 26 files
 // added only noise.

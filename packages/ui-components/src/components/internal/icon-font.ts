@@ -10,6 +10,14 @@
 
 let iconSheet: CSSStyleSheet | null = null;
 
+// Match a Phosphor rule: a `.ph` / `.ph-…` selector rule, or the Phosphor
+// @font-face. Deliberately narrow so that a bundler which merges all CSS into a
+// single document stylesheet can't leak unrelated app rules into the icon shadow.
+function isIconRule(text: string): boolean {
+  if (/(^|[\s,>+~}{])\.ph[-.:[\s{]/.test(text)) return true;
+  return /@font-face/i.test(text) && /phosphor/i.test(text);
+}
+
 function buildIconSheet(): CSSStyleSheet | null {
   if (iconSheet) return iconSheet;
   try {
@@ -21,9 +29,8 @@ function buildIconSheet(): CSSStyleSheet | null {
       } catch {
         continue; // cross-origin sheet — can't read
       }
-      const text = Array.from(rules).map((r) => r.cssText);
-      if (text.some((t) => t.includes(".ph-") || t.toLowerCase().includes("phosphor"))) {
-        chunks.push(...text);
+      for (const rule of Array.from(rules)) {
+        if (isIconRule(rule.cssText)) chunks.push(rule.cssText);
       }
     }
     if (!chunks.length) return null;

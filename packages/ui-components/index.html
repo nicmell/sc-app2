@@ -4,13 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@sc-app/ui-components — demo</title>
-    <!-- Serve through Vite (`npx vite` from this package dir): it transpiles the
-         widget TS modules AND inlines the foundation CSS @import chain from the
-         module script below — no prebuilt dist needed. -->
+    <!-- Serve through Vite (`npx vite` / `yarn demo` from this package dir): it
+         transpiles the widget TS modules AND inlines the foundation CSS @import
+         chain from the module script below — no prebuilt dist needed. -->
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
-       structure to render the sections side-by-side without
-       overflowing tiny screens. */
+       structure to render the sections without overflowing tiny screens. */
       .demo-shell {
         max-width: 800px;
         margin: 0 auto;
@@ -47,61 +46,17 @@
         font-size: var(--font-size-xs);
         color: var(--color-text-mute);
       }
-      .demo-listbox {
-        width: 12rem;
-        padding: var(--space-3xs);
-        background: var(--color-surface-2);
-        border: 1px solid var(--color-border-strong);
-        border-radius: var(--radius-sm);
-      }
     </style>
   </head>
   <body>
     <div class="demo-shell">
       <h1>@sc-app/ui-components</h1>
       <p>
-        The CSS foundation (tokens + reset + base elements + component classes) followed by the
-        graphical <code>-base</code> input widgets (Lit web components). If anything looks off in
-        the foundation sections, the foundation is leaking — fix before migrating panels. The
-        widgets at the bottom need the TS modules transpiled, so serve this file through Vite
-        (<code>npx vite</code> from this package dir).
+        Every section below demonstrates one <code>&lt;sc-*-base&gt;</code> web component (the
+        library's public surface). Served through Vite (<code>npx vite</code> / <code>yarn demo</code>
+        from this package dir), which transpiles the widget TS modules and inlines the foundation
+        CSS that styles them.
       </p>
-
-      <section class="demo-section">
-        <h2 class="demo-section-title">Bare &lt;button&gt;</h2>
-        <p class="demo-cap">
-          A bare button is the default (primary) action. Variants/sizes/icons live on
-          <code>&lt;sc-button-base&gt;</code> below.
-        </p>
-        <div class="demo-row">
-          <button>Primary</button>
-          <button disabled>Disabled</button>
-        </div>
-      </section>
-
-      <section class="demo-section">
-        <h2 class="demo-section-title">Form fields</h2>
-        <div class="demo-row">
-          <input type="text" placeholder="text input" />
-          <input type="number" value="120" />
-          <select>
-            <option>option a</option>
-            <option>option b</option>
-            <option>option c</option>
-          </select>
-        </div>
-        <div class="demo-row">
-          <input type="range" min="0" max="100" value="50" />
-          <input type="text" disabled value="disabled" />
-        </div>
-        <textarea placeholder="textarea" rows="3"></textarea>
-        <div class="demo-row">
-          <label> <input type="checkbox" /> a checkbox label </label>
-          <label> <input type="checkbox" checked /> checked </label>
-          <label> <input type="radio" name="r" /> radio </label>
-          <label> <input type="radio" name="r" checked /> checked </label>
-        </div>
-      </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-input-base&gt; / &lt;sc-inputnumber-base&gt;</h2>
@@ -129,45 +84,26 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <div class="sc-stack sc-stack--sm">
+        <sc-stack-base gap="sm">
           <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
           <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
           <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
           <sc-textarea-base rows="2" value="disabled" disabled></sc-textarea-base>
-        </div>
-      </section>
-
-      <section class="demo-section">
-        <h2 class="demo-section-title">Typography</h2>
-        <h1>Heading 1</h1>
-        <h2>Heading 2</h2>
-        <h3>Heading 3</h3>
-        <h4>Heading 4</h4>
-        <p>
-          A paragraph of body text. <a href="#">A link</a> looks like this. Inline
-          <code>code</code> is monospaced and uses the surface-2 fill. Tabular numerics: 12345.67 /
-          0.12.
-        </p>
-        <pre>
-function dirtPlay(event) {
-  // a code block, multi-line
-  return new OSC.Message('/dirt/play', ...args);
-}</pre
-        >
+        </sc-stack-base>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <div class="sc-stack sc-stack--sm">
+        <sc-stack-base gap="sm">
           <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
           <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
           <sc-text-base size="md">Medium (default body)</sc-text-base>
           <sc-text-base size="sm">Small</sc-text-base>
           <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
-        </div>
+        </sc-stack-base>
         <p class="demo-cap">tones</p>
-        <div class="sc-cluster sc-cluster--md">
+        <sc-cluster-base gap="md">
           <sc-text-base>default</sc-text-base>
           <sc-text-base tone="dim">dim</sc-text-base>
           <sc-text-base tone="mute">mute</sc-text-base>
@@ -176,7 +112,7 @@ function dirtPlay(event) {
           <sc-text-base tone="warn">warn</sc-text-base>
           <sc-text-base tone="error">error</sc-text-base>
           <sc-text-base tone="info">info</sc-text-base>
-        </div>
+        </sc-cluster-base>
         <p class="demo-cap">inline (flows in text) + rich children</p>
         <sc-text-base>
           Status:
@@ -192,7 +128,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <div class="sc-stack sc-stack--sm">
+        <sc-stack-base gap="sm">
           <sc-disclosure-base>
             <span slot="summary">Details summary (click to expand)</span>
             <sc-text-base size="sm" tone="dim">
@@ -203,7 +139,7 @@ function dirtPlay(event) {
             <span slot="summary">Open by default</span>
             <sc-text-base size="sm" tone="dim">Already showing.</sc-text-base>
           </sc-disclosure-base>
-        </div>
+        </sc-stack-base>
       </section>
 
       <section class="demo-section">
@@ -225,65 +161,51 @@ function dirtPlay(event) {
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-panel-base&gt; + cluster + stack</h2>
-        <div class="sc-cluster sc-cluster--md" style="align-items: flex-start">
+        <h2 class="demo-section-title">&lt;sc-panel-base&gt;</h2>
+        <sc-cluster-base gap="md" style="align-items: flex-start">
           <sc-panel-base>
             <header>Panel header</header>
-            <div class="sc-cluster sc-cluster--md">
-              <span>cluster: row of inline things</span>
+            <sc-cluster-base gap="md">
+              <sc-text-base size="sm">cluster: row of inline things</sc-text-base>
               <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
-            </div>
-            <div class="sc-stack sc-stack--sm">
-              <span>stack item 1</span>
-              <span>stack item 2</span>
-              <span>stack item 3</span>
-            </div>
+            </sc-cluster-base>
+            <sc-stack-base gap="sm">
+              <sc-text-base size="sm">stack item 1</sc-text-base>
+              <sc-text-base size="sm">stack item 2</sc-text-base>
+              <sc-text-base size="sm">stack item 3</sc-text-base>
+            </sc-stack-base>
           </sc-panel-base>
           <sc-panel-base disabled>
             <header>Offline panel</header>
-            <span>muted + non-interactive (disabled)</span>
+            <sc-text-base size="sm">muted + non-interactive (disabled)</sc-text-base>
             <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
           </sc-panel-base>
-        </div>
+        </sc-cluster-base>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
-        <div class="sc-cluster sc-cluster--sm">
+        <sc-cluster-base gap="sm">
           <sc-chip-base dot label="idle"></sc-chip-base>
           <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
           <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
           <sc-chip-base dot variant="error" label="unreachable"></sc-chip-base>
           <sc-chip-base dot variant="info" label="probing"></sc-chip-base>
-        </div>
+        </sc-cluster-base>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-badge-base&gt;</h2>
-        <div class="sc-cluster sc-cluster--sm">
+        <sc-cluster-base gap="sm">
           <sc-badge-base label="connected"></sc-badge-base>
           <sc-badge-base label="degraded" variant="warn"></sc-badge-base>
           <sc-badge-base label="offline" variant="error"></sc-badge-base>
-        </div>
-      </section>
-
-      <section class="demo-section">
-        <h2 class="demo-section-title">Range field</h2>
-        <label class="sc-range-field">
-          <span class="sc-range-field__label">gain</span>
-          <input type="range" min="0" max="2" step="0.01" value="0.8" />
-          <span class="sc-range-field__value">0.80</span>
-        </label>
-        <label class="sc-range-field">
-          <span class="sc-range-field__label">cutoff</span>
-          <input type="range" min="100" max="8000" step="10" value="800" />
-          <span class="sc-range-field__value">800 Hz</span>
-        </label>
+        </sc-cluster-base>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
-        <div class="sc-stack sc-stack--sm">
+        <sc-stack-base gap="sm">
           <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
           <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
           <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
@@ -291,7 +213,7 @@ function dirtPlay(event) {
           <sc-alert-base variant="error"
             >scsynth didn't reply to /status at 127.0.0.1:57110</sc-alert-base
           >
-        </div>
+        </sc-stack-base>
       </section>
 
       <section class="demo-section">
@@ -301,9 +223,10 @@ function dirtPlay(event) {
           backdrop + focus trap + Esc); <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
-          <button class="btn" onclick="document.getElementById('demo-modal').open = true">
-            open modal
-          </button>
+          <sc-button-base
+            label="open modal"
+            onclick="document.getElementById('demo-modal').open = true"
+          ></sc-button-base>
           <sc-modal-base id="demo-modal" dismissable label="Reinitialize dashboard?">
             <h2 class="sc-modal__title">Reinitialize dashboard?</h2>
             <p class="sc-modal__body">
@@ -323,11 +246,6 @@ function dirtPlay(event) {
               ></sc-button-base>
             </div>
           </sc-modal-base>
-        </div>
-        <p class="demo-cap">legacy <code>.modal</code> chrome (static preview):</p>
-        <div class="sc-modal" style="position: static">
-          <h2 class="sc-modal__title">Reinitialize dashboard?</h2>
-          <p class="sc-modal__body">The same card chrome, shown in flow.</p>
         </div>
       </section>
 
@@ -356,12 +274,11 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-toast-base&gt; (inline preview, not portal)</h2>
-        <p>
-          Toasts normally live inside a fixed-position
-          <code>.toast-stack</code> at the bottom-right of the viewport. Below renders the cards
-          without the stack so they show in flow.
+        <p class="demo-cap">
+          Toasts normally live inside a fixed-position <code>.sc-toast-stack</code> at the
+          bottom-right of the viewport. Below renders the cards in flow.
         </p>
-        <div class="sc-stack">
+        <sc-stack-base>
           <sc-toast-base message="Default toast — muted accent."></sc-toast-base>
           <sc-toast-base
             variant="info"
@@ -379,94 +296,7 @@ function dirtPlay(event) {
             variant="error"
             message="Error — couldn't reach scsynth: Connection refused (os error 61)."
           ></sc-toast-base>
-        </div>
-      </section>
-
-      <section class="demo-section">
-        <h2 class="demo-section-title">Token sampler</h2>
-        <p>Spacing scale (size = token rem):</p>
-        <div class="demo-row">
-          <span
-            style="background: var(--color-primary); width: var(--space-3xs); height: 1.5rem"
-            title="3xs"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-2xs); height: 1.5rem"
-            title="2xs"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-xs); height: 1.5rem"
-            title="xs"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-sm); height: 1.5rem"
-            title="sm"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-md); height: 1.5rem"
-            title="md"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-lg); height: 1.5rem"
-            title="lg"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-xl); height: 1.5rem"
-            title="xl"
-          ></span>
-          <span
-            style="background: var(--color-primary); width: var(--space-2xl); height: 1.5rem"
-            title="2xl"
-          ></span>
-        </div>
-        <p>Radii (32px squares):</p>
-        <div class="demo-row">
-          <span
-            style="
-              background: var(--color-primary);
-              width: 32px;
-              height: 32px;
-              border-radius: var(--radius-xs);
-            "
-            title="xs"
-          ></span>
-          <span
-            style="
-              background: var(--color-primary);
-              width: 32px;
-              height: 32px;
-              border-radius: var(--radius-sm);
-            "
-            title="sm"
-          ></span>
-          <span
-            style="
-              background: var(--color-primary);
-              width: 32px;
-              height: 32px;
-              border-radius: var(--radius-md);
-            "
-            title="md"
-          ></span>
-          <span
-            style="
-              background: var(--color-primary);
-              width: 32px;
-              height: 32px;
-              border-radius: var(--radius-lg);
-            "
-            title="lg"
-          ></span>
-          <span
-            style="
-              background: var(--color-primary);
-              width: 64px;
-              height: 32px;
-              border-radius: var(--radius-pill);
-            "
-            title="pill"
-          ></span>
-        </div>
+        </sc-stack-base>
       </section>
 
       <section class="demo-section">
@@ -663,16 +493,18 @@ function dirtPlay(event) {
             style="
               overflow: hidden;
               transform: translateZ(0);
-              padding: var(--space-s);
+              padding: var(--space-sm);
               border: 1px dashed var(--color-border-strong);
               border-radius: var(--radius-sm);
             "
           >
-            <button class="btn" onclick="this.nextElementSibling.open = !this.nextElementSibling.open">
-              toggle popover
-            </button>
+            <sc-button-base
+              label="toggle popover"
+              variant="secondary"
+              onclick="this.nextElementSibling.open = !this.nextElementSibling.open"
+            ></sc-button-base>
             <sc-popover-base>
-              <div style="padding: var(--space-s); min-inline-size: 12rem">
+              <div style="padding: var(--space-sm); min-inline-size: 12rem">
                 <sc-text-base size="sm">I render in the top layer.</sc-text-base>
                 <sc-text-base size="xs" tone="dim">
                   Not clipped by the dashed box, not mis-positioned by its transform.
@@ -690,12 +522,14 @@ function dirtPlay(event) {
           trap + Esc); slides in, <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
-          <button class="btn" onclick="document.getElementById('demo-drawer-r').open = true">
-            open right drawer
-          </button>
-          <button class="btn" onclick="document.getElementById('demo-drawer-l').open = true">
-            open left drawer
-          </button>
+          <sc-button-base
+            label="open right drawer"
+            onclick="document.getElementById('demo-drawer-r').open = true"
+          ></sc-button-base>
+          <sc-button-base
+            label="open left drawer"
+            onclick="document.getElementById('demo-drawer-l').open = true"
+          ></sc-button-base>
           <sc-drawer-base id="demo-drawer-r" side="right" dismissable label="Plugins">
             <header>
               <h2>Plugins</h2>
@@ -708,10 +542,10 @@ function dirtPlay(event) {
                 onclick="document.getElementById('demo-drawer-r').open = false"
               ></sc-button-base>
             </header>
-            <div class="sc-drawer__body sc-stack sc-stack--sm">
+            <sc-stack-base class="sc-drawer__body" gap="sm">
               <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
               <sc-empty-base>no plugins installed yet</sc-empty-base>
-            </div>
+            </sc-stack-base>
           </sc-drawer-base>
           <sc-drawer-base id="demo-drawer-l" side="left" dismissable label="Navigation">
             <header>
@@ -798,7 +632,7 @@ function dirtPlay(event) {
     </div>
 
     <script type="module">
-      // Foundation CSS (Vite inlines the @import chain incl. Open Props).
+      // Foundation CSS (Vite inlines the @import chain).
       import "./src/foundations/index.css";
       // Phosphor fill-weight font (the only weight sc-icon-base supports).
       import "@phosphor-icons/web/fill";

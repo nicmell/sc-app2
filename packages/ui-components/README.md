@@ -17,12 +17,11 @@ Three consumers:
 
 ```
 src/
-  foundations/             pure CSS — tokens, reset, base elements, utilities
+  foundations/             pure CSS — tokens, reset, base elements
     index.css              entry; @imports every layer + ../components/styles.css
     tokens/semantic.css    --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
-    utilities.css          componentless utility classes (.sc-range-field)
   components/              the -base Lit web components + their co-located styles
     sc-<tag>.ts            each component …
     sc-<tag>.css           … beside its styles (1:1)
@@ -106,8 +105,8 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-alert-base` | `variant` | — | inline notice card; renders children (state palette via `variant`) |
 | `sc-panel-base` | `disabled` | — | feature-surface card; a child `<header>` is the title bar; renders children |
 | `sc-empty-base` | — | — | dashed "nothing here" placeholder; renders children |
-| `sc-stack-base` | `gap` | — | vertical flex layout; renders children (raw class: `.sc-stack`) |
-| `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children (raw class: `.sc-cluster`) |
+| `sc-stack-base` | `gap` | — | vertical flex layout; renders children |
+| `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children |
 | `sc-disclosure-base` | `open` | `toggle` | **shadow DOM**; collapsible card over native `<details>` (`summary` slot + content) |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
@@ -160,10 +159,8 @@ foundation CSS applies. Four patterns:
    Content wrappers + layout primitives that preserve author children by
    rendering **no template** (`render()` returns `noChange`) and style the host
    off reflected props (`sc-text-base[size="lg"]`, `sc-alert-base[variant="warn"]`,
-   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`). stack/cluster also
-   expose a matching raw-class entry point for plugin markup
-   (`.sc-stack`/`.sc-cluster` + `--sm`) via a grouped selector, e.g.
-   `:where(sc-stack-base[gap="sm"]), .sc-stack--sm { … }`.
+   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`) via `:where(tag[attr])`
+   selectors (specificity 0, so authors override freely).
 
    **`sc-disclosure-base`** is the exception that proves the rule: it's the one
    shadow-DOM wrapper here — it renders a native `<details>`/`<summary>` (so the

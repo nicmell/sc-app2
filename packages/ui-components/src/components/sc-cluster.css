@@ -1,30 +1,24 @@
 /**
  * Horizontal flex layout, centred cross-axis, with gap + wrap — the
  * bread-and-butter "row of inline things" (toolbar buttons, label + input,
- * chip + readout, …). Counterpart to .sc-stack.
+ * chip + readout, …). Counterpart to sc-stack.
  *
- * Two entry points share one monotonic gap scale (single source of truth),
- * mapping 1:1 to the space tokens — xs (default) / sm / md / lg →
- * --space-xs/sm/md/lg:
- *   - `<sc-cluster-base gap="md">` — the host-only web component; `gap` reflects.
- *   - `.sc-cluster` + `.sc-cluster--{sm,md}` — the legacy plain classes still
- *     referenced (the demo); lg is component-only (use `<sc-cluster-base gap>`).
+ * Rendered by the host-only `<sc-cluster-base gap="…">` web component; `gap`
+ * reflects and selects the spacing from one monotonic scale that maps 1:1 to
+ * the space tokens — xs (default) / sm / md / lg → --space-xs/sm/md/lg.
  */
 
-:where(sc-cluster-base),
-.sc-cluster {
+:where(sc-cluster-base) {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
   flex-wrap: wrap;
 }
 
-:where(sc-cluster-base[gap="sm"]),
-.sc-cluster--sm {
+:where(sc-cluster-base[gap="sm"]) {
   gap: var(--space-sm);
 }
-:where(sc-cluster-base[gap="md"]),
-.sc-cluster--md {
+:where(sc-cluster-base[gap="md"]) {
   gap: var(--space-md);
 }
 :where(sc-cluster-base[gap="lg"]) {

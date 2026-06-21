@@ -3,8 +3,8 @@
  *
  * Imports run in cascade order: tokens first (so the semantic palette is
  * defined), then theme (resolving tokens to a concrete palette), reset, base
- * element styles, utility classes, and finally the component layer
- * (../components/styles.css, which aggregates every co-located sc-<tag>.css).
+ * element styles, and finally the component layer (../components/styles.css,
+ * which aggregates every co-located sc-<tag>.css).
  */
 
 /* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
@@ -23,9 +23,6 @@
    already looks correct. */
 @import "./base/elements.css";
 @import "./base/typography.css";
-
-/* Componentless utility classes (e.g. .range-field). */
-@import "./utilities.css";
 
 /* The component layer — each component's styles live beside its source in
    src/components/ as sc-<tag>.css; styles.css imports them all. */

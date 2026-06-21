@@ -8,12 +8,4 @@ export default defineConfig({
   esbuild: {
     target: "es2022",
   },
-  // Component styles ship as scoped CSS Modules (`sc-x.module.css`), imported by
-  // each component. camelCaseOnly so locals read as `styles.stepUp`; the default
-  // hashed scoped names give the per-component encapsulation.
-  css: {
-    modules: {
-      localsConvention: "camelCaseOnly",
-    },
-  },
 });

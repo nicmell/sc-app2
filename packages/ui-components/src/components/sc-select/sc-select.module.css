@@ -1,26 +1,31 @@
 /* <sc-select-base> chrome — scoped CSS Module adopted into the shadow root
-   (?inline). Host rules use `:host(sc-select-base…)`; the `.combobox/.label/
-   .arrow/.dropdown` classes are scoped locals. Tokens reach the shadow by
-   inheritance. The slotted <sc-option-base> children style themselves. */
+   (?inline). Bare `:host` for the host box; the variant accent + disabled are
+   classes the component applies to the HOST (so `--_accent` inherits to the
+   slotted <sc-option-base> children); size is a class on the combobox. The
+   `.combobox/.label/.arrow/.dropdown` classes are scoped locals. */
 
-:host(sc-select-base) {
+:host {
   display: inline-block;
   font-family: var(--font-mono);
   --_accent: var(--color-primary);
 }
-:host(sc-select-base[variant="neutral"]) {
+
+/* Variant accent (applied to the host → inherits to the slotted options). */
+.neutral {
   --_accent: var(--color-text-dim);
 }
-:host(sc-select-base[variant="ok"]) {
+.ok {
   --_accent: var(--color-ok);
 }
-:host(sc-select-base[variant="warn"]) {
+.warn {
   --_accent: var(--color-warn);
 }
-:host(sc-select-base[variant="danger"]) {
+.danger {
   --_accent: var(--color-danger);
 }
-:host(sc-select-base[disabled]) {
+
+/* Disabled (applied to the host). */
+.disabled {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -44,10 +49,11 @@
   user-select: none;
   transition: border-color var(--transition-fast);
 }
-:host(sc-select-base[size="sm"]) .combobox {
+/* Size (applied as a class to the combobox). */
+.sm {
   font-size: var(--font-size-xs);
 }
-:host(sc-select-base[size="lg"]) .combobox {
+.lg {
   font-size: var(--font-size-md);
 }
 .combobox:hover,

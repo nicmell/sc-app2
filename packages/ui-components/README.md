@@ -24,14 +24,15 @@ src/
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
   components/              the -base Lit web components + their co-located styles
-    sc-<tag>.ts            each component imports its own stylesheet …
-    sc-<tag>.module.css    … a scoped CSS Module (hashed locals) for class-bearing
-                           components (most); referenced as `styles.root`, etc.
-    sc-<tag>.css           … a plain global stylesheet for host-only components
-                           (tag/attribute-styled) + modal/drawer slotted-content
-                           classes; side-effect-imported (Vite injects it)
+    sc-<tag>.ts            each component imports its own scoped CSS Module …
+    sc-<tag>.module.css    … referenced as `styles.root`/`styles.box`/… (hashed
+                           locals). Host-only components apply their `styles.*`
+                           classes to the host; modal/drawer keep the
+                           light-DOM slotted classes literal via `:global(...)`.
+                           Nothing is styled by tag or attribute selector.
     index.ts               element barrel + registerUiComponents()
     internal/sc-widget-base.{ts,css}   abstract base + shared widget classes module
+    internal/host-classes.ts   helper that syncs scoped classes onto a host element
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -55,8 +56,7 @@ import { adoptFoundation } from "@sc-app/ui-components/lit";
 adoptFoundation();
 
 // 2a. as web components (Lit / plugin HTML) — registering imports every
-//     component module, which injects each component's own CSS (scoped module
-//     for the class-bearing ones; global sheet for host-only/slotted).
+//     component module, which injects each component's own scoped CSS module.
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 registerUiComponents();            // idempotent; defines every <sc-*-base> tag
 // → <sc-button-base label="Run" variant="danger"></sc-button-base>
@@ -71,9 +71,8 @@ import "@phosphor-icons/web/fill";  // powers <sc-icon-base>
 
 Components are **light DOM** (except the shadow-DOM overlays `sc-select-base` /
 `sc-popover-base` / `sc-modal-base` / `sc-drawer-base` / `sc-disclosure-base`,
-see below). Each component imports its own stylesheet (a scoped CSS Module it
-references as `styles.*`, or a plain global sheet for host-only/slotted styling)
-— see "Styling" below. **Events are native, not custom**: each
+see below). Each component imports its own scoped CSS Module and references it as
+`styles.*` — see "Styling" below. **Events are native, not custom**: each
 form widget renders a hidden native `<input>` under its visual overlay and lets
 that input's real `input`/`change` flow to consumers — read `e.target.value` /
 `e.target.checked`. The React wrappers expose `onChange` (+ `onInput` for live
@@ -161,13 +160,14 @@ imports its own stylesheet (see "Styling" below). Four patterns:
    `sc-x.module.css`; the build hashes those class names per component. Variant/
    size resolve to **classes, not data attributes**.
 
-3. **Host-only + reflected attributes (`sc-text-base`, `sc-alert-base`,
+3. **Host-only content wrappers (`sc-text-base`, `sc-alert-base`,
    `sc-panel-base`, `sc-empty-base`, `sc-stack-base`, `sc-cluster-base`).**
    Content wrappers + layout primitives that preserve author children by
-   rendering **no template** (`render()` returns `noChange`) and style the host
-   off reflected props (`sc-text-base[size="lg"]`, `sc-alert-base[variant="warn"]`,
-   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`) via `:where(tag[attr])`
-   selectors (specificity 0, so authors override freely).
+   rendering **no template** (`render()` returns `noChange`). They have no inner
+   element to class, so in `updated()` they apply their scoped module classes
+   (`styles.root` + a size/tone/gap/variant modifier) **to the host element**
+   (via `syncHostClasses`, which preserves author classes) — never via tag or
+   attribute selectors.
 
    **`sc-disclosure-base`** is the exception that proves the rule: it's the one
    shadow-DOM wrapper here — it renders a native `<details>`/`<summary>` (so the
@@ -193,25 +193,32 @@ abstract — not a tag. The parent↔child contexts live in `internal/contexts.t
 
 ### Styling — per-component CSS Modules
 
-Each component owns its CSS and imports it; there is no global component-class
-bundle. Two flavours:
+Each component owns its CSS as a scoped `sc-x.module.css` and imports it; there
+is no global component-class bundle, and **nothing is styled by tag or attribute
+selector** — every rule keys off a class (or a native-state pseudo like
+`:checked`/`[open]`). `import styles from "./sc-x.module.css"` gives hashed,
+per-component locals (`styles.root`/`styles.box`/…); Vite injects the matching
+CSS. How each component reaches its element:
 
-- **Scoped CSS Module** (`sc-x.module.css`) for class-bearing components.
-  `import styles from "./sc-x.module.css"` gives hashed, per-component locals
-  referenced as `styles.root`/`styles.box`/…; Vite injects the matching CSS. For
-  **light-DOM** components the injected (global) CSS styles them directly. For
-  **shadow** components (select/popover/modal/drawer/disclosure) the component
-  also `import sheet from "./sc-x.module.css?inline"` and adopts it via
+- **Light-DOM components** render a root and carry the locals in markup
+  (`class=${cx(styles.root, …)}`); the injected (global) CSS styles them. Widgets
+  put size/variant via `widgetClasses()`; the shared accent/disabled + host
+  display live in `internal/widget-base.module.css`.
+- **Host-only components** (no inner element) apply their locals to the host in
+  `updated()` (`syncHostClasses`).
+- **Shadow components** (select/popover/modal/drawer/disclosure) also
+  `import sheet from "./sc-x.module.css?inline"` and adopt it via
   `static styles = [foundationStyles, unsafeCSS(sheet)]` — head-injected CSS
-  can't reach a shadow root, so the scoped sheet is adopted into it. The locals
-  from the normal import and the names in the `?inline` text match (same build).
+  can't reach a shadow root. They use bare `:host` for the host box and classes
+  for variants (e.g. select applies its variant class to the host so `--_accent`
+  inherits to the slotted options). The locals from the normal import and the
+  names in the `?inline` text match (same build).
 
-- **Plain global stylesheet** (`sc-x.css`, side-effect `import "./sc-x.css"`) for
-  the **host-only** components (text/alert/panel/empty/stack/cluster/radio-group —
-  styled by tag/attribute selectors, no class strings) and for the modal/drawer
-  **slotted-content** classes (`.sc-modal__title`, `.sc-drawer__body`, …) and the
-  app-rendered `.sc-modal__backdrop`. These must stay global because they style
-  light-DOM the component doesn't own; loading the component injects them.
+A few classes are **consumer-authored** and so kept literal via `:global(...)` in
+the owning module: the modal/drawer slotted-content classes (`.sc-modal__title`,
+`.sc-drawer__body`, …) and the app-rendered `.sc-modal__backdrop` — they style
+light-DOM the component doesn't own, and the module's default import injects them
+into the document.
 
 `internal/foundation-styles.ts` builds the foundation CSS (`index.css?inline` —
 now just tokens + reset + base) into a single `CSSStyleSheet` (`foundationStyles`),

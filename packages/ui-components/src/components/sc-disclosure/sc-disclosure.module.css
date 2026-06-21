@@ -3,7 +3,7 @@
    rules from base/elements.css still apply there (via the adopted foundation
    sheet), so this only adds the card chrome + chevron. */
 
-:host(sc-disclosure-base) {
+:host {
   display: block;
 }
 

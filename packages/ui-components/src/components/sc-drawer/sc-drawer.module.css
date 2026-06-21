@@ -4,7 +4,7 @@
    light-DOM children (the <header> title bar, .sc-drawer__body) stay GLOBAL
    (foundations/components/sc-drawer.css). */
 
-:host(sc-drawer-base) {
+:host {
   display: contents;
 }
 
@@ -37,7 +37,7 @@
 
 /* `.root { display: flex }` overrides the UA `dialog:not([open])` hide — re-hide
    the closed dialog until showModal() sets [open]. */
-dialog.root:not([open]) {
+.root:not([open]) {
   display: none;
 }
 
@@ -51,19 +51,20 @@ dialog.root:not([open]) {
   }
 }
 
-/* Left side: pin to the left edge, flip the border, slide from the left. */
-:host(sc-drawer-base[side="left"]) .root {
+/* Left side (the dialog carries the `left` class): pin to the left edge, flip
+   the border, slide from the left. */
+.left {
   inset: 0 auto 0 0;
   border-inline-start: none;
   border-inline-end: 1px solid var(--color-border-strong);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   translate: -100% 0;
 }
-:host(sc-drawer-base[side="left"]) .root[open] {
+.left[open] {
   translate: 0 0;
 }
 @starting-style {
-  :host(sc-drawer-base[side="left"]) .root[open] {
+  .left[open] {
     translate: -100% 0;
   }
 }
@@ -91,4 +92,29 @@ dialog.root:not([open]) {
   .root::backdrop {
     transition: none;
   }
+}
+
+/* Slotted light-DOM children (injected to the document by the default module
+   import). The author's direct-child <header> gets the `header` class applied by
+   the component; the scrolling body uses the consumer-written global class. */
+.header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+.header h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+:global(.sc-drawer__body) {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--space-md);
 }

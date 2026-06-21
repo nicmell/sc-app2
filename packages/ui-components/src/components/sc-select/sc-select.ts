@@ -26,6 +26,8 @@ import { selectContext, type SelectContext } from "../internal/contexts";
 import type { ScSize, ScVariant } from "../internal/sc-widget-base";
 import { foundationStyles } from "../internal/foundation-styles";
 import { PopoverController } from "../internal/popover-controller";
+import cx from "classnames";
+import { syncHostClasses } from "../internal/host-classes";
 import styles from "./sc-select.module.css";
 import sheet from "./sc-select.module.css?inline";
 
@@ -93,7 +95,11 @@ export class ScSelectBase extends LitElement {
     if (panel && anchor) this.#popover.attach(panel, anchor);
   }
 
+  // Variant accent + disabled are classes on the host (so `--_accent` inherits
+  // to the slotted options); size is a class on the combobox (in render).
+  readonly #hostCls = new Set<string>();
   protected updated(): void {
+    syncHostClasses(this, this.#hostCls, [styles[this.variant], this.disabled && styles.disabled]);
     this.#provider.setValue(this.#ctx());
     this.#internals?.setFormValue(String(this.value));
   }
@@ -101,7 +107,7 @@ export class ScSelectBase extends LitElement {
   render() {
     return html`
       <button
-        class=${styles.combobox}
+        class=${cx(styles.combobox, styles[this.size])}
         type="button"
         role="combobox"
         aria-haspopup="listbox"

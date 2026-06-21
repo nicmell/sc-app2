@@ -1,7 +1,8 @@
 /* <sc-modal-base> dialog chrome — scoped CSS Module adopted into the shadow root
    (?inline). The dialog carries `styles.root`. The slotted content classes
    (sc-modal__title/__body/__actions) and the app-rendered .sc-modal__backdrop
-   stay GLOBAL (foundations/components/sc-modal.css) — they live in the light DOM. */
+   live in the LIGHT DOM, so they're kept GLOBAL + literal (`:global(...)`) at
+   the bottom; the module's default import injects them into the document. */
 
 .root {
   display: flex;
@@ -27,6 +28,35 @@
 
 /* `.root { display: flex }` overrides the UA `dialog:not([open])` hide — re-hide
    the mounted-but-closed dialog until showModal() sets [open]. */
-dialog.root:not([open]) {
+.root:not([open]) {
   display: none;
+}
+
+/* Light-DOM, consumer-authored classes — kept global + literal. The author
+   slots title/body/actions; .sc-modal__backdrop is the app's connection scrim. */
+:global(.sc-modal__backdrop) {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+:global(.sc-modal__title) {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+:global(.sc-modal__body) {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  line-height: var(--line-height-normal);
+}
+:global(.sc-modal__actions) {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
 }

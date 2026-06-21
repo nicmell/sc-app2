@@ -4,7 +4,7 @@
  * styles`). `:host(...)` and the popover panel reset the UA popover centering.
  */
 
-:host(sc-popover-base) {
+:host {
   display: inline-block;
 }
 

@@ -15,7 +15,7 @@ export function PluginPicker({
     <Modal onClose={onClose} label="Select plugin">
       <header>Select plugin</header>
       <PluginList onSelect={onSelect} />
-      <ScCluster className="modal-actions">
+      <ScCluster className="sc-modal__actions">
         <ScButton variant="ghost" label="Cancel" onClick={onClose} />
       </ScCluster>
     </Modal>

@@ -58,7 +58,7 @@ export function ToastStack() {
 
   if (errors.length === 0) return null;
   return createPortal(
-    <div ref={ref} className="toast-stack" aria-live="polite">
+    <div ref={ref} className="sc-toast-stack" aria-live="polite">
       {errors.map((e) => (
         <Toast key={e.id} error={e} />
       ))}

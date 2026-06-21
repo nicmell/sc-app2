@@ -4,7 +4,7 @@
 // to a viewport edge instead of centred. NOT floating-ui: there's no trigger to
 // anchor to, the edge position is pure CSS.
 //
-// The dialog carries `.drawer`; `side` (right default | left) reflects to the
+// The dialog carries `.sc-drawer`; `side` (right default | left) reflects to the
 // host so the CSS (sc-drawer.css) flips the edge + slide
 // direction. The slide in/out is animated natively (@starting-style +
 // transition-behavior: allow-discrete), degrading to an instant toggle where
@@ -20,6 +20,6 @@ export class ScDrawerBase extends ScDialogBase {
   @property({ reflect: true }) accessor side: ScDrawerSide = "right";
 
   protected get dialogClass(): string {
-    return "drawer";
+    return "sc-drawer";
   }
 }

@@ -129,7 +129,7 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <div class="stack stack--sm">
+        <div class="sc-stack sc-stack--sm">
           <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
           <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
           <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
@@ -159,7 +159,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <div class="stack stack--sm">
+        <div class="sc-stack sc-stack--sm">
           <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
           <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
           <sc-text-base size="md">Medium (default body)</sc-text-base>
@@ -167,7 +167,7 @@ function dirtPlay(event) {
           <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
         </div>
         <p class="demo-cap">tones</p>
-        <div class="cluster cluster--md">
+        <div class="sc-cluster sc-cluster--md">
           <sc-text-base>default</sc-text-base>
           <sc-text-base tone="dim">dim</sc-text-base>
           <sc-text-base tone="mute">mute</sc-text-base>
@@ -192,7 +192,7 @@ function dirtPlay(event) {
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <div class="stack stack--sm">
+        <div class="sc-stack sc-stack--sm">
           <sc-disclosure-base>
             <span slot="summary">Details summary (click to expand)</span>
             <sc-text-base size="sm" tone="dim">
@@ -226,14 +226,14 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-panel-base&gt; + cluster + stack</h2>
-        <div class="cluster cluster--md" style="align-items: flex-start">
+        <div class="sc-cluster sc-cluster--md" style="align-items: flex-start">
           <sc-panel-base>
             <header>Panel header</header>
-            <div class="cluster cluster--md">
+            <div class="sc-cluster sc-cluster--md">
               <span>cluster: row of inline things</span>
               <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
             </div>
-            <div class="stack stack--sm">
+            <div class="sc-stack sc-stack--sm">
               <span>stack item 1</span>
               <span>stack item 2</span>
               <span>stack item 3</span>
@@ -249,7 +249,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
-        <div class="cluster cluster--sm">
+        <div class="sc-cluster sc-cluster--sm">
           <sc-chip-base dot label="idle"></sc-chip-base>
           <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
           <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
@@ -260,7 +260,7 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-badge-base&gt;</h2>
-        <div class="cluster cluster--sm">
+        <div class="sc-cluster sc-cluster--sm">
           <sc-badge-base label="connected"></sc-badge-base>
           <sc-badge-base label="degraded" variant="warn"></sc-badge-base>
           <sc-badge-base label="offline" variant="error"></sc-badge-base>
@@ -269,21 +269,21 @@ function dirtPlay(event) {
 
       <section class="demo-section">
         <h2 class="demo-section-title">Range field</h2>
-        <label class="range-field">
-          <span class="range-field-label">gain</span>
+        <label class="sc-range-field">
+          <span class="sc-range-field__label">gain</span>
           <input type="range" min="0" max="2" step="0.01" value="0.8" />
-          <span class="range-field-value">0.80</span>
+          <span class="sc-range-field__value">0.80</span>
         </label>
-        <label class="range-field">
-          <span class="range-field-label">cutoff</span>
+        <label class="sc-range-field">
+          <span class="sc-range-field__label">cutoff</span>
           <input type="range" min="100" max="8000" step="10" value="800" />
-          <span class="range-field-value">800 Hz</span>
+          <span class="sc-range-field__value">800 Hz</span>
         </label>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
-        <div class="stack stack--sm">
+        <div class="sc-stack sc-stack--sm">
           <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
           <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
           <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
@@ -305,12 +305,12 @@ function dirtPlay(event) {
             open modal
           </button>
           <sc-modal-base id="demo-modal" dismissable label="Reinitialize dashboard?">
-            <h2 class="modal-title">Reinitialize dashboard?</h2>
-            <p class="modal-body">
+            <h2 class="sc-modal__title">Reinitialize dashboard?</h2>
+            <p class="sc-modal__body">
               Active recordings will be stopped, and any recordings in this session — including ones
               already finalised — will be lost when the dashboard reinitializes.
             </p>
-            <div class="modal-actions">
+            <div class="sc-modal__actions">
               <sc-button-base
                 label="Cancel"
                 variant="secondary"
@@ -325,9 +325,9 @@ function dirtPlay(event) {
           </sc-modal-base>
         </div>
         <p class="demo-cap">legacy <code>.modal</code> chrome (static preview):</p>
-        <div class="modal" style="position: static">
-          <h2 class="modal-title">Reinitialize dashboard?</h2>
-          <p class="modal-body">The same card chrome, shown in flow.</p>
+        <div class="sc-modal" style="position: static">
+          <h2 class="sc-modal__title">Reinitialize dashboard?</h2>
+          <p class="sc-modal__body">The same card chrome, shown in flow.</p>
         </div>
       </section>
 
@@ -361,7 +361,7 @@ function dirtPlay(event) {
           <code>.toast-stack</code> at the bottom-right of the viewport. Below renders the cards
           without the stack so they show in flow.
         </p>
-        <div class="stack">
+        <div class="sc-stack">
           <sc-toast-base message="Default toast — muted accent."></sc-toast-base>
           <sc-toast-base
             variant="info"
@@ -708,7 +708,7 @@ function dirtPlay(event) {
                 onclick="document.getElementById('demo-drawer-r').open = false"
               ></sc-button-base>
             </header>
-            <div class="drawer-body stack stack--sm">
+            <div class="sc-drawer__body sc-stack sc-stack--sm">
               <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
               <sc-empty-base>no plugins installed yet</sc-empty-base>
             </div>
@@ -725,7 +725,7 @@ function dirtPlay(event) {
                 onclick="document.getElementById('demo-drawer-l').open = false"
               ></sc-button-base>
             </header>
-            <div class="drawer-body">
+            <div class="sc-drawer__body">
               <sc-text-base tone="dim" size="sm">Left-side drawer content.</sc-text-base>
             </div>
           </sc-drawer-base>

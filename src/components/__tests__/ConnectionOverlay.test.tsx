@@ -46,18 +46,18 @@ afterEach(() => {
 });
 
 describe("ConnectionOverlay", () => {
-  // The error modal is now <sc-modal-base> (its <dialog class="modal"> lives in
+  // The error modal is now <sc-modal-base> (its <dialog class="sc-modal"> lives in
   // the shadow root, so .modal isn't queryable from the document — the host
   // tag is). The notice/actions are slotted light-DOM children of the host.
   it("connecting: backdrop with the indeterminate loader, no modal", () => {
-    expect(container.querySelector(".modal-backdrop")).not.toBeNull();
+    expect(container.querySelector(".sc-modal__backdrop")).not.toBeNull();
     expect(container.querySelector("sc-progress-base")).not.toBeNull();
     expect(container.querySelector("sc-modal-base")).toBeNull();
   });
 
   it("connected: renders nothing", () => {
     setStatus("connected");
-    expect(container.querySelector(".modal-backdrop")).toBeNull();
+    expect(container.querySelector(".sc-modal__backdrop")).toBeNull();
   });
 
   it("error: modal with a notice and a Retry button, no loader", () => {
@@ -65,9 +65,9 @@ describe("ConnectionOverlay", () => {
     expect(container.querySelector("sc-progress-base")).toBeNull();
     const modal = container.querySelector("sc-modal-base");
     expect(modal).not.toBeNull();
-    expect(modal!.querySelector(".modal-title")?.textContent).toMatch(/connection failed/i);
-    expect(modal!.querySelector(".modal-body")?.textContent).toBeTruthy();
-    expect(modal!.querySelector(".modal-actions button")?.textContent).toMatch(/retry/i);
+    expect(modal!.querySelector(".sc-modal__title")?.textContent).toMatch(/connection failed/i);
+    expect(modal!.querySelector(".sc-modal__body")?.textContent).toBeTruthy();
+    expect(modal!.querySelector(".sc-modal__actions button")?.textContent).toMatch(/retry/i);
   });
 
   it("Retry click calls session.retry(); the loader returns when status flips", () => {
@@ -77,7 +77,7 @@ describe("ConnectionOverlay", () => {
       return Promise.resolve();
     });
     setStatus("error");
-    const button = container.querySelector(".modal-actions button");
+    const button = container.querySelector(".sc-modal__actions button");
     expect(button).not.toBeNull();
     act(() => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));

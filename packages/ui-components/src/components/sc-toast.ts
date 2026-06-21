@@ -1,7 +1,7 @@
 // <sc-toast-base> — a single notification card (message + dismiss button) with
 // a per-variant left accent. Light DOM; `variant` resolves to a classnames
 // modifier (replacing the old .toast[data-variant]). The fixed-position
-// `.toast-stack` container stays a plain layout class — a toast just lives
+// `.sc-toast-stack` container stays a plain layout class — a toast just lives
 // inside it. Dismiss dispatches a `dismiss` CustomEvent; the owner removes it.
 
 import { LitElement, html } from "lit";
@@ -23,13 +23,13 @@ export class ScToastBase extends LitElement {
   };
 
   render() {
-    const cls = cx("toast", { [`toast--${this.variant}`]: this.variant !== "default" });
+    const cls = cx("sc-toast", { [`sc-toast--${this.variant}`]: this.variant !== "default" });
     // Errors/warnings interrupt (assertive); info/success/default are polite.
     const role = this.variant === "error" || this.variant === "warn" ? "alert" : "status";
     return html`
       <div class=${cls} role=${role}>
-        <span class="toast-message">${this.message}</span>
-        <button type="button" class="toast-close" aria-label="Dismiss" @click=${this._dismiss}>
+        <span class="sc-toast__message">${this.message}</span>
+        <button type="button" class="sc-toast__close" aria-label="Dismiss" @click=${this._dismiss}>
           ×
         </button>
       </div>

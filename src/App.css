@@ -60,7 +60,7 @@ sc-plugin {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
 }
-.modal-actions {
+.sc-modal__actions {
   justify-content: flex-end;
 }
 

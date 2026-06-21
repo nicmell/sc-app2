@@ -29,7 +29,7 @@
   --color-surface-3-hover: #4a5060;
   --color-surface-input: #242832;
   /* Scrim behind overlays (modal/drawer ::backdrop, the loader's
-     .modal-backdrop) — one shared dim so every backdrop matches. */
+     .sc-modal__backdrop) — one shared dim so every backdrop matches. */
   --color-scrim: rgb(0 0 0 / 0.55);
 
   /* ── Borders ──────────────────────────────────────────────────

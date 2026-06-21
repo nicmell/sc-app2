@@ -22,7 +22,7 @@ src/
     tokens/semantic.css    --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
-    utilities.css          componentless utility classes (.range-field)
+    utilities.css          componentless utility classes (.sc-range-field)
   components/              the -base Lit web components + their co-located styles
     sc-<tag>.ts            each component …
     sc-<tag>.css           … beside its styles (1:1)
@@ -103,18 +103,18 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 | `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
 | `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | native `input`/`change` | multi-line |
 | `sc-text-base` | `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; renders children |
-| `sc-alert-base` | `variant` | — | inline notice card; renders children (generalises legacy `.error`) |
+| `sc-alert-base` | `variant` | — | inline notice card; renders children (state palette via `variant`) |
 | `sc-panel-base` | `disabled` | — | feature-surface card; a child `<header>` is the title bar; renders children |
 | `sc-empty-base` | — | — | dashed "nothing here" placeholder; renders children |
-| `sc-stack-base` | `gap` | — | vertical flex layout; renders children (shares scale with `.stack`) |
-| `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children (shares scale with `.cluster`) |
+| `sc-stack-base` | `gap` | — | vertical flex layout; renders children (raw class: `.sc-stack`) |
+| `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children (raw class: `.sc-cluster`) |
 | `sc-disclosure-base` | `open` | `toggle` | **shadow DOM**; collapsible card over native `<details>` (`summary` slot + content) |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
 | `sc-icon-base` | `name` `size` `label` | — | Phosphor **fill** glyph (needs the font) |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
 | `sc-progress-base` | `variant` `value` `max` `size` `label` | — | loading/progress indicator; `bar`/`spinner`, determinate when `value` set else indeterminate; `role=progressbar` |
-| `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.toast-stack` (top-layer popover) |
+| `sc-toast-base` | `message` `variant` | `dismiss` | lives in a `.sc-toast-stack` (top-layer popover) |
 | `sc-popover-base` | `open` `placement` `anchor` | `toggle` | **shadow DOM**; top-layer anchored panel (slots content) |
 | `sc-modal-base` | `open` `dismissable` `label` | `close` | **shadow DOM**; centred blocking modal over native `<dialog>` (slots content); `label`→aria-label |
 | `sc-drawer-base` | `open` `side` `dismissable` `label` | `close` | **shadow DOM**; edge-anchored slide-in panel over native `<dialog>` (slots content; child `<header>` = title bar); `label`→aria-label |
@@ -160,10 +160,10 @@ foundation CSS applies. Four patterns:
    Content wrappers + layout primitives that preserve author children by
    rendering **no template** (`render()` returns `noChange`) and style the host
    off reflected props (`sc-text-base[size="lg"]`, `sc-alert-base[variant="warn"]`,
-   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`). Each shares its chrome
-   (and, for stack/cluster, the gap scale) with the legacy `.error`/`.panel`/
-   `.empty`/`.stack`/`.cluster` classes — one source of truth via a grouped
-   selector, e.g. `:where(sc-stack-base[gap="md"]), .stack--md { … }`.
+   `sc-panel-base[disabled]`, `sc-stack-base[gap="md"]`). stack/cluster also
+   expose a matching raw-class entry point for plugin markup
+   (`.sc-stack`/`.sc-cluster` + `--sm`) via a grouped selector, e.g.
+   `:where(sc-stack-base[gap="sm"]), .sc-stack--sm { … }`.
 
    **`sc-disclosure-base`** is the exception that proves the rule: it's the one
    shadow-DOM wrapper here — it renders a native `<details>`/`<summary>` (so the

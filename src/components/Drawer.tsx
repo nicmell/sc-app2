@@ -10,7 +10,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         <h2>Plugins</h2>
         <ScButton variant="ghost" size="sm" iconOnly icon="x" label="Close" onClick={onClose} />
       </header>
-      <div className="drawer-body">
+      <div className="sc-drawer__body">
         <PluginList />
       </div>
     </ScDrawer>

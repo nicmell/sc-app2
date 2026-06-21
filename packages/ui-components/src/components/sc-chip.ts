@@ -1,7 +1,7 @@
 // <sc-chip-base> — a small rounded status label: a tinted pill with an
 // optional leading status dot. Light DOM; `variant` resolves to a classnames
 // modifier. Replaces the old `.status-pill` (which was just a chip that always
-// showed a dot). neutral is the default (the base `.chip`).
+// showed a dot). neutral is the default (the base `.sc-chip`).
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
@@ -20,9 +20,9 @@ export class ScChipBase extends LitElement {
   }
 
   render() {
-    const cls = cx("chip", { [`chip--${this.variant}`]: this.variant !== "neutral" });
+    const cls = cx("sc-chip", { [`sc-chip--${this.variant}`]: this.variant !== "neutral" });
     return html`<span class=${cls}
-      >${this.dot ? html`<span class="chip__dot" aria-hidden="true">●</span>` : nothing}${this
+      >${this.dot ? html`<span class="sc-chip__dot" aria-hidden="true">●</span>` : nothing}${this
         .label}</span
     >`;
   }

@@ -13,7 +13,7 @@ export function ConnectionOverlay() {
   if (status === "connected") return null;
   if (status === "connecting") {
     return (
-      <div className="modal-backdrop">
+      <div className="sc-modal__backdrop">
         <div className="connection-loader">
           <ScProgress label="Connecting to the session…" />
         </div>
@@ -22,11 +22,11 @@ export function ConnectionOverlay() {
   }
   return (
     <Modal label="Connection failed">
-      <h2 className="modal-title">Connection failed</h2>
-      <p className="modal-body">
+      <h2 className="sc-modal__title">Connection failed</h2>
+      <p className="sc-modal__body">
         The session could not be established — the server or scsynth may be down.
       </p>
-      <ScCluster className="modal-actions">
+      <ScCluster className="sc-modal__actions">
         <button type="button" onClick={() => void session.retry()}>
           Retry
         </button>

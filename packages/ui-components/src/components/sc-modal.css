@@ -1,15 +1,15 @@
 /**
- * .modal — centred overlay card for confirms / alerts. Shipped as the chrome of
- * <sc-modal-base>, which renders a native <dialog class="modal"> in its shadow
+ * .sc-modal — centred overlay card for confirms / alerts. Shipped as the chrome of
+ * <sc-modal-base>, which renders a native <dialog class="sc-modal"> in its shadow
  * root and opens it with showModal() → the browser **top layer** (escapes
  * clipping/transform/z-index, with a ::backdrop + focus trap). The author's
- * content is slotted in as light DOM and styled by the global .modal-* classes.
+ * content is slotted in as light DOM and styled by the global .sc-modal-* classes.
  *
  * Content shape (slotted into <sc-modal-base>):
  *   <sc-modal-base open dismissable>
- *     <h2 class="modal-title">…</h2>
- *     <p class="modal-body">…</p>
- *     <div class="modal-actions cluster cluster--sm">
+ *     <h2 class="sc-modal__title">…</h2>
+ *     <p class="sc-modal__body">…</p>
+ *     <div class="sc-modal__actions sc-cluster sc-cluster--sm">
  *       <sc-button-base label="Cancel" variant="secondary"></sc-button-base>
  *       <sc-button-base label="Reinitialize" variant="danger"></sc-button-base>
  *     </div>
@@ -17,11 +17,11 @@
  *
  * The card itself has no variant — the action buttons carry the intent.
  *
- * `.modal-backdrop` remains for the non-blocking connection loader (a plain
+ * `.sc-modal__backdrop` remains for the non-blocking connection loader (a plain
  * dimming layer, not a dialog).
  */
 
-.modal-backdrop {
+.sc-modal__backdrop {
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -31,7 +31,7 @@
   justify-content: center;
 }
 
-.modal {
+.sc-modal {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -48,34 +48,34 @@
   overflow: auto;
 }
 
-/* When `.modal` is the native <dialog> (sc-modal-base), dim the page behind it
+/* When `.sc-modal` is the native <dialog> (sc-modal-base), dim the page behind it
    (shared --color-scrim). The UA centres a modal <dialog> in the top layer. */
-.modal::backdrop {
+.sc-modal::backdrop {
   background: var(--color-scrim);
 }
 
-/* `.modal { display: flex }` overrides the UA `dialog:not([open])` hide, which
+/* `.sc-modal { display: flex }` overrides the UA `dialog:not([open])` hide, which
    would leave a mounted-but-closed dialog visible — re-hide it until showModal()
-   sets [open]. Scoped to dialog so a plain div.modal (plugin markup) is unaffected. */
-dialog.modal:not([open]) {
+   sets [open]. Scoped to dialog so a plain div.sc-modal (plugin markup) is unaffected. */
+dialog.sc-modal:not([open]) {
   display: none;
 }
 
-.modal-title {
+.sc-modal__title {
   margin: 0;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
 
-.modal-body {
+.sc-modal__body {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-dim);
   line-height: var(--line-height-normal);
 }
 
-.modal-actions {
+.sc-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-xs);

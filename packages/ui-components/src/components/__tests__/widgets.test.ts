@@ -373,35 +373,35 @@ describe("sc-button-base", () => {
 describe("sc-badge-base", () => {
   it("renders the label; ok is the base class with no modifier", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.querySelector(".badge")!;
+    const span = el.querySelector(".sc-badge")!;
     expect(span.textContent!.trim()).toBe("connected");
-    expect(span.classList.contains("badge--ok")).toBe(false);
+    expect(span.classList.contains("sc-badge--ok")).toBe(false);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(el.querySelector(".badge")!.classList.contains("badge--error")).toBe(true);
+    expect(el.querySelector(".sc-badge")!.classList.contains("sc-badge--error")).toBe(true);
   });
 });
 
 describe("sc-toast-base", () => {
   it("renders the message; default has no variant modifier", async () => {
     const el = await mount("sc-toast-base", { message: "Saved." });
-    const toast = el.querySelector(".toast")!;
-    expect(el.querySelector(".toast-message")!.textContent!.trim()).toBe("Saved.");
-    expect(toast.className).toBe("toast");
+    const toast = el.querySelector(".sc-toast")!;
+    expect(el.querySelector(".sc-toast__message")!.textContent!.trim()).toBe("Saved.");
+    expect(toast.className).toBe("sc-toast");
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
-    expect(el.querySelector(".toast")!.classList.contains("toast--warn")).toBe(true);
+    expect(el.querySelector(".sc-toast")!.classList.contains("sc-toast--warn")).toBe(true);
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
     const el = await mount("sc-toast-base", { message: "x" });
     let dismissed = 0;
     el.addEventListener("dismiss", () => (dismissed += 1));
-    el.querySelector<HTMLButtonElement>(".toast-close")!.click();
+    el.querySelector<HTMLButtonElement>(".sc-toast__close")!.click();
     expect(dismissed).toBe(1);
   });
 });
@@ -409,17 +409,17 @@ describe("sc-toast-base", () => {
 describe("sc-chip-base", () => {
   it("renders the label; neutral is the base class with no modifier or dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.querySelector(".chip")!;
+    const chip = el.querySelector(".sc-chip")!;
     expect(chip.textContent!.trim()).toBe("idle");
-    expect(chip.className).toBe("chip");
-    expect(el.querySelector(".chip__dot")).toBeNull();
+    expect(chip.className).toBe("sc-chip");
+    expect(el.querySelector(".sc-chip__dot")).toBeNull();
   });
 
   it("applies the variant modifier and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.querySelector(".chip")!;
-    expect(chip.classList.contains("chip--ok")).toBe(true);
-    expect(el.querySelector(".chip__dot")).not.toBeNull();
+    const chip = el.querySelector(".sc-chip")!;
+    expect(chip.classList.contains("sc-chip--ok")).toBe(true);
+    expect(el.querySelector(".sc-chip__dot")).not.toBeNull();
   });
 });
 
@@ -620,14 +620,14 @@ describe("sc-popover-base", () => {
 describe("sc-modal-base", () => {
   it("renders a <dialog class=modal> slotting its content", async () => {
     const el = document.createElement("sc-modal-base");
-    el.innerHTML = '<h2 class="modal-title">Hi</h2>';
+    el.innerHTML = '<h2 class="sc-modal__title">Hi</h2>';
     document.body.appendChild(el);
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
     expect(dialog).not.toBeNull();
-    expect(dialog!.classList.contains("modal")).toBe(true);
+    expect(dialog!.classList.contains("sc-modal")).toBe(true);
     // Content stays light-DOM (slotted), reachable from the host.
-    expect(el.querySelector(".modal-title")!.textContent).toBe("Hi");
+    expect(el.querySelector(".sc-modal__title")!.textContent).toBe("Hi");
   });
 
   it("emits close + clears open when the dialog closes", async () => {
@@ -656,7 +656,7 @@ describe("sc-drawer-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
-    expect(dialog!.classList.contains("drawer")).toBe(true);
+    expect(dialog!.classList.contains("sc-drawer")).toBe(true);
     expect(el.getAttribute("side")).toBe("left");
     expect(el.querySelector("header h2")!.textContent).toBe("Plugins");
   });
@@ -794,9 +794,9 @@ describe("a11y wiring", () => {
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
     const el = await mount("sc-toast-base", { variant: "error" });
-    expect(el.querySelector(".toast")!.getAttribute("role")).toBe("alert");
+    expect(el.querySelector(".sc-toast")!.getAttribute("role")).toBe("alert");
     const info = await mount("sc-toast-base", { variant: "info" });
-    expect(info.querySelector(".toast")!.getAttribute("role")).toBe("status");
+    expect(info.querySelector(".sc-toast")!.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {

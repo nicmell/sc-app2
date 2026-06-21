@@ -1,18 +1,12 @@
 /**
  * Inline alert / notice card — a small bordered card in a state palette.
- *
- * Two entry points share the chrome:
- *   - `<sc-alert-base variant="error">…</sc-alert-base>` — the host-only
- *     web component (variant: info default | success | warn | error); the
- *     message is the element's light-DOM children.
- *   - `.error` — the legacy error-only class (kept for back-compat; plugins
- *     and a few app spots write `<p class="error">…</p>` directly).
- *
- * The card has no behaviour — it just colours its content per state.
+ * Rendered by the host-only `<sc-alert-base variant="…">` web component
+ * (variant: info default | success | warn | error); the message is the
+ * element's light-DOM children. The card has no behaviour — it just colours
+ * its content per state.
  */
 
-:where(sc-alert-base),
-.error {
+:where(sc-alert-base) {
   display: block;
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
@@ -21,13 +15,6 @@
   background: var(--color-info-bg);
   color: var(--color-info-text);
   font-size: var(--font-size-sm);
-}
-
-/* `.error` is the error palette by definition; sc-alert-base defaults to info. */
-.error {
-  background: var(--color-error-bg);
-  border-color: var(--color-error-border);
-  color: var(--color-error-text);
 }
 
 sc-alert-base[variant="error"] {

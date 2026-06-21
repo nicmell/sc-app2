@@ -1,14 +1,14 @@
 /**
- * .drawer — an edge-anchored slide-in panel, shipped as the chrome of
+ * .sc-drawer — an edge-anchored slide-in panel, shipped as the chrome of
  * <sc-drawer-base>, which renders a native <dialog class="drawer"> in its shadow
  * root and opens it with showModal() → the browser **top layer** (escapes
  * clipping/transform/z-index, with a ::backdrop + focus trap). Pinned to a
- * viewport edge by `side` (right default | left), not centred like .modal.
+ * viewport edge by `side` (right default | left), not centred like .sc-modal.
  *
  * Content shape (slotted into <sc-drawer-base>):
  *   <sc-drawer-base open dismissable side="right">
  *     <header><h2>Plugins</h2> …close button… </header>
- *     <div class="drawer-body"> … scrolling content … </div>
+ *     <div class="sc-drawer__body"> … scrolling content … </div>
  *   </sc-drawer-base>
  *
  * The slide in/out is animated natively (@starting-style + allow-discrete), so
@@ -21,7 +21,7 @@
   display: contents;
 }
 
-.drawer {
+.sc-drawer {
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -48,42 +48,42 @@
     display var(--transition-base) allow-discrete;
 }
 
-/* `.drawer { display: flex }` overrides the UA `dialog:not([open])` hide — the
-   same mechanism as .modal: re-hide the closed dialog until showModal() sets
+/* `.sc-drawer { display: flex }` overrides the UA `dialog:not([open])` hide — the
+   same mechanism as .sc-modal: re-hide the closed dialog until showModal() sets
    [open]. (allow-discrete on `display` keeps it shown through the slide-out.) */
-dialog.drawer:not([open]) {
+dialog.sc-drawer:not([open]) {
   display: none;
 }
 
-.drawer[open] {
+.sc-drawer[open] {
   translate: 0 0;
 }
 
 @starting-style {
-  .drawer[open] {
+  .sc-drawer[open] {
     translate: 100% 0;
   }
 }
 
 /* Left side: pin to the left edge, flip the border, slide from the left. */
-:host(sc-drawer-base[side="left"]) .drawer {
+:host(sc-drawer-base[side="left"]) .sc-drawer {
   inset: 0 auto 0 0;
   border-inline-start: none;
   border-inline-end: 1px solid var(--color-border-strong);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   translate: -100% 0;
 }
-:host(sc-drawer-base[side="left"]) .drawer[open] {
+:host(sc-drawer-base[side="left"]) .sc-drawer[open] {
   translate: 0 0;
 }
 @starting-style {
-  :host(sc-drawer-base[side="left"]) .drawer[open] {
+  :host(sc-drawer-base[side="left"]) .sc-drawer[open] {
     translate: -100% 0;
   }
 }
 
 /* Dim the page behind it (shared --color-scrim, matching the modal), and fade it. */
-.drawer::backdrop {
+.sc-drawer::backdrop {
   background: var(--color-scrim);
   opacity: 0;
   transition:
@@ -91,18 +91,18 @@ dialog.drawer:not([open]) {
     overlay var(--transition-base) allow-discrete,
     display var(--transition-base) allow-discrete;
 }
-.drawer[open]::backdrop {
+.sc-drawer[open]::backdrop {
   opacity: 1;
 }
 @starting-style {
-  .drawer[open]::backdrop {
+  .sc-drawer[open]::backdrop {
     opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drawer,
-  .drawer::backdrop {
+  .sc-drawer,
+  .sc-drawer::backdrop {
     transition: none;
   }
 }
@@ -124,7 +124,7 @@ sc-drawer-base > header h2 {
   font-weight: var(--font-weight-medium);
 }
 
-.drawer-body {
+.sc-drawer__body {
   flex: 1 1 auto;
   min-block-size: 0;
   overflow-y: auto;

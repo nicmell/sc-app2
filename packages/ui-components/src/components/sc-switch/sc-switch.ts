@@ -6,7 +6,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ScWidgetBase } from "./internal/sc-widget-base";
+import { ScWidgetBase } from "../internal/sc-widget-base";
 import styles from "./sc-switch.module.css";
 
 export class ScSwitchBase extends ScWidgetBase {

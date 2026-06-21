@@ -7,8 +7,8 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
-import { ScWidgetBase, widgetShared as w } from "./internal/sc-widget-base";
-import { selectContext } from "./internal/contexts";
+import { ScWidgetBase, widgetShared as w } from "../internal/sc-widget-base";
+import { selectContext } from "../internal/contexts";
 import styles from "./sc-option.module.css";
 
 export class ScOptionBase extends ScWidgetBase {

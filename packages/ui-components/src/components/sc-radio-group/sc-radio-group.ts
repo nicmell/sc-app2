@@ -7,8 +7,8 @@
 
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import { ScWidgetBase } from "./internal/sc-widget-base";
-import { radioGroupContext, type RadioGroupContext } from "./internal/contexts";
+import { ScWidgetBase } from "../internal/sc-widget-base";
+import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import "./sc-radio-group.css";
 
 let groupId = 0;

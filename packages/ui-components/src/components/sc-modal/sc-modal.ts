@@ -6,8 +6,8 @@
 // (foundations/components/sc-modal.css).
 
 import { unsafeCSS } from "lit";
-import { ScDialogBase } from "./internal/sc-dialog-base";
-import { foundationStyles } from "./internal/foundation-styles";
+import { ScDialogBase } from "../internal/sc-dialog-base";
+import { foundationStyles } from "../internal/foundation-styles";
 import styles from "./sc-modal.module.css";
 import sheet from "./sc-modal.module.css?inline";
 import "./sc-modal.css";

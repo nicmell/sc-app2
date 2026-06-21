@@ -9,7 +9,7 @@
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import type { ScSize } from "./internal/sc-widget-base";
+import type { ScSize } from "../internal/sc-widget-base";
 import styles from "./sc-button.module.css";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";

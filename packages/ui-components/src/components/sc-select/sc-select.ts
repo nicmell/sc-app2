@@ -22,10 +22,10 @@
 import { LitElement, html, unsafeCSS } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import { selectContext, type SelectContext } from "./internal/contexts";
-import type { ScSize, ScVariant } from "./internal/sc-widget-base";
-import { foundationStyles } from "./internal/foundation-styles";
-import { PopoverController } from "./internal/popover-controller";
+import { selectContext, type SelectContext } from "../internal/contexts";
+import type { ScSize, ScVariant } from "../internal/sc-widget-base";
+import { foundationStyles } from "../internal/foundation-styles";
+import { PopoverController } from "../internal/popover-controller";
 import styles from "./sc-select.module.css";
 import sheet from "./sc-select.module.css?inline";
 

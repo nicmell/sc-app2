@@ -8,8 +8,8 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
-import type { ScInputSize } from "./sc-input";
-import inputStyles from "./sc-input.module.css";
+import type { ScInputSize } from "../sc-input/sc-input";
+import inputStyles from "../sc-input/sc-input.module.css";
 import styles from "./sc-inputnumber.module.css";
 
 export class ScInputNumberBase extends LitElement {

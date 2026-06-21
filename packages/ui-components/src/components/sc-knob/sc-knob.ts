@@ -6,7 +6,7 @@
 
 import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
-import { ScRangeBase } from "./internal/sc-range-base";
+import { ScRangeBase } from "../internal/sc-range-base";
 import styles from "./sc-knob.module.css";
 
 export class ScKnobBase extends ScRangeBase {

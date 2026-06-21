@@ -9,8 +9,8 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
-import { ScWidgetBase, widgetShared as w } from "./internal/sc-widget-base";
-import { radioGroupContext, type RadioGroupContext } from "./internal/contexts";
+import { ScWidgetBase, widgetShared as w } from "../internal/sc-widget-base";
+import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import styles from "./sc-radio.module.css";
 
 export class ScRadioBase extends ScWidgetBase {

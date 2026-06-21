@@ -14,8 +14,8 @@
 
 import { property } from "lit/decorators.js";
 import { unsafeCSS } from "lit";
-import { ScDialogBase } from "./internal/sc-dialog-base";
-import { foundationStyles } from "./internal/foundation-styles";
+import { ScDialogBase } from "../internal/sc-dialog-base";
+import { foundationStyles } from "../internal/foundation-styles";
 import styles from "./sc-drawer.module.css";
 import sheet from "./sc-drawer.module.css?inline";
 import "./sc-drawer.css";

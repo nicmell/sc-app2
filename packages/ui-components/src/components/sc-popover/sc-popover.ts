@@ -11,8 +11,8 @@
 import { LitElement, html, unsafeCSS } from "lit";
 import { property } from "lit/decorators.js";
 import type { Placement } from "@floating-ui/dom";
-import { foundationStyles } from "./internal/foundation-styles";
-import { PopoverController } from "./internal/popover-controller";
+import { foundationStyles } from "../internal/foundation-styles";
+import { PopoverController } from "../internal/popover-controller";
 import styles from "./sc-popover.module.css";
 import sheet from "./sc-popover.module.css?inline";
 

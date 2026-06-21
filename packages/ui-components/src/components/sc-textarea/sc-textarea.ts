@@ -8,7 +8,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
-import type { ScInputSize } from "./sc-input";
+import type { ScInputSize } from "../sc-input/sc-input";
 import styles from "./sc-textarea.module.css";
 
 export class ScTextareaBase extends LitElement {

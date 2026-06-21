@@ -7,7 +7,7 @@
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import type { ScGap } from "./sc-stack";
+import type { ScGap } from "../sc-stack/sc-stack";
 import "./sc-cluster.css";
 
 export class ScClusterBase extends LitElement {

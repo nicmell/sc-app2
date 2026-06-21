@@ -7,23 +7,23 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { registerUiComponents } from "../index";
 // Components now carry scoped CSS-module class names; import the same modules the
 // components use so assertions reference the identical (vitest-stable) locals.
-import badgeStyles from "../sc-badge.module.css";
-import popoverStyles from "../sc-popover.module.css";
-import checkboxStyles from "../sc-checkbox.module.css";
-import sliderStyles from "../sc-slider.module.css";
-import optionStyles from "../sc-option.module.css";
-import radioStyles from "../sc-radio.module.css";
-import iconStyles from "../sc-icon.module.css";
-import buttonStyles from "../sc-button.module.css";
-import toastStyles from "../sc-toast.module.css";
-import chipStyles from "../sc-chip.module.css";
-import inputStyles from "../sc-input.module.css";
-import inputnumberStyles from "../sc-inputnumber.module.css";
-import textareaStyles from "../sc-textarea.module.css";
-import progressStyles from "../sc-progress.module.css";
-import selectStyles from "../sc-select.module.css";
-import modalStyles from "../sc-modal.module.css";
-import drawerStyles from "../sc-drawer.module.css";
+import badgeStyles from "../sc-badge/sc-badge.module.css";
+import popoverStyles from "../sc-popover/sc-popover.module.css";
+import checkboxStyles from "../sc-checkbox/sc-checkbox.module.css";
+import sliderStyles from "../sc-slider/sc-slider.module.css";
+import optionStyles from "../sc-option/sc-option.module.css";
+import radioStyles from "../sc-radio/sc-radio.module.css";
+import iconStyles from "../sc-icon/sc-icon.module.css";
+import buttonStyles from "../sc-button/sc-button.module.css";
+import toastStyles from "../sc-toast/sc-toast.module.css";
+import chipStyles from "../sc-chip/sc-chip.module.css";
+import inputStyles from "../sc-input/sc-input.module.css";
+import inputnumberStyles from "../sc-inputnumber/sc-inputnumber.module.css";
+import textareaStyles from "../sc-textarea/sc-textarea.module.css";
+import progressStyles from "../sc-progress/sc-progress.module.css";
+import selectStyles from "../sc-select/sc-select.module.css";
+import modalStyles from "../sc-modal/sc-modal.module.css";
+import drawerStyles from "../sc-drawer/sc-drawer.module.css";
 import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {

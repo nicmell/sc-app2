@@ -11,7 +11,7 @@
 
 import { LitElement, html, unsafeCSS } from "lit";
 import { property } from "lit/decorators.js";
-import { foundationStyles } from "./internal/foundation-styles";
+import { foundationStyles } from "../internal/foundation-styles";
 import styles from "./sc-disclosure.module.css";
 import sheet from "./sc-disclosure.module.css?inline";
 

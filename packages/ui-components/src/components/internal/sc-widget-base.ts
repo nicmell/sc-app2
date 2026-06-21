@@ -2,7 +2,7 @@
 // ("dumb") controls — no OSC, no store, no bind logic. The owner of the value
 // is whoever consumes them (a logical sc-element wrapper, or a React parent).
 // See packages/ui-components/README and the foundation CSS in
-// the co-located sc-*.css for the class contract.
+// the foundations/components/sc-*.css for the class contract.
 //
 // Event model: each widget renders a hidden native <input> (`.sr-only`) under
 // its visual overlay and lets that input's NATIVE `input`/`change` flow to

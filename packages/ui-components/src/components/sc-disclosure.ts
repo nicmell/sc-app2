@@ -1,7 +1,7 @@
 // <sc-disclosure-base> — a collapsible section. Wraps the NATIVE <details> (so
 // open/close behaviour + accessibility are free) in a shadow root, adding
 // design-system chrome (card border, padding, a rotating chevron — see
-// sc-disclosure.css) and a controllable `open` prop.
+// foundations/components/sc-disclosure.css) and a controllable `open` prop.
 //
 // Shadow DOM so it can render the <details>/<summary> structure while projecting
 // the author's content: a `summary` named slot fills the clickable summary, the

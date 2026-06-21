@@ -4,7 +4,7 @@
 //   • indeterminate (value unset) — animated; "we're working, no ETA".
 //   • determinate (value 0…max)   — fills to value/max; "we're 60% done".
 // Light DOM (like the other display components) so the foundation classes in
-// sc-progress.css style the rendered markup. The accent
+// foundations/components/sc-progress.css style the rendered markup. The accent
 // follows --color-primary; track follows --color-surface-3.
 //
 // Accessibility: role="progressbar" with aria-valuemin/max/now when

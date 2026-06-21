@@ -17,17 +17,15 @@ Three consumers:
 
 ```
 src/
-  foundations/             pure CSS — tokens, reset, base elements
-    index.css              entry; @imports every layer + ../components/styles.css
+  foundations/             pure CSS — tokens, reset, base elements, component styles
+    index.css              entry; @imports every layer + components/sc-*.css
     tokens/semantic.css    --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
-  components/              the -base Lit web components + their co-located styles
-    sc-<tag>.ts            each component …
-    sc-<tag>.css           … beside its styles (1:1)
-    styles.css             aggregates every sc-<tag>.css into the component layer
+    components/sc-<tag>.css  one stylesheet per component (1:1 with components/sc-<tag>.ts)
+  components/              the -base Lit web components (one sc-<tag>.ts each)
     index.ts               element barrel + registerUiComponents()
-    internal/sc-widget-base.{ts,css}   abstract base for the interactive widgets
+    internal/sc-widget-base.ts   abstract base for the interactive widgets
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -174,7 +172,7 @@ foundation CSS applies. Four patterns:
    **one shadow-DOM component** — it must render combobox/dropdown chrome *and*
    project the `<sc-option-base>` children into the dropdown via `<slot>`, which
    a light-DOM render would clobber. Its chrome therefore lives in
-   `src/components/sc-select.css` (`:host` + `.sc-select__*`) like every
+   `foundations/components/sc-select.css` (`:host` + `.sc-select__*`) like every
    other component, applied inside the shadow because the select **adopts the
    shared foundation stylesheet** into its shadow root (see below). Note:
    providers are registered before consumers so static markup upgrades with the

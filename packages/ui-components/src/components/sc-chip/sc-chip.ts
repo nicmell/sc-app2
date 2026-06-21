@@ -1,29 +1,26 @@
-// <sc-chip-base> — a small rounded status label: a tinted pill with an
-// optional leading status dot. Light DOM; `variant` resolves to a classnames
-// modifier. Replaces the old `.status-pill` (which was just a chip that always
-// showed a dot). neutral is the default (the base `.sc-chip`).
+// <sc-chip-base> — a small rounded status label: a tinted pill with an optional
+// leading status dot. Shadow DOM: a `.root` span carrying the `label`, with the
+// `variant` as a class (neutral is the base) and an opt-in leading dot.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import styles from "./sc-chip.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { styles } from "./sc-chip.styles";
 
 export type ScChipVariant = "neutral" | "ok" | "warn" | "error" | "info";
 
 export class ScChipBase extends LitElement {
+  static styles = [foundations, styles];
+
   @property() accessor label = "";
   @property() accessor variant: ScChipVariant = "neutral";
   /** Show the leading status dot (tinted to match the variant). */
   @property({ type: Boolean }) accessor dot = false;
 
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
-
   render() {
-    const cls = cx(styles.root, { [styles[this.variant]]: this.variant !== "neutral" });
-    return html`<span class=${cls}
-      >${this.dot ? html`<span class=${styles.dot} aria-hidden="true">●</span>` : nothing}${this
+    return html`<span class=${cx("root", this.variant !== "neutral" && this.variant)}
+      >${this.dot ? html`<span class="dot" aria-hidden="true">●</span>` : nothing}${this
         .label}</span
     >`;
   }

@@ -8,23 +8,10 @@ import { registerUiComponents } from "../index";
 // Components render shadow DOM with literal (shadow-scoped) class names; converted
 // components assert against `el.shadowRoot` + plain class strings. The components
 // still on the CSS-module delivery import their locals here until converted.
-import badgeStyles from "../sc-badge/sc-badge.module.css";
 import popoverStyles from "../sc-popover/sc-popover.module.css";
-import iconStyles from "../sc-icon/sc-icon.module.css";
-import buttonStyles from "../sc-button/sc-button.module.css";
-import toastStyles from "../sc-toast/sc-toast.module.css";
-import chipStyles from "../sc-chip/sc-chip.module.css";
-import inputStyles from "../sc-input/sc-input.module.css";
-import inputnumberStyles from "../sc-inputnumber/sc-inputnumber.module.css";
-import textareaStyles from "../sc-textarea/sc-textarea.module.css";
-import progressStyles from "../sc-progress/sc-progress.module.css";
 import selectStyles from "../sc-select/sc-select.module.css";
 import modalStyles from "../sc-modal/sc-modal.module.css";
 import drawerStyles from "../sc-drawer/sc-drawer.module.css";
-import alertStyles from "../sc-alert/sc-alert.module.css";
-import panelStyles from "../sc-panel/sc-panel.module.css";
-import stackStyles from "../sc-stack/sc-stack.module.css";
-import clusterStyles from "../sc-cluster/sc-cluster.module.css";
 
 beforeAll(() => {
   registerUiComponents();
@@ -328,8 +315,8 @@ describe("sc-select-base", () => {
 describe("sc-icon-base", () => {
   it("renders the fill icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
-    const i = el.querySelector("i")!;
-    expect(i.classList.contains(iconStyles.root)).toBe(true);
+    const i = el.shadowRoot!.querySelector("i")!;
+    expect(i.classList.contains("root")).toBe(true);
     expect(i.classList.contains("ph-fill")).toBe(true);
     expect(i.classList.contains("ph-play")).toBe(true);
     expect(i.getAttribute("aria-hidden")).toBe("true");
@@ -337,12 +324,12 @@ describe("sc-icon-base", () => {
 
   it("applies the size modifier when given", async () => {
     const el = await mount("sc-icon-base", { name: "play", size: "lg" });
-    expect(el.querySelector("i")!.classList.contains(iconStyles.lg)).toBe(true);
+    expect(el.shadowRoot!.querySelector("i")!.classList.contains("lg")).toBe(true);
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
     const el = await mount("sc-icon-base", { name: "play", label: "Play" });
-    const i = el.querySelector("i")!;
+    const i = el.shadowRoot!.querySelector("i")!;
     expect(i.getAttribute("role")).toBe("img");
     expect(i.getAttribute("aria-label")).toBe("Play");
     expect(i.hasAttribute("aria-hidden")).toBe(false);
@@ -352,12 +339,12 @@ describe("sc-icon-base", () => {
 describe("sc-button-base", () => {
   it("renders a typed button with variant/size classes and label text", async () => {
     const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
-    const btn = el.querySelector("button")!;
+    const btn = el.shadowRoot!.querySelector("button")!;
     expect(btn.getAttribute("type")).toBe("button");
-    expect(btn.classList.contains(buttonStyles.root)).toBe(true);
-    expect(btn.classList.contains(buttonStyles.danger)).toBe(true);
-    expect(btn.classList.contains(buttonStyles.lg)).toBe(true);
-    expect(el.querySelector("." + buttonStyles.label)!.textContent).toBe("Run");
+    expect(btn.classList.contains("root")).toBe(true);
+    expect(btn.classList.contains("danger")).toBe(true);
+    expect(btn.classList.contains("lg")).toBe(true);
+    expect(el.shadowRoot!.querySelector(".label")!.textContent).toBe("Run");
   });
 
   it("renders leading and trailing icons", async () => {
@@ -366,16 +353,18 @@ describe("sc-button-base", () => {
       icon: "folder",
       trailingIcon: "caret-down",
     });
-    const names = Array.from(el.querySelectorAll("sc-icon-base")).map((i) => i.getAttribute("name"));
+    const names = Array.from(el.shadowRoot!.querySelectorAll("sc-icon-base")).map((i) =>
+      i.getAttribute("name"),
+    );
     expect(names).toEqual(["folder", "caret-down"]);
   });
 
   it("icon-only: square modifier, no label text, label used as aria-label", async () => {
     const el = await mount("sc-button-base", { icon: "play", iconOnly: true, label: "Play" });
-    const btn = el.querySelector("button")!;
-    expect(btn.classList.contains(buttonStyles.iconOnly)).toBe(true);
-    expect(el.querySelector("." + buttonStyles.label)).toBeNull();
-    expect(el.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
+    const btn = el.shadowRoot!.querySelector("button")!;
+    expect(btn.classList.contains("iconOnly")).toBe(true);
+    expect(el.shadowRoot!.querySelector(".label")).toBeNull();
+    expect(el.shadowRoot!.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
     expect(btn.getAttribute("aria-label")).toBe("Play");
   });
 
@@ -383,7 +372,7 @@ describe("sc-button-base", () => {
     const el = await mount("sc-button-base", { label: "Go" });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
-    el.querySelector("button")!.click();
+    el.shadowRoot!.querySelector("button")!.click();
     expect(clicks).toBe(1);
   });
 
@@ -391,7 +380,7 @@ describe("sc-button-base", () => {
     const el = await mount("sc-button-base", { label: "Go", disabled: true });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
-    el.querySelector("button")!.click();
+    el.shadowRoot!.querySelector("button")!.click();
     expect(clicks).toBe(0);
   });
 });
@@ -399,40 +388,36 @@ describe("sc-button-base", () => {
 describe("sc-badge-base", () => {
   it("renders the label; ok is the base class with no modifier", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.querySelector("." + badgeStyles.root)!;
+    const span = el.shadowRoot!.querySelector(".root")!;
     expect(span.textContent!.trim()).toBe("connected");
-    expect(span.classList.contains(badgeStyles.warn)).toBe(false);
-    expect(span.classList.contains(badgeStyles.error)).toBe(false);
+    expect(span.classList.contains("warn")).toBe(false);
+    expect(span.classList.contains("error")).toBe(false);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(
-      el.querySelector("." + badgeStyles.root)!.classList.contains(badgeStyles.error),
-    ).toBe(true);
+    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("error")).toBe(true);
   });
 });
 
 describe("sc-toast-base", () => {
   it("renders the message; default has no variant modifier", async () => {
     const el = await mount("sc-toast-base", { message: "Saved." });
-    const toast = el.querySelector("." + toastStyles.root)!;
-    expect(el.querySelector("." + toastStyles.message)!.textContent!.trim()).toBe("Saved.");
-    expect(toast.className).toBe(toastStyles.root);
+    const toast = el.shadowRoot!.querySelector(".root")!;
+    expect(el.shadowRoot!.querySelector(".message")!.textContent!.trim()).toBe("Saved.");
+    expect(toast.className).toBe("root");
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
-    expect(el.querySelector("." + toastStyles.root)!.classList.contains(toastStyles.warn)).toBe(
-      true,
-    );
+    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("warn")).toBe(true);
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
     const el = await mount("sc-toast-base", { message: "x" });
     let dismissed = 0;
     el.addEventListener("dismiss", () => (dismissed += 1));
-    el.querySelector<HTMLButtonElement>("." + toastStyles.close)!.click();
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".close")!.click();
     expect(dismissed).toBe(1);
   });
 });
@@ -440,35 +425,35 @@ describe("sc-toast-base", () => {
 describe("sc-chip-base", () => {
   it("renders the label; neutral is the base class with no modifier or dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.querySelector("." + chipStyles.root)!;
+    const chip = el.shadowRoot!.querySelector(".root")!;
     expect(chip.textContent!.trim()).toBe("idle");
-    expect(chip.className).toBe(chipStyles.root);
-    expect(el.querySelector("." + chipStyles.dot)).toBeNull();
+    expect(chip.className).toBe("root");
+    expect(el.shadowRoot!.querySelector(".dot")).toBeNull();
   });
 
   it("applies the variant modifier and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.querySelector("." + chipStyles.root)!;
-    expect(chip.classList.contains(chipStyles.ok)).toBe(true);
-    expect(el.querySelector("." + chipStyles.dot)).not.toBeNull();
+    const chip = el.shadowRoot!.querySelector(".root")!;
+    expect(chip.classList.contains("ok")).toBe(true);
+    expect(el.shadowRoot!.querySelector(".dot")).not.toBeNull();
   });
 });
 
 describe("sc-input-base", () => {
   it("renders a text input with the size class", async () => {
     const el = await mount("sc-input-base", { size: "lg", placeholder: "name" });
-    const input = el.querySelector("input")!;
+    const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("text");
-    expect(input.classList.contains(inputStyles.root)).toBe(true);
-    expect(input.classList.contains(inputStyles.lg)).toBe(true);
+    expect(input.classList.contains("root")).toBe(true);
+    expect(input.classList.contains("lg")).toBe(true);
     expect(input.placeholder).toBe("name");
   });
 
-  it("mirrors value on the native input event", async () => {
+  it("mirrors value and re-emits a composed input", async () => {
     const el = await mount("sc-input-base");
     const inputs: string[] = [];
-    el.addEventListener("input", (e) => inputs.push((e.target as HTMLInputElement).value));
-    const input = el.querySelector("input")!;
+    el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
+    const input = el.shadowRoot!.querySelector("input")!;
     input.value = "hello";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("hello");
@@ -476,25 +461,29 @@ describe("sc-input-base", () => {
   });
 });
 
+/** The host re-emits input/change with `e.target` = the host, which exposes
+ *  `.value`. */
+type ScInputBaseLike = { value: string };
+
 describe("sc-inputnumber-base", () => {
   it("renders a number input plus two stepper buttons", async () => {
     const el = await mount("sc-inputnumber-base", { value: 2 });
-    expect(el.querySelector("input")!.type).toBe("number");
-    expect(el.querySelectorAll("." + inputnumberStyles.step).length).toBe(2);
+    expect(el.shadowRoot!.querySelector("input")!.type).toBe("number");
+    expect(el.shadowRoot!.querySelectorAll(".step").length).toBe(2);
   });
 
-  it("steps up by `step`, firing native change with the new value", async () => {
+  it("steps up by `step`, re-emitting composed change with the new value", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, step: 1, max: 5 });
     const changes: number[] = [];
-    el.addEventListener("change", (e) => changes.push(Number((e.target as HTMLInputElement).value)));
-    el.querySelectorAll<HTMLButtonElement>("." + inputnumberStyles.step)[0].click();
+    el.addEventListener("change", (e) => changes.push(Number((e.target as unknown as { value: number }).value)));
+    el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".step")[0].click();
     expect(el.value).toBe(1);
     expect(changes).toEqual([1]);
   });
 
   it("clamps to max at the bound", async () => {
     const el = await mount("sc-inputnumber-base", { value: 4.5, step: 1, max: 5 });
-    const up = el.querySelectorAll<HTMLButtonElement>("." + inputnumberStyles.step)[0];
+    const up = el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".step")[0];
     up.click(); // 4.5 → clamp(quantize(5.5)) = 5
     up.click(); // already 5 → no-op
     expect(el.value).toBe(5);
@@ -502,7 +491,7 @@ describe("sc-inputnumber-base", () => {
 
   it("clamps a typed out-of-range value on change", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, max: 5 });
-    const input = el.querySelector("input")!;
+    const input = el.shadowRoot!.querySelector("input")!;
     input.value = "999";
     input.dispatchEvent(new Event("input", { bubbles: true })); // live: 999
     input.dispatchEvent(new Event("change", { bubbles: true })); // commit: clamps
@@ -511,26 +500,26 @@ describe("sc-inputnumber-base", () => {
 
   it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
     const el = await mount("sc-inputnumber-base", { value: 1 });
-    expect(el.querySelector("." + inputnumberStyles.stepUp)).not.toBeNull();
-    expect(el.querySelector("." + inputnumberStyles.stepDown)).not.toBeNull();
+    expect(el.shadowRoot!.querySelector(".stepUp")).not.toBeNull();
+    expect(el.shadowRoot!.querySelector(".stepDown")).not.toBeNull();
   });
 });
 
 describe("sc-textarea-base", () => {
   it("renders a textarea with rows + size class", async () => {
     const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
-    const ta = el.querySelector("textarea")!;
+    const ta = el.shadowRoot!.querySelector("textarea")!;
     expect(ta.getAttribute("rows")).toBe("5");
-    expect(ta.classList.contains(textareaStyles.root)).toBe(true);
-    expect(ta.classList.contains(textareaStyles.lg)).toBe(true);
+    expect(ta.classList.contains("root")).toBe(true);
+    expect(ta.classList.contains("lg")).toBe(true);
     expect(ta.placeholder).toBe("notes");
   });
 
-  it("mirrors value on the native input event", async () => {
+  it("mirrors value and re-emits a composed input", async () => {
     const el = await mount("sc-textarea-base");
     const inputs: string[] = [];
-    el.addEventListener("input", (e) => inputs.push((e.target as HTMLTextAreaElement).value));
-    const ta = el.querySelector("textarea")!;
+    el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
+    const ta = el.shadowRoot!.querySelector("textarea")!;
     ta.value = "multi\nline";
     ta.dispatchEvent(new Event("input", { bubbles: true }));
     expect(el.value).toBe("multi\nline");
@@ -574,11 +563,11 @@ describe("sc-text-base", () => {
 describe("name forwarding", () => {
   it("forwards `name` to the native input/textarea", async () => {
     const input = await mount("sc-input-base", { name: "title" });
-    expect(input.querySelector("input")!.name).toBe("title");
+    expect(input.shadowRoot!.querySelector("input")!.name).toBe("title");
     const ta = await mount("sc-textarea-base", { name: "notes" });
-    expect(ta.querySelector("textarea")!.name).toBe("notes");
+    expect(ta.shadowRoot!.querySelector("textarea")!.name).toBe("notes");
     const num = await mount("sc-inputnumber-base", { name: "freq" });
-    expect(num.querySelector("input")!.name).toBe("freq");
+    expect(num.shadowRoot!.querySelector("input")!.name).toBe("freq");
     const cb = await mount("sc-checkbox-base", { name: "agree" });
     expect(cb.shadowRoot!.querySelector("input")!.name).toBe("agree");
     const knob = await mount("sc-knob-base", { name: "gain" });
@@ -697,18 +686,18 @@ describe("sc-drawer-base", () => {
   });
 });
 
-// Host-only content wrappers (the sc-text-base pattern): no template, light DOM,
-// children preserved, styling driven by reflected attributes.
-describe("host-only content wrappers", () => {
-  it("sc-alert-base preserves children and applies the variant class", async () => {
+// Content wrappers: shadow DOM rendering a `.root` + <slot>; the author's
+// children stay light-DOM (slotted, still reachable from the host), styling
+// driven by classes on the shadow `.root`.
+describe("content wrappers", () => {
+  it("sc-alert-base slots children and applies the variant class", async () => {
     const el = document.createElement("sc-alert-base");
     el.innerHTML = "scsynth <strong>down</strong>";
     el.variant = "error";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot).toBe(el); // light DOM (host-only)
-    expect(el.querySelector("strong")!.textContent).toBe("down");
-    expect(el.classList.contains(alertStyles.error)).toBe(true);
+    expect(el.querySelector("strong")!.textContent).toBe("down"); // slotted light DOM
+    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("error")).toBe(true);
   });
 
   it("sc-alert-base defaults to the info variant (base class, role=status)", async () => {
@@ -716,11 +705,11 @@ describe("host-only content wrappers", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.variant).toBe("info");
-    expect(el.classList.contains(alertStyles.root)).toBe(true);
+    expect(el.shadowRoot!.querySelector(".root")).not.toBeNull();
     expect(el.getAttribute("role")).toBe("status");
   });
 
-  it("sc-panel-base preserves its header + content and applies the disabled class", async () => {
+  it("sc-panel-base slots its header + content and applies the disabled class", async () => {
     const el = document.createElement("sc-panel-base");
     el.innerHTML = "<header>Seq</header><span>body</span>";
     el.disabled = true;
@@ -728,30 +717,28 @@ describe("host-only content wrappers", () => {
     await el.updateComplete;
     expect(el.querySelector("header")!.textContent).toBe("Seq");
     expect(el.querySelector("span")!.textContent).toBe("body");
-    expect(el.classList.contains(panelStyles.disabled)).toBe(true);
+    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("disabled")).toBe(true);
   });
 
-  it("sc-empty-base preserves children", async () => {
+  it("sc-empty-base slots children", async () => {
     const el = document.createElement("sc-empty-base");
     el.textContent = "no items yet";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot).toBe(el);
+    expect(el.shadowRoot!.querySelector(".root")).not.toBeNull();
     expect(el.textContent).toBe("no items yet");
   });
 
-  it("sc-stack-base / sc-cluster-base preserve children and apply the gap class", async () => {
+  it("sc-stack-base / sc-cluster-base slot children and apply the gap class", async () => {
     for (const tag of ["sc-stack-base", "sc-cluster-base"] as const) {
       const el = document.createElement(tag);
       el.innerHTML = "<span>a</span><span>b</span>";
       el.gap = "md";
       document.body.appendChild(el);
       await el.updateComplete;
-      const s = tag === "sc-stack-base" ? stackStyles : clusterStyles;
-      expect(el.renderRoot).toBe(el); // light DOM (host-only)
-      expect(el.querySelectorAll("span").length).toBe(2);
-      expect(el.classList.contains(s.root)).toBe(true);
-      expect(el.classList.contains(s.md)).toBe(true);
+      expect(el.querySelectorAll("span").length).toBe(2); // slotted light DOM
+      const root = el.shadowRoot!.querySelector(".root")!;
+      expect(root.classList.contains("md")).toBe(true);
     }
   });
 });
@@ -819,9 +806,9 @@ describe("a11y wiring", () => {
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
     const el = await mount("sc-toast-base", { variant: "error" });
-    expect(el.querySelector("." + toastStyles.root)!.getAttribute("role")).toBe("alert");
+    expect(el.shadowRoot!.querySelector(".root")!.getAttribute("role")).toBe("alert");
     const info = await mount("sc-toast-base", { variant: "info" });
-    expect(info.querySelector("." + toastStyles.root)!.getAttribute("role")).toBe("status");
+    expect(info.shadowRoot!.querySelector(".root")!.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
@@ -837,52 +824,46 @@ describe("a11y wiring", () => {
 describe("sc-progress-base", () => {
   it("defaults to an indeterminate bar (role=progressbar, busy, no valuenow)", async () => {
     const el = await mount("sc-progress-base");
-    const bar = el.querySelector("." + progressStyles.bar)!;
-    expect(bar.classList.contains(progressStyles.indeterminate)).toBe(true);
+    const bar = el.shadowRoot!.querySelector(".bar")!;
+    expect(bar.classList.contains("indeterminate")).toBe(true);
     expect(bar.getAttribute("role")).toBe("progressbar");
     expect(bar.getAttribute("aria-busy")).toBe("true");
     expect(bar.hasAttribute("aria-valuenow")).toBe(false);
-    expect(el.querySelector("." + progressStyles.fill)).not.toBeNull();
+    expect(el.shadowRoot!.querySelector(".fill")).not.toBeNull();
   });
 
   it("with a value becomes determinate: rounded aria-valuenow + a fill width", async () => {
     const el = await mount("sc-progress-base", { value: 60 });
-    const bar = el.querySelector("." + progressStyles.bar)!;
-    expect(bar.classList.contains(progressStyles.determinate)).toBe(true);
+    const bar = el.shadowRoot!.querySelector(".bar")!;
+    expect(bar.classList.contains("determinate")).toBe(true);
     expect(bar.hasAttribute("aria-busy")).toBe(false);
     expect(bar.getAttribute("aria-valuenow")).toBe("60");
     expect(bar.getAttribute("aria-valuemax")).toBe("100");
-    expect((el.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe("60%");
+    expect((el.shadowRoot!.querySelector(".fill") as HTMLElement).style.width).toBe("60%");
   });
 
   it("clamps value to [0,max] for the fill width and honours a custom max", async () => {
     const over = await mount("sc-progress-base", { value: 9999 });
-    expect((over.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe("100%");
+    expect((over.shadowRoot!.querySelector(".fill") as HTMLElement).style.width).toBe("100%");
     const scaled = await mount("sc-progress-base", { value: 5, max: 10 });
-    expect((scaled.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe(
-      "50%",
-    );
-    expect(scaled.querySelector("." + progressStyles.bar)!.getAttribute("aria-valuemax")).toBe("10");
+    expect((scaled.shadowRoot!.querySelector(".fill") as HTMLElement).style.width).toBe("50%");
+    expect(scaled.shadowRoot!.querySelector(".bar")!.getAttribute("aria-valuemax")).toBe("10");
   });
 
   it("spinner variant renders the ring host itself with the determinate angle", async () => {
     const indet = await mount("sc-progress-base", { variant: "spinner" });
-    const ring = indet.querySelector("." + progressStyles.spinner)!;
-    expect(ring.classList.contains(progressStyles.indeterminate)).toBe(true);
-    expect(indet.querySelector("." + progressStyles.fill)).toBeNull();
+    const ring = indet.shadowRoot!.querySelector(".spinner")!;
+    expect(ring.classList.contains("indeterminate")).toBe(true);
+    expect(indet.shadowRoot!.querySelector(".fill")).toBeNull();
 
     const det = await mount("sc-progress-base", { variant: "spinner", value: 75 });
     expect(
-      (det.querySelector("." + progressStyles.spinner) as HTMLElement).style.getPropertyValue(
-        "--_pct",
-      ),
+      (det.shadowRoot!.querySelector(".spinner") as HTMLElement).style.getPropertyValue("--_pct"),
     ).toBe("75");
   });
 
   it("carries the label as the accessible name", async () => {
     const el = await mount("sc-progress-base", { label: "Connecting…" });
-    expect(el.querySelector("." + progressStyles.bar)!.getAttribute("aria-label")).toBe(
-      "Connecting…",
-    );
+    expect(el.shadowRoot!.querySelector(".bar")!.getAttribute("aria-label")).toBe("Connecting…");
   });
 });

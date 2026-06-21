@@ -1,20 +1,24 @@
-// <sc-button-base> — a UI-only button. Light DOM (so the inner <button>
-// participates in forms and the foundation classes apply), declarative content
-// via `label` + optional leading/trailing Phosphor icons, plus an icon-only
-// mode. `variant` here is button *appearance* (primary/secondary/ghost/danger),
-// distinct from the accent `variant` on the input widgets — so this does not
-// extend ScWidgetBase. Click is the native event bubbling from the inner button;
-// no custom event is dispatched.
+// <sc-button-base> — a UI-only button. Shadow DOM: renders the inner <button>
+// (styled by the adopted foundations' bare button{} + its own `.root` chrome),
+// declarative content via `label` + optional leading/trailing Phosphor icons,
+// plus an icon-only mode. `variant` here is button *appearance*
+// (primary/secondary/ghost/danger), distinct from the accent `variant` on the
+// input widgets — so this does not extend ScWidgetBase. The inner button's
+// `click` is composed, so it crosses the shadow boundary to consumers.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "../internal/sc-widget-base";
-import styles from "./sc-button.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { styles } from "./sc-button.styles";
+import "../sc-icon/sc-icon";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 export class ScButtonBase extends LitElement {
+  static styles = [foundations, styles];
+
   /** Button text + accessible name. Used as the aria-label when `iconOnly`. */
   @property() accessor label = "";
   /** Leading icon (Phosphor name, fill weight via <sc-icon-base>). */
@@ -28,16 +32,9 @@ export class ScButtonBase extends LitElement {
   @property({ type: Boolean }) accessor disabled = false;
   @property() accessor type: "button" | "submit" | "reset" = "button";
 
-  /** Light DOM so the inner <button> joins any enclosing form + global CSS. */
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
-
   render() {
     const iconOnly = this.iconOnly && !!this.icon;
-    const cls = cx(styles.root, styles[this.variant], styles[this.size], {
-      [styles.iconOnly]: iconOnly,
-    });
+    const cls = cx("root", this.variant, this.size, { iconOnly });
     return html`
       <button
         class=${cls}
@@ -49,7 +46,7 @@ export class ScButtonBase extends LitElement {
         ${iconOnly
           ? nothing
           : this.label
-            ? html`<span class=${styles.label}>${this.label}</span>`
+            ? html`<span class="label">${this.label}</span>`
             : nothing}
         ${!iconOnly && this.trailingIcon
           ? html`<sc-icon-base name=${this.trailingIcon}></sc-icon-base>`

@@ -1,0 +1,33 @@
+// <sc-badge-base> styles. Uppercase pill; ok is the base, warn/error recolour.
+
+import { css } from "lit";
+
+export const styles = css`
+  :host {
+    display: inline-block;
+  }
+
+  .root {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-2xs) var(--space-xs);
+    background: var(--color-ok-bg);
+    border: 1px solid var(--color-ok-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-ok-text);
+  }
+
+  .root.warn {
+    background: var(--color-warn-bg);
+    border-color: var(--color-warn-border);
+    color: var(--color-warn-text);
+  }
+  .root.error {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+    color: var(--color-error-text);
+  }
+`;

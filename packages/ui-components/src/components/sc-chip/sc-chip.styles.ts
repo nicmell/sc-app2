@@ -1,0 +1,64 @@
+// <sc-chip-base> styles. Tinted pill + optional leading dot; neutral is the base.
+
+import { css } from "lit";
+
+export const styles = css`
+  :host {
+    display: inline-block;
+  }
+
+  .root {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: var(--space-3xs) var(--space-xs);
+    background: var(--color-surface-2);
+    color: var(--color-text-dim);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dot {
+    font-size: 0.7em;
+    line-height: 1;
+    color: var(--color-text-mute);
+  }
+
+  .root.ok {
+    background: var(--color-ok-bg);
+    border-color: var(--color-ok-strong);
+    color: var(--color-ok-text);
+  }
+  .root.ok .dot {
+    color: var(--color-ok);
+  }
+
+  .root.warn {
+    background: var(--color-warn-bg);
+    border-color: var(--color-warn-border);
+    color: var(--color-warn-text);
+  }
+  .root.warn .dot {
+    color: var(--color-warn);
+  }
+
+  .root.error {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+    color: var(--color-error-text);
+  }
+  .root.error .dot {
+    color: var(--color-danger);
+  }
+
+  .root.info {
+    background: var(--color-info-bg);
+    border-color: var(--color-info-border);
+    color: var(--color-info-text);
+  }
+  .root.info .dot {
+    color: var(--color-primary);
+  }
+`;

@@ -1,18 +1,20 @@
-// <sc-inputnumber-base> — a numeric text field. Wraps a native <input
-// type="number"> (whose native spin buttons the foundation hides) and renders
-// its own up/down stepper arrows, themed via tokens. The native input/change
-// flow to consumers (read e.target.value); typing is clamped to min/max on
-// commit (change/blur), and the steppers drive the native input directly.
+// <sc-inputnumber-base> — a numeric text field. Shadow DOM: wraps a native
+// <input type="number"> (whose native spin buttons the foundation hides) and
+// renders its own up/down stepper arrows. The native input/change are re-emitted
+// (composed) from the host (read e.target.value); typing is clamped to min/max
+// on commit (change/blur), and the steppers drive the native input directly.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
-import inputStyles from "../sc-input/sc-input.module.css";
-import styles from "./sc-inputnumber.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { styles } from "./sc-inputnumber.styles";
 
 export class ScInputNumberBase extends LitElement {
+  static styles = [foundations, styles];
+
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = -Infinity;
   @property({ type: Number }) accessor max = Infinity;
@@ -21,10 +23,6 @@ export class ScInputNumberBase extends LitElement {
   @property() accessor name = "";
   @property() accessor size: ScInputSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
-
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
 
   private _clamp(n: number): number {
     return Math.min(this.max, Math.max(this.min, n));
@@ -38,21 +36,25 @@ export class ScInputNumberBase extends LitElement {
   }
 
   private get _input(): HTMLInputElement {
-    return this.querySelector("input") as HTMLInputElement;
+    return this.renderRoot.querySelector("input") as HTMLInputElement;
   }
 
-  // Free typing: sync the parsed value (no clamp mid-edit); native input bubbles.
+  // Free typing: sync the parsed value (no clamp mid-edit); re-emit composed input.
   private _onInput = (e: Event): void => {
+    e.stopPropagation();
     const n = Number.parseFloat((e.target as HTMLInputElement).value);
     if (!Number.isNaN(n)) this.value = n;
+    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
   };
 
-  // Commit (blur/Enter): clamp + reconcile the field; native change bubbles.
-  private _onChange = (): void => {
+  // Commit (blur/Enter): clamp + reconcile the field; re-emit composed change.
+  private _onChange = (e: Event): void => {
+    e.stopPropagation();
     const n = Number.parseFloat(this._input.value);
     const v = Number.isNaN(n) ? this.value : this._clamp(n);
     this.value = v;
     this._input.value = String(v);
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   private _stepBy(dir: 1 | -1): void {
@@ -67,13 +69,9 @@ export class ScInputNumberBase extends LitElement {
 
   render() {
     return html`
-      <div
-        class=${cx(styles.root, styles[this.size], {
-          [styles.disabled]: this.disabled,
-        })}
-      >
+      <div class=${cx("root", this.size, { disabled: this.disabled })}>
         <input
-          class=${cx(inputStyles.root, styles.field)}
+          class="field"
           type="number"
           name=${this.name}
           placeholder=${this.placeholder}
@@ -85,26 +83,26 @@ export class ScInputNumberBase extends LitElement {
           @input=${this._onInput}
           @change=${this._onChange}
         />
-        <span class=${styles.spinners}>
+        <span class="spinners">
           <button
             type="button"
-            class=${cx(styles.step, styles.stepUp)}
+            class="step stepUp"
             tabindex="-1"
             aria-label="Increment"
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(1)}
           >
-            <span class=${cx(styles.arrow, styles.arrowUp)}></span>
+            <span class="arrow arrowUp"></span>
           </button>
           <button
             type="button"
-            class=${cx(styles.step, styles.stepDown)}
+            class="step stepDown"
             tabindex="-1"
             aria-label="Decrement"
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(-1)}
           >
-            <span class=${cx(styles.arrow, styles.arrowDown)}></span>
+            <span class="arrow arrowDown"></span>
           </button>
         </span>
       </div>

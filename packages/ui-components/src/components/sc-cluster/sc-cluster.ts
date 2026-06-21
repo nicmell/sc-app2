@@ -1,25 +1,22 @@
 // <sc-cluster-base> — horizontal flex layout primitive (a "row of inline
 // things": toolbars, label + input, chip + readout). Centred cross-axis, wraps.
-// Light DOM and host-only: it renders NO template (default render() returns
-// noChange), so the author's children are preserved; it applies its scoped
-// `styles.root` + a `gap` modifier class to the host. Reuses ScGap.
+// Shadow DOM: a `.root` flex row (with the `gap` modifier) wrapping a <slot>.
 
-import { LitElement } from "lit";
+import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
+import cx from "classnames";
 import type { ScGap } from "../sc-stack/sc-stack";
-import { syncHostClasses } from "../internal/host-classes";
-import styles from "./sc-cluster.module.css";
+import { foundations } from "../internal/foundation-styles";
+import { styles } from "./sc-cluster.styles";
 
 export class ScClusterBase extends LitElement {
+  static styles = [foundations, styles];
+
   @property() accessor gap: ScGap = "xs";
 
-  /** Light DOM + no render() ⇒ the children stay; layout is by host class. */
-  protected createRenderRoot(): HTMLElement | DocumentFragment {
-    return this;
-  }
-
-  readonly #cls = new Set<string>();
-  protected updated(): void {
-    syncHostClasses(this, this.#cls, [styles.root, styles[this.gap]]);
+  render() {
+    return html`<div class=${cx("root", this.gap !== "xs" && this.gap)}>
+      <slot></slot>
+    </div>`;
   }
 }

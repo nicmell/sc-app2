@@ -1,9 +1,7 @@
-/* <sc-select-base> chrome. The shared foundation sheet is adopted into its
-   shadow root, so these `.sc-select__*` rules apply inside the shadow. Host
-   rules are scoped as `:host(sc-select-base…)` — a bare `:host` would leak into
-   every OTHER shadow component that adopts the same shared sheet. At the
-   document level `:host(...)` matches nothing (inert). Tokens reach the shadow
-   by inheritance, as always. */
+/* <sc-select-base> chrome — scoped CSS Module adopted into the shadow root
+   (?inline). Host rules use `:host(sc-select-base…)`; the `.combobox/.label/
+   .arrow/.dropdown` classes are scoped locals. Tokens reach the shadow by
+   inheritance. The slotted <sc-option-base> children style themselves. */
 
 :host(sc-select-base) {
   display: inline-block;
@@ -27,7 +25,7 @@
   pointer-events: none;
 }
 
-.sc-select__combobox {
+.combobox {
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -46,24 +44,24 @@
   user-select: none;
   transition: border-color var(--transition-fast);
 }
-:host(sc-select-base[size="sm"]) .sc-select__combobox {
+:host(sc-select-base[size="sm"]) .combobox {
   font-size: var(--font-size-xs);
 }
-:host(sc-select-base[size="lg"]) .sc-select__combobox {
+:host(sc-select-base[size="lg"]) .combobox {
   font-size: var(--font-size-md);
 }
-.sc-select__combobox:hover,
-.sc-select__combobox:focus-visible {
+.combobox:hover,
+.combobox:focus-visible {
   outline: none;
   border-color: var(--color-border-focus);
 }
 
-.sc-select__label {
+.label {
   flex: 1 1 auto;
   text-align: left;
 }
 
-.sc-select__arrow {
+.arrow {
   inline-size: 0;
   block-size: 0;
   border-left: 0.3rem solid transparent;
@@ -71,11 +69,9 @@
   border-top: 0.35rem solid var(--color-text-dim);
 }
 
-/* The dropdown is a top-layer `popover` element positioned `fixed` by the
-   PopoverController, so it needs no absolute/z-index of its own. Reset the UA
-   popover centering (margin:auto/inset:0); width tracks the combobox via the
-   controller's anchor (a sensible min keeps short option lists usable). */
-.sc-select__dropdown {
+/* Top-layer `popover` dropdown positioned `fixed` by the controller; reset the
+   UA popover centering. */
+.dropdown {
   margin: 0;
   inset: auto;
   min-inline-size: 8rem;

@@ -15,17 +15,19 @@
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>).
 //
-// Styling: the foundation stylesheet is adopted into the shadow root as a shared
-// constructable sheet, so the chrome lives in foundations/components/sc-select.css
-// (`:host(sc-select-base)` + `.sc-select__*`) like every other component.
+// Styling: tokens/reset/base reach the shadow via foundationStyles + :root
+// inheritance; this component's own (scoped) chrome comes from its CSS module's
+// `?inline` text, adopted alongside.
 
-import { LitElement, html } from "lit";
+import { LitElement, html, unsafeCSS } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "./internal/contexts";
 import type { ScSize, ScVariant } from "./internal/sc-widget-base";
 import { foundationStyles } from "./internal/foundation-styles";
 import { PopoverController } from "./internal/popover-controller";
+import styles from "./sc-select.module.css";
+import sheet from "./sc-select.module.css?inline";
 
 const DROPDOWN_ID = "sc-select-dropdown";
 
@@ -51,9 +53,7 @@ export class ScSelectBase extends LitElement {
     }
   })();
 
-  // Adopt the shared foundation sheet into the shadow root; chrome rules live in
-  // foundations/components/sc-select.css.
-  static styles = foundationStyles ? [foundationStyles] : [];
+  static styles = [...(foundationStyles ? [foundationStyles] : []), unsafeCSS(sheet ?? "")];
 
   // The dropdown floats in the top layer, anchored to the combobox button.
   #popover = new PopoverController(this, { onToggle: (open) => (this.open = open) });
@@ -73,10 +73,10 @@ export class ScSelectBase extends LitElement {
   }
 
   get #combobox(): HTMLElement | null {
-    return this.renderRoot.querySelector(".sc-select__combobox");
+    return this.renderRoot.querySelector("." + styles.combobox);
   }
   get #dropdown(): HTMLElement | null {
-    return this.renderRoot.querySelector(".sc-select__dropdown");
+    return this.renderRoot.querySelector("." + styles.dropdown);
   }
 
   get #label(): string {
@@ -101,7 +101,7 @@ export class ScSelectBase extends LitElement {
   render() {
     return html`
       <button
-        class="sc-select__combobox"
+        class=${styles.combobox}
         type="button"
         role="combobox"
         aria-haspopup="listbox"
@@ -109,10 +109,10 @@ export class ScSelectBase extends LitElement {
         popovertarget=${DROPDOWN_ID}
         ?disabled=${this.disabled}
       >
-        <span class="sc-select__label">${this.#label}</span>
-        <span class="sc-select__arrow" aria-hidden="true"></span>
+        <span class=${styles.label}>${this.#label}</span>
+        <span class=${styles.arrow} aria-hidden="true"></span>
       </button>
-      <div class="sc-select__dropdown" id=${DROPDOWN_ID} role="listbox">
+      <div class=${styles.dropdown} id=${DROPDOWN_ID} role="listbox">
         <slot @slotchange=${() => this.requestUpdate()}></slot>
       </div>
     `;

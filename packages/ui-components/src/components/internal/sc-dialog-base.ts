@@ -10,7 +10,7 @@
 // showModal/close); `dismissable` gates Esc + backdrop click (off = blocking).
 // Emits a bubbling `close` on every dismissal so a React host can unmount.
 
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, type CSSResultGroup } from "lit";
 import { property } from "lit/decorators.js";
 import { foundationStyles } from "./foundation-styles";
 
@@ -22,7 +22,9 @@ export abstract class ScDialogBase extends LitElement {
    *  announces an unnamed dialog; set it to the modal/drawer's title. */
   @property() accessor label = "";
 
-  static styles = foundationStyles ? [foundationStyles] : [];
+  // Subclasses override this to add their own scoped module sheet (via
+  // unsafeCSS), so the type is the broad CSSResultGroup, not CSSStyleSheet[].
+  static styles: CSSResultGroup = foundationStyles ? [foundationStyles] : [];
 
   /** The chrome class on the <dialog> (keyed by the matching foundation CSS). */
   protected abstract get dialogClass(): string;

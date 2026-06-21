@@ -21,6 +21,9 @@ import inputStyles from "../sc-input.module.css";
 import inputnumberStyles from "../sc-inputnumber.module.css";
 import textareaStyles from "../sc-textarea.module.css";
 import progressStyles from "../sc-progress.module.css";
+import selectStyles from "../sc-select.module.css";
+import modalStyles from "../sc-modal.module.css";
+import drawerStyles from "../sc-drawer.module.css";
 import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {
@@ -279,8 +282,10 @@ describe("sc-select-base", () => {
     return { select, options };
   }
 
-  const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".sc-select__combobox")!;
-  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLElement>(".sc-select__dropdown")!;
+  const combobox = (s: HTMLElement) =>
+    s.shadowRoot!.querySelector<HTMLButtonElement>("." + selectStyles.combobox)!;
+  const dropdown = (s: HTMLElement) =>
+    s.shadowRoot!.querySelector<HTMLElement>("." + selectStyles.dropdown)!;
 
   // The dropdown is a top-layer `popover` element, always present and toggled
   // by the browser via `popovertarget` (open/close + light-dismiss aren't
@@ -649,7 +654,7 @@ describe("sc-modal-base", () => {
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
     expect(dialog).not.toBeNull();
-    expect(dialog!.classList.contains("sc-modal")).toBe(true);
+    expect(dialog!.classList.contains(modalStyles.root)).toBe(true);
     // Content stays light-DOM (slotted), reachable from the host.
     expect(el.querySelector(".sc-modal__title")!.textContent).toBe("Hi");
   });
@@ -680,7 +685,7 @@ describe("sc-drawer-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
-    expect(dialog!.classList.contains("sc-drawer")).toBe(true);
+    expect(dialog!.classList.contains(drawerStyles.root)).toBe(true);
     expect(el.getAttribute("side")).toBe("left");
     expect(el.querySelector("header h2")!.textContent).toBe("Plugins");
   });

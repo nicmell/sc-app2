@@ -8,6 +8,7 @@
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
 import type { ScGap } from "./sc-stack";
+import "./sc-cluster.css";
 
 export class ScClusterBase extends LitElement {
   @property({ reflect: true }) accessor gap: ScGap = "xs";

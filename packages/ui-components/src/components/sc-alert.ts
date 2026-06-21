@@ -7,6 +7,7 @@
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
+import "./sc-alert.css";
 
 export type ScAlertVariant = "info" | "success" | "warn" | "error";
 

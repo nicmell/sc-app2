@@ -7,6 +7,7 @@
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
+import "./sc-panel.css";
 
 export class ScPanelBase extends LitElement {
   /** Idle / not-yet-active chrome: muted + non-interactive, layout preserved. */

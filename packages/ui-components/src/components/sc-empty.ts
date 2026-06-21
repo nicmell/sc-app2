@@ -4,6 +4,7 @@
 // children are preserved. Wraps the legacy `.empty` class (kept for back-compat).
 
 import { LitElement } from "lit";
+import "./sc-empty.css";
 
 export class ScEmptyBase extends LitElement {
   /** Light DOM + no render() ⇒ the message children stay; styling is on the host. */

@@ -18,6 +18,7 @@ import { ScDialogBase } from "./internal/sc-dialog-base";
 import { foundationStyles } from "./internal/foundation-styles";
 import styles from "./sc-drawer.module.css";
 import sheet from "./sc-drawer.module.css?inline";
+import "./sc-drawer.css";
 
 export type ScDrawerSide = "right" | "left";
 

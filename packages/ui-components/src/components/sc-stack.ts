@@ -7,6 +7,7 @@
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
+import "./sc-stack.css";
 
 /** Spacing step — a clean monotonic scale mapping 1:1 to the space tokens:
  *  xs → --space-xs, sm → --space-sm, md → --space-md, lg → --space-lg

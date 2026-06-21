@@ -8,6 +8,7 @@
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
+import "./sc-text.css";
 
 export type ScTextSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type ScTextWeight = "regular" | "medium" | "bold";

@@ -10,6 +10,7 @@ import { ScDialogBase } from "./internal/sc-dialog-base";
 import { foundationStyles } from "./internal/foundation-styles";
 import styles from "./sc-modal.module.css";
 import sheet from "./sc-modal.module.css?inline";
+import "./sc-modal.css";
 
 export class ScModalBase extends ScDialogBase {
   static styles = [...(foundationStyles ? [foundationStyles] : []), unsafeCSS(sheet ?? "")];

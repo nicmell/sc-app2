@@ -2,9 +2,10 @@
  * @sc-app/ui-components — entry point.
  *
  * Imports run in cascade order: tokens first (so the semantic palette is
- * defined), then theme (resolving tokens to a concrete palette), reset, base
- * element styles, and finally the component layer (one sc-<tag>.css per
- * component, in components/).
+ * defined), then theme (resolving tokens to a concrete palette), reset, and
+ * base element styles. The component layer is no longer aggregated here — each
+ * component's stylesheet is co-located beside its .ts and side-effect-imported
+ * by the component itself, so loading a component delivers its CSS.
  */
 
 /* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
@@ -23,17 +24,3 @@
    already looks correct. */
 @import "./base/elements.css";
 @import "./base/typography.css";
-
-/* The component layer — one sc-<tag>.css per component. Layout + surface
-   primitives first, then the shared widget base (defines the variant→--_accent
-   + disabled affordances the widgets consume), then the widgets and overlays. */
-@import "./components/sc-panel.css";
-@import "./components/sc-cluster.css";
-@import "./components/sc-stack.css";
-@import "./components/sc-empty.css";
-@import "./components/sc-alert.css";
-@import "./components/sc-modal.css";
-@import "./components/sc-drawer.css";
-
-@import "./components/sc-radio-group.css";
-@import "./components/sc-text.css";

@@ -1,0 +1,14 @@
+/* <sc-radio-group-base> — lays out its <sc-radio-base> children. Scoped CSS
+   Module; the component applies `styles.root` (+ `vertical`, + the shared
+   disabled affordance) to its host. */
+
+.root {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}

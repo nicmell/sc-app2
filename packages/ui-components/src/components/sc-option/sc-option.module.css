@@ -1,11 +1,6 @@
-/* <sc-option-base> — a single option row. Selected text = --_accent. */
-
-/* The host is a custom element (defaults to display:inline); force block so the
-   options stack vertically in the select's fit-content dropdown. (Global tag
-   selector — overrides the widget-base inline-block.) */
-:where(sc-option-base) {
-  display: block;
-}
+/* <sc-option-base> — a single option row. Selected text = --_accent. The host
+   gets the shared `hostBlock` display class (applied by the component) so the
+   options stack vertically in the dropdown. */
 
 .root {
   display: block;

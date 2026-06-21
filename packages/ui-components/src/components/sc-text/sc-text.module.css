@@ -1,9 +1,9 @@
-/* <sc-text-base> — typography primitive. Host-only element styled by its own
-   reflected attributes (size/weight/tone/font/align/truncate/inline). The
-   defaults (md / regular / sans / default tone / start) are the base rule; only
-   non-default values get an override. */
+/* <sc-text-base> — typography primitive. Scoped CSS Module; the component applies
+   `styles.root` + size/weight/tone/font/align/truncate/inline modifier classes
+   to its host. The defaults (md / regular / sans / default tone / start) are the
+   base `.root` rule; only non-defaults get a modifier. */
 
-sc-text-base {
+.root {
   display: block;
   margin: 0;
   font-family: var(--font-sans);
@@ -13,75 +13,75 @@ sc-text-base {
   color: var(--color-text);
 }
 
-sc-text-base[inline] {
+.inline {
   display: inline;
 }
 
 /* Size */
-sc-text-base[size="xs"] {
+.xs {
   font-size: var(--font-size-xs);
 }
-sc-text-base[size="sm"] {
+.sm {
   font-size: var(--font-size-sm);
 }
-sc-text-base[size="lg"] {
+.lg {
   font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
 }
-sc-text-base[size="xl"] {
+.xl {
   font-size: var(--font-size-xl);
   line-height: var(--line-height-tight);
 }
 
 /* Weight */
-sc-text-base[weight="medium"] {
+.medium {
   font-weight: var(--font-weight-medium);
 }
-sc-text-base[weight="bold"] {
+.bold {
   font-weight: var(--font-weight-bold);
 }
 
 /* Font family */
-sc-text-base[font="mono"] {
+.mono {
   font-family: var(--font-mono);
 }
 
-/* Tone (colour) — readable text tints on the surface. */
-sc-text-base[tone="dim"] {
+/* Tone (colour) */
+.dim {
   color: var(--color-text-dim);
 }
-sc-text-base[tone="mute"] {
+.mute {
   color: var(--color-text-mute);
 }
-sc-text-base[tone="faint"] {
+.faint {
   color: var(--color-text-faint);
 }
-sc-text-base[tone="primary"] {
+.primary {
   color: var(--color-primary);
 }
-sc-text-base[tone="ok"] {
+.ok {
   color: var(--color-ok-text);
 }
-sc-text-base[tone="warn"] {
+.warn {
   color: var(--color-warn-text);
 }
-sc-text-base[tone="error"] {
+.error {
   color: var(--color-error-text);
 }
-sc-text-base[tone="info"] {
+.info {
   color: var(--color-info-text);
 }
 
 /* Alignment */
-sc-text-base[align="center"] {
+.center {
   text-align: center;
 }
-sc-text-base[align="end"] {
+.end {
   text-align: end;
 }
 
-/* Truncation (single line). */
-sc-text-base[truncate] {
+/* Truncation (single line) */
+.truncate {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

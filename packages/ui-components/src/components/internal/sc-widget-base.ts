@@ -19,6 +19,7 @@ import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import widget from "./widget-base.module.css";
+import { syncHostClasses } from "./host-classes";
 
 /** A CSS-module class map (`import styles from "./sc-x.module.css"`). */
 export type Styles = Record<string, string>;
@@ -50,6 +51,21 @@ export abstract class ScWidgetBase extends LitElement {
   /** Render into the light DOM so the module CSS (injected globally) applies. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
+  }
+
+  // The host's own classes (display, and for host-only subclasses their root +
+  // modifiers) are applied to the element imperatively — host-only components
+  // render no template, and we never style by tag/attribute. This set tracks
+  // what we applied so re-syncs don't clobber author classes.
+  readonly #hostClasses = new Set<string>();
+  protected syncHost(classes: ReadonlyArray<string | false | undefined | null>): void {
+    syncHostClasses(this, this.#hostClasses, classes);
+  }
+
+  /** Default host display = inline-block. Subclasses that need a different host
+   *  treatment (sc-option: block; sc-radio-group: its own flex root) override. */
+  protected updated(_changed: Map<PropertyKey, unknown>): void {
+    this.syncHost([widget.host]);
   }
 
   /** Join the widget's own `root` + `size` (from its module) with the shared

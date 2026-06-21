@@ -7,9 +7,9 @@
 
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import { ScWidgetBase } from "../internal/sc-widget-base";
+import { ScWidgetBase, widgetShared as w } from "../internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
-import "./sc-radio-group.css";
+import styles from "./sc-radio-group.module.css";
 
 let groupId = 0;
 
@@ -63,6 +63,13 @@ export class ScRadioGroupBase extends ScWidgetBase {
   };
 
   protected updated(): void {
+    // Host-only: style the host with scoped classes (overrides ScWidgetBase's
+    // default inline-block host class — the group is its own flex layout).
+    this.syncHost([
+      styles.root,
+      this.orientation === "vertical" && styles.vertical,
+      this.disabled && w.disabled,
+    ]);
     this.#provider.setValue(this.#ctx());
     if (this.label) this.setAttribute("aria-label", this.label);
     else this.removeAttribute("aria-label");

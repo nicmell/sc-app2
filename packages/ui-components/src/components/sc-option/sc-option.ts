@@ -21,6 +21,12 @@ export class ScOptionBase extends ScWidgetBase {
     if (!this.disabled) this.#select.value?.select(this.value);
   };
 
+  // Host display = block (so options stack in the dropdown) — overrides the
+  // ScWidgetBase default inline-block host class.
+  protected updated(): void {
+    this.syncHost([w.hostBlock]);
+  }
+
   render() {
     const selected = this.#select.value?.value === this.value;
     return html`

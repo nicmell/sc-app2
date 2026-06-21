@@ -22,7 +22,7 @@ export default defineConfig(() => ({
   // aliases below). camelCaseOnly so locals read as `styles.stepUp`.
   css: {
     modules: {
-      localsConvention: "camelCaseOnly",
+      localsConvention: "camelCaseOnly" as const,
     },
   },
 

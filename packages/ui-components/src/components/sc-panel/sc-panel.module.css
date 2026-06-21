@@ -1,0 +1,30 @@
+/* <sc-panel-base> — surface card with an optional <header> title bar. Scoped CSS
+   Module; the component applies `styles.root` (+ `disabled`) to its host. The
+   author's direct-child <header> is styled structurally (`.root > header`). */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-surface-1);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+}
+
+.root > header {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  color: var(--color-text-dim);
+}
+
+/* Idle / not-yet-active: muted + non-interactive, layout preserved. */
+.disabled {
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}

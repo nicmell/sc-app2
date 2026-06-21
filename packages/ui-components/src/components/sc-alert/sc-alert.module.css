@@ -1,12 +1,7 @@
-/**
- * Inline alert / notice card — a small bordered card in a state palette.
- * Rendered by the host-only `<sc-alert-base variant="…">` web component
- * (variant: info default | success | warn | error); the message is the
- * element's light-DOM children. The card has no behaviour — it just colours
- * its content per state.
- */
+/* <sc-alert-base> — inline notice card. Scoped CSS Module; the component applies
+   `styles.root` (+ a variant modifier) to its host. info is the base. */
 
-:where(sc-alert-base) {
+.root {
   display: block;
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
@@ -17,17 +12,17 @@
   font-size: var(--font-size-sm);
 }
 
-sc-alert-base[variant="error"] {
+.error {
   background: var(--color-error-bg);
   border-color: var(--color-error-border);
   color: var(--color-error-text);
 }
-sc-alert-base[variant="warn"] {
+.warn {
   background: var(--color-warn-bg);
   border-color: var(--color-warn-border);
   color: var(--color-warn-text);
 }
-sc-alert-base[variant="success"] {
+.success {
   background: var(--color-ok-bg);
   border-color: var(--color-ok-strong);
   color: var(--color-ok-text);

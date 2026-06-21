@@ -2,31 +2,23 @@
  * Shared CSS Module for the graphical `-base` input widgets (checkbox, switch,
  * knob, slider, radio, option). Imported by ScWidgetBase; the per-widget module
  * supplies `root` + parts + sizes, this supplies the cross-widget bits:
+ *   - the host display classes (`host` = inline-block, `hostBlock` = block),
+ *     applied to the host by ScWidgetBase (no tag selectors),
  *   - the variant → `--_accent` mapping (the one colour channel each widget tints),
  *   - the shared `disabled` affordance,
- *   - `:global(.sr-only)` (the visually-hidden helper the hidden <input> wears),
- *   - the host display default (custom elements are display:inline otherwise).
+ *   - `:global(.sr-only)` (the visually-hidden helper the hidden <input> wears).
  * Widgets compose the accent across the per-widget boundary via the inherited
  * `--_accent` custom property.
  */
 
-/* Host display — global tag selector (CSS Modules leaves type selectors alone). */
-:where(
-    sc-checkbox-base,
-    sc-switch-base,
-    sc-knob-base,
-    sc-slider-base,
-    sc-option-base,
-    sc-radio-base
-  ) {
+/* Host display — applied to the host element as a class (custom elements are
+   display:inline otherwise). `host` for the inline widgets; `hostBlock` for the
+   option row (so options stack in the dropdown). */
+.host {
   display: inline-block;
 }
-
-/* The group has no class of its own; disabling it dims the host (children get
-   their disabled state via context). Global tag+attr selector. */
-sc-radio-group-base[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+.hostBlock {
+  display: block;
 }
 
 /* Visually hidden but focusable + interactive — kept global + literal (`sr-only`)

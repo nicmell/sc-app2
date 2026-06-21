@@ -1,0 +1,19 @@
+/* <sc-cluster-base> — horizontal flex layout (centred, wraps). Scoped CSS
+   Module; the component applies `styles.root` (+ a gap modifier) to its host. */
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.sm {
+  gap: var(--space-sm);
+}
+.md {
+  gap: var(--space-md);
+}
+.lg {
+  gap: var(--space-lg);
+}

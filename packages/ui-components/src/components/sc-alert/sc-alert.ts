@@ -1,27 +1,29 @@
 // <sc-alert-base> — an inline alert/notice card. Light DOM and host-only: it
 // renders NO template (LitElement's default render() returns noChange), so the
-// author's message/inline children are preserved untouched. The colour `variant`
-// is a reflected prop → attribute selector (foundations/components/sc-alert.css),
-// the same host-only pattern as <sc-text-base>. Generalises the legacy `.error`
-// class (which stays for back-compat) to the full state palette.
+// author's message/inline children are preserved untouched. It applies its
+// scoped `styles.root` + a `variant` modifier class to the host (info is the
+// base) and sets the live-region role.
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import "./sc-alert.css";
+import { syncHostClasses } from "../internal/host-classes";
+import styles from "./sc-alert.module.css";
 
 export type ScAlertVariant = "info" | "success" | "warn" | "error";
 
 export class ScAlertBase extends LitElement {
-  @property({ reflect: true }) accessor variant: ScAlertVariant = "info";
+  @property() accessor variant: ScAlertVariant = "info";
 
-  /** Light DOM + no render() ⇒ the message children stay; styling is by attribute. */
+  /** Light DOM + no render() ⇒ the message children stay; styling is by host class. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
   }
 
-  // Announce to assistive tech when the alert appears / its text changes:
-  // errors interrupt (role=alert, assertive); the rest are polite (role=status).
+  readonly #cls = new Set<string>();
+  // Style the host via classes; announce to assistive tech (errors interrupt
+  // → role=alert/assertive; the rest are polite → role=status).
   protected updated(): void {
+    syncHostClasses(this, this.#cls, [styles.root, styles[this.variant]]);
     this.setAttribute("role", this.variant === "error" ? "alert" : "status");
   }
 }

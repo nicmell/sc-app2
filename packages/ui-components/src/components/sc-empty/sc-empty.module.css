@@ -1,0 +1,14 @@
+/* <sc-empty-base> — placeholder when a list/collection is empty. Scoped CSS
+   Module; the component applies `styles.root` to its host. */
+
+.root {
+  display: block;
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-mute);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}

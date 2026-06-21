@@ -1,25 +1,28 @@
 // <sc-stack-base> — vertical flex layout primitive (a "column of stacked
 // things"). Light DOM and host-only: it renders NO template (default render()
-// returns noChange), so the author's children are preserved untouched; the
-// `gap` reflected prop selects the spacing (foundations/components/sc-stack.css),
-// the same host-only pattern as <sc-text-base>. Shares its chrome with the
-// legacy `.stack` class (kept for back-compat).
+// returns noChange), so the author's children are preserved untouched; it
+// applies its scoped `styles.root` + a `gap` modifier class to the host.
 
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import "./sc-stack.css";
+import { syncHostClasses } from "../internal/host-classes";
+import styles from "./sc-stack.module.css";
 
 /** Spacing step — a clean monotonic scale mapping 1:1 to the space tokens:
  *  xs → --space-xs, sm → --space-sm, md → --space-md, lg → --space-lg
- *  (8 / 12 / 16 / 20px). `xs` is the default. The legacy `.stack--*`/
- *  `.cluster--*` classes share this scale (moved in lockstep). */
+ *  (8 / 12 / 16 / 20px). `xs` is the default (the base, no modifier). */
 export type ScGap = "xs" | "sm" | "md" | "lg";
 
 export class ScStackBase extends LitElement {
-  @property({ reflect: true }) accessor gap: ScGap = "xs";
+  @property() accessor gap: ScGap = "xs";
 
-  /** Light DOM + no render() ⇒ the children stay; layout is by attribute. */
+  /** Light DOM + no render() ⇒ the children stay; layout is by host class. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
+  }
+
+  readonly #cls = new Set<string>();
+  protected updated(): void {
+    syncHostClasses(this, this.#cls, [styles.root, styles[this.gap]]);
   }
 }

@@ -24,6 +24,11 @@ import progressStyles from "../sc-progress/sc-progress.module.css";
 import selectStyles from "../sc-select/sc-select.module.css";
 import modalStyles from "../sc-modal/sc-modal.module.css";
 import drawerStyles from "../sc-drawer/sc-drawer.module.css";
+import textStyles from "../sc-text/sc-text.module.css";
+import alertStyles from "../sc-alert/sc-alert.module.css";
+import panelStyles from "../sc-panel/sc-panel.module.css";
+import stackStyles from "../sc-stack/sc-stack.module.css";
+import clusterStyles from "../sc-cluster/sc-cluster.module.css";
 import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {
@@ -535,7 +540,7 @@ describe("sc-textarea-base", () => {
 });
 
 describe("sc-text-base", () => {
-  it("preserves child content and reflects typography props to attributes", async () => {
+  it("preserves child content and applies typography classes to the host", async () => {
     const el = document.createElement("sc-text-base");
     el.textContent = "Heading";
     el.size = "xl";
@@ -545,20 +550,21 @@ describe("sc-text-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.textContent).toBe("Heading");
-    expect(el.getAttribute("size")).toBe("xl");
-    expect(el.getAttribute("weight")).toBe("bold");
-    expect(el.getAttribute("tone")).toBe("dim");
-    expect(el.getAttribute("font")).toBe("mono");
+    expect(el.classList.contains(textStyles.root)).toBe(true);
+    expect(el.classList.contains(textStyles.xl)).toBe(true);
+    expect(el.classList.contains(textStyles.bold)).toBe(true);
+    expect(el.classList.contains(textStyles.dim)).toBe(true);
+    expect(el.classList.contains(textStyles.mono)).toBe(true);
   });
 
-  it("reflects the boolean truncate/inline flags", async () => {
+  it("applies the truncate/inline modifier classes", async () => {
     const el = document.createElement("sc-text-base");
     el.truncate = true;
     el.inline = true;
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.hasAttribute("truncate")).toBe(true);
-    expect(el.hasAttribute("inline")).toBe(true);
+    expect(el.classList.contains(textStyles.truncate)).toBe(true);
+    expect(el.classList.contains(textStyles.inline)).toBe(true);
   });
 });
 
@@ -708,7 +714,7 @@ describe("sc-drawer-base", () => {
 // Host-only content wrappers (the sc-text-base pattern): no template, light DOM,
 // children preserved, styling driven by reflected attributes.
 describe("host-only content wrappers", () => {
-  it("sc-alert-base preserves children and reflects variant", async () => {
+  it("sc-alert-base preserves children and applies the variant class", async () => {
     const el = document.createElement("sc-alert-base");
     el.innerHTML = "scsynth <strong>down</strong>";
     el.variant = "error";
@@ -716,17 +722,19 @@ describe("host-only content wrappers", () => {
     await el.updateComplete;
     expect(el.renderRoot).toBe(el); // light DOM (host-only)
     expect(el.querySelector("strong")!.textContent).toBe("down");
-    expect(el.getAttribute("variant")).toBe("error");
+    expect(el.classList.contains(alertStyles.error)).toBe(true);
   });
 
-  it("sc-alert-base defaults to the info variant", async () => {
+  it("sc-alert-base defaults to the info variant (base class, role=status)", async () => {
     const el = document.createElement("sc-alert-base");
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.getAttribute("variant")).toBe("info");
+    expect(el.variant).toBe("info");
+    expect(el.classList.contains(alertStyles.root)).toBe(true);
+    expect(el.getAttribute("role")).toBe("status");
   });
 
-  it("sc-panel-base preserves its header + content and reflects disabled", async () => {
+  it("sc-panel-base preserves its header + content and applies the disabled class", async () => {
     const el = document.createElement("sc-panel-base");
     el.innerHTML = "<header>Seq</header><span>body</span>";
     el.disabled = true;
@@ -734,7 +742,7 @@ describe("host-only content wrappers", () => {
     await el.updateComplete;
     expect(el.querySelector("header")!.textContent).toBe("Seq");
     expect(el.querySelector("span")!.textContent).toBe("body");
-    expect(el.hasAttribute("disabled")).toBe(true);
+    expect(el.classList.contains(panelStyles.disabled)).toBe(true);
   });
 
   it("sc-empty-base preserves children", async () => {
@@ -746,16 +754,18 @@ describe("host-only content wrappers", () => {
     expect(el.textContent).toBe("no items yet");
   });
 
-  it("sc-stack-base / sc-cluster-base preserve children and reflect gap", async () => {
+  it("sc-stack-base / sc-cluster-base preserve children and apply the gap class", async () => {
     for (const tag of ["sc-stack-base", "sc-cluster-base"] as const) {
       const el = document.createElement(tag);
       el.innerHTML = "<span>a</span><span>b</span>";
       el.gap = "md";
       document.body.appendChild(el);
       await el.updateComplete;
+      const s = tag === "sc-stack-base" ? stackStyles : clusterStyles;
       expect(el.renderRoot).toBe(el); // light DOM (host-only)
       expect(el.querySelectorAll("span").length).toBe(2);
-      expect(el.getAttribute("gap")).toBe("md");
+      expect(el.classList.contains(s.root)).toBe(true);
+      expect(el.classList.contains(s.md)).toBe(true);
     }
   });
 });

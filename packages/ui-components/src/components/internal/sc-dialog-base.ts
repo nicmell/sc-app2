@@ -12,7 +12,7 @@
 
 import { LitElement, html, nothing, type CSSResultGroup } from "lit";
 import { property } from "lit/decorators.js";
-import { foundationStyles } from "./foundation-styles";
+import { foundations } from "./foundation-styles";
 
 export abstract class ScDialogBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
@@ -22,9 +22,9 @@ export abstract class ScDialogBase extends LitElement {
    *  announces an unnamed dialog; set it to the modal/drawer's title. */
   @property() accessor label = "";
 
-  // Subclasses override this to add their own scoped module sheet (via
-  // unsafeCSS), so the type is the broad CSSResultGroup, not CSSStyleSheet[].
-  static styles: CSSResultGroup = foundationStyles ? [foundationStyles] : [];
+  // Subclasses override this with `[foundations, styles]` (their own Lit css),
+  // so the type is the broad CSSResultGroup.
+  static styles: CSSResultGroup = [foundations];
 
   /** The chrome class on the <dialog> (keyed by the matching foundation CSS). */
   protected abstract get dialogClass(): string;

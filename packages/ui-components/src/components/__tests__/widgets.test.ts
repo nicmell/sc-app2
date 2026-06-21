@@ -5,13 +5,8 @@
 
 import { beforeAll, describe, expect, it } from "vitest";
 import { registerUiComponents } from "../index";
-// Components render shadow DOM with literal (shadow-scoped) class names; converted
-// components assert against `el.shadowRoot` + plain class strings. The components
-// still on the CSS-module delivery import their locals here until converted.
-import popoverStyles from "../sc-popover/sc-popover.module.css";
-import selectStyles from "../sc-select/sc-select.module.css";
-import modalStyles from "../sc-modal/sc-modal.module.css";
-import drawerStyles from "../sc-drawer/sc-drawer.module.css";
+// Every component is shadow DOM with literal (shadow-scoped) class names;
+// assertions query `el.shadowRoot` + plain class strings.
 
 beforeAll(() => {
   registerUiComponents();
@@ -274,9 +269,9 @@ describe("sc-select-base", () => {
   }
 
   const combobox = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLButtonElement>("." + selectStyles.combobox)!;
+    s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
   const dropdown = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLElement>("." + selectStyles.dropdown)!;
+    s.shadowRoot!.querySelector<HTMLElement>(".dropdown")!;
 
   // The dropdown is a top-layer `popover` element, always present and toggled
   // by the browser via `popovertarget` (open/close + light-dismiss aren't
@@ -602,7 +597,7 @@ describe("sc-popover-base", () => {
     el.innerHTML = "<span>menu</span>";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot.querySelector("." + popoverStyles.panel)).not.toBeNull();
+    expect(el.renderRoot.querySelector(".panel")).not.toBeNull();
     expect(el.querySelector("span")!.textContent).toBe("menu");
   });
 
@@ -618,7 +613,7 @@ describe("sc-popover-base", () => {
     el.open = true;
     await el.updateComplete;
     // The panel carries the popover attribute (top-layer opt-in) once attached.
-    expect(el.renderRoot.querySelector("." + popoverStyles.panel)!.getAttribute("popover")).toBe(
+    expect(el.renderRoot.querySelector(".panel")!.getAttribute("popover")).toBe(
       "auto",
     );
     expect(toggles).toBeGreaterThanOrEqual(0); // toggle event only fires where the API runs
@@ -635,7 +630,7 @@ describe("sc-modal-base", () => {
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
     expect(dialog).not.toBeNull();
-    expect(dialog!.classList.contains(modalStyles.root)).toBe(true);
+    expect(dialog!.classList.contains("root")).toBe(true);
     // Content stays light-DOM (slotted), reachable from the host.
     expect(el.querySelector(".sc-modal__title")!.textContent).toBe("Hi");
   });
@@ -666,7 +661,7 @@ describe("sc-drawer-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
-    expect(dialog!.classList.contains(drawerStyles.root)).toBe(true);
+    expect(dialog!.classList.contains("root")).toBe(true);
     expect(el.getAttribute("side")).toBe("left");
     expect(el.querySelector("header h2")!.textContent).toBe("Plugins");
   });

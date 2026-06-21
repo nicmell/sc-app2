@@ -9,16 +9,15 @@
 // the element; the native `toggle` (user click) mirrors back into `open` and
 // re-emits a bubbling `toggle` for React (onToggle).
 
-import { LitElement, html, unsafeCSS } from "lit";
+import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { foundationStyles } from "../internal/foundation-styles";
-import styles from "./sc-disclosure.module.css";
-import sheet from "./sc-disclosure.module.css?inline";
+import { foundations } from "../internal/foundation-styles";
+import { styles } from "./sc-disclosure.styles";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
 
-  static styles = [...(foundationStyles ? [foundationStyles] : []), unsafeCSS(sheet ?? "")];
+  static styles = [foundations, styles];
 
   get #details(): HTMLDetailsElement | null {
     return this.renderRoot.querySelector("details");
@@ -49,9 +48,9 @@ export class ScDisclosureBase extends LitElement {
 
   render() {
     return html`
-      <details class=${styles.root} @toggle=${this.#onToggle}>
-        <summary class=${styles.summary}><slot name="summary"></slot></summary>
-        <div class=${styles.content}><slot></slot></div>
+      <details class="root" @toggle=${this.#onToggle}>
+        <summary class="summary"><slot name="summary"></slot></summary>
+        <div class="content"><slot></slot></div>
       </details>
     `;
   }

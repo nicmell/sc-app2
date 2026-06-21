@@ -257,11 +257,11 @@ components).
 
 ## Demo
 
-`demo.html` renders the foundation + every `-base` component. The widgets need
+`index.html` renders the foundation + every `-base` component. The widgets need
 the TS modules transpiled and decorators lowered, so **serve it through Vite**:
 
 ```bash
-npx vite            # from packages/ui-components/, then open the printed URL
+npx vite            # from packages/ui-components/, then open the printed URL (/)
 ```
 
 (Opening the file directly still shows the CSS-only foundation sections.)

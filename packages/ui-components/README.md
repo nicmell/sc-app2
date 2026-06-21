@@ -1,31 +1,37 @@
 # `@sc-app/ui-components`
 
-The sc-app design system: a CSS **foundation** (tokens, base element styles,
-semantic-class primitives) plus a library of framework-agnostic **`-base`
-components** (Lit web components with React wrappers).
+The sc-app design system: a CSS **foundation** (tokens, themes, reset, base
+element styles) plus a library of framework-agnostic **`-base` components** (Lit
+web components with React wrappers) that each ship their own (mostly scoped CSS
+Module) styles.
 
 Three consumers:
 
-1. **The React host** (`src/`) — imports the foundation CSS once in
-   `src/main.tsx`, registers the web components, and uses the React wrappers.
+1. **The React host** (`src/`) — adopts the foundation CSS once in
+   `src/main.tsx`, registers the web components (which injects their styles), and
+   uses the React wrappers.
 2. **Lit widgets** (`src/sc-elements/*`) — render the `-base` tags directly.
-3. **Runtime HTML plugins** (trusted, light DOM) — import `@sc-app/ui-components`
-   (the source foundation CSS) and use the `-base` tags / foundation classes,
-   inheriting the host's look with no bundle of their own.
+3. **Runtime HTML plugins** (trusted, light DOM) — register the components and
+   use the `-base` tags, inheriting the host's look with no bundle of their own.
 
 ## Layout
 
 ```
 src/
-  foundations/             pure CSS — tokens, reset, base elements, component styles
-    index.css              entry; @imports every layer + components/sc-*.css
+  foundations/             pure CSS — tokens, reset, base element styles
+    index.css              entry; @imports tokens + themes + reset + base (NO components)
     tokens/semantic.css    --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css   bare button/input/select/textarea/label/headings/code
-    components/sc-<tag>.css  one stylesheet per component (1:1 with components/sc-<tag>.ts)
-  components/              the -base Lit web components (one sc-<tag>.ts each)
+  components/              the -base Lit web components + their co-located styles
+    sc-<tag>.ts            each component imports its own stylesheet …
+    sc-<tag>.module.css    … a scoped CSS Module (hashed locals) for class-bearing
+                           components (most); referenced as `styles.root`, etc.
+    sc-<tag>.css           … a plain global stylesheet for host-only components
+                           (tag/attribute-styled) + modal/drawer slotted-content
+                           classes; side-effect-imported (Vite injects it)
     index.ts               element barrel + registerUiComponents()
-    internal/sc-widget-base.ts   abstract base for the interactive widgets
+    internal/sc-widget-base.{ts,css}   abstract base + shared widget classes module
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -33,23 +39,24 @@ src/
 
 | import | what |
 |---|---|
-| `@sc-app/ui-components` | the foundation CSS (source; Vite resolves the `@import` chain) — **required for any styling** |
-| `@sc-app/ui-components/lit` | the web components + `registerUiComponents()` |
+| `@sc-app/ui-components` | the foundation CSS — tokens + themes + reset + base (component styles ship with the components, not here) |
+| `@sc-app/ui-components/lit` | the web components + `registerUiComponents()` (registering injects each component's CSS) |
 | `@sc-app/ui-components/react` | the React wrappers (importing the barrel registers the elements) |
 | `@sc-app/ui-components/tokens` `/themes/dark` `/themes/light` `/reset` | individual CSS layers |
 
 ## Using the components
 
 ```ts
-// 1. styling (once, at app boot) — adopt the ONE shared foundation stylesheet
-//    onto the document. This is the same CSSStyleSheet that shadow-DOM widgets
-//    (sc-select) adopt into their roots, so the foundation is parsed + shipped
-//    once for the whole app. (Plain CSS consumers can `import
-//    "@sc-app/ui-components"` instead — Vite inlines the @import chain.)
+// 1. foundation (once, at app boot) — adopt the tokens + reset + base sheet onto
+//    the document. (Plain CSS consumers can `import "@sc-app/ui-components"`
+//    instead — Vite inlines the @import chain.) Component styles are NOT here;
+//    they ship with each component (step 2a), so registering is what styles them.
 import { adoptFoundation } from "@sc-app/ui-components/lit";
 adoptFoundation();
 
-// 2a. as web components (Lit / plugin HTML)
+// 2a. as web components (Lit / plugin HTML) — registering imports every
+//     component module, which injects each component's own CSS (scoped module
+//     for the class-bearing ones; global sheet for host-only/slotted).
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 registerUiComponents();            // idempotent; defines every <sc-*-base> tag
 // → <sc-button-base label="Run" variant="danger"></sc-button-base>
@@ -63,8 +70,10 @@ import "@phosphor-icons/web/fill";  // powers <sc-icon-base>
 ```
 
 Components are **light DOM** (except the shadow-DOM overlays `sc-select-base` /
-`sc-popover-base` / `sc-modal-base`, see below), so the foundation's global CSS
-styles them. **Events are native, not custom**: each
+`sc-popover-base` / `sc-modal-base` / `sc-drawer-base` / `sc-disclosure-base`,
+see below). Each component imports its own stylesheet (a scoped CSS Module it
+references as `styles.*`, or a plain global sheet for host-only/slotted styling)
+— see "Styling" below. **Events are native, not custom**: each
 form widget renders a hidden native `<input>` under its visual overlay and lets
 that input's real `input`/`change` flow to consumers — read `e.target.value` /
 `e.target.checked`. The React wrappers expose `onChange` (+ `onInput` for live
@@ -132,25 +141,25 @@ All form widgets fire native events; read `e.target.value` / `.checked`.
 
 `size` is `sm | md | lg` everywhere it appears (md default). `gap` (stack/
 cluster) is a monotonic `xs | sm | md | lg` mapping 1:1 to `--space-{xs,sm,md,lg}`
-(8 / 12 / 16 / 20px), default `xs`. The legacy `.stack--*`/`.cluster--*` classes
-share this scale.
+(8 / 12 / 16 / 20px), default `xs`.
 
 ## Architecture patterns
 
-Most components are **light DOM** (`createRenderRoot() → this`) so the global
-foundation CSS applies. Four patterns:
+Most components are **light DOM** (`createRenderRoot() → this`). Each component
+imports its own stylesheet (see "Styling" below). Four patterns:
 
 1. **Hidden native input + visual overlay (form widgets).** checkbox, switch,
    knob, slider, radio render a hidden, focusable native `<input>` (`.sr-only`)
    under their SVG/CSS overlay. The input owns value, keyboard, focus, and fires
    the genuine native `input`/`change`; the overlay reflects state via CSS
-   sibling selectors (`.sc-x__input:checked ~ …`) or, for knob/slider, redraws
-   from the value. No CustomEvent.
+   sibling selectors (`.input:checked ~ …`, scoped module locals) or, for
+   knob/slider, redraws from the value. No CustomEvent.
 
-2. **Inner element + `classnames` (badge, chip, button, icon, the inputs'
-   chrome).** A template whose root carries `cx("sc-x", \`sc-x--\${variant}\`, …)`;
-   CSS targets those classes (`.sc-badge--warn`). Variant/size resolve to
-   **classes, not data attributes** — the migration away from `[data-variant]`.
+2. **Inner element + scoped module locals (badge, chip, button, icon, the
+   inputs' chrome).** A template whose root carries
+   `cx(styles.root, { [styles[variant]]: … })` from the component's
+   `sc-x.module.css`; the build hashes those class names per component. Variant/
+   size resolve to **classes, not data attributes**.
 
 3. **Host-only + reflected attributes (`sc-text-base`, `sc-alert-base`,
    `sc-panel-base`, `sc-empty-base`, `sc-stack-base`, `sc-cluster-base`).**
@@ -171,32 +180,49 @@ foundation CSS applies. Four patterns:
    `radio-group` is light-DOM (children preserved, no template). `select` is the
    **one shadow-DOM component** — it must render combobox/dropdown chrome *and*
    project the `<sc-option-base>` children into the dropdown via `<slot>`, which
-   a light-DOM render would clobber. Its chrome therefore lives in
-   `foundations/components/sc-select.css` (`:host` + `.sc-select__*`) like every
-   other component, applied inside the shadow because the select **adopts the
-   shared foundation stylesheet** into its shadow root (see below). Note:
+   a light-DOM render would clobber. Its chrome lives in its scoped module
+   `sc-select.module.css`, adopted into the shadow (see "Styling"). Note:
    providers are registered before consumers so static markup upgrades with the
    provider already listening.
 
 Shared bits for the form widgets live on `internal/sc-widget-base.ts`
 (`ScWidgetBase`): `size`/`variant`/`disabled`, the light-DOM render root, and the
-`blockClasses()` helper. It is abstract — not a tag. The parent↔child contexts
-live in `internal/contexts.ts`.
+`widgetClasses(styles)` helper (joins the per-widget module's `root`+`size` with
+the shared accent/disabled classes from `internal/widget-base.module.css`). It is
+abstract — not a tag. The parent↔child contexts live in `internal/contexts.ts`.
 
-### One shared foundation stylesheet
+### Styling — per-component CSS Modules
 
-`internal/foundation-styles.ts` builds the foundation CSS (`index.css?inline`)
-into a **single `CSSStyleSheet`** (`foundationStyles`). The app adopts it onto
-the document (`adoptFoundation()`), and shadow-DOM components adopt the *same
-object* into their roots (`static styles = [foundationStyles]`). Adopting by
-reference does **not** copy it — the browser parses/stores it once and shares it
-across the document and every shadow root, so the foundation ships once. Any
-future shadow component just reuses `foundationStyles` — nothing per-component.
+Each component owns its CSS and imports it; there is no global component-class
+bundle. Two flavours:
 
-> Per-component `:host` rules in the shared sheet are scoped to their tag
-> (`:host(sc-select-base)`, `:host(sc-popover-base)`): a bare `:host` would
-> match in **every** shadow root that adopts the one shared sheet. At the
-> document level `:host(...)` matches nothing (inert).
+- **Scoped CSS Module** (`sc-x.module.css`) for class-bearing components.
+  `import styles from "./sc-x.module.css"` gives hashed, per-component locals
+  referenced as `styles.root`/`styles.box`/…; Vite injects the matching CSS. For
+  **light-DOM** components the injected (global) CSS styles them directly. For
+  **shadow** components (select/popover/modal/drawer/disclosure) the component
+  also `import sheet from "./sc-x.module.css?inline"` and adopts it via
+  `static styles = [foundationStyles, unsafeCSS(sheet)]` — head-injected CSS
+  can't reach a shadow root, so the scoped sheet is adopted into it. The locals
+  from the normal import and the names in the `?inline` text match (same build).
+
+- **Plain global stylesheet** (`sc-x.css`, side-effect `import "./sc-x.css"`) for
+  the **host-only** components (text/alert/panel/empty/stack/cluster/radio-group —
+  styled by tag/attribute selectors, no class strings) and for the modal/drawer
+  **slotted-content** classes (`.sc-modal__title`, `.sc-drawer__body`, …) and the
+  app-rendered `.sc-modal__backdrop`. These must stay global because they style
+  light-DOM the component doesn't own; loading the component injects them.
+
+`internal/foundation-styles.ts` builds the foundation CSS (`index.css?inline` —
+now just tokens + reset + base) into a single `CSSStyleSheet` (`foundationStyles`),
+adopted onto the document (`adoptFoundation()`) and into each shadow root (so
+tokens + base element styles reach the shadow); tokens also inherit across the
+shadow boundary via `:root`.
+
+Class names are hashed/scoped, so a renamed CSS local can't silently drift from
+the component — a wrong name is a type/build error, not an unstyled element. The
+few names that are public contract (the slotted/app classes above) stay literal
+in the plain `.css` files.
 
 ### Overlays (top layer)
 

@@ -33,6 +33,7 @@ import { ScProgressBase } from "./sc-progress";
 
 export { ScWidgetBase } from "./internal/sc-widget-base";
 export type { ScSize, ScVariant } from "./internal/sc-widget-base";
+export { ScRangeBase } from "./internal/sc-range-base";
 export { ScCheckboxBase } from "./sc-checkbox";
 export { ScSwitchBase } from "./sc-switch";
 export { ScKnobBase } from "./sc-knob";

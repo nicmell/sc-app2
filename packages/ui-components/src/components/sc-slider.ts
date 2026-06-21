@@ -1,116 +1,25 @@
 // <sc-slider-base> — a hidden native <input type="range"> under the
-// track/fill/thumb overlay. The range is the value source (native keyboard +
-// native input/change); our ported pointer-drag + wheel feed it. `orientation`
-// only affects the visual; the visual redraws from `value`.
+// track/fill/thumb overlay. The value plumbing (range mirror, quantise,
+// pointer-drag, wheel) lives in ScRangeBase; this file is the track visual +
+// the slider's drag feel: dragging along the `orientation` axis over a travel
+// equal to the track length. `orientation` only affects the visual + axis.
 
 import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ScWidgetBase } from "./internal/sc-widget-base";
+import { ScRangeBase } from "./internal/sc-range-base";
 
-export class ScSliderBase extends ScWidgetBase {
-  @property({ type: Number }) accessor value = 0;
-  @property({ type: Number }) accessor min = 0;
-  @property({ type: Number }) accessor max = 1;
-  @property({ type: Number }) accessor step = 0.01;
+export class ScSliderBase extends ScRangeBase {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
-  /** Accessible name for the control (→ aria-label on the range input). */
-  @property() accessor label = "";
 
-  /** Value announced by screen readers, rounded to the step's precision. */
-  private _valueText(): string {
-    const precision = Math.max(0, Math.round(-Math.log10(this.step)));
-    return this.value.toFixed(precision);
+  /** Drag along the orientation axis: up (vertical) or right (horizontal). */
+  protected dragAxisDelta(dx: number, dy: number): number {
+    return this.orientation === "vertical" ? dy : dx;
   }
 
-  private get _input(): HTMLInputElement {
-    return this.querySelector("input") as HTMLInputElement;
+  protected dragSensitivity(rect: DOMRect): number {
+    return (this.orientation === "vertical" ? rect.height : rect.width) || 100;
   }
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this.addEventListener("mousedown", this._onPointerDown);
-    this.addEventListener("touchstart", this._onPointerDown, { passive: false });
-    this.addEventListener("wheel", this._onWheel, { passive: false });
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.removeEventListener("mousedown", this._onPointerDown);
-    this.removeEventListener("touchstart", this._onPointerDown);
-    this.removeEventListener("wheel", this._onWheel);
-  }
-
-  private _onRangeInput = (): void => {
-    this.value = Number(this._input.value);
-  };
-
-  private _quantize(raw: number): number {
-    const precision = Math.round(-Math.log10(this.step));
-    const factor = 10 ** Math.max(0, precision);
-    let v = Math.round((raw - this.min) / this.step) * this.step + this.min;
-    v = Math.round(v * factor) / factor;
-    return Math.max(this.min, Math.min(this.max, v));
-  }
-
-  private _set(raw: number): boolean {
-    const v = this._quantize(raw);
-    if (v === this.value) return false;
-    this._input.value = String(v);
-    this._input.dispatchEvent(new Event("input", { bubbles: true }));
-    return true;
-  }
-
-  private _onPointerDown = (e: MouseEvent | TouchEvent): void => {
-    if (this.disabled) return;
-    e.preventDefault();
-    this._input.focus();
-    const ev = "touches" in e ? e.touches[0] : e;
-    const startX = ev.clientX;
-    const startY = ev.clientY;
-    const startValue = this.value;
-    const range = this.max - this.min;
-    const vertical = this.orientation === "vertical";
-    const rect = this.getBoundingClientRect();
-    const sensitivity = (vertical ? rect.height : rect.width) || 100;
-    let moved = false;
-
-    const onMove = (me: MouseEvent | TouchEvent): void => {
-      me.preventDefault();
-      const mev = "touches" in me ? me.touches[0] : me;
-      const dx = mev.clientX - startX;
-      const dy = startY - mev.clientY;
-      const d = vertical ? dy : dx;
-      let dv = (d / sensitivity) * range;
-      if (me instanceof MouseEvent && me.shiftKey) dv *= 0.2;
-      if (this._set(startValue + dv)) moved = true;
-    };
-
-    const onUp = (): void => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      document.removeEventListener("touchmove", onMove);
-      document.removeEventListener("touchend", onUp);
-      document.removeEventListener("touchcancel", onUp);
-      if (moved) this._input.dispatchEvent(new Event("change", { bubbles: true }));
-    };
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-    document.addEventListener("touchmove", onMove, { passive: false });
-    document.addEventListener("touchend", onUp);
-    document.addEventListener("touchcancel", onUp);
-  };
-
-  private _onWheel = (e: WheelEvent): void => {
-    if (this.disabled) return;
-    e.preventDefault();
-    let delta = e.deltaY > 0 ? -this.step : this.step;
-    if (!e.shiftKey) delta *= 5;
-    if (this._set(this.value + delta)) {
-      this._input.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  };
 
   render() {
     const vertical = this.orientation === "vertical";
@@ -135,9 +44,9 @@ export class ScSliderBase extends ScWidgetBase {
           step=${this.step}
           .value=${live(String(this.value))}
           aria-label=${this.label || nothing}
-          aria-valuetext=${this._valueText()}
+          aria-valuetext=${this.valueText()}
           ?disabled=${this.disabled}
-          @input=${this._onRangeInput}
+          @input=${this.onRangeInput}
         />
         <div class="sc-slider__track">
           <div class="sc-slider__fill" style=${fillStyle}></div>

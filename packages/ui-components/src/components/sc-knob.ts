@@ -7,6 +7,7 @@
 import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "./internal/sc-range-base";
+import styles from "./sc-knob.module.css";
 
 export class ScKnobBase extends ScRangeBase {
   /** Dominant axis: up OR right increases (whichever the user moved more). */
@@ -23,9 +24,9 @@ export class ScKnobBase extends ScRangeBase {
     const ratio = range > 0 ? Math.max(0, Math.min(1, (this.value - this.min) / range)) : 0;
     const angle = -135 + 270 * ratio;
     return html`
-      <div class=${this.blockClasses("sc-knob")}>
+      <div class=${this.widgetClasses(styles)}>
         <input
-          class="sc-knob__input sr-only"
+          class="${styles.input} sr-only"
           type="range"
           name=${this.name}
           min=${this.min}
@@ -37,10 +38,10 @@ export class ScKnobBase extends ScRangeBase {
           ?disabled=${this.disabled}
           @input=${this.onRangeInput}
         />
-        <svg class="sc-knob__svg" viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
-          <circle class="sc-knob__body" cx="50" cy="50" r="47" />
+        <svg class=${styles.svg} viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
+          <circle class=${styles.body} cx="50" cy="50" r="47" />
           <line
-            class="sc-knob__indicator"
+            class=${styles.indicator}
             x1="50"
             y1="44"
             x2="50"

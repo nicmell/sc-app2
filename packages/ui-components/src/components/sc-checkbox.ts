@@ -7,6 +7,7 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
+import styles from "./sc-checkbox.module.css";
 
 export class ScCheckboxBase extends ScWidgetBase {
   @property({ type: Boolean }) accessor checked = false;
@@ -19,17 +20,17 @@ export class ScCheckboxBase extends ScWidgetBase {
 
   render() {
     return html`
-      <label class=${this.blockClasses("sc-checkbox")}>
+      <label class=${this.widgetClasses(styles)}>
         <input
-          class="sc-checkbox__input sr-only"
+          class="${styles.input} sr-only"
           type="checkbox"
           name=${this.name}
           .checked=${live(this.checked)}
           ?disabled=${this.disabled}
           @change=${this._onChange}
         />
-        <span class="sc-checkbox__box"><span class="sc-checkbox__check"></span></span>
-        ${this.label ? html`<span class="sc-checkbox__label">${this.label}</span>` : ""}
+        <span class=${styles.box}><span class=${styles.check}></span></span>
+        ${this.label ? html`<span>${this.label}</span>` : ""}
       </label>
     `;
   }

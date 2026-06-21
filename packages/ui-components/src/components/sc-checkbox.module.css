@@ -1,6 +1,6 @@
-/* <sc-checkbox-base> — styled box + optional label. Accent = --_accent. */
+/* <sc-checkbox-base> — styled box + optional label. Accent = --_accent (shared). */
 
-.sc-checkbox {
+.root {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -10,7 +10,7 @@
   color: var(--color-text-dim);
 }
 
-.sc-checkbox__box {
+.box {
   display: inline-grid;
   place-items: center;
   inline-size: var(--_box, 1rem);
@@ -23,20 +23,20 @@
     background var(--transition-fast);
 }
 
-.sc-checkbox--sm {
+.sm {
   --_box: 0.875rem;
   font-size: var(--font-size-xs);
 }
-.sc-checkbox--md {
+.md {
   --_box: 1rem;
   font-size: var(--font-size-sm);
 }
-.sc-checkbox--lg {
+.lg {
   --_box: 1.25rem;
   font-size: var(--font-size-md);
 }
 
-.sc-checkbox__check {
+.check {
   inline-size: 60%;
   block-size: 60%;
   border-radius: var(--radius-xs);
@@ -45,14 +45,14 @@
   transition: transform var(--transition-fast);
 }
 
-.sc-checkbox__input:checked ~ .sc-checkbox__box {
+.input:checked ~ .box {
   border-color: var(--_accent);
 }
-.sc-checkbox__input:checked ~ .sc-checkbox__box .sc-checkbox__check {
+.input:checked ~ .box .check {
   transform: scale(1);
 }
 
-.sc-checkbox__input:focus-visible ~ .sc-checkbox__box {
+.input:focus-visible ~ .box {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

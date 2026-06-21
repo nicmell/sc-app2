@@ -1,12 +1,12 @@
 /* <sc-switch-base> — pill track with a sliding thumb. Track-on = --_accent. */
 
-.sc-switch {
+.root {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
 }
 
-.sc-switch__track {
+.track {
   position: relative;
   display: inline-block;
   inline-size: var(--_w, 2.25rem);
@@ -16,20 +16,20 @@
   transition: background var(--transition-base);
 }
 
-.sc-switch--sm {
+.sm {
   --_w: 1.75rem;
   --_h: 1rem;
 }
-.sc-switch--md {
+.md {
   --_w: 2.25rem;
   --_h: 1.25rem;
 }
-.sc-switch--lg {
+.lg {
   --_w: 3rem;
   --_h: 1.6rem;
 }
 
-.sc-switch__thumb {
+.thumb {
   position: absolute;
   top: 50%;
   left: 0.15rem;
@@ -41,14 +41,14 @@
   transition: left var(--transition-base);
 }
 
-.sc-switch__input:checked ~ .sc-switch__track {
+.input:checked ~ .track {
   background: var(--_accent);
 }
-.sc-switch__input:checked ~ .sc-switch__track .sc-switch__thumb {
+.input:checked ~ .track .thumb {
   left: calc(100% - (var(--_h) - 0.3rem) - 0.15rem);
 }
 
-.sc-switch__input:focus-visible ~ .sc-switch__track {
+.input:focus-visible ~ .track {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

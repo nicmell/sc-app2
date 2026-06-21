@@ -9,6 +9,11 @@ import { registerUiComponents } from "../index";
 // components use so assertions reference the identical (vitest-stable) locals.
 import badgeStyles from "../sc-badge.module.css";
 import popoverStyles from "../sc-popover.module.css";
+import checkboxStyles from "../sc-checkbox.module.css";
+import sliderStyles from "../sc-slider.module.css";
+import optionStyles from "../sc-option.module.css";
+import radioStyles from "../sc-radio.module.css";
+import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {
   registerUiComponents();
@@ -56,9 +61,9 @@ describe("sc-checkbox-base", () => {
     const input = el.querySelector("input")!;
     expect(input.type).toBe("checkbox");
     expect(input.classList.contains("sr-only")).toBe(true);
-    expect(label.classList.contains("sc-checkbox")).toBe(true);
-    expect(label.classList.contains("sc-checkbox--lg")).toBe(true);
-    expect(label.classList.contains("sc-checkbox--ok")).toBe(true);
+    expect(label.classList.contains(checkboxStyles.root)).toBe(true);
+    expect(label.classList.contains(checkboxStyles.lg)).toBe(true);
+    expect(label.classList.contains(widget.ok)).toBe(true);
   });
 
   it("toggles and fires the native change carrying checked", async () => {
@@ -165,7 +170,7 @@ describe("sc-slider-base", () => {
       step: 0.1,
       value: 0.5,
     });
-    expect(el.querySelector(".sc-slider--vertical")).not.toBeNull();
+    expect(el.querySelector("." + sliderStyles.vertical)).not.toBeNull();
     expect(el.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
@@ -177,7 +182,7 @@ describe("sc-slider-base", () => {
 describe("sc-option-base", () => {
   it("renders an option row with its label (standalone, no context)", async () => {
     const el = await mount("sc-option-base", { value: 7, label: "Saw" });
-    const row = el.querySelector(".sc-option")!;
+    const row = el.querySelector("." + optionStyles.root)!;
     expect(row.getAttribute("role")).toBe("option");
     expect(row.textContent!.trim()).toBe("Saw");
     expect(row.getAttribute("aria-selected")).toBe("false");
@@ -245,9 +250,9 @@ describe("sc-radio-group-base", () => {
     group.variant = "warn";
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const label = radios[0].querySelector(".sc-radio")!;
-    expect(label.classList.contains("sc-radio--lg")).toBe(true);
-    expect(label.classList.contains("sc-radio--warn")).toBe(true);
+    const label = radios[0].querySelector("." + radioStyles.root)!;
+    expect(label.classList.contains(radioStyles.lg)).toBe(true);
+    expect(label.classList.contains(widget.warn)).toBe(true);
   });
 });
 
@@ -285,7 +290,7 @@ describe("sc-select-base", () => {
     const { select, options } = await mountSelect(0);
     let changes = 0;
     select.addEventListener("change", () => (changes += 1));
-    options[2].querySelector<HTMLElement>(".sc-option")!.click();
+    options[2].querySelector<HTMLElement>("." + optionStyles.root)!.click();
     await select.updateComplete;
     expect(select.value).toBe(2);
     expect(changes).toBe(1);
@@ -294,8 +299,8 @@ describe("sc-select-base", () => {
   it("marks the selected option via context", async () => {
     const { options } = await mountSelect(1);
     await Promise.all(options.map((o) => o.updateComplete));
-    const rows = options.map((o) => o.querySelector(".sc-option")!);
-    expect(rows.map((r) => r.classList.contains("sc-option--selected"))).toEqual([
+    const rows = options.map((o) => o.querySelector("." + optionStyles.root)!);
+    expect(rows.map((r) => r.classList.contains(optionStyles.selected))).toEqual([
       false,
       true,
       false,

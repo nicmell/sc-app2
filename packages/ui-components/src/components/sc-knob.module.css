@@ -1,7 +1,7 @@
 /* <sc-knob-base> — SVG dial (normalised 0..100 viewBox); size sets the box,
-   variant tints the indicator via --_accent. */
+   variant tints the indicator via --_accent (shared). */
 
-.sc-knob {
+.root {
   display: inline-block;
   line-height: 0;
   cursor: grab;
@@ -9,24 +9,24 @@
   user-select: none;
 }
 
-.sc-knob:active {
+.root:active {
   cursor: grabbing;
 }
 
-.sc-knob--sm {
+.sm {
   inline-size: 1.75rem;
   block-size: 1.75rem;
 }
-.sc-knob--md {
+.md {
   inline-size: 2.5rem;
   block-size: 2.5rem;
 }
-.sc-knob--lg {
+.lg {
   inline-size: 3.5rem;
   block-size: 3.5rem;
 }
 
-.sc-knob__svg {
+.svg {
   display: block;
   inline-size: 100%;
   block-size: 100%;
@@ -34,18 +34,18 @@
 
 /* Keyboard focus ring — the real <input> is .sr-only, so show focus on the
    visible dial (a round ring via box-shadow follows the circle). */
-.sc-knob__input:focus-visible ~ .sc-knob__svg {
+.input:focus-visible ~ .svg {
   border-radius: 50%;
   box-shadow: 0 0 0 2px var(--color-border-focus);
 }
 
-.sc-knob__body {
+.body {
   fill: var(--color-surface-3);
   stroke: var(--color-border-strong);
   stroke-width: 2;
 }
 
-.sc-knob__indicator {
+.indicator {
   stroke: var(--_accent);
   stroke-width: 9;
   stroke-linecap: round;

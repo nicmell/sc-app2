@@ -7,6 +7,7 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "./internal/sc-widget-base";
+import styles from "./sc-switch.module.css";
 
 export class ScSwitchBase extends ScWidgetBase {
   @property({ type: Boolean }) accessor checked = false;
@@ -17,9 +18,9 @@ export class ScSwitchBase extends ScWidgetBase {
 
   render() {
     return html`
-      <label class=${this.blockClasses("sc-switch")}>
+      <label class=${this.widgetClasses(styles)}>
         <input
-          class="sc-switch__input sr-only"
+          class="${styles.input} sr-only"
           type="checkbox"
           role="switch"
           name=${this.name}
@@ -27,7 +28,7 @@ export class ScSwitchBase extends ScWidgetBase {
           ?disabled=${this.disabled}
           @change=${this._onChange}
         />
-        <span class="sc-switch__track"><span class="sc-switch__thumb"></span></span>
+        <span class=${styles.track}><span class=${styles.thumb}></span></span>
       </label>
     `;
   }

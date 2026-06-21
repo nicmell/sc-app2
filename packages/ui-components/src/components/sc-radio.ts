@@ -9,8 +9,9 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
-import { ScWidgetBase } from "./internal/sc-widget-base";
+import { ScWidgetBase, widgetShared as w } from "./internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "./internal/contexts";
+import styles from "./sc-radio.module.css";
 
 export class ScRadioBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
@@ -37,16 +38,13 @@ export class ScRadioBase extends ScWidgetBase {
 
   render() {
     const ctx = this.#ctx;
-    const cls = cx(
-      "sc-radio",
-      `sc-radio--${ctx?.size ?? this.size}`,
-      `sc-radio--${ctx?.variant ?? this.variant}`,
-      { "sc-radio--disabled": this.#disabled },
-    );
+    const cls = cx(styles.root, styles[ctx?.size ?? this.size], w[ctx?.variant ?? this.variant], {
+      [w.disabled]: this.#disabled,
+    });
     return html`
       <label class=${cls}>
         <input
-          class="sc-radio__input sr-only"
+          class="${styles.input} sr-only"
           type="radio"
           name=${ctx?.name ?? this.name}
           value=${this.value}
@@ -54,8 +52,8 @@ export class ScRadioBase extends ScWidgetBase {
           ?disabled=${this.#disabled}
           @change=${this._onChange}
         />
-        <span class="sc-radio__ring"><span class="sc-radio__dot"></span></span>
-        ${this.label ? html`<span class="sc-radio__label">${this.label}</span>` : ""}
+        <span class=${styles.ring}><span class=${styles.dot}></span></span>
+        ${this.label ? html`<span>${this.label}</span>` : ""}
       </label>
     `;
   }

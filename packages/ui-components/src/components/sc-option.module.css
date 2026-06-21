@@ -1,12 +1,13 @@
 /* <sc-option-base> — a single option row. Selected text = --_accent. */
 
 /* The host is a custom element (defaults to display:inline); force block so the
-   options stack vertically in the select's fit-content dropdown. */
+   options stack vertically in the select's fit-content dropdown. (Global tag
+   selector — overrides the widget-base inline-block.) */
 :where(sc-option-base) {
   display: block;
 }
 
-.sc-option {
+.root {
   display: block;
   padding: var(--space-2xs) var(--space-xs);
   cursor: pointer;
@@ -17,14 +18,14 @@
   border-radius: var(--radius-xs);
 }
 
-.sc-option--sm {
+.sm {
   font-size: var(--font-size-xs);
 }
-.sc-option--lg {
+.lg {
   font-size: var(--font-size-md);
 }
 
-.sc-option--selected {
+.selected {
   color: var(--_accent);
   font-weight: var(--font-weight-medium);
 }

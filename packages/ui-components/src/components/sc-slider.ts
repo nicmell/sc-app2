@@ -8,6 +8,7 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "./internal/sc-range-base";
+import styles from "./sc-slider.module.css";
 
 export class ScSliderBase extends ScRangeBase {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
@@ -30,13 +31,13 @@ export class ScSliderBase extends ScRangeBase {
     const thumbStyle = vertical ? `bottom:${pct}` : `left:${pct}`;
     return html`
       <div
-        class=${this.blockClasses("sc-slider", {
-          "sc-slider--vertical": vertical,
-          "sc-slider--horizontal": !vertical,
+        class=${this.widgetClasses(styles, {
+          [styles.vertical]: vertical,
+          [styles.horizontal]: !vertical,
         })}
       >
         <input
-          class="sc-slider__input sr-only"
+          class="${styles.input} sr-only"
           type="range"
           name=${this.name}
           min=${this.min}
@@ -48,9 +49,9 @@ export class ScSliderBase extends ScRangeBase {
           ?disabled=${this.disabled}
           @input=${this.onRangeInput}
         />
-        <div class="sc-slider__track">
-          <div class="sc-slider__fill" style=${fillStyle}></div>
-          <div class="sc-slider__thumb" style=${thumbStyle}></div>
+        <div class=${styles.track}>
+          <div class=${styles.fill} style=${fillStyle}></div>
+          <div class=${styles.thumb} style=${thumbStyle}></div>
         </div>
       </div>
     `;

@@ -1,6 +1,6 @@
-/* <sc-radio-base> — ring + dot + optional label. Dot = --_accent. */
+/* <sc-radio-base> — ring + dot + optional label. Dot = --_accent (shared). */
 
-.sc-radio {
+.root {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -10,7 +10,7 @@
   color: var(--color-text-dim);
 }
 
-.sc-radio__ring {
+.ring {
   display: inline-grid;
   place-items: center;
   inline-size: var(--_r, 1rem);
@@ -20,20 +20,20 @@
   transition: border-color var(--transition-fast);
 }
 
-.sc-radio--sm {
+.sm {
   --_r: 0.875rem;
   font-size: var(--font-size-xs);
 }
-.sc-radio--md {
+.md {
   --_r: 1rem;
   font-size: var(--font-size-sm);
 }
-.sc-radio--lg {
+.lg {
   --_r: 1.25rem;
   font-size: var(--font-size-md);
 }
 
-.sc-radio__dot {
+.dot {
   inline-size: 55%;
   block-size: 55%;
   border-radius: 50%;
@@ -42,14 +42,14 @@
   transition: transform var(--transition-fast);
 }
 
-.sc-radio__input:checked ~ .sc-radio__ring {
+.input:checked ~ .ring {
   border-color: var(--_accent);
 }
-.sc-radio__input:checked ~ .sc-radio__ring .sc-radio__dot {
+.input:checked ~ .ring .dot {
   transform: scale(1);
 }
 
-.sc-radio__input:focus-visible ~ .sc-radio__ring {
+.input:focus-visible ~ .ring {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

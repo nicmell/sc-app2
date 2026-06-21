@@ -8,11 +8,13 @@
 // event. The basis for menus/comboboxes/tooltips; sc-select uses the controller
 // directly (same-shadow popovertarget) rather than nesting this.
 
-import { LitElement, html } from "lit";
+import { LitElement, html, unsafeCSS } from "lit";
 import { property } from "lit/decorators.js";
 import type { Placement } from "@floating-ui/dom";
 import { foundationStyles } from "./internal/foundation-styles";
 import { PopoverController } from "./internal/popover-controller";
+import styles from "./sc-popover.module.css";
+import sheet from "./sc-popover.module.css?inline";
 
 export class ScPopoverBase extends LitElement {
   @property({ type: Boolean }) accessor open = false;
@@ -20,7 +22,9 @@ export class ScPopoverBase extends LitElement {
   /** Anchor element (set via JS/React); defaults to the previous element sibling. */
   accessor anchor: HTMLElement | null = null;
 
-  static styles = foundationStyles ? [foundationStyles] : [];
+  // Tokens/reset/base reach the shadow via foundationStyles + :root inheritance;
+  // this component's own (scoped) CSS comes from its module's `?inline` text.
+  static styles = [...(foundationStyles ? [foundationStyles] : []), unsafeCSS(sheet ?? "")];
 
   #popover = new PopoverController(this, {
     placement: this.placement,
@@ -28,7 +32,7 @@ export class ScPopoverBase extends LitElement {
   });
 
   get #panel(): HTMLElement {
-    return this.renderRoot.querySelector(".sc-popover")!;
+    return this.renderRoot.querySelector("." + styles.panel)!;
   }
   get #anchorEl(): HTMLElement | null {
     return this.anchor ?? (this.previousElementSibling as HTMLElement | null);
@@ -55,6 +59,6 @@ export class ScPopoverBase extends LitElement {
   }
 
   render() {
-    return html`<div class="sc-popover"><slot></slot></div>`;
+    return html`<div class=${styles.panel}><slot></slot></div>`;
   }
 }

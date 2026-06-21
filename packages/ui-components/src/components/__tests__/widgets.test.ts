@@ -5,6 +5,10 @@
 
 import { beforeAll, describe, expect, it } from "vitest";
 import { registerUiComponents } from "../index";
+// Components now carry scoped CSS-module class names; import the same modules the
+// components use so assertions reference the identical (vitest-stable) locals.
+import badgeStyles from "../sc-badge.module.css";
+import popoverStyles from "../sc-popover.module.css";
 
 beforeAll(() => {
   registerUiComponents();
@@ -373,14 +377,17 @@ describe("sc-button-base", () => {
 describe("sc-badge-base", () => {
   it("renders the label; ok is the base class with no modifier", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.querySelector(".sc-badge")!;
+    const span = el.querySelector("." + badgeStyles.root)!;
     expect(span.textContent!.trim()).toBe("connected");
-    expect(span.classList.contains("sc-badge--ok")).toBe(false);
+    expect(span.classList.contains(badgeStyles.warn)).toBe(false);
+    expect(span.classList.contains(badgeStyles.error)).toBe(false);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(el.querySelector(".sc-badge")!.classList.contains("sc-badge--error")).toBe(true);
+    expect(
+      el.querySelector("." + badgeStyles.root)!.classList.contains(badgeStyles.error),
+    ).toBe(true);
   });
 });
 
@@ -594,7 +601,7 @@ describe("sc-popover-base", () => {
     el.innerHTML = "<span>menu</span>";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.renderRoot.querySelector(".sc-popover")).not.toBeNull();
+    expect(el.renderRoot.querySelector("." + popoverStyles.panel)).not.toBeNull();
     expect(el.querySelector("span")!.textContent).toBe("menu");
   });
 
@@ -610,7 +617,9 @@ describe("sc-popover-base", () => {
     el.open = true;
     await el.updateComplete;
     // The panel carries the popover attribute (top-layer opt-in) once attached.
-    expect(el.renderRoot.querySelector(".sc-popover")!.getAttribute("popover")).toBe("auto");
+    expect(el.renderRoot.querySelector("." + popoverStyles.panel)!.getAttribute("popover")).toBe(
+      "auto",
+    );
     expect(toggles).toBeGreaterThanOrEqual(0); // toggle event only fires where the API runs
   });
 });

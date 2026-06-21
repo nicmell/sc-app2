@@ -17,6 +17,15 @@ export default defineConfig(() => ({
     target: "es2022",
   },
 
+  // @sc-app/ui-components component styles ship as scoped CSS Modules
+  // (`sc-x.module.css`), imported by each component (resolved to source via the
+  // aliases below). camelCaseOnly so locals read as `styles.stepUp`.
+  css: {
+    modules: {
+      localsConvention: "camelCaseOnly",
+    },
+  },
+
   // react-grid-layout bundles react-draggable, whose drag-start logger reads
   // `process.env.DRAGGABLE_DEBUG` — `process` is undefined in the browser, so it
   // throws on the first drag/resize. Replace the expression with a constant.

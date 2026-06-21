@@ -1,14 +1,14 @@
-/* <sc-popover-base> — anchored top-layer overlay panel. Adopted into the
-   component's shadow root via the shared foundation sheet, so `:host(...)` is
-   scoped to this tag (a bare `:host` would leak across every shadow component
-   that adopts the sheet). The panel is a `popover` element positioned `fixed`
-   by the controller, so the UA centering (margin/inset) is reset. */
+/**
+ * <sc-popover-base> — anchored top-layer overlay panel. Scoped CSS Module
+ * adopted into the component's shadow root (imported `?inline` → `static
+ * styles`). `:host(...)` and the popover panel reset the UA popover centering.
+ */
 
 :host(sc-popover-base) {
   display: inline-block;
 }
 
-.sc-popover {
+.panel {
   /* Undo the UA popover defaults (centered via margin:auto/inset:0). */
   margin: 0;
   inset: auto;

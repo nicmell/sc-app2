@@ -13,6 +13,14 @@ import checkboxStyles from "../sc-checkbox.module.css";
 import sliderStyles from "../sc-slider.module.css";
 import optionStyles from "../sc-option.module.css";
 import radioStyles from "../sc-radio.module.css";
+import iconStyles from "../sc-icon.module.css";
+import buttonStyles from "../sc-button.module.css";
+import toastStyles from "../sc-toast.module.css";
+import chipStyles from "../sc-chip.module.css";
+import inputStyles from "../sc-input.module.css";
+import inputnumberStyles from "../sc-inputnumber.module.css";
+import textareaStyles from "../sc-textarea.module.css";
+import progressStyles from "../sc-progress.module.css";
 import { widgetShared as widget } from "../internal/sc-widget-base";
 
 beforeAll(() => {
@@ -312,7 +320,7 @@ describe("sc-icon-base", () => {
   it("renders the fill icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
     const i = el.querySelector("i")!;
-    expect(i.classList.contains("sc-icon")).toBe(true);
+    expect(i.classList.contains(iconStyles.root)).toBe(true);
     expect(i.classList.contains("ph-fill")).toBe(true);
     expect(i.classList.contains("ph-play")).toBe(true);
     expect(i.getAttribute("aria-hidden")).toBe("true");
@@ -320,7 +328,7 @@ describe("sc-icon-base", () => {
 
   it("applies the size modifier when given", async () => {
     const el = await mount("sc-icon-base", { name: "play", size: "lg" });
-    expect(el.querySelector("i")!.classList.contains("sc-icon--lg")).toBe(true);
+    expect(el.querySelector("i")!.classList.contains(iconStyles.lg)).toBe(true);
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
@@ -337,10 +345,10 @@ describe("sc-button-base", () => {
     const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
     const btn = el.querySelector("button")!;
     expect(btn.getAttribute("type")).toBe("button");
-    expect(btn.classList.contains("sc-button")).toBe(true);
-    expect(btn.classList.contains("sc-button--danger")).toBe(true);
-    expect(btn.classList.contains("sc-button--lg")).toBe(true);
-    expect(el.querySelector(".sc-button__label")!.textContent).toBe("Run");
+    expect(btn.classList.contains(buttonStyles.root)).toBe(true);
+    expect(btn.classList.contains(buttonStyles.danger)).toBe(true);
+    expect(btn.classList.contains(buttonStyles.lg)).toBe(true);
+    expect(el.querySelector("." + buttonStyles.label)!.textContent).toBe("Run");
   });
 
   it("renders leading and trailing icons", async () => {
@@ -356,8 +364,8 @@ describe("sc-button-base", () => {
   it("icon-only: square modifier, no label text, label used as aria-label", async () => {
     const el = await mount("sc-button-base", { icon: "play", iconOnly: true, label: "Play" });
     const btn = el.querySelector("button")!;
-    expect(btn.classList.contains("sc-button--icon")).toBe(true);
-    expect(el.querySelector(".sc-button__label")).toBeNull();
+    expect(btn.classList.contains(buttonStyles.iconOnly)).toBe(true);
+    expect(el.querySelector("." + buttonStyles.label)).toBeNull();
     expect(el.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
     expect(btn.getAttribute("aria-label")).toBe("Play");
   });
@@ -399,21 +407,23 @@ describe("sc-badge-base", () => {
 describe("sc-toast-base", () => {
   it("renders the message; default has no variant modifier", async () => {
     const el = await mount("sc-toast-base", { message: "Saved." });
-    const toast = el.querySelector(".sc-toast")!;
-    expect(el.querySelector(".sc-toast__message")!.textContent!.trim()).toBe("Saved.");
-    expect(toast.className).toBe("sc-toast");
+    const toast = el.querySelector("." + toastStyles.root)!;
+    expect(el.querySelector("." + toastStyles.message)!.textContent!.trim()).toBe("Saved.");
+    expect(toast.className).toBe(toastStyles.root);
   });
 
   it("applies the variant modifier class", async () => {
     const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
-    expect(el.querySelector(".sc-toast")!.classList.contains("sc-toast--warn")).toBe(true);
+    expect(el.querySelector("." + toastStyles.root)!.classList.contains(toastStyles.warn)).toBe(
+      true,
+    );
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
     const el = await mount("sc-toast-base", { message: "x" });
     let dismissed = 0;
     el.addEventListener("dismiss", () => (dismissed += 1));
-    el.querySelector<HTMLButtonElement>(".sc-toast__close")!.click();
+    el.querySelector<HTMLButtonElement>("." + toastStyles.close)!.click();
     expect(dismissed).toBe(1);
   });
 });
@@ -421,17 +431,17 @@ describe("sc-toast-base", () => {
 describe("sc-chip-base", () => {
   it("renders the label; neutral is the base class with no modifier or dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.querySelector(".sc-chip")!;
+    const chip = el.querySelector("." + chipStyles.root)!;
     expect(chip.textContent!.trim()).toBe("idle");
-    expect(chip.className).toBe("sc-chip");
-    expect(el.querySelector(".sc-chip__dot")).toBeNull();
+    expect(chip.className).toBe(chipStyles.root);
+    expect(el.querySelector("." + chipStyles.dot)).toBeNull();
   });
 
   it("applies the variant modifier and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.querySelector(".sc-chip")!;
-    expect(chip.classList.contains("sc-chip--ok")).toBe(true);
-    expect(el.querySelector(".sc-chip__dot")).not.toBeNull();
+    const chip = el.querySelector("." + chipStyles.root)!;
+    expect(chip.classList.contains(chipStyles.ok)).toBe(true);
+    expect(el.querySelector("." + chipStyles.dot)).not.toBeNull();
   });
 });
 
@@ -440,8 +450,8 @@ describe("sc-input-base", () => {
     const el = await mount("sc-input-base", { size: "lg", placeholder: "name" });
     const input = el.querySelector("input")!;
     expect(input.type).toBe("text");
-    expect(input.classList.contains("sc-input")).toBe(true);
-    expect(input.classList.contains("sc-input--lg")).toBe(true);
+    expect(input.classList.contains(inputStyles.root)).toBe(true);
+    expect(input.classList.contains(inputStyles.lg)).toBe(true);
     expect(input.placeholder).toBe("name");
   });
 
@@ -461,21 +471,21 @@ describe("sc-inputnumber-base", () => {
   it("renders a number input plus two stepper buttons", async () => {
     const el = await mount("sc-inputnumber-base", { value: 2 });
     expect(el.querySelector("input")!.type).toBe("number");
-    expect(el.querySelectorAll(".sc-inputnumber__step").length).toBe(2);
+    expect(el.querySelectorAll("." + inputnumberStyles.step).length).toBe(2);
   });
 
   it("steps up by `step`, firing native change with the new value", async () => {
     const el = await mount("sc-inputnumber-base", { value: 0, step: 1, max: 5 });
     const changes: number[] = [];
     el.addEventListener("change", (e) => changes.push(Number((e.target as HTMLInputElement).value)));
-    el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0].click();
+    el.querySelectorAll<HTMLButtonElement>("." + inputnumberStyles.step)[0].click();
     expect(el.value).toBe(1);
     expect(changes).toEqual([1]);
   });
 
   it("clamps to max at the bound", async () => {
     const el = await mount("sc-inputnumber-base", { value: 4.5, step: 1, max: 5 });
-    const up = el.querySelectorAll<HTMLButtonElement>(".sc-inputnumber__step")[0];
+    const up = el.querySelectorAll<HTMLButtonElement>("." + inputnumberStyles.step)[0];
     up.click(); // 4.5 → clamp(quantize(5.5)) = 5
     up.click(); // already 5 → no-op
     expect(el.value).toBe(5);
@@ -492,8 +502,8 @@ describe("sc-inputnumber-base", () => {
 
   it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
     const el = await mount("sc-inputnumber-base", { value: 1 });
-    expect(el.querySelector(".sc-inputnumber__step--up")).not.toBeNull();
-    expect(el.querySelector(".sc-inputnumber__step--down")).not.toBeNull();
+    expect(el.querySelector("." + inputnumberStyles.stepUp)).not.toBeNull();
+    expect(el.querySelector("." + inputnumberStyles.stepDown)).not.toBeNull();
   });
 });
 
@@ -502,8 +512,8 @@ describe("sc-textarea-base", () => {
     const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
     const ta = el.querySelector("textarea")!;
     expect(ta.getAttribute("rows")).toBe("5");
-    expect(ta.classList.contains("sc-textarea")).toBe(true);
-    expect(ta.classList.contains("sc-textarea--lg")).toBe(true);
+    expect(ta.classList.contains(textareaStyles.root)).toBe(true);
+    expect(ta.classList.contains(textareaStyles.lg)).toBe(true);
     expect(ta.placeholder).toBe("notes");
   });
 
@@ -808,9 +818,9 @@ describe("a11y wiring", () => {
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
     const el = await mount("sc-toast-base", { variant: "error" });
-    expect(el.querySelector(".sc-toast")!.getAttribute("role")).toBe("alert");
+    expect(el.querySelector("." + toastStyles.root)!.getAttribute("role")).toBe("alert");
     const info = await mount("sc-toast-base", { variant: "info" });
-    expect(info.querySelector(".sc-toast")!.getAttribute("role")).toBe("status");
+    expect(info.querySelector("." + toastStyles.root)!.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
@@ -826,48 +836,52 @@ describe("a11y wiring", () => {
 describe("sc-progress-base", () => {
   it("defaults to an indeterminate bar (role=progressbar, busy, no valuenow)", async () => {
     const el = await mount("sc-progress-base");
-    const bar = el.querySelector(".sc-progress")!;
-    expect(bar.classList.contains("sc-progress--bar")).toBe(true);
-    expect(bar.classList.contains("is-indeterminate")).toBe(true);
+    const bar = el.querySelector("." + progressStyles.bar)!;
+    expect(bar.classList.contains(progressStyles.indeterminate)).toBe(true);
     expect(bar.getAttribute("role")).toBe("progressbar");
     expect(bar.getAttribute("aria-busy")).toBe("true");
     expect(bar.hasAttribute("aria-valuenow")).toBe(false);
-    expect(el.querySelector(".sc-progress__fill")).not.toBeNull();
+    expect(el.querySelector("." + progressStyles.fill)).not.toBeNull();
   });
 
   it("with a value becomes determinate: rounded aria-valuenow + a fill width", async () => {
     const el = await mount("sc-progress-base", { value: 60 });
-    const bar = el.querySelector(".sc-progress")!;
-    expect(bar.classList.contains("is-determinate")).toBe(true);
+    const bar = el.querySelector("." + progressStyles.bar)!;
+    expect(bar.classList.contains(progressStyles.determinate)).toBe(true);
     expect(bar.hasAttribute("aria-busy")).toBe(false);
     expect(bar.getAttribute("aria-valuenow")).toBe("60");
     expect(bar.getAttribute("aria-valuemax")).toBe("100");
-    expect((el.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("60%");
+    expect((el.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe("60%");
   });
 
   it("clamps value to [0,max] for the fill width and honours a custom max", async () => {
     const over = await mount("sc-progress-base", { value: 9999 });
-    expect((over.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("100%");
+    expect((over.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe("100%");
     const scaled = await mount("sc-progress-base", { value: 5, max: 10 });
-    expect((scaled.querySelector(".sc-progress__fill") as HTMLElement).style.width).toBe("50%");
-    expect(scaled.querySelector(".sc-progress")!.getAttribute("aria-valuemax")).toBe("10");
+    expect((scaled.querySelector("." + progressStyles.fill) as HTMLElement).style.width).toBe(
+      "50%",
+    );
+    expect(scaled.querySelector("." + progressStyles.bar)!.getAttribute("aria-valuemax")).toBe("10");
   });
 
   it("spinner variant renders the ring host itself with the determinate angle", async () => {
     const indet = await mount("sc-progress-base", { variant: "spinner" });
-    const ring = indet.querySelector(".sc-progress")!;
-    expect(ring.classList.contains("sc-progress--spinner")).toBe(true);
-    expect(ring.classList.contains("is-indeterminate")).toBe(true);
-    expect(indet.querySelector(".sc-progress__fill")).toBeNull();
+    const ring = indet.querySelector("." + progressStyles.spinner)!;
+    expect(ring.classList.contains(progressStyles.indeterminate)).toBe(true);
+    expect(indet.querySelector("." + progressStyles.fill)).toBeNull();
 
     const det = await mount("sc-progress-base", { variant: "spinner", value: 75 });
-    expect((det.querySelector(".sc-progress") as HTMLElement).style.getPropertyValue("--_pct")).toBe(
-      "75",
-    );
+    expect(
+      (det.querySelector("." + progressStyles.spinner) as HTMLElement).style.getPropertyValue(
+        "--_pct",
+      ),
+    ).toBe("75");
   });
 
   it("carries the label as the accessible name", async () => {
     const el = await mount("sc-progress-base", { label: "Connecting…" });
-    expect(el.querySelector(".sc-progress")!.getAttribute("aria-label")).toBe("Connecting…");
+    expect(el.querySelector("." + progressStyles.bar)!.getAttribute("aria-label")).toBe(
+      "Connecting…",
+    );
   });
 });

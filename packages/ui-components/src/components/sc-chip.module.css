@@ -1,12 +1,11 @@
 /**
- * .sc-chip — small rounded status label (tinted pill + optional leading dot).
- * Rendered by <sc-chip-base>; the variant is a classnames modifier, the dot is
- * an opt-in element. neutral is the default (the base `.sc-chip`).
- *
- * Variants: neutral (default) | ok | warn | error | info.
+ * <sc-chip-base> — small rounded status label (tinted pill + optional leading
+ * dot). Scoped CSS Module: `root` is the base chip (the `neutral` default),
+ * `ok`/`warn`/`error`/`info` are the variant modifiers, `dot` the opt-in
+ * leading dot. Light DOM, so Vite injects this (hashed) CSS globally.
  */
 
-.sc-chip {
+.root {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -19,44 +18,44 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sc-chip__dot {
+.dot {
   font-size: 0.7em;
   line-height: 1;
   color: var(--color-text-mute);
 }
 
-.sc-chip--ok {
+.ok {
   background: var(--color-ok-bg);
   border-color: var(--color-ok-strong);
   color: var(--color-ok-text);
 }
-.sc-chip--ok .sc-chip__dot {
+.ok .dot {
   color: var(--color-ok);
 }
 
-.sc-chip--warn {
+.warn {
   background: var(--color-warn-bg);
   border-color: var(--color-warn-border);
   color: var(--color-warn-text);
 }
-.sc-chip--warn .sc-chip__dot {
+.warn .dot {
   color: var(--color-warn);
 }
 
-.sc-chip--error {
+.error {
   background: var(--color-error-bg);
   border-color: var(--color-error-border);
   color: var(--color-error-text);
 }
-.sc-chip--error .sc-chip__dot {
+.error .dot {
   color: var(--color-danger);
 }
 
-.sc-chip--info {
+.info {
   background: var(--color-info-bg);
   border-color: var(--color-info-border);
   color: var(--color-info-text);
 }
-.sc-chip--info .sc-chip__dot {
+.info .dot {
   color: var(--color-primary);
 }

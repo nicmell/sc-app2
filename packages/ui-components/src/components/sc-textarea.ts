@@ -9,6 +9,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "./sc-input";
+import styles from "./sc-textarea.module.css";
 
 export class ScTextareaBase extends LitElement {
   @property() accessor value = "";
@@ -28,7 +29,7 @@ export class ScTextareaBase extends LitElement {
 
   render() {
     return html`<textarea
-      class=${cx("sc-textarea", `sc-textarea--${this.size}`)}
+      class=${cx(styles.root, styles[this.size])}
       rows=${this.rows}
       name=${this.name}
       placeholder=${this.placeholder}

@@ -11,6 +11,7 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
+import styles from "./sc-icon.module.css";
 
 export type ScIconSize = "sm" | "md" | "lg";
 
@@ -28,8 +29,8 @@ export class ScIconBase extends LitElement {
   }
 
   render() {
-    const cls = cx("sc-icon", "ph-fill", `ph-${this.name}`, {
-      [`sc-icon--${this.size}`]: this.size,
+    const cls = cx(styles.root, "ph-fill", `ph-${this.name}`, {
+      [styles[this.size ?? ""]]: this.size,
     });
     return this.label
       ? html`<i class=${cls} role="img" aria-label=${this.label}></i>`

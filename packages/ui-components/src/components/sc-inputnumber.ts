@@ -9,6 +9,8 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "./sc-input";
+import inputStyles from "./sc-input.module.css";
+import styles from "./sc-inputnumber.module.css";
 
 export class ScInputNumberBase extends LitElement {
   @property({ type: Number }) accessor value = 0;
@@ -66,12 +68,12 @@ export class ScInputNumberBase extends LitElement {
   render() {
     return html`
       <div
-        class=${cx("sc-inputnumber", `sc-inputnumber--${this.size}`, {
-          "sc-inputnumber--disabled": this.disabled,
+        class=${cx(styles.root, styles[this.size], {
+          [styles.disabled]: this.disabled,
         })}
       >
         <input
-          class="sc-input sc-inputnumber__field"
+          class=${cx(inputStyles.root, styles.field)}
           type="number"
           name=${this.name}
           placeholder=${this.placeholder}
@@ -83,26 +85,26 @@ export class ScInputNumberBase extends LitElement {
           @input=${this._onInput}
           @change=${this._onChange}
         />
-        <span class="sc-inputnumber__spinners">
+        <span class=${styles.spinners}>
           <button
             type="button"
-            class="sc-inputnumber__step sc-inputnumber__step--up"
+            class=${cx(styles.step, styles.stepUp)}
             tabindex="-1"
             aria-label="Increment"
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(1)}
           >
-            <span class="sc-inputnumber__arrow sc-inputnumber__arrow--up"></span>
+            <span class=${cx(styles.arrow, styles.arrowUp)}></span>
           </button>
           <button
             type="button"
-            class="sc-inputnumber__step sc-inputnumber__step--down"
+            class=${cx(styles.step, styles.stepDown)}
             tabindex="-1"
             aria-label="Decrement"
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(-1)}
           >
-            <span class="sc-inputnumber__arrow sc-inputnumber__arrow--down"></span>
+            <span class=${cx(styles.arrow, styles.arrowDown)}></span>
           </button>
         </span>
       </div>

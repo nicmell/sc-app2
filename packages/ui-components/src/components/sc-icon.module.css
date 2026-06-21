@@ -1,0 +1,26 @@
+/* <sc-icon-base> — sizing/colour for the Phosphor icon-font glyph. Scoped CSS
+   Module: `root` is the base glyph, `sm`/`md`/`lg` the size modifiers. The
+   actual glyph (font-family + ::before codepoint) comes from
+   @phosphor-icons/web's global `.ph-fill` / `.ph-<name>` rules (kept literal in
+   the component), which the host loads separately. Light DOM, so Vite injects
+   this (hashed) CSS globally. */
+
+:where(sc-icon-base) {
+  display: inline-flex;
+}
+
+.root {
+  font-size: inherit;
+  line-height: 1;
+  color: inherit;
+}
+
+.sm {
+  font-size: var(--font-size-xs);
+}
+.md {
+  font-size: var(--font-size-sm);
+}
+.lg {
+  font-size: var(--font-size-lg);
+}

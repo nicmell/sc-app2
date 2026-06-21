@@ -7,6 +7,7 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
+import styles from "./sc-toast.module.css";
 
 export type ScToastVariant = "default" | "success" | "warn" | "error" | "info";
 
@@ -23,13 +24,13 @@ export class ScToastBase extends LitElement {
   };
 
   render() {
-    const cls = cx("sc-toast", { [`sc-toast--${this.variant}`]: this.variant !== "default" });
+    const cls = cx(styles.root, { [styles[this.variant]]: this.variant !== "default" });
     // Errors/warnings interrupt (assertive); info/success/default are polite.
     const role = this.variant === "error" || this.variant === "warn" ? "alert" : "status";
     return html`
       <div class=${cls} role=${role}>
-        <span class="sc-toast__message">${this.message}</span>
-        <button type="button" class="sc-toast__close" aria-label="Dismiss" @click=${this._dismiss}>
+        <span class=${styles.message}>${this.message}</span>
+        <button type="button" class=${styles.close} aria-label="Dismiss" @click=${this._dismiss}>
           ×
         </button>
       </div>

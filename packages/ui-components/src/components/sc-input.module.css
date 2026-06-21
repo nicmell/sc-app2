@@ -1,23 +1,26 @@
-/* <sc-input-base> / <sc-inputnumber-base> field chrome. The bare input{} rule
+/* <sc-input-base> / <sc-inputnumber-base> field chrome. Scoped CSS Module:
+   `root` is the field, `sm`/`md`/`lg` the size modifiers. The bare input{} rule
    (base/elements.css) already gives the surface fill, border, focus ring, and
-   mono font; `.sc-input` only tunes sizing. */
+   mono font; `root` only tunes sizing. Light DOM, so Vite injects this (hashed)
+   CSS globally. (sc-inputnumber imports this module too — its field reuses
+   `root`.) */
 
 :where(sc-input-base, sc-inputnumber-base) {
   display: inline-block;
 }
 
-.sc-input {
+.root {
   box-sizing: border-box;
 }
 
-.sc-input--sm {
+.sm {
   padding: var(--space-3xs) var(--space-2xs);
   font-size: var(--font-size-xs);
 }
-.sc-input--md {
+.md {
   font-size: var(--font-size-sm);
 }
-.sc-input--lg {
+.lg {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-md);
 }

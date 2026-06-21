@@ -8,6 +8,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
+import styles from "./sc-input.module.css";
 
 export type ScInputSize = "sm" | "md" | "lg";
 
@@ -30,7 +31,7 @@ export class ScInputBase extends LitElement {
 
   render() {
     return html`<input
-      class=${cx("sc-input", `sc-input--${this.size}`)}
+      class=${cx(styles.root, styles[this.size])}
       type=${this.type}
       name=${this.name}
       placeholder=${this.placeholder}

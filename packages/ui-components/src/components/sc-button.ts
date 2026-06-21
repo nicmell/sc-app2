@@ -10,6 +10,7 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "./internal/sc-widget-base";
+import styles from "./sc-button.module.css";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -34,8 +35,8 @@ export class ScButtonBase extends LitElement {
 
   render() {
     const iconOnly = this.iconOnly && !!this.icon;
-    const cls = cx("sc-button", `sc-button--${this.variant}`, `sc-button--${this.size}`, {
-      "sc-button--icon": iconOnly,
+    const cls = cx(styles.root, styles[this.variant], styles[this.size], {
+      [styles.iconOnly]: iconOnly,
     });
     return html`
       <button
@@ -48,7 +49,7 @@ export class ScButtonBase extends LitElement {
         ${iconOnly
           ? nothing
           : this.label
-            ? html`<span class="sc-button__label">${this.label}</span>`
+            ? html`<span class=${styles.label}>${this.label}</span>`
             : nothing}
         ${!iconOnly && this.trailingIcon
           ? html`<sc-icon-base name=${this.trailingIcon}></sc-icon-base>`

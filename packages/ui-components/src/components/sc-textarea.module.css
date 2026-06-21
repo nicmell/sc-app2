@@ -1,24 +1,26 @@
-/* <sc-textarea-base> — multi-line field. The bare textarea{} rule
+/* <sc-textarea-base> — multi-line field. Scoped CSS Module: `root` is the
+   field, `sm`/`md`/`lg` the size modifiers. The bare textarea{} rule
    (base/elements.css) gives the surface fill, border, focus ring, sans font,
-   and vertical resize; `.sc-textarea` makes it fill the host and tunes sizing. */
+   and vertical resize; `root` makes it fill the host and tunes sizing. Light
+   DOM, so Vite injects this (hashed) CSS globally. */
 
 :where(sc-textarea-base) {
   display: block;
 }
 
-.sc-textarea {
+.root {
   box-sizing: border-box;
   inline-size: 100%;
 }
 
-.sc-textarea--sm {
+.sm {
   padding: var(--space-3xs) var(--space-2xs);
   font-size: var(--font-size-xs);
 }
-.sc-textarea--md {
+.md {
   font-size: var(--font-size-sm);
 }
-.sc-textarea--lg {
+.lg {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-md);
 }

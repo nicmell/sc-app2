@@ -1,14 +1,17 @@
 /* <sc-button-base> — appearance variants (primary/secondary/ghost/danger) +
    sizes, with leading/trailing <sc-icon-base> and an icon-only square mode.
-   Class selectors override the bare button{} base rule. Filled variants darken
-   on hover via their -hover tokens; ghost/secondary shift their border rather
-   than gaining a solid fill on hover. */
+   Scoped CSS Module: `root` is the base button, `primary`/`secondary`/`ghost`/
+   `danger` the appearance variants, `sm`/`md`/`lg` the sizes, `iconOnly` the
+   square mode, `label` the text part. Class selectors override the bare
+   button{} base rule. Filled variants darken on hover via their -hover tokens;
+   ghost/secondary shift their border rather than gaining a solid fill on hover.
+   Light DOM, so Vite injects this (hashed) CSS globally. */
 
 :where(sc-button-base) {
   display: inline-block;
 }
 
-.sc-button {
+.root {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -28,72 +31,72 @@
 }
 
 /* Sizes */
-.sc-button--sm {
+.sm {
   padding: var(--space-2xs) var(--space-sm);
   font-size: var(--font-size-xs);
 }
-.sc-button--md {
+.md {
   padding: var(--space-xs) var(--space-md);
   font-size: var(--font-size-sm);
 }
-.sc-button--lg {
+.lg {
   padding: var(--space-sm) var(--space-lg);
   font-size: var(--font-size-md);
 }
 
 /* Icon-only: square, equal padding. */
-.sc-button--icon {
+.iconOnly {
   padding: var(--space-xs);
 }
-.sc-button--icon.sc-button--sm {
+.iconOnly.sm {
   padding: var(--space-2xs);
 }
-.sc-button--icon.sc-button--lg {
+.iconOnly.lg {
   padding: var(--space-sm);
 }
 
 /* Variants */
-.sc-button--primary {
+.primary {
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
-.sc-button--primary:hover:not(:disabled) {
+.primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
 }
 
-.sc-button--secondary {
+.secondary {
   background: var(--color-surface-2);
   color: var(--color-text);
   border-color: var(--color-border-strong);
 }
-.sc-button--secondary:hover:not(:disabled) {
+.secondary:hover:not(:disabled) {
   border-color: var(--color-border-stronger);
 }
 
-.sc-button--ghost {
+.ghost {
   background: transparent;
   color: var(--color-text);
   border-color: var(--color-border-stronger);
 }
-.sc-button--ghost:hover:not(:disabled) {
+.ghost:hover:not(:disabled) {
   border-color: var(--color-border-focus);
 }
 
-.sc-button--danger {
+.danger {
   background: var(--color-danger);
   color: var(--color-on-primary);
 }
-.sc-button--danger:hover:not(:disabled) {
+.danger:hover:not(:disabled) {
   background: var(--color-danger-hover);
 }
 
-.sc-button:disabled {
+.root:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Keyboard focus ring (mouse focus stays quiet). */
-.sc-button:focus-visible {
+.root:focus-visible {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }

@@ -6,6 +6,7 @@
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
+import styles from "./sc-chip.module.css";
 
 export type ScChipVariant = "neutral" | "ok" | "warn" | "error" | "info";
 
@@ -20,9 +21,9 @@ export class ScChipBase extends LitElement {
   }
 
   render() {
-    const cls = cx("sc-chip", { [`sc-chip--${this.variant}`]: this.variant !== "neutral" });
+    const cls = cx(styles.root, { [styles[this.variant]]: this.variant !== "neutral" });
     return html`<span class=${cls}
-      >${this.dot ? html`<span class="sc-chip__dot" aria-hidden="true">●</span>` : nothing}${this
+      >${this.dot ? html`<span class=${styles.dot} aria-hidden="true">●</span>` : nothing}${this
         .label}</span
     >`;
   }

@@ -3,9 +3,9 @@
 // ring). Each works in two modes, chosen by whether `value` is set:
 //   • indeterminate (value unset) — animated; "we're working, no ETA".
 //   • determinate (value 0…max)   — fills to value/max; "we're 60% done".
-// Light DOM (like the other display components) so the foundation classes in
-// foundations/components/sc-progress.css style the rendered markup. The accent
-// follows --color-primary; track follows --color-surface-3.
+// Light DOM (like the other display components) so the scoped CSS module
+// (sc-progress.module.css, injected globally by Vite) styles the rendered
+// markup. The accent follows --color-primary; track follows --color-surface-3.
 //
 // Accessibility: role="progressbar" with aria-valuemin/max/now when
 // determinate (now is dropped + aria-busy set when indeterminate), and an
@@ -16,6 +16,7 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
+import styles from "./sc-progress.module.css";
 
 export type ScProgressVariant = "bar" | "spinner";
 export type ScProgressSize = "sm" | "md" | "lg";
@@ -32,7 +33,7 @@ export class ScProgressBase extends LitElement {
   /** Accessible name for the indicator. */
   @property() accessor label = "Loading…";
 
-  /** Light DOM so the global `.sc-progress*` classes apply. */
+  /** Light DOM so the scoped module's (globally injected) classes apply. */
   protected createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
   }
@@ -48,11 +49,10 @@ export class ScProgressBase extends LitElement {
     const pct = this.pct;
     const indeterminate = pct === null;
     const cls = classMap({
-      "sc-progress": true,
-      [`sc-progress--${this.variant}`]: true,
-      [`sc-progress--${this.size}`]: true,
-      "is-indeterminate": indeterminate,
-      "is-determinate": !indeterminate,
+      [styles[this.variant]]: true,
+      [styles[this.size]]: true,
+      [styles.indeterminate]: indeterminate,
+      [styles.determinate]: !indeterminate,
     });
     const valueNow = indeterminate ? nothing : String(Math.round(this.value as number));
     const busy = indeterminate ? "true" : nothing;
@@ -83,7 +83,7 @@ export class ScProgressBase extends LitElement {
       aria-valuenow=${valueNow}
       aria-busy=${busy}
     >
-      <div class="sc-progress__fill" style=${fillStyle}></div>
+      <div class=${styles.fill} style=${fillStyle}></div>
     </div>`;
   }
 }

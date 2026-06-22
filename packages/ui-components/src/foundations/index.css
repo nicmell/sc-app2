@@ -2,9 +2,12 @@
  * @sc-app/ui-components — foundation entry point (the full sheet, for plain-CSS
  * consumers and the light-DOM app shell via `adoptFoundation()`).
  *
- * Split into two layers so shadow-DOM components can adopt only what they need:
- *   - tokens.css — design tokens + theme palette (the document/inherited layer)
- *   - shell.css  — reset + bare element styles (the per-shadow layer)
+ * Layers:
+ *   - tokens.css         — design tokens + theme palette (document/inherited)
+ *   - shell.css          — reset + bare interactive/form element styles (the
+ *                          per-shadow layer components adopt)
+ *   - base/typography.css — headings/p/code/a (document only — never used inside
+ *                          a shadow, but needed for the app shell + slotted content)
  *
  * The component layer is not aggregated here — each component's styles are Lit
  * `css` co-located beside its .ts and adopted via `static styles`.
@@ -12,3 +15,4 @@
 
 @import "./tokens.css";
 @import "./shell.css";
+@import "./base/typography.css";

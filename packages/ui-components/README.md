@@ -200,18 +200,24 @@ import { styles } from "./sc-x.styles";
 static styles = [foundations, styles];          // adopted into the shadow root
 ```
 
-`internal/foundation-styles.ts` splits the foundation into two layers:
+`internal/foundation-styles.ts` splits the foundation into layers so a shadow
+adopts only what it can actually use:
 
-- **shell** (`shell.css` — reset + bare `input{}`/`button{}`/`details{}`/… element
-  styles) is the shared `foundations` sheet adopted into **every** component's
-  shadow, so a bare element already looks right there.
+- **shell** (`shell.css` — reset + bare interactive/form element styles:
+  `input{}`/`button{}`/`textarea{}`/`details{}`/`label{}`/…) is the shared
+  `foundations` sheet adopted into **every** component's shadow, so a bare element
+  already looks right there.
 - **tokens** (`tokens.css` — design tokens + theme palette) lives on the
   **document**: `:root` doesn't match inside a shadow, but custom properties
   inherit across the boundary, so document tokens resolve in every shadow. The
   module **self-bootstraps** this — importing any component calls
   `ensureTokens(document)` (idempotent, reset-free), so `var(--…)` resolves with
-  no consumer setup. `adoptFoundation()` adds both layers to the document for the
-  light-DOM app shell.
+  no consumer setup.
+- **typography** (`base/typography.css` — `h1–h6`/`p`/`code`/`a`) is **document
+  only**: those elements are never rendered inside a component's shadow (slotted
+  content is light DOM), so keeping them out of `foundations` avoids dead rules in
+  every shadow. `adoptFoundation()` adds all three layers to the document for the
+  light-DOM app shell + slotted content.
 
 Class names are literal but **shadow-scoped**, so they never collide across
 components and there's no build-time hashing to keep in sync.

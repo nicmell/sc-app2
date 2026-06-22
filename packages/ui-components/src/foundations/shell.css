@@ -1,11 +1,16 @@
 /**
- * Shell layer — the reset + bare HTML element styles a component needs inside
- * its shadow root (so a bare <button>/<input>/<details> already looks right
- * there). This is the layer adopted into every component's shadow (as the shared
- * `foundations` sheet). It references tokens via `var(--…)`, which resolve
- * through inheritance from the document's token layer.
+ * Shell layer — the reset + bare interactive/form element styles a component
+ * needs inside its shadow root (so a bare <button>/<input>/<textarea>/<details>/
+ * <label> already looks right there). This is the layer adopted into every
+ * component's shadow (as the shared `foundations` sheet). It references tokens
+ * via `var(--…)`, which resolve through inheritance from the document's token
+ * layer.
+ *
+ * Typography (headings/p/code/a) is NOT here — those elements are never rendered
+ * inside a component's shadow (slotted content is light DOM), so they'd be dead
+ * rules in every shadow. They live in the document layer (base/typography.css,
+ * pulled in by index.css / adoptFoundation) for the app shell + slotted content.
  */
 
 @import "./reset.css";
 @import "./base/elements.css";
-@import "./base/typography.css";

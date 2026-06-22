@@ -30,7 +30,9 @@ src/
                                 renders a shadow tree using literal class names
     sc-<tag>/sc-<tag>.styles.ts the component's own Lit `css` (`export const styles`)
     index.ts               element barrel + registerUiComponents()
-    internal/foundation-styles.ts   the one shared `foundations` sheet (+ adoptFoundation)
+    internal/foundation-styles.ts   shell sheet (`foundations`, into shadows) + tokens
+                                     layer (ensureTokens, self-bootstrapped onto the document)
+    internal/events.ts               relay(): re-emit a composed input/change from the host
     internal/widget-base.styles.ts  shared widget css (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
     internal/icon-font.ts            adopts the Phosphor glyph CSS into the icon's shadow
@@ -49,11 +51,12 @@ src/
 ## Using the components
 
 ```ts
-// 1. foundation (once, at app boot) — adopt the tokens + reset + base sheet onto
-//    the document so the light-DOM app shell + token :root inheritance work.
-//    (Every component also adopts `foundations` into its own shadow root.)
+// 1. tokens self-bootstrap: importing/registering any component puts the design
+//    tokens on the document automatically, so components render with resolved
+//    colors out of the box (no setup). Only call adoptFoundation() if you ALSO
+//    want the reset + base element styles on your light-DOM app shell:
 import { adoptFoundation } from "@sc-app/ui-components/lit";
-adoptFoundation();
+adoptFoundation();                 // optional — for the host app's own markup
 
 // 2a. as web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
@@ -197,13 +200,21 @@ import { styles } from "./sc-x.styles";
 static styles = [foundations, styles];          // adopted into the shadow root
 ```
 
-`internal/foundation-styles.ts` builds the foundation CSS (`index.css?inline` —
-tokens + reset + base) into the single shared `foundations` sheet. It is adopted
-into **every** component's shadow (so reset + bare `input{}`/`button{}`/etc.
-element styles reach the shadow) and onto the **document** via `adoptFoundation()`
-(for the app shell + so tokens defined at `:root` inherit across every shadow
-boundary). Class names are literal but **shadow-scoped**, so they never collide
-across components and there's no build-time hashing to keep in sync.
+`internal/foundation-styles.ts` splits the foundation into two layers:
+
+- **shell** (`shell.css` — reset + bare `input{}`/`button{}`/`details{}`/… element
+  styles) is the shared `foundations` sheet adopted into **every** component's
+  shadow, so a bare element already looks right there.
+- **tokens** (`tokens.css` — design tokens + theme palette) lives on the
+  **document**: `:root` doesn't match inside a shadow, but custom properties
+  inherit across the boundary, so document tokens resolve in every shadow. The
+  module **self-bootstraps** this — importing any component calls
+  `ensureTokens(document)` (idempotent, reset-free), so `var(--…)` resolves with
+  no consumer setup. `adoptFoundation()` adds both layers to the document for the
+  light-DOM app shell.
+
+Class names are literal but **shadow-scoped**, so they never collide across
+components and there's no build-time hashing to keep in sync.
 
 Two notes on shadow-DOM styling:
 

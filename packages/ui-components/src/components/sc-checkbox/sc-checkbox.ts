@@ -10,6 +10,7 @@ import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
 import { widgetStyles } from "../internal/widget-base.styles";
+import { relay } from "../internal/events";
 import { styles } from "./sc-checkbox.styles";
 
 export class ScCheckboxBase extends ScWidgetBase {
@@ -18,11 +19,10 @@ export class ScCheckboxBase extends ScWidgetBase {
   @property({ type: Boolean }) accessor checked = false;
   @property() accessor label = "";
 
-  // Sync the property, then re-emit a composed `change` from the host.
-  private _onChange = (e: Event): void => {
-    e.stopPropagation();
+  // Sync the property, then re-emit the composed event from the host.
+  private _relay = (e: Event): void => {
     this.checked = (e.target as HTMLInputElement).checked;
-    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    relay(this, e, e.type as "input" | "change");
   };
 
   render() {
@@ -34,7 +34,8 @@ export class ScCheckboxBase extends ScWidgetBase {
           name=${this.name}
           .checked=${live(this.checked)}
           ?disabled=${this.disabled}
-          @change=${this._onChange}
+          @input=${this._relay}
+          @change=${this._relay}
         />
         <span class="box"><span class="check"></span></span>
         ${this.label ? html`<span>${this.label}</span>` : ""}

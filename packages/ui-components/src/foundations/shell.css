@@ -1,0 +1,11 @@
+/**
+ * Shell layer — the reset + bare HTML element styles a component needs inside
+ * its shadow root (so a bare <button>/<input>/<details> already looks right
+ * there). This is the layer adopted into every component's shadow (as the shared
+ * `foundations` sheet). It references tokens via `var(--…)`, which resolve
+ * through inheritance from the document's token layer.
+ */
+
+@import "./reset.css";
+@import "./base/elements.css";
+@import "./base/typography.css";

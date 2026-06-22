@@ -10,6 +10,7 @@ import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
 import { foundations } from "../internal/foundation-styles";
+import { relay } from "../internal/events";
 import { styles } from "./sc-textarea.styles";
 
 export class ScTextareaBase extends LitElement {
@@ -23,14 +24,12 @@ export class ScTextareaBase extends LitElement {
   @property({ type: Boolean }) accessor disabled = false;
 
   private _onInput = (e: Event): void => {
-    e.stopPropagation();
     this.value = (e.target as HTMLTextAreaElement).value;
-    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    relay(this, e, "input");
   };
 
   private _onChange = (e: Event): void => {
-    e.stopPropagation();
-    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    relay(this, e, "change");
   };
 
   render() {

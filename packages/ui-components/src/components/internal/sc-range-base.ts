@@ -17,6 +17,7 @@
 
 import { property } from "lit/decorators.js";
 import { ScWidgetBase } from "./sc-widget-base";
+import { relay } from "./events";
 
 export abstract class ScRangeBase extends ScWidgetBase {
   @property({ type: Number }) accessor value = 0;
@@ -55,15 +56,13 @@ export abstract class ScRangeBase extends ScWidgetBase {
    *  visual) and re-emit a composed `input` from the host (the native event
    *  doesn't cross the shadow boundary). Bind as the input's `@input` handler. */
   protected onRangeInput = (e: Event): void => {
-    e.stopPropagation();
     this.value = Number(this.input.value);
-    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    relay(this, e, "input");
   };
 
   /** Re-emit a composed `change` from the host. Bind as the input's `@change`. */
   protected onRangeChange = (e: Event): void => {
-    e.stopPropagation();
-    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    relay(this, e, "change");
   };
 
   /** Quantise to `step`, clamp to range. */

@@ -10,6 +10,7 @@ import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
 import { foundations } from "../internal/foundation-styles";
+import { relay } from "../internal/events";
 import { styles } from "./sc-inputnumber.styles";
 
 export class ScInputNumberBase extends LitElement {
@@ -41,20 +42,18 @@ export class ScInputNumberBase extends LitElement {
 
   // Free typing: sync the parsed value (no clamp mid-edit); re-emit composed input.
   private _onInput = (e: Event): void => {
-    e.stopPropagation();
     const n = Number.parseFloat((e.target as HTMLInputElement).value);
     if (!Number.isNaN(n)) this.value = n;
-    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    relay(this, e, "input");
   };
 
   // Commit (blur/Enter): clamp + reconcile the field; re-emit composed change.
   private _onChange = (e: Event): void => {
-    e.stopPropagation();
     const n = Number.parseFloat(this._input.value);
     const v = Number.isNaN(n) ? this.value : this._clamp(n);
     this.value = v;
     this._input.value = String(v);
-    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    relay(this, e, "change");
   };
 
   private _stepBy(dir: 1 | -1): void {

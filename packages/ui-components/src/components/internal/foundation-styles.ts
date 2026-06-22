@@ -1,33 +1,63 @@
-// The foundation CSS as ONE shared constructable stylesheet. Adopt this single
-// object into the document AND into any shadow root — the browser parses/stores
-// it once, and adopting by reference does not copy it. This is the single
-// source of foundation styles for shadow-DOM components (today just sc-select)
-// and, via adoptFoundation(document), for the whole app.
+// The foundation as constructable stylesheets, in two layers:
+//   - tokens  (tokens.css) — design tokens + theme palette. Lives on the
+//     DOCUMENT: `:root` doesn't match inside a shadow, and custom properties
+//     inherit across the boundary, so document tokens resolve in every shadow.
+//   - shell   (shell.css)  — reset + bare element styles a component needs in
+//     its own shadow. This is the shared `foundations` sheet every component
+//     adopts via `static styles = [foundations, styles]`.
+//
+// Components self-bootstrap the token layer onto the document (see ensureTokens +
+// the module-load call below), so `var(--…)` resolves even when the consumer
+// never calls adoptFoundation(). Adopting the token layer is safe — it imposes
+// no reset, only custom-property definitions.
 //
 // `undefined` only in environments without constructable-stylesheet support
 // (guarded so importing this never throws under test runners).
 
 import { css, type CSSResultOrNative } from "lit";
-import foundationCss from "../../foundations/index.css?inline";
+import tokensCss from "../../foundations/tokens.css?inline";
+import shellCss from "../../foundations/shell.css?inline";
 
-export const foundationStyles: CSSStyleSheet | undefined = (() => {
+function build(text: string): CSSStyleSheet | undefined {
   try {
     const sheet = new CSSStyleSheet();
-    sheet.replaceSync(foundationCss);
+    sheet.replaceSync(text);
     return sheet;
   } catch {
     return undefined;
   }
-})();
+}
 
-/** The ONE shared foundation, ready to drop into any component's `static styles`
- *  (`static styles = [foundations, styles]`). Always a valid entry — falls back
- *  to an empty sheet where constructable stylesheets are unavailable. */
-export const foundations: CSSResultOrNative = foundationStyles ?? css``;
+const tokensSheet = build(tokensCss);
+const shellSheet = build(shellCss);
 
-/** Adopt the shared foundation sheet into a document or shadow root (idempotent).
- *  Call once with `document` at app boot to style the light DOM. */
+function adopt(sheet: CSSStyleSheet | undefined, root: DocumentOrShadowRoot): void {
+  if (!sheet || root.adoptedStyleSheets.includes(sheet)) return;
+  root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
+}
+
+/** Reset + bare element styles — the shared sheet every component adopts into
+ *  its shadow (`static styles = [foundations, styles]`). Always a valid entry. */
+export const foundations: CSSResultOrNative = shellSheet ?? css``;
+
+/** Put the design tokens on a document (or shadow) root (idempotent). Components
+ *  call this on connect so `var(--…)` resolves standalone, with NO reset
+ *  imposed — it only defines custom properties + the theme selectors. */
+export function ensureTokens(root: DocumentOrShadowRoot = document): void {
+  adopt(tokensSheet, root);
+}
+
+/** Adopt the FULL foundation (tokens + reset + base) onto a document — for the
+ *  light-DOM app shell. Call once at boot. (Reuses the same sheet objects as the
+ *  components, so it's idempotent with ensureTokens / shadow adoption.) */
 export function adoptFoundation(root: DocumentOrShadowRoot = document): void {
-  if (!foundationStyles || root.adoptedStyleSheets.includes(foundationStyles)) return;
-  root.adoptedStyleSheets = [...root.adoptedStyleSheets, foundationStyles];
+  adopt(tokensSheet, root);
+  adopt(shellSheet, root);
+}
+
+// Self-bootstrap: importing any component (which imports this module) puts the
+// token layer on the document, so components render with resolved tokens even
+// without an explicit adoptFoundation() call. Guarded for non-DOM/SSR.
+if (typeof document !== "undefined" && "adoptedStyleSheets" in document) {
+  ensureTokens(document);
 }

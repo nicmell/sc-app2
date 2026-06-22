@@ -9,6 +9,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
+import { relay } from "../internal/events";
 import { styles } from "./sc-input.styles";
 
 export type ScInputSize = "sm" | "md" | "lg";
@@ -24,14 +25,12 @@ export class ScInputBase extends LitElement {
   @property({ type: Boolean }) accessor disabled = false;
 
   private _onInput = (e: Event): void => {
-    e.stopPropagation();
     this.value = (e.target as HTMLInputElement).value;
-    this.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    relay(this, e, "input");
   };
 
   private _onChange = (e: Event): void => {
-    e.stopPropagation();
-    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    relay(this, e, "change");
   };
 
   render() {

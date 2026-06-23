@@ -36,8 +36,57 @@ sc-plugin {
   width: min(320px, 60vw);
 }
 
-/* The plugin drawer chrome (slide-in panel, backdrop, header, body) now lives in
-   @sc-app/ui-components as <sc-drawer-base> (foundations/components/drawer.css). */
+/* ── ui-components slotted / app chrome ──
+   These classes style LIGHT-DOM markup the app authors inside the shadow
+   overlays (ConnectionOverlay, Drawer, ToastStack) — the shadow components
+   (<sc-modal-base>/<sc-drawer-base>) don't own them, so they live here. */
+.sc-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-modal__title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+.sc-modal__body {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  line-height: var(--line-height-normal);
+}
+/* The drawer's slotted <header> bar is styled by the component (::slotted); its
+   title heading is app light DOM, so size it here. */
+sc-drawer-base header h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+.sc-drawer__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+/* The toast stack is a fixed-position, top-layer (popover=manual) container. */
+.sc-toast-stack {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  z-index: 1000;
+  pointer-events: none;
+}
 
 /* ── plugin list rows ── */
 .plugin-row {

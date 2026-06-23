@@ -25,19 +25,19 @@ export const styles = css`
     font-size: var(--font-size-sm);
     pointer-events: auto;
     animation: sc-toast-slide-in var(--transition-base);
-  }
 
-  .root.success {
-    border-left-color: var(--color-ok);
-  }
-  .root.warn {
-    border-left-color: var(--color-warn);
-  }
-  .root.error {
-    border-left-color: var(--color-danger);
-  }
-  .root.info {
-    border-left-color: var(--color-primary);
+    &.success {
+      border-left-color: var(--color-ok);
+    }
+    &.warn {
+      border-left-color: var(--color-warn);
+    }
+    &.error {
+      border-left-color: var(--color-danger);
+    }
+    &.info {
+      border-left-color: var(--color-primary);
+    }
   }
 
   .message {
@@ -59,10 +59,11 @@ export const styles = css`
     font-size: var(--font-size-md);
     line-height: 1;
     border-radius: var(--radius-xs);
-  }
-  .close:hover:not(:disabled) {
-    color: var(--color-text);
-    background: var(--color-surface-3);
+
+    &:hover:not(:disabled) {
+      color: var(--color-text);
+      background: var(--color-surface-3);
+    }
   }
 
   @keyframes sc-toast-slide-in {

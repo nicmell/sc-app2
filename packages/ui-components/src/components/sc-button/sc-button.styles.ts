@@ -26,72 +26,73 @@ export const styles = css`
       background var(--transition-fast),
       border-color var(--transition-fast),
       color var(--transition-fast);
-  }
 
-  /* Sizes */
-  .root.sm {
-    padding: var(--space-2xs) var(--space-sm);
-    font-size: var(--font-size-xs);
-  }
-  .root.md {
-    padding: var(--space-xs) var(--space-md);
-    font-size: var(--font-size-sm);
-  }
-  .root.lg {
-    padding: var(--space-sm) var(--space-lg);
-    font-size: var(--font-size-md);
-  }
+    /* Sizes */
+    &.sm {
+      padding: var(--space-2xs) var(--space-sm);
+      font-size: var(--font-size-xs);
+    }
+    &.md {
+      padding: var(--space-xs) var(--space-md);
+      font-size: var(--font-size-sm);
+    }
+    &.lg {
+      padding: var(--space-sm) var(--space-lg);
+      font-size: var(--font-size-md);
+    }
 
-  /* Icon-only: square, equal padding. */
-  .root.iconOnly {
-    padding: var(--space-xs);
-  }
-  .root.iconOnly.sm {
-    padding: var(--space-2xs);
-  }
-  .root.iconOnly.lg {
-    padding: var(--space-sm);
-  }
+    /* Icon-only: square, equal padding. */
+    &.iconOnly {
+      padding: var(--space-xs);
+      &.sm {
+        padding: var(--space-2xs);
+      }
+      &.lg {
+        padding: var(--space-sm);
+      }
+    }
 
-  /* Variants */
-  .root.primary {
-    background: var(--color-primary);
-    color: var(--color-on-primary);
-  }
-  .root.primary:hover:not(:disabled) {
-    background: var(--color-primary-hover);
-  }
-  .root.secondary {
-    background: var(--color-surface-2);
-    color: var(--color-text);
-    border-color: var(--color-border-strong);
-  }
-  .root.secondary:hover:not(:disabled) {
-    border-color: var(--color-border-stronger);
-  }
-  .root.ghost {
-    background: transparent;
-    color: var(--color-text);
-    border-color: var(--color-border-stronger);
-  }
-  .root.ghost:hover:not(:disabled) {
-    border-color: var(--color-border-focus);
-  }
-  .root.danger {
-    background: var(--color-danger);
-    color: var(--color-on-primary);
-  }
-  .root.danger:hover:not(:disabled) {
-    background: var(--color-danger-hover);
-  }
+    /* Variants (each filled/bordered look + its hover) */
+    &.primary {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      &:hover:not(:disabled) {
+        background: var(--color-primary-hover);
+      }
+    }
+    &.secondary {
+      background: var(--color-surface-2);
+      color: var(--color-text);
+      border-color: var(--color-border-strong);
+      &:hover:not(:disabled) {
+        border-color: var(--color-border-stronger);
+      }
+    }
+    &.ghost {
+      background: transparent;
+      color: var(--color-text);
+      border-color: var(--color-border-stronger);
+      &:hover:not(:disabled) {
+        border-color: var(--color-border-focus);
+      }
+    }
+    &.danger {
+      background: var(--color-danger);
+      color: var(--color-on-primary);
+      &:hover:not(:disabled) {
+        background: var(--color-danger-hover);
+      }
+    }
 
-  .root:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
-  .root:focus-visible {
-    outline: 2px solid var(--color-border-focus);
-    outline-offset: 2px;
+    /* Keyboard focus ring (mouse focus stays quiet). */
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
   }
 `;

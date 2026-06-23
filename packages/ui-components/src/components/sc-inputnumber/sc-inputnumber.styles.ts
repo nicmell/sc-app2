@@ -13,26 +13,30 @@ export const styles = css`
   .root {
     position: relative;
     display: inline-block;
+
+    &.sm .field {
+      padding: var(--space-3xs) var(--space-2xs);
+      padding-right: 1.4rem;
+      font-size: var(--font-size-xs);
+    }
+    &.md .field {
+      font-size: var(--font-size-sm);
+    }
+    &.lg .field {
+      padding: var(--space-xs) var(--space-sm);
+      padding-right: 1.9rem;
+      font-size: var(--font-size-md);
+    }
+
+    &.disabled {
+      opacity: 0.5;
+    }
   }
 
   .field {
     box-sizing: border-box;
     /* Leave room for the stepper column on the right. */
     padding-right: 1.6rem;
-  }
-
-  .root.sm .field {
-    padding: var(--space-3xs) var(--space-2xs);
-    padding-right: 1.4rem;
-    font-size: var(--font-size-xs);
-  }
-  .root.md .field {
-    font-size: var(--font-size-sm);
-  }
-  .root.lg .field {
-    padding: var(--space-xs) var(--space-sm);
-    padding-right: 1.9rem;
-    font-size: var(--font-size-md);
   }
 
   .spinners {
@@ -59,6 +63,13 @@ export const styles = css`
     color: var(--color-text-dim);
     cursor: pointer;
     transition: color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      color: var(--color-text);
+    }
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
 
   .stepUp {
@@ -67,13 +78,6 @@ export const styles = css`
   }
   .stepDown {
     border-bottom-right-radius: var(--radius-xs);
-  }
-
-  .step:hover:not(:disabled) {
-    color: var(--color-text);
-  }
-  .step:disabled {
-    cursor: not-allowed;
   }
 
   .arrow {
@@ -87,9 +91,5 @@ export const styles = css`
   }
   .arrowDown {
     border-top: 0.3rem solid currentColor;
-  }
-
-  .root.disabled {
-    opacity: 0.5;
   }
 `;

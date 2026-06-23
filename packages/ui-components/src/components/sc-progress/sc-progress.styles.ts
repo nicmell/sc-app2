@@ -19,15 +19,28 @@ export const styles = css`
     background: var(--color-surface-3);
     border-radius: var(--radius-xs);
     overflow: hidden;
-  }
-  .bar.sm {
-    --_bar-h: 3px;
-  }
-  .bar.md {
-    --_bar-h: 4px;
-  }
-  .bar.lg {
-    --_bar-h: 8px;
+
+    &.sm {
+      --_bar-h: 3px;
+    }
+    &.md {
+      --_bar-h: 4px;
+    }
+    &.lg {
+      --_bar-h: 8px;
+    }
+
+    &.indeterminate .fill {
+      width: 40%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--color-primary) 50%,
+        transparent 100%
+      );
+      animation: sc-progress-slide 1.4s ease-in-out infinite;
+      transition: none;
+    }
   }
 
   .fill {
@@ -38,13 +51,6 @@ export const styles = css`
     background: var(--color-primary);
     border-radius: inherit;
     transition: width var(--transition-base);
-  }
-
-  .bar.indeterminate .fill {
-    width: 40%;
-    background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
-    animation: sc-progress-slide 1.4s ease-in-out infinite;
-    transition: none;
   }
 
   @keyframes sc-progress-slide {
@@ -63,42 +69,43 @@ export const styles = css`
     height: var(--_spin, 1.5rem);
     border-radius: 50%;
     vertical-align: middle;
-  }
-  .spinner.sm {
-    --_spin: 1rem;
-    --_thick: 2px;
-  }
-  .spinner.md {
-    --_spin: 1.5rem;
-    --_thick: 3px;
-  }
-  .spinner.lg {
-    --_spin: 2.5rem;
-    --_thick: 4px;
-  }
 
-  .spinner.indeterminate {
-    border: var(--_thick, 3px) solid var(--color-surface-3);
-    border-top-color: var(--color-primary);
-    animation: sc-progress-spin 0.8s linear infinite;
-  }
+    &.sm {
+      --_spin: 1rem;
+      --_thick: 2px;
+    }
+    &.md {
+      --_spin: 1.5rem;
+      --_thick: 3px;
+    }
+    &.lg {
+      --_spin: 2.5rem;
+      --_thick: 4px;
+    }
 
-  .spinner.determinate {
-    background: conic-gradient(
-      var(--color-primary) calc(var(--_pct, 0) * 1%),
-      var(--color-surface-3) 0
-    );
-    -webkit-mask: radial-gradient(
-      farthest-side,
-      transparent calc(100% - var(--_thick, 3px)),
-      #000 calc(100% - var(--_thick, 3px))
-    );
-    mask: radial-gradient(
-      farthest-side,
-      transparent calc(100% - var(--_thick, 3px)),
-      #000 calc(100% - var(--_thick, 3px))
-    );
-    transition: background var(--transition-base);
+    &.indeterminate {
+      border: var(--_thick, 3px) solid var(--color-surface-3);
+      border-top-color: var(--color-primary);
+      animation: sc-progress-spin 0.8s linear infinite;
+    }
+
+    &.determinate {
+      background: conic-gradient(
+        var(--color-primary) calc(var(--_pct, 0) * 1%),
+        var(--color-surface-3) 0
+      );
+      -webkit-mask: radial-gradient(
+        farthest-side,
+        transparent calc(100% - var(--_thick, 3px)),
+        #000 calc(100% - var(--_thick, 3px))
+      );
+      mask: radial-gradient(
+        farthest-side,
+        transparent calc(100% - var(--_thick, 3px)),
+        #000 calc(100% - var(--_thick, 3px))
+      );
+      transition: background var(--transition-base);
+    }
   }
 
   @keyframes sc-progress-spin {

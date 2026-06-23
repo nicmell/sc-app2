@@ -18,47 +18,44 @@ export const styles = css`
     border-radius: var(--radius-pill);
     font-size: var(--font-size-xs);
     font-variant-numeric: tabular-nums;
+
+    &.ok {
+      background: var(--color-ok-bg);
+      border-color: var(--color-ok-strong);
+      color: var(--color-ok-text);
+      .dot {
+        color: var(--color-ok);
+      }
+    }
+    &.warn {
+      background: var(--color-warn-bg);
+      border-color: var(--color-warn-border);
+      color: var(--color-warn-text);
+      .dot {
+        color: var(--color-warn);
+      }
+    }
+    &.error {
+      background: var(--color-error-bg);
+      border-color: var(--color-error-border);
+      color: var(--color-error-text);
+      .dot {
+        color: var(--color-danger);
+      }
+    }
+    &.info {
+      background: var(--color-info-bg);
+      border-color: var(--color-info-border);
+      color: var(--color-info-text);
+      .dot {
+        color: var(--color-primary);
+      }
+    }
   }
 
   .dot {
     font-size: 0.7em;
     line-height: 1;
     color: var(--color-text-mute);
-  }
-
-  .root.ok {
-    background: var(--color-ok-bg);
-    border-color: var(--color-ok-strong);
-    color: var(--color-ok-text);
-  }
-  .root.ok .dot {
-    color: var(--color-ok);
-  }
-
-  .root.warn {
-    background: var(--color-warn-bg);
-    border-color: var(--color-warn-border);
-    color: var(--color-warn-text);
-  }
-  .root.warn .dot {
-    color: var(--color-warn);
-  }
-
-  .root.error {
-    background: var(--color-error-bg);
-    border-color: var(--color-error-border);
-    color: var(--color-error-text);
-  }
-  .root.error .dot {
-    color: var(--color-danger);
-  }
-
-  .root.info {
-    background: var(--color-info-bg);
-    border-color: var(--color-info-border);
-    color: var(--color-info-text);
-  }
-  .root.info .dot {
-    color: var(--color-primary);
   }
 `;

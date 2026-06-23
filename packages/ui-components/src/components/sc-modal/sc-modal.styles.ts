@@ -19,15 +19,15 @@ export const styles = css`
     font-family: var(--font-sans);
     box-shadow: var(--shadow-lg);
     overflow: auto;
-  }
 
-  .root::backdrop {
-    background: var(--color-scrim);
-  }
+    &::backdrop {
+      background: var(--color-scrim);
+    }
 
-  /* display:flex overrides the UA dialog:not([open]) hide — re-hide the
-     mounted-but-closed dialog until showModal() sets [open]. */
-  .root:not([open]) {
-    display: none;
+    /* display:flex overrides the UA dialog:not([open]) hide — re-hide the
+       mounted-but-closed dialog until showModal() sets [open]. */
+    &:not([open]) {
+      display: none;
+    }
   }
 `;

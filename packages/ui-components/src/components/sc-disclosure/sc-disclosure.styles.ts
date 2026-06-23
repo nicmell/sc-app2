@@ -15,6 +15,10 @@ export const styles = css`
     border-radius: var(--radius-md);
     font-family: var(--font-sans);
     overflow: hidden;
+
+    &[open] .summary::after {
+      rotate: 45deg;
+    }
   }
 
   .summary {
@@ -23,25 +27,23 @@ export const styles = css`
     gap: var(--space-xs);
     padding: var(--space-xs) var(--space-sm);
     list-style: none;
-  }
-  .summary::-webkit-details-marker {
-    display: none;
-  }
 
-  /* Chevron: a rotated border corner. Right (▶) closed, down (▼) open. */
-  .summary::after {
-    content: "";
-    flex: none;
-    inline-size: 0.45em;
-    block-size: 0.45em;
-    margin-inline-start: auto;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    rotate: -45deg;
-    transition: rotate var(--transition-fast);
-  }
-  .root[open] .summary::after {
-    rotate: 45deg;
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    /* Chevron: a rotated border corner. Right (▶) closed, down (▼) open. */
+    &::after {
+      content: "";
+      flex: none;
+      inline-size: 0.45em;
+      block-size: 0.45em;
+      margin-inline-start: auto;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      rotate: -45deg;
+      transition: rotate var(--transition-fast);
+    }
   }
 
   .content {

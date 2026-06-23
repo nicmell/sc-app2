@@ -14,10 +14,60 @@ export const styles = css`
     touch-action: none;
     user-select: none;
     cursor: grab;
-  }
 
-  .root:active {
-    cursor: grabbing;
+    &:active {
+      cursor: grabbing;
+    }
+
+    &.sm {
+      --_len: 6rem;
+      --_thick: 0.3rem;
+      --_thumb: 0.8rem;
+    }
+    &.md {
+      --_len: 8rem;
+      --_thick: 0.4rem;
+      --_thumb: 1rem;
+    }
+    &.lg {
+      --_len: 11rem;
+      --_thick: 0.5rem;
+      --_thumb: 1.25rem;
+    }
+
+    /* Horizontal: track runs left→right, fill grows from the left. */
+    &.horizontal {
+      .track {
+        inline-size: var(--_len, 8rem);
+        block-size: var(--_thick, 0.4rem);
+      }
+      .fill {
+        left: 0;
+        top: 0;
+        bottom: 0;
+      }
+      .thumb {
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    /* Vertical: track runs bottom→top, fill grows from the bottom. */
+    &.vertical {
+      .track {
+        inline-size: var(--_thick, 0.4rem);
+        block-size: var(--_len, 8rem);
+      }
+      .fill {
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      .thumb {
+        left: 50%;
+        transform: translate(-50%, 50%);
+      }
+    }
   }
 
   .track {
@@ -47,51 +97,5 @@ export const styles = css`
     box-shadow:
       var(--shadow-sm),
       0 0 0 2px var(--color-border-focus);
-  }
-
-  /* Horizontal: track runs left→right, fill grows from the left. */
-  .horizontal .track {
-    inline-size: var(--_len, 8rem);
-    block-size: var(--_thick, 0.4rem);
-  }
-  .horizontal .fill {
-    left: 0;
-    top: 0;
-    bottom: 0;
-  }
-  .horizontal .thumb {
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* Vertical: track runs bottom→top, fill grows from the bottom. */
-  .vertical .track {
-    inline-size: var(--_thick, 0.4rem);
-    block-size: var(--_len, 8rem);
-  }
-  .vertical .fill {
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-  .vertical .thumb {
-    left: 50%;
-    transform: translate(-50%, 50%);
-  }
-
-  .root.sm {
-    --_len: 6rem;
-    --_thick: 0.3rem;
-    --_thumb: 0.8rem;
-  }
-  .root.md {
-    --_len: 8rem;
-    --_thick: 0.4rem;
-    --_thumb: 1rem;
-  }
-  .root.lg {
-    --_len: 11rem;
-    --_thick: 0.5rem;
-    --_thumb: 1.25rem;
   }
 `;

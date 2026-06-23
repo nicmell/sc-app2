@@ -28,21 +28,22 @@ export const styles = css`
     cursor: pointer;
     user-select: none;
     transition: border-color var(--transition-fast);
-  }
-  .combobox.sm {
-    font-size: var(--font-size-xs);
-  }
-  .combobox.lg {
-    font-size: var(--font-size-md);
-  }
-  .combobox:hover,
-  .combobox:focus-visible {
-    outline: none;
-    border-color: var(--color-border-focus);
-  }
-  .combobox:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+
+    &.sm {
+      font-size: var(--font-size-xs);
+    }
+    &.lg {
+      font-size: var(--font-size-md);
+    }
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      border-color: var(--color-border-focus);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 
   .label {

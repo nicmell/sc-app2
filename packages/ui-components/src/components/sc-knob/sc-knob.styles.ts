@@ -14,23 +14,23 @@ export const styles = css`
     cursor: grab;
     touch-action: none;
     user-select: none;
-  }
 
-  .root:active {
-    cursor: grabbing;
-  }
+    &:active {
+      cursor: grabbing;
+    }
 
-  .root.sm {
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
-  }
-  .root.md {
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
-  }
-  .root.lg {
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
+    &.sm {
+      inline-size: 1.75rem;
+      block-size: 1.75rem;
+    }
+    &.md {
+      inline-size: 2.5rem;
+      block-size: 2.5rem;
+    }
+    &.lg {
+      inline-size: 3.5rem;
+      block-size: 3.5rem;
+    }
   }
 
   .svg {

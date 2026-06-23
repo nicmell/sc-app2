@@ -18,79 +18,79 @@ export const styles = css`
     font-weight: var(--font-weight-regular);
     line-height: var(--line-height-normal);
     color: var(--color-text);
-  }
 
-  .root.inline {
-    display: inline;
-  }
+    &.inline {
+      display: inline;
+    }
 
-  /* Size */
-  .root.xs {
-    font-size: var(--font-size-xs);
-  }
-  .root.sm {
-    font-size: var(--font-size-sm);
-  }
-  .root.lg {
-    font-size: var(--font-size-lg);
-    line-height: var(--line-height-tight);
-  }
-  .root.xl {
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-tight);
-  }
+    /* Size */
+    &.xs {
+      font-size: var(--font-size-xs);
+    }
+    &.sm {
+      font-size: var(--font-size-sm);
+    }
+    &.lg {
+      font-size: var(--font-size-lg);
+      line-height: var(--line-height-tight);
+    }
+    &.xl {
+      font-size: var(--font-size-xl);
+      line-height: var(--line-height-tight);
+    }
 
-  /* Weight */
-  .root.medium {
-    font-weight: var(--font-weight-medium);
-  }
-  .root.bold {
-    font-weight: var(--font-weight-bold);
-  }
+    /* Weight */
+    &.medium {
+      font-weight: var(--font-weight-medium);
+    }
+    &.bold {
+      font-weight: var(--font-weight-bold);
+    }
 
-  /* Font family */
-  .root.mono {
-    font-family: var(--font-mono);
-  }
+    /* Font family */
+    &.mono {
+      font-family: var(--font-mono);
+    }
 
-  /* Tone (colour) */
-  .root.dim {
-    color: var(--color-text-dim);
-  }
-  .root.mute {
-    color: var(--color-text-mute);
-  }
-  .root.faint {
-    color: var(--color-text-faint);
-  }
-  .root.primary {
-    color: var(--color-primary);
-  }
-  .root.ok {
-    color: var(--color-ok-text);
-  }
-  .root.warn {
-    color: var(--color-warn-text);
-  }
-  .root.error {
-    color: var(--color-error-text);
-  }
-  .root.info {
-    color: var(--color-info-text);
-  }
+    /* Tone (colour) */
+    &.dim {
+      color: var(--color-text-dim);
+    }
+    &.mute {
+      color: var(--color-text-mute);
+    }
+    &.faint {
+      color: var(--color-text-faint);
+    }
+    &.primary {
+      color: var(--color-primary);
+    }
+    &.ok {
+      color: var(--color-ok-text);
+    }
+    &.warn {
+      color: var(--color-warn-text);
+    }
+    &.error {
+      color: var(--color-error-text);
+    }
+    &.info {
+      color: var(--color-info-text);
+    }
 
-  /* Alignment */
-  .root.center {
-    text-align: center;
-  }
-  .root.end {
-    text-align: end;
-  }
+    /* Alignment */
+    &.center {
+      text-align: center;
+    }
+    &.end {
+      text-align: end;
+    }
 
-  /* Truncation (single line) */
-  .root.truncate {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    /* Truncation (single line) */
+    &.truncate {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
   }
 `;

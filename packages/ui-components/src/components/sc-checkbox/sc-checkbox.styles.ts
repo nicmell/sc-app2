@@ -16,6 +16,19 @@ export const styles = css`
     user-select: none;
     font-family: var(--font-mono);
     color: var(--color-text-dim);
+
+    &.sm {
+      --_box: 0.875rem;
+      font-size: var(--font-size-xs);
+    }
+    &.md {
+      --_box: 1rem;
+      font-size: var(--font-size-sm);
+    }
+    &.lg {
+      --_box: 1.25rem;
+      font-size: var(--font-size-md);
+    }
   }
 
   .box {
@@ -31,19 +44,6 @@ export const styles = css`
       background var(--transition-fast);
   }
 
-  .root.sm {
-    --_box: 0.875rem;
-    font-size: var(--font-size-xs);
-  }
-  .root.md {
-    --_box: 1rem;
-    font-size: var(--font-size-sm);
-  }
-  .root.lg {
-    --_box: 1.25rem;
-    font-size: var(--font-size-md);
-  }
-
   .check {
     inline-size: 60%;
     block-size: 60%;
@@ -53,15 +53,16 @@ export const styles = css`
     transition: transform var(--transition-fast);
   }
 
-  .input:checked ~ .box {
-    border-color: var(--_accent);
-  }
-  .input:checked ~ .box .check {
-    transform: scale(1);
-  }
-
-  .input:focus-visible ~ .box {
-    outline: 2px solid var(--color-border-focus);
-    outline-offset: 2px;
+  .input {
+    &:checked ~ .box {
+      border-color: var(--_accent);
+      .check {
+        transform: scale(1);
+      }
+    }
+    &:focus-visible ~ .box {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
   }
 `;

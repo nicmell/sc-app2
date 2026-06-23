@@ -16,6 +16,19 @@ export const styles = css`
     user-select: none;
     font-family: var(--font-mono);
     color: var(--color-text-dim);
+
+    &.sm {
+      --_r: 0.875rem;
+      font-size: var(--font-size-xs);
+    }
+    &.md {
+      --_r: 1rem;
+      font-size: var(--font-size-sm);
+    }
+    &.lg {
+      --_r: 1.25rem;
+      font-size: var(--font-size-md);
+    }
   }
 
   .ring {
@@ -28,19 +41,6 @@ export const styles = css`
     transition: border-color var(--transition-fast);
   }
 
-  .root.sm {
-    --_r: 0.875rem;
-    font-size: var(--font-size-xs);
-  }
-  .root.md {
-    --_r: 1rem;
-    font-size: var(--font-size-sm);
-  }
-  .root.lg {
-    --_r: 1.25rem;
-    font-size: var(--font-size-md);
-  }
-
   .dot {
     inline-size: 55%;
     block-size: 55%;
@@ -50,15 +50,16 @@ export const styles = css`
     transition: transform var(--transition-fast);
   }
 
-  .input:checked ~ .ring {
-    border-color: var(--_accent);
-  }
-  .input:checked ~ .ring .dot {
-    transform: scale(1);
-  }
-
-  .input:focus-visible ~ .ring {
-    outline: 2px solid var(--color-border-focus);
-    outline-offset: 2px;
+  .input {
+    &:checked ~ .ring {
+      border-color: var(--_accent);
+      .dot {
+        transform: scale(1);
+      }
+    }
+    &:focus-visible ~ .ring {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
   }
 `;

@@ -33,19 +33,24 @@ export const styles = css`
       translate var(--transition-base),
       overlay var(--transition-base) allow-discrete,
       display var(--transition-base) allow-discrete;
-  }
 
-  .root:not([open]) {
-    display: none;
-  }
+    &:not([open]) {
+      display: none;
+    }
+    &[open] {
+      translate: 0 0;
+    }
 
-  .root[open] {
-    translate: 0 0;
-  }
-
-  @starting-style {
-    .root[open] {
-      translate: 100% 0;
+    &::backdrop {
+      background: var(--color-scrim);
+      opacity: 0;
+      transition:
+        opacity var(--transition-base),
+        overlay var(--transition-base) allow-discrete,
+        display var(--transition-base) allow-discrete;
+    }
+    &[open]::backdrop {
+      opacity: 1;
     }
   }
 
@@ -56,37 +61,23 @@ export const styles = css`
     border-inline-end: 1px solid var(--color-border-strong);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
     translate: -100% 0;
+
+    &[open] {
+      translate: 0 0;
+    }
   }
-  .left[open] {
-    translate: 0 0;
-  }
+
+  /* Entry start-state (kept top-level: @starting-style nesting is less portable
+     than the rest of native nesting). */
   @starting-style {
+    .root[open] {
+      translate: 100% 0;
+    }
     .left[open] {
       translate: -100% 0;
     }
-  }
-
-  .root::backdrop {
-    background: var(--color-scrim);
-    opacity: 0;
-    transition:
-      opacity var(--transition-base),
-      overlay var(--transition-base) allow-discrete,
-      display var(--transition-base) allow-discrete;
-  }
-  .root[open]::backdrop {
-    opacity: 1;
-  }
-  @starting-style {
     .root[open]::backdrop {
       opacity: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .root,
-    .root::backdrop {
-      transition: none;
     }
   }
 
@@ -99,5 +90,12 @@ export const styles = css`
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .root,
+    .root::backdrop {
+      transition: none;
+    }
   }
 `;

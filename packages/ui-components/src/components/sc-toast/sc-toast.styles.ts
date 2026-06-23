@@ -76,10 +76,4 @@ export const styles = css`
       transform: translateX(0);
     }
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .root {
-      animation: none;
-    }
-  }
 `;

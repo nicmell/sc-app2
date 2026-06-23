@@ -1,14 +1,26 @@
 /**
- * @sc-app/ui-components — foundation entry point (the full sheet, for plain-CSS
- * consumers and the light-DOM app shell via `adoptFoundation()`).
+ * @sc-app/ui-components — entry point.
  *
- * Split into two layers so shadow-DOM components can adopt only what they need:
- *   - tokens.css — design tokens + theme palette (the document/inherited layer)
- *   - shell.css  — reset + bare element styles (the per-shadow layer)
- *
- * The component layer is not aggregated here — each component's styles are Lit
- * `css` co-located beside its .ts and adopted via `static styles`.
+ * Imports run in cascade order: tokens first (so the semantic palette is
+ * defined), then theme (resolving tokens to a concrete palette), reset, and
+ * base element styles. The component layer is no longer aggregated here — each
+ * component's stylesheet is co-located beside its .ts and side-effect-imported
+ * by the component itself, so loading a component delivers its CSS.
  */
 
-@import "./tokens.css";
-@import "./shell.css";
+/* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
+   public contract (raw values; no external primitive layer). */
+@import "./tokens/semantic.css";
+
+/* Theme palette. Default = dark; light theme applies under
+   [data-theme="light"]. */
+@import "./themes/dark.css";
+@import "./themes/light.css";
+
+/* Minimal reset / normalize. */
+@import "./reset.css";
+
+/* Raw HTML element styles. After this point a bare <button>
+   already looks correct. */
+@import "./base/elements.css";
+@import "./base/typography.css";

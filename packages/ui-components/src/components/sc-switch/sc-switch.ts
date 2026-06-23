@@ -9,7 +9,6 @@ import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
 import { widgetStyles } from "../internal/widget-base.styles";
-import { relay } from "../internal/events";
 import { styles } from "./sc-switch.styles";
 
 export class ScSwitchBase extends ScWidgetBase {
@@ -17,9 +16,10 @@ export class ScSwitchBase extends ScWidgetBase {
 
   @property({ type: Boolean }) accessor checked = false;
 
-  private _relay = (e: Event): void => {
+  private _onChange = (e: Event): void => {
+    e.stopPropagation();
     this.checked = (e.target as HTMLInputElement).checked;
-    relay(this, e, e.type as "input" | "change");
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   render() {
@@ -32,8 +32,7 @@ export class ScSwitchBase extends ScWidgetBase {
           name=${this.name}
           .checked=${live(this.checked)}
           ?disabled=${this.disabled}
-          @input=${this._relay}
-          @change=${this._relay}
+          @change=${this._onChange}
         />
         <span class="track"><span class="thumb"></span></span>
       </label>

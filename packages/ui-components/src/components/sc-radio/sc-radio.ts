@@ -13,7 +13,6 @@ import { ScWidgetBase } from "../internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
 import { widgetStyles } from "../internal/widget-base.styles";
-import { relay } from "../internal/events";
 import { styles } from "./sc-radio.styles";
 
 export class ScRadioBase extends ScWidgetBase {
@@ -36,13 +35,13 @@ export class ScRadioBase extends ScWidgetBase {
   }
 
   private _onChange = (e: Event): void => {
+    e.stopPropagation();
     if (this.#disabled) return;
     if (this.#ctx) {
-      e.stopPropagation();
       this.#ctx.select(this.value);
     } else {
       this.checked = true;
-      relay(this, e, "change");
+      this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
     }
   };
 

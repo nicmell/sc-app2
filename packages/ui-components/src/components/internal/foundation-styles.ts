@@ -1,8 +1,9 @@
 // The foundation CSS as ONE shared constructable stylesheet. Adopt this single
 // object into the document AND into any shadow root — the browser parses/stores
 // it once, and adopting by reference does not copy it. This is the single
-// source of foundation styles for shadow-DOM components (today just sc-select)
-// and, via adoptFoundation(document), for the whole app.
+// source of foundation styles for every shadow-DOM component (via the shared
+// `foundations` export in `static styles`) and, via adoptFoundation(document),
+// for the whole app shell.
 //
 // `undefined` only in environments without constructable-stylesheet support
 // (guarded so importing this never throws under test runners).

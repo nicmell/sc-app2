@@ -203,7 +203,10 @@ into **every** component's shadow (so reset + bare `input{}`/`button{}`/etc.
 element styles reach the shadow) and onto the **document** via `adoptFoundation()`
 (for the app shell + so tokens defined at `:root` inherit across every shadow
 boundary). Class names are literal but **shadow-scoped**, so they never collide
-across components and there's no build-time hashing to keep in sync.
+across components and there's no build-time hashing to keep in sync. The `css`
+templates use **native CSS nesting** (`&`, supported in Chromium 120+ / WebKit
+17.2+ — incl. the Tauri WKWebView) where it groups a `.root`/variant/`:checked ~`
+family; no preprocessor.
 
 Two notes on shadow-DOM styling:
 

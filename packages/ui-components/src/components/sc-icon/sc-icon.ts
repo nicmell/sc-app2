@@ -5,9 +5,9 @@
 // Colour follows currentColor and size follows the surrounding font-size (1em)
 // unless a size token is given.
 //
-// `variant` selects the weight: regular (default) | fill | duotone. The host
-// must load the matching CSS once (`@phosphor-icons/web/{regular,fill,duotone}`)
-// for the glyphs to show.
+// `variant` selects the weight: regular (default) | fill | duotone. All three
+// are bundled by the package (adopted into the icon's shadow by adoptIconFont),
+// so there's no host setup to do.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";

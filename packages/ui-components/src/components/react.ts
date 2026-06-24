@@ -117,8 +117,8 @@ export const ScSelect = createComponent({
 });
 
 /** <sc-icon-base>. Pass a Phosphor icon `name` + optional `variant`
- *  (regular | fill | duotone); the host must load the matching
- *  `@phosphor-icons/web/<weight>` CSS once for the glyphs to show. */
+ *  (regular | fill | duotone). The weights are bundled by the package — no host
+ *  setup needed. */
 export const ScIcon = createComponent({
   react: React,
   tagName: "sc-icon-base",

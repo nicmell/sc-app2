@@ -668,10 +668,7 @@
     <script type="module">
       // Foundation CSS (Vite inlines the @import chain).
       import "./src/foundations/index.css";
-      // Phosphor fonts — the weights sc-icon-base supports (regular|fill|duotone).
-      import "@phosphor-icons/web/regular";
-      import "@phosphor-icons/web/fill";
-      import "@phosphor-icons/web/duotone";
+      // Phosphor fonts are bundled by the package (adopted into each sc-icon shadow).
       import { registerUiComponents } from "./src/components/index.ts";
       registerUiComponents();
     </script>

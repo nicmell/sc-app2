@@ -64,11 +64,8 @@ registerUiComponents();            // idempotent; defines every <sc-*-base> tag
 import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 // → <ScButton label="Run" variant="danger" onClick={…} />
 
-// 3. icons: load the Phosphor weights you use once (peer dependency) — one CSS
-//    per <sc-icon-base variant> you render (regular | fill | duotone)
-import "@phosphor-icons/web/regular";
-import "@phosphor-icons/web/fill";
-import "@phosphor-icons/web/duotone";
+// 3. icons: nothing to load — the package bundles Phosphor (regular | fill |
+//    duotone) and adopts the font into each <sc-icon-base> shadow.
 ```
 
 Every component is **shadow DOM**, styled by `static styles = [foundations,
@@ -114,7 +111,7 @@ is shadow DOM; form widgets re-emit composed events — read `e.target.value` /
 | `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children |
 | `sc-disclosure-base` | `open` | `toggle` | **shadow DOM**; collapsible card over native `<details>` (`summary` slot + content) |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
-| `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph; `variant` = regular (default) \| fill \| duotone (needs the matching weight CSS) |
+| `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph (bundled by the package); `variant` = regular (default) \| fill \| duotone |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
 | `sc-progress-base` | `variant` `value` `max` `size` `label` | — | loading/progress indicator; `bar`/`spinner`, determinate when `value` set else indeterminate; `role=progressbar` |
@@ -216,11 +213,12 @@ Two notes on shadow-DOM styling:
 - **Slotted content** (a panel/drawer `<header>`, etc.) is light DOM, so it's
   styled with `::slotted(...)` from the component's own css — the component does
   not expose global classes for consumers to hook.
-- **Icon font.** `<sc-icon-base>` renders `<i class="ph-fill ph-<name>">`, but
-  the Phosphor `.ph-*` glyph rules live in a *document* stylesheet that can't
-  reach a shadow root. `internal/icon-font.ts` snapshots those rules into a
-  constructable sheet and `adoptIconFont()`s it into the icon's shadow (lazy +
-  cached; a no-op where the font CSS isn't loaded).
+- **Icon font.** `<sc-icon-base>` renders `<i class="ph ph-<name>">`, but a
+  *document* stylesheet can't reach a shadow root. The package **bundles**
+  Phosphor (a dependency, fixed weights regular/fill/duotone): `internal/
+  icon-font.ts` imports each weight's CSS via `?inline`, builds one shared
+  constructable sheet, and `adoptIconFont()`s it into the icon's shadow — so no
+  host setup is required.
 
 ### Overlays (top layer)
 

@@ -1,6 +1,7 @@
 // <sc-icon-base> styles. Sizing/colour for the Phosphor glyph; the glyph itself
-// (font-family + ::before codepoint) comes from the Phosphor font CSS bundled
-// into the icon's `static styles` (the `iconFont` CSSResult in sc-icon.ts).
+// (font-family + ::before codepoint) comes from the Phosphor font shipped in the
+// foundation (foundations/_icons.scss), which rides into this shadow via `static
+// styles = [foundations, …]`.
 
 :host {
   display: inline-flex;

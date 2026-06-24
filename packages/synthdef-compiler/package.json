@@ -4,16 +4,35 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Pure TypeScript SuperCollider SynthDef (SCgf v2) compiler.",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./builders": "./src/builders/index.ts",
-    "./registry": "./src/registry.ts",
-    "./sugar": "./src/sugar/index.ts",
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./builders": {
+      "development": "./src/builders/index.ts",
+      "types": "./dist/builders/index.d.ts",
+      "default": "./dist/builders/index.js"
+    },
+    "./registry": {
+      "development": "./src/registry.ts",
+      "types": "./dist/registry.d.ts",
+      "default": "./dist/registry.js"
+    },
+    "./sugar": {
+      "development": "./src/sugar/index.ts",
+      "types": "./dist/sugar/index.d.ts",
+      "default": "./dist/sugar/index.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "parity": "tsx examples/node/sclang_parity.ts",

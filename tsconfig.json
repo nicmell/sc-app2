@@ -8,6 +8,10 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    /* Resolve the `development` export condition so `@sc-app/*` typecheck against
+       package SOURCE (.ts) — no prior package build needed. Mirrors Vite/vitest
+       dev resolution; production `vite build` uses the `default` (dist) condition. */
+    "customConditions": ["development"],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

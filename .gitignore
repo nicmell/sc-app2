@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Turborepo cache
+.turbo
+
 # StrudelDirt runtime deps, fetched by `yarn deps` (Dirt-Samples, Vowel, sc3-plugins)
 /deps
 

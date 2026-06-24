@@ -43,22 +43,11 @@ export default defineConfig(() => ({
   },
 
   resolve: {
+    // `@sc-app/*` workspace packages resolve through their package `exports`:
+    // Vite applies the `development` condition in dev (→ package `src`, for HMR +
+    // es2022 decorator-lowering) and `production`/`default` in build (→ compiled
+    // `dist`). No aliases needed — except for tests (see `test.alias` below).
     alias: {
-      // Resolve the source-only workspace package to its TS entry so Vite
-      // doesn't try to pre-bundle it as a dependency.
-      "@sc-app/server-commands": fileURLToPath(
-        new URL("./packages/server-commands/src/index.ts", import.meta.url),
-      ),
-      // The ui-components TS entries (Lit web components + their React
-      // wrappers) resolve to source so they get the es2022 decorator-lowering
-      // pass and aren't pre-bundled as a dependency. The bare `.` (CSS) and
-      // other subpaths keep resolving through the package `exports`.
-      "@sc-app/ui-components/lit": fileURLToPath(
-        new URL("./packages/ui-components/src/components/index.ts", import.meta.url),
-      ),
-      "@sc-app/ui-components/react": fileURLToPath(
-        new URL("./packages/ui-components/src/components/react.ts", import.meta.url),
-      ),
       // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
@@ -100,6 +89,21 @@ export default defineConfig(() => ({
       ),
       "@strudel/core": fileURLToPath(
         new URL("./src/lib/utils/test/stubs/strudel-core.ts", import.meta.url),
+      ),
+      // Tests run against package SOURCE (not the built dist): explicit aliases
+      // so the suite never depends on the `development` export condition / a
+      // prior package build.
+      "@sc-app/server-commands": fileURLToPath(
+        new URL("./packages/server-commands/src/index.ts", import.meta.url),
+      ),
+      "@sc-app/synthdef-compiler": fileURLToPath(
+        new URL("./packages/synthdef-compiler/src/index.ts", import.meta.url),
+      ),
+      "@sc-app/ui-components/lit": fileURLToPath(
+        new URL("./packages/ui-components/src/components/index.ts", import.meta.url),
+      ),
+      "@sc-app/ui-components/react": fileURLToPath(
+        new URL("./packages/ui-components/src/components/react.ts", import.meta.url),
       ),
     },
   },

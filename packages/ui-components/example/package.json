@@ -6,7 +6,12 @@
   "description": "Standalone Vite showcase for @sc-app/ui-components (consumes the built package).",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sc-app/ui-components": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.3"
   }
 }

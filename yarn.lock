@@ -2091,6 +2091,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@sc-app/ui-components-example@workspace:packages/ui-components/example":
+  version: 0.0.0-use.local
+  resolution: "@sc-app/ui-components-example@workspace:packages/ui-components/example"
+  dependencies:
+    "@sc-app/ui-components": "workspace:*"
+    vite: "npm:^6.0.3"
+  languageName: unknown
+  linkType: soft
+
 "@sc-app/ui-components@workspace:*, @sc-app/ui-components@workspace:packages/ui-components":
   version: 0.0.0-use.local
   resolution: "@sc-app/ui-components@workspace:packages/ui-components"

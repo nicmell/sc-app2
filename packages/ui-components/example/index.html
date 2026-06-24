@@ -665,13 +665,6 @@
       </section>
     </div>
 
-    <script type="module">
-      // Adopt the foundation onto the document (the shared CSSResult sheet) so the
-      // demo chrome + light DOM get tokens; components adopt it into their shadows
-      // too. The Phosphor @font-face rides in the foundation, registered here.
-      import { registerUiComponents, adoptFoundation } from "@sc-app/ui-components/lit";
-      adoptFoundation();
-      registerUiComponents();
-    </script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

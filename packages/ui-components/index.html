@@ -567,17 +567,51 @@
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor, fill)</h2>
-        <p class="demo-cap">inherits text colour; default size follows font-size</p>
-        <div class="demo-row" style="font-size: 1.5rem">
+        <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor)</h2>
+        <p class="demo-cap">
+          weights — <code>variant</code>: regular (default) / fill / duotone (each needs its
+          <code>@phosphor-icons/web/&lt;weight&gt;</code> CSS loaded)
+        </p>
+        <div class="demo-row" style="font-size: 1.75rem">
+          <sc-icon-base name="heart" variant="regular"></sc-icon-base>
+          <sc-icon-base name="heart" variant="fill"></sc-icon-base>
+          <sc-icon-base name="heart" variant="duotone"></sc-icon-base>
+          <sc-text-base size="xs" tone="mute" style="align-self: center"
+            >regular · fill · duotone</sc-text-base
+          >
+        </div>
+        <p class="demo-cap">variant="regular" (default)</p>
+        <div class="demo-row" style="font-size: 1.75rem">
           <sc-icon-base name="play"></sc-icon-base>
-          <sc-icon-base name="pause"></sc-icon-base>
-          <sc-icon-base name="stop"></sc-icon-base>
-          <sc-icon-base name="record"></sc-icon-base>
-          <sc-icon-base name="sliders-horizontal"></sc-icon-base>
+          <sc-icon-base name="speaker-high"></sc-icon-base>
           <sc-icon-base name="wave-sine"></sc-icon-base>
+          <sc-icon-base name="sliders-horizontal"></sc-icon-base>
           <sc-icon-base name="gear"></sc-icon-base>
-          <sc-icon-base name="x"></sc-icon-base>
+          <sc-icon-base name="bell"></sc-icon-base>
+          <sc-icon-base name="cloud"></sc-icon-base>
+          <sc-icon-base name="star"></sc-icon-base>
+        </div>
+        <p class="demo-cap">variant="fill"</p>
+        <div class="demo-row" style="font-size: 1.75rem">
+          <sc-icon-base name="play" variant="fill"></sc-icon-base>
+          <sc-icon-base name="speaker-high" variant="fill"></sc-icon-base>
+          <sc-icon-base name="wave-sine" variant="fill"></sc-icon-base>
+          <sc-icon-base name="sliders-horizontal" variant="fill"></sc-icon-base>
+          <sc-icon-base name="gear" variant="fill"></sc-icon-base>
+          <sc-icon-base name="bell" variant="fill"></sc-icon-base>
+          <sc-icon-base name="cloud" variant="fill"></sc-icon-base>
+          <sc-icon-base name="star" variant="fill"></sc-icon-base>
+        </div>
+        <p class="demo-cap">variant="duotone"</p>
+        <div class="demo-row" style="font-size: 1.75rem">
+          <sc-icon-base name="play" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="speaker-high" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="wave-sine" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="sliders-horizontal" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="gear" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="bell" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="cloud" variant="duotone"></sc-icon-base>
+          <sc-icon-base name="star" variant="duotone"></sc-icon-base>
         </div>
         <p class="demo-cap">size tokens (sm / md / lg) + currentColor tint</p>
         <div class="demo-row">
@@ -585,7 +619,7 @@
           <sc-icon-base name="circle" size="md"></sc-icon-base>
           <sc-icon-base name="circle" size="lg"></sc-icon-base>
           <span style="color: var(--color-primary)">
-            <sc-icon-base name="heart"></sc-icon-base> tinted via currentColor
+            <sc-icon-base name="heart" variant="fill"></sc-icon-base> tinted via currentColor
           </span>
         </div>
       </section>

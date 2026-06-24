@@ -1,6 +1,8 @@
-// Phosphor icon font — fill weight only (the one weight sc-icon-base supports).
-// Provides the global `.ph-fill` / `.ph-<name>` classes <sc-icon-base> emits.
+// Phosphor icon fonts — the weights <sc-icon-base variant> supports. Provides
+// the global `.ph` / `.ph-fill` / `.ph-duotone` + `.ph-<name>` glyph classes.
+import "@phosphor-icons/web/regular";
 import "@phosphor-icons/web/fill";
+import "@phosphor-icons/web/duotone";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

@@ -1,13 +1,13 @@
 // <sc-icon-base> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with
-// the `ph-fill ph-<name>` classes from @phosphor-icons/web. Those glyph rules
-// live in a document stylesheet, so the icon adopts them into its shadow via
+// the `<weight> ph-<name>` classes from @phosphor-icons/web. Those glyph rules
+// live in document stylesheets, so the icon adopts them into its shadow via
 // adoptIconFont() (a no-op where the font CSS isn't loaded — tests, headless).
 // Colour follows currentColor and size follows the surrounding font-size (1em)
 // unless a size token is given.
 //
-// Only the FILL weight is supported by design — to add more weights later,
-// introduce a `weight` prop (regular → "ph", others → `ph-<weight>`) and have
-// the host import the corresponding `@phosphor-icons/web/<weight>` CSS.
+// `variant` selects the weight: regular (default) | fill | duotone. The host
+// must load the matching CSS once (`@phosphor-icons/web/{regular,fill,duotone}`)
+// for the glyphs to show.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
@@ -17,12 +17,22 @@ import { adoptIconFont } from "../internal/icon-font";
 import { styles } from "./sc-icon.styles";
 
 export type ScIconSize = "sm" | "md" | "lg";
+export type ScIconVariant = "regular" | "fill" | "duotone";
+
+/** Phosphor weight → its base class (combined with `ph-<name>`). */
+const WEIGHT_CLASS: Record<ScIconVariant, string> = {
+  regular: "ph",
+  fill: "ph-fill",
+  duotone: "ph-duotone",
+};
 
 export class ScIconBase extends LitElement {
   static styles = [foundations, styles];
 
   /** Phosphor icon name (kebab-case, without the `ph-` prefix), e.g. "play". */
   @property() accessor name = "";
+  /** Weight: regular (default) | fill | duotone. Needs the matching font CSS. */
+  @property() accessor variant: ScIconVariant = "regular";
   /** Optional token-backed size; omit to inherit the surrounding font-size. */
   @property() accessor size: ScIconSize | undefined = undefined;
   /** Accessible label. When omitted the icon is decorative (aria-hidden). */
@@ -33,7 +43,7 @@ export class ScIconBase extends LitElement {
   }
 
   render() {
-    const cls = cx("root", "ph-fill", `ph-${this.name}`, this.size && this.size);
+    const cls = cx("root", WEIGHT_CLASS[this.variant], `ph-${this.name}`, this.size && this.size);
     return this.label
       ? html`<i class=${cls} role="img" aria-label=${this.label}></i>`
       : html`<i class=${cls} aria-hidden="true"></i>`;

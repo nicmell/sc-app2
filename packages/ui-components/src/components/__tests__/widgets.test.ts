@@ -308,13 +308,20 @@ describe("sc-select-base", () => {
 });
 
 describe("sc-icon-base", () => {
-  it("renders the fill icon classes, decorative by default", async () => {
+  it("renders the regular icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
     const i = el.shadowRoot!.querySelector("i")!;
     expect(i.classList.contains("root")).toBe(true);
-    expect(i.classList.contains("ph-fill")).toBe(true);
+    expect(i.classList.contains("ph")).toBe(true); // regular weight (default)
     expect(i.classList.contains("ph-play")).toBe(true);
     expect(i.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("maps the variant to the weight class", async () => {
+    const fill = await mount("sc-icon-base", { name: "play", variant: "fill" });
+    expect(fill.shadowRoot!.querySelector("i")!.classList.contains("ph-fill")).toBe(true);
+    const duo = await mount("sc-icon-base", { name: "play", variant: "duotone" });
+    expect(duo.shadowRoot!.querySelector("i")!.classList.contains("ph-duotone")).toBe(true);
   });
 
   it("applies the size modifier when given", async () => {

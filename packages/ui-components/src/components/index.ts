@@ -42,7 +42,7 @@ export { ScOptionBase } from "./sc-option/sc-option";
 export { ScRadioBase } from "./sc-radio/sc-radio";
 export { ScRadioGroupBase } from "./sc-radio-group/sc-radio-group";
 export { ScSelectBase } from "./sc-select/sc-select";
-export { ScIconBase, type ScIconSize } from "./sc-icon/sc-icon";
+export { ScIconBase, type ScIconSize, type ScIconVariant } from "./sc-icon/sc-icon";
 export { ScButtonBase, type ScButtonVariant } from "./sc-button/sc-button";
 export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge/sc-badge";
 export { ScToastBase, type ScToastVariant } from "./sc-toast/sc-toast";

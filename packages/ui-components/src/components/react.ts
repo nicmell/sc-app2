@@ -116,8 +116,9 @@ export const ScSelect = createComponent({
   events: { onChange: "change" },
 });
 
-/** <sc-icon-base>. Pass a Phosphor icon `name` (fill weight); the host must load
- *  `@phosphor-icons/web/fill` once for the glyphs to show. */
+/** <sc-icon-base>. Pass a Phosphor icon `name` + optional `variant`
+ *  (regular | fill | duotone); the host must load the matching
+ *  `@phosphor-icons/web/<weight>` CSS once for the glyphs to show. */
 export const ScIcon = createComponent({
   react: React,
   tagName: "sc-icon-base",

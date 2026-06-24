@@ -25,11 +25,12 @@ Three consumers:
 
 ```
 src/
-  foundations/             SCSS — tokens, reset, base element styles
-    index.scss             entry; @use tokens + themes + reset + base (NO components)
+  foundations/             SCSS — tokens, reset, base element styles, icon font
+    index.scss             entry; @use tokens + themes + reset + base + icons (NO components)
     tokens/semantic.scss   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.scss  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
+    _icons.scss            Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
   components/              the -base Lit web components + their co-located styles
     sc-<tag>/sc-<tag>.ts        the component: `static styles = [foundations, styles]`,
                                 renders a shadow tree using literal class names
@@ -38,7 +39,6 @@ src/
     internal/foundation-styles.ts   the shared `foundations` CSSResult (+ adoptFoundation)
     internal/widget-base.scss        shared widget styles (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
-    foundations/_icons.scss          Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 

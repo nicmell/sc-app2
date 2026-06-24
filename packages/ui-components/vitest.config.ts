@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import type { PluginOption } from "vite";
 import litCss from "rollup-plugin-lit-css";
-import { scssTransform } from "./build/lit-css";
+import { scssTransform } from "./lit-css";
 
 // The `-base` widgets use `@property() accessor` standard decorators, which
 // esbuild only lowers when the target isn't esnext (mirrors the demo config and

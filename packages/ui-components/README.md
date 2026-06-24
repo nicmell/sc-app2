@@ -39,9 +39,11 @@ src/
     internal/widget-base.scss        shared widget styles (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
     foundations/_icons.scss          Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
-    build/lit-css.ts                 shared sass `transform` for the lit-css plugins
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
+
+(At the package root: `lit-css.ts` — the shared sass `transform` for the lit-css plugins:
+sass compile + the `phosphor:` importer + postcss-url woff2 inlining.)
 
 ### Entry points (package `exports`)
 
@@ -224,7 +226,7 @@ Two notes on shadow-DOM styling:
   `@font-face` registers — it has no effect inside a shadow root) and into every
   component's shadow via `static styles` (so the `.ph-*` glyph rules reach the
   shadow `<i>`). The woff2 is inlined as a data-URI at build time
-  (`build/lit-css.ts`), so there's no runtime font URL, no `?inline`, and
+  (`lit-css.ts`), so there's no runtime font URL, no `?inline`, and
   `@phosphor-icons/web` is a build-time-only dependency.
 
 ### Overlays (top layer)
@@ -279,7 +281,7 @@ The package is **built** with `tsup` to `dist/` (ESM + `.d.ts`); `exports` point
 there and consumers import the compiled output (no `.scss` reaches the consuming
 app). The SCSS → `CSSResult` transform runs in the build (`esbuild-plugin-lit-css`)
 and, for the demo/tests, at dev time (`rollup-plugin-lit-css`) — both via the
-shared sass `transform` in `build/lit-css.ts`. The foundation CSS exports
+shared sass `transform` in `lit-css.ts`. The foundation CSS exports
 (`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.scss` sources (a consumer's
 bundler compiles them).
 

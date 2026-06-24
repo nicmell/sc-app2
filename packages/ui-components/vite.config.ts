@@ -1,6 +1,6 @@
 import { defineConfig, type PluginOption } from "vite";
 import litCss from "rollup-plugin-lit-css";
-import { scssTransform } from "./build/lit-css";
+import { scssTransform } from "./lit-css";
 
 // Dev-server config for the package's index.html (`npx vite` / `yarn demo`).
 // - es2022 lowers the `@property() accessor` standard decorators.

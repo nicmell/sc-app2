@@ -17,7 +17,10 @@ import { pathToFileURL } from "node:url";
 import postcss from "postcss";
 import postcssUrl from "postcss-url";
 
-const require = createRequire(import.meta.url);
+// Resolve @phosphor-icons from the package dir rather than `import.meta.url`: tsup,
+// Vite, and vitest all run from here, and vitest's module URL isn't a `file:` URL
+// (which would break createRequire / the importer below).
+const require = createRequire(path.resolve(process.cwd(), "package.json"));
 
 /** Maps `phosphor:<weight>` → @phosphor-icons/web's compiled weight CSS file, resolved
  *  through the package's exports exactly as the app resolves it. */

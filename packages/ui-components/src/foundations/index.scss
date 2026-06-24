@@ -24,3 +24,8 @@
    already looks correct. */
 @use "./base/elements";
 @use "./base/typography";
+
+/* Phosphor icon font — @font-face (registers on the document) + .ph-* glyph rules
+   (reach every shadow via `static styles`). woff2 inlined as data-URI at build time.
+   See _icons.scss + build/lit-css.ts. */
+@use "./icons";

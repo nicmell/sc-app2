@@ -38,7 +38,7 @@ src/
     internal/foundation-styles.ts   the shared `foundations` CSSResult (+ adoptFoundation)
     internal/widget-base.scss        shared widget styles (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
-    internal/icon-font.ts            adopts the Phosphor glyph CSS into the icon's shadow
+    foundations/_icons.scss          Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
     build/lit-css.ts                 shared sass `transform` for the lit-css plugins
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
@@ -70,8 +70,9 @@ registerUiComponents();            // idempotent; defines every <sc-*-base> tag
 import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 // → <ScButton label="Run" variant="danger" onClick={…} />
 
-// 3. icons: nothing to load — the package bundles Phosphor (regular | fill |
-//    duotone) and adopts the font into each <sc-icon-base> shadow.
+// 3. icons: nothing to load — the Phosphor font (regular | fill | duotone) ships
+//    inside the foundation, so adoptFoundation() registers it and every shadow gets
+//    the .ph-* rules. <sc-icon-base name="play"> just works.
 ```
 
 Every component is **shadow DOM**, styled by `static styles = [foundations,
@@ -117,7 +118,7 @@ is shadow DOM; form widgets re-emit composed events — read `e.target.value` /
 | `sc-cluster-base` | `gap` | — | horizontal flex layout (wraps); renders children |
 | `sc-disclosure-base` | `open` | `toggle` | **shadow DOM**; collapsible card over native `<details>` (`summary` slot + content) |
 | `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | native `click` | composes `sc-icon-base` |
-| `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph (bundled by the package); `variant` = regular (default) \| fill \| duotone |
+| `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph (font ships in the foundation); `variant` = regular (default) \| fill \| duotone |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional leading dot) |
 | `sc-progress-base` | `variant` `value` `max` `size` `label` | — | loading/progress indicator; `bar`/`spinner`, determinate when `value` set else indeterminate; `role=progressbar` |
@@ -217,12 +218,14 @@ Two notes on shadow-DOM styling:
 - **Slotted content** (a panel/drawer `<header>`, etc.) is light DOM, so it's
   styled with `::slotted(...)` from the component's own css — the component does
   not expose global classes for consumers to hook.
-- **Icon font.** `<sc-icon-base>` renders `<i class="ph ph-<name>">`, but a
-  *document* stylesheet can't reach a shadow root. The package **bundles**
-  Phosphor (a dependency, fixed weights regular/fill/duotone): `internal/
-  icon-font.ts` imports each weight's CSS via `?inline`, builds one shared
-  constructable sheet, and `adoptIconFont()`s it into the icon's shadow — so no
-  host setup is required.
+- **Icon font.** `<sc-icon-base>` renders `<i class="ph ph-<name>">`. The Phosphor
+  font ships **inside the foundation** (`foundations/_icons.scss`, fixed weights
+  regular/fill/duotone): the foundation is adopted both on the document (so
+  `@font-face` registers — it has no effect inside a shadow root) and into every
+  component's shadow via `static styles` (so the `.ph-*` glyph rules reach the
+  shadow `<i>`). The woff2 is inlined as a data-URI at build time
+  (`build/lit-css.ts`), so there's no runtime font URL, no `?inline`, and
+  `@phosphor-icons/web` is a build-time-only dependency.
 
 ### Overlays (top layer)
 

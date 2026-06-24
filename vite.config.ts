@@ -26,10 +26,6 @@ export default defineConfig(() => ({
   // …and again for the dependency pre-bundle, which esbuild optimizes separately
   // from app source.
   optimizeDeps: {
-    // @sc-app/ui-components' dist imports the Phosphor weight CSS as `?inline`
-    // (a Vite query esbuild's prebundler can't resolve) — exclude it so Vite's
-    // own pipeline serves the dist and handles `?inline`.
-    exclude: ["@sc-app/ui-components"],
     esbuildOptions: {
       define: {
         "process.env": "false",

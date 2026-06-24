@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@lit/react": "^1.0.6",
-    "@phosphor-icons/web": "^2.1.2",
     "@sc-app/server-commands": "workspace:*",
     "@sc-app/synthdef-compiler": "workspace:*",
     "@sc-app/ui-components": "workspace:*",

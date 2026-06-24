@@ -669,7 +669,7 @@
       // Adopt the foundation onto the document (the shared CSSResult sheet) so the
       // demo chrome + light DOM get tokens; components adopt it into their shadows
       // too. Phosphor fonts are bundled by the package (adopted per sc-icon shadow).
-      import { registerUiComponents, adoptFoundation } from "./src/components/index.ts";
+      import { registerUiComponents, adoptFoundation } from "./dist/index.js";
       adoptFoundation();
       registerUiComponents();
     </script>

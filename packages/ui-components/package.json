@@ -32,7 +32,6 @@
     "@floating-ui/dom": "^1.7.6",
     "@lit/context": "^1.1.6",
     "@lit/react": "^1.0.6",
-    "@phosphor-icons/web": "^2.1.2",
     "classnames": "^2.5.1"
   },
   "peerDependencies": {
@@ -49,6 +48,7 @@
     }
   },
   "devDependencies": {
+    "@phosphor-icons/web": "^2.1.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "happy-dom": "^20.10.2",

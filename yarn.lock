@@ -6125,7 +6125,6 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@lit/react": "npm:^1.0.6"
-    "@phosphor-icons/web": "npm:^2.1.2"
     "@sc-app/server-commands": "workspace:*"
     "@sc-app/synthdef-compiler": "workspace:*"
     "@sc-app/ui-components": "workspace:*"

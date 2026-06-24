@@ -5,10 +5,3 @@ declare module "*.scss" {
   const styles: CSSResult;
   export default styles;
 }
-
-// Vite's `?inline` query returns a CSS file's text as a default string export —
-// used for the external Phosphor weight CSS (`@phosphor-icons/web/*/style.css?inline`).
-declare module "*.css?inline" {
-  const css: string;
-  export default css;
-}

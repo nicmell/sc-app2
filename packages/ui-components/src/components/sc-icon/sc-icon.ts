@@ -1,20 +1,31 @@
 // <sc-icon-base> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with
 // the `<weight> ph-<name>` classes from @phosphor-icons/web. Those glyph rules
-// live in document stylesheets, so the icon adopts them into its shadow via
-// adoptIconFont() (a no-op where the font CSS isn't loaded — tests, headless).
+// can't reach a shadow-root element from a document stylesheet, so the icon carries
+// them in its own `static styles` (the `iconFont` CSSResult) right alongside the
+// foundation — Lit adopts one shared sheet per class across every icon instance.
 // Colour follows currentColor and size follows the surrounding font-size (1em)
 // unless a size token is given.
 //
-// `variant` selects the weight: regular (default) | fill | duotone. All three
-// are bundled by the package (adopted into the icon's shadow by adoptIconFont),
-// so there's no host setup to do.
+// `variant` selects the weight: regular (default) | fill | duotone. All three are
+// bundled by the package (in `iconFont`), so there's no host setup to do.
 
-import { LitElement, html } from "lit";
+import { LitElement, html, unsafeCSS, type CSSResult } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import { adoptIconFont } from "../internal/icon-font";
 import styles from "./sc-icon.scss";
+import regular from "@phosphor-icons/web/regular/style.css?inline";
+import fill from "@phosphor-icons/web/fill/style.css?inline";
+import duotone from "@phosphor-icons/web/duotone/style.css?inline";
+
+// The bundled Phosphor glyph rules (all three weights) as ONE CSSResult. The
+// `.ph-*` selectors + @font-face can't reach a shadow-root element from a document
+// stylesheet, so the icon carries them in its own `static styles` — Lit adopts one
+// shared sheet per class across every instance. Each weight's CSS comes in as a
+// string (`?inline`, kept external so the consuming app's Vite emits the woff2);
+// the package bundles Phosphor (a regular dependency) at the fixed weights the
+// `variant` prop supports, so there's no host setup to do.
+const iconFont: CSSResult = unsafeCSS([regular, fill, duotone].join("\n"));
 
 export type ScIconSize = "sm" | "md" | "lg";
 export type ScIconVariant = "regular" | "fill" | "duotone";
@@ -27,7 +38,7 @@ const WEIGHT_CLASS: Record<ScIconVariant, string> = {
 };
 
 export class ScIconBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [foundations, iconFont, styles];
 
   /** Phosphor icon name (kebab-case, without the `ph-` prefix), e.g. "play". */
   @property() accessor name = "";
@@ -37,10 +48,6 @@ export class ScIconBase extends LitElement {
   @property() accessor size: ScIconSize | undefined = undefined;
   /** Accessible label. When omitted the icon is decorative (aria-hidden). */
   @property() accessor label = "";
-
-  protected firstUpdated(): void {
-    adoptIconFont(this.renderRoot as ShadowRoot);
-  }
 
   render() {
     const cls = cx("root", WEIGHT_CLASS[this.variant], `ph-${this.name}`, this.size && this.size);

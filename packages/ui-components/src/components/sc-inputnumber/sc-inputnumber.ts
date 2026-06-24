@@ -11,6 +11,7 @@ import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
 import { foundations } from "../internal/foundation-styles";
 import { styles } from "./sc-inputnumber.styles";
+import "../sc-icon/sc-icon";
 
 export class ScInputNumberBase extends LitElement {
   static styles = [foundations, styles];
@@ -92,7 +93,7 @@ export class ScInputNumberBase extends LitElement {
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(1)}
           >
-            <span class="arrow arrowUp"></span>
+            <sc-icon-base name="caret-up"></sc-icon-base>
           </button>
           <button
             type="button"
@@ -102,7 +103,7 @@ export class ScInputNumberBase extends LitElement {
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(-1)}
           >
-            <span class="arrow arrowDown"></span>
+            <sc-icon-base name="caret-down"></sc-icon-base>
           </button>
         </span>
       </div>

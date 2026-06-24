@@ -1,6 +1,6 @@
 // <sc-disclosure-base> styles. Card chrome around a native <details>; the base
 // details/summary rules come from the adopted foundations, so this adds only the
-// card + chevron.
+// card + chevron (a caret <sc-icon-base> that rotates to point down when open).
 
 import { css } from "lit";
 
@@ -16,8 +16,8 @@ export const styles = css`
     font-family: var(--font-sans);
     overflow: hidden;
 
-    &[open] .summary::after {
-      rotate: 45deg;
+    &[open] .chevron {
+      rotate: 90deg;
     }
   }
 
@@ -31,19 +31,14 @@ export const styles = css`
     &::-webkit-details-marker {
       display: none;
     }
+  }
 
-    /* Chevron: a rotated border corner. Right (▶) closed, down (▼) open. */
-    &::after {
-      content: "";
-      flex: none;
-      inline-size: 0.45em;
-      block-size: 0.45em;
-      margin-inline-start: auto;
-      border-right: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      rotate: -45deg;
-      transition: rotate var(--transition-fast);
-    }
+  /* Caret points right (▶) closed, rotates to down (▼) when [open]. */
+  .chevron {
+    margin-inline-start: auto;
+    font-size: 0.85em;
+    color: var(--color-text-dim);
+    transition: rotate var(--transition-fast);
   }
 
   .content {

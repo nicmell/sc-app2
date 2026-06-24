@@ -57,6 +57,7 @@ export const styles = css`
     justify-content: center;
     margin: 0;
     padding: 0;
+    font-size: 0.7rem; /* sizes the caret <sc-icon-base> to fit the stepper */
     background: var(--color-surface-3);
     border: none;
     border-radius: 0;
@@ -78,18 +79,5 @@ export const styles = css`
   }
   .stepDown {
     border-bottom-right-radius: var(--radius-xs);
-  }
-
-  .arrow {
-    width: 0;
-    height: 0;
-    border-left: 0.25rem solid transparent;
-    border-right: 0.25rem solid transparent;
-  }
-  .arrowUp {
-    border-bottom: 0.3rem solid currentColor;
-  }
-  .arrowDown {
-    border-top: 0.3rem solid currentColor;
   }
 `;

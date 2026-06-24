@@ -52,11 +52,8 @@ export const styles = css`
   }
 
   .arrow {
-    inline-size: 0;
-    block-size: 0;
-    border-left: 0.3rem solid transparent;
-    border-right: 0.3rem solid transparent;
-    border-top: 0.35rem solid var(--color-text-dim);
+    color: var(--color-text-dim);
+    font-size: var(--font-size-xs);
   }
 
   /* Top-layer popover dropdown (positioned fixed by the controller). */

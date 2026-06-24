@@ -7,6 +7,7 @@ import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
 import { styles } from "./sc-toast.styles";
+import "../sc-icon/sc-icon";
 
 export type ScToastVariant = "default" | "success" | "warn" | "error" | "info";
 
@@ -26,7 +27,9 @@ export class ScToastBase extends LitElement {
     return html`
       <div class=${cx("root", this.variant !== "default" && this.variant)} role=${role}>
         <span class="message">${this.message}</span>
-        <button type="button" class="close" aria-label="Dismiss" @click=${this._dismiss}>×</button>
+        <button type="button" class="close" aria-label="Dismiss" @click=${this._dismiss}>
+          <sc-icon-base name="x"></sc-icon-base>
+        </button>
       </div>
     `;
   }

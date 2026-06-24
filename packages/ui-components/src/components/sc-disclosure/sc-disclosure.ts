@@ -13,6 +13,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { foundations } from "../internal/foundation-styles";
 import { styles } from "./sc-disclosure.styles";
+import "../sc-icon/sc-icon";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
@@ -49,7 +50,10 @@ export class ScDisclosureBase extends LitElement {
   render() {
     return html`
       <details class="root" @toggle=${this.#onToggle}>
-        <summary class="summary"><slot name="summary"></slot></summary>
+        <summary class="summary">
+          <slot name="summary"></slot>
+          <sc-icon-base class="chevron" name="caret-right"></sc-icon-base>
+        </summary>
         <div class="content"><slot></slot></div>
       </details>
     `;

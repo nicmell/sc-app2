@@ -21,6 +21,7 @@ import type { ScSize, ScVariant } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
 import { PopoverController } from "../internal/popover-controller";
 import { styles } from "./sc-select.styles";
+import "../sc-icon/sc-icon";
 
 const DROPDOWN_ID = "sc-select-dropdown";
 
@@ -89,7 +90,7 @@ export class ScSelectBase extends LitElement {
         ?disabled=${this.disabled}
       >
         <span class="label">${this.#label}</span>
-        <span class="arrow" aria-hidden="true"></span>
+        <sc-icon-base class="arrow" name="caret-down"></sc-icon-base>
       </button>
       <div class="dropdown" id=${DROPDOWN_ID} role="listbox">
         <slot @slotchange=${() => this.requestUpdate()}></slot>

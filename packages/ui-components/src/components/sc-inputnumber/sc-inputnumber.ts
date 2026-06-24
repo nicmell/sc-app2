@@ -10,7 +10,7 @@ import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
 import { foundations } from "../internal/foundation-styles";
-import { styles } from "./sc-inputnumber.styles";
+import styles from "./sc-inputnumber.scss";
 import "../sc-icon/sc-icon";
 
 export class ScInputNumberBase extends LitElement {

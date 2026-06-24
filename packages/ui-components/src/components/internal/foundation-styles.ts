@@ -1,34 +1,22 @@
-// The foundation CSS as ONE shared constructable stylesheet. Adopt this single
-// object into the document AND into any shadow root — the browser parses/stores
-// it once, and adopting by reference does not copy it. This is the single
-// source of foundation styles for every shadow-DOM component (via the shared
-// `foundations` export in `static styles`) and, via adoptFoundation(document),
-// for the whole app shell.
-//
-// `undefined` only in environments without constructable-stylesheet support
-// (guarded so importing this never throws under test runners).
+// The foundation CSS as ONE shared Lit `CSSResult` (compiled from
+// foundations/index.scss by the lit-css build/dev plugin). It's adopted into
+// every shadow-DOM component (via the shared `foundations` export in
+// `static styles`) AND, through adoptFoundation(document), onto the app shell —
+// the browser parses/stores the underlying sheet once and adopts it by reference.
 
-import { css, type CSSResultOrNative } from "lit";
-import foundationCss from "../../foundations/index.css?inline";
+import type { CSSResult } from "lit";
+import foundationSheet from "../../foundations/index.scss";
 
-export const foundationStyles: CSSStyleSheet | undefined = (() => {
-  try {
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(foundationCss);
-    return sheet;
-  } catch {
-    return undefined;
-  }
-})();
-
-/** The ONE shared foundation, ready to drop into any component's `static styles`
- *  (`static styles = [foundations, styles]`). Always a valid entry — falls back
- *  to an empty sheet where constructable stylesheets are unavailable. */
-export const foundations: CSSResultOrNative = foundationStyles ?? css``;
+// Explicitly typed (not a bare re-export of the `.scss` import) so the emitted
+// `.d.ts` reads `export const foundations: CSSResult` with no `.scss` edge for
+// the dts bundler / consumers to resolve.
+export const foundations: CSSResult = foundationSheet;
 
 /** Adopt the shared foundation sheet into a document or shadow root (idempotent).
- *  Call once with `document` at app boot to style the light DOM. */
+ *  Call once with `document` at app boot to style the light DOM. Guarded for
+ *  environments without constructable stylesheets (e.g. happy-dom under tests). */
 export function adoptFoundation(root: DocumentOrShadowRoot = document): void {
-  if (!foundationStyles || root.adoptedStyleSheets.includes(foundationStyles)) return;
-  root.adoptedStyleSheets = [...root.adoptedStyleSheets, foundationStyles];
+  const sheet = foundations.styleSheet;
+  if (!sheet || root.adoptedStyleSheets.includes(sheet)) return;
+  root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
 }

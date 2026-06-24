@@ -13,8 +13,8 @@ import cx from "classnames";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import { widgetStyles } from "../internal/widget-base.styles";
-import { styles } from "./sc-radio-group.styles";
+import widgetStyles from "../internal/widget-base.scss";
+import styles from "./sc-radio-group.scss";
 
 let groupId = 0;
 

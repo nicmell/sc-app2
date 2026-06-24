@@ -17,15 +17,6 @@ export default defineConfig(() => ({
     target: "es2022",
   },
 
-  // @sc-app/ui-components component styles ship as scoped CSS Modules
-  // (`sc-x.module.css`), imported by each component (resolved to source via the
-  // aliases below). camelCaseOnly so locals read as `styles.stepUp`.
-  css: {
-    modules: {
-      localsConvention: "camelCaseOnly" as const,
-    },
-  },
-
   // react-grid-layout bundles react-draggable, whose drag-start logger reads
   // `process.env.DRAGGABLE_DEBUG` — `process` is undefined in the browser, so it
   // throws on the first drag/resize. Replace the expression with a constant.
@@ -35,6 +26,10 @@ export default defineConfig(() => ({
   // …and again for the dependency pre-bundle, which esbuild optimizes separately
   // from app source.
   optimizeDeps: {
+    // @sc-app/ui-components' dist imports the Phosphor weight CSS as `?inline`
+    // (a Vite query esbuild's prebundler can't resolve) — exclude it so Vite's
+    // own pipeline serves the dist and handles `?inline`.
+    exclude: ["@sc-app/ui-components"],
     esbuildOptions: {
       define: {
         "process.env": "false",
@@ -43,12 +38,10 @@ export default defineConfig(() => ({
   },
 
   resolve: {
-    // `@sc-app/*` workspace packages resolve through their package `exports`:
-    // Vite applies the `development` condition in dev (→ package `src`, for HMR +
-    // es2022 decorator-lowering) and `production`/`default` in build (→ compiled
-    // `dist`). No aliases needed — except for tests (see `test.alias` below).
+    // `@sc-app/*` workspace packages resolve through their package `exports` to the
+    // built `dist` (the packages are built artifacts; `yarn dev`/`test` run
+    // `turbo run build` first). `@/` → `src/`.
     alias: {
-      // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
@@ -89,21 +82,6 @@ export default defineConfig(() => ({
       ),
       "@strudel/core": fileURLToPath(
         new URL("./src/lib/utils/test/stubs/strudel-core.ts", import.meta.url),
-      ),
-      // Tests run against package SOURCE (not the built dist): explicit aliases
-      // so the suite never depends on the `development` export condition / a
-      // prior package build.
-      "@sc-app/server-commands": fileURLToPath(
-        new URL("./packages/server-commands/src/index.ts", import.meta.url),
-      ),
-      "@sc-app/synthdef-compiler": fileURLToPath(
-        new URL("./packages/synthdef-compiler/src/index.ts", import.meta.url),
-      ),
-      "@sc-app/ui-components/lit": fileURLToPath(
-        new URL("./packages/ui-components/src/components/index.ts", import.meta.url),
-      ),
-      "@sc-app/ui-components/react": fileURLToPath(
-        new URL("./packages/ui-components/src/components/react.ts", import.meta.url),
       ),
     },
   },

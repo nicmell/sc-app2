@@ -10,17 +10,17 @@
 
 /* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
    public contract (raw values; no external primitive layer). */
-@import "./tokens/semantic.css";
+@use "./tokens/semantic";
 
 /* Theme palette. Default = dark; light theme applies under
    [data-theme="light"]. */
-@import "./themes/dark.css";
-@import "./themes/light.css";
+@use "./themes/dark";
+@use "./themes/light";
 
 /* Minimal reset / normalize. */
-@import "./reset.css";
+@use "./reset";
 
 /* Raw HTML element styles. After this point a bare <button>
    already looks correct. */
-@import "./base/elements.css";
-@import "./base/typography.css";
+@use "./base/elements";
+@use "./base/typography";

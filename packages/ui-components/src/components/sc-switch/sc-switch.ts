@@ -8,8 +8,8 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
-import { widgetStyles } from "../internal/widget-base.styles";
-import { styles } from "./sc-switch.styles";
+import widgetStyles from "../internal/widget-base.scss";
+import styles from "./sc-switch.scss";
 
 export class ScSwitchBase extends ScWidgetBase {
   static styles = [foundations, widgetStyles, styles];

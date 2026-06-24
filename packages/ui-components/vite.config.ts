@@ -1,11 +1,16 @@
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
+import litCss from "rollup-plugin-lit-css";
+import { scssTransform } from "./build/lit-css";
 
-// Dev-server config for the package's index.html (`npx vite` / `vite` here).
-// The only thing it needs over the zero-config default is decorator lowering:
-// the `-base` widgets use `@property() accessor` standard decorators, which
-// esbuild only lowers when the target isn't esnext (mirrors the root config).
+// Dev-server config for the package's index.html (`npx vite` / `yarn demo`).
+// - es2022 lowers the `@property() accessor` standard decorators.
+// - lit-css compiles each component's `.scss` import to a Lit CSSResult (sass);
+//   Vite runs the Rollup plugin in serve too.
 export default defineConfig({
   esbuild: {
     target: "es2022",
   },
+  // Cast: rollup-plugin-lit-css types against standalone rollup; Vite bundles its
+  // own rollup types (the well-known cross-version Plugin clash).
+  plugins: [litCss({ include: ["**/*.scss"], transform: scssTransform }) as PluginOption],
 });

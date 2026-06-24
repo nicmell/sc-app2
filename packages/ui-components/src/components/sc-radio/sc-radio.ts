@@ -12,8 +12,8 @@ import cx from "classnames";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import { widgetStyles } from "../internal/widget-base.styles";
-import { styles } from "./sc-radio.styles";
+import widgetStyles from "../internal/widget-base.scss";
+import styles from "./sc-radio.scss";
 
 export class ScRadioBase extends ScWidgetBase {
   static styles = [foundations, widgetStyles, styles];

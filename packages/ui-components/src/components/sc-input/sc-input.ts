@@ -9,7 +9,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import { styles } from "./sc-input.styles";
+import styles from "./sc-input.scss";
 
 export type ScInputSize = "sm" | "md" | "lg";
 

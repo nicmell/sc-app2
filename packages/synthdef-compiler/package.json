@@ -9,22 +9,18 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "development": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./builders": {
-      "development": "./src/builders/index.ts",
       "types": "./dist/builders/index.d.ts",
       "default": "./dist/builders/index.js"
     },
     "./registry": {
-      "development": "./src/registry.ts",
       "types": "./dist/registry.d.ts",
       "default": "./dist/registry.js"
     },
     "./sugar": {
-      "development": "./src/sugar/index.ts",
       "types": "./dist/sugar/index.d.ts",
       "default": "./dist/sugar/index.js"
     },

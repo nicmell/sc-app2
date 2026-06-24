@@ -8,8 +8,8 @@ import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
 import { foundations } from "../internal/foundation-styles";
-import { widgetStyles } from "../internal/widget-base.styles";
-import { styles } from "./sc-knob.styles";
+import widgetStyles from "../internal/widget-base.scss";
+import styles from "./sc-knob.scss";
 
 export class ScKnobBase extends ScRangeBase {
   static styles = [foundations, widgetStyles, styles];

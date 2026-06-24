@@ -11,7 +11,7 @@ import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
-import { styles } from "./sc-button.styles";
+import styles from "./sc-button.scss";
 import "../sc-icon/sc-icon";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";

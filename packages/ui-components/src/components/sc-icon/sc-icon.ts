@@ -14,7 +14,7 @@ import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
 import { adoptIconFont } from "../internal/icon-font";
-import { styles } from "./sc-icon.styles";
+import styles from "./sc-icon.scss";
 
 export type ScIconSize = "sm" | "md" | "lg";
 export type ScIconVariant = "regular" | "fill" | "duotone";

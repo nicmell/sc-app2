@@ -6,7 +6,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import { styles } from "./sc-toast.styles";
+import styles from "./sc-toast.scss";
 import "../sc-icon/sc-icon";
 
 export type ScToastVariant = "default" | "success" | "warn" | "error" | "info";

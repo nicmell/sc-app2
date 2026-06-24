@@ -9,8 +9,8 @@ by the lit-css build plugin (sass). No CSS Modules, no per-component `unsafeCSS`
 
 > The package is **built** (`tsup` → `dist`); consumers import the compiled
 > output. SCSS is compiled at build time (esbuild-plugin-lit-css) and for the
-> demo/tests at dev time (rollup-plugin-lit-css) — the consuming app never sees a
-> `.scss`. Component iteration happens in `yarn demo` (source).
+> tests at dev time (rollup-plugin-lit-css) — the consuming app never sees a
+> `.scss`. The `example/` showcase consumes the built package (`yarn demo`).
 
 Three consumers:
 
@@ -43,7 +43,8 @@ src/
 ```
 
 (At the package root: `lit-css.ts` — the shared sass `transform` for the lit-css plugins:
-sass compile + the `phosphor:` importer + postcss-url woff2 inlining.)
+sass compile + the `phosphor:` importer + postcss-url woff2 inlining. And `example/` —
+a standalone Vite showcase that consumes the built package; see Demo below.)
 
 ### Entry points (package `exports`)
 
@@ -280,19 +281,19 @@ yarn test           # vitest + happy-dom behaviour suite (source .scss via lit-c
 The package is **built** with `tsup` to `dist/` (ESM + `.d.ts`); `exports` point
 there and consumers import the compiled output (no `.scss` reaches the consuming
 app). The SCSS → `CSSResult` transform runs in the build (`esbuild-plugin-lit-css`)
-and, for the demo/tests, at dev time (`rollup-plugin-lit-css`) — both via the
-shared sass `transform` in `lit-css.ts`. The foundation CSS exports
+and, for the tests, at dev time (`rollup-plugin-lit-css`) — both via the shared
+sass `transform` in `lit-css.ts`. The foundation CSS exports
 (`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.scss` sources (a consumer's
 bundler compiles them).
 
 ## Demo
 
-`index.html` renders the foundation + every `-base` component from **source** —
-the fast loop for component work. Serve through Vite (the demo config registers
-the lit-css plugin so the components' `.scss` compile):
+`example/` is a **standalone Vite showcase** that consumes the **built** package
+(`@sc-app/ui-components/lit`) — it renders the foundation + every `-base` component.
+Because it consumes the build, the library is compiled first:
 
 ```bash
-yarn demo           # from packages/ui-components/, then open the printed URL (/)
+yarn demo           # from packages/ui-components/: builds the lib (tsup), then `vite example`
 ```
 
 ## Constraints

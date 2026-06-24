@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@sc-app/ui-components — demo</title>
-    <!-- Serve through Vite (`npx vite` / `yarn demo` from this package dir): it
-         transpiles the widget TS modules AND inlines the foundation CSS @import
-         chain from the module script below — no prebuilt dist needed. -->
+    <!-- A standalone Vite showcase that consumes the BUILT package
+         (@sc-app/ui-components) — so build the library first, then `yarn demo`
+         (from the package dir) or `vite` (from here). -->
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
        structure to render the sections without overflowing tiny screens. */
@@ -668,8 +668,8 @@
     <script type="module">
       // Adopt the foundation onto the document (the shared CSSResult sheet) so the
       // demo chrome + light DOM get tokens; components adopt it into their shadows
-      // too. Phosphor fonts are bundled by the package (adopted per sc-icon shadow).
-      import { registerUiComponents, adoptFoundation } from "./dist/index.js";
+      // too. The Phosphor @font-face rides in the foundation, registered here.
+      import { registerUiComponents, adoptFoundation } from "@sc-app/ui-components/lit";
       adoptFoundation();
       registerUiComponents();
     </script>

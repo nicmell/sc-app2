@@ -11,16 +11,15 @@
 // only consumer, so no separate controller). `open` is the single source of truth:
 // the native `toggle` reflects user-driven changes (light-dismiss) back into it and
 // re-emits a bubbling `toggle` for React; setting `open` drives showPopover()/
-// hidePopover(). Guarded so it degrades gracefully where the Popover API is absent.
+// hidePopover(). Requires the Popover API (Baseline since 2024 — Chrome/Edge 114,
+// Safari 17, Firefox 125); no fallback, since a positioned-but-not-top-layer panel
+// without light-dismiss would only look like it works.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { computePosition, autoUpdate, offset, flip, shift, type Placement } from "@floating-ui/dom";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-popover.scss";
-
-const POPOVER_SUPPORTED =
-  typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
 
 export class ScPopoverBase extends LitElement {
   @property({ type: Boolean }) accessor open = false;
@@ -41,12 +40,10 @@ export class ScPopoverBase extends LitElement {
 
   protected firstUpdated(): void {
     // The panel must carry `popover` unconditionally (popover elements are
-    // display:none until shown); the toggle is our source of truth for open state.
-    if (POPOVER_SUPPORTED) {
-      const panel = this.#panel;
-      if (panel && panel.getAttribute("popover") == null) panel.setAttribute("popover", "auto");
-      panel?.addEventListener("toggle", this.#onNativeToggle);
-    }
+    // display:none until shown); its native `toggle` is our source of truth for open.
+    const panel = this.#panel;
+    if (panel && panel.getAttribute("popover") == null) panel.setAttribute("popover", "auto");
+    panel?.addEventListener("toggle", this.#onNativeToggle);
     if (this.open) this.#show();
   }
 
@@ -61,7 +58,7 @@ export class ScPopoverBase extends LitElement {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.#stop();
-    if (POPOVER_SUPPORTED) this.#panel?.removeEventListener("toggle", this.#onNativeToggle);
+    this.#panel?.removeEventListener("toggle", this.#onNativeToggle);
   }
 
   // The native `toggle` (incl. light-dismiss) is the source of truth for user-driven
@@ -78,27 +75,19 @@ export class ScPopoverBase extends LitElement {
   };
 
   #show(): void {
-    const panel = this.#panel;
-    if (!panel) return;
-    if (POPOVER_SUPPORTED) {
-      // Positioning happens in #onNativeToggle once the popover is in the top layer.
-      try {
-        panel.showPopover();
-      } catch {
-        /* already open */
-      }
-    } else {
-      this.#position(); // No Popover API → no toggle event; position now.
+    // Positioning happens in #onNativeToggle once the popover is in the top layer.
+    try {
+      this.#panel?.showPopover();
+    } catch {
+      /* not connected / already open */
     }
   }
 
   #hide(): void {
-    if (POPOVER_SUPPORTED) {
-      try {
-        this.#panel?.hidePopover();
-      } catch {
-        /* already closed */
-      }
+    try {
+      this.#panel?.hidePopover();
+    } catch {
+      /* already closed */
     }
     this.#stop();
   }

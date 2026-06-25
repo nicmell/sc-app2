@@ -1,15 +1,14 @@
 /*
- * <sc-drawer-base> dialog chrome. The `.root` <dialog> is pinned to a viewport
- * edge (right by default; `.left` flips it) and animated natively (@starting-
- * style + allow-discrete). A slotted direct-child <header> is the title bar
- * (::slotted).
+ * <sc-drawer-base> dialog chrome. The <dialog> is pinned to a viewport edge (right by
+ * default; `:host([side="left"])` flips it) and animated natively (@starting-style +
+ * allow-discrete). A slotted direct-child <header> is the title bar (::slotted).
  */
 
 :host {
   display: contents;
 }
 
-.root {
+dialog {
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -54,7 +53,7 @@
 }
 
 /* Left side: pin to the left edge, flip the border, slide from the left. */
-.left {
+:host([side="left"]) dialog {
   inset: 0 auto 0 0;
   border-inline-start: none;
   border-inline-end: 1px solid var(--color-border-strong);
@@ -69,13 +68,13 @@
 /* Entry start-state (kept top-level: @starting-style nesting is less portable
    than the rest of native nesting). */
 @starting-style {
-  .root[open] {
+  dialog[open] {
     translate: 100% 0;
   }
-  .left[open] {
+  :host([side="left"]) dialog[open] {
     translate: -100% 0;
   }
-  .root[open]::backdrop {
+  dialog[open]::backdrop {
     opacity: 0;
   }
 }
@@ -92,8 +91,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .root,
-  .root::backdrop {
+  dialog,
+  dialog::backdrop {
     transition: none;
   }
 }

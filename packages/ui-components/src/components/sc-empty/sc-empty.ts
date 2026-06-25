@@ -1,6 +1,6 @@
 // <sc-empty-base> — placeholder shown when a list/collection has no items yet
-// (dashed border, muted text, centred). Shadow DOM: a `.root` wrapping a <slot>
-// for the author's message.
+// (dashed border, muted text, centred). Shadow DOM: `:host` is the placeholder box
+// over a <slot> for the author's message.
 
 import { LitElement, html } from "lit";
 import { foundations } from "../internal/foundation-styles";
@@ -10,6 +10,6 @@ export class ScEmptyBase extends LitElement {
   static styles = [foundations, styles];
 
   render() {
-    return html`<div class="root"><slot></slot></div>`;
+    return html`<slot></slot>`;
   }
 }

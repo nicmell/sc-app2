@@ -1,25 +1,21 @@
 /*
- * <sc-radio-group-base> styles. Lays out its slotted <sc-radio-base> children in
- * a row (or column when `vertical`). A disabled group dims + disables the whole group
- * (slotted radios included) via :host([disabled]).
+ * <sc-radio-group-base> styles. :host lays out its slotted <sc-radio-base> children in
+ * a row (or column when orientation=vertical). A disabled group dims + disables the whole
+ * group (slotted radios included) via :host([disabled]).
  */
 
 :host {
-  display: inline-block;
-}
-
-:host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.root {
   display: inline-flex;
   gap: var(--space-xs);
   align-items: center;
 }
 
-.root.vertical {
+:host([orientation="vertical"]) {
   flex-direction: column;
   align-items: flex-start;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }

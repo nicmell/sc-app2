@@ -49,7 +49,7 @@ export class ScDisclosureBase extends LitElement {
 
   render() {
     return html`
-      <details class="root" @toggle=${this.#onToggle}>
+      <details @toggle=${this.#onToggle}>
         <summary class="summary">
           <slot name="summary"></slot>
           <sc-icon-base class="chevron" name="caret-right"></sc-icon-base>

@@ -9,7 +9,6 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
@@ -21,7 +20,7 @@ export class ScRadioGroupBase extends ScControlBase {
   static styles = [foundations, styles];
 
   @property({ type: Number }) accessor value = 0;
-  @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
+  @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
   /** Accessible name for the group (→ aria-label on the role=radiogroup host). */
   @property() accessor label = "";
 
@@ -74,10 +73,6 @@ export class ScRadioGroupBase extends ScControlBase {
   }
 
   render() {
-    return html`<div
-      class=${cx("root", this.orientation === "vertical" && "vertical")}
-    >
-      <slot></slot>
-    </div>`;
+    return html`<slot></slot>`;
   }
 }

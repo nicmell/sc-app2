@@ -1,10 +1,6 @@
-/* <sc-chip-base> styles. Tinted pill + optional leading dot; neutral is the base. */
+/* <sc-chip-base> styles. :host is the tinted pill + optional leading dot; neutral is the base. */
 
 :host {
-  display: inline-block;
-}
-
-.root {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -15,38 +11,38 @@
   border-radius: var(--radius-pill);
   font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
+}
 
-  &.ok {
-    background: var(--color-ok-bg);
-    border-color: var(--color-ok-strong);
-    color: var(--color-ok-text);
-    .dot {
-      color: var(--color-ok);
-    }
+:host([variant="ok"]) {
+  background: var(--color-ok-bg);
+  border-color: var(--color-ok-strong);
+  color: var(--color-ok-text);
+  .dot {
+    color: var(--color-ok);
   }
-  &.warn {
-    background: var(--color-warn-bg);
-    border-color: var(--color-warn-border);
-    color: var(--color-warn-text);
-    .dot {
-      color: var(--color-warn);
-    }
+}
+:host([variant="warn"]) {
+  background: var(--color-warn-bg);
+  border-color: var(--color-warn-border);
+  color: var(--color-warn-text);
+  .dot {
+    color: var(--color-warn);
   }
-  &.error {
-    background: var(--color-error-bg);
-    border-color: var(--color-error-border);
-    color: var(--color-error-text);
-    .dot {
-      color: var(--color-danger);
-    }
+}
+:host([variant="error"]) {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+  .dot {
+    color: var(--color-danger);
   }
-  &.info {
-    background: var(--color-info-bg);
-    border-color: var(--color-info-border);
-    color: var(--color-info-text);
-    .dot {
-      color: var(--color-primary);
-    }
+}
+:host([variant="info"]) {
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
+  .dot {
+    color: var(--color-primary);
   }
 }
 

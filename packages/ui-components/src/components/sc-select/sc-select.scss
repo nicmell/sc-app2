@@ -28,12 +28,6 @@
   user-select: none;
   transition: border-color var(--transition-fast);
 
-  &.sm {
-    font-size: var(--font-size-xs);
-  }
-  &.lg {
-    font-size: var(--font-size-md);
-  }
   &:hover,
   &:focus-visible {
     outline: none;
@@ -43,6 +37,13 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+:host([size="sm"]) .combobox {
+  font-size: var(--font-size-xs);
+}
+:host([size="lg"]) .combobox {
+  font-size: var(--font-size-md);
 }
 
 .label {

@@ -1,10 +1,6 @@
-/* <sc-badge-base> styles. Uppercase pill; ok is the base, warn/error recolour. */
+/* <sc-badge-base> styles. :host is the uppercase pill; ok is the base, warn/error recolour. */
 
 :host {
-  display: inline-block;
-}
-
-.root {
   display: inline-flex;
   align-items: center;
   padding: var(--space-2xs) var(--space-xs);
@@ -15,15 +11,15 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-ok-text);
+}
 
-  &.warn {
-    background: var(--color-warn-bg);
-    border-color: var(--color-warn-border);
-    color: var(--color-warn-text);
-  }
-  &.error {
-    background: var(--color-error-bg);
-    border-color: var(--color-error-border);
-    color: var(--color-error-text);
-  }
+:host([variant="warn"]) {
+  background: var(--color-warn-bg);
+  border-color: var(--color-warn-border);
+  color: var(--color-warn-text);
+}
+:host([variant="error"]) {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
 }

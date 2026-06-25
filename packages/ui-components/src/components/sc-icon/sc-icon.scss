@@ -9,18 +9,18 @@
   display: inline-flex;
 }
 
-.root {
+i {
   font-size: inherit;
   line-height: 1;
   color: inherit;
 }
 
-.root.sm {
+:host([size="sm"]) i {
   font-size: var(--font-size-xs);
 }
-.root.md {
+:host([size="md"]) i {
   font-size: var(--font-size-sm);
 }
-.root.lg {
+:host([size="lg"]) i {
   font-size: var(--font-size-lg);
 }

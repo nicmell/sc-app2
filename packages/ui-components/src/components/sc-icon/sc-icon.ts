@@ -34,13 +34,13 @@ export class ScIconBase extends LitElement {
   @property() accessor name = "";
   /** Weight: regular (default) | fill | duotone. */
   @property() accessor variant: ScIconVariant = "regular";
-  /** Optional token-backed size; omit to inherit the surrounding font-size. */
-  @property() accessor size: ScIconSize | undefined = undefined;
+  /** Optional token-backed size (reflected → :host([size])); omit to inherit font-size. */
+  @property({ reflect: true }) accessor size: ScIconSize | undefined = undefined;
   /** Accessible label. When omitted the icon is decorative (aria-hidden). */
   @property() accessor label = "";
 
   render() {
-    const cls = cx("root", WEIGHT_CLASS[this.variant], `ph-${this.name}`, this.size && this.size);
+    const cls = cx(WEIGHT_CLASS[this.variant], `ph-${this.name}`);
     return this.label
       ? html`<i class=${cls} role="img" aria-label=${this.label}></i>`
       : html`<i class=${cls} aria-hidden="true"></i>`;

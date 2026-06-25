@@ -1,13 +1,9 @@
 /*
- * <sc-panel-base> styles. Surface card, gap-stacked content. A slotted direct-
- * child <header> renders as a small uppercase title bar (::slotted).
+ * <sc-panel-base> styles. :host is the surface card, gap-stacked content. A slotted
+ * direct-child <header> renders as a small uppercase title bar (::slotted).
  */
 
 :host {
-  display: block;
-}
-
-.root {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -27,7 +23,7 @@
   color: var(--color-text-dim);
 }
 
-.root.disabled {
+:host([disabled]) {
   opacity: 0.55;
   pointer-events: none;
   user-select: none;

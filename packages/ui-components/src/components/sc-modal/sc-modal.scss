@@ -1,9 +1,9 @@
 /*
- * <sc-modal-base> dialog chrome. The `.root` <dialog> is a centred flex column
- * that gap-stacks its slotted content; the UA centres it in the top layer.
+ * <sc-modal-base> dialog chrome. The <dialog> is a centred flex column that gap-stacks
+ * its slotted content; the UA centres it in the top layer.
  */
 
-.root {
+dialog {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);

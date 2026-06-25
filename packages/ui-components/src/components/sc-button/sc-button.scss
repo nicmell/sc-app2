@@ -1,19 +1,18 @@
 /*
- * <sc-button-base> styles. Appearance variants + sizes + an icon-only square
- * mode. The bare button{} base comes from the adopted foundations; `.root`
- * overrides it.
+ * <sc-button-base> styles. The inner <button> styled directly; appearance + size key off
+ * the host's reflected `variant`/`size`; an icon-only square mode via the `.iconOnly`
+ * class on the button.
  */
 
 :host {
   display: inline-block;
 }
 
-.root {
+button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2xs);
-  padding: var(--space-xs) var(--space-md);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font: inherit;
@@ -26,63 +25,6 @@
     border-color var(--transition-fast),
     color var(--transition-fast);
 
-  /* Sizes */
-  &.sm {
-    padding: var(--space-2xs) var(--space-sm);
-    font-size: var(--font-size-xs);
-  }
-  &.md {
-    padding: var(--space-xs) var(--space-md);
-    font-size: var(--font-size-sm);
-  }
-  &.lg {
-    padding: var(--space-sm) var(--space-lg);
-    font-size: var(--font-size-md);
-  }
-
-  /* Icon-only: square, equal padding. */
-  &.iconOnly {
-    padding: var(--space-xs);
-    &.sm {
-      padding: var(--space-2xs);
-    }
-    &.lg {
-      padding: var(--space-sm);
-    }
-  }
-
-  /* Variants (each filled/bordered look + its hover) */
-  &.primary {
-    background: var(--color-primary);
-    color: var(--color-on-primary);
-    &:hover:not(:disabled) {
-      background: var(--color-primary-hover);
-    }
-  }
-  &.secondary {
-    background: var(--color-surface-2);
-    color: var(--color-text);
-    border-color: var(--color-border-strong);
-    &:hover:not(:disabled) {
-      border-color: var(--color-border-stronger);
-    }
-  }
-  &.ghost {
-    background: transparent;
-    color: var(--color-text);
-    border-color: var(--color-border-stronger);
-    &:hover:not(:disabled) {
-      border-color: var(--color-border-focus);
-    }
-  }
-  &.danger {
-    background: var(--color-danger);
-    color: var(--color-on-primary);
-    &:hover:not(:disabled) {
-      background: var(--color-danger-hover);
-    }
-  }
-
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -92,5 +34,62 @@
   &:focus-visible {
     outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
+  }
+}
+
+/* Sizes */
+:host([size="sm"]) button {
+  padding: var(--space-2xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+}
+:host([size="md"]) button {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+}
+:host([size="lg"]) button {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-md);
+}
+
+/* Icon-only: square, equal padding (overrides the size padding). */
+button.iconOnly {
+  padding: var(--space-xs);
+}
+:host([size="sm"]) button.iconOnly {
+  padding: var(--space-2xs);
+}
+:host([size="lg"]) button.iconOnly {
+  padding: var(--space-sm);
+}
+
+/* Variants (each filled/bordered look + its hover) */
+:host([variant="primary"]) button {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+}
+:host([variant="secondary"]) button {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  &:hover:not(:disabled) {
+    border-color: var(--color-border-stronger);
+  }
+}
+:host([variant="ghost"]) button {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border-stronger);
+  &:hover:not(:disabled) {
+    border-color: var(--color-border-focus);
+  }
+}
+:host([variant="danger"]) button {
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  &:hover:not(:disabled) {
+    background: var(--color-danger-hover);
   }
 }

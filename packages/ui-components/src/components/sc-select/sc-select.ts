@@ -15,7 +15,6 @@
 import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
-import cx from "classnames";
 import { selectContext, type SelectContext } from "../internal/contexts";
 import { ScControlBase } from "../internal/sc-control-base";
 import { foundations } from "../internal/foundation-styles";
@@ -77,7 +76,7 @@ export class ScSelectBase extends ScControlBase {
   render() {
     return html`
       <button
-        class=${cx("combobox", this.size)}
+        class="combobox"
         type="button"
         role="combobox"
         aria-haspopup="listbox"

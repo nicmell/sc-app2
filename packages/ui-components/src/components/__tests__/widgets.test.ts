@@ -212,11 +212,11 @@ describe("sc-radio-group-base", () => {
     return { group, radios };
   }
 
-  it("applies the orientation modifier class to the root", async () => {
+  it("reflects the orientation to the host", async () => {
     const { group } = await mountGroup(0);
     group.orientation = "vertical";
     await group.updateComplete;
-    expect(group.shadowRoot!.querySelector(".root")!.classList.contains("vertical")).toBe(true);
+    expect(group.getAttribute("orientation")).toBe("vertical");
   });
 
   it("shares one name and checks the selected child's input", async () => {
@@ -308,7 +308,6 @@ describe("sc-icon-base", () => {
   it("renders the regular icon classes, decorative by default", async () => {
     const el = await mount("sc-icon-base", { name: "play" });
     const i = el.shadowRoot!.querySelector("i")!;
-    expect(i.classList.contains("root")).toBe(true);
     expect(i.classList.contains("ph")).toBe(true); // regular weight (default)
     expect(i.classList.contains("ph-play")).toBe(true);
     expect(i.getAttribute("aria-hidden")).toBe("true");
@@ -321,9 +320,9 @@ describe("sc-icon-base", () => {
     expect(duo.shadowRoot!.querySelector("i")!.classList.contains("ph-duotone")).toBe(true);
   });
 
-  it("applies the size modifier when given", async () => {
+  it("reflects the size to the host when given", async () => {
     const el = await mount("sc-icon-base", { name: "play", size: "lg" });
-    expect(el.shadowRoot!.querySelector("i")!.classList.contains("lg")).toBe(true);
+    expect(el.getAttribute("size")).toBe("lg");
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
@@ -336,13 +335,12 @@ describe("sc-icon-base", () => {
 });
 
 describe("sc-button-base", () => {
-  it("renders a typed button with variant/size classes and label text", async () => {
+  it("renders a typed button; variant/size reflect to the host; label text", async () => {
     const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
     const btn = el.shadowRoot!.querySelector("button")!;
     expect(btn.getAttribute("type")).toBe("button");
-    expect(btn.classList.contains("root")).toBe(true);
-    expect(btn.classList.contains("danger")).toBe(true);
-    expect(btn.classList.contains("lg")).toBe(true);
+    expect(el.getAttribute("variant")).toBe("danger");
+    expect(el.getAttribute("size")).toBe("lg");
     expect(el.shadowRoot!.querySelector(".label")!.textContent).toBe("Run");
   });
 
@@ -385,31 +383,28 @@ describe("sc-button-base", () => {
 });
 
 describe("sc-badge-base", () => {
-  it("renders the label; ok is the base class with no modifier", async () => {
+  it("renders the label; ok is the base variant", async () => {
     const el = await mount("sc-badge-base", { label: "connected" });
-    const span = el.shadowRoot!.querySelector(".root")!;
-    expect(span.textContent!.trim()).toBe("connected");
-    expect(span.classList.contains("warn")).toBe(false);
-    expect(span.classList.contains("error")).toBe(false);
+    expect(el.shadowRoot!.textContent!.trim()).toBe("connected");
+    expect(el.getAttribute("variant")).toBe("ok");
   });
 
-  it("applies the variant modifier class", async () => {
+  it("reflects the variant to the host", async () => {
     const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
-    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("error")).toBe(true);
+    expect(el.getAttribute("variant")).toBe("error");
   });
 });
 
 describe("sc-toast-base", () => {
-  it("renders the message; default has no variant modifier", async () => {
+  it("renders the message; default is the base variant", async () => {
     const el = await mount("sc-toast-base", { message: "Saved." });
-    const toast = el.shadowRoot!.querySelector(".root")!;
     expect(el.shadowRoot!.querySelector(".message")!.textContent!.trim()).toBe("Saved.");
-    expect(toast.className).toBe("root");
+    expect(el.getAttribute("variant")).toBe("default");
   });
 
-  it("applies the variant modifier class", async () => {
+  it("reflects the variant to the host", async () => {
     const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
-    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("warn")).toBe(true);
+    expect(el.getAttribute("variant")).toBe("warn");
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
@@ -422,18 +417,16 @@ describe("sc-toast-base", () => {
 });
 
 describe("sc-chip-base", () => {
-  it("renders the label; neutral is the base class with no modifier or dot", async () => {
+  it("renders the label; neutral is the base variant, no dot", async () => {
     const el = await mount("sc-chip-base", { label: "idle" });
-    const chip = el.shadowRoot!.querySelector(".root")!;
-    expect(chip.textContent!.trim()).toBe("idle");
-    expect(chip.className).toBe("root");
+    expect(el.shadowRoot!.textContent!.trim()).toBe("idle");
+    expect(el.getAttribute("variant")).toBe("neutral");
     expect(el.shadowRoot!.querySelector(".dot")).toBeNull();
   });
 
-  it("applies the variant modifier and shows the dot when enabled", async () => {
+  it("reflects the variant and shows the dot when enabled", async () => {
     const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
-    const chip = el.shadowRoot!.querySelector(".root")!;
-    expect(chip.classList.contains("ok")).toBe(true);
+    expect(el.getAttribute("variant")).toBe("ok");
     expect(el.shadowRoot!.querySelector(".dot")).not.toBeNull();
   });
 });
@@ -632,7 +625,6 @@ describe("sc-modal-base", () => {
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
     expect(dialog).not.toBeNull();
-    expect(dialog!.classList.contains("root")).toBe(true);
     // Content stays light-DOM (slotted), reachable from the host.
     expect(el.querySelector(".sc-modal__title")!.textContent).toBe("Hi");
   });
@@ -663,7 +655,7 @@ describe("sc-drawer-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     const dialog = el.renderRoot.querySelector("dialog");
-    expect(dialog!.classList.contains("root")).toBe(true);
+    expect(dialog).not.toBeNull();
     expect(el.getAttribute("side")).toBe("left");
     expect(el.querySelector("header h2")!.textContent).toBe("Plugins");
   });
@@ -683,9 +675,9 @@ describe("sc-drawer-base", () => {
   });
 });
 
-// Content wrappers: shadow DOM rendering a `.root` + <slot>; the author's
-// children stay light-DOM (slotted, still reachable from the host), styling
-// driven by classes on the shadow `.root`.
+// Content wrappers: shadow DOM rendering a bare <slot>; the author's children
+// stay light-DOM (slotted, still reachable from the host), styling driven by
+// `:host` + reflected modifier attributes (variant/disabled).
 describe("content wrappers", () => {
   it("sc-alert-base slots children and applies the variant class", async () => {
     const el = document.createElement("sc-alert-base");
@@ -694,19 +686,19 @@ describe("content wrappers", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.querySelector("strong")!.textContent).toBe("down"); // slotted light DOM
-    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("error")).toBe(true);
+    expect(el.getAttribute("variant")).toBe("error");
   });
 
-  it("sc-alert-base defaults to the info variant (base class, role=status)", async () => {
+  it("sc-alert-base defaults to the info variant (role=status)", async () => {
     const el = document.createElement("sc-alert-base");
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.variant).toBe("info");
-    expect(el.shadowRoot!.querySelector(".root")).not.toBeNull();
+    expect(el.getAttribute("variant")).toBe("info");
     expect(el.getAttribute("role")).toBe("status");
   });
 
-  it("sc-panel-base slots its header + content and applies the disabled class", async () => {
+  it("sc-panel-base slots its header + content and reflects disabled", async () => {
     const el = document.createElement("sc-panel-base");
     el.innerHTML = "<header>Seq</header><span>body</span>";
     el.disabled = true;
@@ -714,7 +706,7 @@ describe("content wrappers", () => {
     await el.updateComplete;
     expect(el.querySelector("header")!.textContent).toBe("Seq");
     expect(el.querySelector("span")!.textContent).toBe("body");
-    expect(el.shadowRoot!.querySelector(".root")!.classList.contains("disabled")).toBe(true);
+    expect(el.hasAttribute("disabled")).toBe(true);
   });
 
   it("sc-empty-base slots children", async () => {
@@ -722,7 +714,7 @@ describe("content wrappers", () => {
     el.textContent = "no items yet";
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.shadowRoot!.querySelector(".root")).not.toBeNull();
+    expect(el.shadowRoot!.querySelector("slot")).not.toBeNull();
     expect(el.textContent).toBe("no items yet");
   });
 
@@ -802,9 +794,9 @@ describe("a11y wiring", () => {
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
     const el = await mount("sc-toast-base", { variant: "error" });
-    expect(el.shadowRoot!.querySelector(".root")!.getAttribute("role")).toBe("alert");
+    expect(el.getAttribute("role")).toBe("alert");
     const info = await mount("sc-toast-base", { variant: "info" });
-    expect(info.shadowRoot!.querySelector(".root")!.getAttribute("role")).toBe("status");
+    expect(info.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {

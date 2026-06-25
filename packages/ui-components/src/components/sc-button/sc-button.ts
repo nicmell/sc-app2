@@ -1,9 +1,9 @@
 // <sc-button-base> — a UI-only button. Shadow DOM: renders the inner <button>
-// (styled by the adopted foundations' bare button{} + its own `.root` chrome),
+// (styled directly + keyed off the host's reflected `variant`/`size`),
 // declarative content via `label` + optional leading/trailing Phosphor icons,
-// plus an icon-only mode. `variant` here is button *appearance*
-// (primary/secondary/ghost/danger), distinct from the accent `variant` on the
-// input controls — so this does not extend ScControlBase. The inner button's
+// plus an icon-only mode (a computed class on the button). `variant` here is button
+// *appearance* (primary/secondary/ghost/danger), distinct from the accent `variant` on
+// the input controls — so this does not extend ScControlBase. The inner button's
 // `click` is composed, so it crosses the shadow boundary to consumers.
 
 import { LitElement, html, nothing } from "lit";
@@ -27,17 +27,16 @@ export class ScButtonBase extends LitElement {
   @property({ attribute: "trailing-icon" }) accessor trailingIcon = "";
   /** Render only the icon (square button); `label` becomes the aria-label. */
   @property({ type: Boolean, attribute: "icon-only" }) accessor iconOnly = false;
-  @property() accessor variant: ScButtonVariant = "primary";
-  @property() accessor size: ScSize = "md";
+  @property({ reflect: true }) accessor variant: ScButtonVariant = "primary";
+  @property({ reflect: true }) accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
   @property() accessor type: "button" | "submit" | "reset" = "button";
 
   render() {
     const iconOnly = this.iconOnly && !!this.icon;
-    const cls = cx("root", this.variant, this.size, { iconOnly });
     return html`
       <button
-        class=${cls}
+        class=${cx({ iconOnly })}
         type=${this.type}
         ?disabled=${this.disabled}
         aria-label=${iconOnly && this.label ? this.label : nothing}

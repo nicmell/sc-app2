@@ -26,9 +26,6 @@ export abstract class ScDialogBase extends LitElement {
   // so the type is the broad CSSResultGroup.
   static styles: CSSResultGroup = [foundations];
 
-  /** The chrome class on the <dialog> (keyed by the matching foundation CSS). */
-  protected abstract get dialogClass(): string;
-
   protected get dialog(): HTMLDialogElement | null {
     return this.renderRoot.querySelector("dialog");
   }
@@ -81,7 +78,6 @@ export abstract class ScDialogBase extends LitElement {
   render() {
     return html`
       <dialog
-        class=${this.dialogClass}
         aria-label=${this.label || nothing}
         @cancel=${this.onCancel}
         @close=${this.onClose}

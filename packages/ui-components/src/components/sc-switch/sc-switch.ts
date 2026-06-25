@@ -8,7 +8,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
-import styles from "./sc-switch.css";
+import styles from "./sc-switch.scss";
 
 export class ScSwitchBase extends ScControlBase {
   static styles = [foundations, controlStyles, styles];

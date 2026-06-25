@@ -7,7 +7,7 @@
 // It supplies the props every control shares — `size`, `disabled`, `name` — plus the
 // `controlClasses()` helper that joins the per-control `root` + `size`. Disabled
 // reflects to the host and is styled via `:host([disabled])` in each control's own CSS
-// (or, for the text fields, the native `:disabled` from controls.css). Controls are
+// (or, for the text fields, the native `:disabled` from controls.scss). Controls are
 // single-accent (the primary colour) — there is no colour variant.
 
 import { LitElement } from "lit";

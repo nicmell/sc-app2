@@ -8,7 +8,7 @@ import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
-import styles from "./sc-knob.css";
+import styles from "./sc-knob.scss";
 
 export class ScKnobBase extends ScRangeBase {
   static styles = [foundations, controlStyles, styles];

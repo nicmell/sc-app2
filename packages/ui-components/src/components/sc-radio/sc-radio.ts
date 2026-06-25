@@ -12,7 +12,7 @@ import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations, controlStyles } from "../internal/foundation-styles";
-import styles from "./sc-radio.css";
+import styles from "./sc-radio.scss";
 
 export class ScRadioBase extends ScControlBase {
   static styles = [foundations, controlStyles, styles];

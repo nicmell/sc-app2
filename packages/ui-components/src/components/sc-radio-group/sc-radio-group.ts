@@ -13,7 +13,7 @@ import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-radio-group.css";
+import styles from "./sc-radio-group.scss";
 
 let groupId = 0;
 

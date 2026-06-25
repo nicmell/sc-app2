@@ -11,8 +11,8 @@ export default defineConfig({
   },
   plugins: [
     litCss({
-      include: ["**/ui-components/src/**/*.css"],
-      exclude: ["**/ui-components/src/foundations/index.css"],
+      include: ["**/ui-components/src/**/*.scss"],
+      exclude: ["**/ui-components/src/foundations/index.scss"],
     }),
   ],
   test: {

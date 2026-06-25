@@ -4,7 +4,7 @@
 
 import { LitElement, html } from "lit";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-empty.css";
+import styles from "./sc-empty.scss";
 
 export class ScEmptyBase extends LitElement {
   static styles = [foundations, styles];

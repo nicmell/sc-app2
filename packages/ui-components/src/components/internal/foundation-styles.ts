@@ -1,5 +1,5 @@
 // The font-free shadow base as ONE shared Lit `CSSResult` (compiled from
-// foundations/shadow.css by vite-plugin-lit-css). It's adopted into every shadow-DOM
+// foundations/shadow.scss by vite-plugin-lit-css). It's adopted into every shadow-DOM
 // component via `static styles` — delivering the bare element styles (button/input/…)
 // + reset that shadow internals need. Tokens reach the shadow via custom-property
 // inheritance from the document; the icon font lives in the head, not here.
@@ -12,8 +12,8 @@
 // there is no adoptFoundation() and no runtime style adoption onto the document.
 
 import type { CSSResult } from "lit";
-import shadowSheet from "../../foundations/shadow.css";
-import controlsSheet from "../../foundations/base/controls.css";
+import shadowSheet from "../../foundations/shadow.scss";
+import controlsSheet from "../../foundations/base/controls.scss";
 
 // Explicitly typed (not a bare re-export of the `.css` import) so the emitted
 // `.d.ts` reads `export const foundations: CSSResult` with no `.css` edge for
@@ -23,5 +23,5 @@ export const foundations: CSSResult = shadowSheet;
 // The bare form-field chrome (input/select/textarea surface/border/focus). NOT in the
 // shared `foundations` base — only the three components that render a native field in
 // their shadow adopt it: sc-input, sc-inputnumber, sc-textarea. The same sheet feeds the
-// head foundation via base/elements.css's @import. (sc-disclosure styles its own summary.)
+// head foundation via base/elements.scss's @import. (sc-disclosure styles its own summary.)
 export const controlStyles: CSSResult = controlsSheet;

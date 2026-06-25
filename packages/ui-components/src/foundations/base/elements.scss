@@ -7,17 +7,17 @@
  * (src/components), which resolves them to .sc-button--* classes
  * rather than data attributes.
  *
- * The form-field chrome (input/select/textarea) lives in controls.css — shared with the
+ * The form-field chrome (input/select/textarea) lives in controls.scss — shared with the
  * shadow input components that reuse it (see that file) — and is @imported here so the
  * head foundation keeps it. Everything else here is document-only (no shadow component
  * depends on it inside its shadow root; e.g. sc-disclosure styles its own <summary>).
  *
- * The body rule lives here (not in reset.css) so a consumer
+ * The body rule lives here (not in reset.scss) so a consumer
  * importing only the reset doesn't get the host palette
  * forced on it.
  */
 
-@import "./controls.css";
+@use "./controls";
 
 /* ── Document ──────────────────────────────────────────────── */
 
@@ -90,7 +90,7 @@ label {
 }
 
 /* ── Details / summary ─────────────────────────────────────── */
-/* Document-only: <sc-disclosure-base> styles its own <summary> in sc-disclosure.css. */
+/* Document-only: <sc-disclosure-base> styles its own <summary> in sc-disclosure.scss. */
 
 details > summary {
   cursor: pointer;

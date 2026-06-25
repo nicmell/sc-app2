@@ -12,13 +12,13 @@ export default defineConfig(() => ({
   // wraps the components' `.css` imports into Lit CSSResults (it patches Vite's css-post
   // plugin, so Vite's CSS pipeline runs first). Scoped via `include` to the package's own
   // `src/**`, so the app's own CSS (App.css, …) keeps Vite's normal injection. The
-  // foundation ENTRY (foundations/index.css) is EXCLUDED: it's imported as a plain
+  // foundation ENTRY (foundations/index.scss) is EXCLUDED: it's imported as a plain
   // side-effect stylesheet for the document <head> (FOUC fix), not a CSSResult.
   plugins: [
     react(),
     litCss({
-      include: ["**/ui-components/src/**/*.css"],
-      exclude: ["**/ui-components/src/foundations/index.css"],
+      include: ["**/ui-components/src/**/*.scss"],
+      exclude: ["**/ui-components/src/foundations/index.scss"],
     }),
   ],
 

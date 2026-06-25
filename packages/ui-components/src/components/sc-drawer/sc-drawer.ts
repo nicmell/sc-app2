@@ -11,7 +11,7 @@ import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { ScDialogBase } from "../internal/sc-dialog-base";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-drawer.css";
+import styles from "./sc-drawer.scss";
 
 export type ScDrawerSide = "right" | "left";
 

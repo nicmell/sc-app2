@@ -10,7 +10,7 @@ import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { selectContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-option.css";
+import styles from "./sc-option.scss";
 
 export class ScOptionBase extends ScControlBase {
   static styles = [foundations, styles];

@@ -9,7 +9,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
-import styles from "./sc-slider.css";
+import styles from "./sc-slider.scss";
 
 export class ScSliderBase extends ScRangeBase {
   static styles = [foundations, controlStyles, styles];

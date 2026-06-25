@@ -2,7 +2,7 @@
  * Phosphor icon font (the weights <sc-icon-base>'s `variant` supports). Used in two
  * places, both resolving these @imports through Vite's own CSS pipeline (which follows
  * @phosphor-icons/web's package exports and emits the woff2 as separate /assets files):
- *   1. the head foundation (index.css → this file) — a plain <link>, where the @font-face
+ *   1. the head foundation (index.scss → this file) — a plain <link>, where the @font-face
  *      registers document-wide and the .ph-* rules style light-DOM icons;
  *   2. <sc-icon-base>'s shadow (it imports this file as a CSSResult) — where the .ph-*
  *      content rules paint the <i>. The @font-face here is ignored (shadow roots don't

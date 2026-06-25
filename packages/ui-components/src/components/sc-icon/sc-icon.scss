@@ -1,6 +1,6 @@
 /*
  * <sc-icon-base> styles. Sizing/colour for the Phosphor glyph; the glyph itself
- * (font-family + ::before codepoint) comes from the `.ph-*` rules in foundations/icons.css,
+ * (font-family + ::before codepoint) comes from the `.ph-*` rules in foundations/icons.scss,
  * adopted into this shadow via `static styles = [foundations, glyphs, …]`. The font itself
  * is registered document-wide by the foundation's head <link>.
  */

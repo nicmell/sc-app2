@@ -7,7 +7,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-panel.css";
+import styles from "./sc-panel.scss";
 
 export class ScPanelBase extends LitElement {
   static styles = [foundations, styles];

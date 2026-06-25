@@ -1,14 +1,14 @@
 /**
  * Bare control chrome, adopted by the input/control components as `controlStyles`:
  *   - the form-field chrome (input/select/textarea surface/border/focus) — used by
- *     sc-input/sc-inputnumber/sc-textarea, and by the head foundation (elements.css
+ *     sc-input/sc-inputnumber/sc-textarea, and by the head foundation (elements.scss
  *     @imports this) so light-DOM / plugin fields look correct without classes;
  *   - `.sr-only` — the visually-hidden helper the graphical widgets (checkbox/switch/
  *     radio/slider/knob) wear on their hidden native <input>.
  *
  * Each consumer uses one part or the other; the unused rules are inert (the field chrome
  * targets <input>/<textarea> — harmless on a widget's clipped sr-only input). Kept OUT of
- * the shared shadow base (foundations/shadow.css) so components that need neither
+ * the shared shadow base (foundations/shadow.scss) so components that need neither
  * (sc-select/option/radio-group, sc-button, sc-disclosure) don't carry it.
  */
 

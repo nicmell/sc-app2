@@ -5,10 +5,10 @@
  *
  * Deliberately minimal: tokens reach shadow roots via custom-property inheritance from
  * the document; the icon font is registered document-wide by the head <link>; and the
- * bare element chrome (input/textarea/details) is NOT here — it lives in controls.css and
+ * bare element chrome (input/textarea/details) is NOT here — it lives in controls.scss and
  * is imported (as `controlStyles`) only by the four components that actually render those
  * native elements in their shadow. The full foundation (tokens + themes + reset + base +
- * @font-face) ships as the head <link> (foundations/index.css).
+ * @font-face) ships as the head <link> (foundations/index.scss).
  */
 
-@import "./reset.css";
+@use "./reset";

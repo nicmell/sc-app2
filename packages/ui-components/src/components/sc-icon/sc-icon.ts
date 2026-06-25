@@ -2,8 +2,8 @@
 // `<weight> ph-<name>` classes from @phosphor-icons/web. The Phosphor @font-face is
 // registered document-wide by the foundation's head <link>; this element is the only one
 // that renders a raw <i class="ph"> in its shadow, so it adopts `glyphs`
-// (foundations/icons.css — the `.ph-*` content rules) on top of the shared font-free
-// `foundations` base. (icons.css also carries an @font-face, but @font-face is ignored
+// (foundations/icons.scss — the `.ph-*` content rules) on top of the shared font-free
+// `foundations` base. (icons.scss also carries an @font-face, but @font-face is ignored
 // inside a shadow root — the document registration is what paints the glyph.) Colour
 // follows currentColor and size follows the surrounding font-size (1em) unless a size
 // token is given.
@@ -14,8 +14,8 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import glyphs from "../../foundations/icons.css";
-import styles from "./sc-icon.css";
+import glyphs from "../../foundations/icons.scss";
+import styles from "./sc-icon.scss";
 
 export type ScIconSize = "sm" | "md" | "lg";
 export type ScIconVariant = "regular" | "fill" | "duotone";

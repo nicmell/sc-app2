@@ -12,7 +12,9 @@
 const { createRequire } = require("node:module");
 const path = require("node:path");
 
-const req = createRequire(path.resolve(process.cwd(), "package.json"));
+// Resolve @phosphor-icons from THIS package's dir (not cwd) — the config is loaded by
+// the app, the example, and vitest, each with a different cwd.
+const req = createRequire(path.join(__dirname, "package.json"));
 
 module.exports = {
   plugins: [

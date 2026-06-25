@@ -7,10 +7,10 @@ itself uniformly: `static styles = [foundations, styles]` — the one shared
 `foundations` plus its own **`sc-x.css`**, each compiled to a Lit `CSSResult`
 by the lit-css build plugin (PostCSS). No CSS Modules, no per-component `unsafeCSS`.
 
-> The package is **built** (`tsup` → `dist`); consumers import the compiled
-> output. CSS is processed by PostCSS at build time (esbuild-plugin-lit-css) and for the
-> tests at dev time (rollup-plugin-lit-css) — the consuming app never sees a
-> `.css`. The `example/` showcase consumes the built package (`yarn demo`).
+> The package ships **no build** — consumers (the app, the `example/`, vitest) import
+> its TS + `.css` **source** directly and Vite compiles it, so editing a component
+> reflects immediately (no rebuild). A small Vite plugin (`litCss`, in `lit-css.ts`)
+> turns the components' `.css` into Lit CSSResults via the PostCSS pipeline.
 
 Three consumers:
 
@@ -45,7 +45,7 @@ src/
 (At the package root: `lit-css.ts` + `postcss.config.cjs` — the shared PostCSS pipeline the
 lit-css plugins run: postcss-import (incl. the Phosphor weight CSS) + postcss-nesting +
 postcss-url woff2 inlining. And `example/` —
-a standalone Vite showcase that consumes the built package; see Demo below.)
+a standalone Vite showcase that consumes the package source; see Demo below.)
 
 ### Entry points (package `exports`)
 
@@ -215,7 +215,7 @@ the **document** via `adoptFoundation()` (`foundations.styleSheet`) — for the 
 shell + so tokens defined at `:root` inherit across every shadow boundary. Class
 names are literal but **shadow-scoped**, so they never collide across components
 and there's no hashing to keep in sync. PostCSS gives nesting/`@import`/partials on top
-of the design tokens; native CSS nesting also works inside the compiled output.
+of the design tokens; native CSS nesting is flattened by postcss-nesting.
 
 Two notes on shadow-DOM styling:
 
@@ -274,34 +274,34 @@ modals are centred, so they don't overlap.
 ## Build
 
 ```bash
-yarn build          # tsup → dist (ESM + .d.ts); CSS → CSSResults via lit-css + PostCSS
 yarn typecheck      # tsc over the TS components
-yarn test           # vitest + happy-dom behaviour suite (source .css via lit-css)
+yarn test           # vitest + happy-dom behaviour suite (source .css via litCss)
+# No build step — the app/example/vitest compile this package's source directly.
 ```
 
-The package is **built** with `tsup` to `dist/` (ESM + `.d.ts`); `exports` point
-there and consumers import the compiled output (no `.css` reaches the consuming
-app). The CSS → `CSSResult` transform runs in the build (`esbuild-plugin-lit-css`)
-and, for the tests, at dev time (`rollup-plugin-lit-css`) — both via the shared
-PostCSS pipeline in `lit-css.ts` / `postcss.config.cjs`. The foundation CSS exports
-(`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.css` sources (a consumer's
-bundler compiles them).
+There is **no build step**. `exports` point at the TS + `.css` **source**, and each
+consumer's Vite (the app, `example/`, vitest) compiles it. The `litCss` Vite plugin
+(`lit-css.ts`) redirects the components' own `.css` to a virtual module — bypassing
+Vite's built-in CSS handling — and emits a Lit `CSSResult` built by the PostCSS
+pipeline (`postcss.config.cjs`: postcss-import incl. the Phosphor weight CSS,
+postcss-nesting, postcss-url). The foundation CSS exports (`.`/`/tokens`/`/reset`/
+`/themes/*`) point at the `.css` sources.
 
 ## Demo
 
-`example/` is a **standalone Vite showcase** that consumes the **built** package
-(`@sc-app/ui-components/lit`) — it renders the foundation + every `-base` component.
-Because it consumes the build, the library is compiled first:
+`example/` is a **standalone Vite workspace** that consumes the package **source**
+(`@sc-app/ui-components/lit`) — it renders the foundation + every `-base` component,
+with HMR. No build needed:
 
 ```bash
-yarn demo           # from packages/ui-components/: builds the lib (tsup), then `vite example`
+yarn demo           # from packages/ui-components/ — `vite example` (serves the source)
 ```
 
 ## Constraints
 
-- **Plain CSS, processed at build time.** Component styles are `.css` → Lit `CSSResult`
-  (lit-css + PostCSS: import/nesting/url); the foundation is `.css` too. The app
-  consumes the built `dist` (no CSS source reaches it).
+- **Plain CSS, compiled on demand.** Component styles are `.css` → Lit `CSSResult`
+  (the `litCss` Vite plugin + PostCSS: import/nesting/url); the foundation is `.css`
+  too. Consumers compile the source — no `dist`, no build step.
 - **Shadow-encapsulated components.** Each component is a shadow root styled by
   `[foundations, styles]`; only design tokens (CSS custom properties on `:root`)
   cross the boundary, so a component's look can't be perturbed by page CSS.

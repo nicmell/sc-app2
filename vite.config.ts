@@ -2,12 +2,16 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { litCss } from "./packages/ui-components/lit-css";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  plugins: [react()],
+  // `@sc-app/ui-components` is consumed as SOURCE (no build step). litCss compiles the
+  // components' `.css` imports to Lit CSSResults (it self-scopes to the package's own
+  // `src/**`, so the app's own CSS — App.css, … — keeps Vite's normal injection).
+  plugins: [react(), litCss()],
 
   // Lower standard (stage-3) decorators in the per-file esbuild transform —
   // the sc-elements use `@property() accessor` reactive properties and
@@ -34,9 +38,8 @@ export default defineConfig(() => ({
   },
 
   resolve: {
-    // `@sc-app/*` workspace packages resolve through their package `exports` to the
-    // built `dist` (the packages are built artifacts; `yarn dev`/`test` run
-    // `turbo run build` first). `@/` → `src/`.
+    // `@sc-app/*` workspace packages resolve through their package `exports` to their
+    // TS source — no build step; Vite compiles them with full HMR. `@/` → `src/`.
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },

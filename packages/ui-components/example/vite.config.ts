@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
+import { litCss } from "../lit-css";
 
-// Standalone showcase for @sc-app/ui-components. It consumes the BUILT package
-// (resolved via the workspace) — already-compiled JS with the foundation + icon font
-// baked in — so there's no SCSS/lit-css or decorator lowering to do here (that all
-// lives in the library's own build). Run `yarn demo` from the package dir (builds
-// the library first) or `vite` from here against an existing build.
-export default defineConfig({});
+// Standalone showcase. It consumes @sc-app/ui-components as SOURCE (no build step), so
+// litCss compiles the components' `.css` imports to Lit CSSResults on the fly, with HMR.
+// `es2022` lowers the `@property() accessor` decorators in the source.
+export default defineConfig({
+  esbuild: { target: "es2022" },
+  plugins: [litCss()],
+});

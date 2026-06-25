@@ -39,6 +39,47 @@
   box-shadow: var(--shadow-lg);
 }
 
+// ── Text fields ─────────────────────────────────────────────────────────────
+// The input/textarea/inputnumber/select family shares one surface + one size scale.
+// The native <input>/<select>/<textarea> get the chrome from controls.scss; sc-select's
+// combobox is a <button>, so it can't inherit that rule and pulls the same mixins here.
+
+// The field surface: fill, border, inherited font, padding, and the border transition.
+// Radius + font-family vary per field, so the caller adds those.
+@mixin field-surface {
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-surface-input);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-stronger);
+  font: inherit;
+  transition: border-color var(--transition-fast);
+}
+
+// The field focus/hover affordance: kill the UA outline, accent the border. (Native
+// fields apply it on :focus; the combobox on :hover/:focus-visible.)
+@mixin field-focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+}
+
+// The sm/md/lg field size scale, applied to a shadow target (e.g. `input`, `.field`).
+// md is the base (only the font shifts — padding comes from `field-surface`); sm/lg
+// tighten/loosen the padding too. `$target` is interpolated into the `:host([size])`
+// descendant selector.
+@mixin field-size($target) {
+  :host([size="sm"]) #{$target} {
+    padding: var(--space-3xs) var(--space-2xs);
+    font-size: var(--font-size-xs);
+  }
+  :host([size="md"]) #{$target} {
+    font-size: var(--font-size-sm);
+  }
+  :host([size="lg"]) #{$target} {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-md);
+  }
+}
+
 // Visually hidden but accessible — kept in the a11y tree for screen readers while taking
 // no visual space. Worn by the graphical widgets' hidden native <input> (`.sr-only`).
 @mixin visually-hidden {

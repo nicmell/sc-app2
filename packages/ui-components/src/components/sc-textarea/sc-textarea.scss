@@ -1,8 +1,10 @@
 /*
  * <sc-textarea-base> field chrome. The bare textarea{} rule (from controlStyles) gives the
  * surface fill, border, focus ring, sans font, and vertical resize; the textarea fills the
- * host and the host's `size` tunes sizing.
+ * host and the host's `size` tunes sizing (the shared field-size scale).
  */
+
+@use "../../foundations/mixins" as *;
 
 :host {
   display: block;
@@ -13,14 +15,4 @@ textarea {
   inline-size: 100%;
 }
 
-:host([size="sm"]) textarea {
-  padding: var(--space-3xs) var(--space-2xs);
-  font-size: var(--font-size-xs);
-}
-:host([size="md"]) textarea {
-  font-size: var(--font-size-sm);
-}
-:host([size="lg"]) textarea {
-  padding: var(--space-xs) var(--space-sm);
-  font-size: var(--font-size-md);
-}
+@include field-size("textarea");

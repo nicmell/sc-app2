@@ -5,6 +5,8 @@
  * triangles in currentColor, following the text tokens.
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
 }
@@ -19,18 +21,13 @@ div {
   opacity: 0.5;
 }
 
+/* Shared field-size scale, plus extra right padding for the stepper column at each size. */
+@include field-size(".field");
 :host([size="sm"]) .field {
-  padding: var(--space-3xs) var(--space-2xs);
   padding-right: 1.4rem;
-  font-size: var(--font-size-xs);
-}
-:host([size="md"]) .field {
-  font-size: var(--font-size-sm);
 }
 :host([size="lg"]) .field {
-  padding: var(--space-xs) var(--space-sm);
   padding-right: 1.9rem;
-  font-size: var(--font-size-md);
 }
 
 .field {

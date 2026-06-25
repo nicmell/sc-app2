@@ -178,10 +178,10 @@ describe("sc-slider-base", () => {
 describe("sc-option-base", () => {
   it("renders an option row with its label (standalone, no context)", async () => {
     const el = await mount("sc-option-base", { value: 7, label: "Saw" });
-    const row = el.shadowRoot!.querySelector(".root")!;
-    expect(row.getAttribute("role")).toBe("option");
+    const row = el.shadowRoot!.querySelector('[role="option"]')!;
     expect(row.textContent!.trim()).toBe("Saw");
     expect(row.getAttribute("aria-selected")).toBe("false");
+    expect(el.hasAttribute("selected")).toBe(false);
   });
 });
 
@@ -245,8 +245,10 @@ describe("sc-radio-group-base", () => {
     group.size = "lg";
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
-    const label = radios[0].shadowRoot!.querySelector(".root")!;
-    expect(label.classList.contains("lg")).toBe(true);
+    // The group is authoritative for size: it's synced onto the child's own
+    // reflected `size`, so :host([size]) drives the scale.
+    expect(radios[0].getAttribute("size")).toBe("lg");
+    expect(radios[0].shadowRoot!.querySelector("label")).not.toBeNull();
   });
 });
 
@@ -286,7 +288,7 @@ describe("sc-select-base", () => {
     const { select, options } = await mountSelect(0);
     let changes = 0;
     select.addEventListener("change", () => (changes += 1));
-    options[2].shadowRoot!.querySelector<HTMLElement>(".root")!.click();
+    options[2].shadowRoot!.querySelector<HTMLElement>('[role="option"]')!.click();
     await select.updateComplete;
     expect(select.value).toBe(2);
     expect(changes).toBe(1);
@@ -295,12 +297,8 @@ describe("sc-select-base", () => {
   it("marks the selected option via context", async () => {
     const { options } = await mountSelect(1);
     await Promise.all(options.map((o) => o.updateComplete));
-    const rows = options.map((o) => o.shadowRoot!.querySelector(".root")!);
-    expect(rows.map((r) => r.classList.contains("selected"))).toEqual([
-      false,
-      true,
-      false,
-    ]);
+    // Selection is derived from the select's value, reflected to :host([selected]).
+    expect(options.map((o) => o.hasAttribute("selected"))).toEqual([false, true, false]);
   });
 });
 

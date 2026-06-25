@@ -12,7 +12,7 @@
   pointer-events: none;
 }
 
-.root {
+div {
   display: block;
   padding: var(--space-2xs) var(--space-xs);
   cursor: pointer;
@@ -23,14 +23,16 @@
   border-radius: var(--radius-xs);
 }
 
-.root.sm {
+/* The effective size (own, or the select's via context) is reflected to the host. */
+:host([size="sm"]) div {
   font-size: var(--font-size-xs);
 }
-.root.lg {
+:host([size="lg"]) div {
   font-size: var(--font-size-md);
 }
 
-.root.selected {
+/* Selection is derived from the select's value, reflected to the host. */
+:host([selected]) div {
   color: var(--color-primary);
   font-weight: var(--font-weight-medium);
 }

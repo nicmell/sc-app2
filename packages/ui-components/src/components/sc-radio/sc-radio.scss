@@ -13,7 +13,7 @@
   pointer-events: none;
 }
 
-.root {
+label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -21,19 +21,20 @@
   user-select: none;
   font-family: var(--font-mono);
   color: var(--color-text-dim);
+  /* md is the base; the effective size (own, or the group's via context) is
+     reflected to the host, so :host([size]) drives the ring + text scale. */
+  --_r: 1rem;
+  font-size: var(--font-size-sm);
+}
 
-  &.sm {
-    --_r: 0.875rem;
-    font-size: var(--font-size-xs);
-  }
-  &.md {
-    --_r: 1rem;
-    font-size: var(--font-size-sm);
-  }
-  &.lg {
-    --_r: 1.25rem;
-    font-size: var(--font-size-md);
-  }
+:host([size="sm"]) label {
+  --_r: 0.875rem;
+  font-size: var(--font-size-xs);
+}
+
+:host([size="lg"]) label {
+  --_r: 1.25rem;
+  font-size: var(--font-size-md);
 }
 
 .ring {

@@ -1,12 +1,12 @@
 // <sc-option-base> — a declarative option row and a ContextConsumer of its
 // <sc-select-base>. Shadow DOM: selection comes from context (selected =
-// ctx.value === value); clicking reports back via ctx.select. Size flows through
-// the context, applied as a class in the option's own shadow.
+// ctx.value === value); clicking reports back via ctx.select. The derived
+// `selected` + the effective `size` are materialised onto reflected props
+// (willUpdate), so :host([selected]) / :host([size]) style the bare row.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextConsumer } from "@lit/context";
-import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { selectContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
@@ -17,6 +17,9 @@ export class ScOptionBase extends ScControlBase {
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
+  /** Selected state, derived from the select's value → reflected so `:host([selected])`
+      styles the row. Read-only in practice — the select owns the value. */
+  @property({ type: Boolean, reflect: true }) accessor selected = false;
 
   #select = new ContextConsumer(this, { context: selectContext, subscribe: true });
 
@@ -24,12 +27,18 @@ export class ScOptionBase extends ScControlBase {
     if (!this.disabled) this.#select.value?.select(this.value);
   };
 
-  render() {
+  // Materialise the context-derived state onto reflected props: selection drives
+  // :host([selected]); the select is authoritative for size, so push it down so
+  // the effective value drives :host([size]).
+  protected willUpdate(): void {
     const ctx = this.#select.value;
-    const selected = ctx?.value === this.value;
-    const cls = cx("root", ctx?.size ?? this.size, { selected });
+    this.selected = ctx?.value === this.value;
+    if (ctx) this.size = ctx.size;
+  }
+
+  render() {
     return html`
-      <div class=${cls} role="option" aria-selected=${selected} @click=${this._onClick}>
+      <div role="option" aria-selected=${this.selected} @click=${this._onClick}>
         ${this.label}
       </div>
     `;

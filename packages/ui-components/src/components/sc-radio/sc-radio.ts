@@ -8,7 +8,6 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
-import cx from "classnames";
 import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations, controlStyles } from "../internal/foundation-styles";
@@ -44,17 +43,23 @@ export class ScRadioBase extends ScControlBase {
     }
   };
 
-  render() {
+  // The group is authoritative for size: push the context size into our own
+  // reflected `size` so the effective value drives `:host([size])` (and stays
+  // honest on the host). Standalone, our own `size` is kept untouched.
+  protected willUpdate(): void {
     const ctx = this.#ctx;
+    if (ctx) this.size = ctx.size;
+  }
+
+  render() {
     // Own-disabled styles via :host([disabled]); a disabled GROUP dims all its radios via
     // the group's own :host([disabled]). #disabled (own OR group) still drives the input.
-    const cls = cx("root", ctx?.size ?? this.size);
     return html`
-      <label class=${cls}>
+      <label>
         <input
           class="input sr-only"
           type="radio"
-          name=${ctx?.name ?? this.name}
+          name=${this.#ctx?.name ?? this.name}
           value=${this.value}
           .checked=${live(this.#checked)}
           ?disabled=${this.#disabled}

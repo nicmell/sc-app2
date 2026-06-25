@@ -1,0 +1,54 @@
+// Shared SCSS mixins for the component stylesheets. PURE mixins (no top-level rules),
+// so `@use`-ing this emits no CSS until something `@include`s — safe to pull into every
+// component sheet. Each abstracts a pattern that genuinely repeats across components
+// (see the duplication these replaced: focus ring ×4, disabled ×13, overlay chrome ×3);
+// they emit the SAME declarations as the hand-written rules, just in one place.
+//
+// Deliberately NOT a mixin: the `:host([size])` scales. Every control sizes different
+// custom props (--_box / --_w / --_len / font-size / padding), so a shared size mixin
+// would take more configuration than it saves — those stay explicit per component.
+
+// The keyboard focus affordance: a 2px accent outline offset off the element. Used by
+// the graphical widgets (checkbox/radio/switch via `:focus-visible ~ .box/.ring`) and
+// sc-button. `$offset` lets a tight control pull the ring closer.
+@mixin focus-ring($offset: 2px) {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: $offset;
+}
+
+// The disabled affordance: dim to 0.5. `$block: true` (the default — graphical widgets'
+// `:host([disabled])`) also swallows pointer events; `$block: false` (natively-disabled
+// <button>/<input>, which already ignore input) just shows the not-allowed cursor.
+@mixin disabled($block: true) {
+  opacity: 0.5;
+
+  @if $block {
+    pointer-events: none;
+  } @else {
+    cursor: not-allowed;
+  }
+}
+
+// The floating-overlay surface shared by the top-layer panels (sc-popover / sc-modal).
+// `$radius` varies per overlay; the surface/border/elevation are constant.
+@mixin overlay-surface($radius: var(--radius-md)) {
+  background: var(--color-surface-1);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: $radius;
+  box-shadow: var(--shadow-lg);
+}
+
+// Visually hidden but accessible — kept in the a11y tree for screen readers while taking
+// no visual space. Worn by the graphical widgets' hidden native <input> (`.sr-only`).
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

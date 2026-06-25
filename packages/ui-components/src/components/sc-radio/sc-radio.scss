@@ -4,13 +4,14 @@
  * group's own :host([disabled]).
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
 }
 
 :host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled;
 }
 
 label {
@@ -64,7 +65,6 @@ label {
     }
   }
   &:focus-visible ~ .ring {
-    outline: 2px solid var(--color-border-focus);
-    outline-offset: 2px;
+    @include focus-ring;
   }
 }

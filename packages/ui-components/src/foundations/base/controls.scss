@@ -12,6 +12,8 @@
  * (sc-select/option/radio-group, sc-button, sc-disclosure) don't carry it.
  */
 
+@use "../mixins" as *;
+
 /* ── Form fields ───────────────────────────────────────────── */
 
 input,
@@ -68,13 +70,5 @@ input[type="number"] {
 /* ── Visually-hidden (the graphical widgets' hidden native <input>) ── */
 
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+  @include visually-hidden;
 }

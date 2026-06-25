@@ -3,13 +3,14 @@
  * box; the indicator uses the primary accent.
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
 }
 
 :host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled;
 }
 
 /* The wrapper div (the only div in this shadow) is the dial box + gesture surface. */

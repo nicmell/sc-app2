@@ -3,13 +3,14 @@
  * inline (percent). Size sets length/thickness; fill+thumb use the primary accent.
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
 }
 
 :host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled;
 }
 
 /* The wrapper div (the gesture surface). Size sets the --_* custom props on :host so

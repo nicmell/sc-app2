@@ -6,6 +6,8 @@
  * self-apply the variant from the select context, in their own shadow).
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
   font-family: var(--font-mono);
@@ -36,8 +38,7 @@
     border-color: var(--color-border-focus);
   }
   &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    @include disabled($block: false);
   }
 }
 

@@ -3,13 +3,14 @@
  * The host is block so options stack vertically in the dropdown.
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: block;
 }
 
 :host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled;
 }
 
 div {

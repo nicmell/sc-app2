@@ -4,6 +4,8 @@
  * group (slotted radios included) via :host([disabled]).
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-flex;
   gap: var(--space-xs);
@@ -16,6 +18,5 @@
 }
 
 :host([disabled]) {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled;
 }

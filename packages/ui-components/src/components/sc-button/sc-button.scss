@@ -4,6 +4,8 @@
  * class on the button.
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: inline-block;
 }
@@ -26,14 +28,12 @@ button {
     color var(--transition-fast);
 
   &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    @include disabled($block: false);
   }
 
   /* Keyboard focus ring (mouse focus stays quiet). */
   &:focus-visible {
-    outline: 2px solid var(--color-border-focus);
-    outline-offset: 2px;
+    @include focus-ring;
   }
 }
 

@@ -56,6 +56,8 @@ export class ScPopoverBase extends LitElement {
   }
 
   render() {
-    return html`<div class="panel"><slot></slot></div>`;
+    // `part="panel"` exposes the overlay surface so a host (e.g. sc-select) can
+    // tune its chrome — padding/size — from the outside via ::part(panel).
+    return html`<div class="panel" part="panel"><slot></slot></div>`;
   }
 }

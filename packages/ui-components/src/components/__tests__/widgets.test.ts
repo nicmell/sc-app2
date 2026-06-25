@@ -270,18 +270,19 @@ describe("sc-select-base", () => {
   const combobox = (s: HTMLElement) =>
     s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
   const dropdown = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLElement>(".dropdown")!;
+    s.shadowRoot!.querySelector<HTMLElement>("sc-popover-base")!;
 
-  // The dropdown is a top-layer `popover` element, always present and toggled
-  // by the browser via `popovertarget` (open/close + light-dismiss aren't
-  // exercisable in happy-dom — that's the CDP harness's job). Here we assert the
-  // wiring + the context selection path, which are framework-level.
-  it("shows the selected option label and wires the combobox to the popover dropdown", async () => {
+  // The dropdown is delegated to <sc-popover-base> (the shared top-layer overlay);
+  // open/close + light-dismiss aren't exercisable in happy-dom — that's the CDP
+  // harness's job. Here we assert the wiring + the context selection path.
+  it("shows the selected option label and delegates the dropdown to a listbox popover", async () => {
     const { select } = await mountSelect(1);
     expect(combobox(select).textContent!.trim()).toBe("Saw");
     const panel = dropdown(select);
     expect(panel.getAttribute("role")).toBe("listbox");
-    expect(combobox(select).getAttribute("popovertarget")).toBe(panel.id);
+    // The combobox names the listbox (was a native popovertarget; now ARIA wiring).
+    expect(combobox(select).getAttribute("aria-controls")).toBe(panel.id);
+    expect(combobox(select).getAttribute("aria-haspopup")).toBe("listbox");
   });
 
   it("picks an option via context: updates value, fires change", async () => {

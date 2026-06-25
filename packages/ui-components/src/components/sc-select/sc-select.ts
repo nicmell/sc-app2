@@ -1,13 +1,19 @@
 // <sc-select-base> — a combobox + custom dropdown, coordinating declarative
-// <sc-option-base> children via Lit context. Shadow DOM + <slot>: it renders its
-// own chrome and projects the author's options into the dropdown. The options
-// stay light-DOM; size flows to them via context (they size themselves in their
-// own shadow).
+// <sc-option-base> children via Lit context. Shadow DOM + <slot>: it renders the
+// combobox button and delegates the floating dropdown to <sc-popover-base> (the
+// shared top-layer, anchored overlay), projecting the author's options into it.
+// The options stay light-DOM; size flows to them via context (they size
+// themselves in their own shadow).
 //
-// The dropdown is a TOP-LAYER popover (PopoverController): it escapes any
-// clipping/transformed ancestor and floats above the page, positioned under the
-// combobox by @floating-ui/dom. The combobox button carries `popovertarget` so
-// the browser owns the open/close toggle and native light-dismiss.
+// The dropdown is the <sc-popover-base>, controlled via its `open`: the combobox
+// button toggles it, selecting an option closes it, and native light-dismiss
+// reflects back through the popover's `toggle`. The popover anchors to its
+// previous element sibling — the combobox button — with no wiring. We can't use
+// the native `popovertarget` here: the actual popover element lives inside
+// <sc-popover>'s own shadow root, out of the button's reach. So open is
+// JS-controlled, with a pointerdown guard that reproduces the invoker exemption
+// `popovertarget` gives for free (else clicking the button while open would
+// light-dismiss then immediately reopen it).
 //
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>). Not form-associated.
@@ -18,11 +24,12 @@ import { ContextProvider } from "@lit/context";
 import { selectContext, type SelectContext } from "../internal/contexts";
 import { ScControlBase } from "../internal/sc-control-base";
 import { foundations } from "../internal/foundation-styles";
-import { PopoverController } from "../internal/popover-controller";
+import type { ScPopoverBase } from "../sc-popover/sc-popover";
 import styles from "./sc-select.scss";
 import "../sc-icon/sc-icon";
+import "../sc-popover/sc-popover";
 
-const DROPDOWN_ID = "sc-select-dropdown";
+const LISTBOX_ID = "sc-select-listbox";
 
 export class ScSelectBase extends ScControlBase {
   static styles = [foundations, styles];
@@ -31,11 +38,12 @@ export class ScSelectBase extends ScControlBase {
   @property() accessor placeholder = "";
   @state() accessor open = false;
 
-  // The dropdown floats in the top layer, anchored to the combobox button.
-  #popover = new PopoverController(this, { onToggle: (open) => (this.open = open) });
+  // Captured on the trigger's pointerdown, BEFORE native light-dismiss queues its
+  // toggle, so the click handler knows whether the popover was already open.
+  #wasOpen = false;
 
   #select = (value: number): void => {
-    this.#popover.hide();
+    this.open = false;
     if (value !== this.value) {
       this.value = value;
       this.dispatchEvent(new Event("change", { bubbles: true }));
@@ -48,12 +56,20 @@ export class ScSelectBase extends ScControlBase {
     return { value: this.value, select: this.#select, size: this.size };
   }
 
-  get #combobox(): HTMLElement | null {
-    return this.renderRoot.querySelector(".combobox");
+  get #popover(): ScPopoverBase | null {
+    return this.renderRoot.querySelector("sc-popover-base");
   }
-  get #dropdown(): HTMLElement | null {
-    return this.renderRoot.querySelector(".dropdown");
-  }
+
+  #onTriggerPointerDown = (): void => {
+    this.#wasOpen = this.open;
+  };
+  #onTriggerClick = (): void => {
+    // If it was open, light-dismiss already closed it on pointerdown — don't reopen.
+    if (!this.#wasOpen) this.open = true;
+  };
+  #onPopoverToggle = (): void => {
+    this.open = this.#popover?.open ?? false;
+  };
 
   get #label(): string {
     const options = Array.from(this.querySelectorAll("sc-option-base")) as Array<
@@ -61,12 +77,6 @@ export class ScSelectBase extends ScControlBase {
     >;
     const selected = options.find((o) => o.value === this.value);
     return selected ? selected.label : this.placeholder || String(this.value);
-  }
-
-  protected firstUpdated(): void {
-    const panel = this.#dropdown;
-    const anchor = this.#combobox;
-    if (panel && anchor) this.#popover.attach(panel, anchor);
   }
 
   protected updated(): void {
@@ -81,15 +91,23 @@ export class ScSelectBase extends ScControlBase {
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded=${this.open}
-        popovertarget=${DROPDOWN_ID}
+        aria-controls=${LISTBOX_ID}
         ?disabled=${this.disabled}
+        @pointerdown=${this.#onTriggerPointerDown}
+        @click=${this.#onTriggerClick}
       >
         <span class="label">${this.#label}</span>
         <sc-icon-base class="arrow" name="caret-down"></sc-icon-base>
       </button>
-      <div class="dropdown" id=${DROPDOWN_ID} role="listbox">
+      <sc-popover-base
+        id=${LISTBOX_ID}
+        role="listbox"
+        placement="bottom-start"
+        .open=${this.open}
+        @toggle=${this.#onPopoverToggle}
+      >
         <slot @slotchange=${() => this.requestUpdate()}></slot>
-      </div>
+      </sc-popover-base>
     `;
   }
 }

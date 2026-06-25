@@ -12,8 +12,8 @@ beforeAll(() => {
   registerUiComponents();
 });
 
-/** The widget tags — all map to ScWidgetBase subclasses (so `updateComplete`
- *  and the widget props are visible), unlike the full element map. */
+/** The widget tags — all map to ScControlBase subclasses (so `updateComplete`
+ *  and the control props are visible), unlike the full element map. */
 type WidgetTag =
   | "sc-checkbox-base"
   | "sc-switch-base"
@@ -48,15 +48,14 @@ async function mount<K extends WidgetTag>(
 }
 
 describe("sc-checkbox-base", () => {
-  it("renders a hidden native checkbox with the variant/size classes on the label", async () => {
-    const el = await mount("sc-checkbox-base", { size: "lg", variant: "ok" });
+  it("renders a hidden native checkbox with the size class on the label", async () => {
+    const el = await mount("sc-checkbox-base", { size: "lg" });
     const label = el.shadowRoot!.querySelector("label")!;
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("checkbox");
     expect(input.classList.contains("sr-only")).toBe(true);
     expect(label.classList.contains("root")).toBe(true);
     expect(label.classList.contains("lg")).toBe(true);
-    expect(label.classList.contains("ok")).toBe(true);
   });
 
   it("toggles and re-emits a composed change carrying checked", async () => {
@@ -241,15 +240,13 @@ describe("sc-radio-group-base", () => {
     expect(lastTarget).toBe(group);
   });
 
-  it("propagates size/variant to children via context", async () => {
+  it("propagates size to children via context", async () => {
     const { group, radios } = await mountGroup(0);
     group.size = "lg";
-    group.variant = "warn";
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
     const label = radios[0].shadowRoot!.querySelector(".root")!;
     expect(label.classList.contains("lg")).toBe(true);
-    expect(label.classList.contains("warn")).toBe(true);
   });
 });
 

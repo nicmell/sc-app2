@@ -37,9 +37,8 @@ src/
                                 renders a shadow tree using literal class names
     sc-<tag>/sc-<tag>.css      the component's own CSS (→ a Lit CSSResult via vite-plugin-lit-css)
     index.ts               element barrel + registerUiComponents()
-    internal/foundation-styles.ts   the shared font-free `foundations` CSSResult (= shadow.css)
-    internal/widget-base.css        shared widget styles (sr-only, variant accents, disabled)
-    internal/sc-widget-base.ts       abstract base for the graphical widgets
+    internal/foundation-styles.ts   the shared font-free `foundations` + `controlStyles` CSSResults
+    internal/sc-control-base.ts      abstract base for every input/control (size + disabled + name)
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -134,8 +133,9 @@ is shadow DOM; form widgets re-emit composed events — read `e.target.value` /
 
 ### Variant vocabularies (intentionally different)
 
-- **Widgets** (checkbox/switch/knob/slider/radio/select via `ScWidgetBase`) —
-  `variant` is a colour **accent**: `primary` (default) `neutral` `ok` `warn` `danger`.
+- **Input controls** (checkbox/switch/knob/slider/radio/select, the text fields) — **no
+  colour variant**; they're single-accent (the primary colour). They share `size`/
+  `disabled`/`name` via `ScControlBase`.
 - **`sc-button-base`** — `variant` is an **appearance**: `primary` (default)
   `secondary` `ghost` `danger`.
 - **`sc-badge-base`** — `ok` (default) `warn` `error`.
@@ -189,12 +189,14 @@ element, and `:host` only sets the host box display. Four patterns:
    Providers are registered before consumers so static markup upgrades with the
    provider already listening.
 
-Shared bits for the form widgets live on `internal/sc-widget-base.ts`
-(`ScWidgetBase`): the `size`/`variant`/`disabled`/`name` props and the
-`widgetClasses(extra?)` helper (joins `"root"` + `size` + `variant` + `disabled`).
-The shared widget styles (`.sr-only`, the variant→`--_accent` accents,
-`.disabled`) are `internal/widget-base.css`, included in each widget's
-`static styles`. `ScWidgetBase` is abstract — not a tag. The parent↔child
+Shared bits for **every** input/control (the text fields, the select, and the graphical
+widgets) live on `internal/sc-control-base.ts` (`ScControlBase`): the `size`/`disabled`/
+`name` props + the `ScSize` type and the `controlClasses(extra?)` helper (joins `"root"`
++ `size`). Controls are single-accent (the primary colour) — no `variant`. Disabled
+reflects to the host and is styled via `:host([disabled])` (or, for the text fields, the
+native `:disabled` from `controls.css`). The shared control CSS is `base/controls.css`
+(`controlStyles`): the field chrome for the text fields + `.sr-only` for the widgets'
+hidden native `<input>`. `ScControlBase` is abstract — not a tag. The parent↔child
 contexts live in `internal/contexts.ts`.
 
 ### Styling — one foundation + a `.css` per component

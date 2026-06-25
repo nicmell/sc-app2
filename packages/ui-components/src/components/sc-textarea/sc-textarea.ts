@@ -3,23 +3,19 @@
 // focus ring) plus a `.root` class for sizing/full-width. The native input/change
 // are re-emitted (composed) from the host so consumers read `e.target.value`.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import cx from "classnames";
-import type { ScInputSize } from "../sc-input/sc-input";
+import { ScControlBase } from "../internal/sc-control-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-textarea.css";
 
-export class ScTextareaBase extends LitElement {
+export class ScTextareaBase extends ScControlBase {
   static styles = [foundations, controlStyles, styles];
 
   @property() accessor value = "";
   @property() accessor placeholder = "";
-  @property() accessor name = "";
   @property({ type: Number }) accessor rows = 3;
-  @property() accessor size: ScInputSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
 
   private _onInput = (e: Event): void => {
     e.stopPropagation();
@@ -34,7 +30,7 @@ export class ScTextareaBase extends LitElement {
 
   render() {
     return html`<textarea
-      class=${cx("root", this.size)}
+      class=${this.controlClasses()}
       rows=${this.rows}
       name=${this.name}
       placeholder=${this.placeholder}

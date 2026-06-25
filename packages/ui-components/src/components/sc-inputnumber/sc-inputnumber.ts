@@ -4,16 +4,15 @@
 // input/change are re-emitted (composed) from the host (read e.target.value); typing is
 // clamped to min/max on commit (change/blur), and the steppers drive the native input.
 
-import { LitElement, html, nothing } from "lit";
+import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import cx from "classnames";
-import type { ScInputSize } from "../sc-input/sc-input";
+import { ScControlBase } from "../internal/sc-control-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-inputnumber.css";
 import "../sc-icon/sc-icon";
 
-export class ScInputNumberBase extends LitElement {
+export class ScInputNumberBase extends ScControlBase {
   static styles = [foundations, controlStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
@@ -21,9 +20,6 @@ export class ScInputNumberBase extends LitElement {
   @property({ type: Number }) accessor max = Infinity;
   @property({ type: Number }) accessor step = 1;
   @property() accessor placeholder = "";
-  @property() accessor name = "";
-  @property() accessor size: ScInputSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
 
   private _clamp(n: number): number {
     return Math.min(this.max, Math.max(this.min, n));
@@ -70,7 +66,7 @@ export class ScInputNumberBase extends LitElement {
 
   render() {
     return html`
-      <div class=${cx("root", this.size, { disabled: this.disabled })}>
+      <div class=${this.controlClasses({ disabled: this.disabled })}>
         <input
           class="field"
           type="number"

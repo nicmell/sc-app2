@@ -1,10 +1,15 @@
 /*
- * <sc-checkbox-base> styles. Box + optional label; accent = `--_accent` (set by
- * the variant class on `.root`). Sizes scale the box via `--_box`.
+ * <sc-checkbox-base> styles. Box + optional label; the check + checked border use the
+ * primary accent. Sizes scale the box via `--_box`.
  */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -47,14 +52,14 @@
   inline-size: 60%;
   block-size: 60%;
   border-radius: var(--radius-xs);
-  background: var(--_accent);
+  background: var(--color-primary);
   transform: scale(0);
   transition: transform var(--transition-fast);
 }
 
 .input {
   &:checked ~ .box {
-    border-color: var(--_accent);
+    border-color: var(--color-primary);
     .check {
       transform: scale(1);
     }

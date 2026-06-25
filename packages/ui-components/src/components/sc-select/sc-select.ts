@@ -1,8 +1,8 @@
 // <sc-select-base> — a combobox + custom dropdown, coordinating declarative
 // <sc-option-base> children via Lit context. Shadow DOM + <slot>: it renders its
 // own chrome and projects the author's options into the dropdown. The options
-// stay light-DOM; size/variant flow to them via context (they self-apply the
-// accent in their own shadow).
+// stay light-DOM; size flows to them via context (they size themselves in their
+// own shadow).
 //
 // The dropdown is a TOP-LAYER popover (PopoverController): it escapes any
 // clipping/transformed ancestor and floats above the page, positioned under the
@@ -12,12 +12,12 @@
 // The host exposes `value` and dispatches a bubbling `change` on selection
 // (consumers read `e.target.value`, like a native <select>). Not form-associated.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import cx from "classnames";
 import { selectContext, type SelectContext } from "../internal/contexts";
-import type { ScSize, ScVariant } from "../internal/sc-widget-base";
+import { ScControlBase } from "../internal/sc-control-base";
 import { foundations } from "../internal/foundation-styles";
 import { PopoverController } from "../internal/popover-controller";
 import styles from "./sc-select.css";
@@ -25,15 +25,11 @@ import "../sc-icon/sc-icon";
 
 const DROPDOWN_ID = "sc-select-dropdown";
 
-export class ScSelectBase extends LitElement {
+export class ScSelectBase extends ScControlBase {
   static styles = [foundations, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor placeholder = "";
-  @property() accessor name = "";
-  @property() accessor size: ScSize = "md";
-  @property() accessor variant: ScVariant = "primary";
-  @property({ type: Boolean }) accessor disabled = false;
   @state() accessor open = false;
 
   // The dropdown floats in the top layer, anchored to the combobox button.
@@ -50,7 +46,7 @@ export class ScSelectBase extends LitElement {
   #provider = new ContextProvider(this, { context: selectContext, initialValue: this.#ctx() });
 
   #ctx(): SelectContext {
-    return { value: this.value, select: this.#select, size: this.size, variant: this.variant };
+    return { value: this.value, select: this.#select, size: this.size };
   }
 
   get #combobox(): HTMLElement | null {

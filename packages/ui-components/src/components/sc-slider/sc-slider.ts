@@ -8,12 +8,11 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
-import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.css";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-slider.css";
 
 export class ScSliderBase extends ScRangeBase {
-  static styles = [foundations, widgetStyles, styles];
+  static styles = [foundations, controlStyles, styles];
 
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
@@ -34,7 +33,7 @@ export class ScSliderBase extends ScRangeBase {
     const fillStyle = vertical ? `height:${pct}` : `width:${pct}`;
     const thumbStyle = vertical ? `bottom:${pct}` : `left:${pct}`;
     return html`
-      <div class=${this.widgetClasses({ vertical, horizontal: !vertical })}>
+      <div class=${this.controlClasses({ vertical, horizontal: !vertical })}>
         <input
           class="input sr-only"
           type="range"

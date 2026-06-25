@@ -4,24 +4,19 @@
 // (composed) from the host so consumers read `e.target.value`. The numeric field
 // is <sc-inputnumber-base>.
 
-import { LitElement, html } from "lit";
+import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import cx from "classnames";
+import { ScControlBase } from "../internal/sc-control-base";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-input.css";
 
-export type ScInputSize = "sm" | "md" | "lg";
-
-export class ScInputBase extends LitElement {
+export class ScInputBase extends ScControlBase {
   static styles = [foundations, controlStyles, styles];
 
   @property() accessor value = "";
   @property() accessor placeholder = "";
   @property() accessor type = "text";
-  @property() accessor name = "";
-  @property() accessor size: ScInputSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
 
   private _onInput = (e: Event): void => {
     e.stopPropagation();
@@ -36,7 +31,7 @@ export class ScInputBase extends LitElement {
 
   render() {
     return html`<input
-      class=${cx("root", this.size)}
+      class=${this.controlClasses()}
       type=${this.type}
       name=${this.name}
       placeholder=${this.placeholder}

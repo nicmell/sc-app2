@@ -1,14 +1,15 @@
 /**
- * Bare form-field chrome (input/select/textarea), shared between two consumers:
- *   - the head foundation (elements.css @imports this), so light-DOM / plugin
- *     <input>/<select>/<textarea> look correct without classes;
- *   - the shadow components that render a native field and rely on the bare chrome —
- *     sc-input, sc-inputnumber, sc-textarea — which import it as `controlStyles`.
+ * Bare control chrome, adopted by the input/control components as `controlStyles`:
+ *   - the form-field chrome (input/select/textarea surface/border/focus) — used by
+ *     sc-input/sc-inputnumber/sc-textarea, and by the head foundation (elements.css
+ *     @imports this) so light-DOM / plugin fields look correct without classes;
+ *   - `.sr-only` — the visually-hidden helper the graphical widgets (checkbox/switch/
+ *     radio/slider/knob) wear on their hidden native <input>.
  *
- * Kept OUT of the shared shadow base (foundations/shadow.css) so the components that
- * fully self-style (sc-button) or render custom overlays (sc-checkbox/switch/radio/
- * slider/knob, sc-select, sc-option) don't carry it for nothing. (sc-disclosure styles
- * its own <summary> directly — see sc-disclosure.css.)
+ * Each consumer uses one part or the other; the unused rules are inert (the field chrome
+ * targets <input>/<textarea> — harmless on a widget's clipped sr-only input). Kept OUT of
+ * the shared shadow base (foundations/shadow.css) so components that need neither
+ * (sc-select/option/radio-group, sc-button, sc-disclosure) don't carry it.
  */
 
 /* ── Form fields ───────────────────────────────────────────── */
@@ -62,4 +63,18 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* ── Visually-hidden (the graphical widgets' hidden native <input>) ── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }

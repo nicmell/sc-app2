@@ -16,9 +16,9 @@
 //     track-length-based).
 
 import { property } from "lit/decorators.js";
-import { ScWidgetBase } from "./sc-widget-base";
+import { ScControlBase } from "./sc-control-base";
 
-export abstract class ScRangeBase extends ScWidgetBase {
+export abstract class ScRangeBase extends ScControlBase {
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;

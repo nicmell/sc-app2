@@ -7,13 +7,12 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ScWidgetBase } from "../internal/sc-widget-base";
-import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.css";
+import { ScControlBase } from "../internal/sc-control-base";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-checkbox.css";
 
-export class ScCheckboxBase extends ScWidgetBase {
-  static styles = [foundations, widgetStyles, styles];
+export class ScCheckboxBase extends ScControlBase {
+  static styles = [foundations, controlStyles, styles];
 
   @property({ type: Boolean }) accessor checked = false;
   @property() accessor label = "";
@@ -27,7 +26,7 @@ export class ScCheckboxBase extends ScWidgetBase {
 
   render() {
     return html`
-      <label class=${this.widgetClasses()}>
+      <label class=${this.controlClasses()}>
         <input
           class="input sr-only"
           type="checkbox"

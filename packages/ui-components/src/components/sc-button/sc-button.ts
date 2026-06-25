@@ -3,13 +3,13 @@
 // declarative content via `label` + optional leading/trailing Phosphor icons,
 // plus an icon-only mode. `variant` here is button *appearance*
 // (primary/secondary/ghost/danger), distinct from the accent `variant` on the
-// input widgets — so this does not extend ScWidgetBase. The inner button's
+// input controls — so this does not extend ScControlBase. The inner button's
 // `click` is composed, so it crosses the shadow boundary to consumers.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import type { ScSize } from "../internal/sc-widget-base";
+import type { ScSize } from "../internal/sc-control-base";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-button.css";
 import "../sc-icon/sc-icon";

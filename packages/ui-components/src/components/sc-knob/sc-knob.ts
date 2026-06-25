@@ -7,12 +7,11 @@
 import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
-import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.css";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-knob.css";
 
 export class ScKnobBase extends ScRangeBase {
-  static styles = [foundations, widgetStyles, styles];
+  static styles = [foundations, controlStyles, styles];
 
   /** Dominant axis: up OR right increases (whichever the user moved more). */
   protected dragAxisDelta(dx: number, dy: number): number {
@@ -28,7 +27,7 @@ export class ScKnobBase extends ScRangeBase {
     const ratio = range > 0 ? Math.max(0, Math.min(1, (this.value - this.min) / range)) : 0;
     const angle = -135 + 270 * ratio;
     return html`
-      <div class=${this.widgetClasses()}>
+      <div class=${this.controlClasses()}>
         <input
           class="input sr-only"
           type="range"

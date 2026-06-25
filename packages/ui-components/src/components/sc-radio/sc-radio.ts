@@ -1,6 +1,6 @@
 // <sc-radio-base> — a hidden native <input type="radio"> under a ring/dot
 // overlay, and a ContextConsumer of its <sc-radio-group-base>. Shadow DOM:
-// selection + the shared name + size/variant/disabled come from the group
+// selection + the shared name + size/disabled come from the group
 // context; clicking reports back via ctx.select. Standalone, it falls back to
 // its own `checked` and re-emits a composed `change` from the host.
 
@@ -9,14 +9,13 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
 import cx from "classnames";
-import { ScWidgetBase } from "../internal/sc-widget-base";
+import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
-import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.css";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-radio.css";
 
-export class ScRadioBase extends ScWidgetBase {
-  static styles = [foundations, widgetStyles, styles];
+export class ScRadioBase extends ScControlBase {
+  static styles = [foundations, controlStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";
@@ -47,9 +46,9 @@ export class ScRadioBase extends ScWidgetBase {
 
   render() {
     const ctx = this.#ctx;
-    const cls = cx("root", ctx?.size ?? this.size, ctx?.variant ?? this.variant, {
-      disabled: this.#disabled,
-    });
+    // Own-disabled styles via :host([disabled]); a disabled GROUP dims all its radios via
+    // the group's own :host([disabled]). #disabled (own OR group) still drives the input.
+    const cls = cx("root", ctx?.size ?? this.size);
     return html`
       <label class=${cls}>
         <input

@@ -1,11 +1,15 @@
 /*
  * <sc-slider-base> styles. Track + fill + thumb; fill/thumb position is set
- * inline (percent). Size sets length/thickness, variant tints fill+thumb via
- * `--_accent` (set by the variant class on `.root`).
+ * inline (percent). Size sets length/thickness; fill+thumb use the primary accent.
  */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -78,7 +82,7 @@
 
 .fill {
   position: absolute;
-  background: var(--_accent);
+  background: var(--color-primary);
   border-radius: var(--radius-pill);
 }
 
@@ -86,7 +90,7 @@
   position: absolute;
   inline-size: var(--_thumb, 1rem);
   block-size: var(--_thumb, 1rem);
-  background: var(--_accent);
+  background: var(--color-primary);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
 }

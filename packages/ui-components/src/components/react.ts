@@ -97,9 +97,9 @@ export const ScRadio = createComponent({
   elementClass: ScRadioBase,
 });
 
-/** <sc-radio-group-base>. Pass <ScRadio> children; selection + size/variant/
- *  disabled flow via context. `onChange` is the group change; read
- *  `e.target.value`. `label` names the role=radiogroup. */
+/** <sc-radio-group-base>. Pass <ScRadio> children; selection + size/disabled flow
+ *  via context. `onChange` is the group change; read `e.target.value`. `label` names
+ *  the role=radiogroup. */
 export const ScRadioGroup = createComponent({
   react: React,
   tagName: "sc-radio-group-base",

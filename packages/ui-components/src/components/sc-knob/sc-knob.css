@@ -1,10 +1,15 @@
 /*
  * <sc-knob-base> styles. SVG dial (normalised 0..100 viewBox); size sets the
- * box, variant tints the indicator via `--_accent` (set by the variant class).
+ * box; the indicator uses the primary accent.
  */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -51,7 +56,7 @@
 }
 
 .indicator {
-  stroke: var(--_accent);
+  stroke: var(--color-primary);
   stroke-width: 9;
   stroke-linecap: round;
 }

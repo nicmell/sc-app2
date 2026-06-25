@@ -1,11 +1,15 @@
 /*
- * <sc-option-base> styles. A single option row; selected text = `--_accent`
- * (set by the variant class on `.root`, supplied via the select context). The
- * host is block so options stack vertically in the dropdown.
+ * <sc-option-base> styles. A single option row; selected text uses the primary accent.
+ * The host is block so options stack vertically in the dropdown.
  */
 
 :host {
   display: block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -27,6 +31,6 @@
 }
 
 .root.selected {
-  color: var(--_accent);
+  color: var(--color-primary);
   font-weight: var(--font-weight-medium);
 }

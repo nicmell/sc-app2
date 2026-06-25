@@ -3,23 +3,22 @@
 // `.root` wrapper + <slot>, so the radio children are slotted (still light-DOM
 // children, so their context-request events bubble to the host provider). It
 // provides the selected value + a `select` callback + a shared name +
-// size/variant/disabled through context. A child's native `change` is swallowed
+// size/disabled through context. A child's native `change` is swallowed
 // and the group re-emits a single `change` from the host (read `el.value`).
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider } from "@lit/context";
 import cx from "classnames";
-import { ScWidgetBase } from "../internal/sc-widget-base";
+import { ScControlBase } from "../internal/sc-control-base";
 import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.css";
 import styles from "./sc-radio-group.css";
 
 let groupId = 0;
 
-export class ScRadioGroupBase extends ScWidgetBase {
-  static styles = [foundations, widgetStyles, styles];
+export class ScRadioGroupBase extends ScControlBase {
+  static styles = [foundations, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
@@ -45,7 +44,6 @@ export class ScRadioGroupBase extends ScWidgetBase {
       select: this.#select,
       name: this.name || this.#autoName,
       size: this.size,
-      variant: this.variant,
       disabled: this.disabled,
     };
   }
@@ -77,9 +75,7 @@ export class ScRadioGroupBase extends ScWidgetBase {
 
   render() {
     return html`<div
-      class=${cx("root", this.orientation === "vertical" && "vertical", {
-        disabled: this.disabled,
-      })}
+      class=${cx("root", this.orientation === "vertical" && "vertical")}
     >
       <slot></slot>
     </div>`;

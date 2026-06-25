@@ -1,11 +1,16 @@
 /*
  * <sc-radio-group-base> styles. Lays out its slotted <sc-radio-base> children in
- * a row (or column when `vertical`). The `.disabled` affordance comes from the
- * shared widget styles.
+ * a row (or column when `vertical`). A disabled group dims + disables the whole group
+ * (slotted radios included) via :host([disabled]).
  */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {

@@ -307,14 +307,6 @@
           <sc-checkbox-base size="md" label="md" checked></sc-checkbox-base>
           <sc-checkbox-base size="lg" label="lg" checked></sc-checkbox-base>
         </div>
-        <p class="demo-cap">variants</p>
-        <div class="demo-row">
-          <sc-checkbox-base variant="primary" label="primary" checked></sc-checkbox-base>
-          <sc-checkbox-base variant="neutral" label="neutral" checked></sc-checkbox-base>
-          <sc-checkbox-base variant="ok" label="ok" checked></sc-checkbox-base>
-          <sc-checkbox-base variant="warn" label="warn" checked></sc-checkbox-base>
-          <sc-checkbox-base variant="danger" label="danger" checked></sc-checkbox-base>
-        </div>
         <p class="demo-cap">states</p>
         <div class="demo-row">
           <sc-checkbox-base label="unchecked"></sc-checkbox-base>
@@ -333,14 +325,6 @@
           <sc-switch-base size="md" checked></sc-switch-base>
           <sc-switch-base size="lg" checked></sc-switch-base>
         </div>
-        <p class="demo-cap">variants</p>
-        <div class="demo-row">
-          <sc-switch-base variant="primary" checked></sc-switch-base>
-          <sc-switch-base variant="neutral" checked></sc-switch-base>
-          <sc-switch-base variant="ok" checked></sc-switch-base>
-          <sc-switch-base variant="warn" checked></sc-switch-base>
-          <sc-switch-base variant="danger" checked></sc-switch-base>
-        </div>
         <p class="demo-cap">states</p>
         <div class="demo-row">
           <sc-switch-base></sc-switch-base>
@@ -358,13 +342,8 @@
           <sc-knob-base size="md" value="0.5"></sc-knob-base>
           <sc-knob-base size="lg" value="0.5"></sc-knob-base>
         </div>
-        <p class="demo-cap">variants</p>
+        <p class="demo-cap">disabled</p>
         <div class="demo-row">
-          <sc-knob-base variant="primary" value="0.7"></sc-knob-base>
-          <sc-knob-base variant="neutral" value="0.7"></sc-knob-base>
-          <sc-knob-base variant="ok" value="0.7"></sc-knob-base>
-          <sc-knob-base variant="warn" value="0.7"></sc-knob-base>
-          <sc-knob-base variant="danger" value="0.7"></sc-knob-base>
           <sc-knob-base value="0.7" disabled></sc-knob-base>
         </div>
         <p class="demo-cap">range (min=20 max=20000 step=10)</p>
@@ -387,30 +366,24 @@
           <sc-slider-base size="md" value="0.4"></sc-slider-base>
           <sc-slider-base size="lg" value="0.4"></sc-slider-base>
         </div>
-        <p class="demo-cap">horizontal — variants</p>
+        <p class="demo-cap">horizontal — disabled</p>
         <div class="demo-row">
-          <sc-slider-base variant="primary" value="0.6"></sc-slider-base>
-          <sc-slider-base variant="ok" value="0.6"></sc-slider-base>
-          <sc-slider-base variant="warn" value="0.6"></sc-slider-base>
-          <sc-slider-base variant="danger" value="0.6"></sc-slider-base>
           <sc-slider-base value="0.6" disabled></sc-slider-base>
         </div>
         <p class="demo-cap">vertical</p>
         <div class="demo-row">
           <sc-slider-base orientation="vertical" size="sm" value="0.5"></sc-slider-base>
           <sc-slider-base orientation="vertical" size="md" value="0.5"></sc-slider-base>
-          <sc-slider-base orientation="vertical" size="lg" variant="ok" value="0.7"></sc-slider-base>
+          <sc-slider-base orientation="vertical" size="lg" value="0.7"></sc-slider-base>
         </div>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-radio-base&gt;</h2>
-        <p class="demo-cap">standalone radios — variants (usually composed in a group, below)</p>
+        <p class="demo-cap">standalone radios (usually composed in a group, below)</p>
         <div class="demo-row">
           <sc-radio-base value="0" label="off"></sc-radio-base>
-          <sc-radio-base value="1" label="primary" checked></sc-radio-base>
-          <sc-radio-base value="2" label="ok" variant="ok" checked></sc-radio-base>
-          <sc-radio-base value="3" label="warn" variant="warn" checked></sc-radio-base>
+          <sc-radio-base value="1" label="on" checked></sc-radio-base>
           <sc-radio-base value="4" label="disabled" disabled></sc-radio-base>
         </div>
       </section>
@@ -427,7 +400,7 @@
         </div>
         <p class="demo-cap">vertical + variant=ok</p>
         <div class="demo-row">
-          <sc-radio-group-base orientation="vertical" variant="ok" value="1" label="Register">
+          <sc-radio-group-base orientation="vertical" value="1" label="Register">
             <sc-radio-base value="0" label="Low"></sc-radio-base>
             <sc-radio-base value="1" label="Mid"></sc-radio-base>
             <sc-radio-base value="2" label="High"></sc-radio-base>
@@ -465,7 +438,7 @@
         </div>
         <p class="demo-cap">variant accent + placeholder + disabled</p>
         <div class="demo-row">
-          <sc-select-base variant="ok" value="1">
+          <sc-select-base value="1">
             <sc-option-base value="0" label="Sine"></sc-option-base>
             <sc-option-base value="1" label="Saw"></sc-option-base>
             <sc-option-base value="2" label="Square"></sc-option-base>

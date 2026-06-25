@@ -1,7 +1,12 @@
-/* <sc-switch-base> styles. Pill track with a sliding thumb; track-on = `--_accent`. */
+/* <sc-switch-base> styles. Pill track with a sliding thumb; track-on = the primary accent. */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -47,7 +52,7 @@
 
 .input {
   &:checked ~ .track {
-    background: var(--_accent);
+    background: var(--color-primary);
     .thumb {
       left: calc(100% - (var(--_h) - 0.3rem) - 0.15rem);
     }

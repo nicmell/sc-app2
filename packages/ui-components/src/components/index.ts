@@ -31,8 +31,8 @@ import { ScClusterBase } from "./sc-cluster/sc-cluster";
 import { ScDisclosureBase } from "./sc-disclosure/sc-disclosure";
 import { ScProgressBase } from "./sc-progress/sc-progress";
 
-export { ScWidgetBase } from "./internal/sc-widget-base";
-export type { ScSize, ScVariant } from "./internal/sc-widget-base";
+export { ScControlBase } from "./internal/sc-control-base";
+export type { ScSize } from "./internal/sc-control-base";
 export { ScRangeBase } from "./internal/sc-range-base";
 export { ScCheckboxBase } from "./sc-checkbox/sc-checkbox";
 export { ScSwitchBase } from "./sc-switch/sc-switch";
@@ -63,7 +63,7 @@ export {
   type ScProgressVariant,
   type ScProgressSize,
 } from "./sc-progress/sc-progress";
-export { ScInputBase, type ScInputSize } from "./sc-input/sc-input";
+export { ScInputBase } from "./sc-input/sc-input";
 export { ScInputNumberBase } from "./sc-inputnumber/sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea/sc-textarea";
 export {

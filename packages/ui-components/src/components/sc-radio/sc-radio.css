@@ -1,10 +1,16 @@
 /*
- * <sc-radio-base> styles. Ring + dot + optional label; dot = `--_accent` (set by
- * the variant class on `.root`).
+ * <sc-radio-base> styles. Ring + dot + optional label; dot = the primary accent.
+ * Own-disabled dims via :host([disabled]); a disabled group dims all its radios via the
+ * group's own :host([disabled]).
  */
 
 :host {
   display: inline-block;
+}
+
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .root {
@@ -44,14 +50,14 @@
   inline-size: 55%;
   block-size: 55%;
   border-radius: 50%;
-  background: var(--_accent);
+  background: var(--color-primary);
   transform: scale(0);
   transition: transform var(--transition-fast);
 }
 
 .input {
   &:checked ~ .ring {
-    border-color: var(--_accent);
+    border-color: var(--color-primary);
     .dot {
       transform: scale(1);
     }

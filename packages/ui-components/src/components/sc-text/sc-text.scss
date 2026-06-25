@@ -12,9 +12,10 @@
 }
 
 /* Base reset for every renderable tag. :where() has ZERO specificity, so the single
-   modifier classes below override it cleanly (and the UA <h1>… type scale is dropped). */
+   modifier classes below override it cleanly (and the UA <h1>… type scale is dropped).
+   Display is left to the tag's nature — <span> inline, <p>/<div>/<h1–6> block — so the
+   element flows like the tag it semantically is; `inline` forces inline either way. */
 :where(h1, h2, h3, h4, h5, h6, p, span, div) {
-  display: block;
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--font-size-md);
@@ -90,8 +91,10 @@
   text-align: end;
 }
 
-/* Truncation (single line) */
+/* Truncation (single line). Forces a block box — text-overflow:ellipsis only
+   applies to a block/inline-block, not a bare inline <span>. */
 .truncate {
+  display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

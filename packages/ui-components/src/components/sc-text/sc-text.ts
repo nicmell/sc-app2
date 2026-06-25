@@ -56,7 +56,7 @@ export class ScTextBase extends LitElement {
   @property() accessor align: ScTextAlign = "start";
   /** Single-line clip with an ellipsis. */
   @property({ type: Boolean }) accessor truncate = false;
-  /** Flow inline (default is a block). */
+  /** Force inline flow (otherwise the tag's natural display applies: span inline, the rest block). */
   @property({ type: Boolean }) accessor inline = false;
 
   render() {

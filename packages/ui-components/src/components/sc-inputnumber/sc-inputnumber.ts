@@ -66,7 +66,7 @@ export class ScInputNumberBase extends ScControlBase {
 
   render() {
     return html`
-      <div class=${this.controlClasses({ disabled: this.disabled })}>
+      <div>
         <input
           class="field"
           type="number"

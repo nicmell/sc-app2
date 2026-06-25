@@ -14,7 +14,7 @@ import styles from "./sc-slider.scss";
 export class ScSliderBase extends ScRangeBase {
   static styles = [foundations, controlStyles, styles];
 
-  @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
+  @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   /** Drag along the orientation axis: up (vertical) or right (horizontal). */
   protected dragAxisDelta(dx: number, dy: number): number {
@@ -33,7 +33,7 @@ export class ScSliderBase extends ScRangeBase {
     const fillStyle = vertical ? `height:${pct}` : `width:${pct}`;
     const thumbStyle = vertical ? `bottom:${pct}` : `left:${pct}`;
     return html`
-      <div class=${this.controlClasses({ vertical, horizontal: !vertical })}>
+      <div>
         <input
           class="input sr-only"
           type="range"

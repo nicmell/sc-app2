@@ -48,14 +48,14 @@ async function mount<K extends WidgetTag>(
 }
 
 describe("sc-checkbox-base", () => {
-  it("renders a hidden native checkbox with the size class on the label", async () => {
+  it("renders a hidden native checkbox; size reflects to the host", async () => {
     const el = await mount("sc-checkbox-base", { size: "lg" });
     const label = el.shadowRoot!.querySelector("label")!;
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("checkbox");
     expect(input.classList.contains("sr-only")).toBe(true);
-    expect(label.classList.contains("root")).toBe(true);
-    expect(label.classList.contains("lg")).toBe(true);
+    expect(label).not.toBeNull();
+    expect(el.getAttribute("size")).toBe("lg");
   });
 
   it("toggles and re-emits a composed change carrying checked", async () => {
@@ -158,7 +158,7 @@ describe("sc-knob-base", () => {
 });
 
 describe("sc-slider-base", () => {
-  it("carries the orientation modifier and steps the hidden range on wheel", async () => {
+  it("reflects orientation to the host and steps the hidden range on wheel", async () => {
     const el = await mount("sc-slider-base", {
       orientation: "vertical",
       min: 0,
@@ -166,7 +166,7 @@ describe("sc-slider-base", () => {
       step: 0.1,
       value: 0.5,
     });
-    expect(el.shadowRoot!.querySelector(".vertical")).not.toBeNull();
+    expect(el.getAttribute("orientation")).toBe("vertical");
     expect(el.shadowRoot!.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
@@ -439,12 +439,11 @@ describe("sc-chip-base", () => {
 });
 
 describe("sc-input-base", () => {
-  it("renders a text input with the size class", async () => {
+  it("renders a text input; size reflects to the host", async () => {
     const el = await mount("sc-input-base", { size: "lg", placeholder: "name" });
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("text");
-    expect(input.classList.contains("root")).toBe(true);
-    expect(input.classList.contains("lg")).toBe(true);
+    expect(el.getAttribute("size")).toBe("lg");
     expect(input.placeholder).toBe("name");
   });
 
@@ -505,12 +504,11 @@ describe("sc-inputnumber-base", () => {
 });
 
 describe("sc-textarea-base", () => {
-  it("renders a textarea with rows + size class", async () => {
+  it("renders a textarea with rows; size reflects to the host", async () => {
     const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
     const ta = el.shadowRoot!.querySelector("textarea")!;
     expect(ta.getAttribute("rows")).toBe("5");
-    expect(ta.classList.contains("root")).toBe(true);
-    expect(ta.classList.contains("lg")).toBe(true);
+    expect(el.getAttribute("size")).toBe("lg");
     expect(ta.placeholder).toBe("notes");
   });
 
@@ -736,8 +734,7 @@ describe("content wrappers", () => {
       document.body.appendChild(el);
       await el.updateComplete;
       expect(el.querySelectorAll("span").length).toBe(2); // slotted light DOM
-      const root = el.shadowRoot!.querySelector(".root")!;
-      expect(root.classList.contains("md")).toBe(true);
+      expect(el.getAttribute("gap")).toBe("md");
     }
   });
 });

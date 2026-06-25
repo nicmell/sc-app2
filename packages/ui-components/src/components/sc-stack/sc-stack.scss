@@ -1,21 +1,17 @@
-/* <sc-stack-base> styles. Vertical flex layout; xs is the base gap. */
+/* <sc-stack-base> styles. :host is the vertical flex column; xs is the base gap. */
 
 :host {
-  display: block;
-}
-
-.root {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
 }
 
-.root.sm {
+:host([gap="sm"]) {
   gap: var(--space-sm);
 }
-.root.md {
+:host([gap="md"]) {
   gap: var(--space-md);
 }
-.root.lg {
+:host([gap="lg"]) {
   gap: var(--space-lg);
 }

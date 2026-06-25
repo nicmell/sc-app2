@@ -1,25 +1,24 @@
 /*
- * <sc-input-base> field chrome. The bare input{} rule (from the adopted
- * foundations) gives the surface fill, border, focus ring, and font; `.root`
- * only tunes sizing.
+ * <sc-input-base> field chrome. The bare input{} rule (from controlStyles) gives the
+ * surface fill, border, focus ring, and font; the host's `size` only tunes sizing.
  */
 
 :host {
   display: inline-block;
 }
 
-.root {
+input {
   box-sizing: border-box;
 }
 
-.root.sm {
+:host([size="sm"]) input {
   padding: var(--space-3xs) var(--space-2xs);
   font-size: var(--font-size-xs);
 }
-.root.md {
+:host([size="md"]) input {
   font-size: var(--font-size-sm);
 }
-.root.lg {
+:host([size="lg"]) input {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-md);
 }

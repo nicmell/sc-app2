@@ -9,23 +9,23 @@
   pointer-events: none;
 }
 
-.root {
+label {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+}
 
-  &.sm {
-    --_w: 1.75rem;
-    --_h: 1rem;
-  }
-  &.md {
-    --_w: 2.25rem;
-    --_h: 1.25rem;
-  }
-  &.lg {
-    --_w: 3rem;
-    --_h: 1.6rem;
-  }
+:host([size="sm"]) {
+  --_w: 1.75rem;
+  --_h: 1rem;
+}
+:host([size="md"]) {
+  --_w: 2.25rem;
+  --_h: 1.25rem;
+}
+:host([size="lg"]) {
+  --_w: 3rem;
+  --_h: 1.6rem;
 }
 
 .track {

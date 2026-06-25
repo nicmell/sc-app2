@@ -12,7 +12,7 @@
   pointer-events: none;
 }
 
-.root {
+label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -20,19 +20,19 @@
   user-select: none;
   font-family: var(--font-mono);
   color: var(--color-text-dim);
+}
 
-  &.sm {
-    --_box: 0.875rem;
-    font-size: var(--font-size-xs);
-  }
-  &.md {
-    --_box: 1rem;
-    font-size: var(--font-size-sm);
-  }
-  &.lg {
-    --_box: 1.25rem;
-    font-size: var(--font-size-md);
-  }
+:host([size="sm"]) {
+  --_box: 0.875rem;
+  font-size: var(--font-size-xs);
+}
+:host([size="md"]) {
+  --_box: 1rem;
+  font-size: var(--font-size-sm);
+}
+:host([size="lg"]) {
+  --_box: 1.25rem;
+  font-size: var(--font-size-md);
 }
 
 .box {

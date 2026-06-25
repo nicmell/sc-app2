@@ -9,27 +9,28 @@
   display: inline-block;
 }
 
-.root {
+/* The wrapper div (the only div in this shadow) anchors the absolute stepper column. */
+div {
   position: relative;
   display: inline-block;
+}
 
-  &.sm .field {
-    padding: var(--space-3xs) var(--space-2xs);
-    padding-right: 1.4rem;
-    font-size: var(--font-size-xs);
-  }
-  &.md .field {
-    font-size: var(--font-size-sm);
-  }
-  &.lg .field {
-    padding: var(--space-xs) var(--space-sm);
-    padding-right: 1.9rem;
-    font-size: var(--font-size-md);
-  }
+:host([disabled]) {
+  opacity: 0.5;
+}
 
-  &.disabled {
-    opacity: 0.5;
-  }
+:host([size="sm"]) .field {
+  padding: var(--space-3xs) var(--space-2xs);
+  padding-right: 1.4rem;
+  font-size: var(--font-size-xs);
+}
+:host([size="md"]) .field {
+  font-size: var(--font-size-sm);
+}
+:host([size="lg"]) .field {
+  padding: var(--space-xs) var(--space-sm);
+  padding-right: 1.9rem;
+  font-size: var(--font-size-md);
 }
 
 .field {

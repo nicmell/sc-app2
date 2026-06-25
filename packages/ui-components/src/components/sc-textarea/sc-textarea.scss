@@ -1,26 +1,26 @@
 /*
- * <sc-textarea-base> field chrome. The bare textarea{} rule (from the adopted
- * foundations) gives the surface fill, border, focus ring, sans font, and
- * vertical resize; `.root` makes it fill the host and tunes sizing.
+ * <sc-textarea-base> field chrome. The bare textarea{} rule (from controlStyles) gives the
+ * surface fill, border, focus ring, sans font, and vertical resize; the textarea fills the
+ * host and the host's `size` tunes sizing.
  */
 
 :host {
   display: block;
 }
 
-.root {
+textarea {
   box-sizing: border-box;
   inline-size: 100%;
 }
 
-.root.sm {
+:host([size="sm"]) textarea {
   padding: var(--space-3xs) var(--space-2xs);
   font-size: var(--font-size-xs);
 }
-.root.md {
+:host([size="md"]) textarea {
   font-size: var(--font-size-sm);
 }
-.root.lg {
+:host([size="lg"]) textarea {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-md);
 }

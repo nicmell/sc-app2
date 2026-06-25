@@ -31,7 +31,6 @@ export class ScInputBase extends ScControlBase {
 
   render() {
     return html`<input
-      class=${this.controlClasses()}
       type=${this.type}
       name=${this.name}
       placeholder=${this.placeholder}

@@ -26,7 +26,7 @@ export class ScCheckboxBase extends ScControlBase {
 
   render() {
     return html`
-      <label class=${this.controlClasses()}>
+      <label>
         <input
           class="input sr-only"
           type="checkbox"

@@ -12,7 +12,8 @@
   pointer-events: none;
 }
 
-.root {
+/* The wrapper div (the only div in this shadow) is the dial box + gesture surface. */
+div {
   display: inline-block;
   line-height: 0;
   cursor: grab;
@@ -22,19 +23,19 @@
   &:active {
     cursor: grabbing;
   }
+}
 
-  &.sm {
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
-  }
-  &.md {
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
-  }
-  &.lg {
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
-  }
+:host([size="sm"]) div {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+}
+:host([size="md"]) div {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+:host([size="lg"]) div {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
 }
 
 .svg {

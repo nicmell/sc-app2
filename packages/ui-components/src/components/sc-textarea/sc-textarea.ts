@@ -30,7 +30,6 @@ export class ScTextareaBase extends ScControlBase {
 
   render() {
     return html`<textarea
-      class=${this.controlClasses()}
       rows=${this.rows}
       name=${this.name}
       placeholder=${this.placeholder}

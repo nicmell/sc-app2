@@ -27,7 +27,7 @@ export class ScKnobBase extends ScRangeBase {
     const ratio = range > 0 ? Math.max(0, Math.min(1, (this.value - this.min) / range)) : 0;
     const angle = -135 + 270 * ratio;
     return html`
-      <div class=${this.controlClasses()}>
+      <div>
         <input
           class="input sr-only"
           type="range"

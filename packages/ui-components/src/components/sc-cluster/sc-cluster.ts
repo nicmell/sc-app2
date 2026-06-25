@@ -1,10 +1,9 @@
 // <sc-cluster-base> — horizontal flex layout primitive (a "row of inline
 // things": toolbars, label + input, chip + readout). Centred cross-axis, wraps.
-// Shadow DOM: a `.root` flex row (with the `gap` modifier) wrapping a <slot>.
+// Shadow DOM: `:host` is the flex row (with the reflected `gap` modifier) over a <slot>.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import cx from "classnames";
 import type { ScGap } from "../sc-stack/sc-stack";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-cluster.scss";
@@ -12,11 +11,9 @@ import styles from "./sc-cluster.scss";
 export class ScClusterBase extends LitElement {
   static styles = [foundations, styles];
 
-  @property() accessor gap: ScGap = "xs";
+  @property({ reflect: true }) accessor gap: ScGap = "xs";
 
   render() {
-    return html`<div class=${cx("root", this.gap !== "xs" && this.gap)}>
-      <slot></slot>
-    </div>`;
+    return html`<slot></slot>`;
   }
 }

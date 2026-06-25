@@ -11,15 +11,14 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { foundations, controlStyles } from "../internal/foundation-styles";
+import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-disclosure.css";
 import "../sc-icon/sc-icon";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
 
-  // controlStyles carries the bare `details > summary` chrome the native <details> uses.
-  static styles = [foundations, controlStyles, styles];
+  static styles = [foundations, styles];
 
   get #details(): HTMLDetailsElement | null {
     return this.renderRoot.querySelector("details");

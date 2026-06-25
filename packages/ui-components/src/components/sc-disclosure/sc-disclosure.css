@@ -1,7 +1,7 @@
 /*
- * <sc-disclosure-base> styles. Card chrome around a native <details>; the base
- * details/summary rules come from the adopted foundations, so this adds only the
- * card + chevron (a caret <sc-icon-base> that rotates to point down when open).
+ * <sc-disclosure-base> styles. Card chrome around a native <details>, self-contained:
+ * the card, the chevron (a caret <sc-icon-base> that rotates to point down when open),
+ * and the <summary> chrome (cursor/colour/size — the interactive summary look).
  */
 
 :host {
@@ -18,6 +18,10 @@
   &[open] .chevron {
     rotate: 90deg;
   }
+
+  &[open] .summary {
+    color: var(--color-text);
+  }
 }
 
 .summary {
@@ -26,6 +30,15 @@
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
   list-style: none;
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-text);
+  }
 
   &::-webkit-details-marker {
     display: none;

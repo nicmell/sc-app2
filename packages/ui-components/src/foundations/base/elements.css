@@ -7,10 +7,10 @@
  * (src/components), which resolves them to .sc-button--* classes
  * rather than data attributes.
  *
- * The interactive-control chrome (input/select/textarea fields, details > summary) lives
- * in controls.css — shared with the shadow components that reuse it (see that file). It's
- * @imported here so the head foundation keeps the full set; this file holds the rules
- * that are document-only (no shadow component depends on them inside its shadow root).
+ * The form-field chrome (input/select/textarea) lives in controls.css — shared with the
+ * shadow input components that reuse it (see that file) — and is @imported here so the
+ * head foundation keeps it. Everything else here is document-only (no shadow component
+ * depends on it inside its shadow root; e.g. sc-disclosure styles its own <summary>).
  *
  * The body rule lives here (not in reset.css) so a consumer
  * importing only the reset doesn't get the host palette
@@ -87,4 +87,20 @@ label {
   gap: var(--space-2xs);
   font-size: var(--font-size-xs);
   color: var(--color-text-dim);
+}
+
+/* ── Details / summary ─────────────────────────────────────── */
+/* Document-only: <sc-disclosure-base> styles its own <summary> in sc-disclosure.css. */
+
+details > summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+details > summary:hover,
+details[open] > summary {
+  color: var(--color-text);
 }

@@ -20,8 +20,8 @@ import controlsSheet from "../../foundations/base/controls.css";
 // the dts bundler / consumers to resolve.
 export const foundations: CSSResult = shadowSheet;
 
-// The bare interactive-control chrome (input/select/textarea fields + details > summary).
-// NOT in the shared `foundations` base — only the components that render those native
-// elements in their shadow adopt it: sc-input, sc-inputnumber, sc-textarea, sc-disclosure.
-// The same sheet feeds the head foundation via base/elements.css's @import.
+// The bare form-field chrome (input/select/textarea surface/border/focus). NOT in the
+// shared `foundations` base — only the three components that render a native field in
+// their shadow adopt it: sc-input, sc-inputnumber, sc-textarea. The same sheet feeds the
+// head foundation via base/elements.css's @import. (sc-disclosure styles its own summary.)
 export const controlStyles: CSSResult = controlsSheet;

@@ -1,14 +1,14 @@
 /**
- * Bare interactive-control styles, shared between two consumers:
+ * Bare form-field chrome (input/select/textarea), shared between two consumers:
  *   - the head foundation (elements.css @imports this), so light-DOM / plugin
- *     <input>/<select>/<textarea>/<details> look correct without classes;
- *   - the shadow components that render those native elements and rely on the bare
- *     chrome — sc-input, sc-inputnumber, sc-textarea (the field surface/border/focus)
- *     and sc-disclosure (details > summary) — which import it as `controlStyles`.
+ *     <input>/<select>/<textarea> look correct without classes;
+ *   - the shadow components that render a native field and rely on the bare chrome —
+ *     sc-input, sc-inputnumber, sc-textarea — which import it as `controlStyles`.
  *
- * Kept OUT of the shared shadow base (foundations/shadow.css) so the ~8 components that
+ * Kept OUT of the shared shadow base (foundations/shadow.css) so the components that
  * fully self-style (sc-button) or render custom overlays (sc-checkbox/switch/radio/
- * slider/knob, sc-select, sc-option) don't carry it for nothing.
+ * slider/knob, sc-select, sc-option) don't carry it for nothing. (sc-disclosure styles
+ * its own <summary> directly — see sc-disclosure.css.)
  */
 
 /* ── Form fields ───────────────────────────────────────────── */
@@ -62,19 +62,4 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-/* ── Details / summary ─────────────────────────────────────── */
-
-details > summary {
-  cursor: pointer;
-  user-select: none;
-  color: var(--color-text-dim);
-  font-size: var(--font-size-sm);
-  transition: color var(--transition-fast);
-}
-
-details > summary:hover,
-details[open] > summary {
-  color: var(--color-text);
 }

@@ -49,6 +49,7 @@ export { ScToastBase, type ScToastVariant } from "./sc-toast/sc-toast";
 export { ScChipBase, type ScChipVariant } from "./sc-chip/sc-chip";
 export { foundations } from "./internal/foundation-styles";
 export { ScPopoverBase } from "./sc-popover/sc-popover";
+export { type PopoverPlacement } from "./internal/position";
 export { ScModalBase } from "./sc-modal/sc-modal";
 export { ScDrawerBase, type ScDrawerSide } from "./sc-drawer/sc-drawer";
 export { ScAlertBase, type ScAlertVariant } from "./sc-alert/sc-alert";

@@ -1,6 +1,6 @@
 // <sc-popover-base> — a generic anchored overlay panel rendered in the top layer
-// (escapes overflow/transform/z-index), positioned against an anchor with
-// @floating-ui/dom. Shadow DOM; adopts the shared foundation sheet. Controlled by
+// (escapes overflow/transform/z-index), positioned against an anchor by the internal
+// `position` helper. Shadow DOM; adopts the shared foundation sheet. Controlled by
 // `open`; anchors to `anchor` (an element set via property) or, by default, the
 // host's previous element sibling — so a trigger button placed right before it
 // works with no wiring. Native light-dismiss (outside-click + Esc) reflects back
@@ -17,13 +17,13 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { computePosition, autoUpdate, offset, flip, shift, type Placement } from "@floating-ui/dom";
 import { foundations } from "../internal/foundation-styles";
+import { autoPosition, type PopoverPlacement } from "../internal/position";
 import styles from "./sc-popover.scss";
 
 export class ScPopoverBase extends LitElement {
   @property({ type: Boolean }) accessor open = false;
-  @property() accessor placement: Placement = "bottom-start";
+  @property() accessor placement: PopoverPlacement = "bottom-start";
   /** Anchor element (set via JS/React); defaults to the previous element sibling. */
   accessor anchor: HTMLElement | null = null;
 
@@ -97,18 +97,7 @@ export class ScPopoverBase extends LitElement {
     const anchor = this.#anchorEl;
     if (!panel || !anchor) return;
     this.#stop();
-    panel.style.position = "fixed";
-    panel.style.margin = "0";
-    this.#stopAutoUpdate = autoUpdate(anchor, panel, () => {
-      void computePosition(anchor, panel, {
-        strategy: "fixed",
-        placement: this.placement,
-        middleware: [offset(4), flip({ padding: 8 }), shift({ padding: 8 })],
-      }).then(({ x, y }) => {
-        panel.style.left = `${x}px`;
-        panel.style.top = `${y}px`;
-      });
-    });
+    this.#stopAutoUpdate = autoPosition(anchor, panel, this.placement);
   }
 
   #stop(): void {

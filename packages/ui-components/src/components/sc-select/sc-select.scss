@@ -22,7 +22,7 @@
   min-inline-size: 6rem;
   margin: 0;
   @include field-surface;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   font-size: var(--font-size-sm);
   cursor: pointer;
   user-select: none;
@@ -36,12 +36,7 @@
   }
 }
 
-:host([size="sm"]) .combobox {
-  font-size: var(--font-size-xs);
-}
-:host([size="lg"]) .combobox {
-  font-size: var(--font-size-md);
-}
+@include field-size(".combobox");
 
 .label {
   flex: 1 1 auto;

@@ -98,9 +98,8 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Keyboard focus ring on the visible thumb (the real <input> is .sr-only). */
+/* Keyboard focus ring on the visible thumb (the real <input> is .sr-only); the thumb
+   keeps its base --shadow-sm elevation, the outline traces its round edge. */
 .input:focus-visible ~ .track .thumb {
-  box-shadow:
-    var(--shadow-sm),
-    0 0 0 2px var(--color-border-focus);
+  @include focus-ring;
 }

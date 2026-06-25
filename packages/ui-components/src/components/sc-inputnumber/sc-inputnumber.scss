@@ -18,7 +18,7 @@ div {
 }
 
 :host([disabled]) {
-  opacity: 0.5;
+  @include disabled;
 }
 
 /* Shared field-size scale, plus extra right padding for the stepper column at each size. */

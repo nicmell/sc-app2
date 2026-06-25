@@ -43,12 +43,13 @@ div {
   display: block;
   inline-size: 100%;
   block-size: 100%;
+  /* Round box so the focus outline traces the dial. */
+  border-radius: 50%;
 }
 
 /* Keyboard focus ring on the visible dial (the real <input> is .sr-only). */
 .input:focus-visible ~ .svg {
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--color-border-focus);
+  @include focus-ring;
 }
 
 .body {

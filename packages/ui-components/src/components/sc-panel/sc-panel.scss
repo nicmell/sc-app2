@@ -3,6 +3,8 @@
  * direct-child <header> renders as a small uppercase title bar (::slotted).
  */
 
+@use "../../foundations/mixins" as *;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -24,7 +26,6 @@
 }
 
 :host([disabled]) {
-  opacity: 0.55;
-  pointer-events: none;
+  @include disabled;
   user-select: none;
 }

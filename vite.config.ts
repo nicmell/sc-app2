@@ -2,17 +2,18 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { litCss } from "./packages/ui-components/lit-css";
+import litCss from "vite-plugin-lit-css";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  // `@sc-app/ui-components` is consumed as SOURCE (no build step). litCss claims the
-  // components' `.css` before Vite's built-in CSS pipeline and emits Lit CSSResults via
-  // the package's PostCSS pipeline. It self-scopes to the package's own `src/**`, so the
-  // app's own CSS (App.css, …) keeps Vite's normal injection.
-  plugins: [react(), litCss()],
+  // `@sc-app/ui-components` is consumed as SOURCE (no build step). vite-plugin-lit-css
+  // wraps the components' `.css` imports into Lit CSSResults — it patches Vite's css-post
+  // plugin, so Vite's own CSS pipeline (incl. the repo-root postcss.config.cjs: @import
+  // inlining, nesting, woff2 → data-URI) runs first. Scoped via `include` to the package's
+  // own `src/**`, so the app's own CSS (App.css, …) keeps Vite's normal injection.
+  plugins: [react(), litCss({ include: ["**/ui-components/src/**/*.css"] })],
 
   // Lower standard (stage-3) decorators in the per-file esbuild transform —
   // the sc-elements use `@property() accessor` reactive properties and

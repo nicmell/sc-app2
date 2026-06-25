@@ -4782,6 +4782,7 @@ __metadata:
     typescript: "npm:~5.6.2"
     typescript-eslint: "npm:^8.56.0"
     vite: "npm:^6.0.3"
+    vite-plugin-lit-css: "npm:^3.0.0"
     vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
@@ -5176,6 +5177,16 @@ __metadata:
   bin:
     vite-node: vite-node.mjs
   checksum: 10c0/0d3589f9f4e9cff696b5b49681fdb75d1638c75053728be52b4013f70792f38cb0120a9c15e3a4b22bdd6b795ad7c2da13bcaf47242d439f0906049e73bdd756
+  languageName: node
+  linkType: hard
+
+"vite-plugin-lit-css@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "vite-plugin-lit-css@npm:3.0.0"
+  peerDependencies:
+    lit: ^2.0.0 || ^3.0.0
+    vite: ^7.0.0 || ^8.0.0
+  checksum: 10c0/2bb01ac5f43031c22061581746f7895b7ef350c7fa943da4741b35c0478e6d8f956c8024f8486a8719643fa359c8337caecc6a144ae5899a0c6a349f92ac6e81
   languageName: node
   linkType: hard
 

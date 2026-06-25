@@ -8,9 +8,10 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  // `@sc-app/ui-components` is consumed as SOURCE (no build step). litCss compiles the
-  // components' `.css` imports to Lit CSSResults (it self-scopes to the package's own
-  // `src/**`, so the app's own CSS — App.css, … — keeps Vite's normal injection).
+  // `@sc-app/ui-components` is consumed as SOURCE (no build step). litCss claims the
+  // components' `.css` before Vite's built-in CSS pipeline and emits Lit CSSResults via
+  // the package's PostCSS pipeline. It self-scopes to the package's own `src/**`, so the
+  // app's own CSS (App.css, …) keeps Vite's normal injection.
   plugins: [react(), litCss()],
 
   // Lower standard (stage-3) decorators in the per-file esbuild transform —

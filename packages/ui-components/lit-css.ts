@@ -1,11 +1,13 @@
 // Source-consumption build glue. The app, the example, and vitest all compile this
-// package's component/foundation `.css` on the fly (no build step). They can't use a
-// plain transform plugin: Vite's built-in CSS handling owns `.css` and would turn
-// `import styles from "./x.css"` into a style-injecting, default-less module. So this
-// Vite plugin redirects the package's own `.css` to a VIRTUAL module (no `.css`
-// extension → Vite's CSS pipeline ignores it) and emits a Lit `CSSResult`, built by the
-// project's PostCSS pipeline (postcss.config.cjs): postcss-import (incl. the Phosphor
-// weight CSS), postcss-nesting, postcss-url (woff2 → data-URI). Plain CSS — no Sass.
+// package's component/foundation `.css` on the fly (no build step). A plain transform
+// plugin can't do this: Vite's built-in CSS handling owns `.css` and would turn
+// `import styles from "./x.css"` into a style-injecting, default-less module. And
+// vite-plugin-lit-css, while it intercepts correctly (enforce: "pre" + load), has no
+// `transform` hook — so it can't run our PostCSS pipeline (the @import inlining + woff2
+// data-URI are essential). So this small Vite plugin does both: redirect the package's
+// own `.css` to a VIRTUAL module (no `.css` extension → Vite's CSS pipeline ignores it)
+// and emit a Lit `CSSResult` built by PostCSS (postcss.config.cjs): postcss-import
+// (incl. the Phosphor weight CSS), postcss-nesting, postcss-url. Plain CSS — no Sass.
 
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";

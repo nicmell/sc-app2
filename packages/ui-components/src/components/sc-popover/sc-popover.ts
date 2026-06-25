@@ -13,7 +13,7 @@ import { property } from "lit/decorators.js";
 import type { Placement } from "@floating-ui/dom";
 import { foundations } from "../internal/foundation-styles";
 import { PopoverController } from "../internal/popover-controller";
-import styles from "./sc-popover.scss";
+import styles from "./sc-popover.css";
 
 export class ScPopoverBase extends LitElement {
   @property({ type: Boolean }) accessor open = false;

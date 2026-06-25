@@ -9,8 +9,8 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range-base";
 import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.scss";
-import styles from "./sc-slider.scss";
+import widgetStyles from "../internal/widget-base.css";
+import styles from "./sc-slider.css";
 
 export class ScSliderBase extends ScRangeBase {
   static styles = [foundations, widgetStyles, styles];

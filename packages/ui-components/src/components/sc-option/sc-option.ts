@@ -11,8 +11,8 @@ import cx from "classnames";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { selectContext } from "../internal/contexts";
 import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.scss";
-import styles from "./sc-option.scss";
+import widgetStyles from "../internal/widget-base.css";
+import styles from "./sc-option.css";
 
 export class ScOptionBase extends ScWidgetBase {
   static styles = [foundations, widgetStyles, styles];

@@ -1,6 +1,6 @@
 // <sc-icon-base> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with the
 // `<weight> ph-<name>` classes from @phosphor-icons/web. The font ships with the
-// FOUNDATION (foundations/_icons.scss): the @font-face registers on the document and
+// FOUNDATION (foundations/icons.css): the @font-face registers on the document and
 // the `.ph-*` glyph rules ride into every shadow via `static styles` — so this
 // element needs no font code of its own. Colour follows currentColor and size
 // follows the surrounding font-size (1em) unless a size token is given.
@@ -11,7 +11,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-icon.scss";
+import styles from "./sc-icon.css";
 
 export type ScIconSize = "sm" | "md" | "lg";
 export type ScIconVariant = "regular" | "fill" | "duotone";

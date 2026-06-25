@@ -7,7 +7,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-alert.scss";
+import styles from "./sc-alert.css";
 
 export type ScAlertVariant = "info" | "success" | "warn" | "error";
 

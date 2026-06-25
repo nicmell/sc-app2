@@ -8,7 +8,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-text.scss";
+import styles from "./sc-text.css";
 
 export type ScTextSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type ScTextWeight = "regular" | "medium" | "bold";

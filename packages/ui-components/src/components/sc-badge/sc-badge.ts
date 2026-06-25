@@ -5,7 +5,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-badge.scss";
+import styles from "./sc-badge.css";
 
 export type ScBadgeVariant = "ok" | "warn" | "error";
 

@@ -1,59 +1,27 @@
-// Shared SCSS → CSS transform for the lit-css plugins (esbuild-plugin-lit-css in
-// the tsup build; rollup-plugin-lit-css in the demo Vite + the package's vitest).
-// lit-css wraps the returned CSS in a Lit `css` tagged template (a CSSResult);
-// we compile the SCSS (passing the file path so `@use`/partials resolve), and:
+// Shared CSS → CSSResult transform for the lit-css plugins (esbuild-plugin-lit-css in
+// the tsup build; rollup-plugin-lit-css in the package's vitest). lit-css wraps the
+// returned CSS in a Lit `css` tagged template (a CSSResult); we just run the project's
+// PostCSS pipeline (postcss.config.cjs) on the source — postcss-import (incl. the
+// Phosphor weight CSS), postcss-nesting, and postcss-url (woff2 → data-URI).
 //
-//  - resolve `@use "phosphor:<weight>"` to @phosphor-icons/web's weight CSS via Node
-//    resolution (a custom importer — sass's NodePackageImporter doesn't pick up
-//    Phosphor's plain-CSS export), so the icon font can live in the foundation SCSS;
-//  - inline its `url(...woff2)` as base64 data-URIs with postcss-url, so the
-//    @font-face works inside an adopted constructable stylesheet (a relative font URL
-//    would 404 there).
+// No Sass: the styles are plain CSS (custom properties + native `&` nesting).
 
-import * as sass from "sass";
-import { createRequire } from "node:module";
-import * as path from "node:path";
-import { pathToFileURL } from "node:url";
 import postcss from "postcss";
-import postcssUrl from "postcss-url";
+import postcssrc from "postcss-load-config";
 
-// Resolve @phosphor-icons from the package dir rather than `import.meta.url`: tsup,
-// Vite, and vitest all run from here, and vitest's module URL isn't a `file:` URL
-// (which would break createRequire / the importer below).
-const require = createRequire(path.resolve(process.cwd(), "package.json"));
+// Load postcss.config.cjs once (cached). Searches from the package dir — the cwd for
+// tsup, Vite, and vitest, all of which run from here.
+let configPromise: ReturnType<typeof postcssrc> | undefined;
+const loadConfig = () => (configPromise ??= postcssrc({}, process.cwd()));
 
-/** Maps `phosphor:<weight>` → @phosphor-icons/web's compiled weight CSS file, resolved
- *  through the package's exports exactly as the app resolves it. */
-const phosphorImporter: sass.FileImporter<"sync"> = {
-  findFileUrl(url) {
-    if (!url.startsWith("phosphor:")) return null;
-    const weight = url.slice("phosphor:".length);
-    return pathToFileURL(require.resolve(`@phosphor-icons/web/${weight}/style.css`));
-  },
-};
-
-/** Dirs holding the Phosphor woff2 files (next to each weight's style.css) — postcss-url's
- *  search paths, since sass flattens the @use and the url() loses its origin dir. */
-const phosphorDirs = ["regular", "fill", "duotone"].map((w) =>
-  path.dirname(require.resolve(`@phosphor-icons/web/${w}/style.css`)),
-);
-
-export const scssTransform = async (
-  _source: string,
+export const cssTransform = async (
+  source: string,
   { filePath }: { filePath: string },
 ): Promise<string> => {
-  // `charset: false` so sass doesn't prepend `@charset "UTF-8";` — invalid/ignored
-  // inside an adopted constructable stylesheet (and noisy in shadow CSS).
-  const css = sass.compile(filePath, { charset: false, importers: [phosphorImporter] }).css;
-  if (!css.includes(".woff2")) return css;
-  // Inline only woff2 (the woff/ttf/svg fallbacks stay, but are never fetched since
-  // woff2 is listed first and every target browser supports it). `maxSize: Infinity`
-  // because the default 14 KB cap would otherwise skip the ~150 KB font files.
-  const { css: out } = await postcss([
-    postcssUrl({ url: "inline", filter: /\.woff2($|\?)/, basePath: phosphorDirs, maxSize: Infinity }),
-  ]).process(css, { from: filePath });
-  return out;
+  const { plugins, options } = await loadConfig();
+  const { css } = await postcss(plugins).process(source, { ...options, from: filePath });
+  return css;
 };
 
-/** Match `.scss`. */
-export const scssFilter = /\.scss$/;
+/** Match `.css`. */
+export const cssFilter = /\.css$/;

@@ -12,7 +12,7 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-disclosure.scss";
+import styles from "./sc-disclosure.css";
 import "../sc-icon/sc-icon";
 
 export class ScDisclosureBase extends LitElement {

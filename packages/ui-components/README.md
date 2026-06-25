@@ -1,16 +1,16 @@
 # `@sc-app/ui-components`
 
-The sc-app design system: an SCSS **foundation** (tokens, themes, reset, base
+The sc-app design system: a CSS **foundation** (tokens, themes, reset, base
 element styles) plus a library of framework-agnostic **`-base` components** (Lit
 web components with React wrappers). **Every component is shadow DOM** and styles
 itself uniformly: `static styles = [foundations, styles]` — the one shared
-`foundations` plus its own **`sc-x.scss`**, each compiled to a Lit `CSSResult`
-by the lit-css build plugin (sass). No CSS Modules, no per-component `unsafeCSS`.
+`foundations` plus its own **`sc-x.css`**, each compiled to a Lit `CSSResult`
+by the lit-css build plugin (PostCSS). No CSS Modules, no per-component `unsafeCSS`.
 
 > The package is **built** (`tsup` → `dist`); consumers import the compiled
-> output. SCSS is compiled at build time (esbuild-plugin-lit-css) and for the
+> output. CSS is processed by PostCSS at build time (esbuild-plugin-lit-css) and for the
 > tests at dev time (rollup-plugin-lit-css) — the consuming app never sees a
-> `.scss`. The `example/` showcase consumes the built package (`yarn demo`).
+> `.css`. The `example/` showcase consumes the built package (`yarn demo`).
 
 Three consumers:
 
@@ -25,25 +25,26 @@ Three consumers:
 
 ```
 src/
-  foundations/             SCSS — tokens, reset, base element styles, icon font
-    index.scss             entry; @use tokens + themes + reset + base + icons (NO components)
-    tokens/semantic.scss   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
-    themes/{dark,light}.scss  dark = default at :root; light under [data-theme="light"]
-    base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
-    _icons.scss            Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
+  foundations/             CSS — tokens, reset, base element styles, icon font
+    index.css             entry; @import tokens + themes + reset + base + icons (NO components)
+    tokens/semantic.css   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
+    themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
+    base/{elements,typography}.css  bare button/input/select/textarea/label/headings/code
+    icons.css            Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
   components/              the -base Lit web components + their co-located styles
     sc-<tag>/sc-<tag>.ts        the component: `static styles = [foundations, styles]`,
                                 renders a shadow tree using literal class names
-    sc-<tag>/sc-<tag>.scss      the component's own SCSS (→ a Lit CSSResult via lit-css)
+    sc-<tag>/sc-<tag>.css      the component's own CSS (→ a Lit CSSResult via lit-css)
     index.ts               element barrel + registerUiComponents()
     internal/foundation-styles.ts   the shared `foundations` CSSResult (+ adoptFoundation)
-    internal/widget-base.scss        shared widget styles (sr-only, variant accents, disabled)
+    internal/widget-base.css        shared widget styles (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
-(At the package root: `lit-css.ts` — the shared sass `transform` for the lit-css plugins:
-sass compile + the `phosphor:` importer + postcss-url woff2 inlining. And `example/` —
+(At the package root: `lit-css.ts` + `postcss.config.cjs` — the shared PostCSS pipeline the
+lit-css plugins run: postcss-import (incl. the Phosphor weight CSS) + postcss-nesting +
+postcss-url woff2 inlining. And `example/` —
 a standalone Vite showcase that consumes the built package; see Demo below.)
 
 ### Entry points (package `exports`)
@@ -191,29 +192,29 @@ Shared bits for the form widgets live on `internal/sc-widget-base.ts`
 (`ScWidgetBase`): the `size`/`variant`/`disabled`/`name` props and the
 `widgetClasses(extra?)` helper (joins `"root"` + `size` + `variant` + `disabled`).
 The shared widget styles (`.sr-only`, the variant→`--_accent` accents,
-`.disabled`) are `internal/widget-base.scss`, included in each widget's
+`.disabled`) are `internal/widget-base.css`, included in each widget's
 `static styles`. `ScWidgetBase` is abstract — not a tag. The parent↔child
 contexts live in `internal/contexts.ts`.
 
-### Styling — one foundation + a `.scss` per component
+### Styling — one foundation + a `.css` per component
 
-Each component owns its styles as a co-located `sc-x.scss`, imported as a Lit
-`CSSResult` (the lit-css plugin compiles the SCSS with sass + wraps it), and
+Each component owns its styles as a co-located `sc-x.css`, imported as a Lit
+`CSSResult` (the lit-css plugin runs the PostCSS pipeline + wraps it), and
 composes it with the one shared `foundations`:
 
 ```ts
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-x.scss";               // → CSSResult (lit-css + sass)
+import styles from "./sc-x.css";               // → CSSResult (lit-css + PostCSS)
 static styles = [foundations, styles];          // adopted into the shadow root
 ```
 
 `internal/foundation-styles.ts` imports the foundation `CSSResult` (compiled from
-`foundations/index.scss`). It is adopted into **every** component's shadow (so
+`foundations/index.css`). It is adopted into **every** component's shadow (so
 reset + bare `input{}`/`button{}`/etc. element styles reach the shadow) and onto
 the **document** via `adoptFoundation()` (`foundations.styleSheet`) — for the app
 shell + so tokens defined at `:root` inherit across every shadow boundary. Class
 names are literal but **shadow-scoped**, so they never collide across components
-and there's no hashing to keep in sync. SCSS gives nesting/`@use`/partials on top
+and there's no hashing to keep in sync. PostCSS gives nesting/`@import`/partials on top
 of the design tokens; native CSS nesting also works inside the compiled output.
 
 Two notes on shadow-DOM styling:
@@ -222,7 +223,7 @@ Two notes on shadow-DOM styling:
   styled with `::slotted(...)` from the component's own css — the component does
   not expose global classes for consumers to hook.
 - **Icon font.** `<sc-icon-base>` renders `<i class="ph ph-<name>">`. The Phosphor
-  font ships **inside the foundation** (`foundations/_icons.scss`, fixed weights
+  font ships **inside the foundation** (`foundations/icons.css`, fixed weights
   regular/fill/duotone): the foundation is adopted both on the document (so
   `@font-face` registers — it has no effect inside a shadow root) and into every
   component's shadow via `static styles` (so the `.ph-*` glyph rules reach the
@@ -273,17 +274,17 @@ modals are centred, so they don't overlap.
 ## Build
 
 ```bash
-yarn build          # tsup → dist (ESM + .d.ts); SCSS compiled to CSSResults via lit-css
+yarn build          # tsup → dist (ESM + .d.ts); CSS → CSSResults via lit-css + PostCSS
 yarn typecheck      # tsc over the TS components
-yarn test           # vitest + happy-dom behaviour suite (source .scss via lit-css)
+yarn test           # vitest + happy-dom behaviour suite (source .css via lit-css)
 ```
 
 The package is **built** with `tsup` to `dist/` (ESM + `.d.ts`); `exports` point
-there and consumers import the compiled output (no `.scss` reaches the consuming
-app). The SCSS → `CSSResult` transform runs in the build (`esbuild-plugin-lit-css`)
+there and consumers import the compiled output (no `.css` reaches the consuming
+app). The CSS → `CSSResult` transform runs in the build (`esbuild-plugin-lit-css`)
 and, for the tests, at dev time (`rollup-plugin-lit-css`) — both via the shared
-sass `transform` in `lit-css.ts`. The foundation CSS exports
-(`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.scss` sources (a consumer's
+PostCSS pipeline in `lit-css.ts` / `postcss.config.cjs`. The foundation CSS exports
+(`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.css` sources (a consumer's
 bundler compiles them).
 
 ## Demo
@@ -298,9 +299,9 @@ yarn demo           # from packages/ui-components/: builds the lib (tsup), then 
 
 ## Constraints
 
-- **SCSS, compiled at build time.** Component styles are `.scss` → Lit `CSSResult`
-  (lit-css + sass); the foundation is `.scss` too. The app consumes the built
-  `dist` (the SCSS never reaches it).
+- **Plain CSS, processed at build time.** Component styles are `.css` → Lit `CSSResult`
+  (lit-css + PostCSS: import/nesting/url); the foundation is `.css` too. The app
+  consumes the built `dist` (no CSS source reaches it).
 - **Shadow-encapsulated components.** Each component is a shadow root styled by
   `[foundations, styles]`; only design tokens (CSS custom properties on `:root`)
   cross the boundary, so a component's look can't be perturbed by page CSS.

@@ -7,7 +7,7 @@ import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScGap } from "../sc-stack/sc-stack";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-cluster.scss";
+import styles from "./sc-cluster.css";
 
 export class ScClusterBase extends LitElement {
   static styles = [foundations, styles];

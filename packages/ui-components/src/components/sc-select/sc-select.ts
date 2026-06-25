@@ -20,7 +20,7 @@ import { selectContext, type SelectContext } from "../internal/contexts";
 import type { ScSize, ScVariant } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
 import { PopoverController } from "../internal/popover-controller";
-import styles from "./sc-select.scss";
+import styles from "./sc-select.css";
 import "../sc-icon/sc-icon";
 
 const DROPDOWN_ID = "sc-select-dropdown";

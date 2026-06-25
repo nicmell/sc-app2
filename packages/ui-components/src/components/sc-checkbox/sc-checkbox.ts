@@ -9,8 +9,8 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScWidgetBase } from "../internal/sc-widget-base";
 import { foundations } from "../internal/foundation-styles";
-import widgetStyles from "../internal/widget-base.scss";
-import styles from "./sc-checkbox.scss";
+import widgetStyles from "../internal/widget-base.css";
+import styles from "./sc-checkbox.css";
 
 export class ScCheckboxBase extends ScWidgetBase {
   static styles = [foundations, widgetStyles, styles];

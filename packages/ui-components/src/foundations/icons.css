@@ -1,0 +1,15 @@
+/*
+ * Phosphor icon font (the weights <sc-icon-base>'s `variant` supports). Pulled into
+ * the foundation on purpose: the foundation is the one sheet adopted BOTH on the
+ * document (adoptFoundation → where @font-face actually registers) AND inside every
+ * component's shadow (it's in every `static styles` → the `.ph-*` glyph rules reach
+ * the shadow <i>). So <sc-icon-base> needs no font code of its own.
+ *
+ * These @imports are inlined by postcss-import (which resolves @phosphor-icons/web's
+ * package exports — see postcss.config.cjs), and the woff2 is then inlined as a
+ * data-URI by postcss-url — so the font is self-contained in the compiled sheet,
+ * with no runtime URL.
+ */
+@import "@phosphor-icons/web/regular/style.css";
+@import "@phosphor-icons/web/fill/style.css";
+@import "@phosphor-icons/web/duotone/style.css";

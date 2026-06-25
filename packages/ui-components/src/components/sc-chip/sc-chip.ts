@@ -6,7 +6,7 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-chip.scss";
+import styles from "./sc-chip.css";
 
 export type ScChipVariant = "neutral" | "ok" | "warn" | "error" | "info";
 

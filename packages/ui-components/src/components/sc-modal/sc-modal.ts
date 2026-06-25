@@ -5,7 +5,7 @@
 
 import { ScDialogBase } from "../internal/sc-dialog-base";
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-modal.scss";
+import styles from "./sc-modal.css";
 
 export class ScModalBase extends ScDialogBase {
   static styles = [foundations, styles];

@@ -1,15 +1,19 @@
 /*
- * <sc-text-base> typography styles. Shadow DOM: `:host { display: contents }`
- * so the inner `.root` element is the effective text box (block or inline),
- * carrying the size/weight/tone/font/align/truncate modifier classes. Defaults
- * (md / regular / sans / default tone / start) are the base `.root` rule.
+ * <sc-text-base> typography styles. Shadow DOM: `:host { display: contents }` so the
+ * rendered semantic element (chosen by `as` — span/p/div/h1–h6) is the effective text
+ * box. The tag is semantic-only: every candidate tag is reset to one base type scale
+ * via a zero-specificity `:where()` selector, so a plain modifier class (.lg/.bold/…)
+ * always wins — the look is fully prop-driven. Defaults (md / regular / sans / default
+ * tone / start) are the bare base; non-defaults add a modifier class.
  */
 
 :host {
   display: contents;
 }
 
-.root {
+/* Base reset for every renderable tag. :where() has ZERO specificity, so the single
+   modifier classes below override it cleanly (and the UA <h1>… type scale is dropped). */
+:where(h1, h2, h3, h4, h5, h6, p, span, div) {
   display: block;
   margin: 0;
   font-family: var(--font-sans);
@@ -17,78 +21,78 @@
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-normal);
   color: var(--color-text);
+}
 
-  &.inline {
-    display: inline;
-  }
+.inline {
+  display: inline;
+}
 
-  /* Size */
-  &.xs {
-    font-size: var(--font-size-xs);
-  }
-  &.sm {
-    font-size: var(--font-size-sm);
-  }
-  &.lg {
-    font-size: var(--font-size-lg);
-    line-height: var(--line-height-tight);
-  }
-  &.xl {
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-tight);
-  }
+/* Size */
+.xs {
+  font-size: var(--font-size-xs);
+}
+.sm {
+  font-size: var(--font-size-sm);
+}
+.lg {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-tight);
+}
+.xl {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
 
-  /* Weight */
-  &.medium {
-    font-weight: var(--font-weight-medium);
-  }
-  &.bold {
-    font-weight: var(--font-weight-bold);
-  }
+/* Weight */
+.medium {
+  font-weight: var(--font-weight-medium);
+}
+.bold {
+  font-weight: var(--font-weight-bold);
+}
 
-  /* Font family */
-  &.mono {
-    font-family: var(--font-mono);
-  }
+/* Font family */
+.mono {
+  font-family: var(--font-mono);
+}
 
-  /* Tone (colour) */
-  &.dim {
-    color: var(--color-text-dim);
-  }
-  &.mute {
-    color: var(--color-text-mute);
-  }
-  &.faint {
-    color: var(--color-text-faint);
-  }
-  &.primary {
-    color: var(--color-primary);
-  }
-  &.ok {
-    color: var(--color-ok-text);
-  }
-  &.warn {
-    color: var(--color-warn-text);
-  }
-  &.error {
-    color: var(--color-error-text);
-  }
-  &.info {
-    color: var(--color-info-text);
-  }
+/* Tone (colour) */
+.dim {
+  color: var(--color-text-dim);
+}
+.mute {
+  color: var(--color-text-mute);
+}
+.faint {
+  color: var(--color-text-faint);
+}
+.primary {
+  color: var(--color-primary);
+}
+.ok {
+  color: var(--color-ok-text);
+}
+.warn {
+  color: var(--color-warn-text);
+}
+.error {
+  color: var(--color-error-text);
+}
+.info {
+  color: var(--color-info-text);
+}
 
-  /* Alignment */
-  &.center {
-    text-align: center;
-  }
-  &.end {
-    text-align: end;
-  }
+/* Alignment */
+.center {
+  text-align: center;
+}
+.end {
+  text-align: end;
+}
 
-  /* Truncation (single line) */
-  &.truncate {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
+/* Truncation (single line) */
+.truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

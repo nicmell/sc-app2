@@ -1,5 +1,5 @@
 // The foundation CSS as ONE shared Lit `CSSResult` (compiled from
-// foundations/index.css by the lit-css build/dev plugin). It's adopted into
+// foundations/index.css by vite-plugin-lit-css). It's adopted into
 // every shadow-DOM component (via the shared `foundations` export in
 // `static styles`) AND, through adoptFoundation(document), onto the app shell —
 // the browser parses/stores the underlying sheet once and adopts it by reference.

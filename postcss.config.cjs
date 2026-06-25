@@ -1,28 +1,16 @@
-// PostCSS pipeline for the package's CSS (run by lit-css.ts on every component +
-// foundation `.css`, and auto-discovered by the package's Vite/vitest). Order matters:
+// PostCSS pipeline for the package's CSS, auto-discovered by the app's, the example's,
+// and vitest's Vite. Since `vite-plugin-lit-css` routes the components' `.css` through
+// Vite's own CSS pipeline (it patches the css-post plugin), Vite already inlines `@import`
+// (the foundation partials + the Phosphor weight CSS, exports subpaths and all) and ships
+// the native `&` nesting as-is — so postcss-import and postcss-nesting are redundant.
 //
-//   1. postcss-import — inline `@import` (the foundation partials + the Phosphor weight
-//      CSS, whose package-exports subpath the default resolver won't follow, so we
-//      resolve it via Node `require.resolve`).
-//   2. postcss-nesting — flatten the native `&` nesting the components use.
-//   3. postcss-url — inline the now-merged Phosphor `@font-face` woff2 as data-URIs
-//      (resolved relative to each rule's source file — no basePath needed — with the
-//      14 KB default cap lifted so the ~150 KB fonts aren't skipped).
-
-const { createRequire } = require("node:module");
-const path = require("node:path");
-
-// Resolve @phosphor-icons from THIS package's dir (not cwd) — the config is loaded by
-// the app, the example, and vitest, each with a different cwd.
-const req = createRequire(path.join(__dirname, "package.json"));
+// The ONE thing Vite can't do here: its asset pipeline rewrites font url()s to
+// `__VITE_ASSET__` placeholders that only get resolved for CSS that stays in the bundle.
+// vite-plugin-lit-css lifts this CSS into a JS string before that resolution, so any
+// non-inlined font url would dangle. postcss-url inlines the Phosphor woff2 as data-URIs
+// (the 14 KB default cap lifted so the ~150 KB fonts aren't skipped), making the
+// foundation CSSResult self-contained.
 
 module.exports = {
-  plugins: [
-    require("postcss-import")({
-      resolve: (id, basedir) =>
-        id.startsWith("@phosphor-icons/web/") ? req.resolve(id) : path.resolve(basedir, id),
-    }),
-    require("postcss-nesting")(),
-    require("postcss-url")({ url: "inline", filter: /\.woff2($|\?)/, maxSize: Infinity }),
-  ],
+  plugins: [require("postcss-url")({ url: "inline", filter: /\.woff2($|\?)/, maxSize: Infinity })],
 };

@@ -5,6 +5,6 @@
     "paths": {},
     "types": ["node"]
   },
-  "include": ["src", "lit-css.ts"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

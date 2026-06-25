@@ -1,38 +1,42 @@
 // @vitest-environment node
 //
-// Regression guard for the icon font's build pipeline. The actual glyph rendering
-// needs a real font engine (happy-dom has none), but the bug that bit us repeatedly
-// was a BUILD one — the font not ending up in the foundation, or its woff2 left as a
-// relative url() that 404s once the foundation is adopted as a constructable sheet.
+// Regression guard for the icon font's build pipeline. The actual glyph rendering needs
+// a real font engine (happy-dom has none), but the bug that bit us repeatedly was a BUILD
+// one — the Phosphor woff2 left as a relative url() / unresolved Vite asset placeholder
+// that 404s once the foundation is adopted as a constructable sheet.
 //
-// We run the lit-css `cssTransform` (the PostCSS pipeline: postcss-import +
-// postcss-nesting + postcss-url) directly on the foundation entry — exactly what
-// compiles the shipped foundation CSS. Node env: no DOM needed.
+// At build/dev the foundation runs through Vite's CSS pipeline (Vite inlines the @imports)
+// + the shipped repo-root postcss.config.cjs (postcss-url woff2 → data-URI). vite-plugin-
+// lit-css doesn't transform .css under vitest, so we run that SAME shipped config directly
+// on Phosphor's actual @font-face source — the exact rule that must come out self-contained.
 
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
+import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { cssTransform } from "../../../lit-css";
+import postcss from "postcss";
 
-// vitest runs from the package dir; resolve the foundation entry from there.
-const foundationCss = resolve(process.cwd(), "src/foundations/index.css");
+const require = createRequire(import.meta.url);
+// vitest runs from the package dir; the shipped pipeline lives at the repo root.
+const { plugins } = require(resolve(process.cwd(), "../../postcss.config.cjs")) as {
+  plugins: postcss.AcceptedPlugin[];
+};
 
 describe("foundation icon font (build transform)", () => {
   let css = "";
   beforeAll(async () => {
-    css = await cssTransform(readFileSync(foundationCss, "utf8"), { filePath: foundationCss });
+    const entry = require.resolve("@phosphor-icons/web/regular/style.css");
+    css = (await postcss(plugins).process(readFileSync(entry, "utf8"), { from: entry })).css;
   });
 
-  it("ships Phosphor's @font-face with the woff2 inlined as a data-URI", () => {
+  it("inlines Phosphor's @font-face woff2 as a data-URI", () => {
     expect(css).toContain("@font-face");
-    expect(css).toMatch(/src:\s*url\("data:font\/woff2;base64,/);
-    // No relative Phosphor woff2 may survive — it would 404 in an adopted sheet.
-    expect(css).not.toMatch(/url\(["']?\.\/Phosphor[^)"']*\.woff2/);
+    expect(css).toMatch(/src:\s*url\(["']?data:font\/woff2;base64,/);
+    // No relative woff2 may survive — it would 404 in an adopted constructable sheet.
+    expect(css).not.toMatch(/url\(["']?\.\/[^)"']*\.woff2/);
   });
 
-  it("includes the .ph-* glyph rules for the supported weights", () => {
-    expect(css).toMatch(/\.ph-[\w-]+:+before/); // e.g. `.ph-play:before { content: … }`
-    expect(css).toContain("Phosphor-Fill");
-    expect(css).toContain("Phosphor-Duotone");
+  it("keeps the .ph-* glyph rules", () => {
+    expect(css).toMatch(/\.ph[.-][\w-]+:+before/); // e.g. `.ph.ph-play:before { content: … }`
   });
 });

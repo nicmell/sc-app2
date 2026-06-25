@@ -1,9 +1,12 @@
 // <sc-icon-base> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with the
-// `<weight> ph-<name>` classes from @phosphor-icons/web. The font ships with the
-// FOUNDATION (foundations/icons.css): the @font-face registers on the document and
-// the `.ph-*` glyph rules ride into every shadow via `static styles` — so this
-// element needs no font code of its own. Colour follows currentColor and size
-// follows the surrounding font-size (1em) unless a size token is given.
+// `<weight> ph-<name>` classes from @phosphor-icons/web. The Phosphor @font-face is
+// registered document-wide by the foundation's head <link>; this element is the only one
+// that renders a raw <i class="ph"> in its shadow, so it adopts `glyphs`
+// (foundations/icons.css — the `.ph-*` content rules) on top of the shared font-free
+// `foundations` base. (icons.css also carries an @font-face, but @font-face is ignored
+// inside a shadow root — the document registration is what paints the glyph.) Colour
+// follows currentColor and size follows the surrounding font-size (1em) unless a size
+// token is given.
 //
 // `variant` selects the weight: regular (default) | fill | duotone.
 
@@ -11,6 +14,7 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import { foundations } from "../internal/foundation-styles";
+import glyphs from "../../foundations/icons.css";
 import styles from "./sc-icon.css";
 
 export type ScIconSize = "sm" | "md" | "lg";
@@ -24,7 +28,7 @@ const WEIGHT_CLASS: Record<ScIconVariant, string> = {
 };
 
 export class ScIconBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [foundations, glyphs, styles];
 
   /** Phosphor icon name (kebab-case, without the `ph-` prefix), e.g. "play". */
   @property() accessor name = "";

@@ -1,8 +1,9 @@
-// Showcase entry. Adopt the foundation onto the document (the shared CSSResult sheet
-// — also where the Phosphor @font-face is registered) so the demo chrome + light DOM
-// get the tokens; components additionally adopt it into their own shadow roots. Then
-// define every <sc-*-base> custom element. Consumes the BUILT package.
-import { registerUiComponents, adoptFoundation } from "@sc-app/ui-components/lit";
+// Showcase entry. The full foundation goes in the document <head> as a render-blocking
+// stylesheet (a side-effect import Vite extracts to a <link> in the build) — it styles
+// the demo chrome + light DOM and registers the Phosphor @font-face document-wide.
+// Shadow components adopt only a font-free subset via `static styles`. Then define every
+// <sc-*-base> custom element.
+import "@sc-app/ui-components";
+import { registerUiComponents } from "@sc-app/ui-components/lit";
 
-adoptFoundation();
 registerUiComponents();

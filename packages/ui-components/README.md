@@ -3,20 +3,20 @@
 The sc-app design system: a CSS **foundation** (tokens, themes, reset, base
 element styles) plus a library of framework-agnostic **`-base` components** (Lit
 web components with React wrappers). **Every component is shadow DOM** and styles
-itself uniformly: `static styles = [foundations, styles]` — the one shared
-`foundations` plus its own **`sc-x.css`**, each compiled to a Lit `CSSResult`
-by the lit-css build plugin (PostCSS). No CSS Modules, no per-component `unsafeCSS`.
+itself uniformly: `static styles = [foundations, styles]` — the shared font-free
+`foundations` (shadow base) plus its own **`sc-x.css`**, each compiled to a Lit
+`CSSResult` by `vite-plugin-lit-css`. No CSS Modules, no per-component `unsafeCSS`.
 
 > The package ships **no build** — consumers (the app, the `example/`, vitest) import
 > its TS + `.css` **source** directly and Vite compiles it, so editing a component
-> reflects immediately (no rebuild). A small Vite plugin (`litCss`, in `lit-css.ts`)
-> turns the components' `.css` into Lit CSSResults via the PostCSS pipeline.
+> reflects immediately (no rebuild). `vite-plugin-lit-css` (configured in each
+> consumer's Vite config) turns the components' `.css` into Lit CSSResults.
 
 Three consumers:
 
-1. **The React host** (`src/`) — adopts the foundation CSS once in
-   `src/main.tsx` (for the light-DOM app shell), registers the web components,
-   and uses the React wrappers.
+1. **The React host** (`src/`) — imports the full foundation as a `<head>` stylesheet
+   in `src/main.tsx` (`import "@sc-app/ui-components"`, for the light-DOM app shell +
+   document-wide font), registers the web components, and uses the React wrappers.
 2. **Lit widgets** (`src/sc-elements/*`) — render the `-base` tags directly.
 3. **Runtime HTML plugins** (trusted) — register the components and use the
    `-base` tags, inheriting the host's look with no bundle of their own.
@@ -26,26 +26,27 @@ Three consumers:
 ```
 src/
   foundations/             CSS — tokens, reset, base element styles, icon font
-    index.css             entry; @import tokens + themes + reset + base + icons (NO components)
+    index.css             FULL foundation → head <link>; @import tokens + themes + reset + base + icons
+    shadow.css            font-free shadow base (reset + base elements) → the `foundations` export
     tokens/semantic.css   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.css  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.css  bare button/input/select/textarea/label/headings/code
-    icons.css            Phosphor icon font (@font-face + .ph-* rules; woff2 inlined as data-URI)
+    icons.css            Phosphor icon font (@font-face + .ph-* rules); woff2 emitted as separate /assets files
   components/              the -base Lit web components + their co-located styles
     sc-<tag>/sc-<tag>.ts        the component: `static styles = [foundations, styles]`,
                                 renders a shadow tree using literal class names
-    sc-<tag>/sc-<tag>.css      the component's own CSS (→ a Lit CSSResult via lit-css)
+    sc-<tag>/sc-<tag>.css      the component's own CSS (→ a Lit CSSResult via vite-plugin-lit-css)
     index.ts               element barrel + registerUiComponents()
-    internal/foundation-styles.ts   the shared `foundations` CSSResult (+ adoptFoundation)
+    internal/foundation-styles.ts   the shared font-free `foundations` CSSResult (= shadow.css)
     internal/widget-base.css        shared widget styles (sr-only, variant accents, disabled)
     internal/sc-widget-base.ts       abstract base for the graphical widgets
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
-(At the package root: `lit-css.ts` + `postcss.config.cjs` — the shared PostCSS pipeline the
-lit-css plugins run: postcss-import (incl. the Phosphor weight CSS) + postcss-nesting +
-postcss-url woff2 inlining. And `example/` —
-a standalone Vite showcase that consumes the package source; see Demo below.)
+(`example/` is a standalone Vite showcase that consumes the package source; see Demo
+below. Each consumer's Vite config wires `vite-plugin-lit-css` to wrap the components'
+`.css` into CSSResults — `foundations/index.css` is excluded so it stays a plain
+head stylesheet.)
 
 ### Entry points (package `exports`)
 
@@ -59,11 +60,11 @@ a standalone Vite showcase that consumes the package source; see Demo below.)
 ## Using the components
 
 ```ts
-// 1. foundation (once, at app boot) — adopt the tokens + reset + base sheet onto
-//    the document so the light-DOM app shell + token :root inheritance work.
-//    (Every component also adopts `foundations` into its own shadow root.)
-import { adoptFoundation } from "@sc-app/ui-components/lit";
-adoptFoundation();
+// 1. foundation (once, at app boot) — a side-effect import puts the full foundation
+//    (tokens + reset + base + the Phosphor @font-face) in the document <head> as a
+//    render-blocking stylesheet, so the first paint is styled and the font registers
+//    document-wide. Shadow components adopt only the font-free subset themselves.
+import "@sc-app/ui-components";
 
 // 2a. as web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
@@ -74,9 +75,9 @@ registerUiComponents();            // idempotent; defines every <sc-*-base> tag
 import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 // → <ScButton label="Run" variant="danger" onClick={…} />
 
-// 3. icons: nothing to load — the Phosphor font (regular | fill | duotone) ships
-//    inside the foundation, so adoptFoundation() registers it and every shadow gets
-//    the .ph-* rules. <sc-icon-base name="play"> just works.
+// 3. icons: nothing extra to load — the head foundation registers the Phosphor font
+//    (regular | fill | duotone) and <sc-icon-base> carries the .ph-* rules in its
+//    shadow. <sc-icon-base name="play"> just works.
 ```
 
 Every component is **shadow DOM**, styled by `static styles = [foundations,
@@ -199,23 +200,25 @@ contexts live in `internal/contexts.ts`.
 ### Styling — one foundation + a `.css` per component
 
 Each component owns its styles as a co-located `sc-x.css`, imported as a Lit
-`CSSResult` (the lit-css plugin runs the PostCSS pipeline + wraps it), and
-composes it with the one shared `foundations`:
+`CSSResult` (`vite-plugin-lit-css` runs it through Vite's CSS pipeline + wraps it),
+and composes it with the shared `foundations`:
 
 ```ts
 import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-x.css";               // → CSSResult (lit-css + PostCSS)
+import styles from "./sc-x.css";               // → CSSResult (vite-plugin-lit-css)
 static styles = [foundations, styles];          // adopted into the shadow root
 ```
 
-`internal/foundation-styles.ts` imports the foundation `CSSResult` (compiled from
-`foundations/index.css`). It is adopted into **every** component's shadow (so
-reset + bare `input{}`/`button{}`/etc. element styles reach the shadow) and onto
-the **document** via `adoptFoundation()` (`foundations.styleSheet`) — for the app
-shell + so tokens defined at `:root` inherit across every shadow boundary. Class
-names are literal but **shadow-scoped**, so they never collide across components
-and there's no hashing to keep in sync. PostCSS gives nesting/`@import`/partials on top
-of the design tokens; native CSS nesting is flattened by postcss-nesting.
+`internal/foundation-styles.ts`'s `foundations` is the **font-free shadow base**
+(`foundations/shadow.css`: reset + bare `input{}`/`button{}`/etc. element styles),
+adopted into **every** component's shadow. It is NOT the full foundation: the design
+tokens reach shadow roots via custom-property inheritance from the document, and the
+icon font is registered document-wide (not parsed into any shadow sheet). The **full**
+foundation (`foundations/index.css` — tokens + themes + reset + base + the Phosphor
+`@font-face` + `.ph-*` rules) ships as a render-blocking `<link>` in the document
+`<head>` (a side-effect `import "@sc-app/ui-components"` in the app/example entries; no
+`adoptFoundation()`), so the first paint is styled (no FOUC). Class names are literal but
+**shadow-scoped**, so they never collide across components and there's no hashing.
 
 Two notes on shadow-DOM styling:
 
@@ -223,13 +226,13 @@ Two notes on shadow-DOM styling:
   styled with `::slotted(...)` from the component's own css — the component does
   not expose global classes for consumers to hook.
 - **Icon font.** `<sc-icon-base>` renders `<i class="ph ph-<name>">`. The Phosphor
-  font ships **inside the foundation** (`foundations/icons.css`, fixed weights
-  regular/fill/duotone): the foundation is adopted both on the document (so
-  `@font-face` registers — it has no effect inside a shadow root) and into every
-  component's shadow via `static styles` (so the `.ph-*` glyph rules reach the
-  shadow `<i>`). The woff2 is inlined as a data-URI at build time
-  (`lit-css.ts`), so there's no runtime font URL, no `?inline`, and
-  `@phosphor-icons/web` is a build-time-only dependency.
+  `@font-face` (weights regular/fill/duotone) is registered document-wide by the head
+  foundation `<link>` (it has no effect inside a shadow root). `<sc-icon-base>` is the
+  only component that renders a raw `<i class="ph">`, so it additionally adopts
+  `foundations/icons.css` as a CSSResult (`static styles = [foundations, glyphs, styles]`)
+  for the `.ph-*` content rules in its shadow. The woff2 is emitted as separate `/assets`
+  files by Vite (resolved by the head `<link>`); `@phosphor-icons/web` stays a
+  build-time-only dependency.
 
 ### Overlays (top layer)
 
@@ -280,12 +283,12 @@ yarn test           # vitest + happy-dom behaviour suite (source .css via litCss
 ```
 
 There is **no build step**. `exports` point at the TS + `.css` **source**, and each
-consumer's Vite (the app, `example/`, vitest) compiles it. The `litCss` Vite plugin
-(`lit-css.ts`) redirects the components' own `.css` to a virtual module — bypassing
-Vite's built-in CSS handling — and emits a Lit `CSSResult` built by the PostCSS
-pipeline (`postcss.config.cjs`: postcss-import incl. the Phosphor weight CSS,
-postcss-nesting, postcss-url). The foundation CSS exports (`.`/`/tokens`/`/reset`/
-`/themes/*`) point at the `.css` sources.
+consumer's Vite (the app, `example/`, vitest) compiles it. `vite-plugin-lit-css` patches
+Vite's `css-post` plugin so the components' `.css` run through Vite's own CSS pipeline
+(@import inlining, asset emission) and are then wrapped into Lit `CSSResult`s. The
+foundation **entry** (`foundations/index.css`) is excluded from the plugin so it stays a
+plain stylesheet for the document `<head>`; the foundation CSS exports
+(`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.css` sources.
 
 ## Demo
 

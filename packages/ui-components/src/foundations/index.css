@@ -1,11 +1,14 @@
 /**
- * @sc-app/ui-components — entry point.
+ * @sc-app/ui-components — the FULL foundation, shipped as a render-blocking <link> in the
+ * document <head> (a side-effect import in the app/example entries; Vite extracts it to a
+ * <link> in the production build). It styles the light DOM + app shell and registers the
+ * Phosphor @font-face document-wide. Shadow components adopt a font-free subset instead
+ * (foundations/shadow.css → the `foundations` export), so the icon font is never parsed
+ * into a shadow CSSResult. Excluded from vite-plugin-lit-css so it stays a plain sheet.
  *
- * Imports run in cascade order: tokens first (so the semantic palette is
- * defined), then theme (resolving tokens to a concrete palette), reset, and
- * base element styles. The component layer is no longer aggregated here — each
- * component's stylesheet is co-located beside its .ts and side-effect-imported
- * by the component itself, so loading a component delivers its CSS.
+ * Imports run in cascade order: tokens first (so the semantic palette is defined), then
+ * theme (resolving tokens to a concrete palette), reset, and base element styles. The
+ * component layer is co-located beside each .ts, not aggregated here.
  */
 
 /* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
@@ -25,7 +28,7 @@
 @import "./base/elements.css";
 @import "./base/typography.css";
 
-/* Phosphor icon font — @font-face (registers on the document) + .ph-* glyph rules
-   (reach every shadow via `static styles`). woff2 inlined as data-URI at build time.
-   See _icons.scss + lit-css.ts. */
+/* Phosphor icon font — @font-face (registers on the document, since this entry ships as
+   a head <link>) + .ph-* glyph rules for light-DOM icons. <sc-icon-base> imports
+   icons.css separately for its shadow. woff2 emitted as separate /assets files by Vite. */
 @import "./icons.css";

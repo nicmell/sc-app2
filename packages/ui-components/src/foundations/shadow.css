@@ -1,0 +1,17 @@
+/**
+ * Font-free shadow base. Adopted into every shadow-DOM component (via the shared
+ * `foundations` export → `static styles`). It carries the bare element styles the form
+ * controls depend on inside their shadow root (button/input/select/textarea/label) plus
+ * the box-sizing reset — but NOT the tokens/themes (custom properties inherit across the
+ * shadow boundary from the document) and NOT the icon font (the @font-face registers on
+ * the document via the head <link>; the 1 MB never enters a shadow CSSResult).
+ *
+ * The full foundation — tokens + themes + reset + elements + typography + the Phosphor
+ * @font-face + .ph-* rules — lives in `index.css`, shipped as a render-blocking <link>
+ * in the document <head> (see the app/example entries). This sheet is the shadow-only
+ * subset of it.
+ */
+
+@import "./reset.css";
+@import "./base/elements.css";
+@import "./base/typography.css";

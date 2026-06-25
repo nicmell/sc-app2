@@ -1,14 +1,16 @@
+// Foundation CSS in the document <head> — a render-blocking stylesheet, so the first
+// paint is already styled (no FOUC) and the Phosphor @font-face registers document-wide.
+// Vite extracts this side-effect import to a <link> in the production build; shadow
+// components adopt only a font-free subset (the `foundations` export), so the fonts are
+// never duplicated into a shadow CSSResult.
+import "@sc-app/ui-components";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { registerScElements } from "./sc-elements";
-import { registerUiComponents, adoptFoundation } from "@sc-app/ui-components/lit";
+import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
 
-// Adopt the foundation stylesheet onto the document — the SAME shared
-// CSSStyleSheet that shadow-DOM widgets (sc-select) adopt into their roots, so
-// the foundation CSS is parsed once and shipped once (no separate `<style>`).
-adoptFoundation();
 // Define the plugin custom elements + the ui-components `-base` widgets (used by
 // the React shell and inside Lit widgets like sc-strudel), then open the session
 // before first render so injected plugin HTML upgrades and the elements have a

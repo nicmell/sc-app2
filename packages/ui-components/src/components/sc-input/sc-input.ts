@@ -1,5 +1,5 @@
 // <sc-input-base> — a base text field. Shadow DOM: wraps a native <input> styled
-// by the adopted foundations' bare input{} rules (surface fill, border, focus
+// by `controlStyles` (the shared bare input{} chrome: surface fill, border, focus
 // ring) plus a `.root` class for sizing. The native input/change are re-emitted
 // (composed) from the host so consumers read `e.target.value`. The numeric field
 // is <sc-inputnumber-base>.
@@ -8,13 +8,13 @@ import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
-import { foundations } from "../internal/foundation-styles";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-input.css";
 
 export type ScInputSize = "sm" | "md" | "lg";
 
 export class ScInputBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [foundations, controlStyles, styles];
 
   @property() accessor value = "";
   @property() accessor placeholder = "";

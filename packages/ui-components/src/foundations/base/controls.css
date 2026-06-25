@@ -1,0 +1,80 @@
+/**
+ * Bare interactive-control styles, shared between two consumers:
+ *   - the head foundation (elements.css @imports this), so light-DOM / plugin
+ *     <input>/<select>/<textarea>/<details> look correct without classes;
+ *   - the shadow components that render those native elements and rely on the bare
+ *     chrome — sc-input, sc-inputnumber, sc-textarea (the field surface/border/focus)
+ *     and sc-disclosure (details > summary) — which import it as `controlStyles`.
+ *
+ * Kept OUT of the shared shadow base (foundations/shadow.css) so the ~8 components that
+ * fully self-style (sc-button) or render custom overlays (sc-checkbox/switch/radio/
+ * slider/knob, sc-select, sc-option) don't carry it for nothing.
+ */
+
+/* ── Form fields ───────────────────────────────────────────── */
+
+input,
+select,
+textarea {
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-surface-input);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-stronger);
+  border-radius: var(--radius-xs);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--transition-fast);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+select {
+  cursor: pointer;
+}
+
+textarea {
+  /* Long-form text: sans is more readable than mono. */
+  font-family: var(--font-sans);
+  resize: vertical;
+}
+
+/* Number inputs — hide the spin buttons; arrow keys still
+   work. The legacy panels did this per-context; promoted to
+   a default since it matches the app's visual language. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ── Details / summary ─────────────────────────────────────── */
+
+details > summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+details > summary:hover,
+details[open] > summary {
+  color: var(--color-text);
+}

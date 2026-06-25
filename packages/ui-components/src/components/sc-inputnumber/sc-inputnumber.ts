@@ -1,20 +1,20 @@
 // <sc-inputnumber-base> — a numeric text field. Shadow DOM: wraps a native
-// <input type="number"> (whose native spin buttons the foundation hides) and
-// renders its own up/down stepper arrows. The native input/change are re-emitted
-// (composed) from the host (read e.target.value); typing is clamped to min/max
-// on commit (change/blur), and the steppers drive the native input directly.
+// <input type="number"> styled by `controlStyles` (whose bare rule also hides the
+// native spin buttons) and renders its own up/down stepper arrows. The native
+// input/change are re-emitted (composed) from the host (read e.target.value); typing is
+// clamped to min/max on commit (change/blur), and the steppers drive the native input.
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
-import { foundations } from "../internal/foundation-styles";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-inputnumber.css";
 import "../sc-icon/sc-icon";
 
 export class ScInputNumberBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [foundations, controlStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = -Infinity;

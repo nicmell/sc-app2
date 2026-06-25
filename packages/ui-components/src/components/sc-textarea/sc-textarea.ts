@@ -1,19 +1,18 @@
 // <sc-textarea-base> — a multi-line text field. Shadow DOM: wraps a native
-// <textarea> styled by the adopted foundations (sans font, vertical resize,
-// surface fill, focus ring) plus a `.root` class for sizing/full-width. The
-// native input/change are re-emitted (composed) from the host so consumers read
-// `e.target.value`.
+// <textarea> styled by `controlStyles` (sans font, vertical resize, surface fill,
+// focus ring) plus a `.root` class for sizing/full-width. The native input/change
+// are re-emitted (composed) from the host so consumers read `e.target.value`.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import cx from "classnames";
 import type { ScInputSize } from "../sc-input/sc-input";
-import { foundations } from "../internal/foundation-styles";
+import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-textarea.css";
 
 export class ScTextareaBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [foundations, controlStyles, styles];
 
   @property() accessor value = "";
   @property() accessor placeholder = "";

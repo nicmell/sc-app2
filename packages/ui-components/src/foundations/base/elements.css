@@ -7,10 +7,17 @@
  * (src/components), which resolves them to .sc-button--* classes
  * rather than data attributes.
  *
+ * The interactive-control chrome (input/select/textarea fields, details > summary) lives
+ * in controls.css — shared with the shadow components that reuse it (see that file). It's
+ * @imported here so the head foundation keeps the full set; this file holds the rules
+ * that are document-only (no shadow component depends on them inside its shadow root).
+ *
  * The body rule lives here (not in reset.css) so a consumer
  * importing only the reset doesn't get the host palette
  * forced on it.
  */
+
+@import "./controls.css";
 
 /* ── Document ──────────────────────────────────────────────── */
 
@@ -51,45 +58,9 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* ── Form fields ───────────────────────────────────────────── */
-
-input,
-select,
-textarea {
-  padding: var(--space-2xs) var(--space-xs);
-  background: var(--color-surface-input);
-  color: var(--color-text);
-  border: 1px solid var(--color-border-stronger);
-  border-radius: var(--radius-xs);
-  font: inherit;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  transition: border-color var(--transition-fast);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--color-border-focus);
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-select {
-  cursor: pointer;
-}
-
-textarea {
-  /* Long-form text: sans is more readable than mono. */
-  font-family: var(--font-sans);
-  resize: vertical;
-}
+/* ── Native range / checkbox / radio ───────────────────────── */
+/* Document-only: the shadow widgets (sc-slider/knob, sc-checkbox/radio/switch) render a
+   visually-hidden native input + a custom overlay, so they don't use these bare rules. */
 
 /* Range — strip the input chrome and use the accent for track + thumb. */
 input[type="range"] {
@@ -108,19 +79,6 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-/* Number inputs — hide the spin buttons; arrow keys still
-   work. The legacy panels did this per-context; promoted to
-   a default since it matches the app's visual language. */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
 /* ── Labels ────────────────────────────────────────────────── */
 
 label {
@@ -129,19 +87,4 @@ label {
   gap: var(--space-2xs);
   font-size: var(--font-size-xs);
   color: var(--color-text-dim);
-}
-
-/* ── Details / summary ─────────────────────────────────────── */
-
-details > summary {
-  cursor: pointer;
-  user-select: none;
-  color: var(--color-text-dim);
-  font-size: var(--font-size-sm);
-  transition: color var(--transition-fast);
-}
-
-details > summary:hover,
-details[open] > summary {
-  color: var(--color-text);
 }

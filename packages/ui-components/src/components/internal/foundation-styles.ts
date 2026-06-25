@@ -13,8 +13,15 @@
 
 import type { CSSResult } from "lit";
 import shadowSheet from "../../foundations/shadow.css";
+import controlsSheet from "../../foundations/base/controls.css";
 
 // Explicitly typed (not a bare re-export of the `.css` import) so the emitted
 // `.d.ts` reads `export const foundations: CSSResult` with no `.css` edge for
 // the dts bundler / consumers to resolve.
 export const foundations: CSSResult = shadowSheet;
+
+// The bare interactive-control chrome (input/select/textarea fields + details > summary).
+// NOT in the shared `foundations` base — only the components that render those native
+// elements in their shadow adopt it: sc-input, sc-inputnumber, sc-textarea, sc-disclosure.
+// The same sheet feeds the head foundation via base/elements.css's @import.
+export const controlStyles: CSSResult = controlsSheet;

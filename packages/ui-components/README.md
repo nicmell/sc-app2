@@ -286,9 +286,22 @@ There is **no build step**. `exports` point at the TS + `.css` **source**, and e
 consumer's Vite (the app, `example/`, vitest) compiles it. `vite-plugin-lit-css` patches
 Vite's `css-post` plugin so the components' `.css` run through Vite's own CSS pipeline
 (@import inlining, asset emission) and are then wrapped into Lit `CSSResult`s. The
-foundation **entry** (`foundations/index.css`) is excluded from the plugin so it stays a
-plain stylesheet for the document `<head>`; the foundation CSS exports
-(`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.css` sources.
+foundation CSS exports (`.`/`/tokens`/`/reset`/`/themes/*`) point at the `.css` sources.
+
+> **Consumer requirement.** A consumer wiring `vite-plugin-lit-css` **must** exclude the
+> foundation entry so it stays a plain stylesheet for the `<head>`:
+>
+> ```ts
+> litCss({
+>   include: ["**/ui-components/src/**/*.css"],
+>   exclude: ["**/ui-components/src/foundations/index.css"],
+> })
+> ```
+>
+> Without the `exclude`, `import "@sc-app/ui-components"` gets lifted into a `CSSResult`:
+> its `@font-face` woff2 URLs dangle as unresolved `__VITE_ASSET__` placeholders, the 1 MB
+> of fonts lands in the JS bundle, and the render-blocking `<head>` link (the FOUC fix)
+> never happens. (See `vite.config.ts` / `example/vite.config.ts` for the working setup.)
 
 ## Demo
 

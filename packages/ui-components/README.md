@@ -29,7 +29,7 @@ src/
     index.scss             FULL foundation → head <link>; @use tokens + themes + reset + base + icons
     reset.scss             font-free shadow base (box-sizing + form-inherit + reduced-motion) — each component imports it as `resetStyles`
     tokens/                all tokens (PUBLIC API); index.scss = the `/tokens` entry (aggregates them all):
-                             spacing · radius · typography · shadow · transition · layout  (non-colour)
+                             spacing · radius · typography · shadow · transition  (non-colour)
                              themes/{dark,light}.scss  the --color-* palette (dark default at :root, light under [data-theme="light"])
     base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
     icons.scss            Phosphor icon font (@font-face + .ph-* rules); woff2 emitted as separate /assets files

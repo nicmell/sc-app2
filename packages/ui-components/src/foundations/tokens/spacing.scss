@@ -1,0 +1,16 @@
+/**
+ * Spacing scale (8 stops) — PUBLIC token API.
+ * Most existing panels use values in [0.125, 2]rem; per-panel scss using
+ * 0.3 / 0.4 / 0.6rem collapses to the nearest canonical stop.
+ */
+
+:root {
+  --space-3xs: 0.125rem; /* 2px  */
+  --space-2xs: 0.25rem; /* 4px  */
+  --space-xs: 0.5rem; /* 8px  */
+  --space-sm: 0.75rem; /* 12px */
+  --space-md: 1rem; /* 16px */
+  --space-lg: 1.25rem; /* 20px */
+  --space-xl: 1.5rem; /* 24px */
+  --space-2xl: 2rem; /* 32px */
+}

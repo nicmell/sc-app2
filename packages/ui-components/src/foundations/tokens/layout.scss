@@ -1,0 +1,9 @@
+/**
+ * Layout tokens — PUBLIC token API.
+ * Single max-width for the dashboard shell; exposed so plugins that render full-width
+ * can match.
+ */
+
+:root {
+  --layout-max-width: 1100px;
+}

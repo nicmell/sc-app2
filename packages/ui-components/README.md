@@ -28,8 +28,10 @@ src/
   foundations/             CSS — tokens, reset, base element styles, icon font
     index.scss             FULL foundation → head <link>; @use tokens + themes + reset + base + icons
     reset.scss             font-free shadow base (box-sizing + form-inherit + reduced-motion) — each component imports it as `resetStyles`
-    tokens/semantic.scss   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
-    themes/{dark,light}.scss  dark = default at :root; light under [data-theme="light"]
+    tokens/                non-colour tokens (PUBLIC API), split by category + a `semantic.scss` barrel:
+                             spacing · radius · typography · shadow · motion · layout
+                           (index.scss = the `/tokens` entry: semantic + the theme palettes)
+    themes/{dark,light}.scss  the --color-* palette; dark = default at :root, light under [data-theme="light"]
     base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
     icons.scss            Phosphor icon font (@font-face + .ph-* rules); woff2 emitted as separate /assets files
   components/              the -base Lit web components + their co-located styles

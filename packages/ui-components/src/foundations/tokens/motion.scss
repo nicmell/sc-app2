@@ -1,0 +1,10 @@
+/**
+ * Motion / transition tokens — PUBLIC token API.
+ * Reused by hover/focus transitions across interactive elements: -fast for
+ * micro-interactions (background, border colour), -base for slower state changes.
+ */
+
+:root {
+  --transition-fast: 80ms ease;
+  --transition-base: 160ms ease;
+}

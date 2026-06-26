@@ -1,0 +1,23 @@
+/**
+ * Typography tokens — PUBLIC token API.
+ * Mono is the primary in this app — almost every label, numeric readout, and form field
+ * is mono; sans is the prose default.
+ */
+
+:root {
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: system-ui, sans-serif;
+
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.5rem; /* 24px */
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+}

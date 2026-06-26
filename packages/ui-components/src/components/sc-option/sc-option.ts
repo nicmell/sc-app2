@@ -7,8 +7,8 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextConsumer } from "@lit/context";
-import { ScControlBase } from "../internal/sc-control-base";
-import { selectContext } from "../internal/contexts";
+import { ScControlBase } from "../internal/sc-control/sc-control";
+import { selectContext } from "../sc-select/sc-select";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-option.scss";
 

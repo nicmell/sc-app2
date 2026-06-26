@@ -12,7 +12,7 @@
 
 import { LitElement, html, nothing, type CSSResultGroup } from "lit";
 import { property } from "lit/decorators.js";
-import { foundations } from "./foundation-styles";
+import { foundations } from "../foundation-styles";
 
 export abstract class ScDialogBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;

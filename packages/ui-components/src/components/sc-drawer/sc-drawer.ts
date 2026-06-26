@@ -8,7 +8,7 @@
 // is the title bar (::slotted in the styles).
 
 import { property } from "lit/decorators.js";
-import { ScDialogBase } from "../internal/sc-dialog-base";
+import { ScDialogBase } from "../internal/sc-dialog/sc-dialog";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-drawer.scss";
 

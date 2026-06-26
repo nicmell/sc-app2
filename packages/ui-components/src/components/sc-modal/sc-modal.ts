@@ -3,7 +3,7 @@
 // Shadow DOM: the <dialog> carries the chrome and gap-stacks the author's slotted
 // content (the consumer styles their own title/body/actions).
 
-import { ScDialogBase } from "../internal/sc-dialog-base";
+import { ScDialogBase } from "../internal/sc-dialog/sc-dialog";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-modal.scss";
 

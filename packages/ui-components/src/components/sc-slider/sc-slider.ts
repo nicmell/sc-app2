@@ -7,7 +7,7 @@
 import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ScRangeBase } from "../internal/sc-range-base";
+import { ScRangeBase } from "../internal/sc-range/sc-range";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-slider.scss";
 

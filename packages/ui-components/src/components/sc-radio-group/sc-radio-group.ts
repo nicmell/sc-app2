@@ -8,11 +8,26 @@
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
-import { ContextProvider } from "@lit/context";
-import { ScControlBase } from "../internal/sc-control-base";
-import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
+import { ContextProvider, createContext } from "@lit/context";
+import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
 import { foundations } from "../internal/foundation-styles";
 import styles from "./sc-radio-group.scss";
+
+// Context this group provides to its declarative <sc-radio-base> children (the old
+// sc-app coordination model — context-request events bubble from each child up to this
+// provider host, no slot needed). Consumed by sc-radio via ContextConsumer.
+export interface RadioGroupContext {
+  /** The group's selected value. */
+  value: number;
+  /** A child calls this on click to request selection. */
+  select(value: number): void;
+  /** Shared radio `name` so the native inputs form one group. */
+  name: string;
+  size: ScSize;
+  disabled: boolean;
+}
+
+export const radioGroupContext = createContext<RadioGroupContext>("sc-radio-group");
 
 let groupId = 0;
 

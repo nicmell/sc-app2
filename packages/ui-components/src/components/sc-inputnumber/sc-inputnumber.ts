@@ -7,7 +7,7 @@
 import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { ScControlBase } from "../internal/sc-control-base";
+import { ScControlBase } from "../internal/sc-control/sc-control";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-inputnumber.scss";
 import "../sc-icon/sc-icon";

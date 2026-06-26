@@ -110,7 +110,7 @@ resolution for context.
 - **The Popover API is assumed** (Baseline 2024) — there is no fallback. `sc-popover`
   uses `popover="auto"` + `showPopover()`/`hidePopover()`; the native `toggle` is the
   source of truth for `open`.
-- **Positioning is `src/components/internal/position.ts`** (vanilla; floating-ui was
+- **Positioning is `src/components/sc-popover/position.ts`** (vanilla; floating-ui was
   removed). It is **scoped, not a general floating-ui replacement**: 12 placements,
   single-step flip, cross-axis shift, scroll/resize/ResizeObserver tracking. Out of
   scope (documented in the file): fallback-placement lists, anchors that move without

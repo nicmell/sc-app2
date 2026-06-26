@@ -20,9 +20,8 @@
 
 import { html } from "lit";
 import { property, state } from "lit/decorators.js";
-import { ContextProvider } from "@lit/context";
-import { selectContext, type SelectContext } from "../internal/contexts";
-import { ScControlBase } from "../internal/sc-control-base";
+import { ContextProvider, createContext } from "@lit/context";
+import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
 import { foundations } from "../internal/foundation-styles";
 import type { ScPopoverBase } from "../sc-popover/sc-popover";
 import styles from "./sc-select.scss";
@@ -30,6 +29,20 @@ import "../sc-icon/sc-icon";
 import "../sc-popover/sc-popover";
 
 const LISTBOX_ID = "sc-select-listbox";
+
+// Context this select provides to its declarative <sc-option-base> children (the old
+// sc-app coordination model — context-request events bubble from each option up to this
+// provider host). Consumed by sc-option via ContextConsumer.
+export interface SelectContext {
+  /** The select's current value. */
+  value: number;
+  /** An option calls this on click to request selection. */
+  select(value: number): void;
+  /** Shared size so each option sizes itself in its own shadow. */
+  size: ScSize;
+}
+
+export const selectContext = createContext<SelectContext>("sc-select");
 
 export class ScSelectBase extends ScControlBase {
   static styles = [foundations, styles];

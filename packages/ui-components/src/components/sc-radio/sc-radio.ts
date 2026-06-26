@@ -8,8 +8,8 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
-import { ScControlBase } from "../internal/sc-control-base";
-import { radioGroupContext, type RadioGroupContext } from "../internal/contexts";
+import { ScControlBase } from "../internal/sc-control/sc-control";
+import { radioGroupContext, type RadioGroupContext } from "../sc-radio-group/sc-radio-group";
 import { foundations, controlStyles } from "../internal/foundation-styles";
 import styles from "./sc-radio.scss";
 

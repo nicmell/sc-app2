@@ -16,7 +16,7 @@
 //     track-length-based).
 
 import { property } from "lit/decorators.js";
-import { ScControlBase } from "./sc-control-base";
+import { ScControlBase } from "../sc-control/sc-control";
 
 export abstract class ScRangeBase extends ScControlBase {
   @property({ type: Number }) accessor value = 0;

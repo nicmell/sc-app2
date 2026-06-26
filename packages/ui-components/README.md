@@ -38,7 +38,9 @@ src/
     sc-<tag>/sc-<tag>.scss      the component's own CSS (→ a Lit CSSResult via vite-plugin-lit-css)
     index.ts               element barrel + registerUiComponents()
     internal/foundation-styles.ts   the shared font-free `foundations` + `controlStyles` CSSResults
-    internal/sc-control-base.ts      abstract base for every input/control (size + disabled + name)
+    internal/sc-control/sc-control.ts  abstract base for every input/control (size + disabled + name)
+    internal/sc-range/sc-range.ts      abstract base for the range widgets (slider/knob)
+    internal/sc-dialog/sc-dialog.ts    abstract base for the dialog overlays (modal/drawer)
     react.ts               all @lit/react wrappers (one-liners) in a single file
 ```
 
@@ -190,14 +192,16 @@ element, and `:host` only sets the host box display. Four patterns:
    provider already listening.
 
 Shared bits for **every** input/control (the text fields, the select, and the graphical
-widgets) live on `internal/sc-control-base.ts` (`ScControlBase`): the `size`/`disabled`/
+widgets) live on `internal/sc-control/sc-control.ts` (`ScControlBase`): the `size`/`disabled`/
 `name` props + the `ScSize` type and the `controlClasses(extra?)` helper (joins `"root"`
 + `size`). Controls are single-accent (the primary colour) — no `variant`. Disabled
 reflects to the host and is styled via `:host([disabled])` (or, for the text fields, the
 native `:disabled` from `controls.scss`). The shared control CSS is `base/controls.scss`
 (`controlStyles`): the field chrome for the text fields + `.sr-only` for the widgets'
 hidden native `<input>`. `ScControlBase` is abstract — not a tag. The parent↔child
-contexts live in `internal/contexts.ts`.
+contexts are each defined in their **provider** component (`radioGroupContext` in
+`sc-radio-group`, `selectContext` in `sc-select`) and imported by the consumer
+(`sc-radio`, `sc-option`).
 
 ### Styling — one foundation + a `.scss` per component
 
@@ -257,7 +261,7 @@ only correct escape is the browser **top layer**, reached two ways:
 - **Native `<dialog>`** for **`sc-modal-base`** and **`sc-drawer-base`** —
   `showModal()` gives the top layer, a `::backdrop`, a focus trap, and Esc for
   free; no anchoring, so no floating-ui. The shared open/close/dismiss lifecycle
-  lives in `internal/sc-dialog-base.ts` (`dismissable` gates Esc + backdrop; a
+  lives in `internal/sc-dialog/sc-dialog.ts` (`dismissable` gates Esc + backdrop; a
   blocking instance swallows `cancel` and re-asserts itself if the UA
   force-closes it). The modal is centred; the **drawer** is the same dialog
   pinned to a viewport edge (`side` = right | left), sliding in/out via native

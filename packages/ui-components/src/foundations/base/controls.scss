@@ -8,7 +8,7 @@
  *
  * Each consumer uses one part or the other; the unused rules are inert (the field chrome
  * targets <input>/<textarea> — harmless on a widget's clipped sr-only input). Kept OUT of
- * the shared shadow base (foundations/shadow.scss) so components that need neither
+ * the shared shadow base (foundations/reset.scss) so components that need neither
  * (sc-select/option/radio-group, sc-button, sc-disclosure) don't carry it.
  */
 

@@ -3,11 +3,11 @@
 // over a <slot> for the author's message.
 
 import { LitElement, html } from "lit";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-empty.scss";
 
 export class ScEmptyBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   render() {
     return html`<slot></slot>`;

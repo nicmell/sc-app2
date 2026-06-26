@@ -13,7 +13,7 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import glyphs from "../../foundations/icons.scss";
 import styles from "./sc-icon.scss";
 
@@ -28,7 +28,7 @@ const WEIGHT_CLASS: Record<ScIconVariant, string> = {
 };
 
 export class ScIconBase extends LitElement {
-  static styles = [foundations, glyphs, styles];
+  static styles = [resetStyles, glyphs, styles];
 
   /** Phosphor icon name (kebab-case, without the `ph-` prefix), e.g. "play". */
   @property() accessor name = "";

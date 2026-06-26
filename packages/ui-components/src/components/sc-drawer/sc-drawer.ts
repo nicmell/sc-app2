@@ -9,13 +9,13 @@
 
 import { property } from "lit/decorators.js";
 import { ScDialogBase } from "../internal/sc-dialog/sc-dialog";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-drawer.scss";
 
 export type ScDrawerSide = "right" | "left";
 
 export class ScDrawerBase extends ScDialogBase {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ reflect: true }) accessor side: ScDrawerSide = "right";
 }

@@ -10,7 +10,7 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider, createContext } from "@lit/context";
 import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-radio-group.scss";
 
 // Context this group provides to its declarative <sc-radio-base> children (the old
@@ -32,7 +32,7 @@ export const radioGroupContext = createContext<RadioGroupContext>("sc-radio-grou
 let groupId = 0;
 
 export class ScRadioGroupBase extends ScControlBase {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";

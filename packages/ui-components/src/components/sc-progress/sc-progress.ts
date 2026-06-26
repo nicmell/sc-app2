@@ -14,14 +14,14 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-progress.scss";
 
 export type ScProgressVariant = "bar" | "spinner";
 export type ScProgressSize = "sm" | "md" | "lg";
 
 export class ScProgressBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   /** "bar" (horizontal track) or "spinner" (circular ring). */
   @property() accessor variant: ScProgressVariant = "bar";

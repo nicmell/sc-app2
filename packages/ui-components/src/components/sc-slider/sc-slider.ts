@@ -8,12 +8,12 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range/sc-range";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-slider.scss";
 
 export class ScSliderBase extends ScRangeBase {
-  static styles = [foundations, controlStyles, styles];
+  static styles = [resetStyles, controlStyles, styles];
 
   @property({ reflect: true }) accessor orientation: "horizontal" | "vertical" = "horizontal";
 

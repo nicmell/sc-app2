@@ -7,12 +7,12 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control/sc-control";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-switch.scss";
 
 export class ScSwitchBase extends ScControlBase {
-  static styles = [foundations, controlStyles, styles];
+  static styles = [resetStyles, controlStyles, styles];
 
   @property({ type: Boolean }) accessor checked = false;
 

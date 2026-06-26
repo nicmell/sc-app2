@@ -5,11 +5,11 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-panel.scss";
 
 export class ScPanelBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   /** Idle / not-yet-active chrome: muted + non-interactive, layout preserved. */
   @property({ type: Boolean, reflect: true }) accessor disabled = false;

@@ -10,14 +10,14 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "../internal/sc-control/sc-control";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-button.scss";
 import "../sc-icon/sc-icon";
 
 export type ScButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 export class ScButtonBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   /** Button text + accessible name. Used as the aria-label when `iconOnly`. */
   @property() accessor label = "";

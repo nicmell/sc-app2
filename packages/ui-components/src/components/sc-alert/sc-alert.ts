@@ -5,13 +5,13 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-alert.scss";
 
 export type ScAlertVariant = "info" | "success" | "warn" | "error";
 
 export class ScAlertBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ reflect: true }) accessor variant: ScAlertVariant = "info";
 

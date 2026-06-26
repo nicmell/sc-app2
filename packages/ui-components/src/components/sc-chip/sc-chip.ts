@@ -4,13 +4,13 @@
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-chip.scss";
 
 export type ScChipVariant = "neutral" | "ok" | "warn" | "error" | "info";
 
 export class ScChipBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property() accessor label = "";
   @property({ reflect: true }) accessor variant: ScChipVariant = "neutral";

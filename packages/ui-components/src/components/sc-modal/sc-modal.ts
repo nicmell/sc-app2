@@ -4,9 +4,9 @@
 // content (the consumer styles their own title/body/actions).
 
 import { ScDialogBase } from "../internal/sc-dialog/sc-dialog";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-modal.scss";
 
 export class ScModalBase extends ScDialogBase {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 }

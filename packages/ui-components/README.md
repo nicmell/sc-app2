@@ -26,8 +26,8 @@ Three consumers:
 ```
 src/
   foundations/             CSS — tokens, reset, base element styles, icon font
-    index.scss             FULL foundation → head <link>; @import tokens + themes + reset + base + icons
-    shadow.scss            font-free shadow base (reset + base elements) → the `foundations` export
+    index.scss             FULL foundation → head <link>; @use tokens + themes + reset + base + icons
+    reset.scss             font-free shadow base (box-sizing + form-inherit + reduced-motion) — each component imports it as `resetStyles`
     tokens/semantic.scss   --color-* / --space-* / --radius-* / type / shadow  (PUBLIC API)
     themes/{dark,light}.scss  dark = default at :root; light under [data-theme="light"]
     base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
@@ -209,14 +209,14 @@ Each component owns its styles as a co-located `sc-x.scss`, imported as a Lit
 and composes it with the shared shadow base imported straight from `foundations/`:
 
 ```ts
-import foundations from "../../foundations/shadow.scss"; // → CSSResult (the shadow base)
-import styles from "./sc-x.scss";                        // → CSSResult (the component)
-static styles = [foundations, styles];                   // adopted into the shadow root
+import resetStyles from "../../foundations/reset.scss"; // → CSSResult (the shadow base)
+import styles from "./sc-x.scss";                       // → CSSResult (the component)
+static styles = [resetStyles, styles];                  // adopted into the shadow root
 ```
 
-`foundations/shadow.scss` is the **font-free shadow base** (reset + bare
-`input{}`/`button{}`/etc. element styles), adopted into **every** component's shadow.
-It's imported directly — ES modules are singletons, so all components share the one
+`foundations/reset.scss` is the **font-free shadow base** (box-sizing + form-element
+font/colour inherit + the reduced-motion neutraliser), adopted into **every** component's
+shadow. It's imported directly — ES modules are singletons, so all components share the one
 `CSSResult` → one adopted `CSSStyleSheet`, no duplication (no indirection module needed).
 The eight field/widget components that render a native field also import
 `foundations/base/controls.scss` as `controlStyles`. It is NOT the full foundation: the design

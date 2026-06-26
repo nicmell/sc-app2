@@ -9,11 +9,11 @@ import { property } from "lit/decorators.js";
 import { ContextConsumer } from "@lit/context";
 import { ScControlBase } from "../internal/sc-control/sc-control";
 import { selectContext } from "../sc-select/sc-select";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-option.scss";
 
 export class ScOptionBase extends ScControlBase {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor label = "";

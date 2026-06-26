@@ -11,14 +11,14 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-disclosure.scss";
 import "../sc-icon/sc-icon";
 
 export class ScDisclosureBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
 
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   get #details(): HTMLDetailsElement | null {
     return this.renderRoot.querySelector("details");

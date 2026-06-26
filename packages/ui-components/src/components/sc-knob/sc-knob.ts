@@ -7,12 +7,12 @@
 import { html, nothing } from "lit";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range/sc-range";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-knob.scss";
 
 export class ScKnobBase extends ScRangeBase {
-  static styles = [foundations, controlStyles, styles];
+  static styles = [resetStyles, controlStyles, styles];
 
   /** Dominant axis: up OR right increases (whichever the user moved more). */
   protected dragAxisDelta(dx: number, dy: number): number {

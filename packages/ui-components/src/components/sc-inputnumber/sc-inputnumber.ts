@@ -8,13 +8,13 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control/sc-control";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-inputnumber.scss";
 import "../sc-icon/sc-icon";
 
 export class ScInputNumberBase extends ScControlBase {
-  static styles = [foundations, controlStyles, styles];
+  static styles = [resetStyles, controlStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property({ type: Number }) accessor min = -Infinity;

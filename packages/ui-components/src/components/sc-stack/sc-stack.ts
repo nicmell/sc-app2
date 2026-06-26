@@ -4,7 +4,7 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-stack.scss";
 
 /** Spacing step — a clean monotonic scale mapping 1:1 to the space tokens:
@@ -13,7 +13,7 @@ import styles from "./sc-stack.scss";
 export type ScGap = "xs" | "sm" | "md" | "lg";
 
 export class ScStackBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ reflect: true }) accessor gap: ScGap = "xs";
 

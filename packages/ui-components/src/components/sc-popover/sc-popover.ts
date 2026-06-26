@@ -17,7 +17,7 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import { autoPosition, type PopoverPlacement } from "./position";
 import styles from "./sc-popover.scss";
 
@@ -27,7 +27,7 @@ export class ScPopoverBase extends LitElement {
   /** Anchor element (set via JS/React); defaults to the previous element sibling. */
   accessor anchor: HTMLElement | null = null;
 
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   #stopAutoUpdate?: () => void;
 

@@ -3,13 +3,13 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-badge.scss";
 
 export type ScBadgeVariant = "ok" | "warn" | "error";
 
 export class ScBadgeBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property() accessor label = "";
   @property({ reflect: true }) accessor variant: ScBadgeVariant = "ok";

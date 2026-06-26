@@ -30,9 +30,10 @@ describe("foundation icon font (import graph)", () => {
   });
 
   it("the font-free shadow base does NOT pull in the icon font", () => {
-    // The 1 MB font must never enter a shadow CSSResult — shadow.scss is fonts/icons-free.
-    const shadow = read("src/foundations/shadow.scss");
-    expect(shadow).not.toContain("icons");
-    expect(shadow).not.toContain("@phosphor-icons");
+    // The 1 MB font must never enter a shadow CSSResult — the shadow base components adopt
+    // is reset.scss, which is fonts/icons-free.
+    const reset = read("src/foundations/reset.scss");
+    expect(reset).not.toContain("icons");
+    expect(reset).not.toContain("@phosphor-icons");
   });
 });

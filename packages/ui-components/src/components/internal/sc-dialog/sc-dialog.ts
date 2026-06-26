@@ -12,7 +12,7 @@
 
 import { LitElement, html, nothing, type CSSResultGroup } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../../foundations/shadow.scss";
+import resetStyles from "../../../foundations/reset.scss";
 
 export abstract class ScDialogBase extends LitElement {
   @property({ type: Boolean, reflect: true }) accessor open = false;
@@ -22,9 +22,9 @@ export abstract class ScDialogBase extends LitElement {
    *  announces an unnamed dialog; set it to the modal/drawer's title. */
   @property() accessor label = "";
 
-  // Subclasses override this with `[foundations, styles]` (their own Lit css),
+  // Subclasses override this with `[resetStyles, styles]` (their own Lit css),
   // so the type is the broad CSSResultGroup.
-  static styles: CSSResultGroup = [foundations];
+  static styles: CSSResultGroup = [resetStyles];
 
   protected get dialog(): HTMLDialogElement | null {
     return this.renderRoot.querySelector("dialog");

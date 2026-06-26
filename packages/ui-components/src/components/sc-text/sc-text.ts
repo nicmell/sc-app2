@@ -12,7 +12,7 @@
 import { LitElement } from "lit";
 import { html, literal } from "lit/static-html.js";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-text.scss";
 
 export type ScTextAs = "span" | "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -46,7 +46,7 @@ const TAGS: Record<ScTextAs, ReturnType<typeof literal>> = {
 };
 
 export class ScTextBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   /** The rendered semantic element — semantics only (not reflected; it's a structural
       input read at render, not a `:host([attr])` style hook). */

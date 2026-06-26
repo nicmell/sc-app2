@@ -5,11 +5,11 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import type { ScGap } from "../sc-stack/sc-stack";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-cluster.scss";
 
 export class ScClusterBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ reflect: true }) accessor gap: ScGap = "xs";
 

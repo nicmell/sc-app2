@@ -4,14 +4,14 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-toast.scss";
 import "../sc-icon/sc-icon";
 
 export type ScToastVariant = "default" | "success" | "warn" | "error" | "info";
 
 export class ScToastBase extends LitElement {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property() accessor message = "";
   @property({ reflect: true }) accessor variant: ScToastVariant = "default";

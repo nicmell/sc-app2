@@ -22,7 +22,7 @@ import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { ContextProvider, createContext } from "@lit/context";
 import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
-import foundations from "../../foundations/shadow.scss";
+import resetStyles from "../../foundations/reset.scss";
 import type { ScPopoverBase } from "../sc-popover/sc-popover";
 import styles from "./sc-select.scss";
 import "../sc-icon/sc-icon";
@@ -45,7 +45,7 @@ export interface SelectContext {
 export const selectContext = createContext<SelectContext>("sc-select");
 
 export class ScSelectBase extends ScControlBase {
-  static styles = [foundations, styles];
+  static styles = [resetStyles, styles];
 
   @property({ type: Number }) accessor value = 0;
   @property() accessor placeholder = "";

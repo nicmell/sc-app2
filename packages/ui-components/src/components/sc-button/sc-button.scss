@@ -31,11 +31,6 @@ button {
     @include disabled($block: false);
   }
 
-  /* Press feedback — nudge down (works on every variant regardless of fill). */
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
-
   /* Keyboard focus ring (mouse focus stays quiet). */
   &:focus-visible {
     @include focus-ring;

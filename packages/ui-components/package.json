@@ -8,8 +8,8 @@
     ".": "./src/foundations/index.scss",
     "./reset": "./src/foundations/reset.scss",
     "./tokens": "./src/foundations/tokens/index.scss",
-    "./themes/dark": "./src/foundations/themes/dark.scss",
-    "./themes/light": "./src/foundations/themes/light.scss",
+    "./themes/dark": "./src/foundations/tokens/themes/dark.scss",
+    "./themes/light": "./src/foundations/tokens/themes/light.scss",
     "./lit": "./src/components/index.ts",
     "./react": "./src/components/react.ts",
     "./package.json": "./package.json"

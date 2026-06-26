@@ -1,10 +1,17 @@
 /**
- * Tokens-only entry. Importable as `@sc-app/ui-components/tokens`
- * for consumers that want just the token vocabulary without the
- * reset / element / component layers (e.g. a plugin that brings
- * its own component library but wants to match the host palette).
+ * Tokens entry — the full token vocabulary. Importable as `@sc-app/ui-components/tokens`
+ * for consumers that want just the tokens without the reset / element / component layers
+ * (e.g. a plugin that brings its own component library but wants to match the host palette).
+ *
+ * Aggregates the per-category non-colour partials + the colour palette (themes/). Every
+ * token name is PUBLIC API — renaming any is a breaking change.
  */
 
-@use "./semantic";
-@use "../themes/dark";
-@use "../themes/light";
+@use "./spacing";
+@use "./radius";
+@use "./typography";
+@use "./shadow";
+@use "./transition";
+@use "./layout";
+@use "./themes/dark";
+@use "./themes/light";

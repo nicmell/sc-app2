@@ -1,7 +1,7 @@
 /**
  * Dark theme — the default sc-app palette. Applied at :root so
  * any consumer that doesn't explicitly set [data-theme] gets
- * dark out of the box. Light theme (themes/light.scss) overrides
+ * dark out of the box. Light theme (light.scss, its sibling) overrides
  * under [data-theme="light"].
  *
  * Values are ported from the legacy src/styles.scss palette
@@ -12,7 +12,7 @@
  * --color-overlay) so plugins authoring debug surfaces can use
  * them too.
  *
- * All --color-* names are PUBLIC API — see semantic.scss header.
+ * All --color-* names are PUBLIC API (like the non-colour tokens/ partials).
  */
 
 :root {

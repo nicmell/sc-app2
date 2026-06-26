@@ -11,14 +11,10 @@
  * component layer is co-located beside each .ts, not aggregated here.
  */
 
-/* Our semantic tokens — --color-*, --space-*, --radius-* etc. The documented
-   public contract (raw values; no external primitive layer). */
-@use "./tokens/semantic";
-
-/* Theme palette. Default = dark; light theme applies under
-   [data-theme="light"]. */
-@use "./themes/dark";
-@use "./themes/light";
+/* The full token vocabulary — the per-category non-colour tokens (--space-*, --radius-*,
+   type, shadow, transition, layout) + the theme palette (--color-*, default dark; light
+   under [data-theme="light"]). The documented public contract. */
+@use "./tokens";
 
 /* Minimal reset / normalize. */
 @use "./reset";

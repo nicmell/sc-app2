@@ -147,10 +147,13 @@ Each item: _what / where / why / suggested fix_. Tier 1 are effectively bugs.
   `literal` from a **fixed lookup table** — never interpolate the raw `as` value
   (`unsafeStatic` on a prop is an injection vector).
 - The tag is **semantic only**; look is prop-driven. A zero-specificity `:where(tag-list)`
-  base reset drops the UA heading scale so the modifier classes win. **Display follows the
+  base reset drops the UA heading scale so the modifier rules win. **Display follows the
   tag** (span inline, others block); `inline` forces inline; `truncate` forces `block`
-  (ellipsis needs a block box). `cx` modifier classes are kept here on purpose (reflecting
-  7 multi-valued props would noise up the host DOM).
+  (ellipsis needs a block box).
+- Like the rest of the library, the modifier props (`size`/`weight`/`tone`/`font`/`align`/
+  `truncate`/`inline`) **reflect to the host**; styling hooks off `:host([attr]) > *` (the
+  rendered tag is the host's single shadow child). `as` is NOT reflected — it's a
+  structural input read in `render()` to pick the tag, not a `:host` style hook. No `cx`.
 
 ### Misc
 

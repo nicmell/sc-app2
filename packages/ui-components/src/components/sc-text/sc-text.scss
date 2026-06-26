@@ -1,20 +1,21 @@
 /*
  * <sc-text-base> typography styles. Shadow DOM: `:host { display: contents }` so the
  * rendered semantic element (chosen by `as` — span/p/div/h1–h6) is the effective text
- * box. The tag is semantic-only: every candidate tag is reset to one base type scale
- * via a zero-specificity `:where()` selector, so a plain modifier class (.lg/.bold/…)
- * always wins — the look is fully prop-driven. Defaults (md / regular / sans / default
- * tone / start) are the bare base; non-defaults add a modifier class.
+ * box. The tag is semantic-only: every candidate tag is reset to one base type scale via
+ * a zero-specificity `:where()` selector, so the modifier rules win — the look is fully
+ * prop-driven. The modifier props reflect to the host (like the rest of the library), so
+ * each modifier hooks off `:host([attr]) > *` (the host's single shadow child = the
+ * rendered tag). Defaults (md / regular / sans / default tone / start) are the bare base.
  */
 
 :host {
   display: contents;
 }
 
-/* Base reset for every renderable tag. :where() has ZERO specificity, so the single
-   modifier classes below override it cleanly (and the UA <h1>… type scale is dropped).
-   Display is left to the tag's nature — <span> inline, <p>/<div>/<h1–6> block — so the
-   element flows like the tag it semantically is; `inline` forces inline either way. */
+/* Base reset for every renderable tag. :where() has ZERO specificity, so the
+   `:host([attr]) > *` modifiers (specificity 0,1,0) override it cleanly — and the UA
+   <h1>… type scale is dropped. Display is left to the tag's nature — <span> inline,
+   <p>/<div>/<h1–6> block — so the element flows like the tag it semantically is. */
 :where(h1, h2, h3, h4, h5, h6, p, span, div) {
   margin: 0;
   font-family: var(--font-sans);
@@ -24,76 +25,77 @@
   color: var(--color-text);
 }
 
-.inline {
-  display: inline;
-}
-
-/* Size */
-.xs {
+/* Size (md is the base) */
+:host([size="xs"]) > * {
   font-size: var(--font-size-xs);
 }
-.sm {
+:host([size="sm"]) > * {
   font-size: var(--font-size-sm);
 }
-.lg {
+:host([size="lg"]) > * {
   font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
 }
-.xl {
+:host([size="xl"]) > * {
   font-size: var(--font-size-xl);
   line-height: var(--line-height-tight);
 }
 
-/* Weight */
-.medium {
+/* Weight (regular is the base) */
+:host([weight="medium"]) > * {
   font-weight: var(--font-weight-medium);
 }
-.bold {
+:host([weight="bold"]) > * {
   font-weight: var(--font-weight-bold);
 }
 
-/* Font family */
-.mono {
+/* Font family (sans is the base) */
+:host([font="mono"]) > * {
   font-family: var(--font-mono);
 }
 
-/* Tone (colour) */
-.dim {
+/* Tone / colour (default is the base) */
+:host([tone="dim"]) > * {
   color: var(--color-text-dim);
 }
-.mute {
+:host([tone="mute"]) > * {
   color: var(--color-text-mute);
 }
-.faint {
+:host([tone="faint"]) > * {
   color: var(--color-text-faint);
 }
-.primary {
+:host([tone="primary"]) > * {
   color: var(--color-primary);
 }
-.ok {
+:host([tone="ok"]) > * {
   color: var(--color-ok-text);
 }
-.warn {
+:host([tone="warn"]) > * {
   color: var(--color-warn-text);
 }
-.error {
+:host([tone="error"]) > * {
   color: var(--color-error-text);
 }
-.info {
+:host([tone="info"]) > * {
   color: var(--color-info-text);
 }
 
-/* Alignment */
-.center {
+/* Alignment (start is the base) */
+:host([align="center"]) > * {
   text-align: center;
 }
-.end {
+:host([align="end"]) > * {
   text-align: end;
 }
 
-/* Truncation (single line). Forces a block box — text-overflow:ellipsis only
-   applies to a block/inline-block, not a bare inline <span>. */
-.truncate {
+/* Force inline flow. Declared before `truncate` so truncate's block wins when both set. */
+:host([inline]) > * {
+  display: inline;
+}
+
+/* Truncation (single line). Forces a block box — text-overflow:ellipsis only applies to
+   a block/inline-block, not a bare inline <span>. */
+:host([truncate]) > * {
   display: block;
   overflow: hidden;
   white-space: nowrap;

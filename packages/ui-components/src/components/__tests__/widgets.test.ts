@@ -517,7 +517,7 @@ describe("sc-textarea-base", () => {
 });
 
 describe("sc-text-base", () => {
-  it("renders a <span> by default and applies typography classes to it", async () => {
+  it("renders a <span> by default and reflects the typography modifiers to the host", async () => {
     const el = document.createElement("sc-text-base");
     el.textContent = "Heading";
     el.size = "xl";
@@ -527,11 +527,12 @@ describe("sc-text-base", () => {
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.textContent).toBe("Heading");
-    const root = el.shadowRoot!.querySelector("span")!;
-    expect(root.classList.contains("xl")).toBe(true);
-    expect(root.classList.contains("bold")).toBe(true);
-    expect(root.classList.contains("dim")).toBe(true);
-    expect(root.classList.contains("mono")).toBe(true);
+    expect(el.shadowRoot!.querySelector("span")).not.toBeNull();
+    // Modifiers reflect to the host (styled via :host([attr]) > *), like the rest of the library.
+    expect(el.getAttribute("size")).toBe("xl");
+    expect(el.getAttribute("weight")).toBe("bold");
+    expect(el.getAttribute("tone")).toBe("dim");
+    expect(el.getAttribute("font")).toBe("mono");
   });
 
   it("renders the semantic element chosen by `as`, keeping the visual modifiers", async () => {
@@ -544,20 +545,20 @@ describe("sc-text-base", () => {
     const heading = el.shadowRoot!.querySelector("h2")!;
     expect(heading).not.toBeNull();
     expect(el.shadowRoot!.querySelector("span")).toBeNull();
-    expect(heading.classList.contains("lg")).toBe(true); // look stays prop-driven
+    expect(el.getAttribute("size")).toBe("lg"); // look stays prop-driven
     expect(heading.textContent!.trim()).toBe(""); // text is slotted (light DOM)
     expect(el.textContent).toBe("Title");
   });
 
-  it("applies the truncate/inline modifier classes", async () => {
+  it("reflects the truncate/inline boolean modifiers to the host", async () => {
     const el = document.createElement("sc-text-base");
     el.truncate = true;
     el.inline = true;
     document.body.appendChild(el);
     await el.updateComplete;
-    const root = el.shadowRoot!.querySelector("span")!;
-    expect(root.classList.contains("truncate")).toBe(true);
-    expect(root.classList.contains("inline")).toBe(true);
+    expect(el.shadowRoot!.querySelector("span")).not.toBeNull();
+    expect(el.hasAttribute("truncate")).toBe(true);
+    expect(el.hasAttribute("inline")).toBe(true);
   });
 });
 

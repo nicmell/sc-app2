@@ -1,6 +1,6 @@
 // Shared base for the range-backed widgets (sc-knob, sc-slider). Both sit a
 // hidden native <input type="range"> (the value source — native keyboard +
-// input/change) under a visual overlay, and feed it from a ported pointer-drag
+// input/change) under a visual overlay, and feed it from a pointer-drag
 // + wheel (set value + dispatch native events, no CustomEvent). Everything
 // except the visual is identical, so it lives here: the value props, the
 // quantise/clamp, the range mirror, and the drag/wheel handlers.

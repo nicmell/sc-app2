@@ -3,8 +3,8 @@
 The sc-app design system: a CSS **foundation** (tokens, themes, reset, base
 element styles) plus a library of framework-agnostic **`-base` components** (Lit
 web components with React wrappers). **Every component is shadow DOM** and styles
-itself uniformly: `static styles = [foundations, styles]` — the shared font-free
-`foundations` (shadow base) plus its own **`sc-x.scss`**, each compiled to a Lit
+itself uniformly: `static styles = [resetStyles, styles]` — the shared font-free
+shadow base (`resetStyles`) plus its own **`sc-x.scss`**, each compiled to a Lit
 `CSSResult` by `vite-plugin-lit-css`. No CSS Modules, no per-component `unsafeCSS`.
 
 > The package ships **no build** — consumers (the app, the `example/`, vitest) import
@@ -35,7 +35,7 @@ src/
     controls.scss          form-field chrome + `.sr-only`, adopted as `controlStyles` by the field/widget components
     icons.scss            Phosphor icon font (@font-face + .ph-* rules); woff2 emitted as separate /assets files
   components/              the -base Lit web components + their co-located styles
-    sc-<tag>/sc-<tag>.ts        the component: `static styles = [foundations, styles]`,
+    sc-<tag>/sc-<tag>.ts        the component: `static styles = [resetStyles, styles]`,
                                 renders a shadow tree using literal class names
     sc-<tag>/sc-<tag>.scss      the component's own CSS (→ a Lit CSSResult via vite-plugin-lit-css)
     index.ts               element barrel + registerUiComponents()
@@ -82,7 +82,7 @@ import { ScButton, ScSelect } from "@sc-app/ui-components/react";
 //    shadow. <sc-icon-base name="play"> just works.
 ```
 
-Every component is **shadow DOM**, styled by `static styles = [foundations,
+Every component is **shadow DOM**, styled by `static styles = [resetStyles,
 styles]` (see "Styling" below). **Events are composed, read off the host**: each
 form widget renders a hidden native `<input>` inside its shadow and re-emits a
 composed `input`/`change` from the host (native events don't cross the shadow
@@ -106,14 +106,14 @@ is shadow DOM; form widgets re-emit composed events — read `e.target.value` /
 
 | component | key props | event | notes |
 |---|---|---|---|
-| `sc-checkbox-base` | `checked` `label` `size` `variant` `disabled` | native `change` | hidden `<input type=checkbox>` + box overlay |
-| `sc-switch-base` | `checked` `size` `variant` `disabled` | native `change` | hidden checkbox (`role=switch`) + track/thumb |
-| `sc-knob-base` | `value` `min` `max` `step` `label` `size` `variant` `disabled` | native `input`/`change` | hidden `<input type=range>` + SVG dial; drag + wheel; `label`→aria-label |
-| `sc-slider-base` | `value` `min` `max` `step` `orientation` `label` `size` `variant` `disabled` | native `input`/`change` | hidden range + track/fill/thumb; drag + wheel; `label`→aria-label |
+| `sc-checkbox-base` | `checked` `label` `size` `disabled` | native `change` | hidden `<input type=checkbox>` + box overlay |
+| `sc-switch-base` | `checked` `size` `disabled` | native `change` | hidden checkbox (`role=switch`) + track/thumb |
+| `sc-knob-base` | `value` `min` `max` `step` `label` `size` `disabled` | native `input`/`change` | hidden `<input type=range>` + SVG dial; drag + wheel; `label`→aria-label |
+| `sc-slider-base` | `value` `min` `max` `step` `orientation` `label` `size` `disabled` | native `input`/`change` | hidden range + track/fill/thumb; drag + wheel; `label`→aria-label |
 | `sc-option-base` | `value` `label` `size` `disabled` | — (reports via select context) | declarative child of `sc-select-base` |
-| `sc-radio-base` | `value` `label` `checked` `size` `variant` `disabled` | — (reports via group context) | hidden `<input type=radio>` + ring/dot |
-| `sc-radio-group-base` | `value` `orientation` `label` `size` `variant` `disabled` | host `change` | context provider for `sc-radio-base` children; `role=radiogroup`, `label`→aria-label |
-| `sc-select-base` | `value` `placeholder` `size` `variant` `disabled` | host `change` | **shadow DOM**; combobox + **top-layer** dropdown of `<sc-option-base>` children |
+| `sc-radio-base` | `value` `label` `checked` `size` `disabled` | — (reports via group context) | hidden `<input type=radio>` + ring/dot |
+| `sc-radio-group-base` | `value` `orientation` `label` `size` `disabled` | host `change` | context provider for `sc-radio-base` children; `role=radiogroup`, `label`→aria-label |
+| `sc-select-base` | `value` `placeholder` `size` `disabled` | host `change` | **shadow DOM**; combobox + **top-layer** dropdown of `<sc-option-base>` children |
 | `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | native `input`/`change` | text field over native `<input>` |
 | `sc-inputnumber-base` | `value` `min` `max` `step` `placeholder` `size` `disabled` | native `input`/`change` | native spinners hidden, themed steppers; clamps on commit |
 | `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | native `input`/`change` | multi-line |
@@ -155,11 +155,12 @@ cluster) is a monotonic `xs | sm | md | lg` mapping 1:1 to `--space-{xs,sm,md,lg
 
 ## Architecture patterns
 
-**Every component is shadow DOM** (the default Lit render root). It renders its
-own tree using **literal class names** (the shadow scopes them — no hashing
-needed) and styles itself with `static styles = [foundations, styles]`. Nothing
-is styled by tag or attribute selector; modifiers are classes on a shadow
-element, and `:host` only sets the host box display. Four patterns:
+**Every component is shadow DOM** (the default Lit render root) and styles itself with
+`static styles = [resetStyles, styles]`. Modifier props (`size`/`variant`/`gap`/
+`orientation`/`side`/…) are `@property({ reflect: true })`, so the **public attribute is
+the style hook**: styling keys off `:host([attr])` and the bare root element, not a
+wrapper class. (A couple of genuinely computed classes remain — `sc-button`'s `iconOnly`,
+`sc-icon`'s `ph-*` glyph classes — via `classnames`.) Four patterns:
 
 1. **Hidden native input + visual overlay (form widgets).** checkbox, switch,
    knob, slider, radio render a hidden, focusable native `<input>` (`.sr-only`)
@@ -169,35 +170,33 @@ element, and `:host` only sets the host box display. Four patterns:
    boundary, so each widget **re-emits a composed `input`/`change` from the host**
    (read `e.target.value` / `.checked`).
 
-2. **Label / inner element (badge, chip, toast, button, icon, the inputs'
-   chrome).** A shadow tree whose root carries `cx("root", variant, …)`. Variant/
-   size resolve to **classes, not data attributes**.
+2. **Bare root element (badge, chip, toast, button, icon, the inputs' chrome).** The
+   shadow root *is* the meaningful element (`<button>`, `<i>`, `<input>`, a pill `:host`,
+   …); `variant`/`size` reflect to the host and style it via `:host([variant])` /
+   `:host([size]) <tag>`.
 
 3. **Content / layout wrappers (`sc-text-base`, `sc-alert-base`,
-   `sc-panel-base`, `sc-empty-base`, `sc-stack-base`, `sc-cluster-base`).** Render
-   a `.root` element (with a size/tone/gap/variant modifier class) wrapping a
-   `<slot>` for the author's children. `sc-panel-base` styles a slotted
-   `<header>` via `::slotted(header)`. `sc-disclosure-base` renders a native
-   `<details>`/`<summary>` (open/close + a11y free), projecting the author's
-   `summary` slot + body and syncing the native `toggle` into a controllable
-   `open` prop.
+   `sc-panel-base`, `sc-empty-base`, `sc-stack-base`, `sc-cluster-base`).** Render a bare
+   `<slot>` (or, for `sc-text`, a polymorphic semantic tag) directly under `:host`, with
+   `size`/`tone`/`gap`/`variant` reflected and styled via `:host([attr])`. `sc-panel-base`
+   styles a slotted `<header>` via `::slotted(header)`. `sc-disclosure-base` renders a
+   native `<details>`/`<summary>` (open/close + a11y free), projecting the author's
+   `summary` slot + body and syncing the native `toggle` into a controllable `open` prop.
 
 4. **Lit context containers (`sc-radio-group-base`, `sc-select-base`).** A
    `@lit/context` provider coordinates declarative children (the consumers):
-   selection + size/variant/disabled flow down; the host fires `change`. Both
-   render a `<slot>` for their children — the children stay light-DOM, so their
-   context-request events still bubble to the host provider. The accent reaches
-   each child by passing `variant` through the context (the child self-applies
-   the accent class in its own shadow), not by a cross-boundary custom property.
-   Providers are registered before consumers so static markup upgrades with the
-   provider already listening.
+   selection + size (+ the group's `disabled`) flow down through the context; the host
+   fires `change`. Both render a `<slot>` for their children — the children stay
+   light-DOM, so their context-request events still bubble to the host provider. Each
+   child materialises the context-derived state (selected, effective size) onto its own
+   reflected props, so it styles itself via `:host([attr])`. Providers are registered
+   before consumers so static markup upgrades with the provider already listening.
 
 Shared bits for **every** input/control (the text fields, the select, and the graphical
-widgets) live on `internal/sc-control/sc-control.ts` (`ScControlBase`): the `size`/`disabled`/
-`name` props + the `ScSize` type and the `controlClasses(extra?)` helper (joins `"root"`
-+ `size`). Controls are single-accent (the primary colour) — no `variant`. Disabled
-reflects to the host and is styled via `:host([disabled])` (or, for the text fields, the
-native `:disabled` from `controls.scss`). The shared control CSS is `controls.scss`
+widgets) live on `internal/sc-control/sc-control.ts` (`ScControlBase`): the reflected
+`size`/`disabled` props + `name`, and the `ScSize` type. Controls are single-accent (the
+primary colour) — no `variant`. Disabled is styled via `:host([disabled])` (or, for the
+text fields, the native `:disabled` from `controls.scss`). The shared control CSS is `controls.scss`
 (`controlStyles`): the field chrome for the text fields + `.sr-only` for the widgets'
 hidden native `<input>`. `ScControlBase` is abstract — not a tag. The parent↔child
 contexts are each defined in their **provider** component (`radioGroupContext` in
@@ -224,8 +223,8 @@ The eight field/widget components that render a native field also import
 `foundations/controls.scss` as `controlStyles`. It is NOT the full foundation: the design
 tokens reach shadow roots via custom-property inheritance from the document, and the
 icon font is registered document-wide (not parsed into any shadow sheet). The **full**
-foundation (`foundations/index.scss` — tokens + themes + reset + base + the Phosphor
-`@font-face` + `.ph-*` rules) ships as a render-blocking `<link>` in the document
+foundation (`foundations/index.scss` — tokens + reset + element/typography styles + the
+Phosphor `@font-face` + `.ph-*` rules) ships as a render-blocking `<link>` in the document
 `<head>` (a side-effect `import "@sc-app/ui-components"` in the app/example entries; no
 `adoptFoundation()`), so the first paint is styled (no FOUC). Class names are literal but
 **shadow-scoped**, so they never collide across components and there's no hashing.
@@ -239,7 +238,7 @@ Two notes on shadow-DOM styling:
   `@font-face` (weights regular/fill/duotone) is registered document-wide by the head
   foundation `<link>` (it has no effect inside a shadow root). `<sc-icon-base>` is the
   only component that renders a raw `<i class="ph">`, so it additionally adopts
-  `foundations/icons.scss` as a CSSResult (`static styles = [foundations, glyphs, styles]`)
+  `foundations/icons.scss` as a CSSResult (`static styles = [resetStyles, glyphs, styles]`)
   for the `.ph-*` content rules in its shadow. The woff2 is emitted as separate `/assets`
   files by Vite (resolved by the head `<link>`); `@phosphor-icons/web` stays a
   build-time-only dependency.
@@ -251,27 +250,28 @@ Dropdowns, modals, and toasts must escape clipping and stacking: an
 traps an absolutely-positioned child, and `z-index` battles are fragile. The
 only correct escape is the browser **top layer**, reached two ways:
 
-- **`PopoverController`** (`internal/popover-controller.ts`) — a Lit
-  `ReactiveController` that turns a panel into a `popover="auto"` element
-  (top layer + native light-dismiss: outside-click + Esc) and positions it
-  against an anchor with [`@floating-ui/dom`](https://floating-ui.com)
-  (`offset`/`flip`/`shift`, `strategy: "fixed"`, re-positioned via `autoUpdate`).
-  Used by **`sc-popover-base`** (a generic anchored panel; anchors to its
-  `anchor` property or previous sibling) and directly by **`sc-select-base`**
-  (the combobox carries `popovertarget`, so the browser owns the toggle +
-  light-dismiss; the controller only positions). Guarded — degrades to
-  in-flow CSS positioning where the Popover API is absent.
+- **`sc-popover-base`** — a generic anchored panel that opts its `.panel` into the top
+  layer via the **Popover API** (`popover="auto"` → native light-dismiss: outside-click +
+  Esc; the native `toggle` is the source of truth for `open`). It anchors to its `anchor`
+  property or previous sibling, positioned by the internal vanilla helper
+  `sc-popover/position.ts` (12 placements, single-step flip, cross-axis shift,
+  scroll/resize/`ResizeObserver` tracking — the slice of floating-ui this needed, no
+  dependency). The Popover API is assumed (Baseline 2024); no fallback. **`sc-select-base`**
+  *nests* an `sc-popover-base` as its dropdown — it styles the panel via
+  `sc-popover-base::part(panel)`, links the combobox via `aria-controls`, and JS-controls
+  `open` (a `pointerdown` guard reproduces the invoker-exemption `popovertarget` would give
+  natively, since the popover lives in a nested shadow root the button can't target).
 
 - **Native `<dialog>`** for **`sc-modal-base`** and **`sc-drawer-base`** —
   `showModal()` gives the top layer, a `::backdrop`, a focus trap, and Esc for
-  free; no anchoring, so no floating-ui. The shared open/close/dismiss lifecycle
+  free; no anchoring, so no positioning math. The shared open/close/dismiss lifecycle
   lives in `internal/sc-dialog/sc-dialog.ts` (`dismissable` gates Esc + backdrop; a
   blocking instance swallows `cancel` and re-asserts itself if the UA
   force-closes it). The modal is centred; the **drawer** is the same dialog
   pinned to a viewport edge (`side` = right | left), sliding in/out via native
   CSS (`@starting-style` + `transition-behavior: allow-discrete`), no JS
-  animation. A drawer is *edge*-anchored, not trigger-anchored — floating-ui
-  would have nothing to do.
+  animation. A drawer is *edge*-anchored, not trigger-anchored — the anchored
+  positioner would have nothing to do.
 
 The app's **toast stack** is a `popover="manual"` element for the same reason
 (never clipped). A modal `<dialog>` still renders above popovers in the top
@@ -279,7 +279,7 @@ layer, so toasts don't cover an open modal — but they're corner-placed and
 modals are centred, so they don't overlap.
 
 > **Platform note:** macOS Tauri runs in WKWebView (WebKit), where CSS anchor
-> positioning isn't available — hence `@floating-ui/dom` for the math and the
+> positioning isn't available — hence the vanilla JS positioner for the math and the
 > Popover API (Safari 17+) for the layer. happy-dom has no top layer or layout,
 > so the open/close/positioning behaviour is verified in a real browser via the
 > CDP harness; unit tests cover structure + state + events only.
@@ -325,11 +325,12 @@ yarn demo           # from packages/ui-components/ — `vite example` (serves th
 
 ## Constraints
 
-- **Plain CSS, compiled on demand.** Component styles are `.scss` → Lit `CSSResult`
-  (the `litCss` Vite plugin + PostCSS: import/nesting/url); the foundation is `.scss`
-  too. Consumers compile the source — no `dist`, no build step.
+- **SCSS, compiled on demand.** Component styles are `.scss` → Lit `CSSResult`
+  (`vite-plugin-lit-css` runs them through Vite's Sass + CSS pipeline; a small shared
+  mixin library lives in `foundations/_mixins.scss`). Consumers compile the source —
+  no `dist`, no build step.
 - **Shadow-encapsulated components.** Each component is a shadow root styled by
-  `[foundations, styles]`; only design tokens (CSS custom properties on `:root`)
+  `[resetStyles, styles]`; only design tokens (CSS custom properties on `:root`)
   cross the boundary, so a component's look can't be perturbed by page CSS.
 - **Tokens are the public API.** Renaming a `--color-*` / `--space-*` / selector
   is a breaking change for plugin authors; add freely, rename only with a major bump.

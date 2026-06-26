@@ -1,7 +1,8 @@
 // <sc-textarea-base> — a multi-line text field. Shadow DOM: wraps a native
 // <textarea> styled by `controlStyles` (sans font, vertical resize, surface fill,
-// focus ring) plus a `.root` class for sizing/full-width. The native input/change
-// are re-emitted (composed) from the host so consumers read `e.target.value`.
+// focus ring); it fills the host and the reflected `size` scales it via
+// `:host([size]) textarea`. The native input/change are re-emitted (composed) from
+// the host so consumers read `e.target.value`.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";

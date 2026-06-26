@@ -1,10 +1,9 @@
 // <sc-radio-group-base> — a Lit ContextProvider coordinating its declarative
-// <sc-radio-base> children (the old sc-app model). Shadow DOM: it renders a
-// `.root` wrapper + <slot>, so the radio children are slotted (still light-DOM
-// children, so their context-request events bubble to the host provider). It
-// provides the selected value + a `select` callback + a shared name +
-// size/disabled through context. A child's native `change` is swallowed
-// and the group re-emits a single `change` from the host (read `el.value`).
+// <sc-radio-base> children. Shadow DOM: it renders a <slot>, so the radio children
+// are slotted (still light-DOM children, so their context-request events bubble to
+// the host provider). It provides the selected value + a `select` callback + a
+// shared name + size/disabled through context. A child's native `change` is
+// swallowed and the group re-emits a single `change` from the host (read `el.value`).
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";

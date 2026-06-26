@@ -7,8 +7,8 @@
 // through `open` + a `toggle` event. The composable basis for menus/comboboxes/
 // tooltips — sc-select nests one as its dropdown.
 //
-// The Popover API + floating-ui positioning live here directly (sc-popover is the
-// only consumer, so no separate controller). `open` is the single source of truth:
+// The Popover API + the anchored positioning (./position) live here directly (no separate
+// controller — sc-popover is the only consumer). `open` is the single source of truth:
 // the native `toggle` reflects user-driven changes (light-dismiss) back into it and
 // re-emits a bubbling `toggle` for React; setting `open` drives showPopover()/
 // hidePopover(). Requires the Popover API (Baseline since 2024 — Chrome/Edge 114,
@@ -62,7 +62,7 @@ export class ScPopoverBase extends LitElement {
   }
 
   // The native `toggle` (incl. light-dismiss) is the source of truth for user-driven
-  // changes; it's also where we (re)position on open, so floating-ui runs only once
+  // changes; it's also where we (re)position on open, so positioning runs only once
   // the element is actually shown in the top layer. Programmatic open/close arrives
   // here already in sync (`this.open` set first, then showPopover() fires the native
   // toggle) — so we position but don't re-emit.

@@ -4,11 +4,10 @@
  * correct without any classes — the load-bearing constraint
  * for the plugin future. A bare <button> is the default
  * (primary) action; variants + sizes live on <sc-button-base>
- * (src/components), which resolves them to .sc-button--* classes
- * rather than data attributes.
+ * (src/components), keyed off its reflected `variant`/`size`.
  *
  * The form-field chrome (input/select/textarea) lives in controls.scss — shared with the
- * shadow input components that reuse it (see that file) — and is @imported here so the
+ * shadow input components that reuse it (see that file) — and is @used here so the
  * head foundation keeps it. Everything else here is document-only (no shadow component
  * depends on it inside its shadow root; e.g. sc-disclosure styles its own <summary>).
  *

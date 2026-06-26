@@ -2,7 +2,7 @@
  * Bare control chrome, adopted by the input/control components as `controlStyles`:
  *   - the form-field chrome (input/select/textarea surface/border/focus) — used by
  *     sc-input/sc-inputnumber/sc-textarea, and by the head foundation (elements.scss
- *     @imports this) so light-DOM / plugin fields look correct without classes;
+ *     @uses this) so light-DOM / plugin fields look correct without classes;
  *   - `.sr-only` — the visually-hidden helper the graphical widgets (checkbox/switch/
  *     radio/slider/knob) wear on their hidden native <input>.
  *
@@ -47,9 +47,8 @@ textarea {
   resize: vertical;
 }
 
-/* Number inputs — hide the spin buttons; arrow keys still
-   work. The legacy panels did this per-context; promoted to
-   a default since it matches the app's visual language. */
+/* Number inputs — hide the native spin buttons (arrow keys still work);
+   sc-inputnumber draws its own steppers. */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;

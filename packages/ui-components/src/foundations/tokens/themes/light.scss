@@ -1,7 +1,7 @@
 /**
- * Light theme — applied under [data-theme="light"] on the root
- * (typically <html>). Phase 28 ships dark only; this file is a
- * placeholder so plugin authors know the contract:
+ * Light theme — applied under [data-theme="light"] on the root (typically <html>).
+ * A placeholder for now (only the dark palette has real values); this documents the
+ * contract for when a light palette lands:
  *
  *   :root[data-theme="light"] {
  *     --color-bg: ...;
@@ -10,7 +10,5 @@
  *     -- (all other --color-* tokens overridden here)
  *   }
  *
- * Real values land when the host adds a theme-toggle UI. Until
- * then, [data-theme="light"] inherits the dark palette from
- * :root above.
+ * Until then, [data-theme="light"] inherits the dark palette from :root.
  */

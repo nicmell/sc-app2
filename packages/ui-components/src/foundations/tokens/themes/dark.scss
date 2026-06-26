@@ -1,16 +1,10 @@
 /**
- * Dark theme — the default sc-app palette. Applied at :root so
- * any consumer that doesn't explicitly set [data-theme] gets
- * dark out of the box. Light theme (light.scss, its sibling) overrides
- * under [data-theme="light"].
+ * Dark theme — the default sc-app palette. Applied at :root so any consumer that
+ * doesn't explicitly set [data-theme] gets dark out of the box. Light theme
+ * (light.scss, its sibling) overrides under [data-theme="light"].
  *
- * Values are ported from the legacy src/styles.scss palette
- * unchanged — Phase 28b is a rename + reorganisation, not a
- * visual redesign. The 9 hardcoded hexes that escaped into
- * OscConsole / DebugLog / ScopeView are promoted to semantic
- * tokens here (--color-tx, --color-rx, --color-log-*,
- * --color-overlay) so plugins authoring debug surfaces can use
- * them too.
+ * The debug-surface tokens (--color-tx, --color-rx, --color-log-*, --color-overlay)
+ * are exposed so plugins authoring OSC consoles / scopes can match the host palette.
  *
  * All --color-* names are PUBLIC API (like the non-colour tokens/ partials).
  */
@@ -83,14 +77,12 @@
   --color-error-text: #f2b5ba;
 
   /* ── Specialised text ─────────────────────────────────────────
-     Promoted from the 9 hardcoded hexes that escaped the
-     legacy styles.scss vocabulary into per-panel SCSS. Plugins
-     authoring debug surfaces / scope overlays use these so
-     their UI matches the host. */
-  --color-tx: #8ab4f8; /* outgoing OSC, OscConsole */
-  --color-rx: #96f2a7; /* incoming OSC, OscConsole */
+     For debug surfaces / scope overlays — plugins use these so their
+     UI matches the host. */
+  --color-tx: #8ab4f8; /* outgoing OSC */
+  --color-rx: #96f2a7; /* incoming OSC */
   --color-log-info: #8ab4f8;
   --color-log-warn: #f7d57a;
   --color-log-error: #f2b5ba;
-  --color-overlay: #b4b8c0; /* ScopeView overlay text */
+  --color-overlay: #b4b8c0; /* scope overlay text */
 }

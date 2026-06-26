@@ -1,7 +1,7 @@
 // <sc-drawer-base> — an edge-anchored slide-in panel: a native <dialog> opened
 // with showModal() (a blocking, top-layer overlay with a ::backdrop + focus trap
-// + Esc, like sc-modal-base — see ScDialogBase), pinned to a viewport edge. NOT
-// floating-ui: the edge position is pure CSS.
+// + Esc, like sc-modal-base — see ScDialogBase), pinned to a viewport edge. Not
+// anchor-positioned: the edge position is pure CSS.
 //
 // Shadow DOM: the <dialog> carries the chrome; the reflected `side` (`:host([side])`)
 // pins it to a viewport edge. Author content is slotted; a slotted direct-child <header>

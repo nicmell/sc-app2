@@ -1,6 +1,6 @@
 // <sc-input-base> — a base text field. Shadow DOM: wraps a native <input> styled
 // by `controlStyles` (the shared bare input{} chrome: surface fill, border, focus
-// ring) plus a `.root` class for sizing. The native input/change are re-emitted
+// ring); the reflected `size` scales it via `:host([size]) input`. The native input/change are re-emitted
 // (composed) from the host so consumers read `e.target.value`. The numeric field
 // is <sc-inputnumber-base>.
 

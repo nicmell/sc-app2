@@ -11,7 +11,7 @@ import { ContextConsumer } from "@lit/context";
 import { ScControlBase } from "../internal/sc-control/sc-control";
 import { radioGroupContext, type RadioGroupContext } from "../sc-radio-group/sc-radio-group";
 import resetStyles from "../../foundations/reset.scss";
-import controlStyles from "../../foundations/base/controls.scss";
+import controlStyles from "../../foundations/controls.scss";
 import styles from "./sc-radio.scss";
 
 export class ScRadioBase extends ScControlBase {

@@ -26,12 +26,13 @@ Three consumers:
 ```
 src/
   foundations/             CSS — tokens, reset, base element styles, icon font
-    index.scss             FULL foundation → head <link>; @use tokens + themes + reset + base + icons
+    index.scss             FULL foundation → head <link>; @use tokens + reset + elements + typography + icons
     reset.scss             font-free shadow base (box-sizing + form-inherit + reduced-motion) — each component imports it as `resetStyles`
     tokens/                all tokens (PUBLIC API); index.scss = the `/tokens` entry (aggregates them all):
                              spacing · radius · typography · shadow · transition  (non-colour)
                              themes/{dark,light}.scss  the --color-* palette (dark default at :root, light under [data-theme="light"])
-    base/{elements,typography}.scss  bare button/input/select/textarea/label/headings/code
+    elements.scss / typography.scss  bare button/input/select/textarea/label/headings/code
+    controls.scss          form-field chrome + `.sr-only`, adopted as `controlStyles` by the field/widget components
     icons.scss            Phosphor icon font (@font-face + .ph-* rules); woff2 emitted as separate /assets files
   components/              the -base Lit web components + their co-located styles
     sc-<tag>/sc-<tag>.ts        the component: `static styles = [foundations, styles]`,
@@ -196,7 +197,7 @@ widgets) live on `internal/sc-control/sc-control.ts` (`ScControlBase`): the `siz
 `name` props + the `ScSize` type and the `controlClasses(extra?)` helper (joins `"root"`
 + `size`). Controls are single-accent (the primary colour) — no `variant`. Disabled
 reflects to the host and is styled via `:host([disabled])` (or, for the text fields, the
-native `:disabled` from `controls.scss`). The shared control CSS is `base/controls.scss`
+native `:disabled` from `controls.scss`). The shared control CSS is `controls.scss`
 (`controlStyles`): the field chrome for the text fields + `.sr-only` for the widgets'
 hidden native `<input>`. `ScControlBase` is abstract — not a tag. The parent↔child
 contexts are each defined in their **provider** component (`radioGroupContext` in
@@ -220,7 +221,7 @@ font/colour inherit + the reduced-motion neutraliser), adopted into **every** co
 shadow. It's imported directly — ES modules are singletons, so all components share the one
 `CSSResult` → one adopted `CSSStyleSheet`, no duplication (no indirection module needed).
 The eight field/widget components that render a native field also import
-`foundations/base/controls.scss` as `controlStyles`. It is NOT the full foundation: the design
+`foundations/controls.scss` as `controlStyles`. It is NOT the full foundation: the design
 tokens reach shadow roots via custom-property inheritance from the document, and the
 icon font is registered document-wide (not parsed into any shadow sheet). The **full**
 foundation (`foundations/index.scss` — tokens + themes + reset + base + the Phosphor

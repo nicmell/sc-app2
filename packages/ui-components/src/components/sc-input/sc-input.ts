@@ -9,7 +9,7 @@ import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control/sc-control";
 import resetStyles from "../../foundations/reset.scss";
-import controlStyles from "../../foundations/base/controls.scss";
+import controlStyles from "../../foundations/controls.scss";
 import styles from "./sc-input.scss";
 
 export class ScInputBase extends ScControlBase {

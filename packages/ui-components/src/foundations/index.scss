@@ -21,8 +21,8 @@
 
 /* Raw HTML element styles. After this point a bare <button>
    already looks correct. */
-@use "./base/elements";
-@use "./base/typography";
+@use "./elements";
+@use "./typography";
 
 /* Phosphor icon font — @font-face (registers on the document, since this entry ships as
    a head <link>) + .ph-* glyph rules for light-DOM icons. <sc-icon-base> imports

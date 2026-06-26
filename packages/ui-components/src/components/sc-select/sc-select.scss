@@ -27,11 +27,12 @@
   cursor: pointer;
   user-select: none;
 
-  &:hover {
+  /* Hover (only when not keyboard-focused) accents the border; focus shows the ring
+     alone — never both, so there's no double border. */
+  &:hover:not(:focus-visible) {
     @include field-focus;
   }
   &:focus-visible {
-    @include field-focus;
     @include focus-ring;
   }
   &:disabled {

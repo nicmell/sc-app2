@@ -28,7 +28,6 @@ textarea {
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  @include field-focus;
   @include focus-ring;
 }
 

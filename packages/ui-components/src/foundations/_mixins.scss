@@ -73,9 +73,9 @@
   transition: border-color var(--transition-fast);
 }
 
-// The field border accent — used on hover AND focus. The prominent keyboard focus ring
-// is added separately via `focus-ring` on :focus-visible, so fields get the SAME 2px ring
-// as every other control (hover keeps just the border accent, no ring).
+// The field border accent — used on HOVER only. Keyboard focus shows the shared 2px
+// `focus-ring` (outline) instead, never combined with this, so a focused field never
+// has both a recoloured border and a ring (no "double border").
 @mixin field-focus {
   border-color: var(--color-border-focus);
 }

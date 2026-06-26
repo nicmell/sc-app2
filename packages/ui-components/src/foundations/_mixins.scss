@@ -16,6 +16,24 @@
   outline-offset: $offset;
 }
 
+// Expand an element's pointer/touch target to at least `$min` (WCAG 2.5.8 wants 24×24)
+// without changing its painted size — a centred transparent ::before overlay. Use on the
+// small visible part of a control (checkbox `.box`, radio `.ring`, slider `.thumb`); the
+// overlay still triggers the surrounding label/input. The target must establish a
+// positioning context (the caller adds `position: relative` unless it's already
+// positioned, like the slider thumb).
+@mixin hit-area($min: 24px) {
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    inline-size: max(100%, #{$min});
+    block-size: max(100%, #{$min});
+  }
+}
+
 // The disabled affordance: dim to 0.5. `$block: true` (the default — graphical widgets'
 // `:host([disabled])`) also swallows pointer events; `$block: false` (natively-disabled
 // <button>/<input>, which already ignore input) just shows the not-allowed cursor.
@@ -55,10 +73,10 @@
   transition: border-color var(--transition-fast);
 }
 
-// The field focus/hover affordance: kill the UA outline, accent the border. (Native
-// fields apply it on :focus; the combobox on :hover/:focus-visible.)
+// The field border accent — used on hover AND focus. The prominent keyboard focus ring
+// is added separately via `focus-ring` on :focus-visible, so fields get the SAME 2px ring
+// as every other control (hover keeps just the border accent, no ring).
 @mixin field-focus {
-  outline: none;
   border-color: var(--color-border-focus);
 }
 

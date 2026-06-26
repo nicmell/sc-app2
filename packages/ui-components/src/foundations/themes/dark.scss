@@ -45,9 +45,11 @@
      -on-primary is the foreground colour against
      --color-primary fills (white on the indigo). */
   --color-text: #e4e6eb;
-  --color-text-dim: #9aa0ab;
-  --color-text-mute: #6c7080;
-  --color-text-faint: #5a5e68;
+  --color-text-dim: #9aa0ab; /* ~6.3:1 on surface-1 — AA for body text */
+  --color-text-mute: #6c7080; /* ~3.4:1 — AA large / UI text */
+  /* Bumped from #5a5e68 (~2.7:1, failed the 3:1 floor). ~3.2:1 now — large/secondary
+     text only (a truly "faint" body tone can't reach 4.5:1 on this dark surface). */
+  --color-text-faint: #686c79;
   --color-on-primary: white;
 
   /* ── Primary action ──────────────────────────────────────────

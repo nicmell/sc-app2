@@ -26,3 +26,17 @@ select {
   font: inherit;
   color: inherit;
 }
+
+/* Respect a reduced-motion preference everywhere at once — `@use`d by both the head
+   foundation and every component's shadow base, so all transitions/animations are
+   neutralised in one place rather than per component. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

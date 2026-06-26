@@ -96,6 +96,9 @@
   background: var(--color-primary);
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
+  /* Grab/touch target ≥24px around the thumb without enlarging it (WCAG 2.5.8).
+     Already positioned, so no extra positioning context needed. */
+  @include hit-area;
 }
 
 /* Keyboard focus ring on the visible thumb (the real <input> is .sr-only); the thumb

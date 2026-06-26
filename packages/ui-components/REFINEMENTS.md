@@ -13,58 +13,46 @@ bite otherwise.
 
 ## Refinement backlog (recommended, prioritized)
 
-Each item: _what / where / why / suggested fix_. Tier 1 are effectively bugs.
+**Status: items 1–6 and 8 are DONE** (a11y + interaction polish pass, verified via the
+render gate). Only **#7 (forced-colors)** remains. Done items are kept below with their
+resolution for context.
 
-### Tier 1 — Accessibility (do these)
+### Tier 1 — Accessibility
 
-- [ ] **1. Field focus is a weak/inaccessible indicator.**
-  - _Where:_ `field-focus` mixin in `src/foundations/_mixins.scss` (used by the native
-    `input/select/textarea` rule in `base/controls.scss` and by sc-select's combobox).
-  - _Why:_ it does `outline: none; border-color: var(--color-border-focus)` — a 1px
-    colour shift. Fails WCAG 2.4.13 (Focus Appearance) and is inconsistent with the 2px
-    ring every other control gets (checkbox/radio/switch/button/knob/slider via
-    `focus-ring`).
-  - _Fix:_ give fields a real ring — keep the border recolour if you like, but add a
-    visible outline/box-shadow ring (~2px, `--color-border-focus`). Consider folding into
-    `focus-ring` so there is **one** focus affordance across the library.
+- [x] **1. Field focus ring.** `field-focus` now emits only the border accent; the 2px
+  `focus-ring` outline is added on `:focus-visible` (native fields in `controls.scss`;
+  combobox in `sc-select.scss` — hover keeps border-only, focus-visible gets the ring).
+  One focus affordance across the library now.
 
-- [ ] **2. No global `prefers-reduced-motion`.**
-  - _Where:_ only `sc-progress` and `sc-drawer` honour it today; ~11 components animate
-    (switch thumb slide, checkbox check scale, button/field transitions, toast, popover).
-  - _Fix:_ one foundation rule, not per-component. Add to a foundation sheet (e.g.
-    `foundations/shadow.scss` so shadow roots get it, and `base/elements.scss` for the
-    head/light-DOM):
-    `@media (prefers-reduced-motion: reduce) { *, ::before, ::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }`
+- [x] **2. Global `prefers-reduced-motion`.** Added once to `foundations/reset.scss`
+  (`@use`d by both the head foundation and every shadow base), neutralising all
+  transitions/animations under the media query.
 
-- [ ] **3. Interactive target sizes below WCAG 2.5.8 (24×24 CSS px).**
-  - _Where:_ standalone checkbox box = 14/16/20px (sm/md/lg via `--_box`), radio `--_r`
-    same, slider thumb 12.8–20px (`--_thumb`).
-  - _Fix:_ keep the painted control small but enlarge the **hit area** to ≥24px — a
-    transparent `::before` overlay or `min-block-size/min-inline-size` on the `label`.
-    Don't just scale the visual up.
+- [x] **3. Interactive target sizes (WCAG 2.5.8, 24×24).** New `hit-area($min)` mixin in
+  `_mixins.scss` (transparent centred `::before`, painted size unchanged) applied to
+  checkbox `.box`, radio `.ring`, slider `.thumb`. Verified 24px at sm.
 
-### Tier 2 — Interaction polish (expected of a pro library)
+### Tier 2 — Interaction polish
 
-- [ ] **4. `sc-option` has no `:hover`.** (Do this one first in this tier.)
-  - _Why:_ a dropdown where you can't see the row you're about to click. Clear UX miss.
-  - _Fix:_ hover background on the option row; `--color-surface-3-hover` already exists.
+- [x] **4. `sc-option` hover.** Hover background (`--color-surface-3-hover`) on the row.
+- [x] **5. checkbox / radio / switch hover.** Border/track brighten on
+  `:host(:hover:not([disabled]))` (switch brightens both off and on tracks).
+- [x] **6. Button `:active` press.** `button:active:not(:disabled) { translateY(1px) }`
+  (works on every variant regardless of fill).
 
-- [ ] **5. checkbox / radio / switch have no hover affordance** (focus only). Add a
-  subtle border-brighten on `:host(:hover:not([disabled]))` or the `.box/.ring/.track`.
-
-- [ ] **6. Buttons have no `:active` (press) state.** Hover + focus only. Add a small
-  press affordance (darken / 1px inset) on `button:active:not(:disabled)`.
-
-### Tier 3 — Robustness (can defer)
+### Tier 3 — Robustness
 
 - [ ] **7. No `forced-colors` (Windows High-Contrast) support.** Custom-painted controls
   (checkbox box, switch track, radio ring) are CSS bg/border and can disappear in
   forced-colors mode. Add a `@media (forced-colors: active)` pass using system colours
-  (`CanvasText`, `Highlight`, etc.).
+  (`CanvasText`, `Highlight`, etc.). _Deferred:_ it's per-component and needs real
+  forced-colors-mode testing (the render gate can't observe it). Treat as its own pass.
 
-- [ ] **8. Verify the dim text tokens.** `--color-text-faint` (#5a5e68) on `surface-1`
-  is ~2.5:1 — below AA (4.5:1) and the 3:1 UI threshold. Fine if decorative only;
-  a failure if it carries readable text. Confirm usage; bump if needed.
+- [x] **8. Dim text contrast.** Confirmed `--color-text-faint` is a public `sc-text` tone
+  (`tone="faint"`), so it carries author text — it was #5a5e68 (~2.7:1, failing the 3:1
+  floor). Bumped to #686c79 (~3.2:1), kept below `mute`. NOTE: a "faint" tone can't reach
+  4.5:1 on this dark surface without collapsing into `dim`, so it's now documented (token
+  comment) as **large/secondary text only**, not body. (`mute` is ~3.4:1 — same caveat.)
 
 ---
 

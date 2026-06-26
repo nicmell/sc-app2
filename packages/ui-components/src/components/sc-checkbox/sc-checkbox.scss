@@ -37,6 +37,7 @@ label {
 }
 
 .box {
+  position: relative; /* hit-area anchor */
   display: inline-grid;
   place-items: center;
   inline-size: var(--_box, 1rem);
@@ -47,6 +48,13 @@ label {
   transition:
     border-color var(--transition-fast),
     background var(--transition-fast);
+  /* Pointer/touch target ≥24px without enlarging the painted box (WCAG 2.5.8). */
+  @include hit-area;
+}
+
+/* Hover affordance (when interactive): brighten the box border. */
+:host(:hover:not([disabled])) .box {
+  border-color: var(--color-border-focus);
 }
 
 .check {

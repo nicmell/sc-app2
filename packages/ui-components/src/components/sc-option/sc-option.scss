@@ -22,6 +22,12 @@ div {
   font-size: var(--font-size-sm);
   color: var(--color-text);
   border-radius: var(--radius-xs);
+  transition: background var(--transition-fast);
+}
+
+/* Hover affordance — highlight the row under the pointer (disabled host can't hover). */
+:host(:hover) div {
+  background: var(--color-surface-3-hover);
 }
 
 /* The effective size (own, or the select's via context) is reflected to the host. */

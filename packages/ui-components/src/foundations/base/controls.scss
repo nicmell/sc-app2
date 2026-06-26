@@ -25,10 +25,11 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   @include field-focus;
+  @include focus-ring;
 }
 
 input:disabled,

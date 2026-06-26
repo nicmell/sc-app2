@@ -27,9 +27,12 @@
   cursor: pointer;
   user-select: none;
 
-  &:hover,
+  &:hover {
+    @include field-focus;
+  }
   &:focus-visible {
     @include field-focus;
+    @include focus-ring;
   }
   &:disabled {
     @include disabled($block: false);

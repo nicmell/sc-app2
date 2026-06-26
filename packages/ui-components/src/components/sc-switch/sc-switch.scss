@@ -62,3 +62,11 @@ label {
     @include focus-ring;
   }
 }
+
+/* Hover affordance (when interactive): brighten the track — off and on. */
+:host(:hover:not([disabled])) .track {
+  background: var(--color-surface-3-hover);
+}
+:host(:hover:not([disabled])) .input:checked ~ .track {
+  background: var(--color-primary-hover);
+}

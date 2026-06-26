@@ -116,6 +116,10 @@
 @media (prefers-reduced-motion: reduce) {
   .bar.indeterminate .fill,
   .spinner.indeterminate {
-    animation-duration: 3s;
+    /* An indeterminate loader MUST keep looping to signal "working" — re-assert over
+       the global reduced-motion reset (foundations/reset.scss, which would otherwise
+       freeze it via animation-iteration-count: 1). Just slower/gentler. */
+    animation-duration: 3s !important;
+    animation-iteration-count: infinite !important;
   }
 }

@@ -90,9 +90,5 @@ dialog {
   border-bottom: 1px solid var(--color-border);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  dialog,
-  dialog::backdrop {
-    transition: none;
-  }
-}
+/* No local prefers-reduced-motion rule: the global reset (foundations/reset.scss)
+   already neutralises the slide/backdrop transitions. */

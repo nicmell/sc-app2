@@ -25,8 +25,8 @@ div {
   transition: background var(--transition-fast);
 }
 
-/* Hover affordance — highlight the row under the pointer (disabled host can't hover). */
-:host(:hover) div {
+/* Hover affordance — highlight the row under the pointer. */
+:host(:hover:not([disabled])) div {
   background: var(--color-surface-3-hover);
 }
 

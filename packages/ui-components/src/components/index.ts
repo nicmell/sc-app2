@@ -47,7 +47,6 @@ export { ScButtonBase, type ScButtonVariant } from "./sc-button/sc-button";
 export { ScBadgeBase, type ScBadgeVariant } from "./sc-badge/sc-badge";
 export { ScToastBase, type ScToastVariant } from "./sc-toast/sc-toast";
 export { ScChipBase, type ScChipVariant } from "./sc-chip/sc-chip";
-export { foundations } from "./internal/foundation-styles";
 export { ScPopoverBase } from "./sc-popover/sc-popover";
 export { type PopoverPlacement } from "./sc-popover/position";
 export { ScModalBase } from "./sc-modal/sc-modal";

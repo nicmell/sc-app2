@@ -7,7 +7,8 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control/sc-control";
-import { foundations, controlStyles } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
+import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-textarea.scss";
 
 export class ScTextareaBase extends ScControlBase {

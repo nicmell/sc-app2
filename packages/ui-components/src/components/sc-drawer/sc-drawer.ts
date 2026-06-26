@@ -9,7 +9,7 @@
 
 import { property } from "lit/decorators.js";
 import { ScDialogBase } from "../internal/sc-dialog/sc-dialog";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-drawer.scss";
 
 export type ScDrawerSide = "right" | "left";

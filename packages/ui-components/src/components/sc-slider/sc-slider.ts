@@ -8,7 +8,8 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScRangeBase } from "../internal/sc-range/sc-range";
-import { foundations, controlStyles } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
+import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-slider.scss";
 
 export class ScSliderBase extends ScRangeBase {

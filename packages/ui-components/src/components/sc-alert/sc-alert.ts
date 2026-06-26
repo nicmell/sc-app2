@@ -5,7 +5,7 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-alert.scss";
 
 export type ScAlertVariant = "info" | "success" | "warn" | "error";

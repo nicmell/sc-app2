@@ -14,7 +14,7 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-progress.scss";
 
 export type ScProgressVariant = "bar" | "spinner";

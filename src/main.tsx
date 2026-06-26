@@ -1,8 +1,8 @@
 // Foundation CSS in the document <head> — a render-blocking stylesheet, so the first
 // paint is already styled (no FOUC) and the Phosphor @font-face registers document-wide.
 // Vite extracts this side-effect import to a <link> in the production build; shadow
-// components adopt only a font-free subset (the `foundations` export), so the fonts are
-// never duplicated into a shadow CSSResult.
+// components adopt only a font-free subset (the shadow base, foundations/shadow.scss), so
+// the fonts are never duplicated into a shadow CSSResult.
 import "@sc-app/ui-components";
 import React from "react";
 import ReactDOM from "react-dom/client";

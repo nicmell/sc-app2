@@ -10,7 +10,8 @@ import { live } from "lit/directives/live.js";
 import { ContextConsumer } from "@lit/context";
 import { ScControlBase } from "../internal/sc-control/sc-control";
 import { radioGroupContext, type RadioGroupContext } from "../sc-radio-group/sc-radio-group";
-import { foundations, controlStyles } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
+import controlStyles from "../../foundations/base/controls.scss";
 import styles from "./sc-radio.scss";
 
 export class ScRadioBase extends ScControlBase {

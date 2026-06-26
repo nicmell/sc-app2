@@ -4,7 +4,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-chip.scss";
 
 export type ScChipVariant = "neutral" | "ok" | "warn" | "error" | "info";

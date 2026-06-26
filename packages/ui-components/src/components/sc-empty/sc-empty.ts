@@ -3,7 +3,7 @@
 // over a <slot> for the author's message.
 
 import { LitElement, html } from "lit";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-empty.scss";
 
 export class ScEmptyBase extends LitElement {

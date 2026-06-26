@@ -10,7 +10,7 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { ContextProvider, createContext } from "@lit/context";
 import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-radio-group.scss";
 
 // Context this group provides to its declarative <sc-radio-base> children (the old

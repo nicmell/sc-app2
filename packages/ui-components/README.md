@@ -37,7 +37,6 @@ src/
                                 renders a shadow tree using literal class names
     sc-<tag>/sc-<tag>.scss      the component's own CSS (→ a Lit CSSResult via vite-plugin-lit-css)
     index.ts               element barrel + registerUiComponents()
-    internal/foundation-styles.ts   the shared font-free `foundations` + `controlStyles` CSSResults
     internal/sc-control/sc-control.ts  abstract base for every input/control (size + disabled + name)
     internal/sc-range/sc-range.ts      abstract base for the range widgets (slider/knob)
     internal/sc-dialog/sc-dialog.ts    abstract base for the dialog overlays (modal/drawer)
@@ -207,17 +206,20 @@ contexts are each defined in their **provider** component (`radioGroupContext` i
 
 Each component owns its styles as a co-located `sc-x.scss`, imported as a Lit
 `CSSResult` (`vite-plugin-lit-css` runs it through Vite's CSS pipeline + wraps it),
-and composes it with the shared `foundations`:
+and composes it with the shared shadow base imported straight from `foundations/`:
 
 ```ts
-import { foundations } from "../internal/foundation-styles";
-import styles from "./sc-x.scss";               // → CSSResult (vite-plugin-lit-css)
-static styles = [foundations, styles];          // adopted into the shadow root
+import foundations from "../../foundations/shadow.scss"; // → CSSResult (the shadow base)
+import styles from "./sc-x.scss";                        // → CSSResult (the component)
+static styles = [foundations, styles];                   // adopted into the shadow root
 ```
 
-`internal/foundation-styles.ts`'s `foundations` is the **font-free shadow base**
-(`foundations/shadow.scss`: reset + bare `input{}`/`button{}`/etc. element styles),
-adopted into **every** component's shadow. It is NOT the full foundation: the design
+`foundations/shadow.scss` is the **font-free shadow base** (reset + bare
+`input{}`/`button{}`/etc. element styles), adopted into **every** component's shadow.
+It's imported directly — ES modules are singletons, so all components share the one
+`CSSResult` → one adopted `CSSStyleSheet`, no duplication (no indirection module needed).
+The eight field/widget components that render a native field also import
+`foundations/base/controls.scss` as `controlStyles`. It is NOT the full foundation: the design
 tokens reach shadow roots via custom-property inheritance from the document, and the
 icon font is registered document-wide (not parsed into any shadow sheet). The **full**
 foundation (`foundations/index.scss` — tokens + themes + reset + base + the Phosphor

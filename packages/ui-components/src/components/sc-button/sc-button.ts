@@ -10,7 +10,7 @@ import { LitElement, html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
 import type { ScSize } from "../internal/sc-control/sc-control";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-button.scss";
 import "../sc-icon/sc-icon";
 

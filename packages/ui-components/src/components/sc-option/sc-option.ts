@@ -9,7 +9,7 @@ import { property } from "lit/decorators.js";
 import { ContextConsumer } from "@lit/context";
 import { ScControlBase } from "../internal/sc-control/sc-control";
 import { selectContext } from "../sc-select/sc-select";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-option.scss";
 
 export class ScOptionBase extends ScControlBase {

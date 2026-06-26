@@ -17,7 +17,7 @@
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import { autoPosition, type PopoverPlacement } from "./position";
 import styles from "./sc-popover.scss";
 

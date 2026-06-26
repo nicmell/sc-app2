@@ -13,7 +13,7 @@
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";
 import cx from "classnames";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import glyphs from "../../foundations/icons.scss";
 import styles from "./sc-icon.scss";
 

@@ -12,7 +12,7 @@
 import { LitElement } from "lit";
 import { html, literal } from "lit/static-html.js";
 import { property } from "lit/decorators.js";
-import { foundations } from "../internal/foundation-styles";
+import foundations from "../../foundations/shadow.scss";
 import styles from "./sc-text.scss";
 
 export type ScTextAs = "span" | "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";

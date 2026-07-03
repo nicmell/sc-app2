@@ -14,7 +14,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font: inherit;
@@ -37,6 +37,12 @@ button {
   }
 }
 
+/* The glyph tracks the button's text size (sc-icon's <i> inherits font-size), so it scales
+   with `size` and lines up with the label. */
+.icon {
+  font-size: 1em;
+}
+
 /* Sizes */
 :host([size="sm"]) button {
   padding: var(--space-2xs) var(--space-sm);
@@ -49,6 +55,16 @@ button {
 :host([size="lg"]) button {
   padding: var(--space-sm) var(--space-lg);
   font-size: var(--font-size-md);
+}
+
+/* Icon + label (MUI start/end-icon idiom): the leading/trailing glyph hugs the button
+   edge with a small negative margin so the icon+label pair stays optically centred and the
+   glyph doesn't float too far in from the padding. Only when a label is present. */
+button:has(.label) .lead {
+  margin-inline-start: calc(-1 * var(--space-2xs));
+}
+button:has(.label) .trail {
+  margin-inline-end: calc(-1 * var(--space-2xs));
 }
 
 /* Icon-only: square, equal padding (overrides the size padding). */

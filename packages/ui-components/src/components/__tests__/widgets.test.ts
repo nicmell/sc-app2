@@ -343,16 +343,17 @@ describe("sc-button-base", () => {
     expect(el.shadowRoot!.querySelector(".label")!.textContent).toBe("Run");
   });
 
-  it("renders leading and trailing icons", async () => {
+  it("renders leading + trailing icons tagged for the edge-hug layout", async () => {
     const el = await mount("sc-button-base", {
       label: "Open",
       icon: "folder",
       trailingIcon: "caret-down",
     });
-    const names = Array.from(el.shadowRoot!.querySelectorAll("sc-icon-base")).map((i) =>
-      i.getAttribute("name"),
-    );
-    expect(names).toEqual(["folder", "caret-down"]);
+    const icons = Array.from(el.shadowRoot!.querySelectorAll("sc-icon-base"));
+    expect(icons.map((i) => i.getAttribute("name"))).toEqual(["folder", "caret-down"]);
+    // Leading/trailing tagged so each hugs its button edge; sized via em (no size attr).
+    expect(icons[0].classList.contains("lead")).toBe(true);
+    expect(icons[1].classList.contains("trail")).toBe(true);
   });
 
   it("icon-only: square modifier, no label text, label used as aria-label", async () => {

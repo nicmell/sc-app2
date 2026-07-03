@@ -41,14 +41,16 @@ export class ScButtonBase extends LitElement {
         ?disabled=${this.disabled}
         aria-label=${iconOnly && this.label ? this.label : nothing}
       >
-        ${this.icon ? html`<sc-icon-base name=${this.icon}></sc-icon-base>` : nothing}
+        ${this.icon
+          ? html`<sc-icon-base class=${cx("icon", { lead: !iconOnly })} name=${this.icon}></sc-icon-base>`
+          : nothing}
         ${iconOnly
           ? nothing
           : this.label
             ? html`<span class="label">${this.label}</span>`
             : nothing}
         ${!iconOnly && this.trailingIcon
-          ? html`<sc-icon-base name=${this.trailingIcon}></sc-icon-base>`
+          ? html`<sc-icon-base class="icon trail" name=${this.trailingIcon}></sc-icon-base>`
           : nothing}
       </button>
     `;

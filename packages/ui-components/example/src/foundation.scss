@@ -1,0 +1,5 @@
+// The full ui-components foundation, pulled in as a render-blocking <link> from index.html
+// (so the demo is styled at first paint — no FOUC). `@use` of the package source, resolved
+// through Vite's Sass importer; this local entry lives inside the example root so the <link>
+// URL resolves (a <link href> to the package's own src/ can't escape the Vite root).
+@use "@sc-app/ui-components";

@@ -5,6 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tauri + React + Typescript</title>
+    <!-- Foundation as a render-blocking stylesheet so the first paint is styled (no FOUC).
+         See src/foundation.scss; main.tsx no longer side-effect-imports the foundation. -->
+    <link rel="stylesheet" href="/src/foundation.scss" />
   </head>
 
   <body>

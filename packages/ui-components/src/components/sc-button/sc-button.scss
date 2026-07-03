@@ -105,12 +105,20 @@ button.iconOnly {
   padding: var(--space-sm);
 }
 
-/* Variants (each filled/bordered look + its hover) */
+/* Variants (each filled/bordered look + its hover + its pressed tint).
+   Press mirrors antd: filled buttons darken the fill, bordered ones darken the
+   border (ghost also gains a faint fill) — a shade deeper than hover, computed
+   from the base token so it tracks the palette in every theme. `:active` sits
+   after `:hover` so it wins while the pointer is down; the shared `transition`
+   (background/border-color/color) eases the tint. No translate — tint only. */
 :host([variant="primary"]) button {
   background: var(--color-primary);
   color: var(--color-on-primary);
   &:hover:not(:disabled) {
     background: var(--color-primary-hover);
+  }
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--color-primary), black 15%);
   }
 }
 :host([variant="secondary"]) button {
@@ -120,6 +128,10 @@ button.iconOnly {
   &:hover:not(:disabled) {
     border-color: var(--color-border-stronger);
   }
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--color-surface-2), black 12%);
+    border-color: var(--color-border-focus);
+  }
 }
 :host([variant="ghost"]) button {
   background: transparent;
@@ -128,11 +140,18 @@ button.iconOnly {
   &:hover:not(:disabled) {
     border-color: var(--color-border-focus);
   }
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    border-color: var(--color-border-focus);
+  }
 }
 :host([variant="danger"]) button {
   background: var(--color-danger);
   color: var(--color-on-primary);
   &:hover:not(:disabled) {
     background: var(--color-danger-hover);
+  }
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--color-danger), black 15%);
   }
 }

@@ -4,10 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@sc-app/ui-components — demo</title>
-    <!-- Standalone Vite showcase — consumes the package SOURCE (no build step).
-         The foundation is a render-blocking <link> in the head (present at first
-         paint → no FOUC / no unstyled flash); main.ts only registers the elements. -->
-    <link rel="stylesheet" href="./src/foundation.scss" />
+    <!-- A standalone Vite showcase that consumes the BUILT package
+         (@sc-app/ui-components) — so build the library first, then `yarn demo`
+         (from the package dir) or `vite` (from here). -->
     <style>
       /* Demo-only chrome. Not part of the foundation; just enough
        structure to render the sections without overflowing tiny screens. */

@@ -1,7 +1,0 @@
-// The full @sc-app/ui-components foundation, pulled in as a render-blocking <link> from
-// index.html (so the app is styled at first paint — no FOUC / no white-and-serif flash).
-// `@use` of the package source via Vite's Sass importer; kept a local entry inside src/ so
-// the <link> URL resolves within the Vite root (the head <link> can't reach node_modules by
-// URL). It registers the Phosphor @font-face document-wide; shadow components adopt only the
-// font-free subset (foundations/reset.scss) themselves.
-@use "@sc-app/ui-components";

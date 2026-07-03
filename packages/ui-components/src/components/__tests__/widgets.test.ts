@@ -365,6 +365,27 @@ describe("sc-button-base", () => {
     expect(btn.getAttribute("aria-label")).toBe("Play");
   });
 
+  it("loading: spinner takes the icon slot, button is busy + disabled, label stays", async () => {
+    const el = await mount("sc-button-base", { label: "Save", icon: "gear", loading: true });
+    const btn = el.shadowRoot!.querySelector("button")!;
+    expect(el.shadowRoot!.querySelector(".spinner")).not.toBeNull();
+    expect(el.shadowRoot!.querySelector("sc-icon-base")).toBeNull(); // spinner replaced the icon
+    expect(el.shadowRoot!.querySelector(".label")!.textContent).toBe("Save");
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("loading works without an icon (spinner in the leading slot) and icon-only", async () => {
+    const plain = await mount("sc-button-base", { label: "Go", loading: true });
+    expect(plain.shadowRoot!.querySelector(".spinner")!.classList.contains("lead")).toBe(true);
+    expect(plain.shadowRoot!.querySelector(".label")!.textContent).toBe("Go");
+
+    const iconOnly = await mount("sc-button-base", { icon: "play", iconOnly: true, loading: true });
+    expect(iconOnly.shadowRoot!.querySelector(".spinner")).not.toBeNull();
+    expect(iconOnly.shadowRoot!.querySelector(".label")).toBeNull();
+    expect(iconOnly.shadowRoot!.querySelector("button")!.classList.contains("iconOnly")).toBe(true);
+  });
+
   it("fires a bubbling click from the inner button", async () => {
     const el = await mount("sc-button-base", { label: "Go" });
     let clicks = 0;

@@ -59,7 +59,7 @@ Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`. `size` is `s
 | `sc-inputnumber-base` | `value` `min` `max` `step` `size` `disabled` | `input`/`change` | hidden spinners, themed steppers |
 | `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | `input`/`change` | multi-line |
 | `sc-text-base` | `as` `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6` |
-| `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `variant` `size` `disabled` `type` | `click` | composes `sc-icon-base` |
+| `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click` | composes `sc-icon-base`; `loading` → spinner in the icon slot |
 | `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph |
 | `sc-badge-base` | `label` `variant` | — | uppercase pill |
 | `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional dot) |

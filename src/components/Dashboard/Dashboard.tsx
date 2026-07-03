@@ -24,7 +24,7 @@ import { DashboardFooter } from "./DashboardFooter";
 import { Placeholder } from "./Placeholder";
 import { PluginHost } from "./PluginHost";
 import { PluginPicker } from "@/components/PluginPicker";
-import "./Dashboard.css";
+import "./Dashboard.scss";
 
 const HEADER_HEIGHT = 42;
 const FOOTER_HEIGHT = 42;

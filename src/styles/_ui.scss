@@ -1,0 +1,10 @@
+// App-local SCSS helpers shared by App.scss + Dashboard.scss.
+// (Design tokens come from @sc-app/ui-components as :root custom properties — use var(--…)
+// directly; this file is only for structural helpers the app repeats.)
+
+// The uppercase "eyebrow" look used by the section headers (strudel / OSC console) and the
+// dashboard panel title.
+@mixin caps-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

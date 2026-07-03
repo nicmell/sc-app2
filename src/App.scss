@@ -1,7 +1,9 @@
 /* App layout. Palette, buttons, status pills, panels, modals come from
    @sc-app/ui-components (imported in main.tsx); the dashboard shell + grid live
-   in components/Dashboard/Dashboard.css. This file owns the app container, the
+   in components/Dashboard/Dashboard.scss. This file owns the app container, the
    plugin drawer, and the three sc-elements' internal layout. */
+
+@use "./styles/ui" as *;
 
 .app {
   margin: 0;
@@ -61,6 +63,10 @@ sc-plugin {
   color: var(--color-text-dim);
   line-height: var(--line-height-normal);
 }
+.sc-modal__actions {
+  justify-content: flex-end;
+}
+
 /* The drawer's slotted <header> bar is styled by the component (::slotted); its
    title heading is app light DOM, so size it here. */
 sc-base-drawer header h2 {
@@ -74,6 +80,7 @@ sc-base-drawer header h2 {
   overflow-y: auto;
   padding: var(--space-md);
 }
+
 /* The toast stack is a fixed-position, top-layer (popover=manual) container. */
 .sc-toast-stack {
   position: fixed;
@@ -109,9 +116,6 @@ sc-base-drawer header h2 {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
 }
-.sc-modal__actions {
-  justify-content: flex-end;
-}
 
 /* ── <sc-strudel> ── */
 sc-strudel {
@@ -129,13 +133,13 @@ sc-strudel {
   gap: var(--space-sm);
   padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
-}
-.strudel-header h1 {
-  font-size: var(--font-size-sm);
-  margin: 0;
-  margin-right: auto;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+
+  h1 {
+    margin: 0;
+    margin-right: auto;
+    font-size: var(--font-size-sm);
+    @include caps-label;
+  }
 }
 .strudel-editor {
   flex: 1;
@@ -183,12 +187,12 @@ sc-console {
   gap: var(--space-xs);
   padding: var(--space-2xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
-}
-.osc-header h2 {
-  font-size: var(--font-size-sm);
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+
+  h2 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    @include caps-label;
+  }
 }
 .osc-count {
   font-size: var(--font-size-xs);
@@ -212,10 +216,11 @@ sc-console {
   grid-template-columns: 7.5em 2.5em 14em 1fr;
   gap: var(--space-xs);
   white-space: nowrap;
-}
-.osc-row > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+  & > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 .osc-time {
   color: var(--color-text-mute);

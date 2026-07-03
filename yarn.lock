@@ -4717,6 +4717,7 @@ __metadata:
     react: "npm:^19"
     react-dom: "npm:^19"
     react-grid-layout: "npm:^2.2.3"
+    sass: "npm:^1.101.0"
     typescript: "npm:~5.6.2"
     typescript-eslint: "npm:^8.56.0"
     vite: "npm:^6.0.3"

@@ -4,7 +4,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { Drawer } from "@/components/Drawer";
 import { ToastStack } from "@/components/ToastStack";
 import { refreshPlugins } from "@/stores/plugins";
-import "./App.css";
+import "./App.scss";
 
 function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);

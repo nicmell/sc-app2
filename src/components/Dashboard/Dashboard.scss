@@ -2,16 +2,21 @@
    ui-components tokens. react-grid-layout owns positioning (inline styles +
    its own css); this file owns the look. */
 
-/* Snappy reposition: kill the grid item's move/resize transition. */
-.react-grid-item {
-  transition: none;
-}
+@use "../../styles/ui" as *;
 
-/* The default resize grip is drawn with a near-black border — invisible on a
-   dark surface. Repaint it with a foreground token so the corner is grabbable. */
-.react-grid-item > .react-resizable-handle::after {
-  border-right-color: var(--color-text-dim);
-  border-bottom-color: var(--color-text-dim);
+/* Header + footer bars share one height. */
+$bar-height: 42px;
+
+.react-grid-item {
+  /* Snappy reposition: kill the grid item's move/resize transition. */
+  transition: none;
+
+  /* The default resize grip is drawn with a near-black border — invisible on a
+     dark surface. Repaint it with a foreground token so the corner is grabbable. */
+  & > .react-resizable-handle::after {
+    border-right-color: var(--color-text-dim);
+    border-bottom-color: var(--color-text-dim);
+  }
 }
 
 .dashboard {
@@ -29,7 +34,7 @@
   gap: var(--space-sm);
   padding: 0 var(--space-md);
   flex-shrink: 0;
-  height: 42px;
+  height: $bar-height;
   background: var(--color-surface-1);
   border-bottom: 1px solid var(--color-border);
 }
@@ -71,11 +76,12 @@
   transition:
     border-color var(--transition-base),
     color var(--transition-base);
-}
-.add-box-placeholder:hover {
-  border-color: var(--color-text-dim);
-  color: var(--color-text);
-  background: var(--color-surface-1);
+
+  &:hover {
+    border-color: var(--color-text-dim);
+    color: var(--color-text);
+    background: var(--color-surface-1);
+  }
 }
 
 /* ── panel ── */
@@ -99,17 +105,17 @@
   border-bottom: 1px solid var(--color-border);
   cursor: grab;
   user-select: none;
-}
-.dashboard-panel-header:active {
-  cursor: grabbing;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
 .dashboard-panel-title {
   flex: 1;
   color: var(--color-text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   font-size: var(--font-size-xs);
+  @include caps-label;
 }
 
 .dashboard-panel-body {
@@ -139,7 +145,7 @@
   padding: 0 var(--space-md);
   flex-shrink: 0;
   border-top: 1px solid var(--color-border);
-  height: 42px;
+  height: $bar-height;
   background: var(--color-surface-1);
 }
 

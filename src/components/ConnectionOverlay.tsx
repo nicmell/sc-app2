@@ -1,4 +1,4 @@
-import { ScCluster, ScProgress } from "@sc-app/ui-components/react";
+import { ScButton, ScCluster, ScProgress } from "@sc-app/ui-components/react";
 import { Modal } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
 
@@ -27,9 +27,7 @@ export function ConnectionOverlay() {
         The session could not be established — the server or scsynth may be down.
       </p>
       <ScCluster className="sc-modal__actions">
-        <button type="button" onClick={() => void session.retry()}>
-          Retry
-        </button>
+        <ScButton label="Retry" onClick={() => void session.retry()} />
       </ScCluster>
     </Modal>
   );

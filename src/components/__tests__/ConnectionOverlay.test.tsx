@@ -67,7 +67,10 @@ describe("ConnectionOverlay", () => {
     expect(modal).not.toBeNull();
     expect(modal!.querySelector(".sc-modal__title")?.textContent).toMatch(/connection failed/i);
     expect(modal!.querySelector(".sc-modal__body")?.textContent).toBeTruthy();
-    expect(modal!.querySelector(".sc-modal__actions button")?.textContent).toMatch(/retry/i);
+    // Retry is now an <sc-base-button> in the actions cluster (its label is a prop; the
+    // text lives in the shadow). Presence is the robust check here; the click wiring is
+    // covered by the next test.
+    expect(modal!.querySelector(".sc-modal__actions sc-base-button")).not.toBeNull();
   });
 
   it("Retry click calls session.retry(); the loader returns when status flips", () => {
@@ -77,7 +80,9 @@ describe("ConnectionOverlay", () => {
       return Promise.resolve();
     });
     setStatus("error");
-    const button = container.querySelector(".sc-modal__actions button");
+    // <sc-base-button> relays the inner button's composed click; React's onClick catches it
+    // as it bubbles to the host, so dispatching on the host drives the retry.
+    const button = container.querySelector(".sc-modal__actions sc-base-button");
     expect(button).not.toBeNull();
     act(() => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));

@@ -1,4 +1,4 @@
-// <sc-slider-base> — a hidden native <input type="range"> under the
+// <sc-base-slider> — a hidden native <input type="range"> under the
 // track/fill/thumb overlay. The value plumbing (range mirror, quantise,
 // pointer-drag, wheel, composed event re-emit) lives in ScRangeBase; this file
 // is the track visual + the slider's drag feel: dragging along the `orientation`

@@ -1,5 +1,5 @@
-// <sc-radio-base> — a hidden native <input type="radio"> under a ring/dot
-// overlay, and a ContextConsumer of its <sc-radio-group-base>. Shadow DOM:
+// <sc-base-radio> — a hidden native <input type="radio"> under a ring/dot
+// overlay, and a ContextConsumer of its <sc-base-radio-group>. Shadow DOM:
 // selection + the shared name + size/disabled come from the group
 // context; clicking reports back via ctx.select. Standalone, it falls back to
 // its own `checked` and re-emits a composed `change` from the host.

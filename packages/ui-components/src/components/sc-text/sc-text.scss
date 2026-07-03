@@ -1,5 +1,5 @@
 /*
- * <sc-text-base> typography styles. Shadow DOM: `:host { display: contents }` so the
+ * <sc-base-text> typography styles. Shadow DOM: `:host { display: contents }` so the
  * rendered semantic element (chosen by `as` — span/p/div/h1–h6) is the effective text
  * box. The tag is semantic-only: every candidate tag is reset to one base type scale via
  * a zero-specificity `:where()` selector, so the modifier rules win — the look is fully

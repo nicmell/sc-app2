@@ -76,36 +76,36 @@ export {
 
 /** Tag → constructor for every registrable `-base` widget. */
 export const REGISTRY = {
-  "sc-checkbox-base": ScCheckboxBase,
-  "sc-switch-base": ScSwitchBase,
-  "sc-knob-base": ScKnobBase,
-  "sc-slider-base": ScSliderBase,
+  "sc-base-checkbox": ScCheckboxBase,
+  "sc-base-switch": ScSwitchBase,
+  "sc-base-knob": ScKnobBase,
+  "sc-base-slider": ScSliderBase,
   // Context providers must be defined BEFORE their consumers so that, when a
   // page's existing markup upgrades, the provider is listening before a child
   // requests context (radio-group before radio; select before option).
-  "sc-radio-group-base": ScRadioGroupBase,
-  "sc-radio-base": ScRadioBase,
-  "sc-select-base": ScSelectBase,
-  "sc-option-base": ScOptionBase,
-  "sc-icon-base": ScIconBase,
-  "sc-button-base": ScButtonBase,
-  "sc-badge-base": ScBadgeBase,
-  "sc-toast-base": ScToastBase,
-  "sc-chip-base": ScChipBase,
-  "sc-input-base": ScInputBase,
-  "sc-inputnumber-base": ScInputNumberBase,
-  "sc-textarea-base": ScTextareaBase,
-  "sc-text-base": ScTextBase,
-  "sc-popover-base": ScPopoverBase,
-  "sc-modal-base": ScModalBase,
-  "sc-drawer-base": ScDrawerBase,
-  "sc-alert-base": ScAlertBase,
-  "sc-panel-base": ScPanelBase,
-  "sc-empty-base": ScEmptyBase,
-  "sc-stack-base": ScStackBase,
-  "sc-cluster-base": ScClusterBase,
-  "sc-disclosure-base": ScDisclosureBase,
-  "sc-progress-base": ScProgressBase,
+  "sc-base-radio-group": ScRadioGroupBase,
+  "sc-base-radio": ScRadioBase,
+  "sc-base-select": ScSelectBase,
+  "sc-base-option": ScOptionBase,
+  "sc-base-icon": ScIconBase,
+  "sc-base-button": ScButtonBase,
+  "sc-base-badge": ScBadgeBase,
+  "sc-base-toast": ScToastBase,
+  "sc-base-chip": ScChipBase,
+  "sc-base-input": ScInputBase,
+  "sc-base-inputnumber": ScInputNumberBase,
+  "sc-base-textarea": ScTextareaBase,
+  "sc-base-text": ScTextBase,
+  "sc-base-popover": ScPopoverBase,
+  "sc-base-modal": ScModalBase,
+  "sc-base-drawer": ScDrawerBase,
+  "sc-base-alert": ScAlertBase,
+  "sc-base-panel": ScPanelBase,
+  "sc-base-empty": ScEmptyBase,
+  "sc-base-stack": ScStackBase,
+  "sc-base-cluster": ScClusterBase,
+  "sc-base-disclosure": ScDisclosureBase,
+  "sc-base-progress": ScProgressBase,
 } as const satisfies Record<string, CustomElementConstructor>;
 
 /** Define every `-base` custom element (idempotent — safe to call repeatedly). */
@@ -117,32 +117,32 @@ export function registerUiComponents(): void {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "sc-checkbox-base": ScCheckboxBase;
-    "sc-switch-base": ScSwitchBase;
-    "sc-knob-base": ScKnobBase;
-    "sc-slider-base": ScSliderBase;
-    "sc-option-base": ScOptionBase;
-    "sc-radio-base": ScRadioBase;
-    "sc-radio-group-base": ScRadioGroupBase;
-    "sc-select-base": ScSelectBase;
-    "sc-icon-base": ScIconBase;
-    "sc-button-base": ScButtonBase;
-    "sc-badge-base": ScBadgeBase;
-    "sc-toast-base": ScToastBase;
-    "sc-chip-base": ScChipBase;
-    "sc-input-base": ScInputBase;
-    "sc-inputnumber-base": ScInputNumberBase;
-    "sc-textarea-base": ScTextareaBase;
-    "sc-text-base": ScTextBase;
-    "sc-popover-base": ScPopoverBase;
-    "sc-modal-base": ScModalBase;
-    "sc-drawer-base": ScDrawerBase;
-    "sc-alert-base": ScAlertBase;
-    "sc-panel-base": ScPanelBase;
-    "sc-empty-base": ScEmptyBase;
-    "sc-stack-base": ScStackBase;
-    "sc-cluster-base": ScClusterBase;
-    "sc-disclosure-base": ScDisclosureBase;
-    "sc-progress-base": ScProgressBase;
+    "sc-base-checkbox": ScCheckboxBase;
+    "sc-base-switch": ScSwitchBase;
+    "sc-base-knob": ScKnobBase;
+    "sc-base-slider": ScSliderBase;
+    "sc-base-option": ScOptionBase;
+    "sc-base-radio": ScRadioBase;
+    "sc-base-radio-group": ScRadioGroupBase;
+    "sc-base-select": ScSelectBase;
+    "sc-base-icon": ScIconBase;
+    "sc-base-button": ScButtonBase;
+    "sc-base-badge": ScBadgeBase;
+    "sc-base-toast": ScToastBase;
+    "sc-base-chip": ScChipBase;
+    "sc-base-input": ScInputBase;
+    "sc-base-inputnumber": ScInputNumberBase;
+    "sc-base-textarea": ScTextareaBase;
+    "sc-base-text": ScTextBase;
+    "sc-base-popover": ScPopoverBase;
+    "sc-base-modal": ScModalBase;
+    "sc-base-drawer": ScDrawerBase;
+    "sc-base-alert": ScAlertBase;
+    "sc-base-panel": ScPanelBase;
+    "sc-base-empty": ScEmptyBase;
+    "sc-base-stack": ScStackBase;
+    "sc-base-cluster": ScClusterBase;
+    "sc-base-disclosure": ScDisclosureBase;
+    "sc-base-progress": ScProgressBase;
   }
 }

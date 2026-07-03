@@ -1,4 +1,4 @@
-// <sc-badge-base> — an uppercase pill label. Shadow DOM: `:host` is the pill carrying
+// <sc-base-badge> — an uppercase pill label. Shadow DOM: `:host` is the pill carrying
 // the declarative `label`, with the colour `variant` reflected (ok is the base).
 
 import { LitElement, html } from "lit";

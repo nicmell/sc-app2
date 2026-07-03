@@ -1,5 +1,5 @@
 /*
- * <sc-drawer-base> dialog chrome. The <dialog> is pinned to a viewport edge (right by
+ * <sc-base-drawer> dialog chrome. The <dialog> is pinned to a viewport edge (right by
  * default; `:host([side="left"])` flips it) and animated natively (@starting-style +
  * allow-discrete). A slotted direct-child <header> is the title bar (::slotted).
  */

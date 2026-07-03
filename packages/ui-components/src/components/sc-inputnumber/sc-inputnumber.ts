@@ -1,4 +1,4 @@
-// <sc-inputnumber-base> — a numeric text field. Shadow DOM: wraps a native
+// <sc-base-inputnumber> — a numeric text field. Shadow DOM: wraps a native
 // <input type="number"> styled by `controlStyles` (whose bare rule also hides the
 // native spin buttons) and renders its own up/down stepper arrows. The native
 // input/change are re-emitted (composed) from the host (read e.target.value); typing is
@@ -90,7 +90,7 @@ export class ScInputNumberBase extends ScControlBase {
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(1)}
           >
-            <sc-icon-base name="caret-up"></sc-icon-base>
+            <sc-base-icon name="caret-up"></sc-base-icon>
           </button>
           <button
             type="button"
@@ -100,7 +100,7 @@ export class ScInputNumberBase extends ScControlBase {
             ?disabled=${this.disabled}
             @click=${() => this._stepBy(-1)}
           >
-            <sc-icon-base name="caret-down"></sc-icon-base>
+            <sc-base-icon name="caret-down"></sc-base-icon>
           </button>
         </span>
       </div>

@@ -1,5 +1,5 @@
 // ScDialogBase — the shared machinery for the top-layer blocking overlays
-// (sc-modal-base, sc-drawer-base), both built on a native <dialog> opened with
+// (sc-base-modal, sc-base-drawer), both built on a native <dialog> opened with
 // showModal(): the **top layer** (escapes clipping/transform/z-index), a
 // ::backdrop, a focus trap, and Esc — all free, no anchored positioning (these aren't
 // anchored to a trigger). Subclasses only supply the dialog's class + their CSS;

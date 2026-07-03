@@ -20,7 +20,7 @@ import "@sc-app/ui-components";
 // 2a. As web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 registerUiComponents();                    // idempotent; defines every <sc-*-base> tag
-// <sc-button-base label="Run" variant="danger"></sc-button-base>
+// <sc-base-button label="Run" variant="danger"></sc-base-button>
 
 // 2b. As React components
 import { ScButton } from "@sc-app/ui-components/react";
@@ -47,32 +47,32 @@ Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`. `size` is `s
 
 | component | key props | event | notes |
 |---|---|---|---|
-| `sc-checkbox-base` | `checked` `label` `size` `disabled` | `change` | hidden native checkbox + box |
-| `sc-switch-base` | `checked` `size` `disabled` | `change` | hidden checkbox (`role=switch`) + track |
-| `sc-knob-base` | `value` `min` `max` `step` `label` `size` `disabled` | `input`/`change` | hidden range + SVG dial; drag/wheel |
-| `sc-slider-base` | `value` `min` `max` `step` `orientation` `label` `size` `disabled` | `input`/`change` | hidden range + track/thumb; drag/wheel |
-| `sc-radio-base` | `value` `label` `checked` `size` `disabled` | — | child of radio-group (context) |
-| `sc-radio-group-base` | `value` `orientation` `label` `size` `disabled` | `change` | context provider; `role=radiogroup` |
-| `sc-option-base` | `value` `label` `size` `disabled` | — | child of select (context) |
-| `sc-select-base` | `value` `placeholder` `size` `disabled` | `change` | combobox + top-layer dropdown |
-| `sc-input-base` | `value` `placeholder` `type` `size` `disabled` | `input`/`change` | native `<input>` |
-| `sc-inputnumber-base` | `value` `min` `max` `step` `size` `disabled` | `input`/`change` | hidden spinners, themed steppers |
-| `sc-textarea-base` | `value` `placeholder` `rows` `size` `disabled` | `input`/`change` | multi-line |
-| `sc-text-base` | `as` `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6` |
-| `sc-button-base` | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click` | composes `sc-icon-base`; `loading` → spinner in the icon slot |
-| `sc-icon-base` | `name` `variant` `size` `label` | — | Phosphor glyph |
-| `sc-badge-base` | `label` `variant` | — | uppercase pill |
-| `sc-chip-base` | `label` `variant` `dot` | — | status chip (optional dot) |
-| `sc-alert-base` | `variant` | — | inline notice card; renders children |
-| `sc-toast-base` | `message` `variant` | `dismiss` | lives in a top-layer stack |
-| `sc-progress-base` | `variant` `value` `max` `size` `label` | — | bar/spinner; `role=progressbar` |
-| `sc-panel-base` | `disabled` | — | surface card; child `<header>` = title bar |
-| `sc-empty-base` | — | — | "nothing here" placeholder |
-| `sc-stack-base` / `sc-cluster-base` | `gap` | — | vertical / horizontal flex |
-| `sc-disclosure-base` | `open` | `toggle` | collapsible over native `<details>` |
-| `sc-popover-base` | `open` `placement` `anchor` | `toggle` | top-layer anchored panel |
-| `sc-modal-base` | `open` `dismissable` `label` | `close` | centred modal over native `<dialog>` |
-| `sc-drawer-base` | `open` `side` `dismissable` `label` | `close` | edge slide-in over native `<dialog>` |
+| `sc-base-checkbox` | `checked` `label` `size` `disabled` | `change` | hidden native checkbox + box |
+| `sc-base-switch` | `checked` `size` `disabled` | `change` | hidden checkbox (`role=switch`) + track |
+| `sc-base-knob` | `value` `min` `max` `step` `label` `size` `disabled` | `input`/`change` | hidden range + SVG dial; drag/wheel |
+| `sc-base-slider` | `value` `min` `max` `step` `orientation` `label` `size` `disabled` | `input`/`change` | hidden range + track/thumb; drag/wheel |
+| `sc-base-radio` | `value` `label` `checked` `size` `disabled` | — | child of radio-group (context) |
+| `sc-base-radio-group` | `value` `orientation` `label` `size` `disabled` | `change` | context provider; `role=radiogroup` |
+| `sc-base-option` | `value` `label` `size` `disabled` | — | child of select (context) |
+| `sc-base-select` | `value` `placeholder` `size` `disabled` | `change` | combobox + top-layer dropdown |
+| `sc-base-input` | `value` `placeholder` `type` `size` `disabled` | `input`/`change` | native `<input>` |
+| `sc-base-inputnumber` | `value` `min` `max` `step` `size` `disabled` | `input`/`change` | hidden spinners, themed steppers |
+| `sc-base-textarea` | `value` `placeholder` `rows` `size` `disabled` | `input`/`change` | multi-line |
+| `sc-base-text` | `as` `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6` |
+| `sc-base-button` | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click` | composes `sc-base-icon`; `loading` → spinner in the icon slot |
+| `sc-base-icon` | `name` `variant` `size` `label` | — | Phosphor glyph |
+| `sc-base-badge` | `label` `variant` | — | uppercase pill |
+| `sc-base-chip` | `label` `variant` `dot` | — | status chip (optional dot) |
+| `sc-base-alert` | `variant` | — | inline notice card; renders children |
+| `sc-base-toast` | `message` `variant` | `dismiss` | lives in a top-layer stack |
+| `sc-base-progress` | `variant` `value` `max` `size` `label` | — | bar/spinner; `role=progressbar` |
+| `sc-base-panel` | `disabled` | — | surface card; child `<header>` = title bar |
+| `sc-base-empty` | — | — | "nothing here" placeholder |
+| `sc-base-stack` / `sc-base-cluster` | `gap` | — | vertical / horizontal flex |
+| `sc-base-disclosure` | `open` | `toggle` | collapsible over native `<details>` |
+| `sc-base-popover` | `open` `placement` `anchor` | `toggle` | top-layer anchored panel |
+| `sc-base-modal` | `open` `dismissable` `label` | `close` | centred modal over native `<dialog>` |
+| `sc-base-drawer` | `open` `side` `dismissable` `label` | `close` | edge slide-in over native `<dialog>` |
 
 **Variants are intentionally different per component:** input controls have **none** (single
 accent — `size`/`disabled`/`name` via `ScControlBase`); `sc-button` `primary`(d)/`secondary`/

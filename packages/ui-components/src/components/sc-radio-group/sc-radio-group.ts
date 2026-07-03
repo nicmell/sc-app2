@@ -1,5 +1,5 @@
-// <sc-radio-group-base> — a Lit ContextProvider coordinating its declarative
-// <sc-radio-base> children. Shadow DOM: it renders a <slot>, so the radio children
+// <sc-base-radio-group> — a Lit ContextProvider coordinating its declarative
+// <sc-base-radio> children. Shadow DOM: it renders a <slot>, so the radio children
 // are slotted (still light-DOM children, so their context-request events bubble to
 // the host provider). It provides the selected value + a `select` callback + a
 // shared name + size/disabled through context. A child's native `change` is
@@ -12,7 +12,7 @@ import { ScControlBase, type ScSize } from "../internal/sc-control/sc-control";
 import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-radio-group.scss";
 
-// Context this group provides to its declarative <sc-radio-base> children (the old
+// Context this group provides to its declarative <sc-base-radio> children (the old
 // sc-app coordination model — context-request events bubble from each child up to this
 // provider host, no slot needed). Consumed by sc-radio via ContextConsumer.
 export interface RadioGroupContext {

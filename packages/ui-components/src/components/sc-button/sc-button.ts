@@ -1,4 +1,4 @@
-// <sc-button-base> — a UI-only button. Shadow DOM: renders the inner <button>
+// <sc-base-button> — a UI-only button. Shadow DOM: renders the inner <button>
 // (styled directly + keyed off the host's reflected `variant`/`size`),
 // declarative content via `label` + optional leading/trailing Phosphor icons,
 // plus an icon-only mode (a computed class on the button) and a `loading` spinner
@@ -22,7 +22,7 @@ export class ScButtonBase extends LitElement {
 
   /** Button text + accessible name. Used as the aria-label when `iconOnly`. */
   @property() accessor label = "";
-  /** Leading icon (Phosphor name, fill weight via <sc-icon-base>). */
+  /** Leading icon (Phosphor name, fill weight via <sc-base-icon>). */
   @property() accessor icon = "";
   /** Trailing icon (ignored when `iconOnly`). */
   @property({ attribute: "trailing-icon" }) accessor trailingIcon = "";
@@ -42,7 +42,7 @@ export class ScButtonBase extends LitElement {
     const lead = this.loading
       ? html`<span class=${cx("spinner", { lead: !iconOnly })} aria-hidden="true"></span>`
       : this.icon
-        ? html`<sc-icon-base class=${cx("icon", { lead: !iconOnly })} name=${this.icon}></sc-icon-base>`
+        ? html`<sc-base-icon class=${cx("icon", { lead: !iconOnly })} name=${this.icon}></sc-base-icon>`
         : nothing;
     return html`
       <button
@@ -59,7 +59,7 @@ export class ScButtonBase extends LitElement {
             ? html`<span class="label">${this.label}</span>`
             : nothing}
         ${!iconOnly && this.trailingIcon
-          ? html`<sc-icon-base class="icon trail" name=${this.trailingIcon}></sc-icon-base>`
+          ? html`<sc-base-icon class="icon trail" name=${this.trailingIcon}></sc-base-icon>`
           : nothing}
       </button>
     `;

@@ -1,4 +1,4 @@
-// <sc-progress-base> — a loading / progress indicator. Two shapes (`variant`):
+// <sc-base-progress> — a loading / progress indicator. Two shapes (`variant`):
 // "bar" (a horizontal track that fills, the default) and "spinner" (a circular
 // ring). Each works in two modes, chosen by whether `value` is set:
 //   • indeterminate (value unset) — animated; "we're working, no ETA".

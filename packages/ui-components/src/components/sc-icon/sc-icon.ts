@@ -1,4 +1,4 @@
-// <sc-icon-base> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with the
+// <sc-base-icon> — a Phosphor icon. Shadow DOM: renders the icon-font <i> with the
 // `<weight> ph-<name>` classes from @phosphor-icons/web. The Phosphor @font-face is
 // registered document-wide by the foundation's head <link>; this element is the only one
 // that renders a raw <i class="ph"> in its shadow, so it adopts `glyphs`

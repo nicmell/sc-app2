@@ -59,404 +59,404 @@
       </p>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-input-base&gt; / &lt;sc-inputnumber-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-input&gt; / &lt;sc-base-inputnumber&gt;</h2>
         <p class="demo-cap">text field — sizes</p>
         <div class="demo-row">
-          <sc-input-base size="sm" placeholder="small"></sc-input-base>
-          <sc-input-base size="md" placeholder="medium"></sc-input-base>
-          <sc-input-base size="lg" placeholder="large"></sc-input-base>
-          <sc-input-base value="disabled" disabled></sc-input-base>
+          <sc-base-input size="sm" placeholder="small"></sc-base-input>
+          <sc-base-input size="md" placeholder="medium"></sc-base-input>
+          <sc-base-input size="lg" placeholder="large"></sc-base-input>
+          <sc-base-input value="disabled" disabled></sc-base-input>
         </div>
         <p class="demo-cap">number field — sizes</p>
         <div class="demo-row">
-          <sc-inputnumber-base size="sm" value="3" min="0" max="10"></sc-inputnumber-base>
-          <sc-inputnumber-base size="md" value="3" min="0" max="10"></sc-inputnumber-base>
-          <sc-inputnumber-base size="lg" value="3" min="0" max="10"></sc-inputnumber-base>
-          <sc-inputnumber-base value="42" disabled></sc-inputnumber-base>
+          <sc-base-inputnumber size="sm" value="3" min="0" max="10"></sc-base-inputnumber>
+          <sc-base-inputnumber size="md" value="3" min="0" max="10"></sc-base-inputnumber>
+          <sc-base-inputnumber size="lg" value="3" min="0" max="10"></sc-base-inputnumber>
+          <sc-base-inputnumber value="42" disabled></sc-base-inputnumber>
         </div>
         <p class="demo-cap">number field — ranges/steps</p>
         <div class="demo-row">
-          <sc-inputnumber-base value="120" min="0" max="1000" step="10"></sc-inputnumber-base>
-          <sc-inputnumber-base value="0.5" min="0" max="1" step="0.1"></sc-inputnumber-base>
+          <sc-base-inputnumber value="120" min="0" max="1000" step="10"></sc-base-inputnumber>
+          <sc-base-inputnumber value="0.5" min="0" max="1" step="0.1"></sc-base-inputnumber>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-textarea-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-textarea&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <sc-stack-base gap="sm">
-          <sc-textarea-base size="sm" rows="2" placeholder="small"></sc-textarea-base>
-          <sc-textarea-base size="md" rows="3" placeholder="medium"></sc-textarea-base>
-          <sc-textarea-base size="lg" rows="3" placeholder="large"></sc-textarea-base>
-          <sc-textarea-base rows="2" value="disabled" disabled></sc-textarea-base>
-        </sc-stack-base>
+        <sc-base-stack gap="sm">
+          <sc-base-textarea size="sm" rows="2" placeholder="small"></sc-base-textarea>
+          <sc-base-textarea size="md" rows="3" placeholder="medium"></sc-base-textarea>
+          <sc-base-textarea size="lg" rows="3" placeholder="large"></sc-base-textarea>
+          <sc-base-textarea rows="2" value="disabled" disabled></sc-base-textarea>
+        </sc-base-stack>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-text-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-text&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <sc-stack-base gap="sm">
-          <sc-text-base size="xl" weight="bold">Extra-large bold</sc-text-base>
-          <sc-text-base size="lg" weight="medium">Large medium</sc-text-base>
-          <sc-text-base size="md">Medium (default body)</sc-text-base>
-          <sc-text-base size="sm">Small</sc-text-base>
-          <sc-text-base size="xs" font="mono">Extra-small mono readout</sc-text-base>
-        </sc-stack-base>
+        <sc-base-stack gap="sm">
+          <sc-base-text size="xl" weight="bold">Extra-large bold</sc-base-text>
+          <sc-base-text size="lg" weight="medium">Large medium</sc-base-text>
+          <sc-base-text size="md">Medium (default body)</sc-base-text>
+          <sc-base-text size="sm">Small</sc-base-text>
+          <sc-base-text size="xs" font="mono">Extra-small mono readout</sc-base-text>
+        </sc-base-stack>
         <p class="demo-cap">tones</p>
-        <sc-cluster-base gap="md">
-          <sc-text-base>default</sc-text-base>
-          <sc-text-base tone="dim">dim</sc-text-base>
-          <sc-text-base tone="mute">mute</sc-text-base>
-          <sc-text-base tone="primary">primary</sc-text-base>
-          <sc-text-base tone="ok">ok</sc-text-base>
-          <sc-text-base tone="warn">warn</sc-text-base>
-          <sc-text-base tone="error">error</sc-text-base>
-          <sc-text-base tone="info">info</sc-text-base>
-        </sc-cluster-base>
+        <sc-base-cluster gap="md">
+          <sc-base-text>default</sc-base-text>
+          <sc-base-text tone="dim">dim</sc-base-text>
+          <sc-base-text tone="mute">mute</sc-base-text>
+          <sc-base-text tone="primary">primary</sc-base-text>
+          <sc-base-text tone="ok">ok</sc-base-text>
+          <sc-base-text tone="warn">warn</sc-base-text>
+          <sc-base-text tone="error">error</sc-base-text>
+          <sc-base-text tone="info">info</sc-base-text>
+        </sc-base-cluster>
         <p class="demo-cap">inline (flows in text) + rich children</p>
-        <sc-text-base>
+        <sc-base-text>
           Status:
-          <sc-text-base inline weight="bold" tone="ok">connected</sc-text-base> — body text with an
+          <sc-base-text inline weight="bold" tone="ok">connected</sc-base-text> — body text with an
           <a href="#">inline link</a> and <code>code</code>.
-        </sc-text-base>
+        </sc-base-text>
         <p class="demo-cap">truncate</p>
-        <sc-text-base truncate style="max-width: 16rem">
+        <sc-base-text truncate style="max-width: 16rem">
           This line is intentionally long enough to be clipped with an ellipsis at the edge.
-        </sc-text-base>
+        </sc-base-text>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-disclosure-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-disclosure&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <sc-stack-base gap="sm">
-          <sc-disclosure-base>
+        <sc-base-stack gap="sm">
+          <sc-base-disclosure>
             <span slot="summary">Details summary (click to expand)</span>
-            <sc-text-base size="sm" tone="dim">
+            <sc-base-text size="sm" tone="dim">
               Hidden content revealed on click — the native &lt;details&gt; owns the toggle.
-            </sc-text-base>
-          </sc-disclosure-base>
-          <sc-disclosure-base open>
+            </sc-base-text>
+          </sc-base-disclosure>
+          <sc-base-disclosure open>
             <span slot="summary">Open by default</span>
-            <sc-text-base size="sm" tone="dim">Already showing.</sc-text-base>
-          </sc-disclosure-base>
-        </sc-stack-base>
+            <sc-base-text size="sm" tone="dim">Already showing.</sc-base-text>
+          </sc-base-disclosure>
+        </sc-base-stack>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-stack-base&gt; + &lt;sc-cluster-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-stack&gt; + &lt;sc-base-cluster&gt;</h2>
         <p class="demo-cap">layout primitives — vertical / horizontal flex with a gap scale</p>
-        <sc-stack-base gap="md">
-          <sc-cluster-base>
-            <sc-button-base label="one" size="sm" variant="secondary"></sc-button-base>
-            <sc-button-base label="two" size="sm" variant="secondary"></sc-button-base>
-            <sc-chip-base dot variant="ok" label="cluster (base gap)"></sc-chip-base>
-          </sc-cluster-base>
-          <sc-cluster-base gap="lg">
-            <sc-button-base label="one" size="sm" variant="secondary"></sc-button-base>
-            <sc-button-base label="two" size="sm" variant="secondary"></sc-button-base>
-            <sc-chip-base dot variant="info" label="cluster gap=lg"></sc-chip-base>
-          </sc-cluster-base>
-          <sc-chip-base label="stack gap=md between rows"></sc-chip-base>
-        </sc-stack-base>
+        <sc-base-stack gap="md">
+          <sc-base-cluster>
+            <sc-base-button label="one" size="sm" variant="secondary"></sc-base-button>
+            <sc-base-button label="two" size="sm" variant="secondary"></sc-base-button>
+            <sc-base-chip dot variant="ok" label="cluster (base gap)"></sc-base-chip>
+          </sc-base-cluster>
+          <sc-base-cluster gap="lg">
+            <sc-base-button label="one" size="sm" variant="secondary"></sc-base-button>
+            <sc-base-button label="two" size="sm" variant="secondary"></sc-base-button>
+            <sc-base-chip dot variant="info" label="cluster gap=lg"></sc-base-chip>
+          </sc-base-cluster>
+          <sc-base-chip label="stack gap=md between rows"></sc-base-chip>
+        </sc-base-stack>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-panel-base&gt;</h2>
-        <sc-cluster-base gap="md" style="align-items: flex-start">
-          <sc-panel-base>
+        <h2 class="demo-section-title">&lt;sc-base-panel&gt;</h2>
+        <sc-base-cluster gap="md" style="align-items: flex-start">
+          <sc-base-panel>
             <header>Panel header</header>
-            <sc-cluster-base gap="md">
-              <sc-text-base size="sm">cluster: row of inline things</sc-text-base>
-              <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
-            </sc-cluster-base>
-            <sc-stack-base gap="sm">
-              <sc-text-base size="sm">stack item 1</sc-text-base>
-              <sc-text-base size="sm">stack item 2</sc-text-base>
-              <sc-text-base size="sm">stack item 3</sc-text-base>
-            </sc-stack-base>
-          </sc-panel-base>
-          <sc-panel-base disabled>
+            <sc-base-cluster gap="md">
+              <sc-base-text size="sm">cluster: row of inline things</sc-base-text>
+              <sc-base-button label="action" size="sm" variant="secondary"></sc-base-button>
+            </sc-base-cluster>
+            <sc-base-stack gap="sm">
+              <sc-base-text size="sm">stack item 1</sc-base-text>
+              <sc-base-text size="sm">stack item 2</sc-base-text>
+              <sc-base-text size="sm">stack item 3</sc-base-text>
+            </sc-base-stack>
+          </sc-base-panel>
+          <sc-base-panel disabled>
             <header>Offline panel</header>
-            <sc-text-base size="sm">muted + non-interactive (disabled)</sc-text-base>
-            <sc-button-base label="action" size="sm" variant="secondary"></sc-button-base>
-          </sc-panel-base>
-        </sc-cluster-base>
+            <sc-base-text size="sm">muted + non-interactive (disabled)</sc-base-text>
+            <sc-base-button label="action" size="sm" variant="secondary"></sc-base-button>
+          </sc-base-panel>
+        </sc-base-cluster>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-chip-base&gt;</h2>
-        <sc-cluster-base gap="sm">
-          <sc-chip-base dot label="idle"></sc-chip-base>
-          <sc-chip-base dot variant="ok" label="alive"></sc-chip-base>
-          <sc-chip-base dot variant="warn" label="degraded"></sc-chip-base>
-          <sc-chip-base dot variant="error" label="unreachable"></sc-chip-base>
-          <sc-chip-base dot variant="info" label="probing"></sc-chip-base>
-        </sc-cluster-base>
+        <h2 class="demo-section-title">&lt;sc-base-chip&gt;</h2>
+        <sc-base-cluster gap="sm">
+          <sc-base-chip dot label="idle"></sc-base-chip>
+          <sc-base-chip dot variant="ok" label="alive"></sc-base-chip>
+          <sc-base-chip dot variant="warn" label="degraded"></sc-base-chip>
+          <sc-base-chip dot variant="error" label="unreachable"></sc-base-chip>
+          <sc-base-chip dot variant="info" label="probing"></sc-base-chip>
+        </sc-base-cluster>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-badge-base&gt;</h2>
-        <sc-cluster-base gap="sm">
-          <sc-badge-base label="connected"></sc-badge-base>
-          <sc-badge-base label="degraded" variant="warn"></sc-badge-base>
-          <sc-badge-base label="offline" variant="error"></sc-badge-base>
-        </sc-cluster-base>
+        <h2 class="demo-section-title">&lt;sc-base-badge&gt;</h2>
+        <sc-base-cluster gap="sm">
+          <sc-base-badge label="connected"></sc-base-badge>
+          <sc-base-badge label="degraded" variant="warn"></sc-base-badge>
+          <sc-base-badge label="offline" variant="error"></sc-base-badge>
+        </sc-base-cluster>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-empty-base&gt; + &lt;sc-alert-base&gt;</h2>
-        <sc-stack-base gap="sm">
-          <sc-empty-base>no items — click <strong>+ Item</strong> to add one</sc-empty-base>
-          <sc-alert-base>Info — the bridge session is reviving under the saved id.</sc-alert-base>
-          <sc-alert-base variant="success">Success — synthdef compiled and sent.</sc-alert-base>
-          <sc-alert-base variant="warn">Warning — scsynth replied late (1240 ms).</sc-alert-base>
-          <sc-alert-base variant="error"
-            >scsynth didn't reply to /status at 127.0.0.1:57110</sc-alert-base
+        <h2 class="demo-section-title">&lt;sc-base-empty&gt; + &lt;sc-base-alert&gt;</h2>
+        <sc-base-stack gap="sm">
+          <sc-base-empty>no items — click <strong>+ Item</strong> to add one</sc-base-empty>
+          <sc-base-alert>Info — the bridge session is reviving under the saved id.</sc-base-alert>
+          <sc-base-alert variant="success">Success — synthdef compiled and sent.</sc-base-alert>
+          <sc-base-alert variant="warn">Warning — scsynth replied late (1240 ms).</sc-base-alert>
+          <sc-base-alert variant="error"
+            >scsynth didn't reply to /status at 127.0.0.1:57110</sc-base-alert
           >
-        </sc-stack-base>
+        </sc-base-stack>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-modal-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-modal&gt;</h2>
         <p class="demo-cap">
           centred blocking modal in the top layer (native <code>&lt;dialog&gt;</code>:
           backdrop + focus trap + Esc); <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
-          <sc-button-base
+          <sc-base-button
             label="open modal"
             onclick="document.getElementById('demo-modal').open = true"
-          ></sc-button-base>
-          <sc-modal-base id="demo-modal" dismissable label="Reinitialize dashboard?">
+          ></sc-base-button>
+          <sc-base-modal id="demo-modal" dismissable label="Reinitialize dashboard?">
             <h2 class="sc-modal__title">Reinitialize dashboard?</h2>
             <p class="sc-modal__body">
               Active recordings will be stopped, and any recordings in this session — including ones
               already finalised — will be lost when the dashboard reinitializes.
             </p>
             <div class="sc-modal__actions">
-              <sc-button-base
+              <sc-base-button
                 label="Cancel"
                 variant="secondary"
                 onclick="document.getElementById('demo-modal').open = false"
-              ></sc-button-base>
-              <sc-button-base
+              ></sc-base-button>
+              <sc-base-button
                 label="Reinitialize"
                 variant="danger"
                 onclick="document.getElementById('demo-modal').open = false"
-              ></sc-button-base>
+              ></sc-base-button>
             </div>
-          </sc-modal-base>
+          </sc-base-modal>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-progress-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-progress&gt;</h2>
         <p class="demo-cap">
           indeterminate bar (default) — used by the connection overlay; set
           <code>value</code> for a determinate fill:
         </p>
-        <sc-progress-base label="Loading"></sc-progress-base>
-        <sc-progress-base value="60" label="60% loaded"></sc-progress-base>
-        <sc-progress-base size="lg" value="30" label="30% loaded"></sc-progress-base>
+        <sc-base-progress label="Loading"></sc-base-progress>
+        <sc-base-progress value="60" label="60% loaded"></sc-base-progress>
+        <sc-base-progress size="lg" value="30" label="30% loaded"></sc-base-progress>
         <p class="demo-cap">spinner — indeterminate, then determinate (sm / md / lg):</p>
         <div class="demo-row" style="align-items: center; gap: 1rem">
-          <sc-progress-base variant="spinner" size="sm" label="Loading"></sc-progress-base>
-          <sc-progress-base variant="spinner" label="Loading"></sc-progress-base>
-          <sc-progress-base variant="spinner" size="lg" label="Loading"></sc-progress-base>
-          <sc-progress-base
+          <sc-base-progress variant="spinner" size="sm" label="Loading"></sc-base-progress>
+          <sc-base-progress variant="spinner" label="Loading"></sc-base-progress>
+          <sc-base-progress variant="spinner" size="lg" label="Loading"></sc-base-progress>
+          <sc-base-progress
             variant="spinner"
             size="lg"
             value="75"
             label="75% loaded"
-          ></sc-progress-base>
+          ></sc-base-progress>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-toast-base&gt; (inline preview, not portal)</h2>
+        <h2 class="demo-section-title">&lt;sc-base-toast&gt; (inline preview, not portal)</h2>
         <p class="demo-cap">
           Toasts normally live inside a fixed-position <code>.sc-toast-stack</code> at the
           bottom-right of the viewport. Below renders the cards in flow.
         </p>
-        <sc-stack-base>
-          <sc-toast-base message="Default toast — muted accent."></sc-toast-base>
-          <sc-toast-base
+        <sc-base-stack>
+          <sc-base-toast message="Default toast — muted accent."></sc-base-toast>
+          <sc-base-toast
             variant="info"
             message="Info toast — bridge bootstrap completed."
-          ></sc-toast-base>
-          <sc-toast-base
+          ></sc-base-toast>
+          <sc-base-toast
             variant="success"
             message="Success — recording saved as track-12.wav."
-          ></sc-toast-base>
-          <sc-toast-base
+          ></sc-base-toast>
+          <sc-base-toast
             variant="warn"
             message="Warning — scsynth replied late (1240 ms)."
-          ></sc-toast-base>
-          <sc-toast-base
+          ></sc-base-toast>
+          <sc-base-toast
             variant="error"
             message="Error — couldn't reach scsynth: Connection refused (os error 61)."
-          ></sc-toast-base>
-        </sc-stack-base>
+          ></sc-base-toast>
+        </sc-base-stack>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-checkbox-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-checkbox&gt;</h2>
         <p class="demo-cap">sizes</p>
         <div class="demo-row">
-          <sc-checkbox-base size="sm" label="sm" checked></sc-checkbox-base>
-          <sc-checkbox-base size="md" label="md" checked></sc-checkbox-base>
-          <sc-checkbox-base size="lg" label="lg" checked></sc-checkbox-base>
+          <sc-base-checkbox size="sm" label="sm" checked></sc-base-checkbox>
+          <sc-base-checkbox size="md" label="md" checked></sc-base-checkbox>
+          <sc-base-checkbox size="lg" label="lg" checked></sc-base-checkbox>
         </div>
         <p class="demo-cap">states</p>
         <div class="demo-row">
-          <sc-checkbox-base label="unchecked"></sc-checkbox-base>
-          <sc-checkbox-base label="checked" checked></sc-checkbox-base>
-          <sc-checkbox-base label="no label"></sc-checkbox-base>
-          <sc-checkbox-base label="disabled" disabled></sc-checkbox-base>
-          <sc-checkbox-base label="disabled on" checked disabled></sc-checkbox-base>
+          <sc-base-checkbox label="unchecked"></sc-base-checkbox>
+          <sc-base-checkbox label="checked" checked></sc-base-checkbox>
+          <sc-base-checkbox label="no label"></sc-base-checkbox>
+          <sc-base-checkbox label="disabled" disabled></sc-base-checkbox>
+          <sc-base-checkbox label="disabled on" checked disabled></sc-base-checkbox>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-switch-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-switch&gt;</h2>
         <p class="demo-cap">sizes</p>
         <div class="demo-row">
-          <sc-switch-base size="sm" checked></sc-switch-base>
-          <sc-switch-base size="md" checked></sc-switch-base>
-          <sc-switch-base size="lg" checked></sc-switch-base>
+          <sc-base-switch size="sm" checked></sc-base-switch>
+          <sc-base-switch size="md" checked></sc-base-switch>
+          <sc-base-switch size="lg" checked></sc-base-switch>
         </div>
         <p class="demo-cap">states</p>
         <div class="demo-row">
-          <sc-switch-base></sc-switch-base>
-          <sc-switch-base checked></sc-switch-base>
-          <sc-switch-base disabled></sc-switch-base>
-          <sc-switch-base checked disabled></sc-switch-base>
+          <sc-base-switch></sc-base-switch>
+          <sc-base-switch checked></sc-base-switch>
+          <sc-base-switch disabled></sc-base-switch>
+          <sc-base-switch checked disabled></sc-base-switch>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-knob-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-knob&gt;</h2>
         <p class="demo-cap">sizes (drag vertically / scroll to change)</p>
         <div class="demo-row">
-          <sc-knob-base size="sm" value="0.5"></sc-knob-base>
-          <sc-knob-base size="md" value="0.5"></sc-knob-base>
-          <sc-knob-base size="lg" value="0.5"></sc-knob-base>
+          <sc-base-knob size="sm" value="0.5"></sc-base-knob>
+          <sc-base-knob size="md" value="0.5"></sc-base-knob>
+          <sc-base-knob size="lg" value="0.5"></sc-base-knob>
         </div>
         <p class="demo-cap">disabled</p>
         <div class="demo-row">
-          <sc-knob-base value="0.7" disabled></sc-knob-base>
+          <sc-base-knob value="0.7" disabled></sc-base-knob>
         </div>
         <p class="demo-cap">range (min=20 max=20000 step=10)</p>
         <div class="demo-row">
-          <sc-knob-base
+          <sc-base-knob
             label="Frequency"
             min="20"
             max="20000"
             step="10"
             value="440"
-          ></sc-knob-base>
+          ></sc-base-knob>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-slider-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-slider&gt;</h2>
         <p class="demo-cap">horizontal — sizes</p>
         <div class="demo-row">
-          <sc-slider-base size="sm" value="0.4"></sc-slider-base>
-          <sc-slider-base size="md" value="0.4"></sc-slider-base>
-          <sc-slider-base size="lg" value="0.4"></sc-slider-base>
+          <sc-base-slider size="sm" value="0.4"></sc-base-slider>
+          <sc-base-slider size="md" value="0.4"></sc-base-slider>
+          <sc-base-slider size="lg" value="0.4"></sc-base-slider>
         </div>
         <p class="demo-cap">horizontal — disabled</p>
         <div class="demo-row">
-          <sc-slider-base value="0.6" disabled></sc-slider-base>
+          <sc-base-slider value="0.6" disabled></sc-base-slider>
         </div>
         <p class="demo-cap">vertical</p>
         <div class="demo-row">
-          <sc-slider-base orientation="vertical" size="sm" value="0.5"></sc-slider-base>
-          <sc-slider-base orientation="vertical" size="md" value="0.5"></sc-slider-base>
-          <sc-slider-base orientation="vertical" size="lg" value="0.7"></sc-slider-base>
+          <sc-base-slider orientation="vertical" size="sm" value="0.5"></sc-base-slider>
+          <sc-base-slider orientation="vertical" size="md" value="0.5"></sc-base-slider>
+          <sc-base-slider orientation="vertical" size="lg" value="0.7"></sc-base-slider>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-radio-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-radio&gt;</h2>
         <p class="demo-cap">standalone radios (usually composed in a group, below)</p>
         <div class="demo-row">
-          <sc-radio-base value="0" label="off"></sc-radio-base>
-          <sc-radio-base value="1" label="on" checked></sc-radio-base>
-          <sc-radio-base value="4" label="disabled" disabled></sc-radio-base>
+          <sc-base-radio value="0" label="off"></sc-base-radio>
+          <sc-base-radio value="1" label="on" checked></sc-base-radio>
+          <sc-base-radio value="4" label="disabled" disabled></sc-base-radio>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-radio-group-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-radio-group&gt;</h2>
         <p class="demo-cap">horizontal (default)</p>
         <div class="demo-row">
-          <sc-radio-group-base value="0" label="Waveform">
-            <sc-radio-base value="0" label="Sine"></sc-radio-base>
-            <sc-radio-base value="1" label="Saw"></sc-radio-base>
-            <sc-radio-base value="2" label="Square"></sc-radio-base>
-          </sc-radio-group-base>
+          <sc-base-radio-group value="0" label="Waveform">
+            <sc-base-radio value="0" label="Sine"></sc-base-radio>
+            <sc-base-radio value="1" label="Saw"></sc-base-radio>
+            <sc-base-radio value="2" label="Square"></sc-base-radio>
+          </sc-base-radio-group>
         </div>
         <p class="demo-cap">vertical + variant=ok</p>
         <div class="demo-row">
-          <sc-radio-group-base orientation="vertical" value="1" label="Register">
-            <sc-radio-base value="0" label="Low"></sc-radio-base>
-            <sc-radio-base value="1" label="Mid"></sc-radio-base>
-            <sc-radio-base value="2" label="High"></sc-radio-base>
-          </sc-radio-group-base>
+          <sc-base-radio-group orientation="vertical" value="1" label="Register">
+            <sc-base-radio value="0" label="Low"></sc-base-radio>
+            <sc-base-radio value="1" label="Mid"></sc-base-radio>
+            <sc-base-radio value="2" label="High"></sc-base-radio>
+          </sc-base-radio-group>
         </div>
         <p class="demo-cap">disabled</p>
         <div class="demo-row">
-          <sc-radio-group-base value="1" disabled>
-            <sc-radio-base value="0" label="A"></sc-radio-base>
-            <sc-radio-base value="1" label="B"></sc-radio-base>
-            <sc-radio-base value="2" label="C"></sc-radio-base>
-          </sc-radio-group-base>
+          <sc-base-radio-group value="1" disabled>
+            <sc-base-radio value="0" label="A"></sc-base-radio>
+            <sc-base-radio value="1" label="B"></sc-base-radio>
+            <sc-base-radio value="2" label="C"></sc-base-radio>
+          </sc-base-radio-group>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-select-base&gt; + &lt;sc-option-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-select&gt; + &lt;sc-base-option&gt;</h2>
         <p class="demo-cap">declarative options; sizes</p>
         <div class="demo-row">
-          <sc-select-base size="sm" value="0">
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-            <sc-option-base value="2" label="Square"></sc-option-base>
-          </sc-select-base>
-          <sc-select-base size="md" value="1">
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-            <sc-option-base value="2" label="Square"></sc-option-base>
-          </sc-select-base>
-          <sc-select-base size="lg" value="2">
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-            <sc-option-base value="2" label="Square"></sc-option-base>
-          </sc-select-base>
+          <sc-base-select size="sm" value="0">
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+            <sc-base-option value="2" label="Square"></sc-base-option>
+          </sc-base-select>
+          <sc-base-select size="md" value="1">
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+            <sc-base-option value="2" label="Square"></sc-base-option>
+          </sc-base-select>
+          <sc-base-select size="lg" value="2">
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+            <sc-base-option value="2" label="Square"></sc-base-option>
+          </sc-base-select>
         </div>
         <p class="demo-cap">variant accent + placeholder + disabled</p>
         <div class="demo-row">
-          <sc-select-base value="1">
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-            <sc-option-base value="2" label="Square"></sc-option-base>
-          </sc-select-base>
-          <sc-select-base placeholder="choose…">
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-            <sc-option-base value="2" label="Square"></sc-option-base>
-          </sc-select-base>
-          <sc-select-base value="0" disabled>
-            <sc-option-base value="0" label="Sine"></sc-option-base>
-            <sc-option-base value="1" label="Saw"></sc-option-base>
-          </sc-select-base>
+          <sc-base-select value="1">
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+            <sc-base-option value="2" label="Square"></sc-base-option>
+          </sc-base-select>
+          <sc-base-select placeholder="choose…">
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+            <sc-base-option value="2" label="Square"></sc-base-option>
+          </sc-base-select>
+          <sc-base-select value="0" disabled>
+            <sc-base-option value="0" label="Sine"></sc-base-option>
+            <sc-base-option value="1" label="Saw"></sc-base-option>
+          </sc-base-select>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-popover-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-popover&gt;</h2>
         <p class="demo-cap">
           top-layer anchored overlay — escapes its <code>overflow: hidden</code> +
           transformed parent (floating-ui positions it, native light-dismiss closes it)
@@ -471,175 +471,175 @@
               border-radius: var(--radius-sm);
             "
           >
-            <sc-button-base
+            <sc-base-button
               label="toggle popover"
               variant="secondary"
               onclick="this.nextElementSibling.open = !this.nextElementSibling.open"
-            ></sc-button-base>
-            <sc-popover-base>
+            ></sc-base-button>
+            <sc-base-popover>
               <div style="padding: var(--space-sm); min-inline-size: 12rem">
-                <sc-text-base size="sm">I render in the top layer.</sc-text-base>
-                <sc-text-base size="xs" tone="dim">
+                <sc-base-text size="sm">I render in the top layer.</sc-base-text>
+                <sc-base-text size="xs" tone="dim">
                   Not clipped by the dashed box, not mis-positioned by its transform.
-                </sc-text-base>
+                </sc-base-text>
               </div>
-            </sc-popover-base>
+            </sc-base-popover>
           </div>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-drawer-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-drawer&gt;</h2>
         <p class="demo-cap">
           edge-anchored top-layer panel (native <code>&lt;dialog&gt;</code>: backdrop + focus
           trap + Esc); slides in, <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
-          <sc-button-base
+          <sc-base-button
             label="open right drawer"
             onclick="document.getElementById('demo-drawer-r').open = true"
-          ></sc-button-base>
-          <sc-button-base
+          ></sc-base-button>
+          <sc-base-button
             label="open left drawer"
             onclick="document.getElementById('demo-drawer-l').open = true"
-          ></sc-button-base>
-          <sc-drawer-base id="demo-drawer-r" side="right" dismissable label="Plugins">
+          ></sc-base-button>
+          <sc-base-drawer id="demo-drawer-r" side="right" dismissable label="Plugins">
             <header>
               <h2>Plugins</h2>
-              <sc-button-base
+              <sc-base-button
                 variant="ghost"
                 size="sm"
                 icon-only
                 icon="x"
                 label="Close"
                 onclick="document.getElementById('demo-drawer-r').open = false"
-              ></sc-button-base>
+              ></sc-base-button>
             </header>
-            <sc-stack-base class="sc-drawer__body" gap="sm">
-              <sc-text-base tone="dim" size="sm">Right-side drawer content.</sc-text-base>
-              <sc-empty-base>no plugins installed yet</sc-empty-base>
-            </sc-stack-base>
-          </sc-drawer-base>
-          <sc-drawer-base id="demo-drawer-l" side="left" dismissable label="Navigation">
+            <sc-base-stack class="sc-drawer__body" gap="sm">
+              <sc-base-text tone="dim" size="sm">Right-side drawer content.</sc-base-text>
+              <sc-base-empty>no plugins installed yet</sc-base-empty>
+            </sc-base-stack>
+          </sc-base-drawer>
+          <sc-base-drawer id="demo-drawer-l" side="left" dismissable label="Navigation">
             <header>
               <h2>Navigation</h2>
-              <sc-button-base
+              <sc-base-button
                 variant="ghost"
                 size="sm"
                 icon-only
                 icon="x"
                 label="Close"
                 onclick="document.getElementById('demo-drawer-l').open = false"
-              ></sc-button-base>
+              ></sc-base-button>
             </header>
             <div class="sc-drawer__body">
-              <sc-text-base tone="dim" size="sm">Left-side drawer content.</sc-text-base>
+              <sc-base-text tone="dim" size="sm">Left-side drawer content.</sc-base-text>
             </div>
-          </sc-drawer-base>
+          </sc-base-drawer>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-icon-base&gt; (Phosphor)</h2>
+        <h2 class="demo-section-title">&lt;sc-base-icon&gt; (Phosphor)</h2>
         <p class="demo-cap">
           weights — <code>variant</code>: regular (default) / fill / duotone (each needs its
           <code>@phosphor-icons/web/&lt;weight&gt;</code> CSS loaded)
         </p>
         <div class="demo-row" style="font-size: 1.75rem">
-          <sc-icon-base name="heart" variant="regular"></sc-icon-base>
-          <sc-icon-base name="heart" variant="fill"></sc-icon-base>
-          <sc-icon-base name="heart" variant="duotone"></sc-icon-base>
-          <sc-text-base size="xs" tone="mute" style="align-self: center"
-            >regular · fill · duotone</sc-text-base
+          <sc-base-icon name="heart" variant="regular"></sc-base-icon>
+          <sc-base-icon name="heart" variant="fill"></sc-base-icon>
+          <sc-base-icon name="heart" variant="duotone"></sc-base-icon>
+          <sc-base-text size="xs" tone="mute" style="align-self: center"
+            >regular · fill · duotone</sc-base-text
           >
         </div>
         <p class="demo-cap">variant="regular" (default)</p>
         <div class="demo-row" style="font-size: 1.75rem">
-          <sc-icon-base name="play"></sc-icon-base>
-          <sc-icon-base name="speaker-high"></sc-icon-base>
-          <sc-icon-base name="wave-sine"></sc-icon-base>
-          <sc-icon-base name="sliders-horizontal"></sc-icon-base>
-          <sc-icon-base name="gear"></sc-icon-base>
-          <sc-icon-base name="bell"></sc-icon-base>
-          <sc-icon-base name="cloud"></sc-icon-base>
-          <sc-icon-base name="star"></sc-icon-base>
+          <sc-base-icon name="play"></sc-base-icon>
+          <sc-base-icon name="speaker-high"></sc-base-icon>
+          <sc-base-icon name="wave-sine"></sc-base-icon>
+          <sc-base-icon name="sliders-horizontal"></sc-base-icon>
+          <sc-base-icon name="gear"></sc-base-icon>
+          <sc-base-icon name="bell"></sc-base-icon>
+          <sc-base-icon name="cloud"></sc-base-icon>
+          <sc-base-icon name="star"></sc-base-icon>
         </div>
         <p class="demo-cap">variant="fill"</p>
         <div class="demo-row" style="font-size: 1.75rem">
-          <sc-icon-base name="play" variant="fill"></sc-icon-base>
-          <sc-icon-base name="speaker-high" variant="fill"></sc-icon-base>
-          <sc-icon-base name="wave-sine" variant="fill"></sc-icon-base>
-          <sc-icon-base name="sliders-horizontal" variant="fill"></sc-icon-base>
-          <sc-icon-base name="gear" variant="fill"></sc-icon-base>
-          <sc-icon-base name="bell" variant="fill"></sc-icon-base>
-          <sc-icon-base name="cloud" variant="fill"></sc-icon-base>
-          <sc-icon-base name="star" variant="fill"></sc-icon-base>
+          <sc-base-icon name="play" variant="fill"></sc-base-icon>
+          <sc-base-icon name="speaker-high" variant="fill"></sc-base-icon>
+          <sc-base-icon name="wave-sine" variant="fill"></sc-base-icon>
+          <sc-base-icon name="sliders-horizontal" variant="fill"></sc-base-icon>
+          <sc-base-icon name="gear" variant="fill"></sc-base-icon>
+          <sc-base-icon name="bell" variant="fill"></sc-base-icon>
+          <sc-base-icon name="cloud" variant="fill"></sc-base-icon>
+          <sc-base-icon name="star" variant="fill"></sc-base-icon>
         </div>
         <p class="demo-cap">variant="duotone"</p>
         <div class="demo-row" style="font-size: 1.75rem">
-          <sc-icon-base name="play" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="speaker-high" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="wave-sine" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="sliders-horizontal" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="gear" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="bell" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="cloud" variant="duotone"></sc-icon-base>
-          <sc-icon-base name="star" variant="duotone"></sc-icon-base>
+          <sc-base-icon name="play" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="speaker-high" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="wave-sine" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="sliders-horizontal" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="gear" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="bell" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="cloud" variant="duotone"></sc-base-icon>
+          <sc-base-icon name="star" variant="duotone"></sc-base-icon>
         </div>
         <p class="demo-cap">size tokens (sm / md / lg) + currentColor tint</p>
         <div class="demo-row">
-          <sc-icon-base name="circle" size="sm"></sc-icon-base>
-          <sc-icon-base name="circle" size="md"></sc-icon-base>
-          <sc-icon-base name="circle" size="lg"></sc-icon-base>
+          <sc-base-icon name="circle" size="sm"></sc-base-icon>
+          <sc-base-icon name="circle" size="md"></sc-base-icon>
+          <sc-base-icon name="circle" size="lg"></sc-base-icon>
           <span style="color: var(--color-primary)">
-            <sc-icon-base name="heart" variant="fill"></sc-icon-base> tinted via currentColor
+            <sc-base-icon name="heart" variant="fill"></sc-base-icon> tinted via currentColor
           </span>
         </div>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-button-base&gt;</h2>
+        <h2 class="demo-section-title">&lt;sc-base-button&gt;</h2>
         <p class="demo-cap">variants</p>
         <div class="demo-row">
-          <sc-button-base label="Primary"></sc-button-base>
-          <sc-button-base label="Secondary" variant="secondary"></sc-button-base>
-          <sc-button-base label="Ghost" variant="ghost"></sc-button-base>
-          <sc-button-base label="Danger" variant="danger"></sc-button-base>
-          <sc-button-base label="Disabled" disabled></sc-button-base>
+          <sc-base-button label="Primary"></sc-base-button>
+          <sc-base-button label="Secondary" variant="secondary"></sc-base-button>
+          <sc-base-button label="Ghost" variant="ghost"></sc-base-button>
+          <sc-base-button label="Danger" variant="danger"></sc-base-button>
+          <sc-base-button label="Disabled" disabled></sc-base-button>
         </div>
         <p class="demo-cap">sizes</p>
         <div class="demo-row">
-          <sc-button-base label="Small" size="sm"></sc-button-base>
-          <sc-button-base label="Medium" size="md"></sc-button-base>
-          <sc-button-base label="Large" size="lg"></sc-button-base>
+          <sc-base-button label="Small" size="sm"></sc-base-button>
+          <sc-base-button label="Medium" size="md"></sc-base-button>
+          <sc-base-button label="Large" size="lg"></sc-base-button>
         </div>
         <p class="demo-cap">with icons (leading / trailing)</p>
         <div class="demo-row">
-          <sc-button-base label="Play" icon="play"></sc-button-base>
-          <sc-button-base label="Record" icon="record" variant="danger"></sc-button-base>
-          <sc-button-base
+          <sc-base-button label="Play" icon="play"></sc-base-button>
+          <sc-base-button label="Record" icon="record" variant="danger"></sc-base-button>
+          <sc-base-button
             label="Options"
             trailing-icon="caret-down"
             variant="secondary"
-          ></sc-button-base>
+          ></sc-base-button>
         </div>
         <p class="demo-cap">icon-only (label = accessible name)</p>
         <div class="demo-row">
-          <sc-button-base icon="play" icon-only label="Play"></sc-button-base>
-          <sc-button-base
+          <sc-base-button icon="play" icon-only label="Play"></sc-base-button>
+          <sc-base-button
             icon="pause"
             icon-only
             label="Pause"
             variant="secondary"
-          ></sc-button-base>
-          <sc-button-base icon="x" icon-only label="Close" variant="ghost"></sc-button-base>
-          <sc-button-base icon="gear" icon-only label="Settings" size="lg"></sc-button-base>
+          ></sc-base-button>
+          <sc-base-button icon="x" icon-only label="Close" variant="ghost"></sc-base-button>
+          <sc-base-button icon="gear" icon-only label="Settings" size="lg"></sc-base-button>
         </div>
         <p class="demo-cap">loading (spinner takes the icon slot)</p>
         <div class="demo-row">
-          <sc-button-base label="Loading" loading></sc-button-base>
-          <sc-button-base label="Saving" icon="gear" loading variant="secondary"></sc-button-base>
-          <sc-button-base icon="play" icon-only label="Loading" loading></sc-button-base>
+          <sc-base-button label="Loading" loading></sc-base-button>
+          <sc-base-button label="Saving" icon="gear" loading variant="secondary"></sc-base-button>
+          <sc-base-button icon="play" icon-only label="Loading" loading></sc-base-button>
         </div>
       </section>
     </div>

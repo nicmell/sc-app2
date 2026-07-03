@@ -1,7 +1,7 @@
-// scsynth error/warning banners, rendered with the ui-components <sc-toast-base>
+// scsynth error/warning banners, rendered with the ui-components <sc-base-toast>
 // primitive: a bottom-right stack, portaled to <body> and shown as a top-layer
 // `popover="manual"` — the same layer the modals/popovers use, so the stack is
-// never clipped and coexists with an open <sc-modal-base> (the toasts sit
+// never clipped and coexists with an open <sc-base-modal> (the toasts sit
 // bottom-right, the modal centred — no overlap; note a modal <dialog> still
 // renders above popovers in the top layer, so this isn't a way to cover it).
 // Each banner auto-dismisses after a timeout (reset when a coalesced repeat

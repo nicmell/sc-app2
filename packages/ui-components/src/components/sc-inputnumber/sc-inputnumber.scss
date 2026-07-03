@@ -1,5 +1,5 @@
 /*
- * <sc-inputnumber-base> styles. The numeric field (`.field`) plus custom up/down
+ * <sc-base-inputnumber> styles. The numeric field (`.field`) plus custom up/down
  * steppers. The bare input{} base + hidden native spin buttons come from the
  * adopted foundations; these themed arrows replace them. Arrows are CSS
  * triangles in currentColor, following the text tokens.
@@ -54,7 +54,7 @@ div {
   justify-content: center;
   margin: 0;
   padding: 0;
-  font-size: 0.7rem; /* sizes the caret <sc-icon-base> to fit the stepper */
+  font-size: 0.7rem; /* sizes the caret <sc-base-icon> to fit the stepper */
   background: var(--color-surface-3);
   border: none;
   border-radius: 0;

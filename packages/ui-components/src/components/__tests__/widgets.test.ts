@@ -15,24 +15,24 @@ beforeAll(() => {
 /** The widget tags — all map to ScControlBase subclasses (so `updateComplete`
  *  and the control props are visible), unlike the full element map. */
 type WidgetTag =
-  | "sc-checkbox-base"
-  | "sc-switch-base"
-  | "sc-knob-base"
-  | "sc-slider-base"
-  | "sc-option-base"
-  | "sc-radio-base"
-  | "sc-radio-group-base"
-  | "sc-select-base"
-  | "sc-icon-base"
-  | "sc-button-base"
-  | "sc-badge-base"
-  | "sc-toast-base"
-  | "sc-chip-base"
-  | "sc-input-base"
-  | "sc-inputnumber-base"
-  | "sc-textarea-base"
-  | "sc-text-base"
-  | "sc-progress-base";
+  | "sc-base-checkbox"
+  | "sc-base-switch"
+  | "sc-base-knob"
+  | "sc-base-slider"
+  | "sc-base-option"
+  | "sc-base-radio"
+  | "sc-base-radio-group"
+  | "sc-base-select"
+  | "sc-base-icon"
+  | "sc-base-button"
+  | "sc-base-badge"
+  | "sc-base-toast"
+  | "sc-base-chip"
+  | "sc-base-input"
+  | "sc-base-inputnumber"
+  | "sc-base-textarea"
+  | "sc-base-text"
+  | "sc-base-progress";
 
 /** Mount a widget, assign props, and wait for its first render. The tag map
  *  (declared in ../index) types both the element and its props. */
@@ -47,9 +47,9 @@ async function mount<K extends WidgetTag>(
   return el;
 }
 
-describe("sc-checkbox-base", () => {
+describe("sc-base-checkbox", () => {
   it("renders a hidden native checkbox; size reflects to the host", async () => {
-    const el = await mount("sc-checkbox-base", { size: "lg" });
+    const el = await mount("sc-base-checkbox", { size: "lg" });
     const label = el.shadowRoot!.querySelector("label")!;
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("checkbox");
@@ -59,7 +59,7 @@ describe("sc-checkbox-base", () => {
   });
 
   it("toggles and re-emits a composed change carrying checked", async () => {
-    const el = await mount("sc-checkbox-base");
+    const el = await mount("sc-base-checkbox");
     const checks: boolean[] = [];
     el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
     const input = el.shadowRoot!.querySelector("input")!;
@@ -71,7 +71,7 @@ describe("sc-checkbox-base", () => {
   });
 
   it("disables the native input", async () => {
-    const el = await mount("sc-checkbox-base", { disabled: true });
+    const el = await mount("sc-base-checkbox", { disabled: true });
     expect(el.shadowRoot!.querySelector("input")!.disabled).toBe(true);
   });
 });
@@ -80,9 +80,9 @@ describe("sc-checkbox-base", () => {
  *  `.checked` (checkbox/switch) — not the native input. */
 type ScCheckboxLike = { checked: boolean };
 
-describe("sc-switch-base", () => {
+describe("sc-base-switch", () => {
   it("uses a role=switch native input and fires native change", async () => {
-    const el = await mount("sc-switch-base");
+    const el = await mount("sc-base-switch");
     const checks: boolean[] = [];
     el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
     const input = el.shadowRoot!.querySelector("input")!;
@@ -101,9 +101,9 @@ function nativeChanges(el: EventTarget): number[] {
   return values;
 }
 
-describe("sc-knob-base", () => {
+describe("sc-base-knob", () => {
   it("renders a hidden range and steps it on wheel, firing native change", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0 });
     expect(el.shadowRoot!.querySelector("input")!.type).toBe("range");
     const changes = nativeChanges(el);
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
@@ -112,7 +112,7 @@ describe("sc-knob-base", () => {
   });
 
   it("clamps to max", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.1, value: 0.95 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.1, value: 0.95 });
     el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, cancelable: true }));
     expect(el.value).toBe(1);
   });
@@ -129,7 +129,7 @@ describe("sc-knob-base", () => {
   }
 
   it("increases on upward drag", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0.5 });
     const changes = nativeChanges(el);
     drag(el, 15); // +15/60 * 1 = +0.25
     expect(el.value).toBeCloseTo(0.75);
@@ -137,19 +137,19 @@ describe("sc-knob-base", () => {
   });
 
   it("decreases on downward drag", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0.5 });
     drag(el, -30); // -30/60 * 1 = -0.5
     expect(el.value).toBeCloseTo(0);
   });
 
   it("Shift makes the drag finer (×0.2)", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0.5 });
     drag(el, 15, { shiftKey: true }); // +0.25 * 0.2 = +0.05
     expect(el.value).toBeCloseTo(0.55);
   });
 
   it("follows the dominant axis (horizontal drag also adjusts)", async () => {
-    const el = await mount("sc-knob-base", { min: 0, max: 1, step: 0.01, value: 0.5 });
+    const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0.5 });
     el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 0, clientY: 300 }));
     document.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 15, clientY: 300 }));
     document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
@@ -157,9 +157,9 @@ describe("sc-knob-base", () => {
   });
 });
 
-describe("sc-slider-base", () => {
+describe("sc-base-slider", () => {
   it("reflects orientation to the host and steps the hidden range on wheel", async () => {
-    const el = await mount("sc-slider-base", {
+    const el = await mount("sc-base-slider", {
       orientation: "vertical",
       min: 0,
       max: 1,
@@ -175,9 +175,9 @@ describe("sc-slider-base", () => {
   });
 });
 
-describe("sc-option-base", () => {
+describe("sc-base-option", () => {
   it("renders an option row with its label (standalone, no context)", async () => {
-    const el = await mount("sc-option-base", { value: 7, label: "Saw" });
+    const el = await mount("sc-base-option", { value: 7, label: "Saw" });
     const row = el.shadowRoot!.querySelector('[role="option"]')!;
     expect(row.textContent!.trim()).toBe("Saw");
     expect(row.getAttribute("aria-selected")).toBe("false");
@@ -185,9 +185,9 @@ describe("sc-option-base", () => {
   });
 });
 
-describe("sc-radio-base", () => {
+describe("sc-base-radio", () => {
   it("renders a hidden native radio and checks itself on click (standalone)", async () => {
-    const el = await mount("sc-radio-base", { value: 2, label: "Square" });
+    const el = await mount("sc-base-radio", { value: 2, label: "Square" });
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("radio");
     input.click();
@@ -195,17 +195,17 @@ describe("sc-radio-base", () => {
   });
 });
 
-describe("sc-radio-group-base", () => {
+describe("sc-base-radio-group", () => {
   async function mountGroup(value: number) {
-    const group = document.createElement("sc-radio-group-base");
+    const group = document.createElement("sc-base-radio-group");
     group.innerHTML =
-      '<sc-radio-base value="0" label="a"></sc-radio-base>' +
-      '<sc-radio-base value="1" label="b"></sc-radio-base>' +
-      '<sc-radio-base value="2" label="c"></sc-radio-base>';
+      '<sc-base-radio value="0" label="a"></sc-base-radio>' +
+      '<sc-base-radio value="1" label="b"></sc-base-radio>' +
+      '<sc-base-radio value="2" label="c"></sc-base-radio>';
     group.value = value;
     document.body.appendChild(group);
     await group.updateComplete;
-    const radios = Array.from(group.querySelectorAll("sc-radio-base"));
+    const radios = Array.from(group.querySelectorAll("sc-base-radio"));
     await Promise.all(radios.map((r) => r.updateComplete));
     await group.updateComplete; // let context propagate + children re-render
     await Promise.all(radios.map((r) => r.updateComplete));
@@ -252,17 +252,17 @@ describe("sc-radio-group-base", () => {
   });
 });
 
-describe("sc-select-base", () => {
+describe("sc-base-select", () => {
   async function mountSelect(value: number) {
-    const select = document.createElement("sc-select-base");
+    const select = document.createElement("sc-base-select");
     select.innerHTML =
-      '<sc-option-base value="0" label="Sine"></sc-option-base>' +
-      '<sc-option-base value="1" label="Saw"></sc-option-base>' +
-      '<sc-option-base value="2" label="Square"></sc-option-base>';
+      '<sc-base-option value="0" label="Sine"></sc-base-option>' +
+      '<sc-base-option value="1" label="Saw"></sc-base-option>' +
+      '<sc-base-option value="2" label="Square"></sc-base-option>';
     select.value = value;
     document.body.appendChild(select);
     await select.updateComplete;
-    const options = Array.from(select.querySelectorAll("sc-option-base"));
+    const options = Array.from(select.querySelectorAll("sc-base-option"));
     await Promise.all(options.map((o) => o.updateComplete));
     return { select, options };
   }
@@ -270,9 +270,9 @@ describe("sc-select-base", () => {
   const combobox = (s: HTMLElement) =>
     s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
   const dropdown = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLElement>("sc-popover-base")!;
+    s.shadowRoot!.querySelector<HTMLElement>("sc-base-popover")!;
 
-  // The dropdown is delegated to <sc-popover-base> (the shared top-layer overlay);
+  // The dropdown is delegated to <sc-base-popover> (the shared top-layer overlay);
   // open/close + light-dismiss aren't exercisable in happy-dom — that's the CDP
   // harness's job. Here we assert the wiring + the context selection path.
   it("shows the selected option label and delegates the dropdown to a listbox popover", async () => {
@@ -303,9 +303,9 @@ describe("sc-select-base", () => {
   });
 });
 
-describe("sc-icon-base", () => {
+describe("sc-base-icon", () => {
   it("renders the regular icon classes, decorative by default", async () => {
-    const el = await mount("sc-icon-base", { name: "play" });
+    const el = await mount("sc-base-icon", { name: "play" });
     const i = el.shadowRoot!.querySelector("i")!;
     expect(i.classList.contains("ph")).toBe(true); // regular weight (default)
     expect(i.classList.contains("ph-play")).toBe(true);
@@ -313,19 +313,19 @@ describe("sc-icon-base", () => {
   });
 
   it("maps the variant to the weight class", async () => {
-    const fill = await mount("sc-icon-base", { name: "play", variant: "fill" });
+    const fill = await mount("sc-base-icon", { name: "play", variant: "fill" });
     expect(fill.shadowRoot!.querySelector("i")!.classList.contains("ph-fill")).toBe(true);
-    const duo = await mount("sc-icon-base", { name: "play", variant: "duotone" });
+    const duo = await mount("sc-base-icon", { name: "play", variant: "duotone" });
     expect(duo.shadowRoot!.querySelector("i")!.classList.contains("ph-duotone")).toBe(true);
   });
 
   it("reflects the size to the host when given", async () => {
-    const el = await mount("sc-icon-base", { name: "play", size: "lg" });
+    const el = await mount("sc-base-icon", { name: "play", size: "lg" });
     expect(el.getAttribute("size")).toBe("lg");
   });
 
   it("becomes labelled (role=img) when given a label", async () => {
-    const el = await mount("sc-icon-base", { name: "play", label: "Play" });
+    const el = await mount("sc-base-icon", { name: "play", label: "Play" });
     const i = el.shadowRoot!.querySelector("i")!;
     expect(i.getAttribute("role")).toBe("img");
     expect(i.getAttribute("aria-label")).toBe("Play");
@@ -333,9 +333,9 @@ describe("sc-icon-base", () => {
   });
 });
 
-describe("sc-button-base", () => {
+describe("sc-base-button", () => {
   it("renders a typed button; variant/size reflect to the host; label text", async () => {
-    const el = await mount("sc-button-base", { label: "Run", variant: "danger", size: "lg" });
+    const el = await mount("sc-base-button", { label: "Run", variant: "danger", size: "lg" });
     const btn = el.shadowRoot!.querySelector("button")!;
     expect(btn.getAttribute("type")).toBe("button");
     expect(el.getAttribute("variant")).toBe("danger");
@@ -344,12 +344,12 @@ describe("sc-button-base", () => {
   });
 
   it("renders leading + trailing icons tagged for the edge-hug layout", async () => {
-    const el = await mount("sc-button-base", {
+    const el = await mount("sc-base-button", {
       label: "Open",
       icon: "folder",
       trailingIcon: "caret-down",
     });
-    const icons = Array.from(el.shadowRoot!.querySelectorAll("sc-icon-base"));
+    const icons = Array.from(el.shadowRoot!.querySelectorAll("sc-base-icon"));
     expect(icons.map((i) => i.getAttribute("name"))).toEqual(["folder", "caret-down"]);
     // Leading/trailing tagged so each hugs its button edge; sized via em (no size attr).
     expect(icons[0].classList.contains("lead")).toBe(true);
@@ -357,37 +357,37 @@ describe("sc-button-base", () => {
   });
 
   it("icon-only: square modifier, no label text, label used as aria-label", async () => {
-    const el = await mount("sc-button-base", { icon: "play", iconOnly: true, label: "Play" });
+    const el = await mount("sc-base-button", { icon: "play", iconOnly: true, label: "Play" });
     const btn = el.shadowRoot!.querySelector("button")!;
     expect(btn.classList.contains("iconOnly")).toBe(true);
     expect(el.shadowRoot!.querySelector(".label")).toBeNull();
-    expect(el.shadowRoot!.querySelector("sc-icon-base")!.getAttribute("name")).toBe("play");
+    expect(el.shadowRoot!.querySelector("sc-base-icon")!.getAttribute("name")).toBe("play");
     expect(btn.getAttribute("aria-label")).toBe("Play");
   });
 
   it("loading: spinner takes the icon slot, button is busy + disabled, label stays", async () => {
-    const el = await mount("sc-button-base", { label: "Save", icon: "gear", loading: true });
+    const el = await mount("sc-base-button", { label: "Save", icon: "gear", loading: true });
     const btn = el.shadowRoot!.querySelector("button")!;
     expect(el.shadowRoot!.querySelector(".spinner")).not.toBeNull();
-    expect(el.shadowRoot!.querySelector("sc-icon-base")).toBeNull(); // spinner replaced the icon
+    expect(el.shadowRoot!.querySelector("sc-base-icon")).toBeNull(); // spinner replaced the icon
     expect(el.shadowRoot!.querySelector(".label")!.textContent).toBe("Save");
     expect(btn.disabled).toBe(true);
     expect(btn.getAttribute("aria-busy")).toBe("true");
   });
 
   it("loading works without an icon (spinner in the leading slot) and icon-only", async () => {
-    const plain = await mount("sc-button-base", { label: "Go", loading: true });
+    const plain = await mount("sc-base-button", { label: "Go", loading: true });
     expect(plain.shadowRoot!.querySelector(".spinner")!.classList.contains("lead")).toBe(true);
     expect(plain.shadowRoot!.querySelector(".label")!.textContent).toBe("Go");
 
-    const iconOnly = await mount("sc-button-base", { icon: "play", iconOnly: true, loading: true });
+    const iconOnly = await mount("sc-base-button", { icon: "play", iconOnly: true, loading: true });
     expect(iconOnly.shadowRoot!.querySelector(".spinner")).not.toBeNull();
     expect(iconOnly.shadowRoot!.querySelector(".label")).toBeNull();
     expect(iconOnly.shadowRoot!.querySelector("button")!.classList.contains("iconOnly")).toBe(true);
   });
 
   it("fires a bubbling click from the inner button", async () => {
-    const el = await mount("sc-button-base", { label: "Go" });
+    const el = await mount("sc-base-button", { label: "Go" });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
     el.shadowRoot!.querySelector("button")!.click();
@@ -395,7 +395,7 @@ describe("sc-button-base", () => {
   });
 
   it("does not click when disabled", async () => {
-    const el = await mount("sc-button-base", { label: "Go", disabled: true });
+    const el = await mount("sc-base-button", { label: "Go", disabled: true });
     let clicks = 0;
     el.addEventListener("click", () => (clicks += 1));
     el.shadowRoot!.querySelector("button")!.click();
@@ -403,33 +403,33 @@ describe("sc-button-base", () => {
   });
 });
 
-describe("sc-badge-base", () => {
+describe("sc-base-badge", () => {
   it("renders the label; ok is the base variant", async () => {
-    const el = await mount("sc-badge-base", { label: "connected" });
+    const el = await mount("sc-base-badge", { label: "connected" });
     expect(el.shadowRoot!.textContent!.trim()).toBe("connected");
     expect(el.getAttribute("variant")).toBe("ok");
   });
 
   it("reflects the variant to the host", async () => {
-    const el = await mount("sc-badge-base", { label: "offline", variant: "error" });
+    const el = await mount("sc-base-badge", { label: "offline", variant: "error" });
     expect(el.getAttribute("variant")).toBe("error");
   });
 });
 
-describe("sc-toast-base", () => {
+describe("sc-base-toast", () => {
   it("renders the message; default is the base variant", async () => {
-    const el = await mount("sc-toast-base", { message: "Saved." });
+    const el = await mount("sc-base-toast", { message: "Saved." });
     expect(el.shadowRoot!.querySelector(".message")!.textContent!.trim()).toBe("Saved.");
     expect(el.getAttribute("variant")).toBe("default");
   });
 
   it("reflects the variant to the host", async () => {
-    const el = await mount("sc-toast-base", { message: "Late", variant: "warn" });
+    const el = await mount("sc-base-toast", { message: "Late", variant: "warn" });
     expect(el.getAttribute("variant")).toBe("warn");
   });
 
   it("dispatches a bubbling dismiss event on close", async () => {
-    const el = await mount("sc-toast-base", { message: "x" });
+    const el = await mount("sc-base-toast", { message: "x" });
     let dismissed = 0;
     el.addEventListener("dismiss", () => (dismissed += 1));
     el.shadowRoot!.querySelector<HTMLButtonElement>(".close")!.click();
@@ -437,24 +437,24 @@ describe("sc-toast-base", () => {
   });
 });
 
-describe("sc-chip-base", () => {
+describe("sc-base-chip", () => {
   it("renders the label; neutral is the base variant, no dot", async () => {
-    const el = await mount("sc-chip-base", { label: "idle" });
+    const el = await mount("sc-base-chip", { label: "idle" });
     expect(el.shadowRoot!.textContent!.trim()).toBe("idle");
     expect(el.getAttribute("variant")).toBe("neutral");
     expect(el.shadowRoot!.querySelector(".dot")).toBeNull();
   });
 
   it("reflects the variant and shows the dot when enabled", async () => {
-    const el = await mount("sc-chip-base", { label: "alive", variant: "ok", dot: true });
+    const el = await mount("sc-base-chip", { label: "alive", variant: "ok", dot: true });
     expect(el.getAttribute("variant")).toBe("ok");
     expect(el.shadowRoot!.querySelector(".dot")).not.toBeNull();
   });
 });
 
-describe("sc-input-base", () => {
+describe("sc-base-input", () => {
   it("renders a text input; size reflects to the host", async () => {
-    const el = await mount("sc-input-base", { size: "lg", placeholder: "name" });
+    const el = await mount("sc-base-input", { size: "lg", placeholder: "name" });
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.type).toBe("text");
     expect(el.getAttribute("size")).toBe("lg");
@@ -462,7 +462,7 @@ describe("sc-input-base", () => {
   });
 
   it("mirrors value and re-emits a composed input", async () => {
-    const el = await mount("sc-input-base");
+    const el = await mount("sc-base-input");
     const inputs: string[] = [];
     el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
     const input = el.shadowRoot!.querySelector("input")!;
@@ -477,15 +477,15 @@ describe("sc-input-base", () => {
  *  `.value`. */
 type ScInputBaseLike = { value: string };
 
-describe("sc-inputnumber-base", () => {
+describe("sc-base-inputnumber", () => {
   it("renders a number input plus two stepper buttons", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 2 });
+    const el = await mount("sc-base-inputnumber", { value: 2 });
     expect(el.shadowRoot!.querySelector("input")!.type).toBe("number");
     expect(el.shadowRoot!.querySelectorAll(".step").length).toBe(2);
   });
 
   it("steps up by `step`, re-emitting composed change with the new value", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 0, step: 1, max: 5 });
+    const el = await mount("sc-base-inputnumber", { value: 0, step: 1, max: 5 });
     const changes: number[] = [];
     el.addEventListener("change", (e) => changes.push(Number((e.target as unknown as { value: number }).value)));
     el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".step")[0].click();
@@ -494,7 +494,7 @@ describe("sc-inputnumber-base", () => {
   });
 
   it("clamps to max at the bound", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 4.5, step: 1, max: 5 });
+    const el = await mount("sc-base-inputnumber", { value: 4.5, step: 1, max: 5 });
     const up = el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".step")[0];
     up.click(); // 4.5 → clamp(quantize(5.5)) = 5
     up.click(); // already 5 → no-op
@@ -502,7 +502,7 @@ describe("sc-inputnumber-base", () => {
   });
 
   it("clamps a typed out-of-range value on change", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 0, max: 5 });
+    const el = await mount("sc-base-inputnumber", { value: 0, max: 5 });
     const input = el.shadowRoot!.querySelector("input")!;
     input.value = "999";
     input.dispatchEvent(new Event("input", { bubbles: true })); // live: 999
@@ -511,15 +511,15 @@ describe("sc-inputnumber-base", () => {
   });
 
   it("rounds the outer corners only (top-right up, bottom-right down)", async () => {
-    const el = await mount("sc-inputnumber-base", { value: 1 });
+    const el = await mount("sc-base-inputnumber", { value: 1 });
     expect(el.shadowRoot!.querySelector(".stepUp")).not.toBeNull();
     expect(el.shadowRoot!.querySelector(".stepDown")).not.toBeNull();
   });
 });
 
-describe("sc-textarea-base", () => {
+describe("sc-base-textarea", () => {
   it("renders a textarea with rows; size reflects to the host", async () => {
-    const el = await mount("sc-textarea-base", { rows: 5, size: "lg", placeholder: "notes" });
+    const el = await mount("sc-base-textarea", { rows: 5, size: "lg", placeholder: "notes" });
     const ta = el.shadowRoot!.querySelector("textarea")!;
     expect(ta.getAttribute("rows")).toBe("5");
     expect(el.getAttribute("size")).toBe("lg");
@@ -527,7 +527,7 @@ describe("sc-textarea-base", () => {
   });
 
   it("mirrors value and re-emits a composed input", async () => {
-    const el = await mount("sc-textarea-base");
+    const el = await mount("sc-base-textarea");
     const inputs: string[] = [];
     el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
     const ta = el.shadowRoot!.querySelector("textarea")!;
@@ -538,9 +538,9 @@ describe("sc-textarea-base", () => {
   });
 });
 
-describe("sc-text-base", () => {
+describe("sc-base-text", () => {
   it("renders a <span> by default and reflects the typography modifiers to the host", async () => {
-    const el = document.createElement("sc-text-base");
+    const el = document.createElement("sc-base-text");
     el.textContent = "Heading";
     el.size = "xl";
     el.weight = "bold";
@@ -558,7 +558,7 @@ describe("sc-text-base", () => {
   });
 
   it("renders the semantic element chosen by `as`, keeping the visual modifiers", async () => {
-    const el = document.createElement("sc-text-base");
+    const el = document.createElement("sc-base-text");
     el.setAttribute("as", "h2");
     el.textContent = "Title";
     el.size = "lg";
@@ -573,7 +573,7 @@ describe("sc-text-base", () => {
   });
 
   it("reflects the truncate/inline boolean modifiers to the host", async () => {
-    const el = document.createElement("sc-text-base");
+    const el = document.createElement("sc-base-text");
     el.truncate = true;
     el.inline = true;
     document.body.appendChild(el);
@@ -589,27 +589,27 @@ describe("sc-text-base", () => {
 // hidden native input for radio grouping + a11y.
 describe("name forwarding", () => {
   it("forwards `name` to the native input/textarea", async () => {
-    const input = await mount("sc-input-base", { name: "title" });
+    const input = await mount("sc-base-input", { name: "title" });
     expect(input.shadowRoot!.querySelector("input")!.name).toBe("title");
-    const ta = await mount("sc-textarea-base", { name: "notes" });
+    const ta = await mount("sc-base-textarea", { name: "notes" });
     expect(ta.shadowRoot!.querySelector("textarea")!.name).toBe("notes");
-    const num = await mount("sc-inputnumber-base", { name: "freq" });
+    const num = await mount("sc-base-inputnumber", { name: "freq" });
     expect(num.shadowRoot!.querySelector("input")!.name).toBe("freq");
-    const cb = await mount("sc-checkbox-base", { name: "agree" });
+    const cb = await mount("sc-base-checkbox", { name: "agree" });
     expect(cb.shadowRoot!.querySelector("input")!.name).toBe("agree");
-    const knob = await mount("sc-knob-base", { name: "gain" });
+    const knob = await mount("sc-base-knob", { name: "gain" });
     expect(knob.shadowRoot!.querySelector("input")!.name).toBe("gain");
   });
 
   it("radio-group shares its name with the radios + value on the checked one", async () => {
-    const group = document.createElement("sc-radio-group-base");
+    const group = document.createElement("sc-base-radio-group");
     group.setAttribute("name", "wave");
     group.innerHTML =
-      '<sc-radio-base value="0"></sc-radio-base><sc-radio-base value="1"></sc-radio-base>';
+      '<sc-base-radio value="0"></sc-base-radio><sc-base-radio value="1"></sc-base-radio>';
     group.value = 1;
     document.body.appendChild(group);
     await group.updateComplete;
-    const radios = Array.from(group.querySelectorAll("sc-radio-base"));
+    const radios = Array.from(group.querySelectorAll("sc-base-radio"));
     await Promise.all(radios.map((r) => r.updateComplete));
     await group.updateComplete;
     await Promise.all(radios.map((r) => r.updateComplete));
@@ -623,9 +623,9 @@ describe("name forwarding", () => {
 // happy-dom has no top layer / layout, so we assert structure + open-state +
 // event wiring only; the escape-clipping / positioning / light-dismiss is
 // verified in a real browser (the CDP harness).
-describe("sc-popover-base", () => {
+describe("sc-base-popover", () => {
   it("renders a .sc-popover panel slotting its children", async () => {
-    const el = document.createElement("sc-popover-base");
+    const el = document.createElement("sc-base-popover");
     el.innerHTML = "<span>menu</span>";
     document.body.appendChild(el);
     await el.updateComplete;
@@ -635,7 +635,7 @@ describe("sc-popover-base", () => {
 
   it("anchors to its previous sibling and reflects open via a toggle event", async () => {
     const anchor = document.createElement("button");
-    const el = document.createElement("sc-popover-base");
+    const el = document.createElement("sc-base-popover");
     document.body.append(anchor, el);
     await el.updateComplete;
     expect(el.previousElementSibling).toBe(anchor);
@@ -654,9 +654,9 @@ describe("sc-popover-base", () => {
 
 // showModal()/::backdrop/focus-trap need a real top layer (CDP harness); here we
 // assert the structure, the slotted content, and the dismissable wiring.
-describe("sc-modal-base", () => {
+describe("sc-base-modal", () => {
   it("renders a <dialog class=modal> slotting its content", async () => {
-    const el = document.createElement("sc-modal-base");
+    const el = document.createElement("sc-base-modal");
     el.innerHTML = '<h2 class="sc-modal__title">Hi</h2>';
     document.body.appendChild(el);
     await el.updateComplete;
@@ -667,7 +667,7 @@ describe("sc-modal-base", () => {
   });
 
   it("emits close + clears open when the dialog closes", async () => {
-    const el = document.createElement("sc-modal-base");
+    const el = document.createElement("sc-base-modal");
     el.dismissable = true;
     el.open = true;
     document.body.appendChild(el);
@@ -681,12 +681,12 @@ describe("sc-modal-base", () => {
   });
 });
 
-// sc-drawer-base shares ScDialogBase with the modal; the showModal()/top-layer/
+// sc-base-drawer shares ScDialogBase with the modal; the showModal()/top-layer/
 // slide is CDP-verified. Here: structure, slotted content, side reflection, and
 // the close-event contract.
-describe("sc-drawer-base", () => {
+describe("sc-base-drawer", () => {
   it("renders a <dialog class=drawer> slotting its content, side reflected", async () => {
-    const el = document.createElement("sc-drawer-base");
+    const el = document.createElement("sc-base-drawer");
     el.side = "left";
     el.innerHTML = "<header><h2>Plugins</h2></header><div>body</div>";
     document.body.appendChild(el);
@@ -698,7 +698,7 @@ describe("sc-drawer-base", () => {
   });
 
   it("defaults to the right side and emits close on dialog close", async () => {
-    const el = document.createElement("sc-drawer-base");
+    const el = document.createElement("sc-base-drawer");
     el.dismissable = true;
     el.open = true;
     document.body.appendChild(el);
@@ -716,8 +716,8 @@ describe("sc-drawer-base", () => {
 // stay light-DOM (slotted, still reachable from the host), styling driven by
 // `:host` + reflected modifier attributes (variant/disabled).
 describe("content wrappers", () => {
-  it("sc-alert-base slots children and applies the variant class", async () => {
-    const el = document.createElement("sc-alert-base");
+  it("sc-base-alert slots children and applies the variant class", async () => {
+    const el = document.createElement("sc-base-alert");
     el.innerHTML = "scsynth <strong>down</strong>";
     el.variant = "error";
     document.body.appendChild(el);
@@ -726,8 +726,8 @@ describe("content wrappers", () => {
     expect(el.getAttribute("variant")).toBe("error");
   });
 
-  it("sc-alert-base defaults to the info variant (role=status)", async () => {
-    const el = document.createElement("sc-alert-base");
+  it("sc-base-alert defaults to the info variant (role=status)", async () => {
+    const el = document.createElement("sc-base-alert");
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.variant).toBe("info");
@@ -735,8 +735,8 @@ describe("content wrappers", () => {
     expect(el.getAttribute("role")).toBe("status");
   });
 
-  it("sc-panel-base slots its header + content and reflects disabled", async () => {
-    const el = document.createElement("sc-panel-base");
+  it("sc-base-panel slots its header + content and reflects disabled", async () => {
+    const el = document.createElement("sc-base-panel");
     el.innerHTML = "<header>Seq</header><span>body</span>";
     el.disabled = true;
     document.body.appendChild(el);
@@ -746,8 +746,8 @@ describe("content wrappers", () => {
     expect(el.hasAttribute("disabled")).toBe(true);
   });
 
-  it("sc-empty-base slots children", async () => {
-    const el = document.createElement("sc-empty-base");
+  it("sc-base-empty slots children", async () => {
+    const el = document.createElement("sc-base-empty");
     el.textContent = "no items yet";
     document.body.appendChild(el);
     await el.updateComplete;
@@ -755,8 +755,8 @@ describe("content wrappers", () => {
     expect(el.textContent).toBe("no items yet");
   });
 
-  it("sc-stack-base / sc-cluster-base slot children and apply the gap class", async () => {
-    for (const tag of ["sc-stack-base", "sc-cluster-base"] as const) {
+  it("sc-base-stack / sc-base-cluster slot children and apply the gap class", async () => {
+    for (const tag of ["sc-base-stack", "sc-base-cluster"] as const) {
       const el = document.createElement(tag);
       el.innerHTML = "<span>a</span><span>b</span>";
       el.gap = "md";
@@ -768,10 +768,10 @@ describe("content wrappers", () => {
   });
 });
 
-// sc-disclosure-base wraps a native <details> in shadow DOM, syncing `open`.
-describe("sc-disclosure-base", () => {
+// sc-base-disclosure wraps a native <details> in shadow DOM, syncing `open`.
+describe("sc-base-disclosure", () => {
   it("renders details with slotted summary + content, mirrors open", async () => {
-    const el = document.createElement("sc-disclosure-base");
+    const el = document.createElement("sc-base-disclosure");
     el.innerHTML = '<span slot="summary">Title</span><p>body</p>';
     el.open = true;
     document.body.appendChild(el);
@@ -782,7 +782,7 @@ describe("sc-disclosure-base", () => {
   });
 
   it("mirrors a native toggle back into open + emits toggle", async () => {
-    const el = document.createElement("sc-disclosure-base");
+    const el = document.createElement("sc-base-disclosure");
     el.innerHTML = '<span slot="summary">T</span><p>b</p>';
     document.body.appendChild(el);
     await el.updateComplete;
@@ -801,7 +801,7 @@ describe("sc-disclosure-base", () => {
 // Accessibility wiring (Tier 1): names, roles, live regions, value text.
 describe("a11y wiring", () => {
   it("modal/drawer expose `label` as the dialog aria-label", async () => {
-    for (const tag of ["sc-modal-base", "sc-drawer-base"] as const) {
+    for (const tag of ["sc-base-modal", "sc-base-drawer"] as const) {
       const el = document.createElement(tag);
       el.label = "Plugins";
       document.body.appendChild(el);
@@ -811,7 +811,7 @@ describe("a11y wiring", () => {
   });
 
   it("radio-group is role=radiogroup with its label as aria-label", async () => {
-    const el = document.createElement("sc-radio-group-base");
+    const el = document.createElement("sc-base-radio-group");
     el.label = "Waveform";
     document.body.appendChild(el);
     await el.updateComplete;
@@ -820,7 +820,7 @@ describe("a11y wiring", () => {
   });
 
   it("alert role tracks severity (error=alert, else status)", async () => {
-    const el = document.createElement("sc-alert-base");
+    const el = document.createElement("sc-base-alert");
     document.body.appendChild(el);
     await el.updateComplete;
     expect(el.getAttribute("role")).toBe("status"); // default info
@@ -830,14 +830,14 @@ describe("a11y wiring", () => {
   });
 
   it("toast role tracks severity (error/warn=alert, else status)", async () => {
-    const el = await mount("sc-toast-base", { variant: "error" });
+    const el = await mount("sc-base-toast", { variant: "error" });
     expect(el.getAttribute("role")).toBe("alert");
-    const info = await mount("sc-toast-base", { variant: "info" });
+    const info = await mount("sc-base-toast", { variant: "info" });
     expect(info.getAttribute("role")).toBe("status");
   });
 
   it("knob/slider expose label as aria-label + a precision-rounded aria-valuetext", async () => {
-    for (const tag of ["sc-knob-base", "sc-slider-base"] as const) {
+    for (const tag of ["sc-base-knob", "sc-base-slider"] as const) {
       const el = await mount(tag, { label: "Gain", value: 0.8, step: 0.01 });
       const input = el.shadowRoot!.querySelector("input")!;
       expect(input.getAttribute("aria-label")).toBe("Gain");
@@ -846,9 +846,9 @@ describe("a11y wiring", () => {
   });
 });
 
-describe("sc-progress-base", () => {
+describe("sc-base-progress", () => {
   it("defaults to an indeterminate bar (role=progressbar, busy, no valuenow)", async () => {
-    const el = await mount("sc-progress-base");
+    const el = await mount("sc-base-progress");
     const bar = el.shadowRoot!.querySelector(".bar")!;
     expect(bar.classList.contains("indeterminate")).toBe(true);
     expect(bar.getAttribute("role")).toBe("progressbar");
@@ -858,7 +858,7 @@ describe("sc-progress-base", () => {
   });
 
   it("with a value becomes determinate: rounded aria-valuenow + a fill width", async () => {
-    const el = await mount("sc-progress-base", { value: 60 });
+    const el = await mount("sc-base-progress", { value: 60 });
     const bar = el.shadowRoot!.querySelector(".bar")!;
     expect(bar.classList.contains("determinate")).toBe(true);
     expect(bar.hasAttribute("aria-busy")).toBe(false);
@@ -868,27 +868,27 @@ describe("sc-progress-base", () => {
   });
 
   it("clamps value to [0,max] for the fill width and honours a custom max", async () => {
-    const over = await mount("sc-progress-base", { value: 9999 });
+    const over = await mount("sc-base-progress", { value: 9999 });
     expect((over.shadowRoot!.querySelector(".fill") as HTMLElement).style.width).toBe("100%");
-    const scaled = await mount("sc-progress-base", { value: 5, max: 10 });
+    const scaled = await mount("sc-base-progress", { value: 5, max: 10 });
     expect((scaled.shadowRoot!.querySelector(".fill") as HTMLElement).style.width).toBe("50%");
     expect(scaled.shadowRoot!.querySelector(".bar")!.getAttribute("aria-valuemax")).toBe("10");
   });
 
   it("spinner variant renders the ring host itself with the determinate angle", async () => {
-    const indet = await mount("sc-progress-base", { variant: "spinner" });
+    const indet = await mount("sc-base-progress", { variant: "spinner" });
     const ring = indet.shadowRoot!.querySelector(".spinner")!;
     expect(ring.classList.contains("indeterminate")).toBe(true);
     expect(indet.shadowRoot!.querySelector(".fill")).toBeNull();
 
-    const det = await mount("sc-progress-base", { variant: "spinner", value: 75 });
+    const det = await mount("sc-base-progress", { variant: "spinner", value: 75 });
     expect(
       (det.shadowRoot!.querySelector(".spinner") as HTMLElement).style.getPropertyValue("--_pct"),
     ).toBe("75");
   });
 
   it("carries the label as the accessible name", async () => {
-    const el = await mount("sc-progress-base", { label: "Connecting…" });
+    const el = await mount("sc-base-progress", { label: "Connecting…" });
     expect(el.shadowRoot!.querySelector(".bar")!.getAttribute("aria-label")).toBe("Connecting…");
   });
 });

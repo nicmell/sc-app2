@@ -1,4 +1,4 @@
-// <sc-textarea-base> — a multi-line text field. Shadow DOM: wraps a native
+// <sc-base-textarea> — a multi-line text field. Shadow DOM: wraps a native
 // <textarea> styled by `controlStyles` (sans font, vertical resize, surface fill,
 // focus ring); it fills the host and the reflected `size` scales it via
 // `:host([size]) textarea`. The native input/change are re-emitted (composed) from

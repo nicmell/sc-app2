@@ -1,4 +1,4 @@
-// <sc-popover-base> — a generic anchored overlay panel rendered in the top layer
+// <sc-base-popover> — a generic anchored overlay panel rendered in the top layer
 // (escapes overflow/transform/z-index), positioned against an anchor by the internal
 // `position` helper. Shadow DOM; adopts the shared foundation sheet. Controlled by
 // `open`; anchors to `anchor` (an element set via property) or, by default, the

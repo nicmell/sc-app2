@@ -1,4 +1,4 @@
-// <sc-stack-base> — vertical flex layout primitive (a "column of stacked
+// <sc-base-stack> — vertical flex layout primitive (a "column of stacked
 // things"). Shadow DOM: `:host` is the flex column (with the reflected `gap`
 // modifier; xs is the base) wrapping a <slot> for the author's children.
 

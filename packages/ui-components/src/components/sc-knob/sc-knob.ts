@@ -1,4 +1,4 @@
-// <sc-knob-base> — a hidden native <input type="range"> under the SVG dial.
+// <sc-base-knob> — a hidden native <input type="range"> under the SVG dial.
 // The value plumbing (range mirror, quantise, pointer-drag, wheel, composed
 // event re-emit) lives in ScRangeBase; this file is just the dial visual + the
 // knob's drag feel: dragging along whichever axis dominates the gesture, over a

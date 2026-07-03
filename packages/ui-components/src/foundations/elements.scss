@@ -3,7 +3,7 @@
  * <input> / <select> / <textarea> / <label> elements look
  * correct without any classes — the load-bearing constraint
  * for the plugin future. A bare <button> is the default
- * (primary) action; variants + sizes live on <sc-button-base>
+ * (primary) action; variants + sizes live on <sc-base-button>
  * (src/components), keyed off its reflected `variant`/`size`.
  *
  * The form-field chrome (input/select/textarea) lives in controls.scss — shared with the
@@ -89,7 +89,7 @@ label {
 }
 
 /* ── Details / summary ─────────────────────────────────────── */
-/* Document-only: <sc-disclosure-base> styles its own <summary> in sc-disclosure.scss. */
+/* Document-only: <sc-base-disclosure> styles its own <summary> in sc-disclosure.scss. */
 
 details > summary {
   cursor: pointer;

@@ -1,4 +1,4 @@
-// <sc-cluster-base> — horizontal flex layout primitive (a "row of inline
+// <sc-base-cluster> — horizontal flex layout primitive (a "row of inline
 // things": toolbars, label + input, chip + readout). Centred cross-axis, wraps.
 // Shadow DOM: `:host` is the flex row (with the reflected `gap` modifier) over a <slot>.
 

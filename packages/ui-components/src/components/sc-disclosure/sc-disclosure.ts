@@ -1,4 +1,4 @@
-// <sc-disclosure-base> — a collapsible section. Wraps the NATIVE <details> (so
+// <sc-base-disclosure> — a collapsible section. Wraps the NATIVE <details> (so
 // open/close behaviour + accessibility are free) in a shadow root, adding
 // design-system chrome (card border, padding, a rotating chevron — see
 // sc-disclosure.styles.ts) and a controllable `open` prop.
@@ -52,7 +52,7 @@ export class ScDisclosureBase extends LitElement {
       <details @toggle=${this.#onToggle}>
         <summary class="summary">
           <slot name="summary"></slot>
-          <sc-icon-base class="chevron" name="caret-right"></sc-icon-base>
+          <sc-base-icon class="chevron" name="caret-right"></sc-base-icon>
         </summary>
         <div class="content"><slot></slot></div>
       </details>

@@ -1,4 +1,4 @@
-// <sc-text-base> — the typography primitive. Shadow DOM: it renders a single
+// <sc-base-text> — the typography primitive. Shadow DOM: it renders a single
 // semantic element — chosen by `as` (span by default; p / div / h1–h6) — wrapping a
 // `<slot>` for the author's text/inline children. The tag is SEMANTIC ONLY (document
 // outline / a11y / SEO): the look is entirely prop-driven, so `<sc-text as="h1">`

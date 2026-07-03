@@ -1,5 +1,5 @@
-// <sc-option-base> — a declarative option row and a ContextConsumer of its
-// <sc-select-base>. Shadow DOM: selection comes from context (selected =
+// <sc-base-option> — a declarative option row and a ContextConsumer of its
+// <sc-base-select>. Shadow DOM: selection comes from context (selected =
 // ctx.value === value); clicking reports back via ctx.select. The derived
 // `selected` + the effective `size` are materialised onto reflected props
 // (willUpdate), so :host([selected]) / :host([size]) style the bare row.

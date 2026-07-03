@@ -1,4 +1,4 @@
-// <sc-switch-base> — a hidden native <input type="checkbox" role="switch"> under
+// <sc-base-switch> — a hidden native <input type="checkbox" role="switch"> under
 // a track+thumb overlay. Shadow DOM: the <label> is the hit target; the input
 // owns value and the native `change` is re-emitted (composed) from the host
 // (read `e.target.checked`); the overlay animates via CSS.

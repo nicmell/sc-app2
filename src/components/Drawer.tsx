@@ -2,7 +2,7 @@ import { ScButton, ScDrawer } from "@sc-app/ui-components/react";
 import { PluginList } from "./PluginList";
 
 /** Right-side slide-in drawer for managing installed plugins. A top-layer
- *  <sc-drawer-base> (native <dialog>): backdrop, focus trap, and Esc are free. */
+ *  <sc-base-drawer> (native <dialog>): backdrop, focus trap, and Esc are free. */
 export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <ScDrawer open={open} side="right" dismissable label="Plugins" onClose={onClose}>

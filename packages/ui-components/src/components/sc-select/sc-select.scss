@@ -1,6 +1,6 @@
 /*
- * <sc-select-base> chrome. The combobox button + the dropdown, which is delegated to
- * <sc-popover-base> (the shared overlay supplies the surface chrome via its `panel`
+ * <sc-base-select> chrome. The combobox button + the dropdown, which is delegated to
+ * <sc-base-popover> (the shared overlay supplies the surface chrome via its `panel`
  * part; we only override the dropdown-specific size/padding here). Size is keyed off
  * the reflected host attribute; the accent is carried per-option (the options
  * self-apply the variant from the select context, in their own shadow).
@@ -52,9 +52,9 @@
   font-size: var(--font-size-xs);
 }
 
-/* The dropdown surface is <sc-popover-base>'s `panel` part (it brings the bg/border/
+/* The dropdown surface is <sc-base-popover>'s `panel` part (it brings the bg/border/
    radius/shadow); only the dropdown-specific sizing + padding are tuned here. */
-sc-popover-base::part(panel) {
+sc-base-popover::part(panel) {
   min-inline-size: 8rem;
   max-block-size: 14rem;
   padding: var(--space-3xs);

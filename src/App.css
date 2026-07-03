@@ -30,7 +30,7 @@ sc-plugin {
 }
 
 /* ── connection overlay ── */
-/* Caps the <sc-progress-base> bar (it's width: 100%) so it doesn't span the
+/* Caps the <sc-base-progress> bar (it's width: 100%) so it doesn't span the
    whole window inside the flex backdrop. */
 .connection-loader {
   width: min(320px, 60vw);
@@ -39,7 +39,7 @@ sc-plugin {
 /* ── ui-components slotted / app chrome ──
    These classes style LIGHT-DOM markup the app authors inside the shadow
    overlays (ConnectionOverlay, Drawer, ToastStack) — the shadow components
-   (<sc-modal-base>/<sc-drawer-base>) don't own them, so they live here. */
+   (<sc-base-modal>/<sc-base-drawer>) don't own them, so they live here. */
 .sc-modal__backdrop {
   position: fixed;
   inset: 0;
@@ -63,7 +63,7 @@ sc-plugin {
 }
 /* The drawer's slotted <header> bar is styled by the component (::slotted); its
    title heading is app light DOM, so size it here. */
-sc-drawer-base header h2 {
+sc-base-drawer header h2 {
   margin: 0;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);

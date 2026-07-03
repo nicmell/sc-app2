@@ -1,4 +1,4 @@
-// <sc-alert-base> — an inline alert/notice card. Shadow DOM: `:host` is the card (with
+// <sc-base-alert> — an inline alert/notice card. Shadow DOM: `:host` is the card (with
 // the reflected `variant` modifier; info is the base) over a <slot> for the author's
 // message. Sets the live-region role on the host (errors interrupt → role=alert; the
 // rest are polite → role=status).

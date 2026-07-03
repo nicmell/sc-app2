@@ -46,13 +46,13 @@ afterEach(() => {
 });
 
 describe("ConnectionOverlay", () => {
-  // The error modal is now <sc-modal-base> (its <dialog class="sc-modal"> lives in
+  // The error modal is now <sc-base-modal> (its <dialog class="sc-modal"> lives in
   // the shadow root, so .modal isn't queryable from the document — the host
   // tag is). The notice/actions are slotted light-DOM children of the host.
   it("connecting: backdrop with the indeterminate loader, no modal", () => {
     expect(container.querySelector(".sc-modal__backdrop")).not.toBeNull();
-    expect(container.querySelector("sc-progress-base")).not.toBeNull();
-    expect(container.querySelector("sc-modal-base")).toBeNull();
+    expect(container.querySelector("sc-base-progress")).not.toBeNull();
+    expect(container.querySelector("sc-base-modal")).toBeNull();
   });
 
   it("connected: renders nothing", () => {
@@ -62,8 +62,8 @@ describe("ConnectionOverlay", () => {
 
   it("error: modal with a notice and a Retry button, no loader", () => {
     setStatus("error");
-    expect(container.querySelector("sc-progress-base")).toBeNull();
-    const modal = container.querySelector("sc-modal-base");
+    expect(container.querySelector("sc-base-progress")).toBeNull();
+    const modal = container.querySelector("sc-base-modal");
     expect(modal).not.toBeNull();
     expect(modal!.querySelector(".sc-modal__title")?.textContent).toMatch(/connection failed/i);
     expect(modal!.querySelector(".sc-modal__body")?.textContent).toBeTruthy();
@@ -83,7 +83,7 @@ describe("ConnectionOverlay", () => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(retry).toHaveBeenCalledTimes(1);
-    expect(container.querySelector("sc-modal-base")).toBeNull();
-    expect(container.querySelector("sc-progress-base")).not.toBeNull();
+    expect(container.querySelector("sc-base-modal")).toBeNull();
+    expect(container.querySelector("sc-base-progress")).not.toBeNull();
   });
 });

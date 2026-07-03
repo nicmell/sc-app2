@@ -1,4 +1,4 @@
-// <sc-checkbox-base> — a hidden native <input type="checkbox"> under a visual
+// <sc-base-checkbox> — a hidden native <input type="checkbox"> under a visual
 // overlay (box + check). Shadow DOM: the <label> makes the whole widget the hit
 // target; the input owns value and the native `change` is re-emitted (composed)
 // from the host so consumers read `e.target.checked`. The overlay reflects state

@@ -48,233 +48,233 @@ import {
 
 registerUiComponents();
 
-/** <sc-checkbox-base>. `onChange` is the native change; read `e.target.checked`. */
+/** <sc-base-checkbox>. `onChange` is the native change; read `e.target.checked`. */
 export const ScCheckbox = createComponent({
   react: React,
-  tagName: "sc-checkbox-base",
+  tagName: "sc-base-checkbox",
   elementClass: ScCheckboxBase,
   events: { onChange: "change" },
 });
 
-/** <sc-switch-base>. `onChange` is the native change; read `e.target.checked`. */
+/** <sc-base-switch>. `onChange` is the native change; read `e.target.checked`. */
 export const ScSwitch = createComponent({
   react: React,
-  tagName: "sc-switch-base",
+  tagName: "sc-base-switch",
   elementClass: ScSwitchBase,
   events: { onChange: "change" },
 });
 
-/** <sc-knob-base>. `onInput` (live) / `onChange` (commit) are the native range
+/** <sc-base-knob>. `onInput` (live) / `onChange` (commit) are the native range
  *  events; read `e.target.value`. `label` sets the accessible name. */
 export const ScKnob = createComponent({
   react: React,
-  tagName: "sc-knob-base",
+  tagName: "sc-base-knob",
   elementClass: ScKnobBase,
   events: { onChange: "change", onInput: "input" },
 });
 
-/** <sc-slider-base>. `onInput` (live) / `onChange` (commit) are the native range
+/** <sc-base-slider>. `onInput` (live) / `onChange` (commit) are the native range
  *  events; read `e.target.value`. `label` sets the accessible name. */
 export const ScSlider = createComponent({
   react: React,
-  tagName: "sc-slider-base",
+  tagName: "sc-base-slider",
   elementClass: ScSliderBase,
   events: { onChange: "change", onInput: "input" },
 });
 
-/** <sc-option-base>. Reports selection to its <ScSelect> through context (no own
+/** <sc-base-option>. Reports selection to its <ScSelect> through context (no own
  *  event). Use as a child: <ScSelect><ScOption value={0} label="…" /></ScSelect>. */
 export const ScOption = createComponent({
   react: React,
-  tagName: "sc-option-base",
+  tagName: "sc-base-option",
   elementClass: ScOptionBase,
 });
 
-/** <sc-radio-base>. Use inside <ScRadioGroup>; reports selection via context. */
+/** <sc-base-radio>. Use inside <ScRadioGroup>; reports selection via context. */
 export const ScRadio = createComponent({
   react: React,
-  tagName: "sc-radio-base",
+  tagName: "sc-base-radio",
   elementClass: ScRadioBase,
 });
 
-/** <sc-radio-group-base>. Pass <ScRadio> children; selection + size/disabled flow
+/** <sc-base-radio-group>. Pass <ScRadio> children; selection + size/disabled flow
  *  via context. `onChange` is the group change; read `e.target.value`. `label` names
  *  the role=radiogroup. */
 export const ScRadioGroup = createComponent({
   react: React,
-  tagName: "sc-radio-group-base",
+  tagName: "sc-base-radio-group",
   elementClass: ScRadioGroupBase,
   events: { onChange: "change" },
 });
 
-/** <sc-select-base>. Pass <ScOption> children (declarative). `onChange` is the
+/** <sc-base-select>. Pass <ScOption> children (declarative). `onChange` is the
  *  select's change; read `e.target.value`. */
 export const ScSelect = createComponent({
   react: React,
-  tagName: "sc-select-base",
+  tagName: "sc-base-select",
   elementClass: ScSelectBase,
   events: { onChange: "change" },
 });
 
-/** <sc-icon-base>. Pass a Phosphor icon `name` + optional `variant`
+/** <sc-base-icon>. Pass a Phosphor icon `name` + optional `variant`
  *  (regular | fill | duotone). The weights are bundled by the package — no host
  *  setup needed. */
 export const ScIcon = createComponent({
   react: React,
-  tagName: "sc-icon-base",
+  tagName: "sc-base-icon",
   elementClass: ScIconBase,
 });
 
-/** <sc-button-base>. Standard React `onClick` (native click bubbles from the
+/** <sc-base-button>. Standard React `onClick` (native click bubbles from the
  *  inner button). `icon`/`trailingIcon` are Phosphor names; `iconOnly` makes an
  *  icon button (set `label` as the accessible name). */
 export const ScButton = createComponent({
   react: React,
-  tagName: "sc-button-base",
+  tagName: "sc-base-button",
   elementClass: ScButtonBase,
 });
 
-/** <sc-badge-base>. */
+/** <sc-base-badge>. */
 export const ScBadge = createComponent({
   react: React,
-  tagName: "sc-badge-base",
+  tagName: "sc-base-badge",
   elementClass: ScBadgeBase,
 });
 
-/** <sc-toast-base>. `onDismiss` fires when the close button is clicked; the
+/** <sc-base-toast>. `onDismiss` fires when the close button is clicked; the
  *  owner removes the toast from its list. */
 export const ScToast = createComponent({
   react: React,
-  tagName: "sc-toast-base",
+  tagName: "sc-base-toast",
   elementClass: ScToastBase,
   events: { onDismiss: "dismiss" },
 });
 
-/** <sc-chip-base>. */
+/** <sc-base-chip>. */
 export const ScChip = createComponent({
   react: React,
-  tagName: "sc-chip-base",
+  tagName: "sc-base-chip",
   elementClass: ScChipBase,
 });
 
-/** <sc-input-base>. `onInput` (live) / `onChange` (commit) native input events;
+/** <sc-base-input>. `onInput` (live) / `onChange` (commit) native input events;
  *  read `e.target.value`. */
 export const ScInput = createComponent({
   react: React,
-  tagName: "sc-input-base",
+  tagName: "sc-base-input",
   elementClass: ScInputBase,
   events: { onChange: "change", onInput: "input" },
 });
 
-/** <sc-inputnumber-base>. `onInput` (live) / `onChange` (commit/step) native
+/** <sc-base-inputnumber>. `onInput` (live) / `onChange` (commit/step) native
  *  input events; read `e.target.value`. */
 export const ScInputNumber = createComponent({
   react: React,
-  tagName: "sc-inputnumber-base",
+  tagName: "sc-base-inputnumber",
   elementClass: ScInputNumberBase,
   events: { onChange: "change", onInput: "input" },
 });
 
-/** <sc-textarea-base>. `onInput` (live) / `onChange` (commit) native textarea
+/** <sc-base-textarea>. `onInput` (live) / `onChange` (commit) native textarea
  *  events; read `e.target.value`. */
 export const ScTextarea = createComponent({
   react: React,
-  tagName: "sc-textarea-base",
+  tagName: "sc-base-textarea",
   elementClass: ScTextareaBase,
   events: { onChange: "change", onInput: "input" },
 });
 
-/** <sc-text-base>. Pass text/inline content as children; style via
+/** <sc-base-text>. Pass text/inline content as children; style via
  *  size/weight/tone/font/align (+ truncate/inline). */
 export const ScText = createComponent({
   react: React,
-  tagName: "sc-text-base",
+  tagName: "sc-base-text",
   elementClass: ScTextBase,
 });
 
-/** <sc-popover-base>. Control via `open`; `onToggle` fires when it opens/closes
+/** <sc-base-popover>. Control via `open`; `onToggle` fires when it opens/closes
  *  (incl. native light-dismiss) — read `e.target.open`. Set `anchor` (an
  *  element) or place a trigger right before it. */
 export const ScPopover = createComponent({
   react: React,
-  tagName: "sc-popover-base",
+  tagName: "sc-base-popover",
   elementClass: ScPopoverBase,
   events: { onToggle: "toggle" },
 });
 
-/** <sc-modal-base>. Render only while visible with `open`; `dismissable` allows
+/** <sc-base-modal>. Render only while visible with `open`; `dismissable` allows
  *  Esc/backdrop close. `onClose` fires on every dismissal — typically unmounts
  *  it. `label` is the dialog's accessible name. */
 export const ScModal = createComponent({
   react: React,
-  tagName: "sc-modal-base",
+  tagName: "sc-base-modal",
   elementClass: ScModalBase,
   events: { onClose: "close" },
 });
 
-/** <sc-drawer-base>. Render always-mounted and toggle `open`; set `side`
+/** <sc-base-drawer>. Render always-mounted and toggle `open`; set `side`
  *  (right | left) and `dismissable`. `onClose` fires on every dismissal. A
  *  direct-child <header> is the title bar; `label` is the accessible name. */
 export const ScDrawer = createComponent({
   react: React,
-  tagName: "sc-drawer-base",
+  tagName: "sc-base-drawer",
   elementClass: ScDrawerBase,
   events: { onClose: "close" },
 });
 
-/** <sc-alert-base>. Pass the message as children; set `variant`
+/** <sc-base-alert>. Pass the message as children; set `variant`
  *  (info | success | warn | error). */
 export const ScAlert = createComponent({
   react: React,
-  tagName: "sc-alert-base",
+  tagName: "sc-base-alert",
   elementClass: ScAlertBase,
 });
 
-/** <sc-panel-base>. A direct-child <header> becomes the title bar; the rest is
+/** <sc-base-panel>. A direct-child <header> becomes the title bar; the rest is
  *  gap-stacked content. `disabled` mutes the card. */
 export const ScPanel = createComponent({
   react: React,
-  tagName: "sc-panel-base",
+  tagName: "sc-base-panel",
   elementClass: ScPanelBase,
 });
 
-/** <sc-empty-base>. Pass the placeholder message as children. */
+/** <sc-base-empty>. Pass the placeholder message as children. */
 export const ScEmpty = createComponent({
   react: React,
-  tagName: "sc-empty-base",
+  tagName: "sc-base-empty",
   elementClass: ScEmptyBase,
 });
 
-/** <sc-stack-base>. Pass items as children; `gap` (xs | sm | md | lg) selects
+/** <sc-base-stack>. Pass items as children; `gap` (xs | sm | md | lg) selects
  *  spacing. */
 export const ScStack = createComponent({
   react: React,
-  tagName: "sc-stack-base",
+  tagName: "sc-base-stack",
   elementClass: ScStackBase,
 });
 
-/** <sc-cluster-base>. Pass items as children; `gap` (xs | sm | md | lg) selects
+/** <sc-base-cluster>. Pass items as children; `gap` (xs | sm | md | lg) selects
  *  spacing. */
 export const ScCluster = createComponent({
   react: React,
-  tagName: "sc-cluster-base",
+  tagName: "sc-base-cluster",
   elementClass: ScClusterBase,
 });
 
-/** <sc-disclosure-base>. Put the summary in a `slot="summary"` child and the
+/** <sc-base-disclosure>. Put the summary in a `slot="summary"` child and the
  *  body in the default children; control `open` and read `onToggle`. */
 export const ScDisclosure = createComponent({
   react: React,
-  tagName: "sc-disclosure-base",
+  tagName: "sc-base-disclosure",
   elementClass: ScDisclosureBase,
   events: { onToggle: "toggle" },
 });
 
-/** <sc-progress-base>. A loading/progress indicator: `variant` (bar | spinner),
+/** <sc-base-progress>. A loading/progress indicator: `variant` (bar | spinner),
  *  `size` (sm | md | lg). Omit `value` for an indeterminate spinner/bar; set
  *  `value` (0…`max`) for a determinate one. `label` is the accessible name. */
 export const ScProgress = createComponent({
   react: React,
-  tagName: "sc-progress-base",
+  tagName: "sc-base-progress",
   elementClass: ScProgressBase,
 });

@@ -1,11 +1,11 @@
-// <sc-select-base> — a combobox + custom dropdown, coordinating declarative
-// <sc-option-base> children via Lit context. Shadow DOM + <slot>: it renders the
-// combobox button and delegates the floating dropdown to <sc-popover-base> (the
+// <sc-base-select> — a combobox + custom dropdown, coordinating declarative
+// <sc-base-option> children via Lit context. Shadow DOM + <slot>: it renders the
+// combobox button and delegates the floating dropdown to <sc-base-popover> (the
 // shared top-layer, anchored overlay), projecting the author's options into it.
 // The options stay light-DOM; size flows to them via context (they size
 // themselves in their own shadow).
 //
-// The dropdown is the <sc-popover-base>, controlled via its `open`: the combobox
+// The dropdown is the <sc-base-popover>, controlled via its `open`: the combobox
 // button toggles it, selecting an option closes it, and native light-dismiss
 // reflects back through the popover's `toggle`. The popover anchors to its
 // previous element sibling — the combobox button — with no wiring. We can't use
@@ -30,7 +30,7 @@ import "../sc-popover/sc-popover";
 
 const LISTBOX_ID = "sc-select-listbox";
 
-// Context this select provides to its declarative <sc-option-base> children (the old
+// Context this select provides to its declarative <sc-base-option> children (the old
 // sc-app coordination model — context-request events bubble from each option up to this
 // provider host). Consumed by sc-option via ContextConsumer.
 export interface SelectContext {
@@ -70,7 +70,7 @@ export class ScSelectBase extends ScControlBase {
   }
 
   get #popover(): ScPopoverBase | null {
-    return this.renderRoot.querySelector("sc-popover-base");
+    return this.renderRoot.querySelector("sc-base-popover");
   }
 
   #onTriggerPointerDown = (): void => {
@@ -85,7 +85,7 @@ export class ScSelectBase extends ScControlBase {
   };
 
   get #label(): string {
-    const options = Array.from(this.querySelectorAll("sc-option-base")) as Array<
+    const options = Array.from(this.querySelectorAll("sc-base-option")) as Array<
       HTMLElement & { value: number; label: string }
     >;
     const selected = options.find((o) => o.value === this.value);
@@ -110,9 +110,9 @@ export class ScSelectBase extends ScControlBase {
         @click=${this.#onTriggerClick}
       >
         <span class="label">${this.#label}</span>
-        <sc-icon-base class="arrow" name="caret-down"></sc-icon-base>
+        <sc-base-icon class="arrow" name="caret-down"></sc-base-icon>
       </button>
-      <sc-popover-base
+      <sc-base-popover
         id=${LISTBOX_ID}
         role="listbox"
         placement="bottom-start"
@@ -120,7 +120,7 @@ export class ScSelectBase extends ScControlBase {
         @toggle=${this.#onPopoverToggle}
       >
         <slot @slotchange=${() => this.requestUpdate()}></slot>
-      </sc-popover-base>
+      </sc-base-popover>
     `;
   }
 }

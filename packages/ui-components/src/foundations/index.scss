@@ -25,6 +25,6 @@
 @use "./typography";
 
 /* Phosphor icon font — @font-face (registers on the document, since this entry ships as
-   a head <link>) + .ph-* glyph rules for light-DOM icons. <sc-icon-base> imports
+   a head <link>) + .ph-* glyph rules for light-DOM icons. <sc-base-icon> imports
    icons.scss separately for its shadow. woff2 emitted as separate /assets files by Vite. */
 @use "./icons";

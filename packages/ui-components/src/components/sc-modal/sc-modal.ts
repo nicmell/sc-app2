@@ -1,4 +1,4 @@
-// <sc-modal-base> — a centred, blocking modal built on the native <dialog>
+// <sc-base-modal> — a centred, blocking modal built on the native <dialog>
 // (showModal() → top layer, ::backdrop, focus trap, Esc — see ScDialogBase).
 // Shadow DOM: the <dialog> carries the chrome and gap-stacks the author's slotted
 // content (the consumer styles their own title/body/actions).

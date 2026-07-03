@@ -1,4 +1,4 @@
-// <sc-chip-base> — a small rounded status label: a tinted pill with an optional
+// <sc-base-chip> — a small rounded status label: a tinted pill with an optional
 // leading status dot. Shadow DOM: `:host` is the pill carrying the `label`, with the
 // `variant` reflected (neutral is the base) and an opt-in leading dot.
 

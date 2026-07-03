@@ -1,4 +1,4 @@
-// <sc-toast-base> — a single notification card (message + dismiss button) with a
+// <sc-base-toast> — a single notification card (message + dismiss button) with a
 // per-variant left accent. Shadow DOM: `:host` is the card (reflected `variant`).
 // Dismiss dispatches a composed `dismiss` CustomEvent; the owner removes it.
 
@@ -29,7 +29,7 @@ export class ScToastBase extends LitElement {
     return html`
       <span class="message">${this.message}</span>
       <button type="button" class="close" aria-label="Dismiss" @click=${this._dismiss}>
-        <sc-icon-base name="x"></sc-icon-base>
+        <sc-base-icon name="x"></sc-base-icon>
       </button>
     `;
   }

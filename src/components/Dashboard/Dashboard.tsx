@@ -10,7 +10,7 @@ import type { Layout } from "react-grid-layout";
 import { GridLayout, noCompactor, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { ScButton } from "@sc-app/ui-components/react";
+import { Button } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { layout, setLayout, addBox, removeBox, setBoxPlugin, randomId } from "@/stores/layout";
 import type { BoxItem } from "@/types/stores";
@@ -99,13 +99,13 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
         {item.plugin && !plugin ? (
           <div className="dashboard-panel-empty">
             Plugin not found
-            <ScButton size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
+            <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         ) : plugin ? (
           <PluginHost box={item} />
         ) : (
           <div className="dashboard-panel-empty">
-            <ScButton size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
+            <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         )}
       </DashboardPanel>

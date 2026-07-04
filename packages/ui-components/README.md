@@ -17,15 +17,15 @@ Workspace-local — referenced via `"@sc-app/ui-components": "workspace:*"`.
 //    <head> <link> (styled first paint, registers the icon font document-wide).
 import "@sc-app/ui-components";
 
-// 2a. As web components (Lit / plugin HTML)
+// 2. As web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 registerUiComponents();                    // idempotent; defines every <sc-*-base> tag
 // <sc-base-button label="Run" variant="danger"></sc-base-button>
-
-// 2b. As React components
-import { ScButton } from "@sc-app/ui-components/react";
-// <ScButton label="Run" variant="danger" onClick={…} />
 ```
+
+This package is framework-agnostic (pure Lit + CSS). The React binding lives in the host app
+(`src/components/ui.tsx`), which wraps these elements with `@lit/react`'s `createComponent`
+(e.g. `import { Button } from "@/components/ui"`).
 
 **Events are composed, read off the host.** Form widgets re-emit `input`/`change` (containers
 fire `change`) from the host — read `e.target.value` / `.checked`; the React wrappers expose
@@ -37,12 +37,15 @@ fire `change`) from the host — read `e.target.value` / `.checked`; the React w
 |---|---|
 | `@sc-app/ui-components` | the foundation CSS (a `<head>` stylesheet) |
 | `@sc-app/ui-components/lit` | the components + `registerUiComponents()` |
-| `@sc-app/ui-components/react` | the React wrappers |
 | `/tokens` · `/themes/dark` · `/themes/light` · `/reset` | individual CSS layers |
+
+The React wrappers are not published by this package — they live in the host app
+(`src/components/ui.tsx`).
 
 ## Components
 
-Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `Sc<Name>`. `size` is `sm | md | lg`
+Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/components/ui.tsx`).
+`size` is `sm | md | lg`
 (md default) wherever it appears.
 
 | component | key props | event | notes |

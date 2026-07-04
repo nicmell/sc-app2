@@ -1,7 +1,7 @@
 // An "add a panel here" target rendered as an absolutely-positioned overlay on
 // top of the grid (NOT a grid child), sized to one empty rectangle. Clicking it
 // opens the plugin picker, which drops a real box into that exact region.
-import { ScIcon } from "@sc-app/ui-components/react";
+import { Icon } from "@/components/ui";
 import type { BoxItem } from "@/types/stores";
 import { toPixelStyle } from "./utils";
 
@@ -20,7 +20,7 @@ export function Placeholder({ item, containerWidth, cols, rowHeight, onClick }: 
       style={toPixelStyle(item, containerWidth, cols, rowHeight)}
       onClick={onClick}
     >
-      <ScIcon name="plus" />
+      <Icon name="plus" />
     </div>
   );
 }

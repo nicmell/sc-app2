@@ -8,7 +8,7 @@
 // refreshes its `ts`) and can be closed manually. Driven by the OscClient store.
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { ScToast } from "@sc-app/ui-components/react";
+import { Toast as BaseToast } from "@/components/ui";
 import { oscClient, useScsynthErrors } from "@/stores/osc";
 import type { ScsynthError } from "@/types/stores";
 
@@ -29,7 +29,7 @@ function Toast({ error }: { error: ScsynthError }) {
   const label = error.address ? `${error.address}: ${error.message}` : error.message;
   const message = error.count > 1 ? `${label} ×${error.count}` : label;
   return (
-    <ScToast
+    <BaseToast
       variant={error.variant}
       message={message}
       onDismiss={() => oscClient.dismissError(error.id)}

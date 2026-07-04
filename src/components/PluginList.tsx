@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ScButton, ScAlert, ScEmpty, ScStack, ScCluster } from "@sc-app/ui-components/react";
+import { Button, Alert, Empty, Stack, Cluster } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -24,10 +24,10 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
   };
 
   return (
-    <ScStack>
-      {installed.length === 0 && <ScEmpty>No plugins installed yet.</ScEmpty>}
+    <Stack>
+      {installed.length === 0 && <Empty>No plugins installed yet.</Empty>}
       {installed.map((p) => (
-        <ScCluster key={p.id} className="plugin-row">
+        <Cluster key={p.id} className="plugin-row">
           {onSelect ? (
             <button type="button" className="plugin-pick" onClick={() => onSelect(p)}>
               <span className="plugin-name">{p.name}</span>
@@ -42,7 +42,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
             </span>
           )}
           {!onSelect && (
-            <ScButton
+            <Button
               variant="danger"
               size="sm"
               iconOnly
@@ -51,20 +51,20 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
               onClick={() => void deletePlugin(p.id)}
             />
           )}
-        </ScCluster>
+        </Cluster>
       ))}
 
       {!onSelect && (
         <>
           <input ref={fileRef} type="file" accept=".zip" hidden onChange={(e) => void onFile(e)} />
-          <ScButton
+          <Button
             variant="secondary"
             label="Add plugin…"
             onClick={() => fileRef.current?.click()}
           />
         </>
       )}
-      {error && <ScAlert variant="error">{error}</ScAlert>}
-    </ScStack>
+      {error && <Alert variant="error">{error}</Alert>}
+    </Stack>
   );
 }

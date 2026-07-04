@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { ScModal } from "@sc-app/ui-components/react";
+// The generic modal wrapper is imported aliased so this app-level convenience
+// component can keep the `Modal` name.
+import { Modal as BaseModal } from "@/components/ui";
 
 /** A ui-components modal card in the browser top layer (native <dialog> via
  *  <sc-base-modal>). An `onClose` enables Esc + backdrop-click dismissal (clicks
@@ -16,8 +18,8 @@ export function Modal({
   children: ReactNode;
 }) {
   return (
-    <ScModal open dismissable={onClose != null} label={label} onClose={onClose}>
+    <BaseModal open dismissable={onClose != null} label={label} onClose={onClose}>
       {children}
-    </ScModal>
+    </BaseModal>
   );
 }

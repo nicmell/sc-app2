@@ -5,7 +5,7 @@
 // its buttons stop mousedown from starting a drag. Faithful to upstream minus the
 // run/log controls (we have no per-node runtime yet).
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { Button } from "@/components/ui";
+import { Button, Text } from "@/components/ui";
 
 interface DashboardPanelProps {
   title?: string;
@@ -30,7 +30,9 @@ export function DashboardPanel(props: DashboardPanelProps) {
       {...rest}
     >
       <div className="dashboard-panel-header">
-        <span className="dashboard-panel-title">{title}</span>
+        <Text as="span" size="xs" tone="dim" transform="uppercase">
+          {title}
+        </Text>
         <Button
           variant="ghost"
           size="sm"

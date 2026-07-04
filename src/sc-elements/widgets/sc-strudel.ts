@@ -194,7 +194,7 @@ export class ScStrudel extends ScElement {
     return html`
       <section class="strudel">
         <header class="strudel-header">
-          <h1>strudel</h1>
+          <sc-base-text as="h1" size="sm" transform="uppercase">strudel</sc-base-text>
           <sc-base-chip
             dot
             variant=${STATUS_VARIANT[this.status]}

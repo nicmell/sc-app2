@@ -30,6 +30,7 @@ export type ScTextTone =
   | "info";
 export type ScTextFont = "sans" | "mono";
 export type ScTextAlign = "start" | "center" | "end";
+export type ScTextTransform = "none" | "uppercase" | "lowercase" | "capitalize";
 
 // Fixed tag → static `literal` lookup. The render tag MUST come from this table,
 // never from interpolating the raw `as` value (that would be an injection vector).
@@ -57,6 +58,9 @@ export class ScTextBase extends LitElement {
   @property({ reflect: true }) accessor tone: ScTextTone = "default";
   @property({ reflect: true }) accessor font: ScTextFont = "sans";
   @property({ reflect: true }) accessor align: ScTextAlign = "start";
+  /** CSS text-transform. `uppercase` also applies a small eyebrow letter-spacing
+      (uppercase micro-labels read cramped without it) — the caps-label look. */
+  @property({ reflect: true }) accessor transform: ScTextTransform = "none";
   /** Single-line clip with an ellipsis. */
   @property({ type: Boolean, reflect: true }) accessor truncate = false;
   /** Force inline flow (otherwise the tag's natural display applies: span inline, the rest block). */

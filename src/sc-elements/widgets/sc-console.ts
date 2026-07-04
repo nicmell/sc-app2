@@ -43,7 +43,7 @@ export class ScConsole extends ScElement {
     return html`
       <section class="osc-console">
         <header class="osc-header">
-          <h2>OSC console</h2>
+          <sc-base-text as="h2" size="sm" transform="uppercase">OSC console</sc-base-text>
           <span class="osc-count">${entries.length}</span>
         </header>
         <div class="osc-log">

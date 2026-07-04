@@ -61,7 +61,7 @@ Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/comp
 | `sc-base-input` | `value` `placeholder` `type` `size` `disabled` | `input`/`change` | native `<input>` |
 | `sc-base-inputnumber` | `value` `min` `max` `step` `size` `disabled` | `input`/`change` | hidden spinners, themed steppers |
 | `sc-base-textarea` | `value` `placeholder` `rows` `size` `disabled` | `input`/`change` | multi-line |
-| `sc-base-text` | `as` `size` `weight` `tone` `font` `align` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6` |
+| `sc-base-text` | `as` `size` `weight` `tone` `font` `align` `transform` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6`; `transform`=`uppercase` adds eyebrow tracking (caps-label) |
 | `sc-base-button` | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click` | composes `sc-base-icon`; `loading` → spinner in the icon slot |
 | `sc-base-icon` | `name` `variant` `size` `label` | — | Phosphor glyph |
 | `sc-base-badge` | `label` `variant` | — | uppercase pill |

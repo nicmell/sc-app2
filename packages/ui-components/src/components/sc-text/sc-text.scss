@@ -88,6 +88,20 @@
   text-align: end;
 }
 
+/* Text transform (none is the base). `uppercase` pairs a small eyebrow tracking —
+   uppercase micro-labels read cramped without it — so `transform="uppercase"`
+   alone gives the full caps-label look. */
+:host([transform="uppercase"]) > * {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+:host([transform="lowercase"]) > * {
+  text-transform: lowercase;
+}
+:host([transform="capitalize"]) > * {
+  text-transform: capitalize;
+}
+
 /* Force inline flow. Declared before `truncate` so truncate's block wins when both set. */
 :host([inline]) > * {
   display: inline;

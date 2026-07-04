@@ -3,8 +3,6 @@
    in components/Dashboard/Dashboard.scss. This file owns the app container, the
    plugin drawer, and the three sc-elements' internal layout. */
 
-@use "./styles/ui" as *;
-
 .app {
   margin: 0;
   display: flex;
@@ -134,11 +132,11 @@ sc-strudel {
   padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
 
-  h1 {
-    margin: 0;
-    margin-right: auto;
-    font-size: var(--font-size-sm);
-    @include caps-label;
+  /* The title is an <sc-base-text as="h1"> (its host is display:contents, so the
+     old `margin-right:auto` on the h1 can't push here) — the next sibling takes
+     the auto margin instead, keeping the controls to the right. */
+  sc-base-chip {
+    margin-inline-start: auto;
   }
 }
 .strudel-editor {
@@ -187,12 +185,6 @@ sc-console {
   gap: var(--space-xs);
   padding: var(--space-2xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
-
-  h2 {
-    margin: 0;
-    font-size: var(--font-size-sm);
-    @include caps-label;
-  }
 }
 .osc-count {
   font-size: var(--font-size-xs);

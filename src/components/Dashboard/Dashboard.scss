@@ -2,8 +2,6 @@
    ui-components tokens. react-grid-layout owns positioning (inline styles +
    its own css); this file owns the look. */
 
-@use "../../styles/ui" as *;
-
 /* Header + footer bars share one height. */
 $bar-height: 42px;
 
@@ -111,11 +109,11 @@ $bar-height: 42px;
   }
 }
 
-.dashboard-panel-title {
-  flex: 1;
-  color: var(--color-text-dim);
-  font-size: var(--font-size-xs);
-  @include caps-label;
+/* The title is an <sc-base-text> (dim / xs / uppercase via props). Its host is
+   display:contents, so the old `flex:1` can't push here — the first control takes
+   an auto inline-start margin, holding the button group to the right. */
+.dashboard-panel-header sc-base-button:first-of-type {
+  margin-inline-start: auto;
 }
 
 .dashboard-panel-body {

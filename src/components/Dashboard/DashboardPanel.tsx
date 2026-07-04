@@ -6,7 +6,12 @@
 // run/log controls (we have no per-node runtime yet).
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Button, Text } from "@/components/ui";
-import "./DashboardPanel.scss";
+import styles from "./DashboardPanel.module.scss";
+
+/** The panel header's (scoped) class — the grid's drag handle. Dashboard passes
+ *  it to react-grid-layout's `dragConfig.handle`, so the selector must match the
+ *  real hashed class name, not a literal string. */
+export const dragHandleClass = styles.header;
 
 interface DashboardPanelProps {
   title?: string;
@@ -27,10 +32,10 @@ export function DashboardPanel(props: DashboardPanelProps) {
     <div
       ref={ref}
       style={style}
-      className={["dashboard-panel", className].filter(Boolean).join(" ")}
+      className={[styles.panel, className].filter(Boolean).join(" ")}
       {...rest}
     >
-      <div className="dashboard-panel-header">
+      <div className={styles.header}>
         <Text as="span" size="xs" tone="dim" transform="uppercase">
           {title}
         </Text>
@@ -53,7 +58,7 @@ export function DashboardPanel(props: DashboardPanelProps) {
           onClick={onClose}
         />
       </div>
-      <div className="dashboard-panel-body">{children}</div>
+      <div className={styles.body}>{children}</div>
     </div>
   );
 }

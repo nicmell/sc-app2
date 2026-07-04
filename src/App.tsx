@@ -4,7 +4,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { Drawer } from "@/components/Drawer";
 import { ToastStack } from "@/components/ToastStack";
 import { refreshPlugins } from "@/stores/plugins";
-import "./App.scss";
+import styles from "./App.module.scss";
 
 function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -15,7 +15,7 @@ function App() {
   }, []);
 
   return (
-    <div className="app">
+    <div className={styles.app}>
       <Dashboard onToggleDrawer={() => setDrawerOpen((open) => !open)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <ToastStack />

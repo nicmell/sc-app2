@@ -1,7 +1,7 @@
 import { Button, Cluster, Progress } from "@/components/ui";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, modalStyles } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
-import "./ConnectionOverlay.scss";
+import styles from "./ConnectionOverlay.module.scss";
 
 /** Full-screen connection feedback over the dashboard (ui-components modal
  *  primitives): while the session boots, a backdrop with the indeterminate
@@ -14,8 +14,8 @@ export function ConnectionOverlay() {
   if (status === "connected") return null;
   if (status === "connecting") {
     return (
-      <div className="sc-modal__backdrop">
-        <div className="connection-loader">
+      <div className={styles.backdrop}>
+        <div className={styles.loader}>
           <Progress label="Connecting to the session…" />
         </div>
       </div>
@@ -23,11 +23,11 @@ export function ConnectionOverlay() {
   }
   return (
     <Modal label="Connection failed">
-      <h2 className="sc-modal__title">Connection failed</h2>
-      <p className="sc-modal__body">
+      <h2 className={modalStyles.title}>Connection failed</h2>
+      <p className={modalStyles.body}>
         The session could not be established — the server or scsynth may be down.
       </p>
-      <Cluster className="sc-modal__actions">
+      <Cluster className={modalStyles.actions}>
         <Button label="Retry" onClick={() => void session.retry()} />
       </Cluster>
     </Modal>

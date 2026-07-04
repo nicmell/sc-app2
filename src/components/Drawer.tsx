@@ -2,7 +2,7 @@
 // keep the `Drawer` name.
 import { Button, Drawer as BaseDrawer } from "@/components/ui";
 import { PluginList } from "./PluginList";
-import "./Drawer.scss";
+import styles from "./Drawer.module.scss";
 
 /** Right-side slide-in drawer for managing installed plugins. A top-layer
  *  <sc-base-drawer> (native <dialog>): backdrop, focus trap, and Esc are free. */
@@ -13,7 +13,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         <h2>Plugins</h2>
         <Button variant="ghost" size="sm" iconOnly icon="x" label="Close" onClick={onClose} />
       </header>
-      <div className="sc-drawer__body">
+      <div className={styles.body}>
         <PluginList />
       </div>
     </BaseDrawer>

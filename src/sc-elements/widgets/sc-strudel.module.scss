@@ -1,17 +1,17 @@
 /* <sc-strudel> — the Strudel editor widget. Light DOM (createRenderRoot returns
-   `this`), so these are plain global rules on the element's own markup, imported
-   as a side effect from sc-strudel.ts. */
+   `this`), imported as `styles` in sc-strudel.ts. The `sc-strudel` host rule
+   targets the element tag, so it stays global. */
 
-sc-strudel {
+:global(sc-strudel) {
   display: block;
   height: 100%;
 }
-.strudel {
+.root {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-.strudel-header {
+.header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -20,18 +20,19 @@ sc-strudel {
 
   /* The title is an <sc-base-text as="h1"> (its host is display:contents, so the
      old `margin-right:auto` on the h1 can't push here) — the next sibling takes
-     the auto margin instead, keeping the controls to the right. */
+     the auto margin instead, keeping the controls to the right. `sc-base-chip` is
+     a tag, so it stays global inside this scoped selector. */
   sc-base-chip {
     margin-inline-start: auto;
   }
 }
-.strudel-editor {
+.editor {
   flex: 1;
   min-height: 0;
   overflow: auto;
   text-align: left;
 }
-.strudel-detail {
+.detail {
   margin: 0;
   padding: var(--space-2xs) var(--space-sm);
   font-family: var(--font-mono);

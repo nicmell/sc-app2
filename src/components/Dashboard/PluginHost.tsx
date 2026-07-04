@@ -6,11 +6,11 @@
 // unmounts it. Keyed by the assigned plugin so changing a box's plugin
 // remounts a fresh element.
 import type { BoxItem } from "@/types/stores";
-import "./PluginHost.scss";
+import styles from "./PluginHost.module.scss";
 
 export function PluginHost({ box }: { box: BoxItem }) {
   return (
-    <div className="plugin-host">
+    <div className={styles.host}>
       <sc-plugin key={box.plugin} id={box.i} />
     </div>
   );

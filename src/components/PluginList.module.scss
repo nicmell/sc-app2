@@ -1,21 +1,21 @@
 /* Installed-plugin rows (manager + picker). */
-.plugin-row {
+.row {
   justify-content: space-between;
   width: 100%;
 }
-.plugin-pick {
+.pick {
   flex: 1;
   text-align: left;
   display: flex;
   gap: var(--space-xs);
   align-items: baseline;
 }
-.plugin-info {
+.info {
   display: flex;
   gap: var(--space-xs);
   align-items: baseline;
 }
-.plugin-meta {
+.meta {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
 }

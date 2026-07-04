@@ -21,7 +21,7 @@ import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
 import { oscClient } from "@/stores/osc";
 import { session } from "@/stores/session";
-import "./sc-strudel.scss";
+import styles from "./sc-strudel.module.scss";
 
 const SAFETY_LOOKAHEAD_MS = 200;
 
@@ -106,7 +106,7 @@ export class ScStrudel extends ScElement {
     // Mount the editor once the host div exists — the editor itself doesn't
     // need the connection (Play stays disabled until the session is up).
     if (this.mirror) return;
-    const root = this.querySelector<HTMLDivElement>(".strudel-editor");
+    const root = this.querySelector<HTMLDivElement>(`.${styles.editor}`);
     if (!root) return;
 
     const defaultOutput = (
@@ -193,8 +193,8 @@ export class ScStrudel extends ScElement {
 
   render() {
     return html`
-      <section class="strudel">
-        <header class="strudel-header">
+      <section class=${styles.root}>
+        <header class=${styles.header}>
           <sc-base-text as="h1" size="sm" transform="uppercase">strudel</sc-base-text>
           <sc-base-chip
             dot
@@ -213,8 +213,8 @@ export class ScStrudel extends ScElement {
             @click=${() => this.mirror?.stop()}
           ></sc-base-button>
         </header>
-        <div class="strudel-editor"></div>
-        ${this.detail ? html`<p class="strudel-detail">${this.detail}</p>` : ""}
+        <div class=${styles.editor}></div>
+        ${this.detail ? html`<p class=${styles.detail}>${this.detail}</p>` : ""}
       </section>
     `;
   }

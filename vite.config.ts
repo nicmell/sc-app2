@@ -30,6 +30,16 @@ export default defineConfig(() => ({
     target: "es2022",
   },
 
+  // App styles are co-located CSS Modules (`*.module.scss`, imported as `styles`
+  // in each component). camelCaseOnly exposes dashed class names as camelCase JS
+  // keys only (`.grid-wrapper` → `styles.gridWrapper`). The ui-components package
+  // is unaffected — vite-plugin-lit-css owns its `.scss` (see `plugins` above).
+  css: {
+    modules: {
+      localsConvention: "camelCaseOnly" as const,
+    },
+  },
+
   // react-grid-layout bundles react-draggable, whose drag-start logger reads
   // `process.env.DRAGGABLE_DEBUG` — `process` is undefined in the browser, so it
   // throws on the first drag/resize. Replace the expression with a constant.

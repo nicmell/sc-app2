@@ -11,6 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ConnectionOverlay } from "@/components/ConnectionOverlay";
+import connStyles from "@/components/ConnectionOverlay.module.scss";
+import { modalStyles } from "@/components/ui/Modal";
 import { session } from "@/stores/session";
 import { appStore } from "@/stores/store";
 import { SliceName } from "@/constants/store";
@@ -50,14 +52,14 @@ describe("ConnectionOverlay", () => {
   // the shadow root, so .modal isn't queryable from the document — the host
   // tag is). The notice/actions are slotted light-DOM children of the host.
   it("connecting: backdrop with the indeterminate loader, no modal", () => {
-    expect(container.querySelector(".sc-modal__backdrop")).not.toBeNull();
+    expect(container.querySelector(`.${connStyles.backdrop}`)).not.toBeNull();
     expect(container.querySelector("sc-base-progress")).not.toBeNull();
     expect(container.querySelector("sc-base-modal")).toBeNull();
   });
 
   it("connected: renders nothing", () => {
     setStatus("connected");
-    expect(container.querySelector(".sc-modal__backdrop")).toBeNull();
+    expect(container.querySelector(`.${connStyles.backdrop}`)).toBeNull();
   });
 
   it("error: modal with a notice and a Retry button, no loader", () => {
@@ -65,12 +67,12 @@ describe("ConnectionOverlay", () => {
     expect(container.querySelector("sc-base-progress")).toBeNull();
     const modal = container.querySelector("sc-base-modal");
     expect(modal).not.toBeNull();
-    expect(modal!.querySelector(".sc-modal__title")?.textContent).toMatch(/connection failed/i);
-    expect(modal!.querySelector(".sc-modal__body")?.textContent).toBeTruthy();
+    expect(modal!.querySelector(`.${modalStyles.title}`)?.textContent).toMatch(/connection failed/i);
+    expect(modal!.querySelector(`.${modalStyles.body}`)?.textContent).toBeTruthy();
     // Retry is now an <sc-base-button> in the actions cluster (its label is a prop; the
     // text lives in the shadow). Presence is the robust check here; the click wiring is
     // covered by the next test.
-    expect(modal!.querySelector(".sc-modal__actions sc-base-button")).not.toBeNull();
+    expect(modal!.querySelector(`.${modalStyles.actions} sc-base-button`)).not.toBeNull();
   });
 
   it("Retry click calls session.retry(); the loader returns when status flips", () => {
@@ -82,7 +84,7 @@ describe("ConnectionOverlay", () => {
     setStatus("error");
     // <sc-base-button> relays the inner button's composed click; React's onClick catches it
     // as it bubbles to the host, so dispatching on the host drives the retry.
-    const button = container.querySelector(".sc-modal__actions sc-base-button");
+    const button = container.querySelector(`.${modalStyles.actions} sc-base-button`);
     expect(button).not.toBeNull();
     act(() => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));

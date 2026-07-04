@@ -2,7 +2,12 @@ import type { ReactNode } from "react";
 // The generic modal wrapper is imported aliased so this app-level convenience
 // component can keep the `Modal` name.
 import { Modal as BaseModal } from "@/components/ui";
-import "./Modal.scss";
+// The modal-content class map (title/body/actions). Callers author that light-DOM
+// markup, so they import these names alongside <Modal> (re-exported here so the
+// CSS is bundled with the component that owns it).
+import modalStyles from "./Modal.module.scss";
+
+export { modalStyles };
 
 /** A ui-components modal card in the browser top layer (native <dialog> via
  *  <sc-base-modal>). An `onClose` enables Esc + backdrop-click dismissal (clicks

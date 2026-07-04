@@ -10,12 +10,12 @@
   background: var(--color-surface-1);
 }
 
-.server-address,
-.server-status {
+.address,
+.status {
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
   font-family: var(--font-mono);
 }
-.server-status {
+.status {
   margin-left: auto;
 }

@@ -1,11 +1,12 @@
 /* Plugin drawer chrome. The drawer's slotted <header> bar is styled by the
-   component (::slotted); its title heading is app light DOM, so size it here. */
-sc-base-drawer header h2 {
+   component (::slotted); its title heading is app light DOM, so size it here —
+   a pure tag selector, kept global (it targets markup, not a scoped class). */
+:global(sc-base-drawer header h2) {
   margin: 0;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
 }
-.sc-drawer__body {
+.body {
   flex: 1 1 auto;
   min-block-size: 0;
   overflow-y: auto;

@@ -23,6 +23,7 @@ import {
 // (vite.config.ts test.alias); strudelMirrors holds the editors sc-strudel
 // constructed this test, in order.
 import { strudelMirrors } from "@/lib/utils/test/stubs/strudel-codemirror";
+import strudelStyles from "@/sc-elements/widgets/sc-strudel.module.scss";
 
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
@@ -266,7 +267,7 @@ describe("sc-strudel", () => {
     expect(strudelMirrors).toHaveLength(1);
     expect(strudelMirrors[0].opts.initialCode).toBe('s("bd hh*2")');
     // The raw code text was cleared before the editor rendered.
-    expect(strudel.querySelector(".strudel-editor")).not.toBeNull();
+    expect(strudel.querySelector(`.${strudelStyles.editor}`)).not.toBeNull();
     expect(strudel.textContent).not.toContain('s("bd hh*2")');
   });
 

@@ -3,7 +3,7 @@ import { Button, Alert, Empty, Stack, Cluster } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
-import "./PluginList.scss";
+import styles from "./PluginList.module.scss";
 
 /** Installed-plugin list. With `onSelect` it's a picker (click to choose);
  *  otherwise it's the manager (upload + delete). */
@@ -28,16 +28,16 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
     <Stack>
       {installed.length === 0 && <Empty>No plugins installed yet.</Empty>}
       {installed.map((p) => (
-        <Cluster key={p.id} className="plugin-row">
+        <Cluster key={p.id} className={styles.row}>
           {onSelect ? (
-            <button type="button" className="plugin-pick" onClick={() => onSelect(p)}>
+            <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
               <span className="plugin-name">{p.name}</span>
-              <span className="plugin-meta">v{p.version}</span>
+              <span className={styles.meta}>v{p.version}</span>
             </button>
           ) : (
-            <span className="plugin-info">
+            <span className={styles.info}>
               <span className="plugin-name">{p.name}</span>
-              <span className="plugin-meta">
+              <span className={styles.meta}>
                 {p.author} · v{p.version}
               </span>
             </span>

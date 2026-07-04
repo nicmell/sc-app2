@@ -6,7 +6,7 @@
 import { useStatus, useScsynthAddress } from "@/stores/session";
 import { useScsynthStatus } from "@/stores/osc";
 import type { ScsynthStatus } from "@/types/stores";
-import "./DashboardFooter.scss";
+import styles from "./DashboardFooter.module.scss";
 
 function formatStatus(s: ScsynthStatus): string {
   return `CPU: ${s.avgCpu.toFixed(1)}% / ${s.peakCpu.toFixed(1)}% | SR: ${s.sampleRate.toFixed(0)} Hz`;
@@ -18,9 +18,9 @@ export function DashboardFooter() {
   const address = useScsynthAddress();
 
   return (
-    <footer className="footer">
-      <span className="server-address">{address ?? ""}</span>
-      <span className="server-status">{scsynth ? formatStatus(scsynth) : conn}</span>
+    <footer className={styles.footer}>
+      <span className={styles.address}>{address ?? ""}</span>
+      <span className={styles.status}>{scsynth ? formatStatus(scsynth) : conn}</span>
     </footer>
   );
 }

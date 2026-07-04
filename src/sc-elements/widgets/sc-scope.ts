@@ -39,7 +39,7 @@ import {
   requireNumeric,
 } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import "./sc-scope.scss";
+import styles from "./sc-scope.module.scss";
 
 /** Padding factor: ±1 (after `gain`) maps to this fraction of the lane. */
 const PAD = 0.9;
@@ -183,7 +183,7 @@ export class ScScope extends ScElement {
   // Light DOM: render into the element itself.
 
   render() {
-    return html`<canvas class="sc-scope-canvas"></canvas>`;
+    return html`<canvas class=${styles.canvas}></canvas>`;
   }
 
   firstUpdated(): void {

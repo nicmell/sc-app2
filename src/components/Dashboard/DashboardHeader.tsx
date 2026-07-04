@@ -5,7 +5,7 @@
 import { Button, Chip } from "@/components/ui";
 import { useStatus } from "@/stores/session";
 import type { ConnStatus } from "@/types/stores";
-import "./DashboardHeader.scss";
+import styles from "./DashboardHeader.module.scss";
 
 const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   connecting: "warn",
@@ -16,10 +16,10 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 export function DashboardHeader({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   const status = useStatus();
   return (
-    <header className="header">
-      <span className="header-title">sc-app2</span>
+    <header className={styles.header}>
+      <span className={styles.title}>sc-app2</span>
       <Chip dot variant={STATUS_VARIANT[status]} label={status} />
-      <span className="header-spacer" />
+      <span className={styles.spacer} />
       <Button variant="secondary" size="sm" label="Plugins" onClick={onToggleDrawer} />
     </header>
   );

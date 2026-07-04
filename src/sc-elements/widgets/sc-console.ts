@@ -7,7 +7,7 @@ import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { oscClient } from "@/stores/osc";
 import type { LoggedEntry } from "@/types/stores";
-import "./sc-console.scss";
+import styles from "./sc-console.module.scss";
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);
@@ -42,21 +42,21 @@ export class ScConsole extends ScElement {
   render() {
     const entries: LoggedEntry[] = oscClient.log.get();
     return html`
-      <section class="osc-console">
-        <header class="osc-header">
+      <section class=${styles.console}>
+        <header class=${styles.header}>
           <sc-base-text as="h2" size="sm" transform="uppercase">OSC console</sc-base-text>
-          <span class="osc-count">${entries.length}</span>
+          <span class=${styles.count}>${entries.length}</span>
         </header>
-        <div class="osc-log">
+        <div class=${styles.log}>
           ${entries.length === 0
-            ? html`<div class="osc-empty">waiting for OSC traffic…</div>`
+            ? html`<div class=${styles.empty}>waiting for OSC traffic…</div>`
             : entries.map(
                 (e) => html`
-                  <div class="osc-row osc-${e.dir}">
-                    <span class="osc-time">${fmtTime(e.ts)}</span>
-                    <span class="osc-dir">${e.dir.toUpperCase()}</span>
-                    <span class="osc-addr">${e.address}</span>
-                    <span class="osc-args">${e.args.join(" ")}</span>
+                  <div class="${styles.row} ${styles[e.dir]}">
+                    <span class=${styles.time}>${fmtTime(e.ts)}</span>
+                    <span class=${styles.dir}>${e.dir.toUpperCase()}</span>
+                    <span class=${styles.addr}>${e.address}</span>
+                    <span class=${styles.args}>${e.args.join(" ")}</span>
                   </div>
                 `,
               )}

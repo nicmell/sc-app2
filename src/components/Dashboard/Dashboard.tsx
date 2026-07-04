@@ -18,13 +18,13 @@ import { plugins } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
 import { MARGIN, NUM_COLUMNS, NUM_ROWS } from "@/constants/layout";
 import { computePlaceholders, isPlaceholder } from "./utils";
-import { DashboardPanel } from "./DashboardPanel";
+import { DashboardPanel, dragHandleClass } from "./DashboardPanel";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardFooter } from "./DashboardFooter";
 import { Placeholder } from "./Placeholder";
 import { PluginHost } from "./PluginHost";
 import { PluginPicker } from "@/components/PluginPicker";
-import "./Dashboard.scss";
+import styles from "./Dashboard.module.scss";
 
 const HEADER_HEIGHT = 42;
 const FOOTER_HEIGHT = 42;
@@ -97,14 +97,14 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
         onEdit={() => setModalOpen(item)}
       >
         {item.plugin && !plugin ? (
-          <div className="dashboard-panel-empty">
+          <div className={styles.panelEmpty}>
             Plugin not found
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         ) : plugin ? (
           <PluginHost box={item} />
         ) : (
-          <div className="dashboard-panel-empty">
+          <div className={styles.panelEmpty}>
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         )}
@@ -128,18 +128,18 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   );
 
   return (
-    <div className="dashboard">
+    <div className={styles.dashboard}>
       <DashboardHeader onToggleDrawer={onToggleDrawer} />
-      <div className="dashboard-grid-wrapper" ref={containerRef}>
+      <div className={styles.gridWrapper} ref={containerRef}>
         {mounted && (
-          <div className="dashboard-grid-container">
+          <div className={styles.gridContainer}>
             <GridLayout
               className="dashboard-grid"
               width={containerWidth}
               layout={items}
               gridConfig={{ cols: NUM_COLUMNS, rowHeight, margin: MARGIN }}
               compactor={{ ...noCompactor, allowOverlap: false, preventCollision: true }}
-              dragConfig={{ handle: ".dashboard-panel-header" }}
+              dragConfig={{ handle: `.${dragHandleClass}` }}
               onDragStop={(current) => syncLayout(current)}
               onResizeStop={(current) => syncLayout(current)}
             >

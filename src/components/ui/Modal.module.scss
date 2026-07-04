@@ -1,19 +1,19 @@
 /* Modal content chrome. These style the LIGHT-DOM markup callers author inside a
    <Modal> (the <sc-base-modal> shadow component doesn't own them) — the title,
    body copy, and the trailing action cluster. Shared by every modal caller
-   (ConnectionOverlay, PluginPicker), so they live with the Modal wrapper. */
-.sc-modal__title {
+   (ConnectionOverlay, PluginPicker): they import this module for the class names. */
+.title {
   margin: 0;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
-.sc-modal__body {
+.body {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-dim);
   line-height: var(--line-height-normal);
 }
-.sc-modal__actions {
+.actions {
   justify-content: flex-end;
 }

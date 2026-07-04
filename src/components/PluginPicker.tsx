@@ -1,5 +1,5 @@
 import { Button, Cluster } from "@/components/ui";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, modalStyles } from "@/components/ui/Modal";
 import { PluginList } from "./PluginList";
 import type { PluginInfo } from "@/types/api";
 
@@ -15,7 +15,7 @@ export function PluginPicker({
     <Modal onClose={onClose} label="Select plugin">
       <header>Select plugin</header>
       <PluginList onSelect={onSelect} />
-      <Cluster className="sc-modal__actions">
+      <Cluster className={modalStyles.actions}>
         <Button variant="ghost" label="Cancel" onClick={onClose} />
       </Cluster>
     </Modal>

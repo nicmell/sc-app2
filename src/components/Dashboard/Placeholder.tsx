@@ -4,7 +4,7 @@
 import { Icon } from "@/components/ui";
 import type { BoxItem } from "@/types/stores";
 import { toPixelStyle } from "./utils";
-import "./Placeholder.scss";
+import styles from "./Placeholder.module.scss";
 
 interface PlaceholderProps {
   item: BoxItem;
@@ -17,7 +17,7 @@ interface PlaceholderProps {
 export function Placeholder({ item, containerWidth, cols, rowHeight, onClick }: PlaceholderProps) {
   return (
     <div
-      className="add-box-placeholder"
+      className={styles.placeholder}
       style={toPixelStyle(item, containerWidth, cols, rowHeight)}
       onClick={onClick}
     >

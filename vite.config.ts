@@ -2,6 +2,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// @ts-ignore
 import litCss from "vite-plugin-lit-css";
 
 const host = process.env.TAURI_DEV_HOST;

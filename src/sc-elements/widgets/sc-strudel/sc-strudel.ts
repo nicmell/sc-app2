@@ -14,8 +14,9 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import { StrudelMirror } from "@strudel/codemirror";
-import { transpiler } from "@strudel/transpiler";
+// Type only — the heavy editor stack (@strudel/codemirror + @strudel/transpiler)
+// is dynamically imported in mountEditor() so it stays out of the boot bundle.
+import type { StrudelMirror } from "@strudel/codemirror";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
 import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
@@ -61,7 +62,10 @@ export class ScStrudel extends ScElement {
     }
   }
 
-  private mirror: InstanceType<typeof StrudelMirror> | null = null;
+  private mirror: StrudelMirror | null = null;
+  /** Resolves once mountEditor() has loaded the dynamic chunk and built the
+   *  editor (or bailed) — `updateComplete` awaits it so callers/tests can too. */
+  private editorReady: Promise<void> = Promise.resolve();
   private off: (() => void) | null = null;
   private status: ConnStatus = "connecting";
   private playing = false;
@@ -108,6 +112,27 @@ export class ScStrudel extends ScElement {
     if (this.mirror) return;
     const root = this.querySelector<HTMLDivElement>(`.${styles.editor}`);
     if (!root) return;
+    this.editorReady = this.mountEditor(root);
+  }
+
+  /** Lit resolves `updateComplete` after firstUpdated() runs, but it does NOT
+   *  await the promise firstUpdated returns — so fold the async editor mount in
+   *  here, so `await el.updateComplete` waits for the dynamic chunk + editor. */
+  async getUpdateComplete(): Promise<boolean> {
+    const done = await super.getUpdateComplete();
+    await this.editorReady;
+    return done;
+  }
+
+  /** Load the editor stack lazily, then build the StrudelMirror. */
+  private async mountEditor(root: HTMLDivElement): Promise<void> {
+    const [{ StrudelMirror }, { transpiler }] = await Promise.all([
+      import("@strudel/codemirror"),
+      import("@strudel/transpiler"),
+    ]);
+    // The chunk load is async — bail if we were disconnected meanwhile, or if a
+    // prior mount already ran.
+    if (!this.isConnected || this.mirror) return;
 
     const defaultOutput = (
       hap: { value: unknown },

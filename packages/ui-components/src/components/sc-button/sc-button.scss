@@ -130,7 +130,7 @@ button.iconOnly {
   }
   &:active:not(:disabled) {
     background: color-mix(in srgb, var(--color-surface-2), black 12%);
-    border-color: var(--color-border-focus);
+    border-color: var(--color-border-stronger);
   }
 }
 :host([variant="ghost"]) button {
@@ -138,11 +138,10 @@ button.iconOnly {
   color: var(--color-text);
   border-color: var(--color-border-stronger);
   &:hover:not(:disabled) {
-    border-color: var(--color-border-focus);
+    background: color-mix(in srgb, currentColor 6%, transparent);
   }
   &:active:not(:disabled) {
-    background: color-mix(in srgb, currentColor 8%, transparent);
-    border-color: var(--color-border-focus);
+    background: color-mix(in srgb, currentColor 12%, transparent);
   }
 }
 :host([variant="danger"]) button {

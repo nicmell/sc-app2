@@ -6,6 +6,7 @@
 import { useStatus, useScsynthAddress } from "@/stores/session";
 import { useScsynthStatus } from "@/stores/osc";
 import type { ScsynthStatus } from "@/types/stores";
+import "./DashboardFooter.scss";
 
 function formatStatus(s: ScsynthStatus): string {
   return `CPU: ${s.avgCpu.toFixed(1)}% / ${s.peakCpu.toFixed(1)}% | SR: ${s.sampleRate.toFixed(0)} Hz`;

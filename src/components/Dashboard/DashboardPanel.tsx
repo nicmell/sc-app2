@@ -6,6 +6,7 @@
 // run/log controls (we have no per-node runtime yet).
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Button, Text } from "@/components/ui";
+import "./DashboardPanel.scss";
 
 interface DashboardPanelProps {
   title?: string;

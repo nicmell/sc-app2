@@ -21,6 +21,7 @@ import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
 import { oscClient } from "@/stores/osc";
 import { session } from "@/stores/session";
+import "./sc-strudel.scss";
 
 const SAFETY_LOOKAHEAD_MS = 200;
 

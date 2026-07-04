@@ -6,6 +6,7 @@
 // unmounts it. Keyed by the assigned plugin so changing a box's plugin
 // remounts a fresh element.
 import type { BoxItem } from "@/types/stores";
+import "./PluginHost.scss";
 
 export function PluginHost({ box }: { box: BoxItem }) {
   return (

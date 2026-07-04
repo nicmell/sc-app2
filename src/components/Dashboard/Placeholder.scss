@@ -1,0 +1,23 @@
+/* The dashed "add a box" placeholder overlaid on empty grid cells. */
+.add-box-placeholder {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-mute);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base);
+
+  &:hover {
+    border-color: var(--color-text-dim);
+    color: var(--color-text);
+    background: var(--color-surface-1);
+  }
+}

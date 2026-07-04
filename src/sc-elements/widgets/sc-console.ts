@@ -7,6 +7,7 @@ import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import { oscClient } from "@/stores/osc";
 import type { LoggedEntry } from "@/types/stores";
+import "./sc-console.scss";
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);

@@ -5,6 +5,7 @@
 import { Button, Chip } from "@/components/ui";
 import { useStatus } from "@/stores/session";
 import type { ConnStatus } from "@/types/stores";
+import "./DashboardHeader.scss";
 
 const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   connecting: "warn",

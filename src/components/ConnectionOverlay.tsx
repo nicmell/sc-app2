@@ -1,6 +1,7 @@
 import { Button, Cluster, Progress } from "@/components/ui";
 import { Modal } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
+import "./ConnectionOverlay.scss";
 
 /** Full-screen connection feedback over the dashboard (ui-components modal
  *  primitives): while the session boots, a backdrop with the indeterminate

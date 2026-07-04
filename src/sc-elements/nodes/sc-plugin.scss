@@ -1,0 +1,14 @@
+/* <sc-plugin> — the plugin root element. Light DOM (createRenderRoot returns
+   `this`), imported as a side effect from sc-plugin.ts.
+
+   The plugin root must carry the height chain down to the entry markup: custom
+   elements default to display:inline, which makes the element content-sized —
+   the entry's `height:100%` then resolves to auto and the whole plugin layout
+   becomes content-driven (the OSC console's appended rows visibly grew the
+   column while strudel played, pushing the widgets below out of the panel).
+   Same rule every widget host already has. */
+sc-plugin {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}

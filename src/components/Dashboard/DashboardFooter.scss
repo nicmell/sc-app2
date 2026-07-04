@@ -1,0 +1,21 @@
+/* Dashboard bottom bar. Shares its 42px height with the header. */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+  height: 42px;
+  background: var(--color-surface-1);
+}
+
+.server-address,
+.server-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+  font-family: var(--font-mono);
+}
+.server-status {
+  margin-left: auto;
+}

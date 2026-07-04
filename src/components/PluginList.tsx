@@ -3,6 +3,7 @@ import { Button, Alert, Empty, Stack, Cluster } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
+import "./PluginList.scss";
 
 /** Installed-plugin list. With `onSelect` it's a picker (click to choose);
  *  otherwise it's the manager (upload + delete). */

@@ -1,0 +1,18 @@
+/* Connection overlay: a full-window scrim (shared with the modal look) that holds
+   either the boot loader or the error modal. */
+
+.sc-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Caps the <sc-base-progress> bar (it's width: 100%) so it doesn't span the
+   whole window inside the flex backdrop. */
+.connection-loader {
+  width: min(320px, 60vw);
+}

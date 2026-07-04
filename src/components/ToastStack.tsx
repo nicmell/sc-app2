@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { Toast as BaseToast } from "@/components/ui";
 import { oscClient, useScsynthErrors } from "@/stores/osc";
 import type { ScsynthError } from "@/types/stores";
+import "./ToastStack.scss";
 
 /** How long a banner lingers before auto-dismissing. */
 const DISMISS_MS = 8000;

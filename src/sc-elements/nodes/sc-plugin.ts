@@ -23,6 +23,7 @@ import { ScNode } from "@/sc-elements/internal/sc-node";
 import { layout } from "@/stores/layout";
 import { plugins } from "@/stores/plugins";
 import type { RuntimeContext } from "@/types/runtime";
+import "./sc-plugin.scss";
 
 export class ScPlugin extends ScNode {
   @state() accessor _error = "";

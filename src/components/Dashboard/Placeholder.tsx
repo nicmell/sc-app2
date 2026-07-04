@@ -4,6 +4,7 @@
 import { Icon } from "@/components/ui";
 import type { BoxItem } from "@/types/stores";
 import { toPixelStyle } from "./utils";
+import "./Placeholder.scss";
 
 interface PlaceholderProps {
   item: BoxItem;

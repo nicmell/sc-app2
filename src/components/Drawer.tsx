@@ -2,6 +2,7 @@
 // keep the `Drawer` name.
 import { Button, Drawer as BaseDrawer } from "@/components/ui";
 import { PluginList } from "./PluginList";
+import "./Drawer.scss";
 
 /** Right-side slide-in drawer for managing installed plugins. A top-layer
  *  <sc-base-drawer> (native <dialog>): backdrop, focus trap, and Esc are free. */

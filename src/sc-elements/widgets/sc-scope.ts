@@ -39,6 +39,7 @@ import {
   requireNumeric,
 } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
+import "./sc-scope.scss";
 
 /** Padding factor: ±1 (after `gain`) maps to this fraction of the lane. */
 const PAD = 0.9;

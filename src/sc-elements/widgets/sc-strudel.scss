@@ -1,0 +1,41 @@
+/* <sc-strudel> — the Strudel editor widget. Light DOM (createRenderRoot returns
+   `this`), so these are plain global rules on the element's own markup, imported
+   as a side effect from sc-strudel.ts. */
+
+sc-strudel {
+  display: block;
+  height: 100%;
+}
+.strudel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.strudel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+
+  /* The title is an <sc-base-text as="h1"> (its host is display:contents, so the
+     old `margin-right:auto` on the h1 can't push here) — the next sibling takes
+     the auto margin instead, keeping the controls to the right. */
+  sc-base-chip {
+    margin-inline-start: auto;
+  }
+}
+.strudel-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  text-align: left;
+}
+.strudel-detail {
+  margin: 0;
+  padding: var(--space-2xs) var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-error-text);
+  border-top: 1px solid var(--color-border);
+}

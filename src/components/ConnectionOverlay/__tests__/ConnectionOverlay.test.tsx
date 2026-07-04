@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ConnectionOverlay } from "@/components/ConnectionOverlay";
-import connStyles from "@/components/ConnectionOverlay.module.scss";
+import connStyles from "../ConnectionOverlay.module.scss";
 import { modalStyles } from "@/components/ui/Modal";
 import { session } from "@/stores/session";
 import { appStore } from "@/stores/store";

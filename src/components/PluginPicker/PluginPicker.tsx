@@ -1,6 +1,6 @@
 import { Button, Cluster } from "@/components/ui";
 import { Modal, modalStyles } from "@/components/ui/Modal";
-import { PluginList } from "./PluginList";
+import { PluginList } from "@/components/PluginList";
 import type { PluginInfo } from "@/types/api";
 
 /** Modal to pick which installed plugin fills a grid cell. */

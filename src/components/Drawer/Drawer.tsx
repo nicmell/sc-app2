@@ -1,7 +1,7 @@
 // The generic drawer wrapper is imported aliased so this app-level component can
 // keep the `Drawer` name.
 import { Button, Drawer as BaseDrawer } from "@/components/ui";
-import { PluginList } from "./PluginList";
+import { PluginList } from "@/components/PluginList";
 import styles from "./Drawer.module.scss";
 
 /** Right-side slide-in drawer for managing installed plugins. A top-layer

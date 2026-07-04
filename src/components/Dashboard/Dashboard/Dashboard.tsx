@@ -17,12 +17,12 @@ import type { BoxItem } from "@/types/stores";
 import { plugins } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
 import { MARGIN, NUM_COLUMNS, NUM_ROWS } from "@/constants/layout";
-import { computePlaceholders, isPlaceholder } from "./utils";
-import { DashboardPanel, dragHandleClass } from "./DashboardPanel";
-import { DashboardHeader } from "./DashboardHeader";
-import { DashboardFooter } from "./DashboardFooter";
-import { Placeholder } from "./Placeholder";
-import { PluginHost } from "./PluginHost";
+import { computePlaceholders, isPlaceholder } from "@/components/Dashboard/utils";
+import { DashboardPanel, dragHandleClass } from "@/components/Dashboard/DashboardPanel";
+import { DashboardHeader } from "@/components/Dashboard/DashboardHeader";
+import { DashboardFooter } from "@/components/Dashboard/DashboardFooter";
+import { Placeholder } from "@/components/Dashboard/Placeholder";
+import { PluginHost } from "@/components/Dashboard/PluginHost";
 import { PluginPicker } from "@/components/PluginPicker";
 import styles from "./Dashboard.module.scss";
 

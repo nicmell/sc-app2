@@ -3,7 +3,7 @@
 // opens the plugin picker, which drops a real box into that exact region.
 import { Icon } from "@/components/ui";
 import type { BoxItem } from "@/types/stores";
-import { toPixelStyle } from "./utils";
+import { toPixelStyle } from "@/components/Dashboard/utils";
 import styles from "./Placeholder.module.scss";
 
 interface PlaceholderProps {

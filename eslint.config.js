@@ -45,10 +45,17 @@ export default tseslint.config(
     languageOptions: { sourceType: "commonjs", globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
-  // The Lit web components live under sc-elements + the ui-components package's
-  // lit/ folder — lint their html`` templates.
+  // Node maintenance scripts (e.g. ui-components' icon-codepoint generator):
+  // plain ESM outside any tsconfig, so no type-aware linting.
   {
-    files: ["src/sc-elements/**/*.ts", "packages/ui-components/src/components/lit/**/*.ts"],
+    files: ["**/scripts/**/*.mjs"],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: { globals: globals.node },
+  },
+  // The Lit web components live under sc-elements + the ui-components package's
+  // components/ tree — lint their html`` templates.
+  {
+    files: ["src/sc-elements/**/*.ts", "packages/ui-components/src/components/**/*.ts"],
     extends: [lit.configs["flat/recommended"]],
   },
   // Last: turn off any lint rules that would conflict with Prettier formatting.

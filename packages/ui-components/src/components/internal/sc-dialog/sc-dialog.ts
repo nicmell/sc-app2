@@ -38,9 +38,17 @@ export abstract class ScDialogBase extends LitElement {
   };
 
   // Backdrop click: a modal dialog reports clicks on its ::backdrop as targeting
-  // the dialog itself (content sits in the slot, so a child click won't match).
+  // the dialog itself. But clicks on the dialog's OWN padding/flex-gap (the card
+  // regions no slotted child paints) target it too, so the target check alone
+  // would dismiss from inside the card — only close when the click coordinates
+  // fall outside the dialog's box.
   protected onBackdropClick = (e: MouseEvent): void => {
-    if (this.dismissable && e.target === this.dialog) this.dialog?.close();
+    const dialog = this.dialog;
+    if (!this.dismissable || !dialog || e.target !== dialog) return;
+    const r = dialog.getBoundingClientRect();
+    const inside =
+      e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (!inside) dialog.close();
   };
 
   // Fires for Esc / backdrop / programmatic close. A blocking instance (not

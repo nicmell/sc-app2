@@ -108,7 +108,8 @@ export class ScStrudel extends ScElement {
 
   protected firstUpdated(): void {
     // Mount the editor once the host div exists — the editor itself doesn't
-    // need the connection (Play stays disabled until the session is up).
+    // need the connection (Play stays disabled until the session is up AND the
+    // lazily-loaded editor chunk has mounted the mirror).
     if (this.mirror) return;
     const root = this.querySelector<HTMLDivElement>(`.${styles.editor}`);
     if (!root) return;
@@ -124,8 +125,24 @@ export class ScStrudel extends ScElement {
     return done;
   }
 
-  /** Load the editor stack lazily, then build the StrudelMirror. */
+  /** Load the editor stack lazily, then build the StrudelMirror. Never rejects:
+   *  a chunk-load failure (network blip, stale hash after a redeploy) surfaces
+   *  as the widget's `detail` message instead of an unhandled rejection — and
+   *  `editorReady` must resolve either way, or every later
+   *  `await el.updateComplete` would rethrow the cached rejection. */
   private async mountEditor(root: HTMLDivElement): Promise<void> {
+    try {
+      await this.buildEditor(root);
+    } catch (err) {
+      this.detail = `Failed to load the Strudel editor: ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+    }
+    // Success enables Play (it's gated on `mirror`); failure shows `detail`.
+    this.requestUpdate();
+  }
+
+  private async buildEditor(root: HTMLDivElement): Promise<void> {
     const [{ StrudelMirror }, { transpiler }] = await Promise.all([
       import("@strudel/codemirror"),
       import("@strudel/transpiler"),
@@ -228,7 +245,7 @@ export class ScStrudel extends ScElement {
           ></sc-base-chip>
           <sc-base-button
             label=${this.playing ? "Update" : "Play"}
-            ?disabled=${this.status !== "connected"}
+            ?disabled=${this.status !== "connected" || !this.mirror}
             @click=${() => this.mirror?.evaluate()}
           ></sc-base-button>
           <sc-base-button

@@ -19,7 +19,7 @@ import "@sc-app/ui-components";
 
 // 2. As web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
-registerUiComponents();                    // idempotent; defines every <sc-*-base> tag
+registerUiComponents(); // idempotent; defines every <sc-*-base> tag
 // <sc-base-button label="Run" variant="danger"></sc-base-button>
 ```
 
@@ -33,11 +33,11 @@ fire `change`) from the host — read `e.target.value` / `.checked`; the React w
 
 ## Entry points (package `exports`)
 
-| import | what |
-|---|---|
-| `@sc-app/ui-components` | the foundation CSS (a `<head>` stylesheet) |
-| `@sc-app/ui-components/lit` | the components + `registerUiComponents()` |
-| `/tokens` · `/themes/dark` · `/themes/light` · `/reset` | individual CSS layers |
+| import                                                  | what                                       |
+| ------------------------------------------------------- | ------------------------------------------ |
+| `@sc-app/ui-components`                                 | the foundation CSS (a `<head>` stylesheet) |
+| `@sc-app/ui-components/lit`                             | the components + `registerUiComponents()`  |
+| `/tokens` · `/themes/dark` · `/themes/light` · `/reset` | individual CSS layers                      |
 
 The React wrappers are not published by this package — they live in the host app
 (`src/components/ui.tsx`).
@@ -48,34 +48,34 @@ Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/comp
 `size` is `sm | md | lg`
 (md default) wherever it appears.
 
-| component | key props | event | notes |
-|---|---|---|---|
-| `sc-base-checkbox` | `checked` `label` `size` `disabled` | `change` | hidden native checkbox + box |
-| `sc-base-switch` | `checked` `size` `disabled` | `change` | hidden checkbox (`role=switch`) + track |
-| `sc-base-knob` | `value` `min` `max` `step` `label` `size` `disabled` | `input`/`change` | hidden range + SVG dial; drag/wheel |
-| `sc-base-slider` | `value` `min` `max` `step` `orientation` `label` `size` `disabled` | `input`/`change` | hidden range + track/thumb; drag/wheel |
-| `sc-base-radio` | `value` `label` `checked` `size` `disabled` | — | child of radio-group (context) |
-| `sc-base-radio-group` | `value` `orientation` `label` `size` `disabled` | `change` | context provider; `role=radiogroup` |
-| `sc-base-option` | `value` `label` `size` `disabled` | — | child of select (context) |
-| `sc-base-select` | `value` `placeholder` `size` `disabled` | `change` | combobox + top-layer dropdown |
-| `sc-base-input` | `value` `placeholder` `type` `size` `disabled` | `input`/`change` | native `<input>` |
-| `sc-base-inputnumber` | `value` `min` `max` `step` `size` `disabled` | `input`/`change` | hidden spinners, themed steppers |
-| `sc-base-textarea` | `value` `placeholder` `rows` `size` `disabled` | `input`/`change` | multi-line |
-| `sc-base-text` | `as` `size` `weight` `tone` `font` `align` `transform` `truncate` `inline` | — | typography; `as` = `span`/`p`/`div`/`h1`–`h6`; `transform`=`uppercase` adds eyebrow tracking (caps-label) |
-| `sc-base-button` | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click` | composes `sc-base-icon`; `loading` → spinner in the icon slot |
-| `sc-base-icon` | `name` `variant` `size` `label` | — | Phosphor glyph |
-| `sc-base-badge` | `label` `variant` | — | uppercase pill |
-| `sc-base-chip` | `label` `variant` `dot` | — | status chip (optional dot) |
-| `sc-base-alert` | `variant` | — | inline notice card; renders children |
-| `sc-base-toast` | `message` `variant` | `dismiss` | lives in a top-layer stack |
-| `sc-base-progress` | `variant` `value` `max` `size` `label` | — | bar/spinner; `role=progressbar` |
-| `sc-base-panel` | `disabled` | — | surface card; child `<header>` = title bar |
-| `sc-base-empty` | — | — | "nothing here" placeholder |
-| `sc-base-stack` / `sc-base-cluster` | `gap` | — | vertical / horizontal flex |
-| `sc-base-disclosure` | `open` | `toggle` | collapsible over native `<details>` |
-| `sc-base-popover` | `open` `placement` `anchor` | `toggle` | top-layer anchored panel |
-| `sc-base-modal` | `open` `dismissable` `label` | `close` | centred modal over native `<dialog>` |
-| `sc-base-drawer` | `open` `side` `dismissable` `label` | `close` | edge slide-in over native `<dialog>` |
+| component                           | key props                                                                             | event            | notes                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| `sc-base-checkbox`                  | `checked` `label` `size` `disabled`                                                   | `change`         | hidden native checkbox + box                                                                              |
+| `sc-base-switch`                    | `checked` `size` `disabled`                                                           | `change`         | hidden checkbox (`role=switch`) + track                                                                   |
+| `sc-base-knob`                      | `value` `min` `max` `step` `label` `size` `disabled`                                  | `input`/`change` | hidden range + SVG dial; drag/wheel                                                                       |
+| `sc-base-slider`                    | `value` `min` `max` `step` `orientation` `label` `size` `disabled`                    | `input`/`change` | hidden range + track/thumb; drag/wheel                                                                    |
+| `sc-base-radio`                     | `value` `label` `checked` `size` `disabled`                                           | —                | child of radio-group (context)                                                                            |
+| `sc-base-radio-group`               | `value` `orientation` `label` `size` `disabled`                                       | `change`         | context provider; `role=radiogroup`                                                                       |
+| `sc-base-option`                    | `value` `label` `size` `disabled`                                                     | —                | child of select (context)                                                                                 |
+| `sc-base-select`                    | `value` `placeholder` `size` `disabled`                                               | `change`         | combobox + top-layer dropdown                                                                             |
+| `sc-base-input`                     | `value` `placeholder` `type` `size` `disabled`                                        | `input`/`change` | native `<input>`                                                                                          |
+| `sc-base-inputnumber`               | `value` `min` `max` `step` `size` `disabled`                                          | `input`/`change` | hidden spinners, themed steppers                                                                          |
+| `sc-base-textarea`                  | `value` `placeholder` `rows` `size` `disabled`                                        | `input`/`change` | multi-line                                                                                                |
+| `sc-base-text`                      | `as` `size` `weight` `tone` `font` `align` `transform` `truncate` `inline`            | —                | typography; `as` = `span`/`p`/`div`/`h1`–`h6`; `transform`=`uppercase` adds eyebrow tracking (caps-label) |
+| `sc-base-button`                    | `label` `icon` `trailingIcon` `iconOnly` `loading` `variant` `size` `disabled` `type` | `click`          | composes `sc-base-icon`; `loading` → spinner in the icon slot                                             |
+| `sc-base-icon`                      | `name` `variant` `size` `label`                                                       | —                | Phosphor glyph                                                                                            |
+| `sc-base-badge`                     | `label` `variant`                                                                     | —                | uppercase pill                                                                                            |
+| `sc-base-chip`                      | `label` `variant` `dot`                                                               | —                | status chip (optional dot)                                                                                |
+| `sc-base-alert`                     | `variant`                                                                             | —                | inline notice card; renders children                                                                      |
+| `sc-base-toast`                     | `message` `variant`                                                                   | `dismiss`        | lives in a top-layer stack                                                                                |
+| `sc-base-progress`                  | `variant` `value` `max` `size` `label`                                                | —                | bar/spinner; `role=progressbar`                                                                           |
+| `sc-base-panel`                     | `disabled`                                                                            | —                | surface card; child `<header>` = title bar                                                                |
+| `sc-base-empty`                     | —                                                                                     | —                | "nothing here" placeholder                                                                                |
+| `sc-base-stack` / `sc-base-cluster` | `gap`                                                                                 | —                | vertical / horizontal flex                                                                                |
+| `sc-base-disclosure`                | `open`                                                                                | `toggle`         | collapsible over native `<details>`                                                                       |
+| `sc-base-popover`                   | `open` `placement` `anchor`                                                           | `toggle`         | top-layer anchored panel                                                                                  |
+| `sc-base-modal`                     | `open` `dismissable` `label`                                                          | `close`          | centred modal over native `<dialog>`                                                                      |
+| `sc-base-drawer`                    | `open` `side` `dismissable` `label`                                                   | `close`          | edge slide-in over native `<dialog>`                                                                      |
 
 **Variants are intentionally different per component:** input controls have **none** (single
 accent — `size`/`disabled`/`name` via `ScControlBase`); `sc-button` `primary`(d)/`secondary`/
@@ -121,7 +121,7 @@ never happens):
 litCss({
   include: ["**/ui-components/src/**/*.scss"],
   exclude: ["**/ui-components/src/foundations/index.scss"],
-})
+});
 ```
 
 > happy-dom has no top layer or layout, so open/close/positioning + computed styles are

@@ -61,7 +61,9 @@ describe("sc-base-checkbox", () => {
   it("toggles and re-emits a composed change carrying checked", async () => {
     const el = await mount("sc-base-checkbox");
     const checks: boolean[] = [];
-    el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
+    el.addEventListener("change", (e) =>
+      checks.push((e.target as unknown as ScCheckboxLike).checked),
+    );
     const input = el.shadowRoot!.querySelector("input")!;
     input.click();
     expect(el.checked).toBe(true);
@@ -84,7 +86,9 @@ describe("sc-base-switch", () => {
   it("uses a role=switch native input and fires native change", async () => {
     const el = await mount("sc-base-switch");
     const checks: boolean[] = [];
-    el.addEventListener("change", (e) => checks.push((e.target as unknown as ScCheckboxLike).checked));
+    el.addEventListener("change", (e) =>
+      checks.push((e.target as unknown as ScCheckboxLike).checked),
+    );
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.getAttribute("role")).toBe("switch");
     input.click();
@@ -151,7 +155,9 @@ describe("sc-base-knob", () => {
   it("follows the dominant axis (horizontal drag also adjusts)", async () => {
     const el = await mount("sc-base-knob", { min: 0, max: 1, step: 0.01, value: 0.5 });
     el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 0, clientY: 300 }));
-    document.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 15, clientY: 300 }));
+    document.dispatchEvent(
+      new MouseEvent("mousemove", { bubbles: true, clientX: 15, clientY: 300 }),
+    );
     document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
     expect(el.value).toBeCloseTo(0.75); // dx=15 dominates → +15/60 = +0.25
   });
@@ -267,10 +273,8 @@ describe("sc-base-select", () => {
     return { select, options };
   }
 
-  const combobox = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
-  const dropdown = (s: HTMLElement) =>
-    s.shadowRoot!.querySelector<HTMLElement>("sc-base-popover")!;
+  const combobox = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLButtonElement>(".combobox")!;
+  const dropdown = (s: HTMLElement) => s.shadowRoot!.querySelector<HTMLElement>("sc-base-popover")!;
 
   // The dropdown is delegated to <sc-base-popover> (the shared top-layer overlay);
   // open/close + light-dismiss aren't exercisable in happy-dom — that's the CDP
@@ -464,7 +468,9 @@ describe("sc-base-input", () => {
   it("mirrors value and re-emits a composed input", async () => {
     const el = await mount("sc-base-input");
     const inputs: string[] = [];
-    el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
+    el.addEventListener("input", (e) =>
+      inputs.push((e.target as unknown as ScInputBaseLike).value),
+    );
     const input = el.shadowRoot!.querySelector("input")!;
     input.value = "hello";
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -487,7 +493,9 @@ describe("sc-base-inputnumber", () => {
   it("steps up by `step`, re-emitting composed change with the new value", async () => {
     const el = await mount("sc-base-inputnumber", { value: 0, step: 1, max: 5 });
     const changes: number[] = [];
-    el.addEventListener("change", (e) => changes.push(Number((e.target as unknown as { value: number }).value)));
+    el.addEventListener("change", (e) =>
+      changes.push(Number((e.target as unknown as { value: number }).value)),
+    );
     el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".step")[0].click();
     expect(el.value).toBe(1);
     expect(changes).toEqual([1]);
@@ -529,7 +537,9 @@ describe("sc-base-textarea", () => {
   it("mirrors value and re-emits a composed input", async () => {
     const el = await mount("sc-base-textarea");
     const inputs: string[] = [];
-    el.addEventListener("input", (e) => inputs.push((e.target as unknown as ScInputBaseLike).value));
+    el.addEventListener("input", (e) =>
+      inputs.push((e.target as unknown as ScInputBaseLike).value),
+    );
     const ta = el.shadowRoot!.querySelector("textarea")!;
     ta.value = "multi\nline";
     ta.dispatchEvent(new Event("input", { bubbles: true }));
@@ -645,9 +655,7 @@ describe("sc-base-popover", () => {
     el.open = true;
     await el.updateComplete;
     // The panel carries the popover attribute (top-layer opt-in) once attached.
-    expect(el.renderRoot.querySelector(".panel")!.getAttribute("popover")).toBe(
-      "auto",
-    );
+    expect(el.renderRoot.querySelector(".panel")!.getAttribute("popover")).toBe("auto");
     expect(toggles).toBeGreaterThanOrEqual(0); // toggle event only fires where the API runs
   });
 });

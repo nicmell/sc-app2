@@ -4,8 +4,11 @@
 // never clipped and coexists with an open <sc-base-modal> (the toasts sit
 // bottom-right, the modal centred — no overlap; note a modal <dialog> still
 // renders above popovers in the top layer, so this isn't a way to cover it).
-// Each banner auto-dismisses after a timeout (reset when a coalesced repeat
-// refreshes its `ts`) and can be closed manually. Driven by the OscClient store.
+// Each banner auto-dismisses after a timeout and can be closed manually; the
+// countdown deliberately does NOT re-arm when a coalesced repeat refreshes the
+// entry's `ts` — while a modal <dialog> is open the whole document (top-layer
+// popovers included) is inert, so a repeating error must not pin an
+// unclickable toast forever. Driven by the OscClient store.
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Toast as BaseToast } from "@/components/ui";
@@ -16,16 +19,16 @@ import styles from "./ToastStack.module.scss";
 /** How long a banner lingers before auto-dismissing. */
 const DISMISS_MS = 8000;
 
-const POPOVER_SUPPORTED =
-  typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
+const POPOVER_SUPPORTED = typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
 
 function Toast({ error }: { error: ScsynthError }) {
-  // Re-arm whenever the entry's timestamp changes (a coalesced repeat refreshes
-  // `ts`), so the countdown restarts on each new occurrence.
+  // One countdown per entry, from its first appearance — coalesced repeats bump
+  // the ×count display but don't extend the toast's life (see the header note on
+  // modal inertness). A recurrence after dismissal mints a new entry/toast.
   useEffect(() => {
     const t = setTimeout(() => oscClient.dismissError(error.id), DISMISS_MS);
     return () => clearTimeout(t);
-  }, [error.id, error.ts]);
+  }, [error.id]);
 
   const label = error.address ? `${error.address}: ${error.message}` : error.message;
   const message = error.count > 1 ? `${label} ×${error.count}` : label;

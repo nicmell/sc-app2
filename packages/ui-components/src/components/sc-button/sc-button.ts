@@ -42,7 +42,10 @@ export class ScButtonBase extends LitElement {
     const lead = this.loading
       ? html`<span class=${cx("spinner", { lead: !iconOnly })} aria-hidden="true"></span>`
       : this.icon
-        ? html`<sc-base-icon class=${cx("icon", { lead: !iconOnly })} name=${this.icon}></sc-base-icon>`
+        ? html`<sc-base-icon
+            class=${cx("icon", { lead: !iconOnly })}
+            name=${this.icon}
+          ></sc-base-icon>`
         : nothing;
     return html`
       <button

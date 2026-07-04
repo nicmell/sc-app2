@@ -15,6 +15,7 @@
   },
   "scripts": {
     "demo": "vite example",
+    "generate:icons": "node scripts/generate-icon-codepoints.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

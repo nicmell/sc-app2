@@ -76,8 +76,16 @@ export class ScSelectBase extends ScControlBase {
   #onTriggerPointerDown = (): void => {
     this.#wasOpen = this.open;
   };
-  #onTriggerClick = (): void => {
-    // If it was open, light-dismiss already closed it on pointerdown — don't reopen.
+  #onTriggerClick = (e: MouseEvent): void => {
+    // Keyboard activation (Enter/Space synthesizes a click with detail 0 and NO
+    // pointerdown) never light-dismisses the popover, so it's a plain toggle —
+    // and it must not read #wasOpen, which only the pointer path refreshes.
+    if (e.detail === 0) {
+      this.open = !this.open;
+      return;
+    }
+    // Pointer: if it was open, light-dismiss already closed it on pointerdown —
+    // don't reopen.
     if (!this.#wasOpen) this.open = true;
   };
   #onPopoverToggle = (): void => {

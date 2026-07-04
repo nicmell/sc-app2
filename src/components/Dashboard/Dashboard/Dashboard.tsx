@@ -5,7 +5,7 @@
 //   • layout/geometry  → state/layout (reactiveStore + localStorage)
 //   • installed plugins → state/plugins (mirrored from the Rust router)
 //   • panel content     → PluginHost (fetch entry HTML, inject body; sc-* upgrade)
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { Layout } from "react-grid-layout";
 import { GridLayout, noCompactor, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -15,6 +15,7 @@ import { useStore } from "@/stores/useStore";
 import { layout, setLayout, addBox, removeBox, setBoxPlugin, randomId } from "@/stores/layout";
 import type { BoxItem } from "@/types/stores";
 import { plugins } from "@/stores/plugins";
+import { session } from "@/stores/session";
 import type { PluginInfo } from "@/types/api";
 import { MARGIN, NUM_COLUMNS, NUM_ROWS } from "@/constants/layout";
 import { computePlaceholders, isPlaceholder } from "@/components/Dashboard/utils";
@@ -55,6 +56,17 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   const rowHeight = computeRowHeight(NUM_ROWS, viewportHeight);
 
   const [modalOpen, setModalOpen] = useState<BoxItem>();
+
+  // The picker is a top-layer modal <dialog>; like the drawer (see App.tsx) it
+  // would paint above the ConnectionOverlay's "connecting" scrim, so close it
+  // when the session leaves "connected".
+  useEffect(
+    () =>
+      session.status.subscribe((status) => {
+        if (status !== "connected") setModalOpen(undefined);
+      }),
+    [],
+  );
 
   const actualNumRows = useMemo(
     () => items.reduce((max, item) => Math.max(max, item.y + item.h), 1),

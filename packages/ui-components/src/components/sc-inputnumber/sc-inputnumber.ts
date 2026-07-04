@@ -8,6 +8,7 @@ import { html, nothing } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import { ScControlBase } from "../internal/sc-control/sc-control";
+import { quantize } from "../internal/number";
 import resetStyles from "../../foundations/reset.scss";
 import controlStyles from "../../foundations/controls.scss";
 import styles from "./sc-inputnumber.scss";
@@ -24,13 +25,6 @@ export class ScInputNumberBase extends ScControlBase {
 
   private _clamp(n: number): number {
     return Math.min(this.max, Math.max(this.min, n));
-  }
-
-  /** Round to the precision implied by `step` to avoid float drift. */
-  private _quantize(n: number): number {
-    if (!Number.isFinite(this.step) || this.step <= 0) return n;
-    const factor = 10 ** Math.max(0, Math.round(-Math.log10(this.step)));
-    return Math.round(n * factor) / factor;
   }
 
   private get _input(): HTMLInputElement {
@@ -58,7 +52,7 @@ export class ScInputNumberBase extends ScControlBase {
   private _stepBy(dir: 1 | -1): void {
     if (this.disabled) return;
     const base = Number.isFinite(this.value) ? this.value : 0;
-    const v = this._clamp(this._quantize(base + dir * this.step));
+    const v = quantize(base + dir * this.step, this.min, this.max, this.step);
     if (v === this.value) return;
     this._input.value = String(v);
     this._input.dispatchEvent(new Event("input", { bubbles: true }));

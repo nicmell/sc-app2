@@ -22,7 +22,10 @@ export class ScToastBase extends LitElement {
 
   protected updated(): void {
     // Errors/warnings interrupt (assertive); info/success/default are polite.
-    this.setAttribute("role", this.variant === "error" || this.variant === "warn" ? "alert" : "status");
+    this.setAttribute(
+      "role",
+      this.variant === "error" || this.variant === "warn" ? "alert" : "status",
+    );
   }
 
   render() {

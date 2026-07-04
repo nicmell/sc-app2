@@ -1,8 +1,16 @@
-/* The toast stack is a fixed-position, top-layer (popover=manual) container. */
+/* The toast stack is a fixed-position, top-layer (popover=manual) container.
+   Promotion applies the UA [popover] chrome (Canvas background, solid border,
+   padding, overflow, CanvasText color) — neutralise it so the stack stays a
+   transparent flex container around the floating cards. */
 .stack {
   position: fixed;
   inset: auto;
   margin: 0;
+  background: none;
+  border: 0;
+  padding: 0;
+  overflow: visible;
+  color: inherit;
   bottom: var(--space-md);
   right: var(--space-md);
   display: flex;

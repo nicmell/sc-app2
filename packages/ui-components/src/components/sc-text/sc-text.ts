@@ -68,6 +68,9 @@ export class ScTextBase extends LitElement {
 
   render() {
     const tag = TAGS[this.as] ?? TAGS.span;
+    // `tag` is a static-html `literal` from the fixed TAGS table (the sanctioned
+    // polymorphic-tag pattern); the plugin can't tell lit/static-html's html`` from lit's.
+    // eslint-disable-next-line lit/binding-positions, lit/no-invalid-html
     return html`<${tag}><slot></slot></${tag}>`;
   }
 }

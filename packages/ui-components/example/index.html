@@ -53,7 +53,8 @@
       <h1>@sc-app/ui-components</h1>
       <p>
         Every section below demonstrates one <code>&lt;sc-*-base&gt;</code> web component (the
-        library's public surface). Served through Vite (<code>npx vite</code> / <code>yarn demo</code>
+        library's public surface). Served through Vite (<code>npx vite</code> /
+        <code>yarn demo</code>
         from this package dir), which transpiles the widget TS modules and inlines the foundation
         CSS that styles them.
       </p>
@@ -219,8 +220,8 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-modal&gt;</h2>
         <p class="demo-cap">
-          centred blocking modal in the top layer (native <code>&lt;dialog&gt;</code>:
-          backdrop + focus trap + Esc); <code>dismissable</code> closes on Esc / backdrop
+          centred blocking modal in the top layer (native <code>&lt;dialog&gt;</code>: backdrop +
+          focus trap + Esc); <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
           <sc-base-button
@@ -348,13 +349,7 @@
         </div>
         <p class="demo-cap">range (min=20 max=20000 step=10)</p>
         <div class="demo-row">
-          <sc-base-knob
-            label="Frequency"
-            min="20"
-            max="20000"
-            step="10"
-            value="440"
-          ></sc-base-knob>
+          <sc-base-knob label="Frequency" min="20" max="20000" step="10" value="440"></sc-base-knob>
         </div>
       </section>
 
@@ -458,8 +453,8 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-popover&gt;</h2>
         <p class="demo-cap">
-          top-layer anchored overlay — escapes its <code>overflow: hidden</code> +
-          transformed parent (floating-ui positions it, native light-dismiss closes it)
+          top-layer anchored overlay — escapes its <code>overflow: hidden</code> + transformed
+          parent (floating-ui positions it, native light-dismiss closes it)
         </p>
         <div class="demo-row">
           <div
@@ -491,8 +486,8 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-drawer&gt;</h2>
         <p class="demo-cap">
-          edge-anchored top-layer panel (native <code>&lt;dialog&gt;</code>: backdrop + focus
-          trap + Esc); slides in, <code>dismissable</code> closes on Esc / backdrop
+          edge-anchored top-layer panel (native <code>&lt;dialog&gt;</code>: backdrop + focus trap +
+          Esc); slides in, <code>dismissable</code> closes on Esc / backdrop
         </p>
         <div class="demo-row">
           <sc-base-button
@@ -626,12 +621,7 @@
         <p class="demo-cap">icon-only (label = accessible name)</p>
         <div class="demo-row">
           <sc-base-button icon="play" icon-only label="Play"></sc-base-button>
-          <sc-base-button
-            icon="pause"
-            icon-only
-            label="Pause"
-            variant="secondary"
-          ></sc-base-button>
+          <sc-base-button icon="pause" icon-only label="Pause" variant="secondary"></sc-base-button>
           <sc-base-button icon="x" icon-only label="Close" variant="ghost"></sc-base-button>
           <sc-base-button icon="gear" icon-only label="Settings" size="lg"></sc-base-button>
         </div>

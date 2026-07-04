@@ -67,7 +67,9 @@ describe("ConnectionOverlay", () => {
     expect(container.querySelector("sc-base-progress")).toBeNull();
     const modal = container.querySelector("sc-base-modal");
     expect(modal).not.toBeNull();
-    expect(modal!.querySelector(`.${modalStyles.title}`)?.textContent).toMatch(/connection failed/i);
+    expect(modal!.querySelector(`.${modalStyles.title}`)?.textContent).toMatch(
+      /connection failed/i,
+    );
     expect(modal!.querySelector(`.${modalStyles.body}`)?.textContent).toBeTruthy();
     // Retry is now an <sc-base-button> in the actions cluster (its label is a prop; the
     // text lives in the shadow). Presence is the robust check here; the click wiring is

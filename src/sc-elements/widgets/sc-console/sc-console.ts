@@ -35,7 +35,7 @@ export class ScConsole extends ScElement {
 
   updated(): void {
     // Auto-scroll to the newest entry, like a terminal.
-    const log = this.querySelector(".osc-log");
+    const log = this.querySelector(`.${styles.log}`);
     if (log) log.scrollTop = log.scrollHeight;
   }
 

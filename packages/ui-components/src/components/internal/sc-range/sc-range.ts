@@ -17,6 +17,7 @@
 
 import { property } from "lit/decorators.js";
 import { ScControlBase } from "../sc-control/sc-control";
+import { decimalsOf, quantize } from "../number";
 
 export abstract class ScRangeBase extends ScControlBase {
   @property({ type: Number }) accessor value = 0;
@@ -29,8 +30,7 @@ export abstract class ScRangeBase extends ScControlBase {
   /** Value announced by screen readers, rounded to the step's precision so it
    *  reads "0.80", not a binary-float tail. */
   protected valueText(): string {
-    const precision = Math.max(0, Math.round(-Math.log10(this.step)));
-    return this.value.toFixed(precision);
+    return this.value.toFixed(Math.min(20, decimalsOf(this.step)));
   }
 
   protected get input(): HTMLInputElement {
@@ -66,18 +66,9 @@ export abstract class ScRangeBase extends ScControlBase {
     this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
-  /** Quantise to `step`, clamp to range. */
-  private _quantize(raw: number): number {
-    const precision = Math.round(-Math.log10(this.step));
-    const factor = 10 ** Math.max(0, precision);
-    let v = Math.round((raw - this.min) / this.step) * this.step + this.min;
-    v = Math.round(v * factor) / factor;
-    return Math.max(this.min, Math.min(this.max, v));
-  }
-
   /** Push a value through the hidden range so it emits native events. */
   private _set(raw: number): boolean {
-    const v = this._quantize(raw);
+    const v = quantize(raw, this.min, this.max, this.step);
     if (v === this.value) return false;
     this.input.value = String(v);
     this.input.dispatchEvent(new Event("input", { bubbles: true }));

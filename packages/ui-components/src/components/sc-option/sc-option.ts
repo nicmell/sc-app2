@@ -38,9 +38,7 @@ export class ScOptionBase extends ScControlBase {
 
   render() {
     return html`
-      <div role="option" aria-selected=${this.selected} @click=${this._onClick}>
-        ${this.label}
-      </div>
+      <div role="option" aria-selected=${this.selected} @click=${this._onClick}>${this.label}</div>
     `;
   }
 }

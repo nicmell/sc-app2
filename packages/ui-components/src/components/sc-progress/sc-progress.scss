@@ -31,12 +31,7 @@
 
   &.indeterminate .fill {
     width: 40%;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--color-primary) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%);
     animation: sc-progress-slide 1.4s ease-in-out infinite;
     transition: none;
   }

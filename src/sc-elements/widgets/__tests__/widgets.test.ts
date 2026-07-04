@@ -23,7 +23,7 @@ import {
 // (vite.config.ts test.alias); strudelMirrors holds the editors sc-strudel
 // constructed this test, in order.
 import { strudelMirrors } from "@/lib/utils/test/stubs/strudel-codemirror";
-import strudelStyles from "@/sc-elements/widgets/sc-strudel.module.scss";
+import strudelStyles from "@/sc-elements/widgets/sc-strudel/sc-strudel.module.scss";
 
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;

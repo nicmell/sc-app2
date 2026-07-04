@@ -1,5 +1,5 @@
 /* The plugin host fills its panel body and carries the height chain down to the
-   <sc-plugin> entry markup (the element's own sizing lives in sc-plugin.scss). */
+   <sc-plugin> entry markup (the element's own sizing lives in its sc-plugin.scss). */
 .host {
   height: 100%;
   display: flex;

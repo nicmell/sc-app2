@@ -1,12 +1,13 @@
 // <sc-display> — a read-only formatted view of an expression bind (the
-// ScVisual base): a plain control/var path (`bind="s1.freq"`) or any
+// ScDerived base): a plain control/var path (`bind="s1.freq"`) or any
 // evaluable expression (`bind="vars.amp * 100"`), rendered through the
-// printf-style `format`.
+// printf-style `format` from the live `_state`.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
+import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
-import { ScVisual } from "@/sc-elements/internal/sc-visual";
+import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
@@ -26,14 +27,18 @@ export function formatValue(
   return String(value ?? "");
 }
 
-export class ScDisplay extends ScVisual {
+export class ScDisplay extends ScDerived {
   @property() accessor format = "";
 
   validate(): void {
-    requireProp(this, "bind", this.bind);
+    requireProp(this, "bind", this.bind ?? "");
+  }
+
+  protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
+    return this.derivedRuntime(ctx);
   }
 
   render() {
-    return html`${this.format ? formatValue(this.format, this._value) : String(this._value ?? "")}`;
+    return html`${this.format ? formatValue(this.format, this._state) : String(this._state ?? "")}`;
   }
 }

@@ -1,9 +1,9 @@
-// <sc-checkbox> — a toggle bound to a control (`bind`/`_targetScNode` on the
-// ScInput base). Deliberately unstyled for now: a native <input
+// <sc-checkbox> — a toggle bound to a control/var (`bind`/`_targetScNode` on
+// the ScInput base). Deliberately unstyled for now: a native <input
 // type="checkbox"> (the switch UI returns with a later step). Checked maps to
-// the control value 1, unchecked to 0; the load pass subscribes the checked
-// state to the target's store key and writes go through the control's
-// `setValue()` (the /n_set dispatch point).
+// the value 1, unchecked to 0; the load pass subscribes the checked state to
+// the target's live value (the uniform `_state` + `onStateChange()` seam) and
+// writes go through the target's `setValue()` (the /n_set dispatch point).
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
@@ -27,11 +27,8 @@ export class ScCheckbox extends ScInput {
     this.offValue = undefined;
     const target = this._targetScNode;
     if (target && isStateRuntime(target) && target.enabled) {
-      const view = target.selectValue();
-      this._checked = (view.get() ?? 0) !== 0;
-      this.offValue = view.subscribe((v) => {
-        if (v !== undefined) this._checked = v !== 0;
-      });
+      this._checked = (target._state ?? 0) !== 0; // statechange is change-only — sync once
+      this.offValue = target.onStateChange((next) => (this._checked = next !== 0));
     }
     await super.load();
   }
@@ -54,8 +51,9 @@ export class ScCheckbox extends ScInput {
     if (target && isStateRuntime(target)) {
       target.setValue(checked ? 1 : 0);
       // Re-read: a write to BOUND (derived, read-only) state is inert — the
-      // live() binding then snaps the box back to the real value.
-      this._checked = (target.selectValue().get() ?? 0) !== 0;
+      // live() binding then snaps the box back to the real value. For a
+      // literal target the synchronous statechange echo already synced.
+      this._checked = (target._state ?? 0) !== 0;
     }
   };
 

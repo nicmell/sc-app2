@@ -1,19 +1,29 @@
-// Base for the stateful elements (sc-control / sc-var): a named value binds
-// can target. The `name`/`value`/`bind` attributes, their shared validation
-// (value xor bind), the state runtime (`value`/`targets`/`expression`) — and
-// the live value seam itself: every enabled state element is one key of the
-// app store's `runtime` slice (its full named path under the plugin root),
-// with `selectValue()` as the read view and `setValue()` as the public write.
-// The subclasses differ in when they're enabled (a control when its parent is
-// a node, a var always) and in what a write dispatches (a control adds the
-// /n_set — see `dispatchValue`; a var is store-only).
+// Base for the stateful elements (sc-control / sc-var): a NAMED value binds
+// can target. On top of ScDerived's live `_state` + "statechange" it adds the
+// `name`/`value` attributes, their shared validation (value xor bind), and
+// the runtime-store backing for LITERAL state:
 //
-// Bound state (`bind="a.b * 2"`) is DERIVED: the load pass computes it from
-// its targets' store keys and re-computes on every target change — the
-// shared machinery in internal/derived.ts (also powering the read-only
-// visuals). Each dispatch is Object.is-guarded, so a converged recompute is
-// free. Derived values are read-only: `setValue` on bound state is a no-op
-// (the old app's writes to bound state were equally inert).
+//   - LITERAL state (a `value` attribute — real, user-writable state) is one
+//     key of the app store's `runtime` slice (its full named path under the
+//     plugin root): the load pass seeds the declarative default (a reload
+//     keeps user-moved values) and mirrors the store key into `_state`, so
+//     external store writes (a second input, future presets) notify
+//     dependents through the uniform statechange — with no OSC (see
+//     ScControl: /n_set lives on the WRITE path only).
+//   - BOUND state (a `bind` expression) is pure inherited ScDerived
+//     behavior: `_state` derives from the targets, there is NO store key,
+//     and writes are inert (`setValue` on derived state is a no-op — the old
+//     app's writes to bound state were equally inert).
+//
+// The `value` prop itself is the plain declarative attribute mirror — the
+// live value is `_state` (the old app's exact value/_state split; the graph
+// collection relies on telling a missing `value` attribute apart).
+//
+// A state element must be declared ON A NODE: its store key/path derives
+// from the named ancestors, and a path-transparent container (sc-if,
+// sc-select, sc-radio-group — no path segment of their own) would let a
+// same-named element silently share an outer key. Controls encode the rule
+// in their enablement; vars enforce it as a parse error.
 
 import { property } from "lit/decorators.js";
 import {
@@ -22,30 +32,18 @@ import {
   selectRuntimeValue,
   setRuntimeValue,
 } from "@/stores/runtime";
-import type { ReadonlyStore } from "@/lib/utils/reactiveStore";
-import type { Expr, RuntimeContext, StateRuntime } from "@/types/runtime";
-import { observeDerived } from "@/sc-elements/internal/derived";
+import type { RuntimeContext, DerivedRuntime } from "@/types/runtime";
 import {
   baseRuntime,
   failValidation,
   requireNumeric,
   requireProp,
-  resolveStateBind,
 } from "@/sc-elements/internal/validation";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
-export abstract class ScState extends ScElement {
+export abstract class ScState extends ScDerived {
   @property() accessor name = "";
-  @property() accessor bind: string | undefined = undefined;
   @property({ type: Number }) accessor value: number | undefined = undefined;
-
-  /** Bind path → the live target state element (set when bound). */
-  targets?: Record<string, ScState>;
-  /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
-  expression?: Expr;
-
-  /** Store/target unsubscribes (set in load, cleared on unload/disconnect). */
-  private offs: Array<() => void> = [];
 
   validate(): void {
     requireProp(this, "name", this.name);
@@ -55,38 +53,32 @@ export abstract class ScState extends ScElement {
     requireNumeric(this, "value", this.value);
   }
 
-  /** Resolve the literal/bound value into the live `value` property. Only
-   *  enabled state resolves its bind and gets the normalized live value —
-   *  disabled state (a pure graph input inside synthdefs/ugens) keeps the
-   *  prop as the plain attribute mirror, so the graph collection can still
-   *  tell a missing `value` attribute apart. */
-  protected stateRuntime(ctx: RuntimeContext, enabled: boolean): StateRuntime {
+  /** Resolve the state runtime: bound state gets its targets/expression,
+   *  literal state explicitly clears them (a re-process must not leave stale
+   *  bound fields behind). Disabled state (a pure graph input inside
+   *  synthdefs/ugens) resolves neither — its `value` prop stays the plain
+   *  attribute mirror the graph collection reads. */
+  protected stateRuntime(ctx: RuntimeContext, enabled: boolean): DerivedRuntime {
     if (!enabled) {
       return { ...baseRuntime(ctx), enabled };
     }
     if (this.bind) {
-      const { targets, expression } = resolveStateBind(this, ctx, this.bind);
-      return { ...baseRuntime(ctx), enabled, value: 0, targets, expression };
+      return { ...this.derivedRuntime(ctx), enabled };
     }
-    return { ...baseRuntime(ctx), enabled, value: this.value ?? 0 };
+    return { ...baseRuntime(ctx), enabled, targets: undefined, expression: undefined };
   }
 
   /** The element's key in the plugin's store map: the named ancestor path
-   *  plus its own name (the plugin root contributes no segment). */
-  get key(): string {
+   *  plus its own name (the plugin root contributes no segment). Literal
+   *  state only — bound state has no store key. */
+  protected get key(): string {
     return [...this.path, this.name].join(".");
-  }
-
-  /** Read-only view onto this element's store value — the read seam the
-   *  bound inputs/displays subscribe through. */
-  selectValue(): ReadonlyStore<number | undefined> {
-    return selectRuntimeValue(this._rootScNode.id, this.key);
   }
 
   /** The internal write: Object.is-guarded store update, reporting whether
    *  the value actually moved. ScControl extends it with the /n_set on the
-   *  owning node — every dispatch path (user writes AND bound recomputes)
-   *  goes through here. */
+   *  owning node — the user-gesture WRITE path. The store echo runs
+   *  updateState (and the statechange to dependents) synchronously. */
   protected dispatchValue(next: number): boolean {
     if (Object.is(getRuntimeValue(this._rootScNode.id, this.key), next)) return false;
     setRuntimeValue(this._rootScNode.id, this.key, next);
@@ -100,50 +92,27 @@ export abstract class ScState extends ScElement {
     this.dispatchValue(next);
   }
 
-  /** Wire the store key: literal state seeds its declarative default (a
-   *  reload keeps user-moved values), bound state writes its computed value
-   *  and re-computes on every target change (internal/derived.ts). Both
-   *  mirror the key into the live `value` prop — in that order, so a parent
-   *  synth's getControls() reads the settled value. No OSC here on the
-   *  initial write: the owning node isn't loaded yet (defaults ride its
-   *  /s_new). Re-entrant (reconnect reload): stale subscriptions are dropped
-   *  first. */
+  /** Literal state wires its store key: seed the declarative default, sync
+   *  `_state` once (subscriptions are change-only), then mirror every store
+   *  write into `_state` — which notifies dependents via statechange. Bound
+   *  state takes the inherited ScDerived path (recompute over the targets).
+   *  The `undefined` guard keeps a dropped plugin map from propagating. */
   async load(): Promise<void> {
-    this.dropSubscriptions();
-    if (this.enabled && this.isConnected) {
-      if (this.targets) {
-        this.offs.push(
-          observeDerived(this.targets, this.expression, (v) => void this.dispatchValue(v)),
-        );
-      } else {
-        seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
-      }
-      const view = this.selectValue();
-      this.value = view.get(); // subscribe() is change-only — sync once
-      this.offs.push(
-        view.subscribe((v) => {
-          if (v !== undefined) this.value = v;
+    // super.load()'s synchronous prefix drops the stale subscriptions FIRST
+    // (re-entrant reload) — state elements are leaves, so nothing awaits
+    // before the store wiring below registers; no write can slip the gap.
+    const loading = super.load();
+    if (this.enabled && this.isConnected && !this.targets) {
+      seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
+      const view = selectRuntimeValue(this._rootScNode.id, this.key);
+      const v = view.get();
+      if (v !== undefined) this.updateState(v);
+      this.addStateSubscription(
+        view.subscribe((next) => {
+          if (next !== undefined) this.updateState(next);
         }),
       );
     }
-    await super.load();
-  }
-
-  /** The inverse of load(): drop the subscriptions (re-established by the
-   *  reconnect reload). The store key itself survives — it's only dropped
-   *  with the plugin's unmount. */
-  unload(): void {
-    super.unload();
-    this.dropSubscriptions();
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.dropSubscriptions();
-  }
-
-  private dropSubscriptions(): void {
-    for (const off of this.offs) off();
-    this.offs = [];
+    await loading;
   }
 }

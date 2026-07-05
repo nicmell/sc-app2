@@ -24,11 +24,11 @@ internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
             processChildren — and the common runtime fields); validation.ts
             (the require*/failValidation primitives + the bind-resolution
             machinery, as plain functions over the elements); the category
-            bases ScNode (run + nodeId/loaded), ScState (name/value/bind +
-            targets/expression + the store-value seam), ScInput (bind +
-            _targetScNode — the writing inputs), ScVisual (expression bind →
-            derived _value — the read-only visuals); derived.ts (the shared
-            compute/observe machinery over the bind targets)
+            bases ScNode (run + nodeId/loaded), ScDerived (bind →
+            targets/expression, the live `_state` + "statechange" event —
+            the value seam everything reads), ScState extends it
+            (name/value + the store backing for LITERAL state), ScInput
+            (bind + _targetScNode — the writing inputs)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)
@@ -109,12 +109,12 @@ writes and bound recomputes alike).
 
 A state variable: like `sc-control` but always enabled and never sent over
 OSC. Props: `name` (required), `value` xor `bind` (expressions allowed).
-Its live value is one key of the runtime store slice (path-keyed, like
-controls — the seam lives on the ScState base); a bound var recomputes from
-its targets on every change (internal/derived.ts) and is read-only to
-inputs. A var must be declared ON A NODE (plugin/group/synth) — inside a
-path-transparent container (sc-if) it would share an outer var's store key
-(`bad-var-scope` pins the parse error).
+Its live value is `_state` on the shared ScDerived base: a literal var is
+one store-slice key (path-keyed, like controls), a bound var recomputes
+element-to-element from its targets' statechange (no store key) and is
+read-only to inputs. A var must be declared ON A NODE (plugin/group/synth)
+— inside a path-transparent container (sc-if) it would share an outer var's
+store key (`bad-var-scope` pins the parse error).
 
 ## `inputs/`
 
@@ -156,10 +156,11 @@ Will: `/n_run` toggle button.
 
 ## `visuals/`
 
-Both visuals extend `internal/sc-visual` (ScVisual): a read-only SINK on the
-state graph — `bind` is a full evaluable expression (plain paths,
-arithmetic, comparisons), resolved like control/var binds and recomputed on
-every source change into the reactive `_value` the subclass renders from.
+Both visuals extend `internal/sc-derived` (ScDerived) directly: a read-only
+SINK on the state graph — `bind` is a full evaluable expression (plain
+paths, arithmetic, comparisons), resolved like control/var binds and
+recomputed on every source statechange into the live `_state` the subclass
+renders from.
 
 ### `<sc-display>`
 

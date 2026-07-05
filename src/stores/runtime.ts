@@ -1,11 +1,13 @@
-// Live runtime values of the mounted plugins — a slice of the single app
-// store, keyed plugin-root-id → control path ("s1.freq") → number. The
-// elements wire themselves to it in the load pass: enabled sc-controls seed
-// their declarative default and mirror the key into their `value` prop;
-// inputs/displays subscribe through the control's `selectValue()`. The only
-// OSC-dispatching write path is `ScControl.setValue` — writing the slice
-// directly (presets, future propagation) updates every subscribed view
-// without touching scsynth.
+// LITERAL runtime values of the mounted plugins — a slice of the single app
+// store, keyed plugin-root-id → state path ("s1.freq") → number. Only
+// literal, user-writable state (a `value` attribute) is store-backed: the
+// load pass seeds the declarative default and mirrors the key into the
+// element's live `_state`, whose "statechange" event is what every reader
+// subscribes to (sc-elements/internal/sc-derived.ts). Derived (bound) values
+// never touch the store — they live on the elements. The only
+// OSC-dispatching write path is `ScState.setValue` — writing the slice
+// directly (future presets: literal keys only) updates the subscribed
+// elements without touching scsynth.
 
 import { SliceName } from "@/constants/store";
 import { appStore } from "./store";

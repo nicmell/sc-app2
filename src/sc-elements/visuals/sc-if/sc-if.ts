@@ -1,7 +1,7 @@
 // <sc-if> — conditional rendering on the TRUTHINESS of an expression bind
-// (the ScVisual base): `bind="osc.gate"`, `bind="vars.freq > 440"`,
+// (the ScDerived base): `bind="osc.gate"`, `bind="vars.freq > 440"`,
 // `bind="osc.gate == 0"` — anything the expression engine evaluates; children
-// show when the derived value is non-zero.
+// show when the live `_state` is non-zero.
 //
 // Light DOM: the children are already-parsed sc-* elements — hiding is the
 // `hidden` attribute + stylesheet (display: contents / [hidden] display:
@@ -18,12 +18,12 @@ import { nothing, type PropertyValues } from "lit";
 import { isNodeRuntime, isSynthDefRuntime, typeOf } from "@/lib/utils/guards";
 import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
 import { failValidation, requireProp } from "@/sc-elements/internal/validation";
-import { ScVisual } from "@/sc-elements/internal/sc-visual";
+import { ScDerived } from "@/sc-elements/internal/sc-derived";
 import "./sc-if.scss";
 
-export class ScIf extends ScVisual {
+export class ScIf extends ScDerived {
   validate(): void {
-    requireProp(this, "bind", this.bind);
+    requireProp(this, "bind", this.bind ?? "");
     // walkScElements recurses through plain HTML wrappers but stops at sc-*
     // boundaries — a node nested under an inner sc-if is caught by THAT
     // sc-if's own validate() when it processes.
@@ -36,13 +36,13 @@ export class ScIf extends ScVisual {
 
   protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
     this.processChildren(ctx);
-    return super.resolveRuntime(ctx);
+    return this.derivedRuntime(ctx);
   }
 
   /** Host attributes are side effects — keep them out of render(). */
   protected willUpdate(changed: PropertyValues): void {
     super.willUpdate(changed);
-    this.toggleAttribute("hidden", !this._value);
+    this.toggleAttribute("hidden", !this._state);
   }
 
   render() {

@@ -28,13 +28,15 @@ export abstract class ScNode extends ScElement {
   }
 
   /** This node's control params as /s_new name-value pairs — the enabled
-   *  sc-control children's live values (seeded into the store by the time a
-   *  synth collects them; bound controls carry their resolved value). */
+   *  sc-control children's live `_state` (settled by the time a synth
+   *  collects them: children load first — literal from the store sync,
+   *  bound from the initial recompute), falling back to the declarative
+   *  attribute mirror. */
   protected getControls(): Record<string, number> {
     const controls: Record<string, number> = {};
     for (const child of this._scChildren ?? []) {
       if (isControlRuntime(child) && child.enabled) {
-        controls[child.name] = child.value ?? 0;
+        controls[child.name] = child._state ?? child.value ?? 0;
       }
     }
     return controls;

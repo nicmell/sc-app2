@@ -46,21 +46,16 @@ export interface NodeRuntime extends BaseRuntime {
   nodeId: number;
 }
 
-/** A reader of the state graph: resolved bind targets + the optional parsed
- *  expression over them (internal/derived.ts recomputes on target changes).
- *  The read-only visuals (sc-display / sc-if) return exactly this. */
+/** A participant on the state graph (the ScDerived base — bound state AND
+ *  the read-only visuals): resolved bind targets + the optional parsed
+ *  expression over them. The LIVE value is the element's `_state` (fed by
+ *  the recompute-on-statechange machinery, or the store for literal state);
+ *  the `value` prop stays the plain declarative attribute mirror. */
 export interface DerivedRuntime extends BaseRuntime {
   /** Bind path → the live target state element. */
   targets?: Record<string, ScState>;
   /** Parsed bind expression, when the bind isn't a plain path. */
   expression?: Expr;
-}
-
-export interface StateRuntime extends DerivedRuntime {
-  /** The live value: the resolved literal, or 0 while bound. Only assigned
-   *  on ENABLED state — disabled graph inputs keep the prop as the plain
-   *  attribute mirror. */
-  value?: number;
 }
 
 export interface SynthDefRuntime extends BaseRuntime {

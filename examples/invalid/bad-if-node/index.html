@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bad If Node (intentional error)</title>
+</head>
+<body>
+<!-- INTENTIONAL: a node-owning element nested inside sc-if (through a div —
+     the XSD gates only sc-if's direct children; the runtime walk is the real
+     gate). sc-if hides visually, so a "hidden" synth would still play, and a
+     same-named node would collide its controls' store keys with an outer
+     sibling's — sc-if.validate() must fail with "must not contain node
+     elements" -->
+<sc-var name="x" value="1"/>
+<sc-if bind="x">
+    <div>
+        <sc-synth name="s" bind="sine">
+            <sc-control name="freq" value="440"/>
+        </sc-synth>
+    </div>
+</sc-if>
+</body>
+</html>

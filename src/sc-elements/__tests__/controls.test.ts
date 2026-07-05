@@ -477,10 +477,10 @@ describe("bound enabled control on a synth", () => {
 describe("sc-if", () => {
   const IF_XML = wrapXml(`
     <sc-var name="gate" value="1"/>
-    <sc-if bind="gate" is-truthy=""><p>on</p></sc-if>
-    <sc-if bind="gate" is-falsy=""><p>off</p></sc-if>
-    <sc-if bind="gate" is-equal="2"><p>two</p></sc-if>
-    <sc-if bind="gate" is-truthy="YES" is-falsy="NO"></sc-if>
+    <sc-var name="freq" value="440"/>
+    <sc-if bind="gate"><p>on</p></sc-if>
+    <sc-if bind="gate == 0"><p>off</p></sc-if>
+    <sc-if bind="freq > 440"><p>high</p></sc-if>
     <sc-checkbox bind="gate"/>
   `);
 
@@ -493,11 +493,12 @@ describe("sc-if", () => {
     return { host, ifs };
   };
   const hiddenStates = (ifs: Element[]) => ifs.map((el) => el.hasAttribute("hidden"));
+  const varByName = (host: ScPlugin, name: string) =>
+    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).name === name) as ScVar;
 
-  it("resolves visibility and swap text from the bound value", async () => {
+  it("shows children on the truthiness of the expression bind", async () => {
     const { ifs } = await mountIf();
-    expect(hiddenStates(ifs)).toEqual([false, true, true, false]);
-    expect(ifs[3].textContent).toBe("YES");
+    expect(hiddenStates(ifs)).toEqual([false, true, true]); // gate=1, gate==0 → 0, freq>440 → 0
   });
 
   it("flipping the gate through a checkbox swaps the sections live", async () => {
@@ -507,16 +508,15 @@ describe("sc-if", () => {
     input.checked = false;
     input.dispatchEvent(new Event("change"));
     await Promise.all(ifs.map((el) => el.updateComplete));
-    expect(hiddenStates(ifs)).toEqual([true, false, true, false]);
-    expect(ifs[3].textContent).toBe("NO");
+    expect(hiddenStates(ifs)).toEqual([true, false, true]);
   });
 
-  it("comparators follow the live value", async () => {
+  it("comparison expressions follow the live value", async () => {
     const { host, ifs } = await mountIf();
-    (host.querySelector("sc-var") as ScVar).setValue(2);
+    varByName(host, "freq").setValue(880);
     await ifs[2].updateComplete;
-    expect(ifs[2].hasAttribute("hidden")).toBe(false); // is-equal="2"
-    expect(ifs[0].hasAttribute("hidden")).toBe(false); // still truthy
+    expect(ifs[2].hasAttribute("hidden")).toBe(false); // freq > 440
+    expect(ifs[0].hasAttribute("hidden")).toBe(false); // gate untouched
   });
 
   it("unload drops the subscription — later store writes don't re-toggle", async () => {
@@ -524,7 +524,7 @@ describe("sc-if", () => {
     host.unload();
     setRuntimeValue(host.id, "gate", 0);
     await Promise.all(ifs.map((el) => el.updateComplete));
-    expect(hiddenStates(ifs)).toEqual([false, true, true, false]); // frozen pre-unload state
+    expect(hiddenStates(ifs)).toEqual([false, true, true]); // frozen pre-unload state
   });
 });
 

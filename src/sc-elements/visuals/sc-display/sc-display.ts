@@ -1,14 +1,12 @@
-// <sc-display> — a read-only formatted view of a bound control/var
-// (`bind`/`_targetScNode` on the ScInput base). The load pass subscribes it
-// to the target state's store key (controls and vars share the ScState value
-// seam), so it follows live propagation.
+// <sc-display> — a read-only formatted view of an expression bind (the
+// ScVisual base): a plain control/var path (`bind="s1.freq"`) or any
+// evaluable expression (`bind="vars.amp * 100"`), rendered through the
+// printf-style `format`.
 
 import { html } from "lit";
-import { property, state } from "lit/decorators.js";
-import { isStateRuntime } from "@/lib/utils/guards";
-import type {} from "@/types/runtime";
+import { property } from "lit/decorators.js";
 import { requireProp } from "@/sc-elements/internal/validation";
-import { ScInput } from "@/sc-elements/internal/sc-input";
+import { ScVisual } from "@/sc-elements/internal/sc-visual";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
@@ -28,41 +26,11 @@ export function formatValue(
   return String(value ?? "");
 }
 
-export class ScDisplay extends ScInput {
+export class ScDisplay extends ScVisual {
   @property() accessor format = "";
-
-  @state() accessor _value: number | undefined = undefined;
-
-  private offValue?: () => void;
 
   validate(): void {
     requireProp(this, "bind", this.bind);
-  }
-
-  async load(): Promise<void> {
-    this.offValue?.(); // re-entrant: drop the stale subscription on reload
-    this.offValue = undefined;
-    const target = this._targetScNode;
-    if (target && isStateRuntime(target) && target.enabled) {
-      const view = target.selectValue();
-      this._value = view.get();
-      this.offValue = view.subscribe((v) => {
-        if (v !== undefined) this._value = v;
-      });
-    }
-    await super.load();
-  }
-
-  unload(): void {
-    super.unload();
-    this.offValue?.();
-    this.offValue = undefined;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.offValue?.();
-    this.offValue = undefined;
   }
 
   render() {

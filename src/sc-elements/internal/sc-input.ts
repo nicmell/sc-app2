@@ -1,10 +1,12 @@
-// Base for the bind-targeting presentation elements (sc-range / sc-checkbox /
-// sc-display / sc-if / sc-select / sc-radio-group / sc-run): the `bind`
-// attribute plus the resolved `_targetScNode` runtime reference. The default
-// runtime resolves the visual bind to a state element; subclasses override it
-// where they parse children first (if/select/radio-group) or target a node
-// instead (sc-run). Each subclass keeps its own validate() — bind is not
-// required everywhere (sc-range, sc-run).
+// Base for the WRITING bind-targeting inputs (sc-range / sc-checkbox /
+// sc-select / sc-radio-group / sc-run): the `bind` attribute plus the
+// resolved `_targetScNode` runtime reference — a single writable target (an
+// expression is not writable; the read-only visuals live on
+// internal/sc-visual instead). The default runtime resolves the visual bind
+// to a state element; subclasses override it where they parse children first
+// (select/radio-group) or target a node instead (sc-run). Each subclass
+// keeps its own validate() — bind is not required everywhere (sc-range,
+// sc-run).
 
 import { property } from "lit/decorators.js";
 import type { InputRuntime, RuntimeContext } from "@/types/runtime";

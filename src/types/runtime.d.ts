@@ -16,7 +16,13 @@ export type Expr =
   | { type: "number"; value: number }
   | { type: "var"; name: string }
   | { type: "unary"; op: "-"; expr: Expr }
-  | { type: "binary"; op: "+" | "-" | "*" | "/"; left: Expr; right: Expr };
+  | {
+      type: "binary";
+      /** Arithmetic, plus the non-associative comparisons (evaluating to 1/0). */
+      op: "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
+      left: Expr;
+      right: Expr;
+    };
 
 // ── Runtime value mixins ──────────────────────────────────────────────────
 //
@@ -40,15 +46,21 @@ export interface NodeRuntime extends BaseRuntime {
   nodeId: number;
 }
 
-export interface StateRuntime extends BaseRuntime {
+/** A reader of the state graph: resolved bind targets + the optional parsed
+ *  expression over them (internal/derived.ts recomputes on target changes).
+ *  The read-only visuals (sc-display / sc-if) return exactly this. */
+export interface DerivedRuntime extends BaseRuntime {
+  /** Bind path → the live target state element. */
+  targets?: Record<string, ScState>;
+  /** Parsed bind expression, when the bind isn't a plain path. */
+  expression?: Expr;
+}
+
+export interface StateRuntime extends DerivedRuntime {
   /** The live value: the resolved literal, or 0 while bound. Only assigned
    *  on ENABLED state — disabled graph inputs keep the prop as the plain
    *  attribute mirror. */
   value?: number;
-  /** Bind path → the live target state element. */
-  targets?: Record<string, ScState>;
-  /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
-  expression?: Expr;
 }
 
 export interface SynthDefRuntime extends BaseRuntime {
@@ -68,17 +80,15 @@ export interface InputRuntime extends BaseRuntime {
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard; the registry adopts the tree from the root
- *  on success), `scope` the cumulative bind-resolution scope. `stateKeys` is
- *  the per-PARSE map of claimed state store keys (initialized once by the
- *  root `process()` and shared across every level spread): sc-if is
- *  path-transparent, so two same-named state elements can share a store key
- *  across scope levels — the map turns that silent collision into a parse
- *  error. */
+ *  on success), `scope` the cumulative bind-resolution scope. Store-key
+ *  uniqueness needs no global map: enabled state must be declared on a node
+ *  (vars validate it; controls encode it in their enablement), and sc-if
+ *  rejects node descendants — so path-transparent containers can never
+ *  smuggle in a colliding key. */
 export interface RuntimeContext {
   rootNode: ScElement;
   nodes: Set<ScElement>;
   scope: ScElement[];
   parentNode?: ScParentElement;
   path: string[];
-  stateKeys?: Map<string, ScElement>;
 }

@@ -79,9 +79,6 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     if (ctx.nodes.has(this)) {
       return this;
     }
-    // The per-parse claimed-state-key map: created on the ROOT context before
-    // any level spreads it, so every level shares the one map.
-    ctx.stateKeys ??= new Map();
     ctx.nodes.add(this);
     if (!this.id) this.id = randomId();
     if (ctx.parentNode) {

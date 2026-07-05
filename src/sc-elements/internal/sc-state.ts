@@ -9,17 +9,13 @@
 // /n_set — see `dispatchValue`; a var is store-only).
 //
 // Bound state (`bind="a.b * 2"`) is DERIVED: the load pass computes it from
-// its targets' store keys and re-computes on every target change (push
-// propagation over the reactive store). The bind-order constraint makes the
-// target graph a DAG resolved in DOM order, so the initial load settles in
-// one pass and propagation terminates. Diamond dependencies (A feeds B and C,
-// D = B + C) can transiently dispatch once per intermediate before
-// converging — accepted; each dispatch is Object.is-guarded, so a converged
-// recompute is free. Derived values are read-only: `setValue` on bound state
-// is a no-op (the old app's writes to bound state were equally inert).
+// its targets' store keys and re-computes on every target change — the
+// shared machinery in internal/derived.ts (also powering the read-only
+// visuals). Each dispatch is Object.is-guarded, so a converged recompute is
+// free. Derived values are read-only: `setValue` on bound state is a no-op
+// (the old app's writes to bound state were equally inert).
 
 import { property } from "lit/decorators.js";
-import { evalExpr } from "@/lib/utils/expression";
 import {
   getRuntimeValue,
   seedRuntimeValue,
@@ -28,6 +24,7 @@ import {
 } from "@/stores/runtime";
 import type { ReadonlyStore } from "@/lib/utils/reactiveStore";
 import type { Expr, RuntimeContext, StateRuntime } from "@/types/runtime";
+import { observeDerived } from "@/sc-elements/internal/derived";
 import {
   baseRuntime,
   failValidation,
@@ -67,7 +64,6 @@ export abstract class ScState extends ScElement {
     if (!enabled) {
       return { ...baseRuntime(ctx), enabled };
     }
-    this.claimStateKey(ctx);
     if (this.bind) {
       const { targets, expression } = resolveStateBind(this, ctx, this.bind);
       return { ...baseRuntime(ctx), enabled, value: 0, targets, expression };
@@ -79,21 +75,6 @@ export abstract class ScState extends ScElement {
    *  plus its own name (the plugin root contributes no segment). */
   get key(): string {
     return [...this.path, this.name].join(".");
-  }
-
-  /** Claim this element's store key for the parse. sc-if contributes no path
-   *  segment, so a same-named state element inside it would silently share
-   *  the key of one outside — the per-parse map makes it a parse error (the
-   *  same-scope case is caught earlier by checkDuplicateNames). */
-  private claimStateKey(ctx: RuntimeContext): void {
-    const key = [...ctx.path, this.name].join(".");
-    const claimed = ctx.stateKeys?.get(key);
-    if (claimed && claimed !== this) {
-      throw new Error(
-        `<${this.tagName.toLowerCase()} name="${this.name}">: duplicate name in scope`,
-      );
-    }
-    ctx.stateKeys?.set(key, this);
   }
 
   /** Read-only view onto this element's store value — the read seam the
@@ -119,42 +100,21 @@ export abstract class ScState extends ScElement {
     this.dispatchValue(next);
   }
 
-  /** The derived value: the targets' current store values through the bind
-   *  expression (a plain single-path bind is the identity). `undefined` when
-   *  any target key is gone — the plugin map is being dropped; recomputing
-   *  would resurrect it. */
-  private computeBound(targets: Record<string, ScState>): number | undefined {
-    const values: Record<string, number> = {};
-    for (const [path, target] of Object.entries(targets)) {
-      const v = target.selectValue().get();
-      if (v === undefined) return undefined;
-      values[path] = v;
-    }
-    if (this.expression) return evalExpr(this.expression, values);
-    const [first] = Object.values(values);
-    return first;
-  }
-
   /** Wire the store key: literal state seeds its declarative default (a
    *  reload keeps user-moved values), bound state writes its computed value
-   *  and re-computes on every target change. Both mirror the key into the
-   *  live `value` prop — in that order, so a parent synth's getControls()
-   *  reads the settled value. No OSC here on the initial write: the owning
-   *  node isn't loaded yet (defaults ride its /s_new). Re-entrant (reconnect
-   *  reload): stale subscriptions are dropped first. */
+   *  and re-computes on every target change (internal/derived.ts). Both
+   *  mirror the key into the live `value` prop — in that order, so a parent
+   *  synth's getControls() reads the settled value. No OSC here on the
+   *  initial write: the owning node isn't loaded yet (defaults ride its
+   *  /s_new). Re-entrant (reconnect reload): stale subscriptions are dropped
+   *  first. */
   async load(): Promise<void> {
     this.dropSubscriptions();
     if (this.enabled && this.isConnected) {
-      const targets = this.targets;
-      if (targets) {
-        const recompute = () => {
-          const v = this.computeBound(targets);
-          if (v !== undefined) this.dispatchValue(v);
-        };
-        recompute();
-        for (const target of Object.values(targets)) {
-          this.offs.push(target.selectValue().subscribe(recompute));
-        }
+      if (this.targets) {
+        this.offs.push(
+          observeDerived(this.targets, this.expression, (v) => void this.dispatchValue(v)),
+        );
       } else {
         seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
       }

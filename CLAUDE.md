@@ -378,7 +378,7 @@ further `sc-*` element:
 | sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a BOUND control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); bound controls re-/n_set on recompute. `run="false"` not honored yet (sc-run step) |
 | sc-range, sc-checkbox, sc-display | functional, deliberately unstyled (bare native inputs — knob/slider/switch return later): read/write the bound control OR var via selectValue()/setValue() (a write to bound/derived state is inert and the input re-syncs) |
 | sc-var | functional: live value in the runtime slice like controls (no OSC); bound vars recompute through the shared ScState propagation (evalExpr over the targets' views) |
-| sc-if | functional: the six `is-*` condition attributes over the bound state's live value; visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); non-empty is-truthy/is-falsy text renders a Lit-managed swap span, CSS-hiding element children (loose text-node children stay visible in that mode) |
+| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScVisual base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
 | sc-run, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
 | sc-console | functional leaf (the OSC console; no attributes) |
@@ -418,32 +418,39 @@ state path ("s1.freq", "vars.a") → number — EVERY enabled state element
 (internal/sc-state.ts). Literal state seeds its declarative default in the
 load pass (a reload keeps user-moved values) and mirrors the key into its
 reactive `value` prop. BOUND state is derived: load computes it from its
-targets' `selectValue()` views (evalExpr over the parsed expression; a plain
-single-path bind is the identity) and re-computes on every target change —
-push propagation over the store; the bind-order constraint makes the target
-graph a DAG resolved in DOM order, so it settles in one pass and terminates
-(diamond deps can transiently double-dispatch before converging — accepted).
-Derived state is read-only: `setValue()` on it is inert, and the inputs
-re-read after writing so they snap back. Writes split as
-`setValue()` (public, enabled+unbound only) over `dispatchValue()`
-(Object.is-guarded store write; ScControl's override adds
-`oscClient.setControl` on the live parent node — so user writes AND bound
-recomputes /n_set alike); a direct slice write is UI-only (views refresh, no
-echo — two inputs on one control converge with one /n_set per gesture).
-Inputs/displays/sc-if subscribe through the state's `selectValue()` and
-unsubscribe in `disconnectedCallback`; native inputs bind with Lit's `live()`
-(the user mutates the DOM directly). Unmount drops the plugin's whole map.
-Because keys are path-based and sc-if adds no path segment, a same-named
-state element under sc-if colliding with one outside is a PARSE error (the
-per-parse `stateKeys` map on RuntimeContext — `bad-if-shadow` pins it); the
-old app's id-keyed store allowed that shadowing, and its name-based
-group→descendant SET_CONTROL propagation is deliberately NOT reproduced —
-explicit `bind="group.ctl"` is the replacement (revisit at the sc-group
-step).
+targets' `selectValue()` views and re-computes on every target change (the
+shared machinery in internal/derived.ts — evalExpr over the parsed
+expression; a plain single-path bind is the identity) — push propagation
+over the store; the bind-order constraint makes the target graph a DAG
+resolved in DOM order, so it settles in one pass and terminates (diamond
+deps can transiently double-dispatch before converging — accepted). Derived
+state is read-only: `setValue()` on it is inert, and the inputs re-read
+after writing so they snap back. Writes split as `setValue()` (public,
+enabled+unbound only) over `dispatchValue()` (Object.is-guarded store write;
+ScControl's override adds `oscClient.setControl` on the live parent node —
+so user writes AND bound recomputes /n_set alike); a direct slice write is
+UI-only (views refresh, no echo — two inputs on one control converge with
+one /n_set per gesture). The WRITING inputs (range/checkbox — internal/
+sc-input's single writable `_targetScNode`) subscribe through the state's
+`selectValue()`; the READ-ONLY visuals (sc-display/sc-if — internal/
+sc-visual) take a full expression bind and render its derived `_value`.
+Native inputs bind with Lit's `live()` (the user mutates the DOM directly);
+everything unsubscribes in `disconnectedCallback`. Unmount drops the
+plugin's whole map. Store-key uniqueness is enforced structurally: enabled
+state must be declared ON A NODE (a var off-node — e.g. inside the
+path-transparent sc-if — is a parse error, `bad-var-scope`), and sc-if
+rejects node descendants (`bad-if-node`; hiding is visual-only — a "hidden"
+synth would still play). The old app's id-keyed store allowed that
+shadowing, and its name-based group→descendant SET_CONTROL propagation is
+deliberately NOT reproduced — explicit `bind="group.ctl"` is the
+replacement (revisit at the sc-group step).
 
-Runtime layer: all old handlers ported (bind resolution incl. arithmetic
-expressions via lib/utils/expression parseBind/evalExpr) except buffers and
-presets/overrides. Examples: every old example
+Runtime layer: all old handlers ported (bind resolution incl. expressions
+via lib/utils/expression parseBind/evalExpr — arithmetic + the
+non-associative comparisons `> < >= <= == !=` evaluating to 1/0; a bare
+name-shaped bind is always a PATH, so hyphenated state names like
+`fm.mod-freq` stay addressable, while `-` inside real expressions means
+subtraction) except buffers and presets/overrides. Examples: every old example
 without a buffer-family element lives in `examples/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.

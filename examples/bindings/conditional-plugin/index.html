@@ -52,8 +52,10 @@
     </label>
 </div>
 
-<!-- sc-if wraps controls — path should pass through the nameless sc-if -->
-<sc-if bind="osc.gate" is-truthy="">
+<!-- sc-if wraps controls — path should pass through the nameless sc-if.
+     The bind is a full expression: truthiness shows the children, and the
+     inverse section compares against the live control (`== 0`). -->
+<sc-if bind="osc.gate">
     <div>
         <h3>Gate is ON</h3>
         <label>
@@ -62,7 +64,7 @@
         </label>
     </div>
 </sc-if>
-<sc-if bind="osc.gate" is-falsy="">
+<sc-if bind="osc.gate == 0">
     <div>
         <h3>Gate is OFF — click to re-enable</h3>
         <label>

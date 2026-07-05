@@ -302,18 +302,19 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-if: conditional rendering keyed on a bound control/var. -->
+  <!-- sc-if: conditional rendering on the truthiness of an expression bind
+       (e.g. bind="osc.gate", bind="vars.freq > 440"). Presentation content
+       only — no state/node elements: sc-if hides visually (a "hidden" synth
+       would still play) and is path-transparent (a nested state element
+       would share an outer sibling's runtime key). Direct children are
+       gated here; nesting through html wrappers is the runtime's parse
+       check. -->
   <xs:complexType name="scIfType" mixed="true">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="blockContent"/>
+      <xs:group ref="htmlElements"/>
+      <xs:group ref="scControls"/>
     </xs:choice>
     <xs:attribute name="bind" type="xs:string"/>
-    <xs:attribute name="is-truthy" type="xs:string"/>
-    <xs:attribute name="is-falsy" type="xs:string"/>
-    <xs:attribute name="is-equal" type="xs:string"/>
-    <xs:attribute name="is-not-equal" type="xs:string"/>
-    <xs:attribute name="is-greater-than" type="xs:string"/>
-    <xs:attribute name="is-lesser-than" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

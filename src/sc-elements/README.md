@@ -24,8 +24,11 @@ internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
             processChildren — and the common runtime fields); validation.ts
             (the require*/failValidation primitives + the bind-resolution
             machinery, as plain functions over the elements); the category
-            bases ScNode (run + nodeId/loaded), ScState (name/value/bind +
-            targets/expression), ScInput (bind + _targetScNode)
+            bases ScNode (run + nodeId/loaded), ScDerived (bind →
+            targets/expression, the live `_state` + "statechange" event —
+            the value seam everything reads), ScState extends it
+            (name/value + the store backing for LITERAL state), ScInput
+            (bind + _targetScNode — the writing inputs)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)
@@ -91,19 +94,27 @@ synthdef param (runtime-validated).
 
 ## `state/`
 
-### `<sc-control>` — stub
+### `<sc-control>`
 
 A named parameter. Props: `name` (required), and exactly one of `value`
-(number) or `bind` (a dot-path to another control/var, or an arithmetic
-expression over paths — `vars.freq * 2`). Enabled when its parent is a node
-(plugin/group/synth); disabled (pure graph input) inside synthdefs/ugens.
-Will: `/n_set` its parent node when the value changes.
+(number) or `bind` (a dot-path to another control/var, or an expression over
+paths — arithmetic plus comparisons: `vars.freq * 2`, `vars.amp > 0.9`
+evaluating to 1/0; a bare name-shaped bind is always a PATH, so hyphenated
+names like `fm.mod-freq` stay addressable). Enabled when its parent is a
+node (plugin/group/synth); disabled (pure graph input) inside
+synthdefs/ugens. `/n_set`s its parent node when the value changes (user
+writes and bound recomputes alike).
 
-### `<sc-var>` — stub
+### `<sc-var>`
 
 A state variable: like `sc-control` but always enabled and never sent over
 OSC. Props: `name` (required), `value` xor `bind` (expressions allowed).
-Will: reactive frontend value, propagated to binds.
+Its live value is `_state` on the shared ScDerived base: a literal var is
+one store-slice key (path-keyed, like controls), a bound var recomputes
+element-to-element from its targets' statechange (no store key) and is
+read-only to inputs. A var must be declared ON A NODE (plugin/group/synth)
+— inside a path-transparent container (sc-if) it would share an outer var's
+store key (`bad-var-scope` pins the parse error).
 
 ## `inputs/`
 
@@ -145,17 +156,30 @@ Will: `/n_run` toggle button.
 
 ## `visuals/`
 
-### `<sc-display>` — stub
+Both visuals extend `internal/sc-derived` (ScDerived) directly: a read-only
+SINK on the state graph — `bind` is a full evaluable expression (plain
+paths, arithmetic, comparisons), resolved like control/var binds and
+recomputed on every source statechange into the live `_state` the subclass
+renders from.
 
-Read-only formatted view of a bound value. Props: `bind` (required),
-`format` (printf-style: `%d`, `%.2f`, `%b`, `%s`).
+### `<sc-display>`
 
-### `<sc-if>` — stub (children always render for now)
+Read-only formatted view of an expression bind (`bind="s1.freq"`,
+`bind="vars.amp * 100"`). Props: `bind` (required), `format` (printf-style:
+`%d`, `%.2f`, `%b`, `%s`).
 
-Conditional rendering keyed on a bound value. Props: `bind` (required); the
-XSD allows the condition attributes (`is-truthy`, `is-falsy`, `is-equal`,
-`is-not-equal`, `is-greater-than`, `is-lesser-than`) — not declared yet.
-Children are parsed transparently (an `sc-if` does not create a scope).
+### `<sc-if>`
+
+Conditional rendering on the TRUTHINESS of an expression bind
+(`bind="osc.gate"`, `bind="vars.freq > 440"`, `bind="osc.gate == 0"`): the
+children show when the derived value is non-zero. Props: `bind` (required).
+Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
+`[hidden] display: none`) — children stay mounted while hidden. Children are
+parsed transparently (an `sc-if` does not create a scope) and must be
+presentation content only: node elements are a parse error (`bad-if-node` —
+hiding is visual-only, a "hidden" synth would still play; and a nested
+same-named node would collide store keys), and vars are covered by their own
+on-a-node placement rule (`bad-var-scope`).
 
 ## `widgets/` — functional, new-app features
 

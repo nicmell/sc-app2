@@ -1,14 +1,14 @@
-// <sc-range> — a range input bound to a control (`bind`/`_targetScNode` on
-// the ScInput base). Deliberately unstyled for now: a native <input
+// <sc-range> — a range input bound to a control/var (`bind`/`_targetScNode`
+// on the ScInput base). Deliberately unstyled for now: a native <input
 // type="range">; the knob/slider internals return with a later step. The
-// load pass wires it to the target control's store key: reads (initial value
-// + external store writes) come through the control's `selectValue()` view,
-// writes go through the control's `setValue()` (the /n_set dispatch point).
+// load pass wires it to the target's live value: reads come through the
+// uniform `_state` + `onStateChange()` seam (literal or derived alike),
+// writes go through the target's `setValue()` (the /n_set dispatch point).
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { isControlRuntime } from "@/lib/utils/guards";
+import { isStateRuntime } from "@/lib/utils/guards";
 import type {} from "@/types/runtime";
 import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
@@ -32,13 +32,10 @@ export class ScRange extends ScInput {
     this.offValue?.(); // re-entrant: drop the stale subscription on reload
     this.offValue = undefined;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target) && target.enabled) {
-      const view = target.selectValue();
-      const v = view.get();
-      if (v !== undefined) this.value = v; // initial render = the store default
-      this.offValue = view.subscribe((v) => {
-        if (v !== undefined) this.value = v;
-      });
+    if (target && isStateRuntime(target) && target.enabled) {
+      const v = target._state;
+      if (v !== undefined) this.value = v; // statechange is change-only — sync once
+      this.offValue = target.onStateChange((next) => (this.value = next));
     }
     await super.load();
   }
@@ -57,9 +54,13 @@ export class ScRange extends ScInput {
 
   private onInput = (e: Event) => {
     const value = Number((e.target as HTMLInputElement).value);
-    this.value = value;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target)) target.setValue(value);
+    if (target && isStateRuntime(target)) target.setValue(value);
+    // Re-read instead of trusting the gesture: a write to BOUND (derived,
+    // read-only) state is inert, and `live()` then snaps the thumb back to
+    // the real value. For a literal target the synchronous statechange echo
+    // has already synced `_state` — a no-op.
+    this.value = target && isStateRuntime(target) ? (target._state ?? value) : value;
   };
 
   render() {

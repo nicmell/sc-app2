@@ -278,9 +278,12 @@ parser-item design; each decision is load-bearing for the recipe below:
    by walking `_scChildren` from the root. Anything *persisted* (presets,
    layout) stays id/path-based; references are in-memory runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
-   runtime `name`/`run`; enabled state resolves into its live `value` prop,
-   while disabled graph inputs keep `value` as the plain attribute mirror
-   (the synthdef collection depends on telling a missing attribute apart).
+   runtime `name`/`run`. The live VALUE is the exception that settled the
+   other way (the ScDerived step): `value` is the plain declarative attribute
+   mirror everywhere (the synthdef collection depends on telling a missing
+   attribute apart), and the live value is the element's `_state` — fed by
+   the store for literal state, by the bind recompute for derived — with the
+   "statechange" event as the uniform notification seam.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
    one shared object per sibling scope; it attaches the element to its
@@ -344,11 +347,11 @@ further `sc-*` element:
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
    plus path/enabled and `_scChildren` for parents, named so because DOM
    `children` is taken) is on `ScElement`. The mixin contracts
-   (`BaseRuntime`/`NodeRuntime`/`StateRuntime`/…) live in
+   (`BaseRuntime`/`NodeRuntime`/`DerivedRuntime`/…) live in
    `src/types/runtime.d.ts` as `resolveRuntime` return types. Values that duplicate a reactive prop are unified
-   with it, never copied (no runtime `name`/`run`; enabled state resolves
-   into its `value` prop — disabled graph inputs keep the prop as the plain
-   attribute mirror). There is **no `type` field**: the discriminant is the
+   with it, never copied (no runtime `name`/`run`; `value` stays the plain
+   attribute mirror — the LIVE value is `_state` on the ScDerived base, see
+   "Runtime values"). There is **no `type` field**: the discriminant is the
    tag (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
    component classes via type-only imports.
 5. **Runtime resolution**: override `resolveRuntime(ctx)` on the component —
@@ -375,11 +378,12 @@ further `sc-*` element:
 |---|---|
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
-| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in, gated on /n_go); setValue → runtime store + setControl (/n_set). `run="false"` not honored yet (sc-run step) |
-| sc-range, sc-checkbox, sc-display | functional, deliberately unstyled (bare native inputs — knob/slider/switch return later): read/write the bound control via selectValue()/setValue() |
-| sc-var | **stub**: parsed + validated + bind-resolved; no live propagation (expressions evaluate at a later step) |
+| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a BOUND control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); bound controls re-/n_set on recompute. `run="false"` not honored yet (sc-run step) |
+| sc-range, sc-checkbox, sc-display | functional, deliberately unstyled (bare native inputs — knob/slider/switch return later): read/write the bound control OR var via selectValue()/setValue() (a write to bound/derived state is inert and the input re-syncs) |
+| sc-var | functional: live `_state` on the shared ScDerived base (no OSC) — literal vars store-backed like controls, bound vars recompute element-to-element on their targets' statechange |
+| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScVisual base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
-| sc-run, sc-if, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
+| sc-run, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
 | sc-console | functional leaf (the OSC console; no attributes) |
 | sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
@@ -411,19 +415,49 @@ any suspended load pass, so a mid-load disconnect can't leak a stale /s_new
 into the new connection. Parse failures stay permanent (`parsed` flips only
 when `process()` succeeds — reload never retries them).
 
-**Runtime values**: one `runtime` store slice keyed plugin-root-id → full
-control path ("s1.freq") → number. Enabled sc-controls seed their declarative
-default in the load pass and mirror the key into their reactive `value` prop;
-`ScControl.setValue()` is the single OSC-dispatching write path (store +
-`oscClient.setControl` on `_parentScNode.nodeId`); a direct slice write is UI-only (views
-refresh, no echo — two inputs on one control converge with one /n_set per
-gesture). Inputs/displays subscribe through the control's `selectValue()` and
-unsubscribe in `disconnectedCallback`; native inputs bind with Lit's `live()`
-(the user mutates the DOM directly). Unmount drops the plugin's whole map.
+**Runtime values**: every live value lives on the element as `_state`, on
+the ScDerived base (internal/sc-derived.ts — bind → targets/expression,
+`updateState()` as the Object.is-guarded single writer, and a non-bubbling
+"statechange" CustomEvent with `onStateChange()` as the ONE subscription
+seam every reader uses — inputs, visuals, downstream bound state). The
+`runtime` store slice (plugin-root-id → full state path "s1.freq"/"vars.a"
+→ number) holds ONLY the literal, user-writable keys: ScState seeds the
+declarative default in the load pass (a reload keeps user-moved values) and
+mirrors the store key into `_state`, so external slice writes (a second
+input, future presets — literal keys only) notify dependents through the
+same statechange, with no OSC. BOUND state is derived, element-to-element:
+`_state` recomputes from the targets' `_state` on their statechange (evalExpr
+over the parsed expression; a plain single-path bind is the identity) — NO
+store key at all; the bind-order constraint makes the target graph a DAG
+resolved in DOM order, so it settles in one pass and terminates (diamond
+deps can transiently double-dispatch before converging — accepted). Derived
+state is read-only: `setValue()` on it is inert, and the inputs re-read
+after writing so they snap back. Writes split as `setValue()` (public,
+enabled+unbound only) over `dispatchValue()` (Object.is-vs-store guard +
+store write; ScControl's override adds the /n_set — the user-gesture WRITE
+path), while a bound control's recompute /n_set lives in the `stateChanged`
+hook (guarded on `targets` + the live-node gate, so external store writes
+stay UI-only and two inputs on one control converge with one /n_set per
+gesture). The WRITING inputs (range/checkbox — internal/sc-input's single
+writable `_targetScNode`) and the READ-ONLY expression visuals
+(sc-display/sc-if — ScDerived directly) all read `_state` +
+`onStateChange`. Native inputs bind with Lit's `live()` (the user mutates
+the DOM directly); everything unsubscribes in `disconnectedCallback`.
+Unmount drops the plugin's store map. Store-key uniqueness is enforced
+structurally: enabled state must be declared ON A NODE (a var off-node —
+e.g. inside the path-transparent sc-if — is a parse error,
+`bad-var-scope`), and sc-if rejects node descendants (`bad-if-node`; hiding
+is visual-only — a "hidden" synth would still play). The old app's id-keyed
+store allowed that shadowing, and its name-based group→descendant
+SET_CONTROL propagation is deliberately NOT reproduced — explicit
+`bind="group.ctl"` is the replacement (revisit at the sc-group step).
 
-Runtime layer: all old handlers ported (bind resolution incl. arithmetic
-expressions via lib/utils/expression parseBind/evalExpr) except buffers and
-presets/overrides. Examples: every old example
+Runtime layer: all old handlers ported (bind resolution incl. expressions
+via lib/utils/expression parseBind/evalExpr — arithmetic + the
+non-associative comparisons `> < >= <= == !=` evaluating to 1/0; a bare
+name-shaped bind is always a PATH, so hyphenated state names like
+`fm.mod-freq` stay addressable, while `-` inside real expressions means
+subtraction) except buffers and presets/overrides. Examples: every old example
 without a buffer-family element lives in `examples/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
@@ -517,15 +551,16 @@ steps, each independently shippable:
    vocabulary), the sequential `load()`/`unload()` pass, sc-synthdef
    (sendSynthDef: compile + /d_recv + /sync ack; freeSynthDef), sc-synth
    (createSynth gated on /n_go into
-   `targetGroupId`). Remaining: sc-group's own /g_new, sc-var live
-   propagation, `run="false"` at /s_new.
+   `targetGroupId`), sc-var live propagation + the uniform ScState value
+   seam (see "Runtime values"). Remaining: sc-group's own /g_new,
+   `run="false"` at /s_new.
 6. **Input elements** — value dispatch is DONE for range/checkbox/display
    over the `runtime` store slice (see "Runtime values" above — this
    superseded the earlier no-store-slice design note: per-plugin store maps
-   keyed by control path, `ScControl.setValue()` as the single OSC write
-   path). Remaining: the knob/slider/switch/combobox internals, sc-if
-   condition logic, sc-select/sc-radio-group dispatch, sc-var expression
-   re-evaluation (`evalExpr`, ported and waiting). Testing seam (in place,
+   keyed by state path, `ScState.setValue()`/`dispatchValue()` as the write
+   paths), incl. dispatch to vars and sc-if condition logic. Remaining: the
+   knob/slider/switch/combobox internals, sc-select/sc-radio-group dispatch.
+   Testing seam (in place,
    src/sc-elements/__tests__/controls.test.ts): spy `oscClient.send` with an auto-responder
    through `handleReply`; interaction tests fire `input`/`change` events in
    happy-dom. Also note: a bindless `sc-run` should require its parent to

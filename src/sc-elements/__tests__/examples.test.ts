@@ -54,6 +54,8 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-run-bind": '<sc-run>: bind "ghost" does not match any node in scope',
   "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
   "bad-ugen-ref": '<sc-ugen name="osc">: input "freq" references unknown "lfo"',
+  "bad-if-node": "<sc-if>: must not contain node elements (found <sc-synth>)",
+  "bad-var-scope": '<sc-var name="y">: must be declared on a node',
 };
 
 interface ExampleCase {

@@ -1,14 +1,13 @@
-// <sc-display> — a read-only formatted view of a bound control/var
-// (`bind`/`_targetScNode` on the ScInput base). The load pass subscribes it
-// to the target control's store key; a non-control target (an sc-var) gets a
-// one-shot read until var propagation lands with its migration step.
+// <sc-display> — a read-only formatted view of an expression bind (the
+// ScDerived base): a plain control/var path (`bind="s1.freq"`) or any
+// evaluable expression (`bind="vars.amp * 100"`), rendered through the
+// printf-style `format` from the live `_state`.
 
 import { html } from "lit";
-import { property, state } from "lit/decorators.js";
-import { isControlRuntime, isStateRuntime } from "@/lib/utils/guards";
-import type {} from "@/types/runtime";
+import { property } from "lit/decorators.js";
+import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
-import { ScInput } from "@/sc-elements/internal/sc-input";
+import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
@@ -28,46 +27,18 @@ export function formatValue(
   return String(value ?? "");
 }
 
-export class ScDisplay extends ScInput {
+export class ScDisplay extends ScDerived {
   @property() accessor format = "";
 
-  @state() accessor _value: number | undefined = undefined;
-
-  private offValue?: () => void;
-
   validate(): void {
-    requireProp(this, "bind", this.bind);
+    requireProp(this, "bind", this.bind ?? "");
   }
 
-  async load(): Promise<void> {
-    this.offValue?.(); // re-entrant: drop the stale subscription on reload
-    this.offValue = undefined;
-    const target = this._targetScNode;
-    if (target && isControlRuntime(target) && target.enabled) {
-      const view = target.selectValue();
-      this._value = view.get();
-      this.offValue = view.subscribe((v) => {
-        if (v !== undefined) this._value = v;
-      });
-    } else if (target && isStateRuntime(target)) {
-      this._value = target.value; // static until sc-var propagation lands
-    }
-    await super.load();
-  }
-
-  unload(): void {
-    super.unload();
-    this.offValue?.();
-    this.offValue = undefined;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.offValue?.();
-    this.offValue = undefined;
+  protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
+    return this.derivedRuntime(ctx);
   }
 
   render() {
-    return html`${this.format ? formatValue(this.format, this._value) : String(this._value ?? "")}`;
+    return html`${this.format ? formatValue(this.format, this._state) : String(this._state ?? "")}`;
   }
 }

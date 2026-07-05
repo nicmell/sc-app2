@@ -1,0 +1,13 @@
+/* <sc-if> — conditional rendering. Light DOM (createRenderRoot returns
+   `this`), imported as a side effect from sc-if.ts.
+
+   The element is layout-transparent (display: contents), so the [hidden]
+   author rule is REQUIRED: an author-origin `display` beats the UA's
+   [hidden] styling regardless of specificity. */
+sc-if {
+  display: contents;
+}
+
+sc-if[hidden] {
+  display: none;
+}

@@ -40,8 +40,17 @@ export class ScSynth extends ScNode {
     // The pass was invalidated while the children loaded — don't create a
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
-    this.nodeId = await oscClient.createSynth(this.bind, this.targetGroupId, this.getControls());
+    const snapshot = this.getControls();
+    this.nodeId = await oscClient.createSynth(this.bind, this.targetGroupId, snapshot);
     this.loaded = true;
+    // Writes landing between the /s_new send and its /n_go ack were baked
+    // stale AND skipped the /n_set (dispatch gates on `loaded`) — catch the
+    // node up on any control that drifted from the snapshot meanwhile.
+    for (const [name, value] of Object.entries(this.getControls())) {
+      if (!Object.is(snapshot[name], value)) {
+        oscClient.setControl(this.nodeId, name, value);
+      }
+    }
   }
 
   /** The node itself dies with the plugin group's gFreeAll — no per-synth

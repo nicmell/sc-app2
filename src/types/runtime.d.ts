@@ -16,7 +16,13 @@ export type Expr =
   | { type: "number"; value: number }
   | { type: "var"; name: string }
   | { type: "unary"; op: "-"; expr: Expr }
-  | { type: "binary"; op: "+" | "-" | "*" | "/"; left: Expr; right: Expr };
+  | {
+      type: "binary";
+      /** Arithmetic, plus the non-associative comparisons (evaluating to 1/0). */
+      op: "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
+      left: Expr;
+      right: Expr;
+    };
 
 // ── Runtime value mixins ──────────────────────────────────────────────────
 //
@@ -40,14 +46,15 @@ export interface NodeRuntime extends BaseRuntime {
   nodeId: number;
 }
 
-export interface StateRuntime extends BaseRuntime {
-  /** The live value: the resolved literal, or 0 while bound. Only assigned
-   *  on ENABLED state — disabled graph inputs keep the prop as the plain
-   *  attribute mirror. */
-  value?: number;
+/** A participant on the state graph (the ScDerived base — bound state AND
+ *  the read-only visuals): resolved bind targets + the optional parsed
+ *  expression over them. The LIVE value is the element's `_state` (fed by
+ *  the recompute-on-statechange machinery, or the store for literal state);
+ *  the `value` prop stays the plain declarative attribute mirror. */
+export interface DerivedRuntime extends BaseRuntime {
   /** Bind path → the live target state element. */
   targets?: Record<string, ScState>;
-  /** Parsed arithmetic bind expression, when the bind isn't a plain path. */
+  /** Parsed bind expression, when the bind isn't a plain path. */
   expression?: Expr;
 }
 
@@ -68,7 +75,11 @@ export interface InputRuntime extends BaseRuntime {
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard; the registry adopts the tree from the root
- *  on success), `scope` the cumulative bind-resolution scope. */
+ *  on success), `scope` the cumulative bind-resolution scope. Store-key
+ *  uniqueness needs no global map: enabled state must be declared on a node
+ *  (vars validate it; controls encode it in their enablement), and sc-if
+ *  rejects node descendants — so path-transparent containers can never
+ *  smuggle in a colliding key. */
 export interface RuntimeContext {
   rootNode: ScElement;
   nodes: Set<ScElement>;

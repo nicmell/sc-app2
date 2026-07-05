@@ -1,92 +1,49 @@
-// <sc-control> — a named parameter: a literal `value` or a `bind` reference
-// (mutually exclusive; declared on the ScState base together with the shared
-// validation and runtime). Enabled when the parent is a node (plugin/group/
-// synth); a pure graph input inside synthdefs/ugens.
+// <sc-control> — a named parameter: a literal `value` or a `bind` expression
+// (mutually exclusive; declared on the ScState/ScDerived bases together with
+// the shared validation, the store seam, and the statechange propagation).
+// Enabled when the parent is a node (plugin/group/synth); a pure graph input
+// inside synthdefs/ugens.
 //
-// An enabled control is one key of the app store's `runtime` slice — its
-// full named path under the plugin root (e.g. "s1.freq"). The load pass
-// seeds the declarative `value` attribute as the key's default and mirrors
-// the key back into the reactive `value` prop. `setValue` is the ONLY
-// OSC-dispatching write path: store update + /n_set on the owning node.
-// Writes landing in the store from elsewhere only refresh the subscribed
-// views — no echo, so two inputs bound to one control converge through the
-// shared key with exactly one /n_set per gesture.
+// The only control-specific behavior is the OSC side of a value change,
+// /n_set on the owning node when it is live, fired from exactly two places:
+//   - the WRITE path (`dispatchValue`, user gestures via setValue) — the
+//     store echo runs first, so a statechange from an EXTERNAL store write
+//     stays UI-only (no echo: two inputs bound to one control converge
+//     through the shared key with exactly one /n_set per gesture);
+//   - the `stateChanged` hook for BOUND controls only — a recompute is not a
+//     store write, so the hook is where its /n_set lives (literal controls
+//     no-op here, or external writes would echo OSC).
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import {
-  getRuntimeValue,
-  seedRuntimeValue,
-  selectRuntimeValue,
-  setRuntimeValue,
-} from "@/stores/runtime";
-import type { ReadonlyStore } from "@/lib/utils/reactiveStore";
-import type { RuntimeContext, StateRuntime } from "@/types/runtime";
+import type { RuntimeContext, DerivedRuntime } from "@/types/runtime";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
-  /** Unsubscribe from the store key (set in load, cleared on disconnect). */
-  private offValue?: () => void;
-
-  protected resolveRuntime(ctx: RuntimeContext): StateRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
     return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
   }
 
-  /** The control's key in the plugin's store map: the named ancestor path
-   *  plus its own name (the plugin root contributes no segment). */
-  get key(): string {
-    return [...this.path, this.name].join(".");
-  }
-
-  /** Read-only view onto this control's store value — the read seam the
-   *  bound inputs/displays subscribe through. */
-  selectValue(): ReadonlyStore<number | undefined> {
-    return selectRuntimeValue(this._rootScNode.id, this.key);
-  }
-
-  /** The single write path: store update + /n_set on the owning node (when
-   *  it is live). The store echo refreshes this element's own `value` prop
-   *  via the load-pass subscription. */
-  setValue(next: number): void {
-    if (!this.enabled) return;
-    if (Object.is(getRuntimeValue(this._rootScNode.id, this.key), next)) return;
-    setRuntimeValue(this._rootScNode.id, this.key, next);
+  /** /n_set the owning node — only when it is live (the load-pass initial
+   *  lands before the parent's /s_new and rides it via getControls instead;
+   *  the ack-window catch-up in ScSynth.load covers the send→/n_go gap). */
+  private sendControl(next: number): void {
     const parent = this._parentScNode;
     if (parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0) {
       oscClient.setControl(parent.nodeId, this.name, next);
     }
   }
 
-  /** Seed the declarative default and mirror the store key into the live
-   *  `value` prop. No OSC here — the defaults ride the parent's /s_new.
-   *  Re-entrant (reconnect reload): seeding skips existing keys, so the
-   *  user-moved value survives, and the stale subscription is dropped first. */
-  async load(): Promise<void> {
-    this.offValue?.();
-    this.offValue = undefined;
-    if (this.enabled && this.isConnected) {
-      seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
-      const view = this.selectValue();
-      this.value = view.get(); // subscribe() is change-only — sync once
-      this.offValue = view.subscribe((v) => {
-        if (v !== undefined) this.value = v;
-      });
-    }
-    await super.load();
+  /** The user-gesture write path: store write + /n_set. */
+  protected dispatchValue(next: number): boolean {
+    if (!super.dispatchValue(next)) return false;
+    this.sendControl(next);
+    return true;
   }
 
-  /** The inverse of load(): drop the store subscription (re-established by
-   *  the reconnect reload). The store key itself survives — it's only
-   *  dropped with the plugin's unmount. */
-  unload(): void {
-    super.unload();
-    this.offValue?.();
-    this.offValue = undefined;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.offValue?.();
-    this.offValue = undefined;
+  /** A BOUND control's recompute must /n_set too — there is no store write
+   *  to carry it. Literal controls no-op (their /n_set is dispatchValue's). */
+  protected stateChanged(_prev: number | undefined, next: number): void {
+    if (this.targets) this.sendControl(next);
   }
 }

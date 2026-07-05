@@ -1,0 +1,98 @@
+// ScDialogBase — the shared machinery for the top-layer blocking overlays
+// (sc-base-modal, sc-base-drawer), both built on a native <dialog> opened with
+// showModal(): the **top layer** (escapes clipping/transform/z-index), a
+// ::backdrop, a focus trap, and Esc — all free, no anchored positioning (these aren't
+// anchored to a trigger). Subclasses only supply the dialog's class + their CSS;
+// the open/close/dismiss lifecycle lives here.
+//
+// Shadow DOM + the adopted foundation sheet: the dialog carries the chrome class
+// and the author's content is slotted in as light DOM. Controlled by `open` (→
+// showModal/close); `dismissable` gates Esc + backdrop click (off = blocking).
+// Emits a bubbling `close` on every dismissal so a React host can unmount.
+
+import { LitElement, html, nothing, type CSSResultGroup } from "lit";
+import { property } from "lit/decorators.js";
+import resetStyles from "../../../foundations/reset.scss";
+
+export abstract class ScDialogBase extends LitElement {
+  @property({ type: Boolean, reflect: true }) accessor open = false;
+  /** Whether Esc / backdrop-click close it. Off = blocking. */
+  @property({ type: Boolean }) accessor dismissable = false;
+  /** Accessible name for the dialog (→ aria-label). Without it a screen reader
+   *  announces an unnamed dialog; set it to the modal/drawer's title. */
+  @property() accessor label = "";
+
+  // Subclasses override this with `[resetStyles, styles]` (their own Lit css),
+  // so the type is the broad CSSResultGroup.
+  static styles: CSSResultGroup = [resetStyles];
+
+  protected get dialog(): HTMLDialogElement | null {
+    return this.renderRoot.querySelector("dialog");
+  }
+
+  // Esc fires `cancel` first — swallow it when blocking so the dialog stays up.
+  // (For a real user Esc this `cancel` is cancelable; the UA may make it
+  // non-cancelable for low-activation/repeat closes, which onClose then catches.)
+  protected onCancel = (e: Event): void => {
+    if (!this.dismissable) e.preventDefault();
+  };
+
+  // Backdrop click: a modal dialog reports clicks on its ::backdrop as targeting
+  // the dialog itself. But clicks on the dialog's OWN padding/flex-gap (the card
+  // regions no slotted child paints) target it too, so the target check alone
+  // would dismiss from inside the card — only close when the click coordinates
+  // fall outside the dialog's box.
+  protected onBackdropClick = (e: MouseEvent): void => {
+    const dialog = this.dialog;
+    if (!this.dismissable || !dialog || e.target !== dialog) return;
+    const r = dialog.getBoundingClientRect();
+    const inside =
+      e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (!inside) dialog.close();
+  };
+
+  // Fires for Esc / backdrop / programmatic close. A blocking instance (not
+  // dismissable) that still got here — an Esc the UA wouldn't let us cancel —
+  // re-asserts itself rather than vanishing; otherwise it's the single dismissal
+  // signal back to the host.
+  protected onClose = (): void => {
+    if (!this.dismissable && this.open) {
+      this.sync(); // re-show: open is still true, the dialog just closed
+      return;
+    }
+    if (this.open) this.open = false;
+    this.dispatchEvent(new Event("close", { bubbles: true }));
+  };
+
+  protected firstUpdated(): void {
+    this.sync();
+  }
+
+  protected updated(changed: Map<PropertyKey, unknown>): void {
+    if (changed.has("open")) this.sync();
+  }
+
+  protected sync(): void {
+    const dialog = this.dialog;
+    if (!dialog) return;
+    try {
+      if (this.open && !dialog.open) dialog.showModal();
+      else if (!this.open && dialog.open) dialog.close();
+    } catch {
+      /* no <dialog>/top-layer support (e.g. happy-dom) */
+    }
+  }
+
+  render() {
+    return html`
+      <dialog
+        aria-label=${this.label || nothing}
+        @cancel=${this.onCancel}
+        @close=${this.onClose}
+        @click=${this.onBackdropClick}
+      >
+        <slot></slot>
+      </dialog>
+    `;
+  }
+}

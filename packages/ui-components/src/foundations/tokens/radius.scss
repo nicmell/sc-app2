@@ -1,0 +1,12 @@
+/**
+ * Border-radius scale — PUBLIC token API. -pill is the fully-rounded stop for
+ * badges/chips/switch tracks.
+ */
+
+:root {
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+}

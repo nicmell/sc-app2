@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src",
     "baseUrl": ".",
-    "paths": {}
+    "paths": {},
+    "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "tsup.config.ts"]
 }

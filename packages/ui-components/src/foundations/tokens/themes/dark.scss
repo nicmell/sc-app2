@@ -1,0 +1,88 @@
+/**
+ * Dark theme — the default sc-app palette. Applied at :root so any consumer that
+ * doesn't explicitly set [data-theme] gets dark out of the box. Light theme
+ * (light.scss, its sibling) overrides under [data-theme="light"].
+ *
+ * The debug-surface tokens (--color-tx, --color-rx, --color-log-*, --color-overlay)
+ * are exposed so plugins authoring OSC consoles / scopes can match the host palette.
+ *
+ * All --color-* names are PUBLIC API (like the non-colour tokens/ partials).
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Surface tiers ────────────────────────────────────────────
+     Page bg → panel surface → nested item → interactive hover.
+     -input is the form-control fill (slightly bluer than -3 to
+     read as "editable"). */
+  --color-bg: #12141a;
+  --color-surface-1: #1b1d22;
+  --color-surface-2: #15171b;
+  --color-surface-3: #2c2f36;
+  --color-surface-3-hover: #4a5060;
+  --color-surface-input: #242832;
+  /* Scrim behind overlays (modal/drawer ::backdrop, the loader's
+     .sc-modal__backdrop) — one shared dim so every backdrop matches. */
+  --color-scrim: rgb(0 0 0 / 0.55);
+
+  /* ── Borders ──────────────────────────────────────────────────
+     Subtle → strong → stronger (interactive). -focus is the
+     keyboard-focus ring colour. */
+  --color-border: #262930;
+  --color-border-strong: #2c2f36;
+  --color-border-stronger: #3a3f4b;
+  --color-border-focus: #5a8fd8;
+
+  /* ── Text tiers ───────────────────────────────────────────────
+     Primary readable text down through faint separators.
+     -on-primary is the foreground colour against
+     --color-primary fills (white on the indigo). */
+  --color-text: #e4e6eb;
+  --color-text-dim: #9aa0ab; /* ~6.3:1 on surface-1 — AA for body text */
+  --color-text-mute: #6c7080; /* ~3.4:1 — AA large / UI text */
+  /* Bumped from #5a5e68 (~2.7:1, failed the 3:1 floor). ~3.2:1 now — large/secondary
+     text only (a truly "faint" body tone can't reach 4.5:1 on this dark surface). */
+  --color-text-faint: #686c79;
+  --color-on-primary: white;
+
+  /* ── Primary action ──────────────────────────────────────────
+     The single accent colour for the host. Plugins that need a
+     contrasting accent should override at their own root. */
+  --color-primary: #3d6ab5;
+  --color-primary-hover: #4878c4;
+
+  /* ── Semantic states ──────────────────────────────────────────
+     Each state exposes a flat colour, a background tint, and
+     (where used) a border + text tint so callers compose
+     pills/badges/alerts without mixing channels. */
+  --color-ok: #6ac46f;
+  --color-ok-bg: #1f3d26;
+  --color-ok-strong: #2e5a36;
+  --color-ok-text: #b4e7b9;
+
+  --color-warn: #c4a06f;
+  --color-warn-bg: #3d331f;
+  --color-warn-border: #5a4a2e;
+  --color-warn-text: #e7d4b4;
+
+  --color-info-bg: #2a3a4a;
+  --color-info-border: #3a4a5a;
+  --color-info-text: #b8d0e8;
+
+  --color-danger: #8a3d3d;
+  --color-danger-hover: #a04848;
+  --color-error-bg: #3d1f22;
+  --color-error-border: #6a2d33;
+  --color-error-text: #f2b5ba;
+
+  /* ── Specialised text ─────────────────────────────────────────
+     For debug surfaces / scope overlays — plugins use these so their
+     UI matches the host. */
+  --color-tx: #8ab4f8; /* outgoing OSC */
+  --color-rx: #96f2a7; /* incoming OSC */
+  --color-log-info: #8ab4f8;
+  --color-log-warn: #f7d57a;
+  --color-log-error: #f2b5ba;
+  --color-overlay: #b4b8c0; /* scope overlay text */
+}

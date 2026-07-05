@@ -1,0 +1,17 @@
+/*
+ * <sc-base-input> field chrome. The bare input{} rule (from controlStyles) gives the
+ * surface fill, border, focus ring, and font; the host's `size` only tunes sizing
+ * (the shared field-size scale).
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: inline-block;
+}
+
+input {
+  box-sizing: border-box;
+}
+
+@include field-size("input");

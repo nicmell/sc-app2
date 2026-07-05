@@ -34,6 +34,10 @@ visuals/    read-only / conditional presentation
 widgets/    self-contained app panels (new-app features, not in the old app)
 ```
 
+Within each category (except `internal/`) every element lives in its own folder
+— `<category>/<sc-name>/<sc-name>.ts` (+ its `.module.scss`, if any) with an
+`index.ts` re-export, so `@/sc-elements/<category>/<sc-name>` resolves unchanged.
+
 Status: everything except sc-plugin and the widgets is a **stub** — parsed,
 validated, and bind-resolved by the runtime processor, but with no OSC/UI
 behavior yet. "Will:" notes describe the old app's semantics, which return

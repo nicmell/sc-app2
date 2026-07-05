@@ -1,0 +1,22 @@
+/*
+ * <sc-base-radio-group> styles. :host lays out its slotted <sc-base-radio> children in
+ * a row (or column when orientation=vertical). A disabled group dims + disables the whole
+ * group (slotted radios included) via :host([disabled]).
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: inline-flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+:host([orientation="vertical"]) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+:host([disabled]) {
+  @include disabled;
+}

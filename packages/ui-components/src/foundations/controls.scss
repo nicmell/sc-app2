@@ -1,0 +1,66 @@
+/**
+ * Bare control chrome, adopted by the input/control components as `controlStyles`:
+ *   - the form-field chrome (input/select/textarea surface/border/focus) — used by
+ *     sc-input/sc-inputnumber/sc-textarea, and by the head foundation (elements.scss
+ *     @uses this) so light-DOM / plugin fields look correct without classes;
+ *   - `.sr-only` — the visually-hidden helper the graphical widgets (checkbox/switch/
+ *     radio/slider/knob) wear on their hidden native <input>.
+ *
+ * Each consumer uses one part or the other; the unused rules are inert (the field chrome
+ * targets <input>/<textarea> — harmless on a widget's clipped sr-only input). Kept OUT of
+ * the shared shadow base (foundations/reset.scss) so components that need neither
+ * (sc-select/option/radio-group, sc-button, sc-disclosure) don't carry it.
+ */
+
+@use "./mixins" as *;
+
+/* ── Form fields ───────────────────────────────────────────── */
+
+input,
+select,
+textarea {
+  @include field-surface;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  @include focus-ring;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  @include disabled($block: false);
+}
+
+select {
+  cursor: pointer;
+}
+
+textarea {
+  /* Long-form text: sans is more readable than mono. */
+  font-family: var(--font-sans);
+  resize: vertical;
+}
+
+/* Number inputs — hide the native spin buttons (arrow keys still work);
+   sc-inputnumber draws its own steppers. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ── Visually-hidden (the graphical widgets' hidden native <input>) ── */
+
+.sr-only {
+  @include visually-hidden;
+}

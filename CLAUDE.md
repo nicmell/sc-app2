@@ -245,7 +245,7 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   timetags). The frontend's only OSC vocabulary.
 * `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
   tap def).
-* `@sc-app/ui-foundation` — base styles/custom-element foundation.
+* `@sc-app/ui-components` — base styles/custom-element foundation.
 
 ## How the element architecture settled (the design decisions)
 

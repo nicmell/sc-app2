@@ -1,0 +1,61 @@
+/*
+ * <sc-base-select> chrome. The combobox button + the dropdown, which is delegated to
+ * <sc-base-popover> (the shared overlay supplies the surface chrome via its `panel`
+ * part; we only override the dropdown-specific size/padding here). Size is keyed off
+ * the reflected host attribute; the accent is carried per-option (the options
+ * self-apply the variant from the select context, in their own shadow).
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: inline-block;
+  font-family: var(--font-mono);
+}
+
+.combobox {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  inline-size: 100%;
+  min-inline-size: 6rem;
+  margin: 0;
+  @include field-surface;
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  user-select: none;
+
+  /* Hover (only when not keyboard-focused) accents the border; focus shows the ring
+     alone — never both, so there's no double border. */
+  &:hover:not(:focus-visible) {
+    @include field-focus;
+  }
+  &:focus-visible {
+    @include focus-ring;
+  }
+  &:disabled {
+    @include disabled($block: false);
+  }
+}
+
+@include field-size(".combobox");
+
+.label {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.arrow {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-xs);
+}
+
+/* The dropdown surface is <sc-base-popover>'s `panel` part (it brings the bg/border/
+   radius/shadow); only the dropdown-specific sizing + padding are tuned here. */
+sc-base-popover::part(panel) {
+  min-inline-size: 8rem;
+  max-block-size: 14rem;
+  padding: var(--space-3xs);
+}

@@ -1,0 +1,14 @@
+/**
+ * Light theme — applied under [data-theme="light"] on the root (typically <html>).
+ * A placeholder for now (only the dark palette has real values); this documents the
+ * contract for when a light palette lands:
+ *
+ *   :root[data-theme="light"] {
+ *     --color-bg: ...;
+ *     --color-text: ...;
+ *     --color-surface-1: ...;
+ *     -- (all other --color-* tokens overridden here)
+ *   }
+ *
+ * Until then, [data-theme="light"] inherits the dark palette from :root.
+ */

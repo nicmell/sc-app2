@@ -1,0 +1,43 @@
+/* A dashboard grid panel: header (drag handle) + body. (The empty-state style
+   lives in Dashboard.module.scss — Dashboard.tsx authors that markup.) */
+.panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  /* The title is an <sc-base-text> (dim / xs / uppercase via props). Its host is
+     display:contents, so the old `flex:1` can't push here — the first control
+     takes an auto inline-start margin, holding the button group to the right.
+     `sc-base-button` is a tag, so it stays global inside this scoped selector. */
+  sc-base-button:first-of-type {
+    margin-inline-start: auto;
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

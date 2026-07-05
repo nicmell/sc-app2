@@ -1,0 +1,61 @@
+/*
+ * <sc-base-icon> styles. The glyph is painted from the `--ph-glyph`
+ * (+ `--ph-glyph-2` for duotone's front layer) custom properties the component
+ * sets inline from the generated codepoint maps — these rules replace Phosphor's
+ * stock per-icon `.ph-*:before` sheets (see foundations/icons.scss). The fonts
+ * themselves are registered document-wide by the foundation's head <link>.
+ */
+
+:host {
+  display: inline-flex;
+}
+
+i {
+  font-size: inherit;
+  line-height: 1;
+  color: inherit;
+
+  /* Phosphor's base rendering settings (from its style.css base rule). */
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  &::before {
+    content: var(--ph-glyph);
+  }
+}
+
+/* The weight class selects the registered family (foundations/icons.scss). */
+.ph {
+  font-family: "Phosphor" !important;
+}
+.ph-fill {
+  font-family: "Phosphor-Fill" !important;
+}
+.ph-duotone {
+  font-family: "Phosphor-Duotone" !important;
+
+  /* Duotone = a dimmed back glyph overlaid by the front glyph (Phosphor's
+     stock :before/:after pattern). Unset --ph-glyph-2 → no ::after box. */
+  &::before {
+    opacity: 0.2;
+  }
+  &::after {
+    content: var(--ph-glyph-2);
+    margin-left: -1em;
+  }
+}
+
+:host([size="sm"]) i {
+  font-size: var(--font-size-xs);
+}
+:host([size="md"]) i {
+  font-size: var(--font-size-sm);
+}
+:host([size="lg"]) i {
+  font-size: var(--font-size-lg);
+}

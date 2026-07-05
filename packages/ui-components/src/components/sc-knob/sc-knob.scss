@@ -1,0 +1,65 @@
+/*
+ * <sc-base-knob> styles. SVG dial (normalised 0..100 viewBox); size sets the
+ * box; the indicator uses the primary accent.
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: inline-block;
+}
+
+:host([disabled]) {
+  @include disabled;
+}
+
+/* The wrapper div (the only div in this shadow) is the dial box + gesture surface. */
+div {
+  display: inline-block;
+  line-height: 0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+:host([size="sm"]) div {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+}
+:host([size="md"]) div {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+:host([size="lg"]) div {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+}
+
+.svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  /* Round box so the focus outline traces the dial. */
+  border-radius: 50%;
+}
+
+/* Keyboard focus ring on the visible dial (the real <input> is .sr-only). */
+.input:focus-visible ~ .svg {
+  @include focus-ring;
+}
+
+.body {
+  fill: var(--color-surface-3);
+  stroke: var(--color-border-strong);
+  stroke-width: 2;
+}
+
+.indicator {
+  stroke: var(--color-primary);
+  stroke-width: 9;
+  stroke-linecap: round;
+}

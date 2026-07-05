@@ -1,0 +1,29 @@
+/*
+ * <sc-base-modal> dialog chrome. The <dialog> is a centred flex column that gap-stacks
+ * its slotted content; the UA centres it in the top layer.
+ */
+
+@use "../../foundations/mixins" as *;
+
+dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 320px;
+  max-width: 480px;
+  max-block-size: calc(100vh - 2 * var(--space-lg));
+  padding: var(--space-md) var(--space-lg);
+  @include overlay-surface(var(--radius-md));
+  font-family: var(--font-sans);
+  overflow: auto;
+
+  &::backdrop {
+    background: var(--color-scrim);
+  }
+
+  /* display:flex overrides the UA dialog:not([open]) hide — re-hide the
+     mounted-but-closed dialog until showModal() sets [open]. */
+  &:not([open]) {
+    display: none;
+  }
+}

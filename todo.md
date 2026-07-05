@@ -1,0 +1,5 @@
+- button with icon better centering
+- loading button
+- scss everywhere in main app
+- strudel deps chunked
+- rename sc-\*-base in sc-base-\*

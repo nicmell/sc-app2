@@ -1,0 +1,45 @@
+/*
+ * <sc-base-option> styles. A single option row; selected text uses the primary accent.
+ * The host is block so options stack vertically in the dropdown.
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: block;
+}
+
+:host([disabled]) {
+  @include disabled;
+}
+
+div {
+  display: block;
+  padding: var(--space-2xs) var(--space-xs);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  border-radius: var(--radius-xs);
+  transition: background var(--transition-fast);
+}
+
+/* Hover affordance — highlight the row under the pointer. */
+:host(:hover:not([disabled])) div {
+  background: var(--color-surface-3-hover);
+}
+
+/* The effective size (own, or the select's via context) is reflected to the host. */
+:host([size="sm"]) div {
+  font-size: var(--font-size-xs);
+}
+:host([size="lg"]) div {
+  font-size: var(--font-size-md);
+}
+
+/* Selection is derived from the select's value, reflected to the host. */
+:host([selected]) div {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}

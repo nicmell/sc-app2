@@ -2,12 +2,26 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// @ts-ignore
+import litCss from "vite-plugin-lit-css";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  plugins: [react()],
+  // `@sc-app/ui-components` is consumed as SOURCE (no build step). vite-plugin-lit-css
+  // wraps the components' `.css` imports into Lit CSSResults (it patches Vite's css-post
+  // plugin, so Vite's CSS pipeline runs first). Scoped via `include` to the package's own
+  // `src/**`, so the app's own CSS (App.css, …) keeps Vite's normal injection. The
+  // foundation ENTRY (foundations/index.scss) is EXCLUDED: it's imported as a plain
+  // side-effect stylesheet for the document <head> (FOUC fix), not a CSSResult.
+  plugins: [
+    react(),
+    litCss({
+      include: ["**/ui-components/src/**/*.scss"],
+      exclude: ["**/ui-components/src/foundations/index.scss"],
+    }),
+  ],
 
   // Lower standard (stage-3) decorators in the per-file esbuild transform —
   // the sc-elements use `@property() accessor` reactive properties and
@@ -15,6 +29,16 @@ export default defineConfig(() => ({
   // when the target isn't esnext).
   esbuild: {
     target: "es2022",
+  },
+
+  // App styles are co-located CSS Modules (`*.module.scss`, imported as `styles`
+  // in each component). camelCaseOnly exposes dashed class names as camelCase JS
+  // keys only (`.grid-wrapper` → `styles.gridWrapper`). The ui-components package
+  // is unaffected — vite-plugin-lit-css owns its `.scss` (see `plugins` above).
+  css: {
+    modules: {
+      localsConvention: "camelCaseOnly" as const,
+    },
   },
 
   // react-grid-layout bundles react-draggable, whose drag-start logger reads
@@ -34,13 +58,9 @@ export default defineConfig(() => ({
   },
 
   resolve: {
+    // `@sc-app/*` workspace packages resolve through their package `exports` to their
+    // TS source — no build step; Vite compiles them with full HMR. `@/` → `src/`.
     alias: {
-      // Resolve the source-only workspace package to its TS entry so Vite
-      // doesn't try to pre-bundle it as a dependency.
-      "@sc-app/server-commands": fileURLToPath(
-        new URL("./packages/server-commands/src/index.ts", import.meta.url),
-      ),
-      // `@/` → `src/` (mirrors tsconfig paths + the old sc-app convention).
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },

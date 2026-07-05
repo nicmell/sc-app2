@@ -1,0 +1,17 @@
+{
+  "name": "@sc-app/ui-components-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Standalone Vite showcase for @sc-app/ui-components (consumes the built package).",
+  "scripts": {
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sc-app/ui-components": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.3"
+  }
+}

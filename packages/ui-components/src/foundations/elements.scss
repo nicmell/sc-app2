@@ -1,0 +1,105 @@
+/**
+ * Raw HTML element styles. After this layer, bare <button> /
+ * <input> / <select> / <textarea> / <label> elements look
+ * correct without any classes — the load-bearing constraint
+ * for the plugin future. A bare <button> is the default
+ * (primary) action; variants + sizes live on <sc-base-button>
+ * (src/components), keyed off its reflected `variant`/`size`.
+ *
+ * The form-field chrome (input/select/textarea) lives in controls.scss — shared with the
+ * shadow input components that reuse it (see that file) — and is @used here so the
+ * head foundation keeps it. Everything else here is document-only (no shadow component
+ * depends on it inside its shadow root; e.g. sc-disclosure styles its own <summary>).
+ *
+ * The body rule lives here (not in reset.scss) so a consumer
+ * importing only the reset doesn't get the host palette
+ * forced on it.
+ */
+
+@use "./controls";
+
+/* ── Document ──────────────────────────────────────────────── */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+
+button {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Native range / checkbox / radio ───────────────────────── */
+/* Document-only: the shadow widgets (sc-slider/knob, sc-checkbox/radio/switch) render a
+   visually-hidden native input + a custom overlay, so they don't use these bare rules. */
+
+/* Range — strip the input chrome and use the accent for track + thumb. */
+input[type="range"] {
+  padding: 0;
+  background: transparent;
+  border: none;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* Checkbox / radio — match accent. Browsers handle most of
+   the visual; the accent-color hint is what we care about. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* ── Labels ────────────────────────────────────────────────── */
+
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+/* ── Details / summary ─────────────────────────────────────── */
+/* Document-only: <sc-base-disclosure> styles its own <summary> in sc-disclosure.scss. */
+
+details > summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+details > summary:hover,
+details[open] > summary {
+  color: var(--color-text);
+}

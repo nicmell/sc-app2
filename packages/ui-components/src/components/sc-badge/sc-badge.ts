@@ -1,0 +1,20 @@
+// <sc-base-badge> — an uppercase pill label. Shadow DOM: `:host` is the pill carrying
+// the declarative `label`, with the colour `variant` reflected (ok is the base).
+
+import { LitElement, html } from "lit";
+import { property } from "lit/decorators.js";
+import resetStyles from "../../foundations/reset.scss";
+import styles from "./sc-badge.scss";
+
+export type ScBadgeVariant = "ok" | "warn" | "error";
+
+export class ScBadgeBase extends LitElement {
+  static styles = [resetStyles, styles];
+
+  @property() accessor label = "";
+  @property({ reflect: true }) accessor variant: ScBadgeVariant = "ok";
+
+  render() {
+    return html`${this.label}`;
+  }
+}

@@ -1,0 +1,70 @@
+/* <sc-console> — the OSC message log. Light DOM (the element's createRenderRoot
+   returns `this`), imported as `styles` in sc-console.ts and interpolated into
+   the Lit template. The `sc-console` host rule targets the element tag, so it
+   stays global. */
+
+:global(sc-console) {
+  display: block;
+  height: 100%;
+}
+.console {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+.count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+}
+.log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-2xs) var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+.empty {
+  color: var(--color-text-mute);
+  padding: var(--space-xs);
+}
+.row {
+  display: grid;
+  grid-template-columns: 7.5em 2.5em 14em 1fr;
+  gap: var(--space-xs);
+  white-space: nowrap;
+
+  & > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+.time {
+  color: var(--color-text-mute);
+}
+.dir {
+  font-weight: var(--font-weight-medium);
+}
+.tx .dir {
+  color: var(--color-tx);
+}
+.rx .dir {
+  color: var(--color-rx);
+}
+.addr {
+  color: var(--color-text);
+}
+.args {
+  color: var(--color-text-dim);
+  white-space: pre;
+}

@@ -1,0 +1,19 @@
+/*
+ * <sc-base-popover> styles. The `.panel` resets the UA popover centering and
+ * adds the shared overlay surface chrome.
+ */
+
+@use "../../foundations/mixins" as *;
+
+:host {
+  display: inline-block;
+}
+
+.panel {
+  margin: 0;
+  inset: auto;
+  padding: var(--space-2xs);
+  @include overlay-surface(var(--radius-sm));
+  max-block-size: 80vh;
+  overflow: auto;
+}

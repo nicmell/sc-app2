@@ -8,7 +8,7 @@
 import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { isControlRuntime } from "@/lib/utils/guards";
+import { isStateRuntime } from "@/lib/utils/guards";
 import type {} from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
@@ -26,7 +26,7 @@ export class ScCheckbox extends ScInput {
     this.offValue?.(); // re-entrant: drop the stale subscription on reload
     this.offValue = undefined;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target) && target.enabled) {
+    if (target && isStateRuntime(target) && target.enabled) {
       const view = target.selectValue();
       this._checked = (view.get() ?? 0) !== 0;
       this.offValue = view.subscribe((v) => {
@@ -51,7 +51,12 @@ export class ScCheckbox extends ScInput {
   private onChange = (e: Event) => {
     const checked = (e.target as HTMLInputElement).checked;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target)) target.setValue(checked ? 1 : 0);
+    if (target && isStateRuntime(target)) {
+      target.setValue(checked ? 1 : 0);
+      // Re-read: a write to BOUND (derived, read-only) state is inert — the
+      // live() binding then snaps the box back to the real value.
+      this._checked = (target.selectValue().get() ?? 0) !== 0;
+    }
   };
 
   render() {

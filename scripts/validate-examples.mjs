@@ -27,6 +27,7 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-run-bind", // sc-run bind matches no node
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
+  "bad-if-shadow", // state inside sc-if sharing an outer state's store key
 ]);
 
 // CDP setup

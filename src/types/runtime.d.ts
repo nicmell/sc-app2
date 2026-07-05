@@ -68,11 +68,17 @@ export interface InputRuntime extends BaseRuntime {
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard; the registry adopts the tree from the root
- *  on success), `scope` the cumulative bind-resolution scope. */
+ *  on success), `scope` the cumulative bind-resolution scope. `stateKeys` is
+ *  the per-PARSE map of claimed state store keys (initialized once by the
+ *  root `process()` and shared across every level spread): sc-if is
+ *  path-transparent, so two same-named state elements can share a store key
+ *  across scope levels — the map turns that silent collision into a parse
+ *  error. */
 export interface RuntimeContext {
   rootNode: ScElement;
   nodes: Set<ScElement>;
   scope: ScElement[];
   parentNode?: ScParentElement;
   path: string[];
+  stateKeys?: Map<string, ScElement>;
 }

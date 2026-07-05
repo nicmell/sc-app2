@@ -1,6 +1,7 @@
-// <sc-var> — a state variable: like sc-control (the props/validation/runtime
-// live on the ScState base) but always enabled and never sent over OSC.
-// Stub: reactive value propagation arrives with the state migration step.
+// <sc-var> — a state variable: like sc-control (the props/validation/store
+// seam/propagation live on the ScState base) but always enabled and never
+// sent over OSC — a write is the base's plain store dispatch, and bound vars
+// recompute through the shared propagation.
 
 import type { RuntimeContext, StateRuntime } from "@/types/runtime";
 import { ScState } from "@/sc-elements/internal/sc-state";

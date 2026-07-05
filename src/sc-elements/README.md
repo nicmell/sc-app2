@@ -99,11 +99,13 @@ expression over paths — `vars.freq * 2`). Enabled when its parent is a node
 (plugin/group/synth); disabled (pure graph input) inside synthdefs/ugens.
 Will: `/n_set` its parent node when the value changes.
 
-### `<sc-var>` — stub
+### `<sc-var>`
 
 A state variable: like `sc-control` but always enabled and never sent over
 OSC. Props: `name` (required), `value` xor `bind` (expressions allowed).
-Will: reactive frontend value, propagated to binds.
+Its live value is one key of the runtime store slice (path-keyed, like
+controls — the seam lives on the ScState base); a bound var recomputes from
+its targets on every change (evalExpr) and is read-only to inputs.
 
 ## `inputs/`
 
@@ -145,17 +147,24 @@ Will: `/n_run` toggle button.
 
 ## `visuals/`
 
-### `<sc-display>` — stub
+### `<sc-display>`
 
-Read-only formatted view of a bound value. Props: `bind` (required),
-`format` (printf-style: `%d`, `%.2f`, `%b`, `%s`).
+Read-only formatted view of a bound control/var's live value. Props: `bind`
+(required), `format` (printf-style: `%d`, `%.2f`, `%b`, `%s`).
 
-### `<sc-if>` — stub (children always render for now)
+### `<sc-if>`
 
-Conditional rendering keyed on a bound value. Props: `bind` (required); the
-XSD allows the condition attributes (`is-truthy`, `is-falsy`, `is-equal`,
-`is-not-equal`, `is-greater-than`, `is-lesser-than`) — not declared yet.
-Children are parsed transparently (an `sc-if` does not create a scope).
+Conditional rendering keyed on a bound control/var's live value. Props:
+`bind` (required) + the condition attributes, one applying in priority order
+(`is-equal` string-equality → `is-not-equal` → `is-greater-than` numeric →
+`is-lesser-than`; fallback = truthiness). `is-truthy`/`is-falsy` control
+visibility (empty string) or substitute the children with swap TEXT
+(non-empty; both set = always visible, text swaps; loose text-node children
+stay visible in that mode). Hidden = the `hidden` attribute + sc-if.scss
+(`display: contents` / `[hidden] display: none`) — children stay mounted.
+Children are parsed transparently (an `sc-if` does not create a scope), but
+a same-named state element inside and outside one is a parse error (they
+would share a store key — see `bad-if-shadow`).
 
 ## `widgets/` — functional, new-app features
 

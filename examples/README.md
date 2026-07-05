@@ -79,6 +79,7 @@ targets a single error path in the sc-elements runtime
 | `bad-run-bind` | `sc-run resolveRuntime` | `<sc-run bind="ghost">` matches no node |
 | `bad-ugen-input` | `sc-synthdef collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |
 | `bad-ugen-ref` | `sc-ugen resolveRuntime` | a ugen input bound to `lfo`, which names no sibling ugen / param |
+| `bad-if-shadow` | `ScState claimStateKey` | a same-named state element inside `sc-if` — sc-if adds no path segment, so the two would silently share one runtime store key |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

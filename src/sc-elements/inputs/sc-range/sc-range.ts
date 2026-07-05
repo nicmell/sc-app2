@@ -8,7 +8,7 @@
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { isControlRuntime } from "@/lib/utils/guards";
+import { isStateRuntime } from "@/lib/utils/guards";
 import type {} from "@/types/runtime";
 import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
@@ -32,7 +32,7 @@ export class ScRange extends ScInput {
     this.offValue?.(); // re-entrant: drop the stale subscription on reload
     this.offValue = undefined;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target) && target.enabled) {
+    if (target && isStateRuntime(target) && target.enabled) {
       const view = target.selectValue();
       const v = view.get();
       if (v !== undefined) this.value = v; // initial render = the store default
@@ -57,9 +57,12 @@ export class ScRange extends ScInput {
 
   private onInput = (e: Event) => {
     const value = Number((e.target as HTMLInputElement).value);
-    this.value = value;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target)) target.setValue(value);
+    if (target && isStateRuntime(target)) target.setValue(value);
+    // Re-read instead of trusting the gesture: a write to BOUND (derived,
+    // read-only) state is inert, and `live()` then snaps the thumb back to
+    // the real value. For a literal target this is the store echo — a no-op.
+    this.value = target && isStateRuntime(target) ? (target.selectValue().get() ?? value) : value;
   };
 
   render() {

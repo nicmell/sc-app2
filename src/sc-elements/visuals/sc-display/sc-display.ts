@@ -1,11 +1,11 @@
 // <sc-display> — a read-only formatted view of a bound control/var
 // (`bind`/`_targetScNode` on the ScInput base). The load pass subscribes it
-// to the target control's store key; a non-control target (an sc-var) gets a
-// one-shot read until var propagation lands with its migration step.
+// to the target state's store key (controls and vars share the ScState value
+// seam), so it follows live propagation.
 
 import { html } from "lit";
 import { property, state } from "lit/decorators.js";
-import { isControlRuntime, isStateRuntime } from "@/lib/utils/guards";
+import { isStateRuntime } from "@/lib/utils/guards";
 import type {} from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
@@ -43,14 +43,12 @@ export class ScDisplay extends ScInput {
     this.offValue?.(); // re-entrant: drop the stale subscription on reload
     this.offValue = undefined;
     const target = this._targetScNode;
-    if (target && isControlRuntime(target) && target.enabled) {
+    if (target && isStateRuntime(target) && target.enabled) {
       const view = target.selectValue();
       this._value = view.get();
       this.offValue = view.subscribe((v) => {
         if (v !== undefined) this._value = v;
       });
-    } else if (target && isStateRuntime(target)) {
-      this._value = target.value; // static until sc-var propagation lands
     }
     await super.load();
   }

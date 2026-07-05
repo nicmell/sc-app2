@@ -1,0 +1,21 @@
+/* <sc-if> — conditional rendering. Light DOM (createRenderRoot returns
+   `this`), imported as a side effect from sc-if.ts.
+
+   The element is layout-transparent (display: contents), so the [hidden]
+   author rule is REQUIRED: an author-origin `display` beats the UA's
+   [hidden] styling regardless of specificity. In text-substitution mode
+   (data-sc-if-text set — a non-empty is-truthy/is-falsy replaces the
+   children) the element children hide and the Lit-managed swap span shows;
+   loose text-node children can't be reached by a child selector and stay
+   visible in that (fixture-unused) combination — documented in sc-if.ts. */
+sc-if {
+  display: contents;
+}
+
+sc-if[hidden] {
+  display: none;
+}
+
+sc-if[data-sc-if-text] > :not([data-sc-if-text]) {
+  display: none;
+}

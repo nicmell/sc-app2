@@ -8,6 +8,7 @@
 import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElementTagNames } from "@/types/sc-elements";
 import { ScCheckbox } from "./inputs/sc-checkbox";
+import { ScKnob } from "./inputs/sc-knob";
 import { ScOption } from "./inputs/sc-option";
 import { ScRadio } from "./inputs/sc-radio";
 import { ScRadioGroup } from "./inputs/sc-radio-group";
@@ -34,7 +35,7 @@ export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
 export { ScSynthDef, ScUgen };
 export { ScControl, ScVar };
-export { ScCheckbox, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect };
+export { ScCheckbox, ScKnob, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect };
 export { ScDisplay, ScIf };
 export { ScConsole, ScScope, ScStrudel };
 
@@ -47,6 +48,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_VAR]: ScVar,
   [ELEMENTS.SC_SYNTH]: ScSynth,
   [ELEMENTS.SC_RANGE]: ScRange,
+  [ELEMENTS.SC_KNOB]: ScKnob,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,
   [ELEMENTS.SC_RUN]: ScRun,
   [ELEMENTS.SC_DISPLAY]: ScDisplay,

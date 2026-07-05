@@ -1,20 +1,17 @@
-// <sc-range> — a slider bound to a control/var (`bind`/`_targetScNode` on the
-// ScInput base). Renders the ui-components <sc-base-slider>, forwarding every
-// slider prop; the value plumbing (drag/wheel/keyboard, quantise, composed
-// input/change) lives in the base widget. The shared ScInput seam wires the
-// load-pass subscription (syncFromState) and the write path (commit): reads
-// come through the uniform `_state` + `onStateChange()` seam (literal or
-// derived alike), writes go through the target's `setValue()`.
+// <sc-knob> — a rotary knob bound to a control/var (`bind`/`_targetScNode` on
+// the ScInput base). The rotary sibling of sc-range: same value seam, same
+// forwarding, but it renders the ui-components <sc-base-knob> (dial visual,
+// dominant-axis drag) instead of the slider. No `orientation` — a knob has none.
 
 import { html } from "lit";
 import { property } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import type { ScSize, ScSliderBase } from "@sc-app/ui-components/lit";
+import type { ScKnobBase, ScSize } from "@sc-app/ui-components/lit";
 import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
 
-export class ScRange extends ScInput {
+export class ScKnob extends ScInput {
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;
@@ -22,7 +19,6 @@ export class ScRange extends ScInput {
   @property() accessor label = "";
   @property() accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
-  @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
 
   validate(): void {
     requireNumeric(this, "min", this.min);
@@ -36,20 +32,19 @@ export class ScRange extends ScInput {
   }
 
   private onInput = (e: Event) => {
-    this.commit((e.target as ScSliderBase).value);
+    this.commit((e.target as ScKnobBase).value);
   };
 
   render() {
-    return html`<sc-base-slider
+    return html`<sc-base-knob
       min=${this.min}
       max=${this.max}
       step=${this.step}
       label=${this.label}
       size=${this.size}
-      orientation=${this.orientation}
       ?disabled=${this.disabled}
       .value=${live(this.value)}
       @input=${this.onInput}
-    ></sc-base-slider>`;
+    ></sc-base-knob>`;
   }
 }

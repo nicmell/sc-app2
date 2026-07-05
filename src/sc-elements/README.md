@@ -10,8 +10,8 @@ resolves the runtime values and `process()` assigns them onto the component
 itself (declared as plain fields on the `internal/` bases — `_rootScNode`/
 `_parentScNode` (live element references, not ids) + `path`/`enabled` +
 `_scChildren` for parents on `ScElement`, the category values on
-`ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
-maps ids straight to the live components.
+`ScNode`/`ScDerived`/`ScState`/`ScInput`). The runtime registry
+(`@/runtime/registry`) maps ids straight to the live components.
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,
@@ -41,10 +41,13 @@ Within each category (except `internal/`) every element lives in its own folder
 — `<category>/<sc-name>/<sc-name>.ts` (+ its `.module.scss`, if any) with an
 `index.ts` re-export, so `@/sc-elements/<category>/<sc-name>` resolves unchanged.
 
-Status: everything except sc-plugin and the widgets is a **stub** — parsed,
-validated, and bind-resolved by the runtime processor, but with no OSC/UI
-behavior yet. "Will:" notes describe the old app's semantics, which return
-with the matching migration steps.
+Status: the synth path (plugin/synthdef/ugen/synth/control) and the state
+layer (var/display/if + the range/checkbox inputs) are **functional**; the
+remaining **stubs** — parsed, validated, and bind-resolved, but with no
+OSC/UI behavior yet — are sc-group (no own /g_new), sc-run, and the
+selection inputs (sc-select/sc-option, sc-radio-group/sc-radio). "Will:"
+notes on stubs describe the old app's semantics, which return with the
+matching migration steps (see the root CLAUDE.md migration plan).
 
 ## `nodes/`
 
@@ -67,24 +70,29 @@ A named container node. Props: `name` (required), `run`.
 Will: own a nested scsynth group (`/g_new` on mount, freed on unmount);
 group-level `sc-control` children become shared params.
 
-### `<sc-synth>` — stub
+### `<sc-synth>` — functional
 
 A synth instance of an `sc-synthdef`. Props: `name` (required), `bind` (the
-synthdef name), `run`. Children: `sc-control` params. The runtime validates
-that `bind` resolves to a synthdef in scope.
-Will: `/s_new` in its parent group once its synthdef (and deps) are loaded;
-`/n_free` on unmount; controls become `/s_new` args.
+synthdef name — runtime-validated to resolve to an actual synthdef in
+scope), `run` (`run="false"` parsed, honored at the node-lifecycle step).
+Children: `sc-control` params. The load pass `/s_new`s it into the nearest
+loaded ancestor group AFTER its children settle (their `_state` bakes in as
+the control pairs), gated on `/n_go`, with a catch-up `/n_set` diff for
+writes landing in the send→ack window. The node dies with the plugin
+group's `/g_freeAll` (no per-synth `/n_free`).
 
 ## `synthdef/`
 
-### `<sc-synthdef>` — stub
+### `<sc-synthdef>` — functional
 
 Declares a synth graph. Props: `name` (required). Children: `sc-control`
-(params) + `sc-ugen` (nodes). The runtime collects params and per-ugen inputs
-(validating each input has a `bind` or `value`).
-Will: compile to SCgf via the UGen graph builder and `/d_recv` on load.
+(params) + `sc-ugen` (nodes). The parse collects params and per-ugen inputs
+(validating each input has a `bind` or `value`); the load pass compiles to
+SCgf (`lib/synthdef/compileSynthDef`) and `/d_recv`s it, awaiting the
+embedded `/sync` ack; `/d_free` on unmount. Known old-app-parity
+limitation: synthdef names are global to scsynth.
 
-### `<sc-ugen>` — stub
+### `<sc-ugen>` — functional (parse-time)
 
 One UGen node inside a synthdef. Props: `name` (required), `ugen` (the
 **`type` attribute** — the SuperCollider UGen class; required), `rate`
@@ -118,18 +126,33 @@ store key (`bad-var-scope` pins the parse error).
 
 ## `inputs/`
 
-### `<sc-range>` — stub (renders an unstyled native `<input type="range">`)
+The value inputs share the `ScInput` seam: one subscription to the target's
+`_state` over the load/unload/disconnect lifecycle, `syncFromState()` mapping
+the value onto the widget, and `commit()` — `setValue()` then a re-read
+snap-back so a gesture against BOUND (derived, read-only) state reverts.
 
-Props: `bind` (target control/var path), `min`, `max`, `step`, `value`
-(numbers, validated). XSD also allows the old presentational attributes
-(`type` knob|slider, `diameter`, `width`, `height`, `src`, `sprites`,
-`fgcolor`, `bgcolor`) — not declared yet.
-Will: knob/slider UI dispatching the bound value.
+### `<sc-range>` — functional (ui-components `<sc-base-slider>`)
 
-### `<sc-checkbox>` — stub (renders an unstyled native `<input type="checkbox">`)
+Props (all forwarded to the inner slider): `bind` (target control/var path),
+`min`, `max`, `step`, `value` (numbers, validated), plus `label`, `size`
+(sm|md|lg), `orientation` (horizontal|vertical), `disabled`. Reads the target
+through `_state`/`onStateChange`, writes via `commit()` on the slider's
+composed `input`. XSD also allows the legacy presentational attributes
+(`width`, `height`, `src`, `sprites`, `fgcolor`, `bgcolor`) — not declared yet.
 
-Props: `bind` (required). XSD also allows width/height/src/colors.
-Will: toggle switch dispatching 0/1 to the bound value.
+### `<sc-knob>` — functional (ui-components `<sc-base-knob>`)
+
+The rotary sibling of sc-range: the same seam and forwarding, minus
+`orientation` (a knob has none), rendering `<sc-base-knob>` (dial visual,
+dominant-axis drag). Props: `bind`, `min`, `max`, `step`, `value`, `label`,
+`size`, `disabled` (+ legacy `diameter`/`width`/`height`/`src`/colors in XSD).
+
+### `<sc-checkbox>` — functional, deliberately unstyled (native `<input type="checkbox">`)
+
+Props: `bind` (required). Checked maps to 1/0 through the shared ScInput seam
+(inert against bound state, snaps back). XSD also allows width/height/src/
+colors; the sc-base-switch swap (and a distinct `<sc-switch>`) arrive with the
+rest of the inputs.
 
 ### `<sc-select>` — stub
 

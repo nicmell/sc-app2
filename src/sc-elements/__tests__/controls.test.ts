@@ -51,6 +51,24 @@ const control = (host: ScPlugin, key: string) =>
 
 const nSets = () => sent.filter((m) => m.address === "/n_set");
 
+/** The ui-components value widget a sc-range/sc-knob renders — its value lives
+ *  in the base widget's shadow, so tests drive the host (which re-emits a
+ *  composed `input`, exactly the event the input listens for). */
+type ValueWidget = HTMLElement & { value: number };
+const widgetOf = (el: Element) =>
+  el.querySelector("sc-base-slider, sc-base-knob") as ValueWidget;
+/** The sc-range/sc-knob wired to a given bind (tag-agnostic — freq is a knob). */
+const inputByBind = (host: ScPlugin, bind: string) =>
+  host.querySelector(`sc-range[bind="${bind}"], sc-knob[bind="${bind}"]`) as ScElement & {
+    updateComplete: Promise<boolean>;
+  };
+/** Simulate a user gesture on an input's widget: move the value + re-emit. */
+const dragWidget = (input: Element, value: number) => {
+  const widget = widgetOf(input);
+  widget.value = value;
+  widget.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+};
+
 beforeAll(() => {
   registerScElements();
 });
@@ -157,9 +175,7 @@ describe("ScControl.setValue", () => {
   it("a direct store write is UI-only: statechange fires, views refresh, no /n_set", async () => {
     const { host } = await mountExample();
     const freq = control(host, "freq");
-    const range = host.querySelector("sc-range") as ScElement & {
-      updateComplete: Promise<boolean>;
-    };
+    const range = inputByBind(host, "s1.freq");
     const seen: number[] = [];
     const off = freq.onStateChange((v) => seen.push(v));
 
@@ -167,7 +183,7 @@ describe("ScControl.setValue", () => {
     await range.updateComplete;
     expect(freq._state).toBe(660);
     expect(seen).toEqual([660]);
-    expect((range.querySelector("input") as HTMLInputElement).value).toBe("660");
+    expect(widgetOf(range).value).toBe(660);
     expect(nSets()).toHaveLength(0); // the no-echo invariant
 
     off(); // the unregister works — further writes notify nobody
@@ -181,12 +197,10 @@ describe("inputs and display", () => {
     const { host } = await mountExample();
     const synth = host.querySelector("sc-synth") as ScSynth;
     // The first range binds s1.freq; its sibling display formats "%d Hz".
-    const range = host.querySelector('sc-range[bind="s1.freq"]')!;
+    const range = inputByBind(host, "s1.freq");
     const display = host.querySelector('sc-display[bind="s1.freq"]') as ScDisplay;
 
-    const input = range.querySelector("input") as HTMLInputElement;
-    input.value = "880";
-    input.dispatchEvent(new Event("input"));
+    dragWidget(range, 880);
 
     expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(880);
     expect(nSets()).toHaveLength(1);
@@ -229,7 +243,7 @@ describe("unmount", () => {
   it("drops the plugin's store map and every subscription", async () => {
     const { host } = await mountExample();
     const freq = control(host, "freq");
-    const input = host.querySelector('sc-range[bind="s1.freq"] input') as HTMLInputElement;
+    const slider = widgetOf(inputByBind(host, "s1.freq"));
 
     host.remove();
     expect(appStore.get().runtime[host.id]).toBeUndefined();
@@ -237,7 +251,7 @@ describe("unmount", () => {
     // A write straight into the slice reaches no detached element.
     setRuntimeValue(host.id, "s1.freq", 999);
     expect(freq._state).toBe(440);
-    expect(input.value).toBe("440");
+    expect(slider.value).toBe(440);
     expect(nSets()).toHaveLength(0);
   });
 
@@ -304,12 +318,10 @@ describe("disconnect / reconnect", () => {
 
     // The store wiring was rebuilt, not duplicated: an external write still
     // refreshes the input through the fresh subscription.
-    const range = host.querySelector('sc-range[bind="s1.freq"]') as ScElement & {
-      updateComplete: Promise<boolean>;
-    };
+    const range = inputByBind(host, "s1.freq");
     setRuntimeValue(host.id, "s1.freq", 700);
     await range.updateComplete;
-    expect((range.querySelector("input") as HTMLInputElement).value).toBe("700");
+    expect(widgetOf(range).value).toBe(700);
   });
 
   it("recovers from a mid-load disconnect once the connection returns", async () => {
@@ -381,9 +393,7 @@ describe("state propagation (vars + bound state)", () => {
     const { host } = await mountVars();
     const display = host.querySelector("sc-display") as ScDisplay;
 
-    const input = host.querySelector("sc-range input") as HTMLInputElement;
-    input.value = "0.8";
-    input.dispatchEvent(new Event("input"));
+    dragWidget(host.querySelector("sc-range")!, 0.8);
 
     expect(appStore.get().runtime[host.id]["vars.a"]).toBe(0.8); // the literal key
     expect(varByName(host, "mirror")._state).toBe(0.8);
@@ -408,6 +418,37 @@ describe("state propagation (vars + bound state)", () => {
     varByName(host, "b").setValue(0.25); // a real move: exactly one notification
     expect(seen).toEqual([0.75]);
     expect(varByName(host, "mirror")._state).toBe(0.5); // untouched by the earlier write
+  });
+
+  it("a gesture on a derived-bound input snaps the widget back", async () => {
+    // Regression: the inert-write re-read reassigns an UNCHANGED reactive
+    // value, which Lit alone would not re-render — the input must force the
+    // update so live() actually restores the widget.
+    const SNAP_XML = wrapXml(`
+      <sc-group name="vars">
+        <sc-var name="a" value="0"/>
+        <sc-var name="doubled" bind="vars.a * 2"/>
+      </sc-group>
+      <sc-range bind="vars.doubled" min="0" max="4" step="0.01"/>
+      <sc-checkbox bind="vars.doubled"/>
+    `);
+    const { host } = await mountPlugin(SNAP_XML);
+    const range = host.querySelector("sc-range") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    const box = host.querySelector("sc-checkbox") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    const check = box.querySelector("input") as HTMLInputElement;
+
+    dragWidget(range, 3.5); // the user drags — the write to derived state is inert
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(0); // snapped back to the real value
+
+    check.checked = true; // the user clicks — equally inert
+    check.dispatchEvent(new Event("change"));
+    await box.updateComplete;
+    expect(check.checked).toBe(false); // snapped back
   });
 
   it("statechange does not bubble to ancestor elements", async () => {

@@ -12,6 +12,7 @@ export const ELEMENTS = {
   SC_VAR: "sc-var",
   SC_SYNTH: "sc-synth",
   SC_RANGE: "sc-range",
+  SC_KNOB: "sc-knob",
   SC_CHECKBOX: "sc-checkbox",
   SC_RUN: "sc-run",
   SC_DISPLAY: "sc-display",

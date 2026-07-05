@@ -17,6 +17,7 @@ import {
   registerScElements,
   type ScControl,
   type ScElement,
+  type ScKnob,
   type ScRange,
   type ScSynthDef,
 } from "@/sc-elements";
@@ -42,10 +43,10 @@ const UPLOAD_FIXTURES = new Set([
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
   "bad-bindings": '<sc-synth name="sine">: duplicate name in scope',
-  "bad-node-bind": '<sc-range bind="ghost.freq">: does not match any node in scope',
-  "bad-synthdef-bind": '<sc-range bind="sine.freq">: does not match any node in scope',
+  "bad-node-bind": '<sc-knob bind="ghost.freq">: does not match any node in scope',
+  "bad-synthdef-bind": '<sc-knob bind="sine.freq">: does not match any node in scope',
   "bad-undeclared-control":
-    '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
+    '<sc-knob bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
   "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
   "bad-forward-state-ref": '<sc-var>: "b" is referenced before it is declared',
@@ -143,14 +144,14 @@ describe("example-plugin structure", () => {
     }
   });
 
-  it("resolves every sc-range bind to an enabled control on the synth", () => {
+  it("resolves every sc-range/sc-knob bind to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    const ranges = [...nodes].filter(
-      (el): el is ScRange => el.tagName.toLowerCase() === "sc-range",
+    const inputs = [...nodes].filter((el): el is ScRange | ScKnob =>
+      ["sc-range", "sc-knob"].includes(el.tagName.toLowerCase()),
     );
-    expect(ranges.length).toBeGreaterThan(0);
-    for (const r of ranges) {
-      const target = r._targetScNode as ScControl | undefined;
+    expect(inputs.length).toBeGreaterThan(0);
+    for (const input of inputs) {
+      const target = input._targetScNode as ScControl | undefined;
       expect(target).toBeDefined();
       expect(target!.tagName.toLowerCase()).toBe("sc-control");
       expect(target!.enabled).toBe(true);

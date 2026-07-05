@@ -80,11 +80,15 @@ stores/                  the single app store + slices and React hooks
                          — the ONLY store. Cross-module shapes come from @/types
                          (type-only by construction), so no runtime cycle with
                          the singletons.
-  runtime.ts             live runtime values per mounted plugin: plugin-root-id
-                         → control path ("s1.freq") → number. Seeded from the
-                         declarative defaults in the load pass; dropped wholesale
-                         on unmount; ScControl.setValue is the only
-                         OSC-dispatching writer
+  runtime.ts             LITERAL runtime values per mounted plugin:
+                         plugin-root-id → state path ("s1.freq", "vars.a") →
+                         number. Only literal, user-writable state is
+                         store-backed (derived/bound values live on the
+                         elements as `_state` and propagate via
+                         "statechange"); seeded from the declarative defaults
+                         in the load pass; dropped wholesale on unmount;
+                         ScState.setValue is the only OSC-dispatching writer
+                         (controls add the /n_set)
   layout.ts / plugins.ts / session.ts / osc.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
@@ -342,8 +346,10 @@ further `sc-*` element:
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded + run;
-   `internal/sc-state`: name/value/bind + targets/expression + the shared
-   validation; `internal/sc-input`: bind + `_targetScNode`); the common core
+   `internal/sc-derived`: bind + targets/expression + the live `_state` +
+   "statechange"; `internal/sc-state` extends it: name/value + the store
+   backing for literal state + the shared validation; `internal/sc-input`:
+   bind + `_targetScNode`); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
    plus path/enabled and `_scChildren` for parents, named so because DOM
    `children` is taken) is on `ScElement`. The mixin contracts
@@ -379,9 +385,10 @@ further `sc-*` element:
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
 | sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a BOUND control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); bound controls re-/n_set on recompute. `run="false"` not honored yet (sc-run step) |
-| sc-range, sc-checkbox, sc-display | functional, deliberately unstyled (bare native inputs — knob/slider/switch return later): read/write the bound control OR var via selectValue()/setValue() (a write to bound/derived state is inert and the input re-syncs) |
+| sc-range, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
+| sc-checkbox, sc-display | functional; sc-checkbox still a bare native `<input>` on the shared ScInput seam (the sc-base-checkbox/switch swap + a distinct sc-switch arrive with the rest of the inputs); sc-display is the read-only expression visual |
 | sc-var | functional: live `_state` on the shared ScDerived base (no OSC) — literal vars store-backed like controls, bound vars recompute element-to-element on their targets' statechange |
-| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScVisual base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
+| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScDerived base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
 | sc-run, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
 | sc-console | functional leaf (the OSC console; no attributes) |
@@ -545,31 +552,58 @@ steps, each independently shippable:
    and runtime processing (bind resolution, expressions, overrides). Grow the
    current innerHTML plugin loading into the two-phase pipeline; the Rust XSD
    validation stays as-is.
-5. **Core `sc-elements`** — DONE for the synth path:
+5. **Core `sc-elements`** — DONE for the synth path AND the state layer:
    `OscClient.once(address, match)` reply matching (waiters in
    `handleReply`) + the scsynth command methods (the elements' whole OSC
    vocabulary), the sequential `load()`/`unload()` pass, sc-synthdef
    (sendSynthDef: compile + /d_recv + /sync ack; freeSynthDef), sc-synth
-   (createSynth gated on /n_go into
-   `targetGroupId`), sc-var live propagation + the uniform ScState value
-   seam (see "Runtime values"). Remaining: sc-group's own /g_new,
-   `run="false"` at /s_new.
+   (createSynth gated on /n_go into `targetGroupId` + the ack-window
+   catch-up /n_set diff), the ScDerived `_state`/"statechange" propagation
+   (see "Runtime values"), expression binds with comparisons, sc-if.
+   **Next: the node-lifecycle step** — sc-group's own /g_new//g_freeAll
+   (descendants nest via `targetGroupId` automatically once the group sets
+   `loaded`), `OscClient.setNodeRun` (`nRunOne` sits unused in
+   @sc-app/server-commands), `run="false"` honored after /n_go for
+   synths/groups (the old app's exact create-then-/n_run sequence), and
+   sc-run (play/pause over the target node element; bindless targets the
+   parent — a bindless sc-run should require its parent to be a node).
 6. **Input elements** — value dispatch is DONE for range/checkbox/display
-   over the `runtime` store slice (see "Runtime values" above — this
-   superseded the earlier no-store-slice design note: per-plugin store maps
-   keyed by state path, `ScState.setValue()`/`dispatchValue()` as the write
-   paths), incl. dispatch to vars and sc-if condition logic. Remaining: the
-   knob/slider/switch/combobox internals, sc-select/sc-radio-group dispatch.
-   Testing seam (in place,
-   src/sc-elements/__tests__/controls.test.ts): spy `oscClient.send` with an auto-responder
-   through `handleReply`; interaction tests fire `input`/`change` events in
-   happy-dom. Also note: a bindless `sc-run` should require its parent to
-   be a node when /n_run lands.
-7. **Buffers & scopes** — port `sc-buffer`/`sc-waveform`/`sc-test` with the old
-   `/b_getn` streaming machinery (Rust `buffer_ws.rs`-style per-buffer WS);
-   keep the current SHM master-out scope as-is.
-8. **Persistence & presets** — extend the saved-session layout payload with the
-   old per-box `OverrideEntry[]` presets (replaces the old zustand-persist).
+   over the ScDerived seam (see "Runtime values"), incl. dispatch to vars
+   and sc-if. The shared `ScInput` seam is in place (the target `_state`
+   subscription over the load/unload/disconnect lifecycle + `syncFromState`
+   + the `commit()` snap-back writer), and sc-range/sc-knob now render the
+   ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props
+   forwarded; knob is a distinct element, not a `type`). **Next: the rest
+   of the inputs** — sc-checkbox → `<sc-base-checkbox>` + a distinct
+   sc-switch → `<sc-base-switch>`; sc-select/sc-option and sc-radio-group/
+   sc-radio render the ui-components `sc-base-*` widgets by collecting their
+   option/radio children's `{value,label}` at parse and projecting the base
+   widgets (the pattern sc-strudel already uses for chips/buttons; dispatch
+   is one `commit(option.value)` + the `_state` subscription for the
+   highlight). Testing seam (in place, src/sc-elements/__tests__/
+   controls.test.ts): spy `oscClient.send` with an auto-responder through
+   `handleReply`; interaction tests drive the widgets' composed `input`/
+   `change` in happy-dom (the `-base` widgets register via test-setup).
+7. **Buffers & scopes — RE-SCOPED around the SHM transport** (the old
+   /b_getn + global-clock machinery existed only because the old app had no
+   SHM path; the new bus-based sc-scope already covers old sc-test and the
+   old buffer-bound scope): port `sc-buffer` as a thin alloc/free element
+   (/b_alloc gated on /done, /b_free on unload; bufnum binding into synth
+   controls; bufnums as a server-assigned per-session span like the scope
+   slots in core/blocks.rs — NOT the old client-side (clientID+1)*100
+   counter) and `sc-waveform` as a client-side recorder (record/pan/zoom
+   over a growing Float32Array) fed by an SHM scope-tap subscription instead
+   of /b_getn. `sc-test` is NOT ported (superseded by sc-scope's `bus`);
+   the /b_getn reader + buffer WS + clock.rs stack is the fallback only if
+   reading actual buffer CONTENTS (vs the live signal) becomes necessary.
+   NOTE: the old sc-app CLAUDE.md's sc-test description (per-synth
+   Phasor+SendTrig) is stale — its code uses a shared global-clock synth.
+8. **Persistence & presets** — extend the saved-session layout payload with
+   the old per-box `OverrideEntry[]` presets (replaces the old
+   zustand-persist), marshalled as sparse diffs from the runtime slice —
+   LITERAL keys only (derived values live on the elements and recompute; a
+   preset writing a bound key would create an orphan store entry nothing
+   reads).
 9. **Shell polish** — settings (grid size, latency), logger; a ConnectScreen is
    likely unnecessary (sessions auto-connect).
 10. **Examples & validation fixtures** — port `examples/` plugin zips (incl. the

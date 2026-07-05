@@ -41,18 +41,18 @@
 <div class="controls">
     <div class="knobs">
         <label>
-            <sc-range type="knob" bind="s1.freq" min="20" max="2000" step="1" diameter="48"/>
+            <sc-knob bind="s1.freq" min="20" max="2000" step="1" diameter="48"/>
             <span><sc-display bind="s1.freq" format="%d Hz"/></span>
         </label>
         <label>
-            <sc-range type="knob" bind="s1.amp" min="0" max="1" step="0.01" diameter="48"/>
+            <sc-knob bind="s1.amp" min="0" max="1" step="0.01" diameter="48"/>
             <span><sc-display bind="s1.amp" format="%.2f"/></span>
         </label>
     </div>
     <div class="sliders">
         <label>
             <span>Pan: <sc-display bind="s1.pan" format="%.2f"/></span>
-            <sc-range type="slider" bind="s1.pan" min="-1" max="1" step="0.01" width="120" height="16"/>
+            <sc-range bind="s1.pan" min="-1" max="1" step="0.01" width="120" height="16"/>
         </label>
         <label>
             <sc-checkbox bind="s1.mute" width="24" height="24"/>

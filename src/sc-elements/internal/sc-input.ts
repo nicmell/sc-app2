@@ -1,11 +1,11 @@
-// Base for the WRITING bind-targeting inputs (sc-range / sc-knob /
+// Base for the WRITING bind-targeting inputs (sc-slider / sc-knob /
 // sc-checkbox / sc-select / sc-radio-group / sc-run): the `bind` attribute
 // plus the resolved `_targetScNode` runtime reference — a single writable
 // target (an expression is not writable; the read-only visuals live on
 // internal/sc-derived instead). The default runtime resolves the visual bind
 // to a state element; subclasses override it where they parse children first
 // (select/radio-group) or target a node instead (sc-run). Each subclass keeps
-// its own validate() — bind is not required everywhere (sc-range, sc-run).
+// its own validate() — bind is not required everywhere (sc-slider, sc-run).
 //
 // It ALSO owns the shared value seam every value-input reuses (folded up from
 // the per-element copies): one subscription to the target's live `_state` over

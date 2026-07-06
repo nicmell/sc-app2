@@ -22,7 +22,7 @@ adopts nodes; no HTML re-parse). To install one by hand:
 
 | plugin | purpose |
 |---|---|
-| `example-plugin` | The kitchen-sink basic: one synthdef + one synth with freq/amp/pan/mute controls, `sc-knob`s + an `sc-range` slider, an `sc-checkbox`, and `sc-display`s. Tests controls on a synth + the input/visual binds. |
+| `example-plugin` | The kitchen-sink basic: one synthdef + one synth with freq/amp/pan/mute controls, `sc-knob`s + an `sc-slider`, an `sc-checkbox`, and `sc-display`s. Tests controls on a synth + the input/visual binds. |
 | `group-plugin` | Two synths inside an `sc-group` sharing a local synthdef, per-oscillator controls. Tests group nesting + per-synth scopes. |
 | `synthdef-plugin` | FM synthesis: a multi-ugen graph (SinOsc → MulAdd → BinaryOpUGen → Out) with bound ugen inputs, plus `sc-run` and displays. Tests the ugen input-reference validation and (later) graph compilation. |
 

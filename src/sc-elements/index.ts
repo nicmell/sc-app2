@@ -12,9 +12,9 @@ import { ScKnob } from "./inputs/sc-knob";
 import { ScOption } from "./inputs/sc-option";
 import { ScRadio } from "./inputs/sc-radio";
 import { ScRadioGroup } from "./inputs/sc-radio-group";
-import { ScRange } from "./inputs/sc-range";
 import { ScRun } from "./inputs/sc-run";
 import { ScSelect } from "./inputs/sc-select";
+import { ScSlider } from "./inputs/sc-slider";
 import { ScSwitch } from "./inputs/sc-switch";
 import { ScGroup } from "./nodes/sc-group";
 import { ScPlugin } from "./nodes/sc-plugin";
@@ -36,7 +36,7 @@ export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
 export { ScSynthDef, ScUgen };
 export { ScControl, ScVar };
-export { ScCheckbox, ScKnob, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect, ScSwitch };
+export { ScCheckbox, ScKnob, ScOption, ScRadio, ScRadioGroup, ScRun, ScSelect, ScSlider, ScSwitch };
 export { ScDisplay, ScIf };
 export { ScConsole, ScScope, ScStrudel };
 
@@ -48,7 +48,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_CONTROL]: ScControl,
   [ELEMENTS.SC_VAR]: ScVar,
   [ELEMENTS.SC_SYNTH]: ScSynth,
-  [ELEMENTS.SC_RANGE]: ScRange,
+  [ELEMENTS.SC_SLIDER]: ScSlider,
   [ELEMENTS.SC_KNOB]: ScKnob,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,
   [ELEMENTS.SC_SWITCH]: ScSwitch,

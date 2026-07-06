@@ -1,4 +1,4 @@
-// <sc-range> — a slider bound to a control/var (`bind`/`_targetScNode` on the
+// <sc-slider> — a slider bound to a control/var (`bind`/`_targetScNode` on the
 // ScInput base). Renders the ui-components <sc-base-slider>, forwarding every
 // slider prop; the value plumbing (drag/wheel/keyboard, quantise, composed
 // input/change) lives in the base widget. The shared ScInput seam wires the
@@ -14,7 +14,7 @@ import { requireNumeric } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
 
-export class ScRange extends ScInput {
+export class ScSlider extends ScInput {
   @property({ type: Number }) accessor min = 0;
   @property({ type: Number }) accessor max = 1;
   @property({ type: Number }) accessor step = 0.01;

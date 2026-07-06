@@ -33,11 +33,11 @@
     <div style="display:flex;gap:16px;align-items:center;flex:none;">
         <label>
             <span>Freq: <sc-display bind="s1.freq" format="%d Hz"/></span>
-            <sc-range bind="s1.freq" min="20" max="2000" step="1" width="160" height="16"/>
+            <sc-slider bind="s1.freq" min="20" max="2000" step="1" width="160" height="16"/>
         </label>
         <label>
             <span>Amp: <sc-display bind="s1.amp" format="%.2f"/></span>
-            <sc-range bind="s1.amp" min="0" max="1" step="0.01" width="120" height="16"/>
+            <sc-slider bind="s1.amp" min="0" max="1" step="0.01" width="120" height="16"/>
         </label>
         <label>
             <sc-checkbox bind="s1.gate" width="24" height="24"/>

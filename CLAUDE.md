@@ -385,7 +385,7 @@ further `sc-*` element:
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
 | sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a BOUND control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); bound controls re-/n_set on recompute. `run="false"` not honored yet (sc-run step) |
-| sc-range, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
+| sc-slider, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
 | sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
 | sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput seam syncs the selection from `_state` and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
 | sc-display | functional: the read-only expression visual |
@@ -573,7 +573,7 @@ steps, each independently shippable:
    "Runtime values"), incl. dispatch to vars and sc-if. The shared `ScInput`
    seam carries the target `_state` subscription over the load/unload/
    disconnect lifecycle + `syncFromState` + the `commit()` snap-back writer,
-   and every input renders its ui-components `sc-base-*` widget: sc-range/
+   and every input renders its ui-components `sc-base-*` widget: sc-slider/
    sc-knob → `<sc-base-slider>`/`<sc-base-knob>`, sc-checkbox/sc-switch →
    `<sc-base-checkbox>`/`<sc-base-switch>` (checked ↔ 1/0), sc-select/
    sc-radio-group → `<sc-base-select>`/`<sc-base-radio-group>` (each option/

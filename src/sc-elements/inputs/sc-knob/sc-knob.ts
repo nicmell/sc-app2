@@ -1,5 +1,5 @@
 // <sc-knob> — a rotary knob bound to a control/var (`bind`/`_targetScNode` on
-// the ScInput base). The rotary sibling of sc-range: same value seam, same
+// the ScInput base). The rotary sibling of sc-slider: same value seam, same
 // forwarding, but it renders the ui-components <sc-base-knob> (dial visual,
 // dominant-axis drag) instead of the slider. No `orientation` — a knob has none.
 

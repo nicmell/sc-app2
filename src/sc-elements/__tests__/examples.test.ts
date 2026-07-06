@@ -18,7 +18,7 @@ import {
   type ScControl,
   type ScElement,
   type ScKnob,
-  type ScRange,
+  type ScSlider,
   type ScSynthDef,
 } from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
@@ -144,10 +144,10 @@ describe("example-plugin structure", () => {
     }
   });
 
-  it("resolves every sc-range/sc-knob bind to an enabled control on the synth", () => {
+  it("resolves every sc-slider/sc-knob bind to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    const inputs = [...nodes].filter((el): el is ScRange | ScKnob =>
-      ["sc-range", "sc-knob"].includes(el.tagName.toLowerCase()),
+    const inputs = [...nodes].filter((el): el is ScSlider | ScKnob =>
+      ["sc-slider", "sc-knob"].includes(el.tagName.toLowerCase()),
     );
     expect(inputs.length).toBeGreaterThan(0);
     for (const input of inputs) {

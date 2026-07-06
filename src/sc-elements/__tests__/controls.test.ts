@@ -51,15 +51,15 @@ const control = (host: ScPlugin, key: string) =>
 
 const nSets = () => sent.filter((m) => m.address === "/n_set");
 
-/** The ui-components value widget a sc-range/sc-knob renders — its value lives
+/** The ui-components value widget a sc-slider/sc-knob renders — its value lives
  *  in the base widget's shadow, so tests drive the host (which re-emits a
  *  composed `input`, exactly the event the input listens for). */
 type ValueWidget = HTMLElement & { value: number };
 const widgetOf = (el: Element) =>
   el.querySelector("sc-base-slider, sc-base-knob") as ValueWidget;
-/** The sc-range/sc-knob wired to a given bind (tag-agnostic — freq is a knob). */
+/** The sc-slider/sc-knob wired to a given bind (tag-agnostic — freq is a knob). */
 const inputByBind = (host: ScPlugin, bind: string) =>
-  host.querySelector(`sc-range[bind="${bind}"], sc-knob[bind="${bind}"]`) as ScElement & {
+  host.querySelector(`sc-slider[bind="${bind}"], sc-knob[bind="${bind}"]`) as ScElement & {
     updateComplete: Promise<boolean>;
   };
 /** Simulate a user gesture on an input's widget: move the value + re-emit. */
@@ -386,7 +386,7 @@ describe("state propagation (vars + bound state)", () => {
       <sc-var name="sum" bind="vars.a + vars.b"/>
       <sc-var name="ratio" bind="vars.a / vars.b"/>
     </sc-group>
-    <sc-range bind="vars.a" min="0" max="1" step="0.01"/>
+    <sc-slider bind="vars.a" min="0" max="1" step="0.01"/>
     <sc-display bind="vars.doubled" format="%.2f"/>
   `);
 
@@ -413,7 +413,7 @@ describe("state propagation (vars + bound state)", () => {
     const { host } = await mountVars();
     const display = host.querySelector("sc-display") as ScDisplay;
 
-    dragWidget(host.querySelector("sc-range")!, 0.8);
+    dragWidget(host.querySelector("sc-slider")!, 0.8);
 
     expect(appStore.get().runtime[host.id]["vars.a"]).toBe(0.8); // the literal key
     expect(varByName(host, "mirror")._state).toBe(0.8);
@@ -449,11 +449,11 @@ describe("state propagation (vars + bound state)", () => {
         <sc-var name="a" value="0"/>
         <sc-var name="doubled" bind="vars.a * 2"/>
       </sc-group>
-      <sc-range bind="vars.doubled" min="0" max="4" step="0.01"/>
+      <sc-slider bind="vars.doubled" min="0" max="4" step="0.01"/>
       <sc-checkbox bind="vars.doubled"/>
     `);
     const { host } = await mountPlugin(SNAP_XML);
-    const range = host.querySelector("sc-range") as ScElement & {
+    const range = host.querySelector("sc-slider") as ScElement & {
       updateComplete: Promise<boolean>;
     };
     const box = host.querySelector("sc-checkbox") as ScElement & {

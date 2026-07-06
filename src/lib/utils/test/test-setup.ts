@@ -13,7 +13,7 @@ class WorkerStub {
 
 globalThis.Worker ??= WorkerStub as unknown as typeof Worker;
 
-// The inputs render the ui-components `-base` widgets (sc-range → sc-base-slider,
+// The inputs render the ui-components `-base` widgets (sc-slider → sc-base-slider,
 // sc-knob → sc-base-knob, …); define them so they upgrade under happy-dom like
 // the app's boot does (main.tsx).
 registerUiComponents();

@@ -131,7 +131,7 @@ The value inputs share the `ScInput` seam: one subscription to the target's
 the value onto the widget, and `commit()` — `setValue()` then a re-read
 snap-back so a gesture against BOUND (derived, read-only) state reverts.
 
-### `<sc-range>` — functional (ui-components `<sc-base-slider>`)
+### `<sc-slider>` — functional (ui-components `<sc-base-slider>`)
 
 Props (all forwarded to the inner slider): `bind` (target control/var path),
 `min`, `max`, `step`, `value` (numbers, validated), plus `label`, `size`
@@ -142,7 +142,7 @@ composed `input`. XSD also allows the legacy presentational attributes
 
 ### `<sc-knob>` — functional (ui-components `<sc-base-knob>`)
 
-The rotary sibling of sc-range: the same seam and forwarding, minus
+The rotary sibling of sc-slider: the same seam and forwarding, minus
 `orientation` (a knob has none), rendering `<sc-base-knob>` (dial visual,
 dominant-axis drag). Props: `bind`, `min`, `max`, `step`, `value`, `label`,
 `size`, `disabled` (+ legacy `diameter`/`width`/`height`/`src`/colors in XSD).

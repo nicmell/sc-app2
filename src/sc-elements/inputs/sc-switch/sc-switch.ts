@@ -1,19 +1,17 @@
-// <sc-checkbox> — a checkbox bound to a control/var (`bind`/`_targetScNode` on
-// the ScInput base). Renders the ui-components <sc-base-checkbox>, forwarding
-// its props. Checked maps to the value 1, unchecked to 0; the shared ScInput
-// seam wires the load-pass subscription (syncFromState) and the write path
-// (commit), reading the target through `_state`/`onStateChange`.
+// <sc-switch> — a toggle switch bound to a control/var (`bind`/`_targetScNode`
+// on the ScInput base). The switch sibling of sc-checkbox: the same 1/0 value
+// seam, rendering the ui-components <sc-base-switch> (track + thumb) instead of
+// the checkbox box. No `label` — sc-base-switch has none.
 
 import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import type { ScSize, ScCheckboxBase } from "@sc-app/ui-components/lit";
+import type { ScSize, ScSwitchBase } from "@sc-app/ui-components/lit";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
 
-export class ScCheckbox extends ScInput {
-  @property() accessor label = "";
+export class ScSwitch extends ScInput {
   @property() accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
 
@@ -28,16 +26,15 @@ export class ScCheckbox extends ScInput {
   }
 
   private onChange = (e: Event) => {
-    this.commit((e.target as ScCheckboxBase).checked ? 1 : 0);
+    this.commit((e.target as ScSwitchBase).checked ? 1 : 0);
   };
 
   render() {
-    return html`<sc-base-checkbox
-      label=${this.label}
+    return html`<sc-base-switch
       size=${this.size}
       ?disabled=${this.disabled}
       .checked=${live(this._checked)}
       @change=${this.onChange}
-    ></sc-base-checkbox>`;
+    ></sc-base-switch>`;
   }
 }

@@ -1,14 +1,30 @@
 // <sc-radio-group> — a radio set over its sc-radio children, bound to a
-// control/var (`bind`/`targetId` on the ScInput base). Stub: the radio UI +
-// value dispatch arrive with the inputs migration step.
+// control/var (`bind`/`_targetScNode` on the ScInput base). Renders the
+// ui-components <sc-base-radio-group>, projecting each sc-radio's collected
+// {value,label} into an <sc-base-radio>. The sc-radio children are pure data
+// (consumed at parse, never enabled); the shared ScInput seam syncs the
+// selection from the target's `_state` and dispatches the chosen value.
 
-import { property } from "lit/decorators.js";
+import { html } from "lit";
+import { property, state } from "lit/decorators.js";
+import { live } from "lit/directives/live.js";
+import type { ScSize, ScRadioGroupBase } from "@sc-app/ui-components/lit";
 import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { failValidation, requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
+import type { ScRadio } from "@/sc-elements/inputs/sc-radio";
+import "@sc-app/ui-components/lit";
 
 export class ScRadioGroup extends ScInput {
   @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
+  @property() accessor label = "";
+  @property() accessor size: ScSize = "md";
+  @property({ type: Boolean }) accessor disabled = false;
+
+  /** The declarative choices, collected from the sc-radio children at parse. */
+  _options: Array<{ value: number; label: string }> = [];
+
+  @state() accessor _value = 0;
 
   validate(): void {
     requireProp(this, "bind", this.bind);
@@ -24,6 +40,32 @@ export class ScRadioGroup extends ScInput {
 
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
     this.processChildren(ctx);
+    this._options = (this._scChildren ?? [])
+      .filter((c): c is ScRadio => c.tagName.toLowerCase() === "sc-radio")
+      .map((r) => ({ value: r.value, label: r.label }));
     return super.resolveRuntime(ctx);
+  }
+
+  protected syncFromState(value: number | undefined): void {
+    if (value !== undefined) this._value = value;
+  }
+
+  private onChange = (e: Event) => {
+    this.commit((e.target as ScRadioGroupBase).value);
+  };
+
+  render() {
+    return html`<sc-base-radio-group
+      orientation=${this.orientation}
+      label=${this.label}
+      size=${this.size}
+      ?disabled=${this.disabled}
+      .value=${live(this._value)}
+      @change=${this.onChange}
+    >
+      ${this._options.map(
+        (o) => html`<sc-base-radio value=${o.value} label=${o.label}></sc-base-radio>`,
+      )}
+    </sc-base-radio-group>`;
   }
 }

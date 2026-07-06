@@ -14,6 +14,7 @@ export const ELEMENTS = {
   SC_RANGE: "sc-range",
   SC_KNOB: "sc-knob",
   SC_CHECKBOX: "sc-checkbox",
+  SC_SWITCH: "sc-switch",
   SC_RUN: "sc-run",
   SC_DISPLAY: "sc-display",
   SC_IF: "sc-if",

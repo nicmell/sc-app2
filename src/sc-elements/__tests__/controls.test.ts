@@ -69,6 +69,28 @@ const dragWidget = (input: Element, value: number) => {
   widget.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
 };
 
+/** The ui-components boolean widget a sc-checkbox/sc-switch renders. */
+type ToggleWidget = HTMLElement & { checked: boolean };
+const toggleOf = (el: Element) =>
+  el.querySelector("sc-base-checkbox, sc-base-switch") as ToggleWidget;
+/** Simulate a user gesture on a sc-checkbox/sc-switch: set checked + re-emit. */
+const toggleWidget = (input: Element, checked: boolean) => {
+  const widget = toggleOf(input);
+  widget.checked = checked;
+  widget.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+};
+
+/** The ui-components value widget a sc-select/sc-radio-group renders. */
+type ChoiceWidget = HTMLElement & { value: number };
+const choiceOf = (el: Element) =>
+  el.querySelector("sc-base-select, sc-base-radio-group") as ChoiceWidget;
+/** Simulate choosing a value on a sc-select/sc-radio-group: set + re-emit. */
+const chooseWidget = (input: Element, value: number) => {
+  const widget = choiceOf(input);
+  widget.value = value;
+  widget.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+};
+
 beforeAll(() => {
   registerScElements();
 });
@@ -215,17 +237,15 @@ describe("inputs and display", () => {
     const checkbox = host.querySelector("sc-checkbox") as ScElement & {
       updateComplete: Promise<boolean>;
     };
-    const input = checkbox.querySelector("input") as HTMLInputElement;
-    expect(input.checked).toBe(false); // seeded default 0
+    expect(toggleOf(checkbox).checked).toBe(false); // seeded default 0
 
-    input.checked = true;
-    input.dispatchEvent(new Event("change"));
+    toggleWidget(checkbox, true);
     expect(appStore.get().runtime[host.id]["s1.mute"]).toBe(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "mute", 1]);
 
     setRuntimeValue(host.id, "s1.mute", 0);
     await checkbox.updateComplete;
-    expect(input.checked).toBe(false);
+    expect(toggleOf(checkbox).checked).toBe(false);
     expect(nSets()).toHaveLength(1); // the external write sent no OSC
   });
 
@@ -439,16 +459,14 @@ describe("state propagation (vars + bound state)", () => {
     const box = host.querySelector("sc-checkbox") as ScElement & {
       updateComplete: Promise<boolean>;
     };
-    const check = box.querySelector("input") as HTMLInputElement;
 
     dragWidget(range, 3.5); // the user drags — the write to derived state is inert
     await range.updateComplete;
     expect(widgetOf(range).value).toBe(0); // snapped back to the real value
 
-    check.checked = true; // the user clicks — equally inert
-    check.dispatchEvent(new Event("change"));
+    toggleWidget(box, true); // the user clicks — equally inert
     await box.updateComplete;
-    expect(check.checked).toBe(false); // snapped back
+    expect(toggleOf(box).checked).toBe(false); // snapped back
   });
 
   it("statechange does not bubble to ancestor elements", async () => {
@@ -571,10 +589,8 @@ describe("sc-if", () => {
 
   it("flipping the gate through a checkbox swaps the sections live", async () => {
     const { host, ifs } = await mountIf();
-    const input = host.querySelector("sc-checkbox input") as HTMLInputElement;
 
-    input.checked = false;
-    input.dispatchEvent(new Event("change"));
+    toggleWidget(host.querySelector("sc-checkbox")!, false);
     await Promise.all(ifs.map((el) => el.updateComplete));
     expect(hiddenStates(ifs)).toEqual([true, false, true]);
   });
@@ -593,6 +609,60 @@ describe("sc-if", () => {
     setRuntimeValue(host.id, "gate", 0);
     await Promise.all(ifs.map((el) => el.updateComplete));
     expect(hiddenStates(ifs)).toEqual([false, true, true]); // frozen pre-unload state
+  });
+});
+
+describe("selection inputs (select + radio-group)", () => {
+  // Two inputs on one var: the select and the radio-group both bind vars.mode,
+  // so choosing on one cascades to the other through the shared _state.
+  const CHOICE_XML = wrapXml(`
+    <sc-group name="vars">
+      <sc-var name="mode" value="1"/>
+    </sc-group>
+    <sc-select bind="vars.mode">
+      <sc-option value="0" label="Off"/>
+      <sc-option value="1" label="On"/>
+      <sc-option value="2" label="Auto"/>
+    </sc-select>
+    <sc-radio-group bind="vars.mode">
+      <sc-radio value="0" label="Off"/>
+      <sc-radio value="1" label="On"/>
+      <sc-radio value="2" label="Auto"/>
+    </sc-radio-group>
+  `);
+  const mountChoice = () => mountPlugin(CHOICE_XML);
+  const select = (host: ScPlugin) =>
+    host.querySelector("sc-select") as ScElement & { updateComplete: Promise<boolean> };
+  const radioGroup = (host: ScPlugin) =>
+    host.querySelector("sc-radio-group") as ScElement & { updateComplete: Promise<boolean> };
+
+  it("collects the option/radio children into projected base widgets", async () => {
+    const { host } = await mountChoice();
+    expect(choiceOf(select(host))?.querySelectorAll("sc-base-option")).toHaveLength(3);
+    expect(choiceOf(radioGroup(host))?.querySelectorAll("sc-base-radio")).toHaveLength(3);
+  });
+
+  it("syncs the selection from the bound var's seeded value", async () => {
+    const { host } = await mountChoice();
+    expect(choiceOf(select(host)).value).toBe(1);
+    expect(choiceOf(radioGroup(host)).value).toBe(1);
+  });
+
+  it("choosing on the select writes the var and cascades to the radio-group", async () => {
+    const { host } = await mountChoice();
+    chooseWidget(select(host), 2);
+    expect(appStore.get().runtime[host.id]["vars.mode"]).toBe(2);
+    expect(nSets()).toHaveLength(0); // vars never touch scsynth
+    await radioGroup(host).updateComplete;
+    expect(choiceOf(radioGroup(host)).value).toBe(2);
+  });
+
+  it("choosing on the radio-group writes the var and cascades to the select", async () => {
+    const { host } = await mountChoice();
+    chooseWidget(radioGroup(host), 0);
+    expect(appStore.get().runtime[host.id]["vars.mode"]).toBe(0);
+    await select(host).updateComplete;
+    expect(choiceOf(select(host)).value).toBe(0);
   });
 });
 

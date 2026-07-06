@@ -1,7 +1,7 @@
-// <sc-radio> — one declarative choice inside an sc-radio-group: consumed by
-// the parent, never enabled. Stub: the indicator UI arrives with the inputs
-// migration step. Presentational attributes (width/height/src/colors) are
-// XSD-allowed but not declared yet.
+// <sc-radio> — one declarative choice inside an sc-radio-group: pure data
+// (`value`/`label`), collected by the parent at parse and projected into an
+// <sc-base-radio>. Consumed by the parent, never enabled. Presentational
+// attributes (width/height/src/colors) are XSD-allowed but not declared yet.
 
 import { property } from "lit/decorators.js";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";

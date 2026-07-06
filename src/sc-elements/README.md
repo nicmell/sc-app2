@@ -147,29 +147,36 @@ The rotary sibling of sc-range: the same seam and forwarding, minus
 dominant-axis drag). Props: `bind`, `min`, `max`, `step`, `value`, `label`,
 `size`, `disabled` (+ legacy `diameter`/`width`/`height`/`src`/colors in XSD).
 
-### `<sc-checkbox>` — functional, deliberately unstyled (native `<input type="checkbox">`)
+### `<sc-checkbox>` — functional (ui-components `<sc-base-checkbox>`)
 
-Props: `bind` (required). Checked maps to 1/0 through the shared ScInput seam
-(inert against bound state, snaps back). XSD also allows width/height/src/
-colors; the sc-base-switch swap (and a distinct `<sc-switch>`) arrive with the
-rest of the inputs.
+Props: `bind` (required), `label`, `size`, `disabled`. Checked maps to 1/0
+through the shared ScInput seam (inert against bound state, snaps back). XSD
+also allows width/height/src/colors.
 
-### `<sc-select>` — stub
+### `<sc-switch>` — functional (ui-components `<sc-base-switch>`)
 
-A dropdown over its `<sc-option>` children. Props: `bind` (required).
-Will: combobox UI dispatching the chosen option's value.
+The toggle sibling of sc-checkbox: same 1/0 seam, rendering `<sc-base-switch>`
+(track + thumb), minus `label` (the base switch has none). Props: `bind`
+(required), `size`, `disabled`.
 
-### `<sc-option>` — stub
+### `<sc-select>` — functional (ui-components `<sc-base-select>`)
+
+A dropdown over its `<sc-option>` children. Props: `bind` (required),
+`placeholder`, `size`, `disabled`. Collects each option's `{value,label}` at
+parse and projects them as `<sc-base-option>`s; the selection syncs from the
+target's `_state` and a choice dispatches through `commit()`.
+
+### `<sc-option>` — data element
 
 One declarative choice. Props: `value` (number, required by the XSD),
-`label`. Never enabled (consumed by the parent select).
+`label` (required). Never enabled — consumed by the parent select at parse.
 
-### `<sc-radio-group>` / `<sc-radio>` — stubs
+### `<sc-radio-group>` / `<sc-radio>` — functional (ui-components `<sc-base-radio-group>`)
 
 Radio set over `<sc-radio>` children. Group props: `bind` (required),
-`orientation` (`horizontal|vertical`). Radio props: `value` (number), `label`
-(+ XSD-allowed width/height/src/colors).
-Will: radio UI dispatching the chosen value.
+`orientation` (`horizontal|vertical`), `label`, `size`, `disabled`. Radio
+props: `value` (number), `label` (+ XSD-allowed width/height/src/colors) —
+collected and projected as `<sc-base-radio>`s exactly like select/option.
 
 ### `<sc-run>` — stub
 

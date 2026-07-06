@@ -1,6 +1,6 @@
-// <sc-option> — one declarative choice inside an sc-select: consumed by the
-// parent, never enabled. Stub: rendering inside the select arrives with the
-// inputs migration step.
+// <sc-option> — one declarative choice inside an sc-select: pure data
+// (`value`/`label`), collected by the parent at parse and projected into an
+// <sc-base-option>. Consumed by the parent, never enabled.
 
 import { property } from "lit/decorators.js";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";

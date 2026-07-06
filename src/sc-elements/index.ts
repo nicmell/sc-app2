@@ -15,6 +15,7 @@ import { ScRadioGroup } from "./inputs/sc-radio-group";
 import { ScRange } from "./inputs/sc-range";
 import { ScRun } from "./inputs/sc-run";
 import { ScSelect } from "./inputs/sc-select";
+import { ScSwitch } from "./inputs/sc-switch";
 import { ScGroup } from "./nodes/sc-group";
 import { ScPlugin } from "./nodes/sc-plugin";
 import { ScSynth } from "./nodes/sc-synth";
@@ -35,7 +36,7 @@ export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
 export { ScSynthDef, ScUgen };
 export { ScControl, ScVar };
-export { ScCheckbox, ScKnob, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect };
+export { ScCheckbox, ScKnob, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect, ScSwitch };
 export { ScDisplay, ScIf };
 export { ScConsole, ScScope, ScStrudel };
 
@@ -50,6 +51,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_RANGE]: ScRange,
   [ELEMENTS.SC_KNOB]: ScKnob,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,
+  [ELEMENTS.SC_SWITCH]: ScSwitch,
   [ELEMENTS.SC_RUN]: ScRun,
   [ELEMENTS.SC_DISPLAY]: ScDisplay,
   [ELEMENTS.SC_IF]: ScIf,

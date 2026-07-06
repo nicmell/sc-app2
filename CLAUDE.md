@@ -386,11 +386,13 @@ further `sc-*` element:
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
 | sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a BOUND control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); bound controls re-/n_set on recompute. `run="false"` not honored yet (sc-run step) |
 | sc-range, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
-| sc-checkbox, sc-display | functional; sc-checkbox still a bare native `<input>` on the shared ScInput seam (the sc-base-checkbox/switch swap + a distinct sc-switch arrive with the rest of the inputs); sc-display is the read-only expression visual |
+| sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
+| sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput seam syncs the selection from `_state` and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
+| sc-display | functional: the read-only expression visual |
 | sc-var | functional: live `_state` on the shared ScDerived base (no OSC) — literal vars store-backed like controls, bound vars recompute element-to-element on their targets' statechange |
 | sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScDerived base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
 | sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
-| sc-run, sc-select, sc-option, sc-radio-group, sc-radio | **stubs**: parsed + validated + bind-resolved; no UI/logic |
+| sc-run | **stub**: parsed + validated + bind-resolved; no UI/logic (needs /n_run — arrives with the node-lifecycle step) |
 | sc-console | functional leaf (the OSC console; no attributes) |
 | sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
@@ -567,23 +569,22 @@ steps, each independently shippable:
    synths/groups (the old app's exact create-then-/n_run sequence), and
    sc-run (play/pause over the target node element; bindless targets the
    parent — a bindless sc-run should require its parent to be a node).
-6. **Input elements** — value dispatch is DONE for range/checkbox/display
-   over the ScDerived seam (see "Runtime values"), incl. dispatch to vars
-   and sc-if. The shared `ScInput` seam is in place (the target `_state`
-   subscription over the load/unload/disconnect lifecycle + `syncFromState`
-   + the `commit()` snap-back writer), and sc-range/sc-knob now render the
-   ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props
-   forwarded; knob is a distinct element, not a `type`). **Next: the rest
-   of the inputs** — sc-checkbox → `<sc-base-checkbox>` + a distinct
-   sc-switch → `<sc-base-switch>`; sc-select/sc-option and sc-radio-group/
-   sc-radio render the ui-components `sc-base-*` widgets by collecting their
-   option/radio children's `{value,label}` at parse and projecting the base
-   widgets (the pattern sc-strudel already uses for chips/buttons; dispatch
-   is one `commit(option.value)` + the `_state` subscription for the
-   highlight). Testing seam (in place, src/sc-elements/__tests__/
-   controls.test.ts): spy `oscClient.send` with an auto-responder through
-   `handleReply`; interaction tests drive the widgets' composed `input`/
-   `change` in happy-dom (the `-base` widgets register via test-setup).
+6. **Input elements** — DONE. Value dispatch over the ScDerived seam (see
+   "Runtime values"), incl. dispatch to vars and sc-if. The shared `ScInput`
+   seam carries the target `_state` subscription over the load/unload/
+   disconnect lifecycle + `syncFromState` + the `commit()` snap-back writer,
+   and every input renders its ui-components `sc-base-*` widget: sc-range/
+   sc-knob → `<sc-base-slider>`/`<sc-base-knob>`, sc-checkbox/sc-switch →
+   `<sc-base-checkbox>`/`<sc-base-switch>` (checked ↔ 1/0), sc-select/
+   sc-radio-group → `<sc-base-select>`/`<sc-base-radio-group>` (each option/
+   radio child's `{value,label}` collected at parse and projected into the
+   base widgets — the pattern sc-strudel uses for chips/buttons; knob and
+   switch are distinct elements, not a `type`). All base props are forwarded.
+   Testing seam (src/sc-elements/__tests__/controls.test.ts): spy
+   `oscClient.send` with an auto-responder through `handleReply`; interaction
+   tests drive the widgets' composed `input`/`change` in happy-dom (the
+   `-base` widgets register via test-setup). Only sc-run is left (its /n_run
+   belongs to the node-lifecycle step).
 7. **Buffers & scopes — RE-SCOPED around the SHM transport** (the old
    /b_getn + global-clock machinery existed only because the old app had no
    SHM path; the new bus-based sc-scope already covers old sc-test and the

@@ -7,7 +7,7 @@ import { property } from "lit/decorators.js";
 import { isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
-import { requireProp, resolveNode } from "@/sc-elements/internal/validation";
+import { requireName, resolveNode } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScSynth extends ScNode {
@@ -15,7 +15,7 @@ export class ScSynth extends ScNode {
   @property() accessor bind = "";
 
   validate(): void {
-    requireProp(this, "name", this.name);
+    requireName(this, this.name);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {

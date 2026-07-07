@@ -8,6 +8,7 @@ import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import {
   baseRuntime,
   failValidation,
+  requireName,
   requireProp,
   resolveNode,
 } from "@/sc-elements/internal/validation";
@@ -23,7 +24,7 @@ export class ScUgen extends ScElement {
   @property() accessor op: string | undefined = undefined;
 
   validate(): void {
-    requireProp(this, "name", this.name);
+    requireName(this, this.name);
     requireProp(this, "type", this.ugen);
     if (!UGEN_RATES.has(this.rate)) {
       failValidation(this, `"rate" attribute must be one of ar|kr|ir (got "${this.rate}")`);

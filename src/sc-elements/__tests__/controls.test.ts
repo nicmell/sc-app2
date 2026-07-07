@@ -667,6 +667,37 @@ describe("selection inputs (select + radio-group)", () => {
   });
 });
 
+describe("name syntax (requireName)", () => {
+  const NAME_ERROR = (tag: string, name: string) =>
+    `<${tag}>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${name}")`;
+
+  it("rejects dotted names — they would forge another scope's store key", () => {
+    // "s1.freq" as a NAME would alias the freq control of a synth named s1.
+    expect(() => parsePlugin(wrapXml(`<sc-var name="s1.freq" value="1"/>`))).toThrow(
+      NAME_ERROR("sc-var", "s1.freq"),
+    );
+    expect(() =>
+      parsePlugin(wrapXml(`<sc-group name="a.b"><sc-control name="x" value="0"/></sc-group>`)),
+    ).toThrow(NAME_ERROR("sc-group", "a.b"));
+  });
+
+  it("rejects names that no bind could ever reference", () => {
+    expect(() => parsePlugin(wrapXml(`<sc-var name="1st" value="0"/>`))).toThrow(
+      NAME_ERROR("sc-var", "1st"),
+    );
+    expect(() => parsePlugin(wrapXml(`<sc-var name="a b" value="0"/>`))).toThrow(
+      NAME_ERROR("sc-var", "a b"),
+    );
+    expect(() => parsePlugin(wrapXml(`<sc-var name="a-" value="0"/>`))).toThrow(
+      NAME_ERROR("sc-var", "a-"),
+    );
+  });
+
+  it("accepts hyphenated identifier words (the addressable name grammar)", () => {
+    expect(() => parsePlugin(wrapXml(`<sc-var name="mod-freq_2" value="0"/>`))).not.toThrow();
+  });
+});
+
 describe("sc-if transparency", () => {
   // The var lives INSIDE the sc-if (through a div) but belongs to the
   // enclosing level: root-scoped, root-pathed, referenceable from a LATER

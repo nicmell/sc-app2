@@ -56,6 +56,8 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
   "bad-ugen-ref": '<sc-ugen name="osc">: input "freq" references unknown "lfo"',
   "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
+  "bad-name-syntax":
+    '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
 };
 
 interface ExampleCase {

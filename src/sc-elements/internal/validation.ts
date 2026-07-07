@@ -28,6 +28,25 @@ export function requireProp(el: Element, name: string, value: string): void {
   if (!value) failValidation(el, `missing required "${name}" attribute`);
 }
 
+/** One bind-path segment: hyphenated identifier words (`freq`, `mod-freq`). */
+const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
+
+/** Require a well-formed `name`: exactly the grammar of ONE bind-path
+ *  segment. Dots are the path separator — a dotted name would FORGE another
+ *  scope's runtime store key (`name="s1.freq"` at the root aliases the
+ *  `freq` control of synth `s1`: silent cross-wiring the per-scope duplicate
+ *  check cannot see) — and any other illegal character would make the name
+ *  unreferenceable by binds/expressions. */
+export function requireName(el: Element, value: string): void {
+  requireProp(el, "name", value);
+  if (!NAME_SEGMENT.test(value)) {
+    failValidation(
+      el,
+      `"name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${value}")`,
+    );
+  }
+}
+
 /** Reject a numeric property whose attribute didn't parse as a number. */
 export function requireNumeric(el: Element, name: string, value: number | undefined): void {
   if (value !== undefined && Number.isNaN(value)) {

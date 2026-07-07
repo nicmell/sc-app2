@@ -80,6 +80,7 @@ targets a single error path in the sc-elements runtime
 | `bad-ugen-input` | `sc-synthdef collectUgenInputs` | a ugen `sc-control` with neither `bind` nor `value` |
 | `bad-ugen-ref` | `sc-ugen resolveRuntime` | a ugen input bound to `lfo`, which names no sibling ugen / param |
 | `bad-if-shadow` | `checkDuplicateNames` | a same-named var inside a TRANSPARENT `sc-if` — its contents hydrate into the enclosing sibling scope, so the collision fails the flat-scope duplicate check |
+| `bad-name-syntax` | `requireName` | a dotted `name` (`s1.freq`) — dots are the path separator, so the name would FORGE synth `s1`'s `freq` store key (silent cross-wiring no per-scope check can see); names must be one bind-path segment (the XSD's `scName` pattern is best-effort — fastxml ignores pattern facets, the runtime is the gate) |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

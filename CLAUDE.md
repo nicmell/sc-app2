@@ -465,11 +465,14 @@ ancestor) wherever a node is needed (ScControl's /n_set); named-child
 lookups see through transparency too (`scChildrenThrough` in
 walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
-defensive guard for genuinely non-node levels (inside a synthdef). The old
-app's name-based group→descendant SET_CONTROL propagation is deliberately
-NOT reproduced — a group-level control's /n_set on the group node is the
-server-side replacement (scsynth fans it out), plus explicit
-`bind="group.ctl"`.
+defensive guard for genuinely non-node levels (inside a synthdef). Names
+are syntax-validated as ONE bind-path segment (`requireName` — letters,
+digits, `_`, `-`; no dots): a dotted name would forge another scope's store
+key (`bad-name-syntax`; the XSD's `scName` pattern is best-effort — fastxml
+ignores pattern facets, the runtime is the gate). The old app's name-based
+group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
+group-level control's /n_set on the group node is the server-side
+replacement (scsynth fans it out), plus explicit `bind="group.ctl"`.
 
 Runtime layer: all old handlers ported (bind resolution incl. expressions
 via lib/utils/expression parseBind/evalExpr — arithmetic + the

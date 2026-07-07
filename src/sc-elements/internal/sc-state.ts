@@ -36,8 +36,8 @@ import type { RuntimeContext, DerivedRuntime } from "@/types/runtime";
 import {
   baseRuntime,
   failValidation,
+  requireName,
   requireNumeric,
-  requireProp,
 } from "@/sc-elements/internal/validation";
 import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
@@ -46,7 +46,7 @@ export abstract class ScState extends ScDerived {
   @property({ type: Number }) accessor value: number | undefined = undefined;
 
   validate(): void {
-    requireProp(this, "name", this.name);
+    requireName(this, this.name);
     if (this.bind !== undefined && this.value !== undefined) {
       failValidation(this, `"value" and "bind" are mutually exclusive`);
     }

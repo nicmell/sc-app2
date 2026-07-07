@@ -28,6 +28,7 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
   "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope
+  "bad-name-syntax", // a dotted name forging another scope's store key
 ]);
 
 // CDP setup

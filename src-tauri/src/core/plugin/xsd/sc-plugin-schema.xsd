@@ -18,6 +18,16 @@
     <xs:attribute name="style" type="xs:string" use="optional"/>
   </xs:attributeGroup>
 
+  <!-- One bind-path segment: hyphenated identifier words. Dots are the path
+       separator, so a dotted name would forge another scope's runtime key;
+       the components' requireName() is the real gate (see CLAUDE.md — the
+       XSD is best-effort at upload). -->
+  <xs:simpleType name="scName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
   <!-- ==================== Element declarations ==================== -->
 
   <!-- Layout HTML -->
@@ -205,7 +215,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:group ref="blockContent"/>
     </xs:choice>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
@@ -216,7 +226,7 @@
       <xs:element ref="sc-control"/>
       <xs:element ref="sc-ugen"/>
     </xs:choice>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -225,7 +235,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
     </xs:choice>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
     <xs:attribute name="rate" type="xs:string"/>
     <xs:attribute name="op" type="xs:string"/>
@@ -234,7 +244,7 @@
 
   <!-- sc-control: a literal value or a bind reference (mutually exclusive). -->
   <xs:complexType name="scControlType">
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -242,7 +252,7 @@
 
   <!-- sc-var: a named state variable (value or bind expression). -->
   <xs:complexType name="scVarType">
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -253,7 +263,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
     </xs:choice>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="scName" use="required"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>

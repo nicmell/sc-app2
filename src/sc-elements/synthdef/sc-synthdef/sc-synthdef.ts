@@ -9,7 +9,7 @@ import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
-import { baseRuntime, requireProp } from "@/sc-elements/internal/validation";
+import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
@@ -47,7 +47,7 @@ export class ScSynthDef extends ScElement {
   specs!: UgenSpec[];
 
   validate(): void {
-    requireProp(this, "name", this.name);
+    requireName(this, this.name);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {

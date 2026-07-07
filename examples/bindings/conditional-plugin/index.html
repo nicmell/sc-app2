@@ -52,9 +52,11 @@
     </label>
 </div>
 
-<!-- sc-if wraps controls — path should pass through the nameless sc-if.
-     The bind is a full expression: truthiness shows the children, and the
-     inverse section compares against the live control (`== 0`). -->
+<!-- sc-if is TRANSPARENT: its contents live in the enclosing scope,
+     unconditionally — the var below keys at the root and stays referenceable
+     from OUTSIDE (and after) the sc-if; only visibility follows the bind (a
+     full expression: truthiness shows the children, and the inverse section
+     compares against the live control with `== 0`). -->
 <sc-if bind="osc.gate">
     <div>
         <h3>Gate is ON</h3>
@@ -62,8 +64,12 @@
             <span>Gate: <sc-display bind="osc.gate" format="%d"/></span>
             <sc-checkbox bind="osc.gate"/>
         </label>
+        <sc-var name="octaveUp" bind="osc.freq * 2"/>
     </div>
 </sc-if>
+<label>
+    <span>Octave up (a var declared inside the sc-if): <sc-display bind="octaveUp" format="%d Hz"/></span>
+</label>
 <sc-if bind="osc.gate == 0">
     <div>
         <h3>Gate is OFF — click to re-enable</h3>

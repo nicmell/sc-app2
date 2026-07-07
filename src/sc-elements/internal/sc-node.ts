@@ -6,6 +6,7 @@
 
 import { property } from "lit/decorators.js";
 import { isControlRuntime, isNodeRuntime } from "@/lib/utils/guards";
+import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
 import { baseRuntime } from "@/sc-elements/internal/validation";
 import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
@@ -42,12 +43,21 @@ export abstract class ScNode extends ScElement {
     return controls;
   }
 
-  /** The scsynth group this node's /s_new targets: the nearest loaded node
-   *  ancestor — the plugin group, until sc-group grows its own /g_new. */
+  /** The scsynth group this node's create targets: the nearest LOADED node
+   *  ancestor — the enclosing sc-group's node, or the plugin group (the walk
+   *  skips transparent otcontainers and not-yet-live nodes naturally). */
   protected get targetGroupId(): number {
     for (let el = this._parentScNode; el; el = el._parentScNode) {
       if (isNodeRuntime(el) && el.nodeId !== 0) return el.nodeId;
     }
     throw new Error(`<${this.tagName.toLowerCase()}>: no loaded ancestor group`);
+  }
+
+  /** Pause (false) / resume (true) the live node (/n_run) — the seam sc-run
+   *  and `run="false"` will drive at their step; a no-op until the node is
+   *  live. The `run` ATTRIBUTE itself is parsed but not yet honored at load. */
+  setRunning(running: boolean): void {
+    if (!this.loaded || this.nodeId === 0) return;
+    oscClient.setNodeRun(this.nodeId, running ? 1 : 0);
   }
 }

@@ -62,6 +62,28 @@ export function nameOf(el: Element): string | undefined {
   return (el as { name?: string }).name;
 }
 
+/** Transparent containers: NAMELESS non-node sc elements (sc-if, sc-select,
+ *  sc-radio-group). Naming containers — group/synth/synthdef/ugen, all with
+ *  a required `name` — open a sibling scope and a store-path segment;
+ *  transparent ones open neither: the parse walks through them, so their
+ *  contents live in the enclosing level (unconditionally — an sc-if only
+ *  hides visually). The nameless PLUGIN ROOT is a node, not a container —
+ *  hence the node exclusion. Lives here (not lib/utils/guards) to avoid an
+ *  import cycle: guards ← validation. */
+export function isTransparent(el: Element): boolean {
+  return !nameOf(el) && !isNodeRuntime(el);
+}
+
+/** A parent's sc children as name lookups see them: recursing through
+ *  transparent containers, so state inside an sc-if stays addressable on the
+ *  enclosing node (`bind="g.x"` with x wrapped in an sc-if under g). */
+export function* scChildrenThrough(parent: ScElement): Generator<ScElement> {
+  for (const child of parent._scChildren ?? []) {
+    yield child;
+    if (isTransparent(child)) yield* scChildrenThrough(child);
+  }
+}
+
 /** The runtime core every element shares. */
 export function baseRuntime(ctx: RuntimeContext): BaseRuntime {
   return {
@@ -76,8 +98,9 @@ function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
   if (node._scChildren) {
     const [name, ...rest] = path;
-    const child = node._scChildren.find((c) => nameOf(c) === name);
-    return child ? walkPath(child, rest) : undefined;
+    for (const child of scChildrenThrough(node)) {
+      if (nameOf(child) === name) return walkPath(child, rest);
+    }
   }
   return undefined;
 }
@@ -118,7 +141,7 @@ export function resolveControlBind(
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
   }
-  if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+  if (![...scChildrenThrough(target)].some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // When the state IS declared on the target but only later in the
     // document (not yet processed), give the honest bind-order error
     // instead of "not declared".
@@ -148,7 +171,7 @@ export function resolveStateBind(
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path);
-    const targetState = target._scChildren!.find(
+    const targetState = [...scChildrenThrough(target)].find(
       (c) => isStateRuntime(c) && nameOf(c) === controlName,
     ) as ScState;
     // With references restricted to already-processed elements, processing
@@ -169,6 +192,8 @@ export function resolveStateBind(
 /** Resolve `el`'s visual/input bind to its target state element. */
 export function resolveVisualBind(el: Element, ctx: RuntimeContext, bind: string): InputRuntime {
   const { target, controlName } = resolveControlBind(el, ctx, bind);
-  const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
+  const control = [...scChildrenThrough(target)].find(
+    (c) => isStateRuntime(c) && nameOf(c) === controlName,
+  )!;
   return { ...baseRuntime(ctx), _targetScNode: control };
 }

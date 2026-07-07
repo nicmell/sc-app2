@@ -21,6 +21,7 @@ import {
   type ScControl,
   type ScDisplay,
   type ScElement,
+  type ScGroup,
   type ScPlugin,
   type ScSynth,
   type ScSynthDef,
@@ -55,8 +56,7 @@ const nSets = () => sent.filter((m) => m.address === "/n_set");
  *  in the base widget's shadow, so tests drive the host (which re-emits a
  *  composed `input`, exactly the event the input listens for). */
 type ValueWidget = HTMLElement & { value: number };
-const widgetOf = (el: Element) =>
-  el.querySelector("sc-base-slider, sc-base-knob") as ValueWidget;
+const widgetOf = (el: Element) => el.querySelector("sc-base-slider, sc-base-knob") as ValueWidget;
 /** The sc-slider/sc-knob wired to a given bind (tag-agnostic — freq is a knob). */
 const inputByBind = (host: ScPlugin, bind: string) =>
   host.querySelector(`sc-slider[bind="${bind}"], sc-knob[bind="${bind}"]`) as ScElement & {
@@ -405,8 +405,9 @@ describe("state propagation (vars + bound state)", () => {
     expect(varByName(host, "doubled")._state).toBe(1);
     expect(varByName(host, "sum")._state).toBe(0.5);
     expect(varByName(host, "ratio")._state).toBe(0); // division by zero guards to 0
-    // Vars never touch scsynth — the only send is the plugin group's /g_new.
-    expect(sent.map((m) => m.address)).toEqual(["/g_new"]);
+    // Vars never touch scsynth — the only sends are the plugin group's
+    // /g_new and the "vars" sc-group's own /g_new (functional now).
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/g_new"]);
   });
 
   it("an input writes a var and the bound chain cascades, without OSC", async () => {
@@ -663,6 +664,187 @@ describe("selection inputs (select + radio-group)", () => {
     expect(appStore.get().runtime[host.id]["vars.mode"]).toBe(0);
     await select(host).updateComplete;
     expect(choiceOf(select(host)).value).toBe(0);
+  });
+});
+
+describe("sc-if transparency", () => {
+  // The var lives INSIDE the sc-if (through a div) but belongs to the
+  // enclosing level: root-scoped, root-pathed, referenceable from a LATER
+  // outer sibling — only its visibility follows the sc-if.
+  const TRANSPARENT_XML = wrapXml(`
+    <sc-var name="gate" value="1"/>
+    <sc-if bind="gate">
+      <div>
+        <sc-var name="mirror" bind="gate * 2"/>
+      </div>
+    </sc-if>
+    <sc-display bind="mirror" format="%d"/>
+  `);
+
+  it("contents key at the enclosing path and are referenceable from outside", async () => {
+    const { host } = await mountPlugin(TRANSPARENT_XML);
+    const scIf = host.querySelector("sc-if") as ScElement;
+    const mirror = [...host.querySelectorAll("sc-var")].find(
+      (v) => (v as ScVar).name === "mirror",
+    ) as ScVar;
+    const display = host.querySelector("sc-display") as ScDisplay;
+
+    expect(appStore.get().runtime[host.id]).toEqual({ gate: 1 }); // literal only, root path
+    expect(mirror._state).toBe(2);
+    // The tree stays truthful; the OWNER is recovered through transparency.
+    expect(mirror._parentScNode).toBe(scIf);
+    expect(mirror.namedScParent).toBe(host);
+    expect(scIf._scChildren).toContain(mirror);
+    await display.updateComplete;
+    expect(display.textContent).toBe("2");
+  });
+
+  it("a same-named element inside the sc-if collides with the enclosing scope", () => {
+    const XML = wrapXml(`
+      <sc-var name="x" value="1"/>
+      <sc-if bind="x"><div><sc-var name="x" value="2"/></div></sc-if>
+    `);
+    expect(() => parsePlugin(XML)).toThrow('<sc-var name="x">: duplicate name in scope');
+  });
+
+  it("the sc-if's own bind cannot reference its own contents (bind order)", () => {
+    const XML = wrapXml(`<sc-if bind="x"><sc-var name="x" value="1"/></sc-if>`);
+    expect(() => parsePlugin(XML)).toThrow('<sc-if>: "x" is referenced before it is declared');
+  });
+
+  it("a synth inside a falsy sc-if is hidden but LIVE (/s_new sent)", async () => {
+    const XML = wrapXml(`
+      <sc-synthdef name="beep">
+        <sc-control name="freq" value="440"/>
+        <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind="freq"/>
+        </sc-ugen>
+        <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind="osc"/>
+        </sc-ugen>
+      </sc-synthdef>
+      <sc-var name="show" value="0"/>
+      <sc-if bind="show">
+        <sc-synth name="s" bind="beep">
+          <sc-control name="freq" value="440"/>
+        </sc-synth>
+      </sc-if>
+    `);
+    const { host } = await mountPlugin(XML);
+    const scIf = host.querySelector("sc-if") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    const synth = host.querySelector("sc-synth") as ScSynth;
+
+    await scIf.updateComplete;
+    expect(scIf.hasAttribute("hidden")).toBe(true); // invisible…
+    expect(synth.loaded).toBe(true); // …but playing
+    expect(sent.filter((m) => m.address === "/s_new")).toHaveLength(1);
+  });
+});
+
+describe("sc-group", () => {
+  const GROUP_XML = wrapXml(`
+    <sc-group name="g">
+      <sc-control name="vol" value="0.5"/>
+      <sc-synthdef name="sine">
+        <sc-control name="freq" value="440"/>
+        <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind="freq"/>
+        </sc-ugen>
+        <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind="osc"/>
+        </sc-ugen>
+      </sc-synthdef>
+      <sc-synth name="s1" bind="sine">
+        <sc-control name="freq" value="330"/>
+      </sc-synth>
+      <sc-if bind="g.vol">
+        <sc-control name="mix" value="0"/>
+      </sc-if>
+    </sc-group>
+  `);
+
+  const group = (host: ScPlugin) => host.querySelector("sc-group") as ScGroup;
+  const groupControl = (host: ScPlugin, name: string) =>
+    [...host.querySelectorAll("sc-control")].find(
+      (c) => (c as ScControl).name === name,
+    ) as ScControl;
+
+  it("creates its own group under the plugin group; children target it", async () => {
+    const { host } = await mountPlugin(GROUP_XML);
+    const g = group(host);
+    const synth = host.querySelector("sc-synth") as ScSynth;
+
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/g_new", "/d_recv", "/s_new"]);
+    expect(g.loaded).toBe(true);
+    expect(sent[1].args).toEqual([g.nodeId, 1, host.nodeId]); // nested under the plugin group
+    expect(sent[3].args[3]).toBe(g.nodeId); // the synth targets the GROUP
+    expect(synth.nodeId).not.toBe(g.nodeId);
+  });
+
+  it("group-level controls /n_set the group node — including through an sc-if", async () => {
+    const { host } = await mountPlugin(GROUP_XML);
+    const g = group(host);
+
+    groupControl(host, "vol").setValue(0.8);
+    expect(nSets()[0].args).toEqual([g.nodeId, "vol", 0.8]);
+
+    const mix = groupControl(host, "mix"); // declared inside <sc-if> under the group
+    expect(mix.enabled).toBe(true);
+    expect(appStore.get().runtime[host.id]["g.mix"]).toBe(0); // group-pathed key
+    expect(mix.namedScParent).toBe(g);
+    mix.setValue(0.3);
+    expect(nSets()[1].args).toEqual([g.nodeId, "mix", 0.3]);
+  });
+
+  it("nested groups nest their nodes", async () => {
+    const XML = wrapXml(`
+      <sc-group name="outer">
+        <sc-group name="inner">
+          <sc-control name="x" value="0"/>
+        </sc-group>
+      </sc-group>
+    `);
+    const { host } = await mountPlugin(XML);
+    const [outer, inner] = [...host.querySelectorAll("sc-group")] as ScGroup[];
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/g_new", "/g_new"]);
+    expect(sent[1].args).toEqual([outer.nodeId, 1, host.nodeId]);
+    expect(sent[2].args).toEqual([inner.nodeId, 1, outer.nodeId]);
+  });
+
+  it("unload resets the flags with no per-group frees (the subtree dies with the plugin group)", async () => {
+    const { host } = await mountPlugin(GROUP_XML);
+    const g = group(host);
+    const pluginGroupId = host.nodeId;
+    host.remove();
+    expect(g.loaded).toBe(false);
+    expect(g.nodeId).toBe(0);
+    // Exactly the plugin group's wholesale teardown — nothing targets g.
+    const frees = sent.filter((m) => m.address === "/g_freeAll" || m.address === "/n_free");
+    expect(frees.map((m) => m.args[0])).toEqual([pluginGroupId, pluginGroupId]);
+  });
+
+  it("setRunning drives /n_run on live nodes and no-ops on unloaded ones", async () => {
+    const { host } = await mountPlugin(GROUP_XML);
+    const g = group(host);
+    const synth = host.querySelector("sc-synth") as ScSynth;
+
+    g.setRunning(false);
+    synth.setRunning(true);
+    const runs = sent.filter((m) => m.address === "/n_run");
+    expect(runs.map((m) => m.args)).toEqual([
+      [g.nodeId, 0],
+      [synth.nodeId, 1],
+    ]);
+    // The load pass itself never sent /n_run (the run attribute is ignored).
+    expect(runs).toHaveLength(2);
+
+    host.remove();
+    g.setRunning(true); // unloaded — silently inert
+    expect(sent.filter((m) => m.address === "/n_run")).toHaveLength(2);
   });
 });
 

@@ -9,7 +9,6 @@ import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import type { ScSize, ScRadioGroupBase } from "@sc-app/ui-components/lit";
-import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { failValidation, requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { ScRadio } from "@/sc-elements/inputs/sc-radio";
@@ -20,9 +19,6 @@ export class ScRadioGroup extends ScInput {
   @property() accessor label = "";
   @property() accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
-
-  /** The declarative choices, collected from the sc-radio children at parse. */
-  _options: Array<{ value: number; label: string }> = [];
 
   @state() accessor _value = 0;
 
@@ -38,12 +34,15 @@ export class ScRadioGroup extends ScInput {
     }
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    this.processChildren(ctx);
-    this._options = (this._scChildren ?? [])
+  /** The declarative choices — read lazily from the parsed children: the
+   *  radio-group is a transparent container, so its sc-radio children are
+   *  processed by the ENCLOSING level (after this element) and attach here
+   *  as their parse parent. Lit's first update runs after the synchronous
+   *  parse, so render always sees them. */
+  get _options(): Array<{ value: number; label: string }> {
+    return (this._scChildren ?? [])
       .filter((c): c is ScRadio => c.tagName.toLowerCase() === "sc-radio")
       .map((r) => ({ value: r.value, label: r.label }));
-    return super.resolveRuntime(ctx);
   }
 
   protected syncFromState(value: number | undefined): void {

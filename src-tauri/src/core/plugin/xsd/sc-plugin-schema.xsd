@@ -345,16 +345,14 @@
   </xs:complexType>
 
   <!-- sc-if: conditional rendering on the truthiness of an expression bind
-       (e.g. bind="osc.gate", bind="vars.freq > 440"). Presentation content
-       only — no state/node elements: sc-if hides visually (a "hidden" synth
-       would still play) and is path-transparent (a nested state element
-       would share an outer sibling's runtime key). Direct children are
-       gated here; nesting through html wrappers is the runtime's parse
-       check. -->
+       (e.g. bind="osc.gate", bind="vars.freq > 440"). A TRANSPARENT
+       container: full block content is allowed, and its contents are
+       UNCONDITIONALLY live — parsed into the enclosing scope (same duplicate
+       check, same store paths), a nested synth keeps playing while hidden —
+       only visibility is conditional. -->
   <xs:complexType name="scIfType" mixed="true">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="htmlElements"/>
-      <xs:group ref="scControls"/>
+      <xs:group ref="blockContent"/>
     </xs:choice>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>

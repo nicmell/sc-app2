@@ -1,5 +1,5 @@
 {
-  "name": "bad-var-scope",
+  "name": "bad-if-shadow",
   "author": "sc-app",
   "version": "0.1.0",
   "entry": "index.html",

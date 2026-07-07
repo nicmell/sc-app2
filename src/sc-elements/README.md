@@ -41,13 +41,12 @@ Within each category (except `internal/`) every element lives in its own folder
 — `<category>/<sc-name>/<sc-name>.ts` (+ its `.module.scss`, if any) with an
 `index.ts` re-export, so `@/sc-elements/<category>/<sc-name>` resolves unchanged.
 
-Status: the synth path (plugin/synthdef/ugen/synth/control) and the state
-layer (var/display/if + the range/checkbox inputs) are **functional**; the
-remaining **stubs** — parsed, validated, and bind-resolved, but with no
-OSC/UI behavior yet — are sc-group (no own /g_new), sc-run, and the
-selection inputs (sc-select/sc-option, sc-radio-group/sc-radio). "Will:"
-notes on stubs describe the old app's semantics, which return with the
-matching migration steps (see the root CLAUDE.md migration plan).
+Status: everything is **functional** except `sc-run` (the one remaining
+stub — parsed, validated, and bind-resolved; its /n_run toggle arrives with
+the sc-run step, over the already-present `ScNode.setRunning` seam) and the
+un-migrated buffer family. `run="false"` on nodes is parsed but not yet
+honored at load (deferred with sc-run). See the root CLAUDE.md migration
+plan.
 
 ## `nodes/`
 
@@ -64,11 +63,17 @@ scsynth group:
 unmount. Renders a `<slot>` plus the parse error, if any.
 Props: `run` (boolean attribute, `run="false"` is the only falsy spelling).
 
-### `<sc-group>` — stub
+### `<sc-group>` — functional
 
-A named container node. Props: `name` (required), `run`.
-Will: own a nested scsynth group (`/g_new` on mount, freed on unmount);
-group-level `sc-control` children become shared params.
+A named container node. Props: `name` (required), `run` (parsed, honored at
+the sc-run step). The load pass `/g_new`s its own group node FIRST — the
+inverse of sc-synth's children-first order — so its children's
+`targetGroupId` walk finds it live; nested groups nest. Group-level enabled
+`sc-control` children key under the group path and `/n_set` the GROUP node
+on writes (scsynth fans a group `/n_set` out to every node inside — the
+server-side replacement for the old app's name-based propagation). Unload
+resets flags only: the subtree dies with the plugin group's wholesale
+teardown.
 
 ### `<sc-synth>` — functional
 
@@ -120,9 +125,11 @@ OSC. Props: `name` (required), `value` xor `bind` (expressions allowed).
 Its live value is `_state` on the shared ScDerived base: a literal var is
 one store-slice key (path-keyed, like controls), a bound var recomputes
 element-to-element from its targets' statechange (no store key) and is
-read-only to inputs. A var must be declared ON A NODE (plugin/group/synth)
-— inside a path-transparent container (sc-if) it would share an outer var's
-store key (`bad-var-scope` pins the parse error).
+read-only to inputs. Transparent containers (sc-if) add no path segment, so
+a var inside one keys at the ENCLOSING level — and collides with a
+same-named outer sibling in the flat duplicate check (`bad-if-shadow`). The
+must-be-declared-on-a-node rule survives as a defensive guard for genuinely
+non-node levels (e.g. inside a synthdef).
 
 ## `inputs/`
 
@@ -204,12 +211,14 @@ Conditional rendering on the TRUTHINESS of an expression bind
 (`bind="osc.gate"`, `bind="vars.freq > 440"`, `bind="osc.gate == 0"`): the
 children show when the derived value is non-zero. Props: `bind` (required).
 Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
-`[hidden] display: none`) — children stay mounted while hidden. Children are
-parsed transparently (an `sc-if` does not create a scope) and must be
-presentation content only: node elements are a parse error (`bad-if-node` —
-hiding is visual-only, a "hidden" synth would still play; and a nested
-same-named node would collide store keys), and vars are covered by their own
-on-a-node placement rule (`bad-var-scope`).
+`[hidden] display: none`). sc-if is a TRANSPARENT container: it opens no
+sibling scope and no path segment — its contents are hydrated,
+duplicate-checked (`bad-if-shadow`), and processed by the ENCLOSING level
+(they attach to the sc-if as their true parse parent, and belong to the
+enclosing node as their effective owner). Full block content is allowed and
+is UNCONDITIONALLY live — a synth inside a hidden sc-if keeps playing, a var
+keys at the enclosing path, an outer sibling can bind to elements inside —
+only visibility follows the bind.
 
 ## `widgets/` — functional, new-app features
 

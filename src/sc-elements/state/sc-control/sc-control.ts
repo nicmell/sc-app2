@@ -26,9 +26,11 @@ export class ScControl extends ScState {
 
   /** /n_set the owning node — only when it is live (the load-pass initial
    *  lands before the parent's /s_new and rides it via getControls instead;
-   *  the ack-window catch-up in ScSynth.load covers the send→/n_go gap). */
+   *  the ack-window catch-up in ScSynth.load covers the send→/n_go gap).
+   *  The owner is the nearest NON-TRANSPARENT ancestor: a control wrapped in
+   *  an sc-if under a group still /n_sets the group's node. */
   private sendControl(next: number): void {
-    const parent = this._parentScNode;
+    const parent = this.namedScParent;
     if (parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0) {
       oscClient.setControl(parent.nodeId, this.name, next);
     }

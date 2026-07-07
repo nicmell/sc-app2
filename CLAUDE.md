@@ -390,8 +390,8 @@ further `sc-*` element:
 | sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput seam syncs the selection from `_state` and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
 | sc-display | functional: the read-only expression visual |
 | sc-var | functional: live `_state` on the shared ScDerived base (no OSC) — literal vars store-backed like controls, bound vars recompute element-to-element on their targets' statechange |
-| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScDerived base; the old `is-*` attributes are gone); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none — children stay mounted while hidden); must not contain node elements (visual-only hiding + path transparency) |
-| sc-group | **stub**: parsed; no own /g_new yet (children target the plugin group) |
+| sc-if | functional: conditional rendering on the TRUTHINESS of an expression `bind` (`bind="osc.gate"`, `bind="vars.freq > 440"` — the ScDerived base); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none) |
+| sc-group | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` not honored yet — `OscClient.setNodeRun`/`ScNode.setRunning` exist as the seam for the sc-run step |
 | sc-run | **stub**: parsed + validated + bind-resolved; no UI/logic (needs /n_run — arrives with the node-lifecycle step) |
 | sc-console | functional leaf (the OSC console; no attributes) |
 | sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
@@ -453,13 +453,23 @@ writable `_targetScNode`) and the READ-ONLY expression visuals
 `onStateChange`. Native inputs bind with Lit's `live()` (the user mutates
 the DOM directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
-structurally: enabled state must be declared ON A NODE (a var off-node —
-e.g. inside the path-transparent sc-if — is a parse error,
-`bad-var-scope`), and sc-if rejects node descendants (`bad-if-node`; hiding
-is visual-only — a "hidden" synth would still play). The old app's id-keyed
-store allowed that shadowing, and its name-based group→descendant
-SET_CONTROL propagation is deliberately NOT reproduced — explicit
-`bind="group.ctl"` is the replacement (revisit at the sc-group step).
+structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
+sc-select, sc-radio-group — `isTransparent`, internal/validation.ts) open
+NO sibling scope and NO path segment — the parse walks through them
+(`walkScElements`), so their contents hydrate into the ENCLOSING level,
+share its duplicate-name check (a same-named var inside an sc-if fails
+flat, `bad-if-shadow`), its bind scope, and its store paths. The tree stays
+truthful — `_parentScNode` is the true parse parent (the sc-if), while
+`namedScParent` recovers the effective owner (the nearest non-transparent
+ancestor) wherever a node is needed (ScControl's /n_set); named-child
+lookups see through transparency too (`scChildrenThrough` in
+walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
+live — hiding is visual-only. The var must-be-on-a-node rule survives as a
+defensive guard for genuinely non-node levels (inside a synthdef). The old
+app's name-based group→descendant SET_CONTROL propagation is deliberately
+NOT reproduced — a group-level control's /n_set on the group node is the
+server-side replacement (scsynth fans it out), plus explicit
+`bind="group.ctl"`.
 
 Runtime layer: all old handlers ported (bind resolution incl. expressions
 via lib/utils/expression parseBind/evalExpr — arithmetic + the
@@ -561,14 +571,14 @@ steps, each independently shippable:
    (sendSynthDef: compile + /d_recv + /sync ack; freeSynthDef), sc-synth
    (createSynth gated on /n_go into `targetGroupId` + the ack-window
    catch-up /n_set diff), the ScDerived `_state`/"statechange" propagation
-   (see "Runtime values"), expression binds with comparisons, sc-if.
-   **Next: the node-lifecycle step** — sc-group's own /g_new//g_freeAll
-   (descendants nest via `targetGroupId` automatically once the group sets
-   `loaded`), `OscClient.setNodeRun` (`nRunOne` sits unused in
-   @sc-app/server-commands), `run="false"` honored after /n_go for
-   synths/groups (the old app's exact create-then-/n_run sequence), and
-   sc-run (play/pause over the target node element; bindless targets the
-   parent — a bindless sc-run should require its parent to be a node).
+   (see "Runtime values"), expression binds with comparisons, sc-if (a
+   transparent container), sc-group (its own /g_new; descendants nest via
+   `targetGroupId`), and the run seam (`OscClient.setNodeRun` +
+   `ScNode.setRunning`). **Remaining: the sc-run step** — the sc-run element
+   (play/pause over the target node's `setRunning`; bindless targets the
+   parent — a bindless sc-run should require its parent to be a node) and
+   honoring `run="false"` after the create ack (the old app's exact
+   create-then-/n_run sequence; the attribute is parsed but ignored today).
 6. **Input elements** — DONE. Value dispatch over the ScDerived seam (see
    "Runtime values"), incl. dispatch to vars and sc-if. The shared `ScInput`
    seam carries the target `_state` subscription over the load/unload/

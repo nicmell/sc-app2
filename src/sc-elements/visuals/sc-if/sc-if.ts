@@ -3,39 +3,28 @@
 // `bind="osc.gate == 0"` — anything the expression engine evaluates; children
 // show when the live `_state` is non-zero.
 //
-// Light DOM: the children are already-parsed sc-* elements — hiding is the
-// `hidden` attribute + stylesheet (display: contents / [hidden] display:
-// none), so hidden children stay mounted with their subscriptions alive. The
-// parse is transparent (no scope, no path segment): children resolve binds
-// against the outer scope. That transparency is also why sc-if must not
-// contain node-owning elements (sc-group / sc-synth / sc-synthdef): sc-if
-// only hides VISUALLY (a "hidden" synth would still play), and a same-named
-// node inside one would collide its controls' store keys with an outer
-// sibling's. State elements are covered by their own placement rule (a var
-// must be declared on a node).
+// Light DOM: hiding is the `hidden` attribute + stylesheet (display: contents
+// / [hidden] display: none). sc-if is a TRANSPARENT container (nameless — see
+// internal/validation isTransparent): it opens no sibling scope and no store
+// path segment; its contents are hydrated, duplicate-checked, and processed
+// by the ENCLOSING level (the parse walks through it), attach to the sc-if as
+// their true parse parent, and belong to the enclosing node as their
+// effective owner (`namedScParent`). The contents are therefore
+// UNCONDITIONALLY LIVE — a synth inside a hidden sc-if keeps playing, a var
+// keys at the enclosing path — only visibility is conditional.
 
 import { nothing, type PropertyValues } from "lit";
-import { isNodeRuntime, isSynthDefRuntime, typeOf } from "@/lib/utils/guards";
 import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
-import { failValidation, requireProp } from "@/sc-elements/internal/validation";
+import { requireProp } from "@/sc-elements/internal/validation";
 import { ScDerived } from "@/sc-elements/internal/sc-derived";
 import "./sc-if.scss";
 
 export class ScIf extends ScDerived {
   validate(): void {
     requireProp(this, "bind", this.bind ?? "");
-    // walkScElements recurses through plain HTML wrappers but stops at sc-*
-    // boundaries — a node nested under an inner sc-if is caught by THAT
-    // sc-if's own validate() when it processes.
-    for (const el of this.walkScElements()) {
-      if (isNodeRuntime(el) || isSynthDefRuntime(el)) {
-        failValidation(this, `must not contain node elements (found <${typeOf(el)}>)`);
-      }
-    }
   }
 
   protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
-    this.processChildren(ctx);
     return this.derivedRuntime(ctx);
   }
 

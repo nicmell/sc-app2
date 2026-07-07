@@ -9,7 +9,6 @@ import { html } from "lit";
 import { property, state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import type { ScSize, ScSelectBase } from "@sc-app/ui-components/lit";
-import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { requireProp } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { ScOption } from "@/sc-elements/inputs/sc-option";
@@ -20,21 +19,21 @@ export class ScSelect extends ScInput {
   @property() accessor size: ScSize = "md";
   @property({ type: Boolean }) accessor disabled = false;
 
-  /** The declarative choices, collected from the sc-option children at parse. */
-  _options: Array<{ value: number; label: string }> = [];
-
   @state() accessor _value = 0;
 
   validate(): void {
     requireProp(this, "bind", this.bind);
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    this.processChildren(ctx);
-    this._options = (this._scChildren ?? [])
+  /** The declarative choices — read lazily from the parsed children: sc-select
+   *  is a transparent container, so its sc-option children are processed by
+   *  the ENCLOSING level (after this element) and attach here as their parse
+   *  parent. Lit's first update runs after the synchronous parse, so render
+   *  always sees them. */
+  get _options(): Array<{ value: number; label: string }> {
+    return (this._scChildren ?? [])
       .filter((c): c is ScOption => c.tagName.toLowerCase() === "sc-option")
       .map((o) => ({ value: o.value, label: o.label }));
-    return super.resolveRuntime(ctx);
   }
 
   protected syncFromState(value: number | undefined): void {

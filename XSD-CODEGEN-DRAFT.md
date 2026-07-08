@@ -40,8 +40,8 @@ runner collision here, but `.xsd.ts` / `.schema.ts` would be less ambiguous. Cos
 export interface ElementSpec {
   tag: string;                       // "sc-slider" — must match an ELEMENTS entry
   category: Category;                // feeds content-group membership
-  attrs: Record<string, AttrSpec>;   // attribute name (as authored) → descriptor
-  content: Content;
+  attrs?: Record<string, AttrSpec>;  // attribute name (as authored) → descriptor; omit when none
+  content?: Content;                 // omit ⇒ empty content (attributes only)
 }
 
 export type Category =
@@ -49,7 +49,8 @@ export type Category =
   | "state" | "node" | "synthdef"    // + the blockContent extras
   | "ugen" | "option";               // child-only (referenced explicitly, not via a group)
 
-// ── attributes: a discriminated union on `type`, `required` common to all ──
+// ── attributes: a discriminated union on `type`, `required` common to all
+//    (each maps 1:1 to <xs:attribute name type use>) ──
 interface AttrCommon { required?: boolean }        // → use="required" | "optional"
 export type AttrSpec =
   | (AttrCommon & { type: "string" })                            // xs:string
@@ -58,31 +59,32 @@ export type AttrSpec =
   | (AttrCommon & { type: "boolean" })                           // xs:boolean
   | (AttrCommon & { type: "enum"; values: readonly string[] });  // inline restriction
 
-// ── content model: a discriminated union on `kind` ──
-export type ContentRef =
-  | { kind: "element"; tag: string }   // <xs:element ref="sc-option"/>
-  | { kind: "group"; ref: string };    // <xs:group ref="blockContent"/>
-export type Content =
-  | { kind: "empty" }                                                     // attrs only
-  | { kind: "text" }                                                      // mixed, PCDATA only
-  | { kind: "children"; accepts: readonly ContentRef[]; text?: boolean }; // choice; text ⇒ mixed
+// ── content model: XSD's own vocabulary — a content particle (choice) plus the
+//    complexType's `mixed` flag. Flat + optional, so the common cases are terse. ──
+export interface Content {
+  choice?: string[];   // element tags and/or group names — the generator resolves each ref
+  mixed?: boolean;     // PCDATA allowed (→ complexType mixed="true")
+}
 ```
 
-`kind` (not `type`) discriminates `content`/`ContentRef` on purpose: on an attribute `type`
-genuinely is the XSD datatype; a content model is a structural shape, not a datatype.
+`content` mirrors what an `<xs:complexType>` *is* — a content particle + a `mixed` flag — so
+it reads as XSD rather than domain jargon. The four real shapes:
 
-The `content` variants, and what each emits:
+| spec | XSD output | elements |
+|---|---|---|
+| *(omitted)* | `<xs:complexType>`, attributes only | sc-slider, sc-control, sc-option, … |
+| `{ mixed: true }` | `<xs:complexType mixed="true">`, no particle | sc-strudel |
+| `{ choice: [...] }` | `<xs:choice minOccurs="0" maxOccurs="unbounded">` of the refs | sc-synthdef, sc-select, … |
+| `{ choice: [...], mixed: true }` | as above + `mixed="true"` | sc-if, sc-group |
 
-| variant | XSD output |
-|---|---|
-| `{ kind: "empty" }` | `<xs:complexType>` with attributes only |
-| `{ kind: "text" }` | `<xs:complexType mixed="true">`, no particle |
-| `{ kind: "children"; accepts; text }` | `mixed=text` + `<xs:choice minOccurs="0" maxOccurs="unbounded">` of the refs |
-
-No `sequence` variant: every generated sc-element uses an unordered repeatable choice; the
-only ordered content (`head`→`title`, `html`→`head,body`) lives in the hand-authored
-preamble. A future ordered element would add `{ kind: "sequence"; steps: … }` — the union
-extends cleanly.
+The `minOccurs="0" maxOccurs="unbounded"` occurs are a fixed generator convention (every
+sc-element uses them), so they never clutter a spec. **Refs are bare strings**: the generator
+emits `<xs:group ref>` if the string is a known group (`blockContent`/`scControls`/
+`htmlElements`/`inlineContent`), else `<xs:element ref>` — group names and `sc-*` tags never
+collide, and a ref matching neither is a generator error (catches typos). `sequence`/`all`
+and per-item occurs are deliberately out (no generated element needs them; the ordered
+`head`/`html` content lives in the hand-authored preamble) — add optional keys later if ever
+required.
 
 `name` is a plain `{ type: "string", required: true }`: its one-bind-path-segment syntax is
 validated in JavaScript (`requireName`) and is deliberately **not** carried into the schema.
@@ -90,11 +92,11 @@ validated in JavaScript (`requireName`) and is deliberately **not** carried into
 ## Every component's spec (the full set)
 
 Grouped by category. These cover every `AttrSpec` variant (string/decimal/integer/boolean/
-enum) and every `Content` variant (empty/text/children-element/children-group+mixed), and
+enum) and every content shape (empty / mixed text / element choice / group choice + mixed), and
 match each element's current `validate()` + `required` rules. `commonAttrs`
 (`id`/`class`/`title`/`style`) is added to every type by the generator, so specs omit it.
 
-### state — `content: empty`; `name` required; `value` xor `bind` (a runtime-only rule)
+### state — empty content (omitted); `name` required; `value` xor `bind` (a runtime-only rule)
 
 ```ts
 // state/sc-control/sc-control.spec.ts
@@ -105,7 +107,6 @@ export const spec: ElementSpec = {
     value: { type: "decimal" },
     bind:  { type: "string" },
   },
-  content: { kind: "empty" },
 };
 // state/sc-var/sc-var.spec.ts — identical shape, tag "sc-var".
 ```
@@ -117,7 +118,7 @@ export const spec: ElementSpec = {
 export const spec: ElementSpec = {
   tag: "sc-group", category: "node",
   attrs: { name: { type: "string", required: true }, run: { type: "boolean" } },
-  content: { kind: "children", accepts: [{ kind: "group", ref: "blockContent" }], text: true },
+  content: { choice: ["blockContent"], mixed: true },
 };
 
 // nodes/sc-synth/sc-synth.spec.ts
@@ -128,7 +129,7 @@ export const spec: ElementSpec = {
     bind: { type: "string" },
     run:  { type: "boolean" },
   },
-  content: { kind: "children", accepts: [{ kind: "element", tag: "sc-control" }] },
+  content: { choice: ["sc-control"] },
 };
 ```
 
@@ -139,10 +140,7 @@ export const spec: ElementSpec = {
 export const spec: ElementSpec = {
   tag: "sc-synthdef", category: "synthdef",
   attrs: { name: { type: "string", required: true } },
-  content: {
-    kind: "children",
-    accepts: [{ kind: "element", tag: "sc-control" }, { kind: "element", tag: "sc-ugen" }],
-  },
+  content: { choice: ["sc-control", "sc-ugen"] },
 };
 
 // synthdef/sc-ugen/sc-ugen.spec.ts — attribute is `type` (class prop `ugen`), required
@@ -154,7 +152,7 @@ export const spec: ElementSpec = {
     rate: { type: "string" },
     op:   { type: "string" },
   },
-  content: { kind: "children", accepts: [{ kind: "element", tag: "sc-control" }] },
+  content: { choice: ["sc-control"] },
 };
 ```
 
@@ -172,7 +170,6 @@ export const spec: ElementSpec = {
     orientation: { type: "enum", values: ["horizontal", "vertical"] },
     disabled: { type: "boolean" },
   },
-  content: { kind: "empty" },
 };
 // inputs/sc-knob/sc-knob.spec.ts — identical minus `orientation` (a knob has none).
 
@@ -185,7 +182,6 @@ export const spec: ElementSpec = {
     size: { type: "enum", values: ["sm", "md", "lg"] },
     disabled: { type: "boolean" },
   },
-  content: { kind: "empty" },
 };
 // inputs/sc-switch/sc-switch.spec.ts — bind REQUIRED; no `label` (the base switch has none).
 
@@ -198,7 +194,7 @@ export const spec: ElementSpec = {
     size: { type: "enum", values: ["sm", "md", "lg"] },
     disabled: { type: "boolean" },
   },
-  content: { kind: "children", accepts: [{ kind: "element", tag: "sc-option" }] },
+  content: { choice: ["sc-option"] },
 };
 
 // inputs/sc-radio-group/sc-radio-group.spec.ts — bind REQUIRED, children = sc-radio
@@ -211,14 +207,13 @@ export const spec: ElementSpec = {
     size: { type: "enum", values: ["sm", "md", "lg"] },
     disabled: { type: "boolean" },
   },
-  content: { kind: "children", accepts: [{ kind: "element", tag: "sc-radio" }] },
+  content: { choice: ["sc-radio"] },
 };
 
 // inputs/sc-run/sc-run.spec.ts — bindless targets the parent node
 export const spec: ElementSpec = {
   tag: "sc-run", category: "input",
   attrs: { bind: { type: "string" } },
-  content: { kind: "empty" },
 };
 ```
 
@@ -229,7 +224,6 @@ export const spec: ElementSpec = {
 export const spec: ElementSpec = {
   tag: "sc-option", category: "option",
   attrs: { value: { type: "decimal", required: true }, label: { type: "string", required: true } },
-  content: { kind: "empty" },
 };
 ```
 
@@ -240,14 +234,13 @@ export const spec: ElementSpec = {
 export const spec: ElementSpec = {
   tag: "sc-display", category: "visual",
   attrs: { bind: { type: "string", required: true }, format: { type: "string" } },
-  content: { kind: "empty" },
 };
 
 // visuals/sc-if/sc-if.spec.ts — bind REQUIRED; transparent blockContent container (mixed)
 export const spec: ElementSpec = {
   tag: "sc-if", category: "visual",
   attrs: { bind: { type: "string", required: true } },
-  content: { kind: "children", accepts: [{ kind: "group", ref: "blockContent" }], text: true },
+  content: { choice: ["blockContent"], mixed: true },
 };
 ```
 
@@ -261,7 +254,7 @@ export const spec: ElementSpec = {
 
 ```ts
 // widgets/sc-console/sc-console.spec.ts
-export const spec: ElementSpec = { tag: "sc-console", category: "widget", attrs: {}, content: { kind: "empty" } };
+export const spec: ElementSpec = { tag: "sc-console", category: "widget" };
 
 // widgets/sc-scope/sc-scope.spec.ts — the integer + enum + decimal mix
 export const spec: ElementSpec = {
@@ -273,14 +266,13 @@ export const spec: ElementSpec = {
     level: { type: "decimal" }, gain: { type: "decimal" },
     layout: { type: "enum", values: ["overlay", "split"] },
   },
-  content: { kind: "empty" },
 };
 
 // widgets/sc-strudel/sc-strudel.spec.ts — the text-content case
 export const spec: ElementSpec = {
   tag: "sc-strudel", category: "widget",
   attrs: { orbit: { type: "integer" } },
-  content: { kind: "text" },
+  content: { mixed: true },
 };
 ```
 
@@ -317,10 +309,13 @@ export const GROUP_DEFS = {
        default: { const _never: never = a; throw new Error(`unhandled ${JSON.stringify(_never)}`); }
      }
    };
-   // content: switch (c.kind) { case "empty" | "text" | "children" … default: never }
+   // content: mixed = !!content?.mixed; if (content?.choice) emit an <xs:choice
+   //          minOccurs="0" maxOccurs="unbounded"> resolving each ref to <xs:group ref>
+   //          (known group) or <xs:element ref> (else); no choice + no mixed ⇒ empty.
    ```
-   The exhaustive `switch` + `never` fallthrough is the payoff of the discriminated unions:
-   a new attr/content variant fails to compile until the generator handles it.
+   The exhaustive `switch` + `never` fallthrough on `attrs` is the payoff of that
+   discriminated union: a new attribute `type` fails to compile until the generator handles
+   it. (`content` is a flat two-field object, so it needs no such switch.)
 4. Add `commonAttrs` to every complex type.
 5. Splice groups + complex types into `preamble.xml`'s markers; write the `.xsd`.
 
@@ -368,4 +363,4 @@ export const GROUP_DEFS = {
   both drift guards. Drop legacy attrs + codemod examples.
 - **Phase 2** — single-source `required` back into the runtime `validate()` from the specs.
 - **Phase 3** — optionally single-source the runtime child-collection (sc-select/sc-synthdef
-  filters) off the spec's `content.accepts`.
+  filters) off the spec's `content.choice`.

@@ -1,366 +1,100 @@
-# Draft: generating the XSD from per-component spec files
+# XSD generation from per-component spec files
 
-Status: **draft for later planning**, grounded in the real code. Not an implementation.
-Reflects the current codebase (transparency + name-syntax behaviour, `9ce260c` / `4379e53`).
+Status: **implemented** (branch `xsd-codegen-draft`). This documents what shipped and the
+open problems + possible solutions; it is no longer a forward-looking plan.
 
-## Approach
+## Why
 
-Each element gets a dedicated, colocated **`<component>.spec.ts`** that declares its whole
-XSD surface as plain data, and a generator reads the specs to emit `sc-plugin-schema.xsd`.
+The backend validates uploaded plugin entry XHTML against `sc-plugin-schema.xsd`
+(`include_str!`-embedded in `core/plugin/manager.rs`, run through `fastxml`). Hand-maintained,
+it drifted from the components — adding `sc-knob`/`sc-switch` meant editing the element decl,
+the content-model groups, and the complex type by hand, and a miss silently rejected or
+wrongly accepted markup. The schema is now **generated from one pure-JSON spec per
+component**, and two tests keep it from drifting.
 
-- **The generator is runtime-free.** A spec imports nothing but a type and a couple of
-  shared consts — no Lit, no `window`/`Worker`, no `.scss`. `tsx scripts/generate-xsd.ts`
-  runs it directly.
-- **The components stay clean** — no schema concern in the component code.
-- **The specs speak XML, not JS** — keys are attribute names as authored (`sc-ugen`'s
-  attribute is `type`, though the class property is `ugen`), so there's no rename to reason
-  about.
+## As built
 
-## File layout
+- **Spec per element** — colocated `src/sc-elements/**/<tag>.spec.ts`, `export const spec:
+  ElementSpec`. Contract in `src/sc-elements/internal/xsd/types.ts`:
+  - `attrs`: a `type`-discriminated union (`string`/`decimal`/`integer`/`boolean`/`enum`),
+    `required?` common;
+  - `content`: flat `{ choice?, mixed? }` in XSD vocabulary (omit ⇒ empty); `choice` refs are
+    element tags or group names, resolved by the generator;
+  - `category`: drives content-group membership.
+- **Groups** — `src/sc-elements/internal/xsd/groups.ts` (`BLOCK_GROUPS`): one `<xs:group>`
+  per category (`scInputs`/`scVisuals`/`scWidgets`/`scState`/`scNodes`/`scSynthDefs`);
+  `blockContent` = `htmlElements` + those. `option`/`ugen` are child-only (no group; reached
+  via a parent's `content.choice`).
+- **Preamble** — `src/sc-elements/internal/xsd/preamble.xml`: the fixed, hand-authored half
+  (HTML scaffolding, `htmlElements`/`inlineContent`, root, `blockType`/`inlineType`/
+  `listType`) with `@generated:{elements,groups,complexTypes}` markers and a "do not edit"
+  banner.
+- **Generator** — `scripts/generate-xsd.ts` (`yarn generate:xsd`, via `tsx`): discovers specs
+  (fs walk + dynamic import), asserts the spec↔`ELEMENTS` bijection, emits element decls +
+  per-category groups + `blockContent` + one complex type per spec (exhaustive `switch` on
+  `attr.type`; `enum` → inline `<xs:restriction>`; `required` → `use="required"`), splices
+  into the preamble, and writes `src-tauri/src/core/plugin/xsd/sc-plugin-schema.xsd`. Output
+  is deterministic (ELEMENTS order).
+- **Drift guards** (vitest, in `yarn test`):
+  - `__tests__/xsd-generate.test.ts` — committed schema === `generateXsd()`.
+  - `__tests__/xsd-reconcile.test.ts` — each spec's attribute names + coarse types match the
+    component's `elementProperties` (by attribute name, so `sc-ugen`'s `type` ↔ `ugen`;
+    `state`/converter props handled), and specs ↔ `ELEMENTS` is a bijection.
 
-```
-src/sc-elements/
-  inputs/sc-slider/sc-slider.ts
-  inputs/sc-slider/sc-slider.spec.ts      ← colocated, one per component
-  …
-  internal/xsd/
-    types.ts        ElementSpec / AttrSpec / Content
-    groups.ts       category → content-group config
-    preamble.xml    fixed HTML scaffolding + @generated markers
-```
+Verified: deterministic regen, `xmllint` accepts every example, `cargo test` loads the schema,
+`yarn test`/`build`/`lint` green.
 
-`.spec.ts` is **not** matched by the vitest glob (`src/**/*.test.{ts,tsx}`), so these never
-run as tests. (Naming aside: `.spec.ts` conventionally means "test" in many ecosystems — no
-runner collision here, but `.xsd.ts` / `.schema.ts` would be less ambiguous. Cosmetic.)
+## Changing the schema
 
-## The spec type
+Edit a `<tag>.spec.ts`, run `yarn generate:xsd`, run `yarn test`. Never hand-edit the `.xsd`
+or the generated regions — the snapshot test will fail. Adding an element: create its
+`.spec.ts` (the reconciliation test enforces one per `ELEMENTS` tag).
 
-```ts
-// internal/xsd/types.ts
-export interface ElementSpec {
-  tag: string;                       // "sc-slider" — must match an ELEMENTS entry
-  category: Category;                // feeds content-group membership
-  attrs?: Record<string, AttrSpec>;  // attribute name (as authored) → descriptor; omit when none
-  content?: Content;                 // omit ⇒ empty content (attributes only)
-}
+## Open problems & possible solutions
 
-export type Category =
-  | "input" | "visual" | "widget"    // the scControls union
-  | "state" | "node" | "synthdef"    // + the blockContent extras
-  | "ugen" | "option";               // child-only (referenced explicitly, not via a group)
+1. **Two sources, not one.** A spec restates the attribute names/types that also live as
+   `@property` on the component. The reconciliation test guards it, but the coupling is
+   *relocated into a test* (which imports the classes under happy-dom), not removed.
+   → Accepted; the test is the safety net. Fuller single-sourcing is problems 2–3.
+2. **The cross-check is partial.** Reconciliation verifies attribute *names* + *coarse* type
+   (`number`/`boolean`/`string`) only. `required`, `enum` values, and content models have no
+   component counterpart, so a wrong `required` flag or enum list can't be caught by any test.
+   → *Possible:* Phase 2 — a base `validate()` reads `spec.required` (single-sources required);
+   for enums, a narrow `ts-morph` pass could read the component's TS union type instead of a
+   hand-listed `enum`, or accept trust-the-spec (a handful of props).
+3. **The generated schema is stricter than the runtime on some attributes.** It enforces
+   `size`/`orientation` enums and `required` binds at *upload*, but the runtime `validate()`
+   only enforces some of those (e.g. it doesn't range-check `size` on a slider). So a plugin
+   can pass one gate and fail the other on those attrs.
+   → *Possible:* single-source `required`/enums into `validate()` (Phase 2/3) so the two gates
+   agree; or deliberately keep the schema as the stricter upload gate and document it.
+4. **`fastxml` doesn't enforce everything the schema now expresses.** libxml2 is lenient on
+   content models (it accepts `bad-run-bind`, which a spec-correct validator rejects); it also
+   ignores `xs:pattern` (moot now — `scName` was dropped, name syntax stays in JS
+   `requireName`). So the richer generated facets are partly *documentation* under the current
+   validator.
+   → *Possible:* swap to a strict Rust validator (`uppsala`, pure-Rust zero-dep; or
+   `semyonc/xsd-schema`, XSD 1.1 + assertions) — a separate track evaluated earlier in the
+   conversation; only `xsd-schema` additionally unlocks XSD 1.1 `xs:assert` (e.g. value-XOR-bind).
+5. **Inheritance is flattened by hand.** Each input spec re-lists `bind`/`size`/`disabled`
+   inherited from `ScInput`/the category bases.
+   → *Possible:* shared attr-group spreads (`...INPUT_ATTRS`); the reconciliation test catches
+   any mismatch meanwhile.
+6. **The generator must be run after editing a spec.** Nothing runs it automatically; the
+   snapshot test only *detects* staleness (it fails).
+   → *Possible:* a pre-commit hook or a CI step running `yarn generate:xsd --check`.
+7. **`.spec.ts` reads as "test file"** in most ecosystems. No collision here (the runner glob
+   is `*.test.ts`), but it's mildly ambiguous.
+   → *Possible:* rename to `<tag>.xsd.ts` / `.schema.ts` (cosmetic).
+8. **Content model is limited to a repeatable `choice` + `mixed`.** No `sequence`/`all` or
+   per-item `minOccurs`/`maxOccurs` — none of the generated elements needs them (ordered
+   `head`/`html` content lives in the preamble).
+   → *Possible:* add optional keys to `Content` if an element ever needs ordered/bounded content.
 
-// ── attributes: a discriminated union on `type`, `required` common to all
-//    (each maps 1:1 to <xs:attribute name type use>) ──
-interface AttrCommon { required?: boolean }        // → use="required" | "optional"
-export type AttrSpec =
-  | (AttrCommon & { type: "string" })                            // xs:string
-  | (AttrCommon & { type: "decimal" })                           // xs:decimal
-  | (AttrCommon & { type: "integer" })                           // xs:integer
-  | (AttrCommon & { type: "boolean" })                           // xs:boolean
-  | (AttrCommon & { type: "enum"; values: readonly string[] });  // inline restriction
+## Follow-ups (not done — Phase 1 only shipped)
 
-// ── content model: XSD's own vocabulary — a content particle (choice) plus the
-//    complexType's `mixed` flag. Flat + optional, so the common cases are terse. ──
-export interface Content {
-  choice?: string[];   // element tags and/or group names — the generator resolves each ref
-  mixed?: boolean;     // PCDATA allowed (→ complexType mixed="true")
-}
-```
-
-`content` mirrors what an `<xs:complexType>` *is* — a content particle + a `mixed` flag — so
-it reads as XSD rather than domain jargon. The four real shapes:
-
-| spec | XSD output | elements |
-|---|---|---|
-| *(omitted)* | `<xs:complexType>`, attributes only | sc-slider, sc-control, sc-option, … |
-| `{ mixed: true }` | `<xs:complexType mixed="true">`, no particle | sc-strudel |
-| `{ choice: [...] }` | `<xs:choice minOccurs="0" maxOccurs="unbounded">` of the refs | sc-synthdef, sc-select, … |
-| `{ choice: [...], mixed: true }` | as above + `mixed="true"` | sc-if, sc-group |
-
-The `minOccurs="0" maxOccurs="unbounded"` occurs are a fixed generator convention (every
-sc-element uses them), so they never clutter a spec. **Refs are bare strings**: the generator
-emits `<xs:group ref>` if the string is a known group (`blockContent`/`scControls`/
-`htmlElements`/`inlineContent`), else `<xs:element ref>` — group names and `sc-*` tags never
-collide, and a ref matching neither is a generator error (catches typos). `sequence`/`all`
-and per-item occurs are deliberately out (no generated element needs them; the ordered
-`head`/`html` content lives in the hand-authored preamble) — add optional keys later if ever
-required.
-
-`name` is a plain `{ type: "string", required: true }`: its one-bind-path-segment syntax is
-validated in JavaScript (`requireName`) and is deliberately **not** carried into the schema.
-
-## Every component's spec (the full set)
-
-Grouped by category. These cover every `AttrSpec` variant (string/decimal/integer/boolean/
-enum) and every content shape (empty / mixed text / element choice / group choice + mixed), and
-match each element's current `validate()` + `required` rules. `commonAttrs`
-(`id`/`class`/`title`/`style`) is added to every type by the generator, so specs omit it.
-
-### state — empty content (omitted); `name` required; `value` xor `bind` (a runtime-only rule)
-
-```ts
-// state/sc-control/sc-control.spec.ts
-export const spec: ElementSpec = {
-  tag: "sc-control", category: "state",
-  attrs: {
-    name:  { type: "string", required: true },
-    value: { type: "decimal" },
-    bind:  { type: "string" },
-  },
-};
-// state/sc-var/sc-var.spec.ts — identical shape, tag "sc-var".
-```
-
-### nodes — containers
-
-```ts
-// nodes/sc-group/sc-group.spec.ts
-export const spec: ElementSpec = {
-  tag: "sc-group", category: "node",
-  attrs: { name: { type: "string", required: true }, run: { type: "boolean" } },
-  content: { choice: ["blockContent"], mixed: true },
-};
-
-// nodes/sc-synth/sc-synth.spec.ts
-export const spec: ElementSpec = {
-  tag: "sc-synth", category: "node",
-  attrs: {
-    name: { type: "string", required: true },
-    bind: { type: "string" },
-    run:  { type: "boolean" },
-  },
-  content: { choice: ["sc-control"] },
-};
-```
-
-### synthdef / ugen — child element lists
-
-```ts
-// synthdef/sc-synthdef/sc-synthdef.spec.ts
-export const spec: ElementSpec = {
-  tag: "sc-synthdef", category: "synthdef",
-  attrs: { name: { type: "string", required: true } },
-  content: { choice: ["sc-control", "sc-ugen"] },
-};
-
-// synthdef/sc-ugen/sc-ugen.spec.ts — attribute is `type` (class prop `ugen`), required
-export const spec: ElementSpec = {
-  tag: "sc-ugen", category: "ugen",
-  attrs: {
-    name: { type: "string", required: true },
-    type: { type: "string", required: true },
-    rate: { type: "string" },
-    op:   { type: "string" },
-  },
-  content: { choice: ["sc-control"] },
-};
-```
-
-### inputs — the widget surface (`size` is the shared enum; `bind` required where the widget writes)
-
-```ts
-// inputs/sc-slider/sc-slider.spec.ts — every attr optional (bind optional; numerics validated)
-export const spec: ElementSpec = {
-  tag: "sc-slider", category: "input",
-  attrs: {
-    bind: { type: "string" },
-    min:  { type: "decimal" }, max: { type: "decimal" }, step: { type: "decimal" }, value: { type: "decimal" },
-    label: { type: "string" },
-    size:  { type: "enum", values: ["sm", "md", "lg"] },
-    orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    disabled: { type: "boolean" },
-  },
-};
-// inputs/sc-knob/sc-knob.spec.ts — identical minus `orientation` (a knob has none).
-
-// inputs/sc-checkbox/sc-checkbox.spec.ts — bind REQUIRED
-export const spec: ElementSpec = {
-  tag: "sc-checkbox", category: "input",
-  attrs: {
-    bind: { type: "string", required: true },
-    label: { type: "string" },
-    size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
-  },
-};
-// inputs/sc-switch/sc-switch.spec.ts — bind REQUIRED; no `label` (the base switch has none).
-
-// inputs/sc-select/sc-select.spec.ts — bind REQUIRED, children = sc-option
-export const spec: ElementSpec = {
-  tag: "sc-select", category: "input",
-  attrs: {
-    bind: { type: "string", required: true },
-    placeholder: { type: "string" },
-    size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
-  },
-  content: { choice: ["sc-option"] },
-};
-
-// inputs/sc-radio-group/sc-radio-group.spec.ts — bind REQUIRED, children = sc-radio
-export const spec: ElementSpec = {
-  tag: "sc-radio-group", category: "input",
-  attrs: {
-    bind: { type: "string", required: true },
-    orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    label: { type: "string" },
-    size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
-  },
-  content: { choice: ["sc-radio"] },
-};
-
-// inputs/sc-run/sc-run.spec.ts — bindless targets the parent node
-export const spec: ElementSpec = {
-  tag: "sc-run", category: "input",
-  attrs: { bind: { type: "string" } },
-};
-```
-
-### options — child-only data (`value` + `label` required)
-
-```ts
-// inputs/sc-option/sc-option.spec.ts   (and sc-radio/sc-radio.spec.ts — identical, category "option")
-export const spec: ElementSpec = {
-  tag: "sc-option", category: "option",
-  attrs: { value: { type: "decimal", required: true }, label: { type: "string", required: true } },
-};
-```
-
-### visuals
-
-```ts
-// visuals/sc-display/sc-display.spec.ts — bind REQUIRED
-export const spec: ElementSpec = {
-  tag: "sc-display", category: "visual",
-  attrs: { bind: { type: "string", required: true }, format: { type: "string" } },
-};
-
-// visuals/sc-if/sc-if.spec.ts — bind REQUIRED; transparent blockContent container (mixed)
-export const spec: ElementSpec = {
-  tag: "sc-if", category: "visual",
-  attrs: { bind: { type: "string", required: true } },
-  content: { choice: ["blockContent"], mixed: true },
-};
-```
-
-> Transparency (sc-if / sc-select / sc-radio-group parse into the enclosing scope) is a
-> runtime property; the XSD does not encode it. sc-if accepts full `blockContent` (identical
-> to sc-group); sc-select/sc-radio-group are also transparent yet still restrict content to
-> `sc-option`/`sc-radio`. So `content` is declared per element regardless of transparency,
-> and the schema stays a plain structural grammar.
-
-### widgets
-
-```ts
-// widgets/sc-console/sc-console.spec.ts
-export const spec: ElementSpec = { tag: "sc-console", category: "widget" };
-
-// widgets/sc-scope/sc-scope.spec.ts — the integer + enum + decimal mix
-export const spec: ElementSpec = {
-  tag: "sc-scope", category: "widget",
-  attrs: {
-    bus: { type: "integer" }, channels: { type: "integer" }, frames: { type: "integer" },
-    trigger: { type: "enum", values: ["auto", "normal", "off"] },
-    slope:   { type: "enum", values: ["rising", "falling"] },
-    level: { type: "decimal" }, gain: { type: "decimal" },
-    layout: { type: "enum", values: ["overlay", "split"] },
-  },
-};
-
-// widgets/sc-strudel/sc-strudel.spec.ts — the text-content case
-export const spec: ElementSpec = {
-  tag: "sc-strudel", category: "widget",
-  attrs: { orbit: { type: "integer" } },
-  content: { mixed: true },
-};
-```
-
-(`sc-plugin` has no spec — it's the app-synthesized host, never authored in plugin HTML.)
-
-## Shared config
-
-```ts
-// internal/xsd/groups.ts — groups are category UNIONS, not hand-listed element lists
-export const GROUP_DEFS = {
-  scControls:   { categories: ["input", "visual", "widget"] },
-  blockContent: { include: ["htmlElements", "scControls"], categories: ["state", "node", "synthdef"] },
-} as const;
-```
-
-`htmlElements` / `inlineContent` and the `html`/`head`/`body` scaffolding stay in
-`preamble.xml`.
-
-## The generator
-
-`scripts/generate-xsd.ts`, run via `tsx`:
-
-1. Glob `src/sc-elements/**/*.spec.ts`, import each `spec` (pure data).
-2. Build `category → [tag]` from the specs; expand `GROUP_DEFS` into `<xs:group>`s.
-3. Per spec, emit `<xs:complexType>` — attributes from `attrs`, content from `content`:
-   ```ts
-   const attrType = (a: AttrSpec): string => {
-     switch (a.type) {
-       case "string":  return `type="xs:string"`;
-       case "decimal": return `type="xs:decimal"`;
-       case "integer": return `type="xs:integer"`;
-       case "boolean": return `type="xs:boolean"`;
-       case "enum":    return INLINE_RESTRICTION;   // nested <xs:simpleType>…<xs:enumeration>
-       default: { const _never: never = a; throw new Error(`unhandled ${JSON.stringify(_never)}`); }
-     }
-   };
-   // content: mixed = !!content?.mixed; if (content?.choice) emit an <xs:choice
-   //          minOccurs="0" maxOccurs="unbounded"> resolving each ref to <xs:group ref>
-   //          (known group) or <xs:element ref> (else); no choice + no mixed ⇒ empty.
-   ```
-   The exhaustive `switch` + `never` fallthrough on `attrs` is the payoff of that
-   discriminated union: a new attribute `type` fails to compile until the generator handles
-   it. (`content` is a flat two-field object, so it needs no such switch.)
-4. Add `commonAttrs` to every complex type.
-5. Splice groups + complex types into `preamble.xml`'s markers; write the `.xsd`.
-
-## Drift guards
-
-- **Snapshot test** — regenerate in memory, assert equal to the committed `.xsd`.
-- **Reconciliation test** — for every `ELEMENTS` tag, cross-check its spec against the
-  component's declared attributes: the attribute sets agree (compared by attribute name, so
-  the spec's `type` matches sc-ugen's `ugen` property), coarse types agree
-  (`Number`↔`decimal|integer`, `Boolean`↔`boolean`, else `string`), and `ELEMENTS` ⟷ specs
-  is a bijection (no orphan spec, no unspecced element).
-
-## Problems
-
-1. **Drift — the core cost.** A spec restates attribute names/types that also live as
-   `@property` on the component; nothing *forces* the two to agree. The reconciliation test
-   is mandatory, not optional — without it, this design is a drift trap. (That test reads the
-   component classes, so it runs under vitest/happy-dom, not in the plain-Node generator.)
-2. **Inheritance is flattened by hand.** Inputs inherit `bind`/`size`/`disabled` from their
-   bases; every input spec re-lists them. Mitigate with shared spreads (`...INPUT_ATTRS`).
-3. **Only a partial cross-check.** The component carries a coarse `type: Number`; the spec
-   carries precise `decimal`/`integer` — reconciliation verifies only the coarse mapping.
-   Enums, `required`, and content models have no component counterpart → those parts of a
-   spec are trust-the-author.
-4. **Two files per component.** More to keep in sync (that's #1) and discover (colocation
-   helps the latter).
-
-## Decisions
-
-- **Drop the legacy presentational attrs** (`width`/`height`/`src`/`sprites`/`fgcolor`/
-  `bgcolor`/`diameter`); they're absent from the specs above. Codemod the examples that use
-  them:
-  ```bash
-  perl -i -pe 's/\s+(width|height|diameter|sprites|src|fgcolor|bgcolor)="[^"]*"//g' \
-    examples/**/index.html examples/**/entry.html
-  ```
-- **Single-source `required`.** The spec's `required` is the schema truth; the runtime
-  `requireProp` should read the same spec so schema and parser can't diverge.
-- **Hand-authored `preamble.xml`** holds the HTML scaffolding + `htmlElements`/`inlineContent`
-  + the `<xs:element name type>` refs; the generator splices into its markers.
-
-## Phasing
-
-- **Phase 1** — the spec files + `types.ts`/`groups.ts`/`preamble.xml` + the generator +
-  both drift guards. Drop legacy attrs + codemod examples.
-- **Phase 2** — single-source `required` back into the runtime `validate()` from the specs.
-- **Phase 3** — optionally single-source the runtime child-collection (sc-select/sc-synthdef
-  filters) off the spec's `content.choice`.
+- **Phase 2** — single-source `required` (problem 2/3) into the runtime `validate()` from the
+  specs; touches each `validate()` and the pinned error-message tests.
+- **Phase 3** — single-source the runtime child-collection (`sc-select`/`sc-synthdef` filters)
+  off `content.choice`.
+- **Validator swap** — evaluate replacing `fastxml` (problem 4); separate from this work.

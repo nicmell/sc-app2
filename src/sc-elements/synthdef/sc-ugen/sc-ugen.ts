@@ -1,6 +1,6 @@
 // <sc-ugen> — one UGen node inside an sc-synthdef (sc-control children are its
-// inputs). The attributes live here as reactive properties; the graph builder
-// consumes them in the UGen migration step.
+// inputs). The attributes live in the colocated spec (read via getProp); the
+// graph collection consumes them at parse for the /d_recv-time compile.
 
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";

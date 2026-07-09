@@ -6,7 +6,8 @@ export const spec: ElementSpec = {
   tag: "sc-if",
   category: "visual",
   attrs: {
-    bind: { type: "string", required: true },
+    // scalar (NOT string): an evaluated 0 must stay falsy for the truthiness.
+    when: { type: "scalar", runtime: true, required: true },
   },
   content: { choice: ["blockContent"], mixed: true },
 };

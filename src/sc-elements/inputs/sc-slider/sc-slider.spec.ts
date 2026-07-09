@@ -5,13 +5,13 @@ export const spec: ElementSpec = {
   category: "input",
   attrs: {
     bind: { type: "string" },
-    min: { type: "decimal" },
-    max: { type: "decimal" },
-    step: { type: "decimal" },
+    min: { type: "decimal", runtime: true },
+    max: { type: "decimal", runtime: true },
+    step: { type: "decimal", runtime: true },
     value: { type: "decimal" },
-    label: { type: "string" },
+    label: { type: "string", runtime: true },
     size: { type: "enum", values: ["sm", "md", "lg"] },
     orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    disabled: { type: "boolean" },
+    disabled: { type: "boolean", runtime: true },
   },
 };

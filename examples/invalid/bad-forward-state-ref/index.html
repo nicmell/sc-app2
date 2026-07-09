@@ -9,7 +9,7 @@
      reference; resolveControlBind must fail with the honest bind-order error
      "referenced before it is declared" (not "not declared") -->
 <sc-group name="vars">
-    <sc-var name="a" bind="vars.b"/>
+    <sc-var name="a" _value="vars.b"/>
     <sc-var name="b" value="1"/>
 </sc-group>
 </body>

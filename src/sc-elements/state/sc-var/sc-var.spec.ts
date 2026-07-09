@@ -5,7 +5,7 @@ export const spec: ElementSpec = {
   category: "state",
   attrs: {
     name: { type: "string", required: true },
-    value: { type: "decimal" },
-    bind: { type: "string" },
+    // scalar: a literal var may hold a string (feeds displays/ternaries).
+    value: { type: "scalar", runtime: true },
   },
 };

@@ -31,10 +31,10 @@
 <sc-checkbox bind="nonexistent.mute"/>
 
 <!-- Invalid display path -->
-<sc-display bind="sine.volume"/>
+<sc-display _value="sine.volume"/>
 
 <!-- Broken sc-if bind -->
-<sc-if bind="sine.active">
+<sc-if _when="sine.active">
     <span>Active</span>
 </sc-if>
 </body>

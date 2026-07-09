@@ -28,14 +28,20 @@ export abstract class ScNode extends ScElement {
   /** This node's control params as /s_new name-value pairs — the enabled
    *  sc-control children's live `_state` (settled by the time a synth
    *  collects them: children load first — literal from the store sync,
-   *  bound from the initial recompute), falling back to the declarative
-   *  attribute mirror. */
+   *  derived from the initial recompute), falling back to the declarative
+   *  attribute mirror. scsynth controls are floats: a string value skips
+   *  the pair (the synthdef default applies) with a console warning. */
   protected getControls(): Record<string, number> {
     const controls: Record<string, number> = {};
     for (const child of this._scChildren ?? []) {
       if (isControlRuntime(child) && child.enabled) {
-        controls[child.getProp("name") as string] =
-          child._state ?? (child.getProp("value") as number | undefined) ?? 0;
+        const name = child.getProp("name") as string;
+        const value = Number(child._state ?? (child.getProp("value") as number | undefined) ?? 0);
+        if (Number.isNaN(value)) {
+          console.warn(`<sc-control name="${name}">: non-numeric value — control pair skipped`);
+          continue;
+        }
+        controls[name] = value;
       }
     }
     return controls;

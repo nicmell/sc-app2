@@ -69,12 +69,14 @@ export interface OscState {
 
 /** One mounted plugin's LITERAL runtime values, keyed by the state element's
  *  full named path (e.g. `"s1.freq"`; a plugin-level control is just
- *  `"freq"`). Only literal, user-writable state is store-backed — derived
- *  (bound) values live on the elements as `_state` and propagate via
- *  "statechange". Seeded from the declarative `value` attributes in the load
- *  pass; written through `ScState.setValue` (for controls the write path
- *  that also dispatches `/n_set`). */
-export type PluginRuntimeValues = Record<string, number>;
+ *  `"freq"`). Values are numbers or strings (string vars feed the
+ *  presentation layer; the OSC boundary coerces and skips non-numerics).
+ *  Only literal, user-writable state is store-backed — derived (`_value`)
+ *  values live on the elements as `_state` and propagate via "statechange".
+ *  Seeded from the declarative `value` attributes in the load pass; written
+ *  through `ScState.setValue` (for controls the write path that also
+ *  dispatches `/n_set`). */
+export type PluginRuntimeValues = Record<string, number | string>;
 
 /** The single app store's root state — one slice per domain. */
 export interface AppState {

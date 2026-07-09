@@ -48,12 +48,12 @@
     <label>
         <span>Frequency:</span>
         <sc-knob bind="s1.freq" min="20" max="2000" step="1"/>
-        <span><sc-display bind="s1.freq" format="%d Hz"/></span>
+        <span><sc-display _value="s1.freq" format="%d Hz"/></span>
     </label>
     <label>
         <span>Amplitude:</span>
         <sc-knob bind="s1.amp" min="0" max="1" step="0.01"/>
-        <span><sc-display bind="s1.amp" format="%.2f"/></span>
+        <span><sc-display _value="s1.amp" format="%.2f"/></span>
     </label>
     <label>
         <sc-run/>

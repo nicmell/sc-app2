@@ -6,6 +6,6 @@ export const spec: ElementSpec = {
   attrs: {
     bind: { type: "string", required: true },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
+    disabled: { type: "boolean", runtime: true },
   },
 };

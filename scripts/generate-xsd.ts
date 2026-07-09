@@ -1,8 +1,8 @@
 // Generates src-tauri/src/core/plugin/xsd/sc-plugin-schema.xsd from the
 // per-component *.spec.ts files. Run: `yarn generate:xsd`. The schema is
-// single-sourced on the specs + the hand-authored preamble; the xsd-generate /
-// xsd-reconcile tests fail if the committed schema drifts from the specs, or a
-// spec drifts from its component's reactive properties.
+// single-sourced on the specs + the hand-authored preamble; the xsd-generate
+// snapshot test fails if the committed schema drifts from the specs (at runtime
+// the components read the same specs through getProp/validateProps).
 //
 // Pure Node (fs + dynamic import) — no Lit/DOM — so it runs under tsx and inside
 // vitest alike. Paths resolve from the repo root (this file lives in scripts/).
@@ -50,19 +50,27 @@ function assertBijection(specs: Map<string, ElementSpec>): void {
 }
 
 function attribute(name: string, a: AttrSpec): string[] {
-  const use = a.required ? ' use="required"' : "";
-  if (a.type === "enum") {
-    return [
-      `    <xs:attribute name="${name}"${use}>`,
-      `      <xs:simpleType>`,
-      `        <xs:restriction base="xs:string">`,
-      ...a.values.map((v) => `          <xs:enumeration value="${v}"/>`),
-      `        </xs:restriction>`,
-      `      </xs:simpleType>`,
-      `    </xs:attribute>`,
-    ];
+  // A runtime attr is satisfied by EITHER form (`min` or `_min`), which XSD
+  // 1.0 can't express — both emit optional; the runtime gate owns required
+  // and the mutual exclusion (XSD 1.1 asserts are the future upgrade).
+  const use = a.required && !a.runtime ? ' use="required"' : "";
+  const lines =
+    a.type === "enum"
+      ? [
+          `    <xs:attribute name="${name}"${use}>`,
+          `      <xs:simpleType>`,
+          `        <xs:restriction base="xs:string">`,
+          ...a.values.map((v) => `          <xs:enumeration value="${v}"/>`),
+          `        </xs:restriction>`,
+          `      </xs:simpleType>`,
+          `    </xs:attribute>`,
+        ]
+      : [`    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`];
+  if (a.runtime) {
+    // The `_`-prefixed sibling: a bind expression, always an optional string.
+    lines.push(`    <xs:attribute name="_${name}" type="xs:string"/>`);
   }
-  return [`    <xs:attribute name="${name}" type="xs:${a.type}"${use}/>`];
+  return lines;
 }
 
 function complexType(spec: ElementSpec): string[] {

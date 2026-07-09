@@ -1,10 +1,10 @@
 // LITERAL runtime values of the mounted plugins — a slice of the single app
-// store, keyed plugin-root-id → state path ("s1.freq") → number. Only
-// literal, user-writable state (a `value` attribute) is store-backed: the
-// load pass seeds the declarative default and mirrors the key into the
+// store, keyed plugin-root-id → state path ("s1.freq") → number | string.
+// Only literal, user-writable state (a `value` attribute) is store-backed:
+// the load pass seeds the declarative default and mirrors the key into the
 // element's live `_state`, whose "statechange" event is what every reader
-// subscribes to (sc-elements/internal/sc-derived.ts). Derived (bound) values
-// never touch the store — they live on the elements. The only
+// subscribes to (sc-elements/internal/sc-element.ts). Derived (`_value`)
+// values never touch the store — they live on the elements. The only
 // OSC-dispatching write path is `ScState.setValue` — writing the slice
 // directly (future presets: literal keys only) updates the subscribed
 // elements without touching scsynth.
@@ -12,6 +12,7 @@
 import { SliceName } from "@/constants/store";
 import { appStore } from "./store";
 import type { ReadonlyStore } from "@/lib/utils/reactiveStore";
+import type { StateValue } from "@/types/runtime";
 
 const store = appStore.slice(SliceName.RUNTIME);
 
@@ -19,17 +20,17 @@ export const runtime = store;
 
 /** Establish a key's default: written only when the key is absent, so a
  *  reload keeps user-moved values while fresh mounts get the attribute. */
-export function seedRuntimeValue(pluginId: string, key: string, value: number): void {
+export function seedRuntimeValue(pluginId: string, key: string, value: StateValue): void {
   store.update((s) =>
     s[pluginId]?.[key] !== undefined ? s : { ...s, [pluginId]: { ...s[pluginId], [key]: value } },
   );
 }
 
-export function setRuntimeValue(pluginId: string, key: string, value: number): void {
+export function setRuntimeValue(pluginId: string, key: string, value: StateValue): void {
   store.update((s) => ({ ...s, [pluginId]: { ...s[pluginId], [key]: value } }));
 }
 
-export function getRuntimeValue(pluginId: string, key: string): number | undefined {
+export function getRuntimeValue(pluginId: string, key: string): StateValue | undefined {
   return store.get()[pluginId]?.[key];
 }
 
@@ -38,7 +39,7 @@ export function getRuntimeValue(pluginId: string, key: string): number | undefin
 export function selectRuntimeValue(
   pluginId: string,
   key: string,
-): ReadonlyStore<number | undefined> {
+): ReadonlyStore<StateValue | undefined> {
   return store.select((s) => s[pluginId]?.[key]);
 }
 

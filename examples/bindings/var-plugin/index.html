@@ -7,31 +7,31 @@
 <sc-group name="vars">
     <sc-var name="knobValue" value="0.5"/>
     <sc-var name="sliderValue" value="0"/>
-    <sc-var name="mirror" bind="vars.knobValue"/>
-    <sc-var name="doubled" bind="vars.knobValue * 2"/>
-    <sc-var name="sum" bind="vars.knobValue + vars.sliderValue"/>
-    <sc-var name="product" bind="vars.knobValue * (vars.sliderValue + 1)"/>
+    <sc-var name="mirror" _value="vars.knobValue"/>
+    <sc-var name="doubled" _value="vars.knobValue * 2"/>
+    <sc-var name="sum" _value="vars.knobValue + vars.sliderValue"/>
+    <sc-var name="product" _value="vars.knobValue * (vars.sliderValue + 1)"/>
 </sc-group>
 <div class="controls">
     <label>
         <sc-knob bind="vars.knobValue" min="0" max="1" step="0.01"/>
-        <span>Knob: <sc-display bind="vars.knobValue" format="%.2f"/></span>
+        <span>Knob: <sc-display _value="vars.knobValue" format="%.2f"/></span>
     </label>
     <label>
         <sc-slider bind="vars.sliderValue" min="-1" max="1" step="0.01"/>
-        <span>Slider: <sc-display bind="vars.sliderValue" format="%.2f"/></span>
+        <span>Slider: <sc-display _value="vars.sliderValue" format="%.2f"/></span>
     </label>
     <label>
-        <span>Mirror: <sc-display bind="vars.mirror" format="%.2f"/></span>
+        <span>Mirror: <sc-display _value="vars.mirror" format="%.2f"/></span>
     </label>
     <label>
-        <span>Doubled: <sc-display bind="vars.doubled" format="%.2f"/></span>
+        <span>Doubled: <sc-display _value="vars.doubled" format="%.2f"/></span>
     </label>
     <label>
-        <span>Sum (knob + slider): <sc-display bind="vars.sum" format="%.2f"/></span>
+        <span>Sum (knob + slider): <sc-display _value="vars.sum" format="%.2f"/></span>
     </label>
     <label>
-        <span>Product (knob * (slider + 1)): <sc-display bind="vars.product" format="%.2f"/></span>
+        <span>Product (knob * (slider + 1)): <sc-display _value="vars.product" format="%.2f"/></span>
     </label>
 </div>
 </body>

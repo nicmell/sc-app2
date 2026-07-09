@@ -12,8 +12,14 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 
 // ── Bind expressions (lib/utils/expression) ──────────────────────────────
 
+/** What a runtime value can hold: numbers everywhere, strings for the
+ *  presentation layer (string vars, ternary labels/icons). The OSC boundary
+ *  stays numeric — senders coerce and skip NaN. */
+export type StateValue = number | string;
+
 export type Expr =
   | { type: "number"; value: number }
+  | { type: "string"; value: string }
   | { type: "var"; name: string }
   | { type: "unary"; op: "-"; expr: Expr }
   | {
@@ -22,6 +28,13 @@ export type Expr =
       op: "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
       left: Expr;
       right: Expr;
+    }
+  | {
+      type: "ternary";
+      /** Right-associative conditional over the cond's truthiness. */
+      cond: Expr;
+      then: Expr;
+      else: Expr;
     };
 
 // ── Runtime value mixins ──────────────────────────────────────────────────
@@ -46,14 +59,16 @@ export interface NodeRuntime extends BaseRuntime {
   nodeId: number;
 }
 
-/** A participant on the state graph (the ScDerived base — bound state AND
- *  the read-only visuals): resolved bind targets + the optional parsed
- *  expression over them. The LIVE value is the element's `_state` (fed by
- *  the recompute-on-statechange machinery, or the store for literal state);
- *  the `value` prop stays the plain declarative attribute mirror. */
-export interface DerivedRuntime extends BaseRuntime {
+/** One resolved runtime prop (`_min="vars.lo"`, `_value="osc.freq * 2"`):
+ *  the live bind targets + the optional parsed expression over them. Every
+ *  element carries `runtimeProps?: Record<name, RuntimeProp>` (keyed by the
+ *  UNPREFIXED attribute name), resolved by the ScElement base in `process()`
+ *  for each spec attr flagged `runtime: true` whose `_attr` is present. The
+ *  LIVE evaluated values feed `getProp` (and, for `value`, the element's
+ *  `_state`), recomputed on the targets' statechange. */
+export interface RuntimeProp {
   /** Bind path → the live target state element. */
-  targets?: Record<string, ScState>;
+  targets: Record<string, ScState>;
   /** Parsed bind expression, when the bind isn't a plain path. */
   expression?: Expr;
 }

@@ -5,9 +5,9 @@ export const spec: ElementSpec = {
   category: "input",
   attrs: {
     bind: { type: "string", required: true },
-    placeholder: { type: "string" },
+    placeholder: { type: "string", runtime: true },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
+    disabled: { type: "boolean", runtime: true },
   },
   content: { choice: ["sc-option"] },
 };

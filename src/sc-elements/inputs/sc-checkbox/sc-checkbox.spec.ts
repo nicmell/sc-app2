@@ -5,8 +5,8 @@ export const spec: ElementSpec = {
   category: "input",
   attrs: {
     bind: { type: "string", required: true },
-    label: { type: "string" },
+    label: { type: "string", runtime: true },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
+    disabled: { type: "boolean", runtime: true },
   },
 };

@@ -27,8 +27,9 @@ export class ScSelect extends ScInput {
       .map((o) => ({ value: o.getProp("value") as number, label: o.getProp("label") as string }));
   }
 
-  protected syncFromState(value: number | undefined): void {
-    if (value !== undefined) this._value = value;
+  protected syncFromState(value: number | string | undefined): void {
+    const n = this.numericState(value);
+    if (n !== undefined) this._value = n;
   }
 
   private onChange = (e: Event) => {

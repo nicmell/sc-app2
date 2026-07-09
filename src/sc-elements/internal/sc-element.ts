@@ -11,13 +11,27 @@
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
 // also generates the XSD); only the handful of genuinely-reactive fields (a
-// widget's `value`/`_checked`/`_state`/…) stay as Lit properties. Runtime
-// values are plain fields. Still unported (return with their migration
-// steps): the buffer family
-// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
-// and synthdef compilation.
+// widget's `value`/`_checked`/…) stay as Lit properties. Runtime values are
+// plain fields.
+//
+// RUNTIME PROPS: any spec attr flagged `runtime: true` accepts a `_`-prefixed
+// sibling attribute holding a bind expression (`_min="vars.lo"`,
+// `_value="osc.freq * 2"`, `_icon="s1.gate ? 'stop' : 'play'"`) — mutually
+// exclusive with the static attribute. `process()` resolves each into live
+// targets (+ parsed expression); `load()` computes the initial value and
+// recomputes on every target's statechange, feeding `getProp` (and, for the
+// `value` prop, the state elements' `_state` + the "statechange" event that
+// notifies dependents). Element-to-element push propagation — the bind-order
+// constraint makes the target graph a DAG resolved in DOM order, so the
+// initial load settles in one pass; diamond dependencies can transiently
+// dispatch once per intermediate before converging — accepted, each hop is
+// Object.is-guarded.
+//
+// Still unported (return with their migration steps): the buffer family
+// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides.
 
 import { LitElement } from "lit";
+import { evalExpr } from "@/lib/utils/expression";
 import { isNodeType } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import {
@@ -26,10 +40,11 @@ import {
   failValidation,
   isTransparent,
   nameOf,
+  resolveStateBind,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import type { ElementSpec } from "@/sc-elements/internal/xsd/types";
-import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
+import type { AttrSpec, ElementSpec } from "@/sc-elements/internal/xsd/types";
+import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
@@ -55,6 +70,15 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  sequential walk re-checks it after every awaited child and aborts when
    *  it moved (disconnect unload, or a newer pass superseding this one). */
   loadEpoch = 0;
+  /** The resolved runtime props (`_min="vars.lo"` → key "min"): live bind
+   *  targets + parsed expression per prop, assigned in `process()`. */
+  runtimeProps?: Record<string, RuntimeProp>;
+
+  /** The live evaluated runtime-prop values (keyed like `runtimeProps`) —
+   *  also the store-fed backing of a literal state element's `value`. */
+  #runtime: Record<string, StateValue | undefined> = {};
+  /** Target/store unsubscribes (set in load, cleared on unload/disconnect). */
+  #offs: Array<() => void> = [];
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -69,27 +93,63 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
    *  call site (`this.getProp("min") as number`). Absent → undefined; a
-   *  forwarded prop then falls back to the base widget's own default. The
-   *  genuinely-reactive fields (a widget's `value`, `_checked`, `_state`, …)
-   *  are NOT declarative attributes and stay as reactive class fields. */
+   *  forwarded prop then falls back to the base widget's own default. When the
+   *  attr is runtime-flagged and its `_attr` is present, this returns the LIVE
+   *  evaluated value instead (undefined until the targets settle) — reads from
+   *  render() re-run on every recompute. The genuinely-reactive fields (a
+   *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
+   *  as reactive class fields. */
   getProp(name: string): string | number | boolean | undefined {
+    const attr = this.spec?.attrs?.[name];
+    if (attr?.runtime && this.hasAttribute(`_${name}`)) {
+      return this.coerceProp(attr, this.#runtime[name], true);
+    }
     const raw = this.getAttribute(name);
     if (raw === null) return undefined;
-    const attr = this.spec?.attrs?.[name];
-    if (attr?.type === "decimal" || attr?.type === "integer") return Number(raw);
-    if (attr?.type === "boolean") return raw !== "false"; // run="false"/disabled="false"
-    return raw; // string / enum
+    return this.coerceProp(attr, raw, false);
+  }
+
+  /** Coerce a raw attribute string or an evaluated runtime value per the spec
+   *  type: decimal/integer → Number, boolean → `!== "false"` for the static
+   *  attribute (run/disabled) and plain truthiness for evaluated values (an
+   *  evaluated `''`/0 is falsy), scalar → number-if-numeric-else-string,
+   *  string/enum → String. */
+  private coerceProp(
+    attr: AttrSpec | undefined,
+    value: StateValue | undefined,
+    evaluated: boolean,
+  ): string | number | boolean | undefined {
+    if (value === undefined) return undefined;
+    if (attr?.type === "decimal" || attr?.type === "integer") return Number(value);
+    if (attr?.type === "boolean") {
+      return evaluated ? Boolean(value) : value !== "false";
+    }
+    if (attr?.type === "scalar") {
+      if (typeof value === "number") return value;
+      const n = Number(value);
+      return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+    }
+    return String(value); // string / enum
   }
 
   /** Spec-driven attribute validation, run before `validate()`: required
-   *  present, numeric non-NaN, enum membership. Element-specific semantic and
-   *  range rules (value-XOR-bind, name syntax, positive/≤max, no-sc-children)
-   *  stay in the per-element `validate()` override. */
+   *  present (a runtime attr satisfies it with either form), static/`_`
+   *  mutual exclusion, numeric non-NaN, enum membership, and no stray
+   *  `_`-attrs (only runtime-flagged spec attrs have a `_` form).
+   *  Element-specific semantic and range rules (name syntax, positive/≤max,
+   *  no-sc-children) stay in the per-element `validate()` override. */
   validateProps(): void {
-    for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
+    const attrs = this.spec?.attrs ?? {};
+    for (const [name, attr] of Object.entries(attrs)) {
       const raw = this.getAttribute(name);
+      const dynamic = attr.runtime ? this.getAttribute(`_${name}`) : null;
+      if (raw !== null && dynamic !== null) {
+        failValidation(this, `"${name}" and "_${name}" are mutually exclusive`);
+      }
       if (raw === null) {
-        if (attr.required) failValidation(this, `missing required "${name}" attribute`);
+        if (attr.required && dynamic === null) {
+          failValidation(this, `missing required "${name}" attribute`);
+        }
         continue;
       }
       if ((attr.type === "decimal" || attr.type === "integer") && Number.isNaN(Number(raw))) {
@@ -97,6 +157,11 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       }
       if (attr.type === "enum" && !attr.values.includes(raw)) {
         failValidation(this, `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`);
+      }
+    }
+    for (const { name } of Array.from(this.attributes)) {
+      if (name.startsWith("_") && !attrs[name.slice(1)]?.runtime) {
+        failValidation(this, `unknown runtime attribute "${name}"`);
       }
     }
   }
@@ -137,8 +202,28 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     this.validateProps();
     this.validate();
     Object.assign(this, this.resolveRuntime(ctx));
+    this.resolveRuntimeProps(ctx);
     if (parent) this._parentScNode = parent;
     return this;
+  }
+
+  /** Resolve every present `_attr` into live targets + expression — the same
+   *  machinery state binds use, so the bind-order constraint applies. Runs
+   *  AFTER `resolveRuntime` (enablement is known): a `_attr` on a DISABLED
+   *  element (a graph input inside synthdefs/ugens) is rejected loudly — it
+   *  has no node scope to resolve against, and the graph collectors read the
+   *  static attributes only. */
+  private resolveRuntimeProps(ctx: RuntimeContext): void {
+    this.runtimeProps = undefined; // a re-process must not keep stale binds
+    for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
+      if (!attr.runtime) continue;
+      const expr = this.getAttribute(`_${name}`);
+      if (expr === null) continue;
+      if (!this.enabled) {
+        failValidation(this, `"_${name}" is not allowed on a synthdef graph input`);
+      }
+      (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, `_${name}`);
+    }
   }
 
   /** The element's true parse parent: its nearest sc ancestor within the
@@ -166,14 +251,98 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return baseRuntime(ctx);
   }
 
+  // ── Runtime values (the live evaluated props / the state seam) ──────────
+
+  /** The live evaluated value of a runtime prop (undefined until its targets
+   *  settle). The `value` prop's slot doubles as a literal state element's
+   *  store-fed backing (ScState). */
+  protected runtimeValue(name: string): StateValue | undefined {
+    return this.#runtime[name];
+  }
+
+  /** The single internal writer: Object.is-guarded, re-renders (reads go
+   *  through `getProp` in render), runs the subclass side-effect hook (BEFORE
+   *  notifying, so an element's own effect — e.g. ScControl's /n_set —
+   *  precedes its dependents' recomputes), then, for the `value` prop (the
+   *  one dependents can bind to), dispatches the non-bubbling "statechange".
+   *  Never call from willUpdate/render (it schedules an update). */
+  protected updateRuntimeValue(name: string, next: StateValue): void {
+    const prev = this.#runtime[name];
+    if (Object.is(prev, next)) return;
+    this.#runtime[name] = next;
+    this.requestUpdate();
+    this.runtimeValueChanged(name, prev, next);
+    if (name === "value") {
+      this.dispatchEvent(new CustomEvent<StateValue>("statechange", { detail: next }));
+    }
+  }
+
+  /** Subclass side-effect hook for a real runtime-value move (ScControl: the
+   *  derived-value /n_set on `value`). */
+  protected runtimeValueChanged(_name: string, _prev: StateValue | undefined, _next: StateValue) {}
+
+  /** Subscribe to this element's `value` changes; returns the unregister.
+   *  Change-only (no initial call) — read `_state` for the current value. */
+  onStateChange(cb: (value: StateValue) => void): () => void {
+    const listener = (e: Event) => cb((e as CustomEvent<StateValue>).detail);
+    this.addEventListener("statechange", listener);
+    return () => this.removeEventListener("statechange", listener);
+  }
+
+  /** A runtime prop's value right now: the targets' `_state` through the
+   *  expression (a plain single-path bind is the identity). `undefined` when
+   *  any target has no value yet — evaluating would push NaN downstream. */
+  #computeRuntime(prop: RuntimeProp): StateValue | undefined {
+    const values: Record<string, StateValue> = {};
+    for (const [path, target] of Object.entries(prop.targets)) {
+      const v = target._state;
+      if (v === undefined) return undefined;
+      values[path] = v;
+    }
+    if (prop.expression) return evalExpr(prop.expression, values);
+    const [first] = Object.values(values);
+    return first;
+  }
+
+  /** The seam subclasses use to park a subscription on the shared lifecycle
+   *  (ScState's store view, ScInput's target sync) — dropped with the runtime
+   *  props' own on unload/disconnect/reload. */
+  protected addRuntimeSubscription(off: () => void): void {
+    this.#offs.push(off);
+  }
+
+  #dropRuntimeSubscriptions(): void {
+    for (const off of this.#offs) off();
+    this.#offs = [];
+  }
+
   /** The async load pass, run AFTER the sync parse, in strict DOM order: a
    *  parent awaits each child fully before the next starts — no concurrency,
    *  no reactive gates. The bind-order constraint (targets declared before
    *  their references) makes DOM order a valid dependency order, so a
    *  synthdef's /d_recv is acknowledged before its synth's /s_new is sent.
    *  Overrides sequence their own OSC and call `super.load()` where the
-   *  children follow. */
+   *  children follow.
+   *
+   *  The SYNCHRONOUS prefix wires the runtime props: drop stale
+   *  subscriptions first (re-entrant reconnect reload — or it would
+   *  double-register), then per prop compute the initial value (the targets
+   *  are earlier in DOM order, so their `_state` has settled) and re-compute
+   *  on every target statechange. Subclasses that park their own
+   *  subscriptions rely on this prefix running before their wiring — they
+   *  start `super.load()` FIRST and await it last (see ScState/ScInput). */
   async load(): Promise<void> {
+    this.#dropRuntimeSubscriptions();
+    for (const [name, prop] of Object.entries(this.runtimeProps ?? {})) {
+      const recompute = () => {
+        const v = this.#computeRuntime(prop);
+        if (v !== undefined) this.updateRuntimeValue(name, v);
+      };
+      recompute();
+      for (const target of Object.values(prop.targets)) {
+        this.#offs.push(target.onStateChange(recompute));
+      }
+    }
     const epoch = this._rootScNode?.loadEpoch ?? 0;
     for (const child of this._scChildren ?? []) {
       await child.load();
@@ -188,6 +357,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     for (const child of [...(this._scChildren ?? [])].reverse()) {
       child.unload();
     }
+    this.#dropRuntimeSubscriptions();
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.#dropRuntimeSubscriptions();
   }
 
   /** This element's sc-* descendants, recursing through plain HTML wrappers

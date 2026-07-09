@@ -36,12 +36,12 @@
             <sc-option value="440" label="A4 (440 Hz)"/>
             <sc-option value="523" label="C5 (523 Hz)"/>
         </sc-select>
-        <span><sc-display bind="s1.freq" format="%d Hz"/></span>
+        <span><sc-display _value="s1.freq" format="%d Hz"/></span>
     </label>
     <label>
         <span>Amplitude:</span>
         <sc-knob bind="s1.amp" min="0" max="1" step="0.01"/>
-        <span><sc-display bind="s1.amp" format="%.2f"/></span>
+        <span><sc-display _value="s1.amp" format="%.2f"/></span>
     </label>
     <label>
         <span>Mode (var):</span>
@@ -50,7 +50,7 @@
             <sc-option value="1" label="On"/>
             <sc-option value="2" label="Auto"/>
         </sc-select>
-        <span>= <sc-display bind="vars.mode" format="%d"/></span>
+        <span>= <sc-display _value="vars.mode" format="%d"/></span>
     </label>
     <label>
         <span>Frequency (radio):</span>

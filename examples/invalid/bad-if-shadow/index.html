@@ -9,7 +9,7 @@
      store paths), so the inner "x" collides with the outer "x" in one flat
      scope and checkDuplicateNames must fail with "duplicate name in scope" -->
 <sc-var name="x" value="1"/>
-<sc-if bind="x">
+<sc-if _when="x">
     <div>
         <sc-var name="x" value="2"/>
     </div>

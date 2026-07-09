@@ -13,8 +13,9 @@ import "@sc-app/ui-components/lit";
 export class ScSwitch extends ScInput {
   @state() accessor _checked = false;
 
-  protected syncFromState(value: number | undefined): void {
-    if (value !== undefined) this._checked = value !== 0;
+  protected syncFromState(value: number | string | undefined): void {
+    const n = this.numericState(value);
+    if (n !== undefined) this._checked = n !== 0;
   }
 
   private onChange = (e: Event) => {

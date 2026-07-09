@@ -148,18 +148,21 @@ export function resolveNode(
 
 /** Resolve `el`'s bind into its node + control-name pair: the leading
  *  segments name a node in scope (none targets the parent node), the last
- *  segment a state child declared on it. */
+ *  segment a state child declared on it. `attr` names the attribute the
+ *  expression came from in the error messages (`bind` for inputs, `_min`/
+ *  `_value`/… for runtime props). */
 export function resolveControlBind(
   el: Element,
   ctx: RuntimeContext,
   bind: string,
+  attr = "bind",
 ): { target: ScElement; controlName: string } {
   const tag = el.tagName.toLowerCase();
   const segments = bind.split(".");
   const controlName = segments.pop()!;
   const target = segments.length > 0 ? resolveNode(el, ctx, segments) : ctx.parentNode;
   if (!target || !isNodeRuntime(target)) {
-    throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
+    throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
   }
   if (![...scChildrenThrough(target)].some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // When the state IS declared on the target but only later in the
@@ -172,25 +175,27 @@ export function resolveControlBind(
     }
     const targetName = nameOf(target) ?? target.id;
     throw new Error(
-      `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
+      `<${tag} ${attr}="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
     );
   }
   return { target, controlName };
 }
 
-/** Resolve `el`'s stateful bind (an enabled sc-control / sc-var referencing
- *  other controls/vars): plain dot-paths or an arithmetic expression over
- *  them. */
+/** Resolve a stateful bind expression (a runtime `_attr` — `_value` on
+ *  state, `_min`/`_label`/… anywhere): plain dot-paths or an arithmetic/
+ *  ternary expression over them. `attr` names the source attribute in the
+ *  error messages. */
 export function resolveStateBind(
   el: ScElement,
   ctx: RuntimeContext,
   bind: string,
+  attr = "bind",
 ): { targets: Record<string, ScState>; expression?: Expr } {
   const parsed = parseBind(bind);
   const targets: Record<string, ScState> = {};
 
   for (const path of parsed.paths) {
-    const { target, controlName } = resolveControlBind(el, ctx, path);
+    const { target, controlName } = resolveControlBind(el, ctx, path, attr);
     const targetState = [...scChildrenThrough(target)].find(
       (c) => isStateRuntime(c) && nameOf(c) === controlName,
     ) as ScState;

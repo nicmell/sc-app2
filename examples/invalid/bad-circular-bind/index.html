@@ -10,7 +10,7 @@
      resolveStateBind's self-reference guard must fail with "circular bind
      reference detected" -->
 <sc-group name="vars">
-    <sc-var name="a" bind="vars.a"/>
+    <sc-var name="a" _value="vars.a"/>
 </sc-group>
 </body>
 </html>

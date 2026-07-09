@@ -41,15 +41,15 @@
 <div style="display:flex;flex-direction:column;height:100%;gap:8px;">
     <div style="display:flex;gap:16px;align-items:center;flex:none;">
         <label>
-            <span>L (sine): <sc-display bind="s1.freqL" format="%d Hz"/></span>
+            <span>L (sine): <sc-display _value="s1.freqL" format="%d Hz"/></span>
             <sc-slider bind="s1.freqL" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>R (saw): <sc-display bind="s1.freqR" format="%d Hz"/></span>
+            <span>R (saw): <sc-display _value="s1.freqR" format="%d Hz"/></span>
             <sc-slider bind="s1.freqR" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display bind="s1.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display _value="s1.amp" format="%.2f"/></span>
             <sc-slider bind="s1.amp" min="0" max="1" step="0.01"/>
         </label>
         <label>

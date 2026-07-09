@@ -48,6 +48,7 @@
   <xs:element name="sc-synth" type="scSynthType"/>
   <xs:element name="sc-slider" type="scSliderType"/>
   <xs:element name="sc-knob" type="scKnobType"/>
+  <xs:element name="sc-button" type="scButtonType"/>
   <xs:element name="sc-checkbox" type="scCheckboxType"/>
   <xs:element name="sc-switch" type="scSwitchType"/>
   <xs:element name="sc-run" type="scRunType"/>
@@ -88,6 +89,7 @@
     <xs:choice>
       <xs:element ref="sc-slider"/>
       <xs:element ref="sc-knob"/>
+      <xs:element ref="sc-button"/>
       <xs:element ref="sc-checkbox"/>
       <xs:element ref="sc-switch"/>
       <xs:element ref="sc-run"/>
@@ -231,14 +233,15 @@
   <xs:complexType name="scControlType">
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="_value" type="xs:string"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scVarType">
     <xs:attribute name="name" type="xs:string" use="required"/>
-    <xs:attribute name="value" type="xs:decimal"/>
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
+    <xs:attribute name="_value" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -255,10 +258,14 @@
   <xs:complexType name="scSliderType">
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
+    <xs:attribute name="_min" type="xs:string"/>
     <xs:attribute name="max" type="xs:decimal"/>
+    <xs:attribute name="_max" type="xs:string"/>
     <xs:attribute name="step" type="xs:decimal"/>
+    <xs:attribute name="_step" type="xs:string"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
+    <xs:attribute name="_label" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -277,16 +284,21 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scKnobType">
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
+    <xs:attribute name="_min" type="xs:string"/>
     <xs:attribute name="max" type="xs:decimal"/>
+    <xs:attribute name="_max" type="xs:string"/>
     <xs:attribute name="step" type="xs:decimal"/>
+    <xs:attribute name="_step" type="xs:string"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
+    <xs:attribute name="_label" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -297,12 +309,45 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scButtonType">
+    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="label" type="xs:string"/>
+    <xs:attribute name="_label" type="xs:string"/>
+    <xs:attribute name="icon" type="xs:string"/>
+    <xs:attribute name="_icon" type="xs:string"/>
+    <xs:attribute name="variant">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="primary"/>
+          <xs:enumeration value="secondary"/>
+          <xs:enumeration value="ghost"/>
+          <xs:enumeration value="danger"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scCheckboxType">
     <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="label" type="xs:string"/>
+    <xs:attribute name="_label" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -313,6 +358,7 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -328,6 +374,7 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -337,8 +384,10 @@
   </xs:complexType>
 
   <xs:complexType name="scDisplayType">
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:string"/>
+    <xs:attribute name="_value" type="xs:string"/>
     <xs:attribute name="format" type="xs:string"/>
+    <xs:attribute name="_format" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -346,7 +395,8 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:group ref="blockContent"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="when" type="xs:string"/>
+    <xs:attribute name="_when" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -356,6 +406,7 @@
     </xs:choice>
     <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="placeholder" type="xs:string"/>
+    <xs:attribute name="_placeholder" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -366,6 +417,7 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -389,6 +441,7 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="label" type="xs:string"/>
+    <xs:attribute name="_label" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -399,6 +452,7 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attribute name="_disabled" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

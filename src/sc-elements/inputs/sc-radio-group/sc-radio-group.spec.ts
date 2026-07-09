@@ -6,9 +6,9 @@ export const spec: ElementSpec = {
   attrs: {
     bind: { type: "string", required: true },
     orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    label: { type: "string" },
+    label: { type: "string", runtime: true },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean" },
+    disabled: { type: "boolean", runtime: true },
   },
   content: { choice: ["sc-radio"] },
 };

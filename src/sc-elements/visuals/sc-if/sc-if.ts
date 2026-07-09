@@ -1,7 +1,8 @@
-// <sc-if> — conditional rendering on the TRUTHINESS of an expression bind
-// (the ScDerived base): `bind="osc.gate"`, `bind="vars.freq > 440"`,
-// `bind="osc.gate == 0"` — anything the expression engine evaluates; children
-// show when the live `_state` is non-zero.
+// <sc-if> — conditional rendering on the TRUTHINESS of a `_when` expression
+// (the ScElement runtime-prop machinery): `_when="osc.gate"`,
+// `_when="vars.freq > 440"`, `_when="osc.gate == 0"` — anything the
+// expression engine evaluates; children show when the live value is truthy
+// (non-zero, non-empty-string).
 //
 // Light DOM: hiding is the `hidden` attribute + stylesheet (display: contents
 // / [hidden] display: none). sc-if is a TRANSPARENT container (nameless — see
@@ -14,19 +15,14 @@
 // keys at the enclosing path — only visibility is conditional.
 
 import { nothing, type PropertyValues } from "lit";
-import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
-import { ScDerived } from "@/sc-elements/internal/sc-derived";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 import "./sc-if.scss";
 
-export class ScIf extends ScDerived {
-  protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
-    return this.derivedRuntime(ctx);
-  }
-
+export class ScIf extends ScElement {
   /** Host attributes are side effects — keep them out of render(). */
   protected willUpdate(changed: PropertyValues): void {
     super.willUpdate(changed);
-    this.toggleAttribute("hidden", !this._state);
+    this.toggleAttribute("hidden", !this.getProp("when"));
   }
 
   render() {

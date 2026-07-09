@@ -2,8 +2,8 @@
 // exporting a plain-data `ElementSpec` describing its schema surface (attributes
 // + content model + category); `scripts/generate-xsd.ts` reads every spec and
 // emits `sc-plugin-schema.xsd`. Pure JSON — no Lit, no runtime — so the
-// generator runs standalone; the `xsd-reconcile` test cross-checks each spec
-// against the live component's reactive properties so the two can't drift.
+// generator runs standalone; at runtime the SAME spec drives getProp coercion
+// and validateProps, and the xsd-generate snapshot test pins the schema.
 
 /** An element's placement class. Feeds the per-category content-model groups
  *  (internal/xsd/groups.ts): `input`/`visual`/`widget`/`state`/`node`/`synthdef`
@@ -19,18 +19,28 @@ export type Category =
   | "ugen"
   | "option";
 
-/** Shared to every attribute: `required` → `use="required"` (else `"optional"`). */
+/** Shared to every attribute: `required` → `use="required"` (else `"optional"`);
+ *  `runtime` marks the attr as bindable — the generator additionally declares
+ *  the `_`-prefixed sibling (`min` → `_min`, an xs:string bind expression), the
+ *  runtime evaluates it live (ScElement's runtime-prop machinery), and the two
+ *  forms are mutually exclusive (validateProps; a `required` runtime attr is
+ *  satisfied by either form, so the XSD emits both optional — one-of waits for
+ *  XSD 1.1 asserts). */
 interface AttrCommon {
   required?: boolean;
+  runtime?: boolean;
 }
 
 /** One attribute, discriminated on `type` — maps 1:1 to `<xs:attribute>`. `enum`
- *  emits an inline `<xs:simpleType>` restriction; the rest are xs: builtins. */
+ *  emits an inline `<xs:simpleType>` restriction; `scalar` is xs:string in the
+ *  schema but number-if-numeric-else-string at runtime (string-capable state);
+ *  the rest are xs: builtins. */
 export type AttrSpec =
   | (AttrCommon & { type: "string" })
   | (AttrCommon & { type: "decimal" })
   | (AttrCommon & { type: "integer" })
   | (AttrCommon & { type: "boolean" })
+  | (AttrCommon & { type: "scalar" })
   | (AttrCommon & { type: "enum"; values: readonly string[] });
 
 /** The content model — XSD's own vocabulary. Omit it entirely for empty content

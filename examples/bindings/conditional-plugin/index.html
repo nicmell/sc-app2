@@ -43,11 +43,11 @@
 
 <div>
     <label>
-        <span>Freq: <sc-display bind="osc.freq" format="%d Hz"/></span>
+        <span>Freq: <sc-display _value="osc.freq" format="%d Hz"/></span>
         <sc-knob bind="osc.freq" min="20" max="2000" step="1"/>
     </label>
     <label>
-        <span>Amp: <sc-display bind="osc.amp" format="%.2f"/></span>
+        <span>Amp: <sc-display _value="osc.amp" format="%.2f"/></span>
         <sc-knob bind="osc.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
@@ -57,20 +57,20 @@
      from OUTSIDE (and after) the sc-if; only visibility follows the bind (a
      full expression: truthiness shows the children, and the inverse section
      compares against the live control with `== 0`). -->
-<sc-if bind="osc.gate">
+<sc-if _when="osc.gate">
     <div>
         <h3>Gate is ON</h3>
         <label>
-            <span>Gate: <sc-display bind="osc.gate" format="%d"/></span>
+            <span>Gate: <sc-display _value="osc.gate" format="%d"/></span>
             <sc-checkbox bind="osc.gate"/>
         </label>
-        <sc-var name="octaveUp" bind="osc.freq * 2"/>
+        <sc-var name="octaveUp" _value="osc.freq * 2"/>
     </div>
 </sc-if>
 <label>
-    <span>Octave up (a var declared inside the sc-if): <sc-display bind="octaveUp" format="%d Hz"/></span>
+    <span>Octave up (a var declared inside the sc-if): <sc-display _value="octaveUp" format="%d Hz"/></span>
 </label>
-<sc-if bind="osc.gate == 0">
+<sc-if _when="osc.gate == 0">
     <div>
         <h3>Gate is OFF — click to re-enable</h3>
         <label>

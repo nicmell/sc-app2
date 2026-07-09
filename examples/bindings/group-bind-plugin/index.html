@@ -60,11 +60,11 @@
             <sc-run bind="low"/>
         </label>
         <label>
-            <span>Freq: <sc-display bind="low.freq" format="%d Hz"/></span>
+            <span>Freq: <sc-display _value="low.freq" format="%d Hz"/></span>
             <sc-knob bind="low.freq" min="20" max="1000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display bind="low.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display _value="low.amp" format="%.2f"/></span>
             <sc-knob bind="low.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>
@@ -75,11 +75,11 @@
             <sc-run bind="high"/>
         </label>
         <label>
-            <span>Freq: <sc-display bind="high.freq" format="%d Hz"/></span>
+            <span>Freq: <sc-display _value="high.freq" format="%d Hz"/></span>
             <sc-knob bind="high.freq" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display bind="high.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display _value="high.amp" format="%.2f"/></span>
             <sc-knob bind="high.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>

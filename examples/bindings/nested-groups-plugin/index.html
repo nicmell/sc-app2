@@ -42,11 +42,11 @@
         <sc-run bind="outer.inner.deep"/>
     </label>
     <label>
-        <span>Freq: <sc-display bind="outer.inner.deep.freq" format="%d Hz"/></span>
+        <span>Freq: <sc-display _value="outer.inner.deep.freq" format="%d Hz"/></span>
         <sc-knob bind="outer.inner.deep.freq" min="20" max="1000" step="1"/>
     </label>
     <label>
-        <span>Amp: <sc-display bind="outer.inner.deep.amp" format="%.2f"/></span>
+        <span>Amp: <sc-display _value="outer.inner.deep.amp" format="%.2f"/></span>
         <sc-knob bind="outer.inner.deep.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
@@ -57,7 +57,7 @@
         <sc-run bind="outer.shallow"/>
     </label>
     <label>
-        <span>Freq: <sc-display bind="outer.shallow.freq" format="%d Hz"/></span>
+        <span>Freq: <sc-display _value="outer.shallow.freq" format="%d Hz"/></span>
         <sc-knob bind="outer.shallow.freq" min="20" max="2000" step="1"/>
     </label>
 </div>
@@ -69,11 +69,11 @@
         <sc-run bind="outer"/>
     </label>
     <label>
-        <span>Outer amp: <sc-display bind="outer.amp" format="%.2f"/></span>
+        <span>Outer amp: <sc-display _value="outer.amp" format="%.2f"/></span>
         <sc-slider bind="outer.amp" min="0" max="1" step="0.01"/>
     </label>
     <label>
-        <span>Inner amp: <sc-display bind="outer.inner.amp" format="%.2f"/></span>
+        <span>Inner amp: <sc-display _value="outer.inner.amp" format="%.2f"/></span>
         <sc-slider bind="outer.inner.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>

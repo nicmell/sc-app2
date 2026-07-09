@@ -29,6 +29,8 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-ugen-ref", // ugen input references an unknown name
   "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope
   "bad-name-syntax", // a dotted name forging another scope's store key
+  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive
+  "bad-derived-graph-input", // runtime prop used on a synthdef graph input
 ]);
 
 // CDP setup

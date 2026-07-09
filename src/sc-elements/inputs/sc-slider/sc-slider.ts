@@ -19,8 +19,9 @@ export class ScSlider extends ScInput {
    *  declarative — read via `getProp`, forwarded (absent → base default). */
   @property({ type: Number }) accessor value = 0;
 
-  protected syncFromState(value: number | undefined): void {
-    if (value !== undefined) this.value = value;
+  protected syncFromState(value: number | string | undefined): void {
+    const n = this.numericState(value);
+    if (n !== undefined) this.value = n;
   }
 
   private onInput = (e: Event) => {

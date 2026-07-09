@@ -58,6 +58,8 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
   "bad-name-syntax":
     '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
+  "bad-runtime-conflict": '<sc-var>: "value" and "_value" are mutually exclusive',
+  "bad-derived-graph-input": '<sc-control>: "_value" is not allowed on a synthdef graph input',
 };
 
 interface ExampleCase {

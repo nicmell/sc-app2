@@ -15,8 +15,9 @@ export class ScKnob extends ScInput {
    *  through `live()`); the rest are declarative — read via `getProp`. */
   @property({ type: Number }) accessor value = 0;
 
-  protected syncFromState(value: number | undefined): void {
-    if (value !== undefined) this.value = value;
+  protected syncFromState(value: number | string | undefined): void {
+    const n = this.numericState(value);
+    if (n !== undefined) this.value = n;
   }
 
   private onInput = (e: Event) => {

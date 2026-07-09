@@ -4,12 +4,12 @@
     xmlns="http://www.w3.org/1999/xhtml"
     elementFormDefault="qualified">
 
-  <!-- sc-plugin schema: a basic XHTML wrapper containing simple layout HTML
-       plus the sc-* custom elements. Grows with each element migration step;
-       keep in sync with src/constants/sc-elements.ts and the runtime
-       validation in the components' validate() methods. The buffer family
-       (sc-buffer / sc-waveform / sc-test and the old buffer-bound sc-scope)
-       is not migrated yet — our sc-scope is the bus-tap SHM scope. -->
+  <!-- GENERATED FILE — DO NOT EDIT BY HAND. Produced by scripts/generate-xsd.ts
+       from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
+       To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
+       fixed HTML scaffolding below is src/sc-elements/internal/xsd/preamble.xml.
+       `name` syntax (one bind-path segment, no dots) is validated in the
+       components' requireName() — deliberately not carried into the schema. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -17,9 +17,6 @@
     <xs:attribute name="title" type="xs:string" use="optional"/>
     <xs:attribute name="style" type="xs:string" use="optional"/>
   </xs:attributeGroup>
-
-  <!-- Note: `name` syntax (one bind-path segment, no dots) is validated in the
-       components' requireName() — deliberately not carried into the schema. -->
 
   <!-- ==================== Element declarations ==================== -->
 
@@ -43,12 +40,9 @@
   <xs:element name="br"/>
 
   <!-- sc-* elements -->
-  <xs:element name="sc-console" type="scLeafType"/>
-  <xs:element name="sc-scope" type="scScopeType"/>
-  <xs:element name="sc-strudel" type="scStrudelType"/>
   <xs:element name="sc-group" type="scGroupType"/>
-  <xs:element name="sc-synthdef" type="scSynthDefType"/>
-  <xs:element name="sc-ugen" type="scUGenType"/>
+  <xs:element name="sc-synthdef" type="scSynthdefType"/>
+  <xs:element name="sc-ugen" type="scUgenType"/>
   <xs:element name="sc-control" type="scControlType"/>
   <xs:element name="sc-var" type="scVarType"/>
   <xs:element name="sc-synth" type="scSynthType"/>
@@ -63,6 +57,9 @@
   <xs:element name="sc-option" type="scOptionType"/>
   <xs:element name="sc-radio-group" type="scRadioGroupType"/>
   <xs:element name="sc-radio" type="scRadioType"/>
+  <xs:element name="sc-console" type="scConsoleType"/>
+  <xs:element name="sc-scope" type="scScopeType"/>
+  <xs:element name="sc-strudel" type="scStrudelType"/>
 
   <!-- ==================== Content model groups ==================== -->
 
@@ -87,13 +84,8 @@
     </xs:choice>
   </xs:group>
 
-  <!-- blockContent: HTML + every sc-* element authorable anywhere block content
-       appears (i.e. all but the child-only sc-option/sc-radio/sc-ugen). -->
-  <xs:group name="blockContent">
+  <xs:group name="scInputs">
     <xs:choice>
-      <xs:group ref="htmlElements"/>
-      <xs:element ref="sc-display"/>
-      <xs:element ref="sc-if"/>
       <xs:element ref="sc-slider"/>
       <xs:element ref="sc-knob"/>
       <xs:element ref="sc-checkbox"/>
@@ -101,14 +93,53 @@
       <xs:element ref="sc-run"/>
       <xs:element ref="sc-select"/>
       <xs:element ref="sc-radio-group"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scVisuals">
+    <xs:choice>
+      <xs:element ref="sc-display"/>
+      <xs:element ref="sc-if"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scWidgets">
+    <xs:choice>
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scState">
+    <xs:choice>
       <xs:element ref="sc-control"/>
       <xs:element ref="sc-var"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scNodes">
+    <xs:choice>
       <xs:element ref="sc-group"/>
       <xs:element ref="sc-synth"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="scSynthDefs">
+    <xs:choice>
       <xs:element ref="sc-synthdef"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:group name="blockContent">
+    <xs:choice>
+      <xs:group ref="htmlElements"/>
+      <xs:group ref="scInputs"/>
+      <xs:group ref="scVisuals"/>
+      <xs:group ref="scWidgets"/>
+      <xs:group ref="scState"/>
+      <xs:group ref="scNodes"/>
+      <xs:group ref="scSynthDefs"/>
     </xs:choice>
   </xs:group>
 
@@ -168,38 +199,6 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- Leaf custom elements: no custom attrs yet. -->
-  <xs:complexType name="scLeafType">
-    <xs:attributeGroup ref="commonAttrs"/>
-  </xs:complexType>
-
-  <!-- sc-scope: a tap over `channels` consecutive buses starting at `bus`
-       (defaults: the stereo master out); `frames` is the visible window in
-       samples (default 1024). Display props: `trigger` (auto|normal|off) +
-       `slope` (rising|falling) + `level` pin the drawn window to a level
-       crossing on the first lane; `gain` scales the vertical axis; `layout`
-       (overlay|split) stacks per-channel bands. The frontend validate()
-       enforces the ranges and enumerations. -->
-  <xs:complexType name="scScopeType">
-    <xs:attribute name="bus" type="xs:integer"/>
-    <xs:attribute name="channels" type="xs:integer"/>
-    <xs:attribute name="frames" type="xs:integer"/>
-    <xs:attribute name="trigger" type="xs:string"/>
-    <xs:attribute name="slope" type="xs:string"/>
-    <xs:attribute name="level" type="xs:decimal"/>
-    <xs:attribute name="gain" type="xs:decimal"/>
-    <xs:attribute name="layout" type="xs:string"/>
-    <xs:attributeGroup ref="commonAttrs"/>
-  </xs:complexType>
-
-  <!-- sc-strudel: the Strudel REPL; text content is the initial pattern
-       code, `orbit` stamps a default orbit onto emitted dirt events. -->
-  <xs:complexType name="scStrudelType" mixed="true">
-    <xs:attribute name="orbit" type="xs:integer"/>
-    <xs:attributeGroup ref="commonAttrs"/>
-  </xs:complexType>
-
-  <!-- sc-group: container (HTML, sc-control, sc-synth, nested sc-group ...). -->
   <xs:complexType name="scGroupType" mixed="true">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:group ref="blockContent"/>
@@ -209,8 +208,7 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-synthdef: a synth graph — sc-control params + sc-ugen nodes. -->
-  <xs:complexType name="scSynthDefType">
+  <xs:complexType name="scSynthdefType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
       <xs:element ref="sc-ugen"/>
@@ -219,8 +217,7 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-ugen: one UGen node; sc-control children are its inputs. -->
-  <xs:complexType name="scUGenType">
+  <xs:complexType name="scUgenType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
     </xs:choice>
@@ -231,7 +228,6 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-control: a literal value or a bind reference (mutually exclusive). -->
   <xs:complexType name="scControlType">
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
@@ -239,7 +235,6 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-var: a named state variable (value or bind expression). -->
   <xs:complexType name="scVarType">
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
@@ -247,7 +242,6 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-synth: a synthdef instance; sc-control children are its params. -->
   <xs:complexType name="scSynthType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
@@ -258,7 +252,6 @@
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-slider: a slider bound to a control or var. -->
   <xs:complexType name="scSliderType">
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
@@ -266,13 +259,27 @@
     <xs:attribute name="step" type="xs:decimal"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
-    <xs:attribute name="orientation" type="xs:string"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="orientation">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="horizontal"/>
+          <xs:enumeration value="vertical"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-knob: a rotary knob bound to a control or var. -->
   <xs:complexType name="scKnobType">
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
@@ -280,92 +287,167 @@
     <xs:attribute name="step" type="xs:decimal"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-checkbox: a checkbox bound to a control or var. -->
   <xs:complexType name="scCheckboxType">
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="label" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-switch: a toggle switch bound to a control or var. -->
   <xs:complexType name="scSwitchType">
-    <xs:attribute name="bind" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-run: play/pause for a node (bind empty targets the parent). -->
   <xs:complexType name="scRunType">
-    <xs:attribute name="run" type="xs:boolean"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-display: read-only formatted view of a bound control/var. -->
   <xs:complexType name="scDisplayType">
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="format" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-if: conditional rendering on the truthiness of an expression bind
-       (e.g. bind="osc.gate", bind="vars.freq > 440"). A TRANSPARENT
-       container: full block content is allowed, and its contents are
-       UNCONDITIONALLY live — parsed into the enclosing scope (same duplicate
-       check, same store paths), a nested synth keeps playing while hidden —
-       only visibility is conditional. -->
   <xs:complexType name="scIfType" mixed="true">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:group ref="blockContent"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-select: dropdown over sc-option children, bound to a control/var. -->
   <xs:complexType name="scSelectType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-option"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="placeholder" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-option: one declarative choice inside sc-select. -->
   <xs:complexType name="scOptionType">
     <xs:attribute name="value" type="xs:decimal" use="required"/>
     <xs:attribute name="label" type="xs:string" use="required"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-radio-group: radio set over sc-radio children, bound to a control/var. -->
   <xs:complexType name="scRadioGroupType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-radio"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string"/>
-    <xs:attribute name="orientation" type="xs:string"/>
+    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="orientation">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="horizontal"/>
+          <xs:enumeration value="vertical"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="label" type="xs:string"/>
-    <xs:attribute name="size" type="xs:string"/>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
-  <!-- sc-radio: one declarative choice inside sc-radio-group. -->
   <xs:complexType name="scRadioType">
     <xs:attribute name="value" type="xs:decimal" use="required"/>
     <xs:attribute name="label" type="xs:string" use="required"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scConsoleType">
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scScopeType">
+    <xs:attribute name="bus" type="xs:integer"/>
+    <xs:attribute name="channels" type="xs:integer"/>
+    <xs:attribute name="frames" type="xs:integer"/>
+    <xs:attribute name="trigger">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="auto"/>
+          <xs:enumeration value="normal"/>
+          <xs:enumeration value="off"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="slope">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="rising"/>
+          <xs:enumeration value="falling"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="level" type="xs:decimal"/>
+    <xs:attribute name="gain" type="xs:decimal"/>
+    <xs:attribute name="layout">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="overlay"/>
+          <xs:enumeration value="split"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scStrudelType" mixed="true">
+    <xs:attribute name="orbit" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

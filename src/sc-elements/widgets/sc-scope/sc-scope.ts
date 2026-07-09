@@ -22,7 +22,6 @@
 // ui-components tokens + the .sc-scope CSS apply; styled in App.css.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
 import {
   SCOPE_CHANNELS,
@@ -33,20 +32,12 @@ import {
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
 import { findTriggerOffset } from "@/lib/scope/trigger";
 import { oscClient } from "@/stores/osc";
-import {
-  failValidation,
-  requireNoScChildren,
-  requireNumeric,
-} from "@/sc-elements/internal/validation";
+import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import styles from "./sc-scope.module.scss";
 
 /** Padding factor: ±1 (after `gain`) maps to this fraction of the lane. */
 const PAD = 0.9;
-
-const TRIGGER_MODES = ["auto", "normal", "off"] as const;
-const SLOPES = ["rising", "falling"] as const;
-const LAYOUTS = ["overlay", "split"] as const;
 
 /** One resolved draw: which chunk, from which sample, how many samples. */
 interface DrawWindow {
@@ -56,23 +47,42 @@ interface DrawWindow {
 }
 
 export class ScScope extends ScElement {
+  // Declarative attributes, coerced via the spec with the scope defaults —
+  // enum membership (trigger/slope/layout) and numeric NaN are enforced by
+  // ScElement.validateProps; validate() below adds the range rules.
   /** First audio bus the tap reads. */
-  @property({ type: Number }) accessor bus = SCOPE_INPUT_BUS;
+  private get _bus(): number {
+    return (this.getProp("bus") as number) ?? SCOPE_INPUT_BUS;
+  }
   /** How many consecutive buses (from `bus`) the tap reads. */
-  @property({ type: Number }) accessor channels = SCOPE_CHANNELS;
+  private get _channels(): number {
+    return (this.getProp("channels") as number) ?? SCOPE_CHANNELS;
+  }
   /** Frames per chunk = the visible window (frames/sampleRate seconds). */
-  @property({ type: Number }) accessor frames = SCOPE_CHUNK_SIZE;
+  private get _frames(): number {
+    return (this.getProp("frames") as number) ?? SCOPE_CHUNK_SIZE;
+  }
   /** Trigger mode: `auto` (trigger when found, free-run otherwise),
    *  `normal` (hold the last triggered trace otherwise), `off` (free-run). */
-  @property() accessor trigger = "auto";
+  private get _trigger(): string {
+    return (this.getProp("trigger") as string) ?? "auto";
+  }
   /** Trigger slope: the crossing direction on lane 0. */
-  @property() accessor slope = "rising";
+  private get _slope(): string {
+    return (this.getProp("slope") as string) ?? "rising";
+  }
   /** Trigger level: the threshold lane 0 must cross. */
-  @property({ type: Number }) accessor level = 0;
+  private get _level(): number {
+    return (this.getProp("level") as number) ?? 0;
+  }
   /** Vertical scale: sample × gain maps ±1 to the full lane height. */
-  @property({ type: Number }) accessor gain = 1;
+  private get _gain(): number {
+    return (this.getProp("gain") as number) ?? 1;
+  }
   /** `overlay` superimposes the lanes; `split` stacks per-channel bands. */
-  @property() accessor layout = "overlay";
+  private get _layout(): string {
+    return (this.getProp("layout") as string) ?? "overlay";
+  }
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */
@@ -85,46 +95,26 @@ export class ScScope extends ScElement {
 
   validate(): void {
     requireNoScChildren(this);
-    requireNumeric(this, "bus", this.bus);
-    requireNumeric(this, "channels", this.channels);
-    if (!Number.isInteger(this.bus) || this.bus < 0) {
-      failValidation(this, `"bus" attribute must be a non-negative integer (got "${this.bus}")`);
+    if (!Number.isInteger(this._bus) || this._bus < 0) {
+      failValidation(this, `"bus" attribute must be a non-negative integer (got "${this._bus}")`);
     }
-    if (!Number.isInteger(this.channels) || this.channels < 1) {
+    if (!Number.isInteger(this._channels) || this._channels < 1) {
       failValidation(
         this,
-        `"channels" attribute must be a positive integer (got "${this.channels}")`,
+        `"channels" attribute must be a positive integer (got "${this._channels}")`,
       );
     }
-    requireNumeric(this, "frames", this.frames);
-    if (!Number.isInteger(this.frames) || this.frames < 1) {
-      failValidation(this, `"frames" attribute must be a positive integer (got "${this.frames}")`);
-    }
-    if (this.frames > SCOPE_MAX_FRAMES) {
+    if (!Number.isInteger(this._frames) || this._frames < 1) {
       failValidation(
         this,
-        `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this.frames}")`,
+        `"frames" attribute must be a positive integer (got "${this._frames}")`,
       );
     }
-    if (!(TRIGGER_MODES as readonly string[]).includes(this.trigger)) {
-      failValidation(
-        this,
-        `"trigger" attribute must be one of auto|normal|off (got "${this.trigger}")`,
-      );
+    if (this._frames > SCOPE_MAX_FRAMES) {
+      failValidation(this, `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this._frames}")`);
     }
-    if (!(SLOPES as readonly string[]).includes(this.slope)) {
-      failValidation(this, `"slope" attribute must be one of rising|falling (got "${this.slope}")`);
-    }
-    requireNumeric(this, "level", this.level);
-    requireNumeric(this, "gain", this.gain);
-    if (!(this.gain > 0)) {
-      failValidation(this, `"gain" attribute must be a positive number (got "${this.gain}")`);
-    }
-    if (!(LAYOUTS as readonly string[]).includes(this.layout)) {
-      failValidation(
-        this,
-        `"layout" attribute must be one of overlay|split (got "${this.layout}")`,
-      );
+    if (!(this._gain > 0)) {
+      failValidation(this, `"gain" attribute must be a positive number (got "${this._gain}")`);
     }
   }
 
@@ -132,15 +122,15 @@ export class ScScope extends ScElement {
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
     this.scopeIdx = oscClient.allocScopeIndex();
-    await oscClient.sendSynthDef(compileScopeTapSynthDef(this.channels, this.frames));
+    await oscClient.sendSynthDef(compileScopeTapSynthDef(this._channels, this._frames));
     this.tapNodeId = await oscClient.createSynth(
-      scopeTapSynthDefName(this.channels, this.frames),
+      scopeTapSynthDefName(this._channels, this._frames),
       oscClient.sessionGroupId,
-      { inBus: this.bus, scopeNum: this.scopeIdx },
+      { inBus: this._bus, scopeNum: this.scopeIdx },
     );
     // One call wires the whole stream: the handler is registered under the
     // minted subId before the subscribe goes out, and dispatch is keyed.
-    this.stream = oscClient.subscribeScope(this.scopeIdx, this.channels, this.frames, (chunk) => {
+    this.stream = oscClient.subscribeScope(this.scopeIdx, this._channels, this._frames, (chunk) => {
       this.chunkRef.current = chunk;
     });
     this.loaded = true;
@@ -223,21 +213,21 @@ export class ScScope extends ScElement {
     const perChannel = (chunk.data.length / chunk.channels) | 0;
     if (perChannel < 2) return null;
     const headroom = perChannel >> 2;
-    if (this.trigger === "off" || headroom === 0) {
+    if (this._trigger === "off" || headroom === 0) {
       return { chunk, offset: 0, span: perChannel };
     }
     const offset = findTriggerOffset(
       chunk.data, // lane 0 = the planar chunk's first perChannel samples
       headroom,
-      this.level,
-      this.slope === "rising",
+      this._level,
+      this._slope === "rising",
     );
     const span = perChannel - headroom;
     if (offset !== null) {
       this.held = { chunk, offset, span };
       return this.held;
     }
-    if (this.trigger === "normal" && this.held && this.held.chunk.channels === chunk.channels) {
+    if (this._trigger === "normal" && this.held && this.held.chunk.channels === chunk.channels) {
       return this.held; // hold the last triggered trace
     }
     return { chunk, offset: 0, span }; // auto fallback: free-run this chunk
@@ -267,7 +257,7 @@ export class ScScope extends ScElement {
     }
 
     const win = chunk && chunk.data.length >= 2 ? this.resolveWindow(chunk) : null;
-    const bands = win && this.layout === "split" ? win.chunk.channels : 1;
+    const bands = win && this._layout === "split" ? win.chunk.channels : 1;
     const bandH = h / bands;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -291,10 +281,10 @@ export class ScScope extends ScElement {
     const xStep = w / (win.span - 1);
     ctx.lineWidth = 1.25;
     for (let c = 0; c < channels; c++) {
-      const mid = (this.layout === "split" ? c : 0) * bandH + bandH / 2;
-      const yScale = this.gain * PAD * (bandH / 2);
+      const mid = (this._layout === "split" ? c : 0) * bandH + bandH / 2;
+      const yScale = this._gain * PAD * (bandH / 2);
       ctx.save();
-      if (this.layout === "split") {
+      if (this._layout === "split") {
         // Keep an over-gained lane inside its own band.
         ctx.beginPath();
         ctx.rect(0, c * bandH, w, bandH);

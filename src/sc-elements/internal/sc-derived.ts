@@ -22,7 +22,6 @@
 // their initial in load() (the initial recompute) rather than waiting for a
 // notification.
 
-import { property } from "lit/decorators.js";
 import { evalExpr } from "@/lib/utils/expression";
 import type { DerivedRuntime, Expr, RuntimeContext } from "@/types/runtime";
 import { baseRuntime, resolveStateBind } from "@/sc-elements/internal/validation";
@@ -30,8 +29,6 @@ import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
 export abstract class ScDerived extends ScElement {
-  @property() accessor bind: string | undefined = undefined;
-
   /** Bind path → the live target state element (set when bound). */
   targets?: Record<string, ScState>;
   /** Parsed bind expression, when the bind isn't a plain path. */
@@ -77,7 +74,7 @@ export abstract class ScDerived extends ScElement {
   /** The runtime of a pure derived element: the resolved bind over the base
    *  core (subclasses spread extra fields where needed). */
   protected derivedRuntime(ctx: RuntimeContext): DerivedRuntime {
-    const { targets, expression } = resolveStateBind(this, ctx, this.bind!);
+    const { targets, expression } = resolveStateBind(this, ctx, this.getProp("bind") as string);
     return { ...baseRuntime(ctx), targets, expression };
   }
 

@@ -10,16 +10,13 @@
 // group's wholesale /g_freeAll (the sc-synth precedent — a per-group free
 // would only add double-free /fail noise).
 
-import { property } from "lit/decorators.js";
 import { oscClient } from "@/stores/osc";
 import { requireName } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScGroup extends ScNode {
-  @property() accessor name = "";
-
   validate(): void {
-    requireName(this, this.name);
+    requireName(this);
   }
 
   /** Own node first (children target it), then the children in DOM order. */

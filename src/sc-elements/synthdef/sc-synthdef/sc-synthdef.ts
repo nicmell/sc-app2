@@ -3,7 +3,6 @@
 // the element; the load pass compiles them to SCgf right at /d_recv time and
 // awaits the install ack.
 
-import { property } from "lit/decorators.js";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
@@ -16,8 +15,9 @@ import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 function collectControlParams(node: ScParentElement): Record<string, number> {
   const controls: Record<string, number> = {};
   for (const child of node._scChildren) {
-    if (isControlRuntime(child) && child.value != null) {
-      controls[child.name] = child.value;
+    if (isControlRuntime(child)) {
+      const value = child.getProp("value") as number | undefined;
+      if (value != null) controls[child.getProp("name") as string] = value;
     }
   }
   return controls;
@@ -27,7 +27,9 @@ function collectUgenInputs(node: ScUgen): Record<string, string> {
   const inputs: Record<string, string> = {};
   for (const child of node._scChildren!) {
     if (isControlRuntime(child)) {
-      const { name, bind, value } = child;
+      const name = child.getProp("name") as string;
+      const bind = child.getProp("bind") as string | undefined;
+      const value = child.getProp("value") as number | undefined;
       if (!bind && value == null) {
         throw new Error(`<sc-control name="${name}">: requires either a bind or value attribute`);
       }
@@ -38,8 +40,6 @@ function collectUgenInputs(node: ScUgen): Record<string, string> {
 }
 
 export class ScSynthDef extends ScElement {
-  @property() accessor name = "";
-
   loaded = false;
   /** The param defaults + DOM-ordered ugen specs, collected at parse —
    *  compiled to SCgf at /d_recv time in the load pass. */
@@ -47,7 +47,7 @@ export class ScSynthDef extends ScElement {
   specs!: UgenSpec[];
 
   validate(): void {
-    requireName(this, this.name);
+    requireName(this);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
@@ -57,7 +57,13 @@ export class ScSynthDef extends ScElement {
     // every ugen input has a bind or value. Compilation waits for load.
     const params = collectControlParams(this as ScElement as ScParentElement);
     const specs = this._scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
-      (c) => ({ name: c.name, type: c.ugen, rate: c.rate, op: c.op, inputs: collectUgenInputs(c) }),
+      (c) => ({
+        name: c.getProp("name") as string,
+        type: c.getProp("type") as string,
+        rate: (c.getProp("rate") as string) ?? "ar",
+        op: c.getProp("op") as string | undefined,
+        inputs: collectUgenInputs(c),
+      }),
     );
     return { ...baseRuntime(ctx), loaded: false, params, specs };
   }
@@ -68,7 +74,9 @@ export class ScSynthDef extends ScElement {
    *  pipeline failure (surfaced in the plugin's error box). */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
-    await oscClient.sendSynthDef(compileSynthDef(this.name, this.params, this.specs));
+    await oscClient.sendSynthDef(
+      compileSynthDef(this.getProp("name") as string, this.params, this.specs),
+    );
     this.loaded = true;
   }
 
@@ -77,7 +85,7 @@ export class ScSynthDef extends ScElement {
    *  plugins declaring the same name overwrite each other and this d_free
    *  can break the survivor. */
   unload(): void {
-    if (this.loaded) oscClient.freeSynthDef(this.name);
+    if (this.loaded) oscClient.freeSynthDef(this.getProp("name") as string);
     this.loaded = false;
   }
 }

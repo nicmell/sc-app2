@@ -15,15 +15,12 @@
 // read-only) state reverts. Inputs without a value widget (the select/radio
 // stubs, sc-run's node target) leave syncFromState a no-op.
 
-import { property } from "lit/decorators.js";
 import { isStateRuntime } from "@/lib/utils/guards";
 import type { InputRuntime, RuntimeContext } from "@/types/runtime";
 import { resolveVisualBind } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScInput extends ScElement {
-  @property() accessor bind = "";
-
   /** The live bound target (a state element; a node for sc-run). */
   _targetScNode?: ScElement;
 
@@ -31,7 +28,7 @@ export abstract class ScInput extends ScElement {
   #off?: () => void;
 
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    return resolveVisualBind(this, ctx, this.bind);
+    return resolveVisualBind(this, ctx, (this.getProp("bind") ?? "") as string);
   }
 
   /** Map the target's live value onto this input's widget-facing state.

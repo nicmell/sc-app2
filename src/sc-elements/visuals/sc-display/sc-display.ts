@@ -4,9 +4,7 @@
 // printf-style `format` from the live `_state`.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
 import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
-import { requireProp } from "@/sc-elements/internal/validation";
 import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
@@ -28,17 +26,12 @@ export function formatValue(
 }
 
 export class ScDisplay extends ScDerived {
-  @property() accessor format = "";
-
-  validate(): void {
-    requireProp(this, "bind", this.bind ?? "");
-  }
-
   protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
     return this.derivedRuntime(ctx);
   }
 
   render() {
-    return html`${this.format ? formatValue(this.format, this._state) : String(this._state ?? "")}`;
+    const format = this.getProp("format") as string | undefined;
+    return html`${format ? formatValue(format, this._state) : String(this._state ?? "")}`;
   }
 }

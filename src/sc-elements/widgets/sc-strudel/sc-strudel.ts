@@ -11,7 +11,6 @@
 // a disconnect would otherwise keep emitting /dirt/play into a dead socket.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
 import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 // Type only — the heavy editor stack (@strudel/codemirror + @strudel/transpiler)
@@ -49,16 +48,11 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 };
 
 export class ScStrudel extends ScElement {
-  /** Default orbit stamped onto dirt events the pattern doesn't route. */
-  @property({ type: Number }) accessor orbit: number | undefined = undefined;
-
   validate(): void {
     requireNoScChildren(this);
-    if (this.orbit !== undefined && (!Number.isInteger(this.orbit) || this.orbit < 0)) {
-      failValidation(
-        this,
-        `"orbit" attribute must be a non-negative integer (got "${this.orbit}")`,
-      );
+    const orbit = this.getProp("orbit") as number | undefined;
+    if (orbit !== undefined && (!Number.isInteger(orbit) || orbit < 0)) {
+      failValidation(this, `"orbit" attribute must be a non-negative integer (got "${orbit}")`);
     }
   }
 
@@ -167,7 +161,8 @@ export class ScStrudel extends ScElement {
       if (!event.s) return;
       // The element's default orbit — only when the pattern didn't route
       // the event itself (`.orbit(n)` wins).
-      if (this.orbit !== undefined && event.orbit === undefined) event.orbit = this.orbit;
+      const orbit = this.getProp("orbit") as number | undefined;
+      if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
       const timetag = Math.round(
         Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );

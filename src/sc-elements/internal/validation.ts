@@ -37,7 +37,8 @@ const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
  *  `freq` control of synth `s1`: silent cross-wiring the per-scope duplicate
  *  check cannot see) — and any other illegal character would make the name
  *  unreferenceable by binds/expressions. */
-export function requireName(el: Element, value: string): void {
+export function requireName(el: Element): void {
+  const value = el.getAttribute("name") ?? "";
   requireProp(el, "name", value);
   if (!NAME_SEGMENT.test(value)) {
     failValidation(
@@ -78,7 +79,7 @@ export function checkDuplicateNames(scope: ScElement[]): void {
 // ── Runtime inference (process-time) ────────────────────────────────────────
 
 export function nameOf(el: Element): string | undefined {
-  return (el as { name?: string }).name;
+  return el.getAttribute("name") ?? undefined;
 }
 
 /** Transparent containers: NAMELESS non-node sc elements (sc-if, sc-select,

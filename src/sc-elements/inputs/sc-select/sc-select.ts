@@ -6,24 +6,15 @@
 // `_state` and dispatches the chosen value through commit().
 
 import { html } from "lit";
-import { property, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import type { ScSize, ScSelectBase } from "@sc-app/ui-components/lit";
-import { requireProp } from "@/sc-elements/internal/validation";
+import type { ScSelectBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { ScOption } from "@/sc-elements/inputs/sc-option";
 import "@sc-app/ui-components/lit";
 
 export class ScSelect extends ScInput {
-  @property() accessor placeholder = "";
-  @property() accessor size: ScSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
-
   @state() accessor _value = 0;
-
-  validate(): void {
-    requireProp(this, "bind", this.bind);
-  }
 
   /** The declarative choices — read lazily from the parsed children: sc-select
    *  is a transparent container, so its sc-option children are processed by
@@ -33,7 +24,7 @@ export class ScSelect extends ScInput {
   get _options(): Array<{ value: number; label: string }> {
     return (this._scChildren ?? [])
       .filter((c): c is ScOption => c.tagName.toLowerCase() === "sc-option")
-      .map((o) => ({ value: o.value, label: o.label }));
+      .map((o) => ({ value: o.getProp("value") as number, label: o.getProp("label") as string }));
   }
 
   protected syncFromState(value: number | undefined): void {
@@ -46,9 +37,9 @@ export class ScSelect extends ScInput {
 
   render() {
     return html`<sc-base-select
-      placeholder=${this.placeholder}
-      size=${this.size}
-      ?disabled=${this.disabled}
+      placeholder=${this.getProp("placeholder")}
+      size=${this.getProp("size")}
+      ?disabled=${this.getProp("disabled")}
       .value=${live(this._value)}
       @change=${this.onChange}
     >

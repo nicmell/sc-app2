@@ -11,9 +11,10 @@ import { ScInput } from "@/sc-elements/internal/sc-input";
 
 export class ScRun extends ScInput {
   protected resolveRuntime(ctx: RuntimeContext): InputRuntime {
-    const target = this.bind ? resolveNode(this, ctx, this.bind.split(".")) : ctx.parentNode;
-    if (this.bind && (!target || !isNodeRuntime(target))) {
-      throw new Error(`<sc-run>: bind "${this.bind}" does not match any node in scope`);
+    const bind = this.getProp("bind") as string | undefined;
+    const target = bind ? resolveNode(this, ctx, bind.split(".")) : ctx.parentNode;
+    if (bind && (!target || !isNodeRuntime(target))) {
+      throw new Error(`<sc-run>: bind "${bind}" does not match any node in scope`);
     }
     return { ...baseRuntime(ctx), _targetScNode: target };
   }

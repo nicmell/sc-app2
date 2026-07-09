@@ -25,7 +25,6 @@
 // same-named element silently share an outer key. Controls encode the rule
 // in their enablement; vars enforce it as a parse error.
 
-import { property } from "lit/decorators.js";
 import {
   getRuntimeValue,
   seedRuntimeValue,
@@ -37,20 +36,15 @@ import {
   baseRuntime,
   failValidation,
   requireName,
-  requireNumeric,
 } from "@/sc-elements/internal/validation";
 import { ScDerived } from "@/sc-elements/internal/sc-derived";
 
 export abstract class ScState extends ScDerived {
-  @property() accessor name = "";
-  @property({ type: Number }) accessor value: number | undefined = undefined;
-
   validate(): void {
-    requireName(this, this.name);
-    if (this.bind !== undefined && this.value !== undefined) {
+    requireName(this);
+    if (this.getProp("bind") !== undefined && this.getProp("value") !== undefined) {
       failValidation(this, `"value" and "bind" are mutually exclusive`);
     }
-    requireNumeric(this, "value", this.value);
   }
 
   /** Resolve the state runtime: bound state gets its targets/expression,
@@ -62,7 +56,7 @@ export abstract class ScState extends ScDerived {
     if (!enabled) {
       return { ...baseRuntime(ctx), enabled };
     }
-    if (this.bind) {
+    if (this.getProp("bind")) {
       return { ...this.derivedRuntime(ctx), enabled };
     }
     return { ...baseRuntime(ctx), enabled, targets: undefined, expression: undefined };
@@ -72,7 +66,7 @@ export abstract class ScState extends ScDerived {
    *  plus its own name (the plugin root contributes no segment). Literal
    *  state only — bound state has no store key. */
   protected get key(): string {
-    return [...this.path, this.name].join(".");
+    return [...this.path, this.getProp("name") as string].join(".");
   }
 
   /** The internal write: Object.is-guarded store update, reporting whether
@@ -103,7 +97,7 @@ export abstract class ScState extends ScDerived {
     // before the store wiring below registers; no write can slip the gap.
     const loading = super.load();
     if (this.enabled && this.isConnected && !this.targets) {
-      seedRuntimeValue(this._rootScNode.id, this.key, this.value ?? 0);
+      seedRuntimeValue(this._rootScNode.id, this.key, (this.getProp("value") as number) ?? 0);
       const view = selectRuntimeValue(this._rootScNode.id, this.key);
       const v = view.get();
       if (v !== undefined) this.updateState(v);

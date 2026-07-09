@@ -4,16 +4,13 @@
 // the children and resolves the node core; subclasses extend it (sc-synth
 // checks its synthdef bind first, sc-plugin wraps it in the root rollback).
 
-import { property } from "lit/decorators.js";
 import { isControlRuntime, isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
 import { baseRuntime } from "@/sc-elements/internal/validation";
-import { runAttribute, ScElement } from "@/sc-elements/internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScNode extends ScElement {
-  @property(runAttribute) accessor run = true;
-
   /** The scsynth node id — 0 until the node goes live. */
   nodeId = 0;
   loaded = false;
@@ -37,7 +34,8 @@ export abstract class ScNode extends ScElement {
     const controls: Record<string, number> = {};
     for (const child of this._scChildren ?? []) {
       if (isControlRuntime(child) && child.enabled) {
-        controls[child.name] = child._state ?? child.value ?? 0;
+        controls[child.getProp("name") as string] =
+          child._state ?? (child.getProp("value") as number | undefined) ?? 0;
       }
     }
     return controls;

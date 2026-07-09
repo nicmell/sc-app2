@@ -6,33 +6,15 @@
 // selection from the target's `_state` and dispatches the chosen value.
 
 import { html } from "lit";
-import { property, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import type { ScSize, ScRadioGroupBase } from "@sc-app/ui-components/lit";
-import { failValidation, requireProp } from "@/sc-elements/internal/validation";
+import type { ScRadioGroupBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { ScRadio } from "@/sc-elements/inputs/sc-radio";
 import "@sc-app/ui-components/lit";
 
 export class ScRadioGroup extends ScInput {
-  @property() accessor orientation: "horizontal" | "vertical" = "horizontal";
-  @property() accessor label = "";
-  @property() accessor size: ScSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
-
   @state() accessor _value = 0;
-
-  validate(): void {
-    requireProp(this, "bind", this.bind);
-    if (this.orientation !== "horizontal" && this.orientation !== "vertical") {
-      // The prop is typed as the valid union, so TS narrows this branch to
-      // `never`; the attribute is arbitrary at runtime, so stringify it.
-      failValidation(
-        this,
-        `"orientation" attribute must be horizontal|vertical (got "${String(this.orientation)}")`,
-      );
-    }
-  }
 
   /** The declarative choices — read lazily from the parsed children: the
    *  radio-group is a transparent container, so its sc-radio children are
@@ -42,7 +24,7 @@ export class ScRadioGroup extends ScInput {
   get _options(): Array<{ value: number; label: string }> {
     return (this._scChildren ?? [])
       .filter((c): c is ScRadio => c.tagName.toLowerCase() === "sc-radio")
-      .map((r) => ({ value: r.value, label: r.label }));
+      .map((r) => ({ value: r.getProp("value") as number, label: r.getProp("label") as string }));
   }
 
   protected syncFromState(value: number | undefined): void {
@@ -55,10 +37,10 @@ export class ScRadioGroup extends ScInput {
 
   render() {
     return html`<sc-base-radio-group
-      orientation=${this.orientation}
-      label=${this.label}
-      size=${this.size}
-      ?disabled=${this.disabled}
+      orientation=${this.getProp("orientation")}
+      label=${this.getProp("label")}
+      size=${this.getProp("size")}
+      ?disabled=${this.getProp("disabled")}
       .value=${live(this._value)}
       @change=${this.onChange}
     >

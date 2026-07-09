@@ -17,7 +17,7 @@ import { ScState } from "@/sc-elements/internal/sc-state";
 export class ScVar extends ScState {
   protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
     if (!ctx.parentNode || !isNodeRuntime(ctx.parentNode)) {
-      throw new Error(`<sc-var name="${this.name}">: must be declared on a node`);
+      throw new Error(`<sc-var name="${this.getProp("name")}">: must be declared on a node`);
     }
     return this.stateRuntime(ctx, true);
   }

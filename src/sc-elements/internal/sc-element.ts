@@ -7,9 +7,13 @@
 // `resolveRuntime` says so. Bind targets must be declared BEFORE their
 // references in the DOM (see CLAUDE.md — processing is headed for strict
 // DOM order). The validation and bind-resolution helpers the `validate()`/
-// `resolveRuntime` overrides build on live in internal/validation.ts. HTML
-// attributes are reactive properties; runtime values are plain fields. Still
-// unported (return with their migration steps): the buffer family
+// `resolveRuntime` overrides build on live in internal/validation.ts.
+// Declarative HTML attributes are NOT reactive properties — they are read on
+// demand via `getProp`, coerced by the element's spec (the single source that
+// also generates the XSD); only the handful of genuinely-reactive fields (a
+// widget's `value`/`_checked`/`_state`/…) stay as Lit properties. Runtime
+// values are plain fields. Still unported (return with their migration
+// steps): the buffer family
 // (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides,
 // and synthdef compilation.
 
@@ -19,15 +23,13 @@ import { randomId } from "@/lib/utils/randomId";
 import {
   baseRuntime,
   checkDuplicateNames,
+  failValidation,
   isTransparent,
   nameOf,
 } from "@/sc-elements/internal/validation";
+import { SPECS } from "@/sc-elements/internal/xsd/registry";
+import type { ElementSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-
-/** `run="false"` is the only falsy spelling (bare/`run="true"` mean running). */
-export const runAttribute = {
-  converter: { fromAttribute: (value: string | null) => value !== "false" },
-};
 
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
@@ -59,11 +61,48 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return this;
   }
 
-  /** Per-element attribute validation, called during hydration — a violation
-   *  fails the whole plugin parse. The backend XSD validates structure at
-   *  upload, but it does not enforce attribute requirements, so this is the
-   *  real gate. Colocate the rules with the property declarations in each
-   *  component, building on the internal/validation helpers. */
+  /** This element's spec (its colocated `<tag>.spec.ts`) — the single source
+   *  for its declarative attribute contract. `getProp`/`validateProps` read it. */
+  get spec(): ElementSpec | undefined {
+    return SPECS.get(this.tagName.toLowerCase());
+  }
+
+  /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
+   *  call site (`this.getProp("min") as number`). Absent → undefined; a
+   *  forwarded prop then falls back to the base widget's own default. The
+   *  genuinely-reactive fields (a widget's `value`, `_checked`, `_state`, …)
+   *  are NOT declarative attributes and stay as reactive class fields. */
+  getProp(name: string): string | number | boolean | undefined {
+    const raw = this.getAttribute(name);
+    if (raw === null) return undefined;
+    const attr = this.spec?.attrs?.[name];
+    if (attr?.type === "decimal" || attr?.type === "integer") return Number(raw);
+    if (attr?.type === "boolean") return raw !== "false"; // run="false"/disabled="false"
+    return raw; // string / enum
+  }
+
+  /** Spec-driven attribute validation, run before `validate()`: required
+   *  present, numeric non-NaN, enum membership. Element-specific semantic and
+   *  range rules (value-XOR-bind, name syntax, positive/≤max, no-sc-children)
+   *  stay in the per-element `validate()` override. */
+  validateProps(): void {
+    for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
+      const raw = this.getAttribute(name);
+      if (raw === null) {
+        if (attr.required) failValidation(this, `missing required "${name}" attribute`);
+        continue;
+      }
+      if ((attr.type === "decimal" || attr.type === "integer") && Number.isNaN(Number(raw))) {
+        failValidation(this, `"${name}" attribute must be a number`);
+      }
+      if (attr.type === "enum" && !attr.values.includes(raw)) {
+        failValidation(this, `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`);
+      }
+    }
+  }
+
+  /** Per-element SEMANTIC validation (value-XOR-bind, name syntax, ranges, …),
+   *  run after `validateProps`. A violation fails the whole plugin parse. */
   validate(): void {}
 
   // ── The parse engine ────────────────────────────────────────────────────
@@ -95,6 +134,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     if (parent) {
       ((parent as ScElement)._scChildren ??= []).push(this);
     }
+    this.validateProps();
     this.validate();
     Object.assign(this, this.resolveRuntime(ctx));
     if (parent) this._parentScNode = parent;

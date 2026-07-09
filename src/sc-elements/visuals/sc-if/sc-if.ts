@@ -15,15 +15,10 @@
 
 import { nothing, type PropertyValues } from "lit";
 import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
-import { requireProp } from "@/sc-elements/internal/validation";
 import { ScDerived } from "@/sc-elements/internal/sc-derived";
 import "./sc-if.scss";
 
 export class ScIf extends ScDerived {
-  validate(): void {
-    requireProp(this, "bind", this.bind ?? "");
-  }
-
   protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
     return this.derivedRuntime(ctx);
   }

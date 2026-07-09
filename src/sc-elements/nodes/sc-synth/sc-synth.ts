@@ -3,7 +3,6 @@
 // the nearest ancestor group (the plugin group) — sequentially AFTER the
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
 
-import { property } from "lit/decorators.js";
 import { isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
@@ -11,20 +10,18 @@ import { requireName, resolveNode } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScSynth extends ScNode {
-  @property() accessor name = "";
-  @property() accessor bind = "";
-
   validate(): void {
-    requireName(this, this.name);
+    requireName(this);
   }
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    if (this.bind) {
-      const target = resolveNode(this, ctx, [this.bind]);
+    const bind = this.getProp("bind") as string | undefined;
+    if (bind) {
+      const target = resolveNode(this, ctx, [bind]);
       // The bind must name an actual synthdef — any other named element
       // (a group, another synth) is the same error.
       if (!target || !isSynthDefRuntime(target)) {
-        throw new Error(`<sc-synth bind="${this.bind}">: does not match any <sc-synthdef>`);
+        throw new Error(`<sc-synth bind="${bind}">: does not match any <sc-synthdef>`);
       }
     }
     return super.resolveRuntime(ctx);
@@ -36,12 +33,13 @@ export class ScSynth extends ScNode {
   async load(): Promise<void> {
     const epoch = this._rootScNode?.loadEpoch ?? 0;
     await super.load();
-    if (!this.isConnected || !this.bind || this.loaded) return;
+    const bind = this.getProp("bind") as string | undefined;
+    if (!this.isConnected || !bind || this.loaded) return;
     // The pass was invalidated while the children loaded — don't create a
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     const snapshot = this.getControls();
-    this.nodeId = await oscClient.createSynth(this.bind, this.targetGroupId, snapshot);
+    this.nodeId = await oscClient.createSynth(bind, this.targetGroupId, snapshot);
     this.loaded = true;
     // Writes landing between the /s_new send and its /n_go ack were baked
     // stale AND skipped the /n_set (dispatch gates on `loaded`) — catch the

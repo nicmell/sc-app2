@@ -5,23 +5,14 @@
 // (commit), reading the target through `_state`/`onStateChange`.
 
 import { html } from "lit";
-import { property, state } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import type { ScSize, ScCheckboxBase } from "@sc-app/ui-components/lit";
-import { requireProp } from "@/sc-elements/internal/validation";
+import type { ScCheckboxBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
 
 export class ScCheckbox extends ScInput {
-  @property() accessor label = "";
-  @property() accessor size: ScSize = "md";
-  @property({ type: Boolean }) accessor disabled = false;
-
   @state() accessor _checked = false;
-
-  validate(): void {
-    requireProp(this, "bind", this.bind);
-  }
 
   protected syncFromState(value: number | undefined): void {
     if (value !== undefined) this._checked = value !== 0;
@@ -33,9 +24,9 @@ export class ScCheckbox extends ScInput {
 
   render() {
     return html`<sc-base-checkbox
-      label=${this.label}
-      size=${this.size}
-      ?disabled=${this.disabled}
+      label=${this.getProp("label")}
+      size=${this.getProp("size")}
+      ?disabled=${this.getProp("disabled")}
       .checked=${live(this._checked)}
       @change=${this.onChange}
     ></sc-base-checkbox>`;

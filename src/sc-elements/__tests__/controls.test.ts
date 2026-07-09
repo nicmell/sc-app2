@@ -47,7 +47,7 @@ const mountExample = () => mountPlugin(xml);
 
 const control = (host: ScPlugin, key: string) =>
   [...host.querySelectorAll("sc-synth sc-control")].find(
-    (c) => (c as ScControl).name === key,
+    (c) => (c as ScControl).getProp("name") === key,
   ) as ScControl;
 
 const nSets = () => sent.filter((m) => m.address === "/n_set");
@@ -183,7 +183,7 @@ describe("ScControl.setValue", () => {
     freq.setValue(550);
     expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(550);
     expect(freq._state).toBe(550);
-    expect(freq.value).toBe(440); // the declarative attribute mirror never moves
+    expect(freq.getProp("value")).toBe(440); // the declarative attribute mirror never moves
     expect(nSets()).toHaveLength(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "freq", 550]);
   });
@@ -392,7 +392,7 @@ describe("state propagation (vars + bound state)", () => {
 
   const mountVars = () => mountPlugin(VAR_XML);
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).name === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
 
   it("literal vars seed their store keys; bound vars settle off-store in _state", async () => {
     const { host } = await mountVars();
@@ -581,7 +581,7 @@ describe("sc-if", () => {
   };
   const hiddenStates = (ifs: Element[]) => ifs.map((el) => el.hasAttribute("hidden"));
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).name === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
 
   it("shows children on the truthiness of the expression bind", async () => {
     const { ifs } = await mountIf();
@@ -716,7 +716,7 @@ describe("sc-if transparency", () => {
     const { host } = await mountPlugin(TRANSPARENT_XML);
     const scIf = host.querySelector("sc-if") as ScElement;
     const mirror = [...host.querySelectorAll("sc-var")].find(
-      (v) => (v as ScVar).name === "mirror",
+      (v) => (v as ScVar).getProp("name") === "mirror",
     ) as ScVar;
     const display = host.querySelector("sc-display") as ScDisplay;
 
@@ -801,7 +801,7 @@ describe("sc-group", () => {
   const group = (host: ScPlugin) => host.querySelector("sc-group") as ScGroup;
   const groupControl = (host: ScPlugin, name: string) =>
     [...host.querySelectorAll("sc-control")].find(
-      (c) => (c as ScControl).name === name,
+      (c) => (c as ScControl).getProp("name") === name,
     ) as ScControl;
 
   it("creates its own group under the plugin group; children target it", async () => {

@@ -109,7 +109,9 @@ describe("every example synthdef compiles", () => {
       const { host } = parseExample(c.xml);
       const defs = [...host.querySelectorAll("sc-synthdef")] as ScSynthDef[];
       for (const def of defs) {
-        expect(() => compileSynthDef(def.name, def.params, def.specs)).not.toThrow();
+        expect(() =>
+          compileSynthDef(def.getProp("name") as string, def.params, def.specs),
+        ).not.toThrow();
       }
     });
   }
@@ -135,7 +137,6 @@ describe("example-plugin structure", () => {
     expect(host._rootScNode).toBe(host);
     expect(host._parentScNode).toBeUndefined();
     expect(host.enabled).toBe(true);
-    expect(host.run).toBe(true);
     expect(host._scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);

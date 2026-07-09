@@ -175,8 +175,11 @@ describe("sc-scope", () => {
     const host = await mountXml(
       '<sc-scope channels="1" trigger="normal" slope="falling" level="0.1" gain="2" layout="split"/>',
     );
-    const scope = host.querySelector("sc-scope") as ScScope;
-    expect([scope.trigger, scope.slope, scope.level, scope.gain, scope.layout]).toEqual([
+    // The display props are declarative — read (coerced + defaulted) through
+    // the element's private getters over `getProp`.
+    type Display = { _trigger: string; _slope: string; _level: number; _gain: number; _layout: string };
+    const scope = host.querySelector("sc-scope") as unknown as Display;
+    expect([scope._trigger, scope._slope, scope._level, scope._gain, scope._layout]).toEqual([
       "normal",
       "falling",
       0.1,
@@ -186,8 +189,8 @@ describe("sc-scope", () => {
 
     document.body.replaceChildren();
     const bare = await mountXml("<sc-scope/>");
-    const def = bare.querySelector("sc-scope") as ScScope;
-    expect([def.trigger, def.slope, def.level, def.gain, def.layout]).toEqual([
+    const def = bare.querySelector("sc-scope") as unknown as Display;
+    expect([def._trigger, def._slope, def._level, def._gain, def._layout]).toEqual([
       "auto",
       "rising",
       0,
@@ -248,13 +251,13 @@ describe("sc-scope", () => {
     expect(b).toBe(a);
 
     // auto + no trigger: free-runs the new chunk from sample 0.
-    scope.trigger = "auto";
+    scope.setAttribute("trigger", "auto");
     const c = resolve(mkChunk(triggerless));
     expect(c).toMatchObject({ offset: 0, span: 768 });
     expect(c!.chunk).not.toBe(a!.chunk);
 
     // off: the raw full window.
-    scope.trigger = "off";
+    scope.setAttribute("trigger", "off");
     expect(resolve(mkChunk(periodic))).toMatchObject({ offset: 0, span: 1024 });
   });
 });

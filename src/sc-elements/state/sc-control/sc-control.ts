@@ -32,7 +32,7 @@ export class ScControl extends ScState {
   private sendControl(next: number): void {
     const parent = this.namedScParent;
     if (parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0) {
-      oscClient.setControl(parent.nodeId, this.name, next);
+      oscClient.setControl(parent.nodeId, this.getProp("name") as string, next);
     }
   }
 

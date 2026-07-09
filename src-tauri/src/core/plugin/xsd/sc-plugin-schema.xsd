@@ -18,15 +18,8 @@
     <xs:attribute name="style" type="xs:string" use="optional"/>
   </xs:attributeGroup>
 
-  <!-- One bind-path segment: hyphenated identifier words. Dots are the path
-       separator, so a dotted name would forge another scope's runtime key;
-       the components' requireName() is the real gate (see CLAUDE.md — the
-       XSD is best-effort at upload). -->
-  <xs:simpleType name="scName">
-    <xs:restriction base="xs:string">
-      <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
-    </xs:restriction>
-  </xs:simpleType>
+  <!-- Note: `name` syntax (one bind-path segment, no dots) is validated in the
+       components' requireName() — deliberately not carried into the schema. -->
 
   <!-- ==================== Element declarations ==================== -->
 
@@ -94,8 +87,11 @@
     </xs:choice>
   </xs:group>
 
-  <xs:group name="scControls">
+  <!-- blockContent: HTML + every sc-* element authorable anywhere block content
+       appears (i.e. all but the child-only sc-option/sc-radio/sc-ugen). -->
+  <xs:group name="blockContent">
     <xs:choice>
+      <xs:group ref="htmlElements"/>
       <xs:element ref="sc-display"/>
       <xs:element ref="sc-if"/>
       <xs:element ref="sc-slider"/>
@@ -108,13 +104,6 @@
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
-    </xs:choice>
-  </xs:group>
-
-  <xs:group name="blockContent">
-    <xs:choice>
-      <xs:group ref="htmlElements"/>
-      <xs:group ref="scControls"/>
       <xs:element ref="sc-control"/>
       <xs:element ref="sc-var"/>
       <xs:element ref="sc-group"/>
@@ -215,7 +204,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:group ref="blockContent"/>
     </xs:choice>
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
@@ -226,7 +215,7 @@
       <xs:element ref="sc-control"/>
       <xs:element ref="sc-ugen"/>
     </xs:choice>
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -235,7 +224,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
     </xs:choice>
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
     <xs:attribute name="rate" type="xs:string"/>
     <xs:attribute name="op" type="xs:string"/>
@@ -244,7 +233,7 @@
 
   <!-- sc-control: a literal value or a bind reference (mutually exclusive). -->
   <xs:complexType name="scControlType">
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -252,7 +241,7 @@
 
   <!-- sc-var: a named state variable (value or bind expression). -->
   <xs:complexType name="scVarType">
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -263,7 +252,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
     </xs:choice>
-    <xs:attribute name="name" type="scName" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -280,12 +269,6 @@
     <xs:attribute name="size" type="xs:string"/>
     <xs:attribute name="orientation" type="xs:string"/>
     <xs:attribute name="disabled" type="xs:boolean"/>
-    <xs:attribute name="width" type="xs:decimal"/>
-    <xs:attribute name="height" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
-    <xs:attribute name="sprites" type="xs:integer"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -299,13 +282,6 @@
     <xs:attribute name="label" type="xs:string"/>
     <xs:attribute name="size" type="xs:string"/>
     <xs:attribute name="disabled" type="xs:boolean"/>
-    <xs:attribute name="diameter" type="xs:decimal"/>
-    <xs:attribute name="width" type="xs:decimal"/>
-    <xs:attribute name="height" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
-    <xs:attribute name="sprites" type="xs:integer"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -315,11 +291,6 @@
     <xs:attribute name="label" type="xs:string"/>
     <xs:attribute name="size" type="xs:string"/>
     <xs:attribute name="disabled" type="xs:boolean"/>
-    <xs:attribute name="width" type="xs:decimal"/>
-    <xs:attribute name="height" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -328,22 +299,13 @@
     <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="size" type="xs:string"/>
     <xs:attribute name="disabled" type="xs:boolean"/>
-    <xs:attribute name="width" type="xs:decimal"/>
-    <xs:attribute name="height" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <!-- sc-run: play/pause for a node (bind empty targets the parent). -->
   <xs:complexType name="scRunType">
     <xs:attribute name="run" type="xs:boolean"/>
-    <xs:attribute name="size" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
     <xs:attribute name="bind" type="xs:string"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -404,11 +366,6 @@
   <xs:complexType name="scRadioType">
     <xs:attribute name="value" type="xs:decimal" use="required"/>
     <xs:attribute name="label" type="xs:string" use="required"/>
-    <xs:attribute name="width" type="xs:decimal"/>
-    <xs:attribute name="height" type="xs:decimal"/>
-    <xs:attribute name="src" type="xs:string"/>
-    <xs:attribute name="fgcolor" type="xs:string"/>
-    <xs:attribute name="bgcolor" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

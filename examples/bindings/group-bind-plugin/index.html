@@ -47,40 +47,40 @@
         <h3>Group Controls</h3>
         <label>
             <span>Group Run</span>
-            <sc-run size="24"/>
+            <sc-run/>
         </label>
         <label>
-            <sc-slider bind="amp" min="0" max="1" step="0.01" width="120" height="16"/>
+            <sc-slider bind="amp" min="0" max="1" step="0.01"/>
         </label>
     </div>
 
     <div>
         <h3>Low Voice</h3>
         <label>
-            <sc-run bind="low" size="20"/>
+            <sc-run bind="low"/>
         </label>
         <label>
             <span>Freq: <sc-display bind="low.freq" format="%d Hz"/></span>
-            <sc-knob bind="low.freq" min="20" max="1000" step="1" diameter="48"/>
+            <sc-knob bind="low.freq" min="20" max="1000" step="1"/>
         </label>
         <label>
             <span>Amp: <sc-display bind="low.amp" format="%.2f"/></span>
-            <sc-knob bind="low.amp" min="0" max="1" step="0.01" diameter="48"/>
+            <sc-knob bind="low.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>
 
     <div>
         <h3>High Voice</h3>
         <label>
-            <sc-run bind="high" size="20"/>
+            <sc-run bind="high"/>
         </label>
         <label>
             <span>Freq: <sc-display bind="high.freq" format="%d Hz"/></span>
-            <sc-knob bind="high.freq" min="20" max="2000" step="1" diameter="48"/>
+            <sc-knob bind="high.freq" min="20" max="2000" step="1"/>
         </label>
         <label>
             <span>Amp: <sc-display bind="high.amp" format="%.2f"/></span>
-            <sc-knob bind="high.amp" min="0" max="1" step="0.01" diameter="48"/>
+            <sc-knob bind="high.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>
 </sc-group>

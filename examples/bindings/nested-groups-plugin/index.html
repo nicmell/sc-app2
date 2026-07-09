@@ -39,26 +39,26 @@
 <div>
     <h3>Nested: outer.inner.deep</h3>
     <label>
-        <sc-run bind="outer.inner.deep" size="20"/>
+        <sc-run bind="outer.inner.deep"/>
     </label>
     <label>
         <span>Freq: <sc-display bind="outer.inner.deep.freq" format="%d Hz"/></span>
-        <sc-knob bind="outer.inner.deep.freq" min="20" max="1000" step="1" diameter="48"/>
+        <sc-knob bind="outer.inner.deep.freq" min="20" max="1000" step="1"/>
     </label>
     <label>
         <span>Amp: <sc-display bind="outer.inner.deep.amp" format="%.2f"/></span>
-        <sc-knob bind="outer.inner.deep.amp" min="0" max="1" step="0.01" diameter="48"/>
+        <sc-knob bind="outer.inner.deep.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
 
 <div>
     <h3>Shallow: outer.shallow</h3>
     <label>
-        <sc-run bind="outer.shallow" size="20"/>
+        <sc-run bind="outer.shallow"/>
     </label>
     <label>
         <span>Freq: <sc-display bind="outer.shallow.freq" format="%d Hz"/></span>
-        <sc-knob bind="outer.shallow.freq" min="20" max="2000" step="1" diameter="48"/>
+        <sc-knob bind="outer.shallow.freq" min="20" max="2000" step="1"/>
     </label>
 </div>
 
@@ -66,15 +66,15 @@
     <h3>Group controls</h3>
     <label>
         <span>Outer run</span>
-        <sc-run bind="outer" size="24"/>
+        <sc-run bind="outer"/>
     </label>
     <label>
         <span>Outer amp: <sc-display bind="outer.amp" format="%.2f"/></span>
-        <sc-slider bind="outer.amp" min="0" max="1" step="0.01" width="120" height="16"/>
+        <sc-slider bind="outer.amp" min="0" max="1" step="0.01"/>
     </label>
     <label>
         <span>Inner amp: <sc-display bind="outer.inner.amp" format="%.2f"/></span>
-        <sc-slider bind="outer.inner.amp" min="0" max="1" step="0.01" width="120" height="16"/>
+        <sc-slider bind="outer.inner.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
 </body>

@@ -13,7 +13,6 @@ import { ScKnob } from "./inputs/sc-knob";
 import { ScOption } from "./inputs/sc-option";
 import { ScRadio } from "./inputs/sc-radio";
 import { ScRadioGroup } from "./inputs/sc-radio-group";
-import { ScRun } from "./inputs/sc-run";
 import { ScSelect } from "./inputs/sc-select";
 import { ScSlider } from "./inputs/sc-slider";
 import { ScSwitch } from "./inputs/sc-switch";
@@ -44,7 +43,6 @@ export {
   ScOption,
   ScRadio,
   ScRadioGroup,
-  ScRun,
   ScSelect,
   ScSlider,
   ScSwitch,
@@ -65,7 +63,6 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_BUTTON]: ScButton,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,
   [ELEMENTS.SC_SWITCH]: ScSwitch,
-  [ELEMENTS.SC_RUN]: ScRun,
   [ELEMENTS.SC_DISPLAY]: ScDisplay,
   [ELEMENTS.SC_IF]: ScIf,
   [ELEMENTS.SC_SELECT]: ScSelect,

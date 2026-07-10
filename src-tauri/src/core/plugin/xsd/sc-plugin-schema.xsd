@@ -51,7 +51,6 @@
   <xs:element name="sc-button" type="scButtonType"/>
   <xs:element name="sc-checkbox" type="scCheckboxType"/>
   <xs:element name="sc-switch" type="scSwitchType"/>
-  <xs:element name="sc-run" type="scRunType"/>
   <xs:element name="sc-display" type="scDisplayType"/>
   <xs:element name="sc-if" type="scIfType"/>
   <xs:element name="sc-select" type="scSelectType"/>
@@ -92,7 +91,6 @@
       <xs:element ref="sc-button"/>
       <xs:element ref="sc-checkbox"/>
       <xs:element ref="sc-switch"/>
-      <xs:element ref="sc-run"/>
       <xs:element ref="sc-select"/>
       <xs:element ref="sc-radio-group"/>
     </xs:choice>
@@ -249,7 +247,7 @@
       <xs:element ref="sc-control"/>
     </xs:choice>
     <xs:attribute name="name" type="xs:string" use="required"/>
-    <xs:attribute name="bind" type="xs:string"/>
+    <xs:attribute name="synthdef" type="xs:string" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
@@ -362,11 +360,6 @@
     <xs:attribute name="disabled" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
-  </xs:complexType>
-
-  <xs:complexType name="scRunType">
-    <xs:attribute name="bind" type="xs:string"/>
-    <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scDisplayType">

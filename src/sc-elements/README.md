@@ -53,12 +53,9 @@ Within each category (except `internal/`) every element lives in its own folder
 — `<category>/<sc-name>/<sc-name>.ts` (+ its `.module.scss`, if any) with an
 `index.ts` re-export, so `@/sc-elements/<category>/<sc-name>` resolves unchanged.
 
-Status: everything is **functional** except `sc-run` (the one remaining
-stub — parsed, validated, and bind-resolved; its /n_run toggle arrives with
-the sc-run step, over the already-present `ScNode.setRunning` seam) and the
-un-migrated buffer family. `run="false"` on nodes is parsed but not yet
-honored at load (deferred with sc-run). See the root CLAUDE.md migration
-plan.
+Status: every registered element is **functional**; the buffer family remains
+un-migrated. `run="false"` on nodes is parsed but not yet honored at load.
+See the root CLAUDE.md implementation plan.
 
 ## `nodes/`
 
@@ -77,8 +74,8 @@ Props: `run` (boolean attribute, `run="false"` is the only falsy spelling).
 
 ### `<sc-group>` — functional
 
-A named container node. Props: `name` (required), `run` (parsed, honored at
-the sc-run step). The load pass `/g_new`s its own group node FIRST — the
+A named container node. Props: `name` (required), `run` (parsed but not yet honored).
+The load pass `/g_new`s its own group node FIRST — the
 inverse of sc-synth's children-first order — so its children's
 `targetGroupId` walk finds it live; nested groups nest. Group-level enabled
 `sc-control` children key under the group path and `/n_set` the GROUP node
@@ -89,8 +86,8 @@ teardown.
 
 ### `<sc-synth>` — functional
 
-A synth instance of an `sc-synthdef`. Props: `name` (required), `bind` (the
-synthdef name — runtime-validated to resolve to an actual synthdef in
+A synth instance of an `sc-synthdef`. Props: `name` and `synthdef` (both required;
+the latter is runtime-validated to resolve to an actual synthdef in
 scope), `run` (`run="false"` parsed, honored at the node-lifecycle step).
 Children: `sc-control` params. The load pass `/s_new`s it into the nearest
 loaded ancestor group AFTER its children settle (their `_state` bakes in as
@@ -130,7 +127,7 @@ addressable). Enabled when its parent is a node (plugin/group/synth);
 disabled (pure graph input) inside ugens — where the SAME `bind:value`
 spelling is a graph-input REFERENCE (`bind:value="lfo"`) the synthdef
 collectors consume raw; on a synthdef PARAM a `bind:` is a parse error, and
-the legacy `bind` attribute gets a pointed migration error everywhere.
+the attribute surface is validated directly from each element's spec.
 `/n_set`s its parent node when the value changes (user writes and derived
 recomputes alike), coercing at the boundary — a string value skips the send
 with a console warning.
@@ -160,9 +157,7 @@ read-only live meter, and a static `value` a fixed inert widget),
 `syncFromState()` mapping the live value onto the widget (riding the
 `runtimeValueChanged` hook — coercing, non-numeric strings leave the widget
 as-is), and `commit()` — `setValue()` then a re-read snap-back so inert
-gestures revert. The old target-reference `bind` survives ONLY on sc-run
-(a node) — a leftover `bind` on a value input gets a pointed migration
-error. The presentational props not opted out in each spec
+gestures revert. The presentational props not opted out in each spec
 (min/max/step/label/placeholder/disabled) accept the `bind:` form and
 re-render live.
 
@@ -172,8 +167,7 @@ Props (all forwarded to the inner slider): `value` (required — in practice
 `bind:value="s1.freq"`; a plain path is writable, an expression is a
 read-only meter, a static number a fixed widget), `min`, `max`, `step`,
 plus `label`, `size` (sm|md|lg), `orientation` (horizontal|vertical),
-`disabled`. Writes go via `commit()` on the slider's composed `input`. XSD also allows the legacy presentational attributes
-(`width`, `height`, `src`, `sprites`, `fgcolor`, `bgcolor`) — not declared yet.
+`disabled`. Writes go via `commit()` on the slider's composed `input`.
 
 ### `<sc-knob>` — functional (ui-components `<sc-base-knob>`)
 
@@ -224,12 +218,6 @@ the click TOGGLES the target 0 ↔ 1 on the live value's truthiness),
 `label`, `icon`, `disabled` (all three runtime-capable —
 `bind:icon="s1.gate ? 'stop' : 'play'"` is the flagship swap), `variant`
 (primary|secondary|ghost|danger), `size`.
-
-### `<sc-run>` — stub
-
-Play/pause for a node. Props: `bind` (a node name; empty targets the parent
-node — runtime-validated). XSD also allows size/src/colors.
-Will: `/n_run` toggle button.
 
 ## `visuals/`
 

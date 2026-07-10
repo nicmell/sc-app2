@@ -24,7 +24,6 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-forward-state-ref", // same-scope state bound before its declaration
   "bad-synth-target", // sc-synth bind naming a non-synthdef element
   "bad-unknown-synthdef", // sc-synth bind matches no synthdef
-  "bad-run-bind", // sc-run bind matches no node
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
   "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope

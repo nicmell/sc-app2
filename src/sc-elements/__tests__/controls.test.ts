@@ -117,7 +117,7 @@ describe("load pass", () => {
       "s1.freq": 440,
       "s1.amp": 0.2,
       "s1.pan": 0,
-      "s1.mute": 0,
+      "s1.gate": 1,
     });
   });
 
@@ -147,8 +147,8 @@ describe("load pass", () => {
       0.2,
       "pan",
       0,
-      "mute",
-      0,
+      "gate",
+      1,
     ]);
 
     expect(host.nodeId).toBe(groupId);
@@ -239,15 +239,15 @@ describe("inputs and display", () => {
     const checkbox = host.querySelector("sc-checkbox") as ScElement & {
       updateComplete: Promise<boolean>;
     };
-    expect(toggleOf(checkbox).checked).toBe(false); // seeded default 0
+    expect(toggleOf(checkbox).checked).toBe(true); // seeded default 1
 
-    toggleWidget(checkbox, true);
-    expect(appStore.get().runtime[host.id]["s1.mute"]).toBe(1);
-    expect(nSets()[0].args).toEqual([synth.nodeId, "mute", 1]);
+    toggleWidget(checkbox, false);
+    expect(appStore.get().runtime[host.id]["s1.gate"]).toBe(0);
+    expect(nSets()[0].args).toEqual([synth.nodeId, "gate", 0]);
 
-    setRuntimeValue(host.id, "s1.mute", 0);
+    setRuntimeValue(host.id, "s1.gate", 1);
     await checkbox.updateComplete;
-    expect(toggleOf(checkbox).checked).toBe(false);
+    expect(toggleOf(checkbox).checked).toBe(true);
     expect(nSets()).toHaveLength(1); // the external write sent no OSC
   });
 
@@ -334,8 +334,8 @@ describe("disconnect / reconnect", () => {
       0.2,
       "pan",
       0,
-      "mute",
-      0,
+      "gate",
+      1,
     ]);
 
     // The store wiring was rebuilt, not duplicated: an external write still
@@ -546,7 +546,7 @@ describe("bound enabled control on a synth", () => {
         <sc-control name="channelsarray" bind:value="osc"/>
       </sc-ugen>
     </sc-synthdef>
-    <sc-synth name="s1" bind="sine">
+    <sc-synth name="s1" synthdef="sine">
       <sc-control name="freq" bind:value="vars.master * 2"/>
     </sc-synth>
   `);
@@ -797,7 +797,7 @@ describe("sc-if transparency", () => {
       </sc-synthdef>
       <sc-var name="show" value="0"/>
       <sc-if bind:when="show">
-        <sc-synth name="s" bind="beep">
+        <sc-synth name="s" synthdef="beep">
           <sc-control name="freq" value="440"/>
         </sc-synth>
       </sc-if>
@@ -829,7 +829,7 @@ describe("sc-group", () => {
           <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
-      <sc-synth name="s1" bind="sine">
+      <sc-synth name="s1" synthdef="sine">
         <sc-control name="freq" value="330"/>
       </sc-synth>
       <sc-if bind:when="g.vol">
@@ -1076,28 +1076,7 @@ describe("runtime props (bind:)", () => {
     );
   });
 
-  it("the legacy bind attribute gets pointed migration errors", () => {
-    expect(() =>
-      parsePlugin(
-        wrapXml(`
-          <sc-synthdef name="sine">
-            <sc-control name="freq" value="440"/>
-            <sc-ugen name="osc" type="SinOsc">
-              <sc-control name="freq" bind="freq"/>
-            </sc-ugen>
-          </sc-synthdef>
-        `),
-      ),
-    ).toThrow('<sc-control>: "bind" is not supported — use "bind:value"');
-    expect(() => parsePlugin(wrapXml(`<sc-var name="a" bind="b"/>`))).toThrow(
-      '<sc-var>: "bind" is not supported — use "bind:value"',
-    );
-  });
-
-  it("the retired _ sigil and foreign prefixes fail loudly", () => {
-    expect(() =>
-      parsePlugin(wrapXml(`<sc-var name="b" value="2"/><sc-var name="a" _value="b"/>`)),
-    ).toThrow('<sc-var>: "_value" is no longer supported — use "bind:value"');
+  it("rejects foreign attribute namespace prefixes", () => {
     expect(() =>
       parsePlugin(
         wrapXml(`<sc-var name="b" value="2"/><sc-var name="a" xmlns:x="urn:other" x:value="b"/>`),
@@ -1106,13 +1085,20 @@ describe("runtime props (bind:)", () => {
   });
 
   it("rejects bind:attrs on runtime-opted-out attributes (direct validateProps)", () => {
-    // `bind` + `bind:bind` also collide on local name in happy-dom's parser;
-    // sc-synth keeps `bind` with runtime: false, exercising the opt-out branch.
+    // `synthdef` is runtime-opted-out: a dynamic form must be rejected.
     const el = document.createElement("sc-synth") as ScElement;
     el.setAttribute("name", "s1");
-    el.setAttribute("bind", "sine");
-    el.setAttribute("bind:bind", "sine");
-    expect(() => el.validateProps()).toThrow('<sc-synth>: unknown runtime attribute "bind:bind"');
+    el.setAttribute("synthdef", "sine");
+    el.setAttribute("bind:synthdef", "sine");
+    expect(() => el.validateProps()).toThrow(
+      '<sc-synth>: unknown runtime attribute "bind:synthdef"',
+    );
+  });
+
+  it("requires sc-synth.synthdef", () => {
+    expect(() => parsePlugin(wrapXml(`<sc-synth name="s1"/>`))).toThrow(
+      '<sc-synth>: missing required "synthdef" attribute',
+    );
   });
 
   it("resolution errors name the real attribute", () => {
@@ -1141,7 +1127,7 @@ describe("runtime props (bind:)", () => {
           <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
-      <sc-synth name="s1" bind="sine">
+      <sc-synth name="s1" synthdef="sine">
         <sc-control name="freq" bind:value="vars.mode"/>
       </sc-synth>
     `);
@@ -1252,16 +1238,6 @@ describe("inputs on bind:value (Phase 3.2)", () => {
   it("a value input requires the value binding (either form)", () => {
     expect(() => parsePlugin(wrapXml(`<sc-slider min="0" max="1"/>`))).toThrow(
       '<sc-slider>: missing required "value" attribute',
-    );
-  });
-
-  it("legacy input bind gets the pointed migration error", () => {
-    const XML = wrapXml(`
-      <sc-var name="freq" value="440"/>
-      <sc-slider bind="freq"/>
-    `);
-    expect(() => parsePlugin(XML)).toThrow(
-      '<sc-slider>: "bind" is not supported — use "bind:value"',
     );
   });
 

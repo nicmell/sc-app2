@@ -23,12 +23,10 @@
 <!-- INTENTIONAL: the controls reference "s1" BEFORE it is declared — bind
      targets must be declared earlier in the document; resolveNode must fail
      with "referenced before it is declared" (the first error comes from the
-     sc-run) -->
+     button) -->
 <div>
     <h3>Controls (before synth)</h3>
-    <label>
-        <sc-run bind="s1"/>
-    </label>
+    <sc-button bind:value="s1.gate" icon="play"/>
     <label>
         <span>Freq: <sc-display bind:value="s1.freq" format="%d Hz"/></span>
         <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
@@ -40,9 +38,10 @@
 </div>
 
 <!-- Synth defined AFTER the controls that reference it -->
-<sc-synth name="s1" bind="sine">
+<sc-synth name="s1" synthdef="sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
+    <sc-control name="gate" value="1"/>
 </sc-synth>
 </body>
 </html>

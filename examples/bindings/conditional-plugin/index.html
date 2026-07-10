@@ -32,14 +32,12 @@
     </sc-ugen>
 </sc-synthdef>
 
-<sc-synth name="osc" bind="sine">
+<sc-synth name="osc" synthdef="sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
     <sc-control name="gate" value="1"/>
 </sc-synth>
-<label>
-    <sc-run/>
-</label>
+<sc-button bind:value="osc.gate" bind:icon="osc.gate ? 'stop' : 'play'"/>
 
 <div>
     <label>

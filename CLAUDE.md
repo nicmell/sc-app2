@@ -38,14 +38,14 @@ cd src-tauri && cargo check && cargo test
 
 ### Run modes
 
-* **Native GUI** (`yarn tauri dev` / no CLI subcommand): the Rust side boots the
+- **Native GUI** (`yarn tauri dev` / no CLI subcommand): the Rust side boots the
   embedded HTTP server first, then builds the window programmatically with an
   initialization script injecting `window.HTTP_BASE_URL = "http://127.0.0.1:<port>"`
   (the webview origin is `tauri://localhost`, so same-origin URLs don't work).
   There is **no Tauri IPC** — the webview talks plain HTTP/WS like any browser
   (the API serves permissive CORS: the webview origin — `tauri://localhost`,
   or the Vite devUrl in dev — is always cross-origin to the loopback server).
-* **Serve** (`sc-app2 serve`): the same server headless; browsers are same-origin
+- **Serve** (`sc-app2 serve`): the same server headless; browsers are same-origin
   (or Vite-proxied in dev) and `HTTP_BASE_URL` is `""`.
 
 ### Frontend (`src/`)
@@ -229,13 +229,13 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 
 ### Key constants
 
-* HTTP server: `127.0.0.1:3000` (config.json `port`); Vite dev: `1420`.
-* Peers: scsynth `127.0.0.1:57110` (`/[sngbcdpu]_*`, /notify, /status…),
+- HTTP server: `127.0.0.1:3000` (config.json `port`); Vite dev: `1420`.
+- Peers: scsynth `127.0.0.1:57110` (`/[sngbcdpu]_*`, /notify, /status…),
   strudel/SuperDirt `127.0.0.1:57120` (`/dirt`, `/clock`); `/scope/*` is
   bridge-internal (never routed to a peer).
-* scsynth must boot with `-maxLogins ≥ 2` (`yarn osc` does) so the bridge's
+- scsynth must boot with `-maxLogins ≥ 2` (`yarn osc` does) so the bridge's
   clientID ≠ sclang's and node-id blocks don't overlap.
-* Scope slots: scsynth boots 128 SHM scope buffers; each session is assigned
+- Scope slots: scsynth boots 128 SHM scope buffers; each session is assigned
   an aligned span of 8 (`SCOPE_SPAN`, core/blocks.rs —
   `scopeIndexBase`/`scopeIndexCount` in the session payload). The frontend
   allocates one slot per `<sc-scope>` (`oscClient.allocScopeIndex`); the
@@ -244,12 +244,12 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 
 ## Workspace packages (`packages/`)
 
-* `@sc-app/server-commands` — scsynth OSC command constructors over osc-js
+- `@sc-app/server-commands` — scsynth OSC command constructors over osc-js
   (`sNew`, `dRecv`, `gNewOne`, scope subscribe/chunk parsing, encode/decode,
   timetags). The frontend's only OSC vocabulary.
-* `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
+- `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
   tap def).
-* `@sc-app/ui-components` — base styles/custom-element foundation.
+- `@sc-app/ui-components` — base styles/custom-element foundation.
 
 ## How the element architecture settled (the design decisions)
 
@@ -257,7 +257,7 @@ The architecture evolved through deliberate steps away from the old app's
 parser-item design; each decision is load-bearing for the recipe below:
 
 1. **Attributes became reactive properties** on the components (`@property()
-   accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
+accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    attribute copies on parser items — and `validate()` moved next to them.
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
@@ -275,11 +275,11 @@ parser-item design; each decision is load-bearing for the recipe below:
 4. **Runtime values are live element references, not string ids**:
    `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
    `children` is taken), `_targetScNode` on inputs, `targets:
-   Record<path, ScState>` on state. Cycle detection walks the bind graph
+Record<path, ScState>` on state. Cycle detection walks the bind graph
    through these references with no lookups; the only id-keyed structure
    left is the global registry (`@/runtime/registry`, id → live element),
    whose purpose IS lookup from outside the DOM — it adopts a parsed tree
-   by walking `_scChildren` from the root. Anything *persisted* (presets,
+   by walking `_scChildren` from the root. Anything _persisted_ (presets,
    layout) stays id/path-based; references are in-memory runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`. The live VALUE is the exception that settled the
@@ -309,7 +309,7 @@ parser-item design; each decision is load-bearing for the recipe below:
 7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE
    their references in DOM order.** Elements that have not yet been
    processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
-   referenced before it is declared` when a bind names an in-scope element
+referenced before it is declared` when a bind names an in-scope element
    that hasn't processed yet (a name matching nothing keeps the
    does-not-match errors), and `resolveControlBind` gives the same honest
    error when a same-scope state is bound before its declaration (it checks
@@ -355,11 +355,11 @@ further `sc-*` element:
 3. **Validation is layered**: `validateProps()` (ScElement, spec-driven)
    enforces required/numeric/enum plus the runtime-prop rules (static-XOR-
    `bind:` mutual exclusion, required-by-either-form, no stray `bind:` attrs,
-   foreign-prefix and retired-`_`-sigil rejection); override
+   foreign-prefix rejection); override
    `validate()` only for SEMANTIC rules (name syntax via
    `requireName(this)`, ranges, `requireNoScChildren(this)`,
    `failValidation(this, …)`). `process` calls both before resolving and a
-   violation fails the whole plugin. This is the *real* gate — fastxml does
+   violation fails the whole plugin. This is the _real_ gate — fastxml does
    not enforce XSD attribute requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
@@ -383,7 +383,7 @@ further `sc-*` element:
    the parse engine (`process`/`processChildren`/`walkScElements`) is
    inherited from `ScElement` (`internal/sc-element.ts`); the bind machinery
    is imported from `internal/validation` — `resolveVisualBind(this, ctx,
-   bind)`, `resolveNode(ctx, path)` — and the runtime values build over
+bind)`, `resolveNode(ctx, path)` — and the runtime values build over
    `baseRuntime(ctx)` (or ScNode's `this.nodeRuntime(ctx)`); the base
    `process(ctx)` assigns them onto the element, then resolves every
    present `bind:attr` itself (`resolveRuntimeProps` → `resolveStateBind`, so
@@ -401,24 +401,23 @@ further `sc-*` element:
 
 ## Migration state (elements)
 
-| element | status |
-|---|---|
-| sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
-| sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
-| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a DERIVED control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). The legacy `bind` attribute is GONE: state expressions AND synthdef graph-input references are both `bind:value` (fixed graph inputs stay `value`). `run="false"` not honored yet (sc-run step) |
-| sc-slider, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`) |
-| sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput `bind:value` seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
-| sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
-| sc-display | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable) |
-| sc-var | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange |
-| sc-if | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none) |
-| sc-group | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` not honored yet — `OscClient.setNodeRun`/`ScNode.setRunning` exist as the seam for the sc-run step |
-| sc-run | **stub**: parsed + validated + bind-resolved; no UI/logic (needs /n_run — arrives with the node-lifecycle step) |
-| sc-button | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`) |
-| sc-console | functional leaf (the OSC console; no attributes) |
-| sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
-| sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
-| sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step) |
+| element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sc-plugin                                                  | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass                                                                                                                                                                                                                                                                                                                                                                                 |
+| sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                          |
+| sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet           |
+| sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                   |
+| sc-checkbox, sc-switch                                     | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput `bind:value` seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`)                                                                                                                                                                                                                                                                                                          |
+| sc-select, sc-option, sc-radio-group, sc-radio             | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled)                                                                                                                  |
+| sc-display                                                 | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable)                                                                                                                                                                                                                                                                                                                                |
+| sc-var                                                     | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange                                                                                                                                                                                                                                           |
+| sc-if                                                      | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none)                                                 |
+| sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                    |
+| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                               |
+| sc-console                                                 | functional leaf (the OSC console; no attributes)                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
+| sc-strudel                                                 | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                                                                            |
+| sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step)                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 **The load pass**: after the sync parse, `ScPlugin.firstUpdated` awaits
 `load()` — an async walk over `_scChildren` in strict DOM order, each child
@@ -473,18 +472,17 @@ keys: ScState seeds the declarative default in the load pass (a reload keeps
 user-moved values) and mirrors the store key into `_state`, so external
 slice writes (a second input, future presets — literal keys only) notify
 dependents through the same statechange, with no OSC. DERIVED state (a
-`bind:value` expression — the legacy `bind` attribute is gone: inside ugens
-the SAME `bind:value` spelling is the graph-input REFERENCE the synthdef
-collectors consume raw, on a synthdef PARAM it is a loud parse error, and a
-literal `bind` on control/var gets a pointed migration error) recomputes
-element-to-element — NO store key at all;
+`bind:value` expression) recomputes element-to-element — NO store key at all.
+Inside ugens the SAME `bind:value` spelling is the graph-input REFERENCE the
+synthdef collectors consume raw; on a synthdef PARAM it is a loud parse error.
+For runtime state, the
 the bind-order constraint makes the target graph a DAG resolved in DOM
 order, so it settles in one pass and terminates (diamond deps can
 transiently double-dispatch before converging — accepted). Derived state is
 read-only: `setValue()` on it is inert, and the inputs re-read after writing
 so they snap back. Writes split as `setValue()` (public, enabled+underived
 only) over `dispatchValue()` (Object.is-vs-store guard + store write;
-ScControl's override adds the /n_set — the user-gesture WRITE path), while a
+ScControl's override adds the /n*set — the user-gesture WRITE path), while a
 derived control's recompute /n_set lives in the `runtimeValueChanged` hook
 (guarded on `runtimeProps.value` + the live-node gate, so external store
 writes stay UI-only and two inputs on one control converge with one /n_set
@@ -492,8 +490,8 @@ per gesture). The inputs bind via `bind:value` like
 everything else — internal/sc-input derives the single WRITABLE target from
 the resolved runtime prop (plain path, one target, no expression; an
 expression bind is a read-only meter), the widget sync rides the
-`runtimeValueChanged` hook (no extra subscription), and `bind` survives only
-as a NON-state reference (sc-run → node, sc-synth → synthdef). The
+`runtimeValueChanged` hook (no extra subscription); sc-synth uses the explicit
+non-state `synthdef` reference. The
 statechange dispatch is gated on `isStateRuntime` — only named state is
 targetable, so consumers stay silent. The READ-ONLY visuals (sc-display's
 `value`, sc-if's `when`) read through the same machinery; evaluated values
@@ -515,7 +513,7 @@ walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
 are syntax-validated as ONE bind-path segment (`requireName` — letters,
-digits, `_`, `-`; no dots): a dotted name would forge another scope's store
+digits, `*`, `-`; no dots): a dotted name would forge another scope's store
 key (`bad-name-syntax`; the XSD cannot express the grammar — fastxml
 ignores pattern facets, the runtime is the gate). The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
@@ -586,7 +584,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    self-closing tags; HTML parsing mis-nests them) and `importNode` the body
    children into the host, then
    `host.process({rootNode: host, nodes: new Map(), scope: [host],
-   path: []})` — the host's own parse-engine methods; nothing to import.
+path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration
@@ -625,12 +623,8 @@ steps, each independently shippable:
    catch-up /n_set diff), the `_state`/"statechange" propagation (now the
    ScElement runtime-prop machinery)
    (see "Runtime values"), expression binds with comparisons, sc-if (a
-   transparent container), sc-group (its own /g_new; descendants nest via
-   `targetGroupId`), and the run seam (`OscClient.setNodeRun` +
-   `ScNode.setRunning`). **Remaining: the sc-run step** — the sc-run element
-   (play/pause over the target node's `setRunning`; bindless targets the
-   parent — a bindless sc-run should require its parent to be a node) and
-   honoring `run="false"` after the create ack (the old app's exact
+   transparent container), and sc-group (its own /g_new; descendants nest via
+   `targetGroupId`). **Remaining:** honoring `run="false"` after the create ack (the old app's exact
    create-then-/n_run sequence; the attribute is parsed but ignored today).
 6. **Input elements** — DONE. Value dispatch over the shared state seam (see
    "Runtime values"), incl. dispatch to vars and sc-if. The shared `ScInput`
@@ -643,18 +637,17 @@ steps, each independently shippable:
    radio child's `{value,label}` collected at parse and projected into the
    base widgets — the pattern sc-strudel uses for chips/buttons; knob and
    switch are distinct elements, not a `type`). All base props are forwarded.
-   Testing seam (src/sc-elements/__tests__/controls.test.ts): spy
+   Testing seam (src/sc-elements/**tests**/controls.test.ts): spy
    `oscClient.send` with an auto-responder through `handleReply`; interaction
    tests drive the widgets' composed `input`/`change` in happy-dom (the
-   `-base` widgets register via test-setup). Only sc-run is left (its /n_run
-   belongs to the node-lifecycle step).
+   `-base` widgets register via test-setup).
 7. **Buffers & scopes — RE-SCOPED around the SHM transport** (the old
    /b_getn + global-clock machinery existed only because the old app had no
    SHM path; the new bus-based sc-scope already covers old sc-test and the
    old buffer-bound scope): port `sc-buffer` as a thin alloc/free element
    (/b_alloc gated on /done, /b_free on unload; bufnum binding into synth
    controls; bufnums as a server-assigned per-session span like the scope
-   slots in core/blocks.rs — NOT the old client-side (clientID+1)*100
+   slots in core/blocks.rs — NOT the old client-side (clientID+1)\*100
    counter) and `sc-waveform` as a client-side recorder (record/pan/zoom
    over a growing Float32Array) fed by an SHM scope-tap subscription instead
    of /b_getn. `sc-test` is NOT ported (superseded by sc-scope's `bus`);

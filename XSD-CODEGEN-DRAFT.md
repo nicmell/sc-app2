@@ -63,8 +63,7 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   runtime is the real gate. A `required` runtime attr emits `use="optional"` (satisfied by
   either form — XSD 1.0 can't express one-of; XSD 1.1 asserts later); `validateProps`
   enforces at parse: required-by-either-form, static-XOR-`bind:` mutual exclusion, no
-  `bind:*` for unknown/opted-out attrs, foreign-prefix rejection, and a pointed migration
-  error for the retired `_` sigil.
+  `bind:*` for unknown/opted-out attrs, and foreign-prefix rejection.
 - **Engine (ScElement — ScDerived deleted)**: `process()` resolves every present `bind:attr`
   through `resolveStateBind` (bind-order constraint applies; error messages name the real
   attribute) into `runtimeProps[name] = { targets, expression }`. `load()`'s synchronous
@@ -81,7 +80,7 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   `"a, b"`, `"osc:1"`) consumed RAW by the synthdef collectors — `resolveRuntimeProps`
   skips ugen children; on a direct sc-synthdef child (a param) a `bind:` is a loud parse
   error (the param collector reads static values only — silence would drop the param from
-  the def). A literal `bind` attribute on control/var gets a pointed migration error.
+  the def).
 - **Strings + ternary**: state values widened to `number | string` (store slice included);
   the expression engine gained single-quoted string literals and the right-associative
   ternary (`cond ? a : b`, above the non-associative comparison layer); `==`/`!=` stay
@@ -89,12 +88,12 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   `sendControl`/`getControls` coerce `Number()` and SKIP (console.warn) on NaN — the UI
   keeps the string, scsynth never sees it. Numeric widgets coerce in `syncFromState` and
   ignore non-numeric state.
-- **sc-button** (new element over ui-components' `sc-base-button`): `bind` required; a click
-  commits `value` when given (fixed-value trigger) else toggles the bound state 0 ↔ 1;
+- **sc-button** (new element over ui-components' `sc-base-button`): `bind:value` required; a click
+  commits `set` when given (fixed-value trigger) else toggles the bound state 0 ↔ 1;
   `label`/`icon`/`disabled` are runtime props (the ternary icon swap is the flagship demo).
-- **Runtime opt-OUTS (`runtime: false`)**: every `name`; `bind` on inputs/sc-synth/sc-run
-  (target references, not expressions); slider/knob `value` (the widget-reactive prop is
-  fed by the bind target); sc-ugen `type`/`rate`/`op`; nodes' `run` (sc-run step); sc-scope
+- **Runtime opt-OUTS (`runtime: false`)**: every `name`; sc-synth's `synthdef` reference;
+  slider/knob `value` (the widget-reactive prop is
+  fed by the bind target); sc-ugen `type`/`rate`/`op`; nodes' `run`; sc-scope
   `bus`/`channels`/`frames` (the tap identity — no re-tap machinery); sc-strudel `orbit`;
   sc-option/sc-radio `value`/`label` (parse-time data). Everything else is bindable by
   default, including sc-scope's display props (read per frame) and sc-button's `value`.
@@ -110,6 +109,14 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   deleted (its markup is now the legal graph-reference syntax), `bad-ugen-input`'s message
   now names value/bind:value.
 
+## Closing cleanup
+
+- `sc-synth` now names its required synth definition explicitly with the non-runtime
+  `synthdef` attribute; the overloaded `bind` spelling was removed from this surface.
+- The `sc-run` stub was removed completely. Examples use icon-only `sc-button` controls
+  bound to writable `gate` controls, including group-level gates when one control should
+  affect every synth in the group.
+
 ## Phase 3.2 — inputs on `bind:value`, widget-state unification, evaluated-value warnings
 
 The value inputs joined the same binding vocabulary, deleting their parallel machinery:
@@ -122,11 +129,8 @@ The value inputs joined the same binding vocabulary, deleting their parallel mac
   hook (no extra subscription), `commit()` = setValue + re-read snap-back (the explicit
   re-sync + forced update is load-bearing for the unchanged-value case — the Object.is
   guard means the hook won't fire). `resolveVisualBind` and ScInput's `_targetScNode` are
-  gone (the field survives on sc-run alone — its `bind` targets a NODE; with sc-synth's
-  synthdef ref they are the only `bind` attributes left: `bind` now always means
-  "reference to a non-state thing"). `value` is `required: true` on every value input
-  (satisfied by either form); a legacy `bind` gets a pointed migration error (checked
-  BEFORE the generic required-missing one).
+  gone. `value` is `required: true` on every value input
+  (satisfied by either form).
 - **Widget-state unification**: sc-slider/sc-knob's `@property({type:Number}) value` — the
   last attribute-linked reactive prop, whose Lit converter bypassed getProp/the spec and
   offered an uncontrolled public write path — became `@state() _value` like
@@ -152,9 +156,8 @@ The value inputs joined the same binding vocabulary, deleting their parallel mac
 
 - **Child collection off `content.choice`** — single-source the runtime child filters
   (sc-select/sc-radio-group/sc-synthdef) from the spec's content model.
-- **`bind:run` + sc-run** — honor `run="false"` at load and lift `run`'s `runtime: false`
-  over the existing `OscClient.setNodeRun`/`ScNode.setRunning` seam; implement the sc-run
-  element.
+- **Honor `run="false"`** after node creation over the existing
+  `OscClient.setNodeRun`/`ScNode.setRunning` seam.
 - **Rust-side spec table for the upload gate** — generate an attribute-rules table from the
   same specs and enforce it in `manager.rs` (fastxml validates NO attributes); the
   pragmatic strictness win, no validator swap. See the review notes below.
@@ -182,7 +185,7 @@ enforces, the quirks that persist, and the improvement paths considered.
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload** (fastxml 0.8.0, the only gate real plugins hit)                                  | well-formedness, element declarations, content models (leniently — laxer than libxml2), text content. **Attributes: NOTHING** — `validate_attributes` in fastxml is a stub, so every `use="required"`, enum, type, and the `anyAttribute` namespace boundary is decorative at upload. |
 | **CI/dev** (xmllint/libxml2)                                                                | full XSD 1.0 — the only place the schema's attribute rules bite (required, enums, types, `bind:*` admitted / foreign namespaces rejected). Runs only when we run it.                                                                                                                  |
-| **Runtime** (`validateProps` + `validate` + `resolveRuntimeProps` + `validateRuntimeProps`) | the authoritative gate: known/common attributes, required-by-either-form, XSD-compatible primitive types, static-XOR-`bind:`, name grammar, foreign prefixes, the `_` migration, bind resolution + bind order, ugen/param position rules, writable-target rules.                      |
+| **Runtime** (`validateProps` + `validate` + `resolveRuntimeProps` + `validateRuntimeProps`) | the authoritative gate: known/common attributes, required-by-either-form, XSD-compatible primitive types, static-XOR-`bind:`, name grammar, namespace prefixes, bind resolution + bind order, ugen/param position rules, writable-target rules.                                       |
 
 Consequence: a wrong plugin usually uploads fine (201) and dies at parse with a pointed
 error in the plugin box. Acceptable by design — but the upload gate advertises more than

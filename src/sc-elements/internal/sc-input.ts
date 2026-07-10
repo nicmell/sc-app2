@@ -1,6 +1,5 @@
 // Base for the WRITING value inputs (sc-slider / sc-knob / sc-checkbox /
-// sc-switch / sc-select / sc-radio-group / sc-button — and sc-run, which
-// targets a NODE and keeps its own machinery). Inputs bind to state exactly
+// sc-switch / sc-select / sc-radio-group / sc-button). Inputs bind to state exactly
 // like visuals do — `bind:value="s1.freq"` resolved by the ScElement
 // runtime-prop machinery — so the READ side (subscription, recompute,
 // notification) is fully inherited: this base only adds
@@ -24,20 +23,8 @@
 import type { StateValue } from "@/types/runtime";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import { failValidation } from "@/sc-elements/internal/validation";
 
 export abstract class ScInput extends ScElement {
-  validateProps(): void {
-    // Migration honesty FIRST: the old target-reference `bind` is gone on
-    // value inputs (sc-run keeps it in ITS spec, so this never fires there),
-    // and legacy markup should get this pointed error rather than the
-    // generic missing-required-"value" one super would raise.
-    if (this.spec?.attrs?.bind === undefined && this.getAttribute("bind") !== null) {
-      failValidation(this, `"bind" is not supported — use "bind:value"`);
-    }
-    super.validateProps();
-  }
-
   /** The single writable target: a PLAIN single-path `bind:value` resolves
    *  to exactly one state element with no expression. Expression binds have
    *  no writable target — the input is a read-only meter. */

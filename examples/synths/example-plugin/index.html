@@ -8,7 +8,7 @@
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
     <sc-control name="pan" value="0"/>
-    <sc-control name="mute" value="0"/>
+    <sc-control name="gate" value="1"/>
     <sc-ugen name="osc" type="SinOsc">
         <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
@@ -20,24 +20,22 @@
         <sc-control name="in" bind:value="sig"/>
         <sc-control name="pos" bind:value="pan"/>
     </sc-ugen>
-    <sc-ugen name="muted" type="BinaryOpUGen" op="*">
+    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
         <sc-control name="a" bind:value="panned"/>
-        <sc-control name="b" bind:value="mute"/>
+        <sc-control name="b" bind:value="gate"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="muted"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
     </sc-ugen>
 </sc-synthdef>
-<sc-synth name="s1" bind="sine">
+<sc-synth name="s1" synthdef="sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
     <sc-control name="pan" value="0"/>
-    <sc-control name="mute" value="0"/>
+    <sc-control name="gate" value="1"/>
 </sc-synth>
-<label>
-    <sc-run/>
-</label>
+<sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'"/>
 <div class="controls">
     <div class="knobs">
         <label>
@@ -55,11 +53,11 @@
             <sc-slider bind:value="s1.pan" min="-1" max="1" step="0.01"/>
         </label>
         <label>
-            <sc-checkbox bind:value="s1.mute" label="Mute"/>
+            <sc-checkbox bind:value="s1.gate" label="Gate"/>
         </label>
         <label>
-            <sc-switch bind:value="s1.mute"/>
-            <span>Mute (switch)</span>
+            <sc-switch bind:value="s1.gate"/>
+            <span>Gate (switch)</span>
         </label>
     </div>
 </div>

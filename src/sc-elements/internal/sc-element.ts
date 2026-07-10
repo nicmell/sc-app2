@@ -190,8 +190,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  attribute-name hygiene: only the canonical `bind:` prefix carries
    *  runtime props (the XSD admits the NAMESPACE, the runtime matches the
    *  QUALIFIED NAME — a foreign prefix would silently no-op, so it fails
-   *  loudly), only spec attrs not opted out have a `bind:` form, and the
-   *  retired `_` sigil gets a pointed migration error. Element-specific
+   *  loudly), and only spec attrs not opted out have a `bind:` form. Element-specific
    *  semantic and range rules (name syntax, positive/≤max, no-sc-children)
    *  stay in the per-element `validate()` override. */
   validateProps(): void {
@@ -225,9 +224,6 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       }
     }
     for (const { name } of Array.from(this.attributes)) {
-      if (name.startsWith("_")) {
-        failValidation(this, `"${name}" is no longer supported — use "${bindAttr(name.slice(1))}"`);
-      }
       const colon = name.indexOf(":");
       if (colon === -1) {
         if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {

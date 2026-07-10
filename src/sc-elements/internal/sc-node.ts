@@ -57,9 +57,8 @@ export abstract class ScNode extends ScElement {
     throw new Error(`<${this.tagName.toLowerCase()}>: no loaded ancestor group`);
   }
 
-  /** Pause (false) / resume (true) the live node (/n_run) — the seam sc-run
-   *  and `run="false"` will drive at their step; a no-op until the node is
-   *  live. The `run` ATTRIBUTE itself is parsed but not yet honored at load. */
+  /** Pause (false) / resume (true) the live node (/n_run); a no-op until the
+   *  node is live. The `run` attribute itself is not yet honored at load. */
   setRunning(running: boolean): void {
     if (!this.loaded || this.nodeId === 0) return;
     oscClient.setNodeRun(this.nodeId, running ? 1 : 0);

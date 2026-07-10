@@ -314,8 +314,7 @@ export class OscClient {
   }
 
   /** Pause (0) / resume (1) a node — fire-and-forget (/n_run has no reply;
-   *  the node-lifecycle notifications ride /notify). The seam sc-run and
-   *  `run="false"` drive via ScNode.setRunning. */
+   *  the node-lifecycle notifications ride /notify). */
   setNodeRun(nodeId: number, flag: 0 | 1): void {
     this.send(nRunOne(nodeId, flag));
   }

@@ -3,8 +3,7 @@
 // propagation live on the ScState/ScElement bases). Enabled when the parent
 // is a node (plugin/group/synth); a pure graph input inside ugens — where
 // the SAME spelling means a graph-input REFERENCE (`bind:value="lfo"`) the
-// synthdef collectors consume raw. The legacy `bind` attribute is gone in
-// both roles.
+// synthdef collectors consume raw.
 //
 // The only control-specific behavior is the OSC side of a value change,
 // /n_set on the owning node when it is live, fired from exactly two places:

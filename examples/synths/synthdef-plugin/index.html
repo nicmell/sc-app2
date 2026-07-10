@@ -10,6 +10,7 @@
     <sc-control name="amp" value="0.2"/>
     <sc-control name="mod-freq" value="2"/>
     <sc-control name="mod-depth" value="200"/>
+    <sc-control name="gate" value="1"/>
     <sc-ugen name="mod" type="SinOsc" rate="kr">
         <sc-control name="freq" bind:value="mod-freq"/>
     </sc-ugen>
@@ -25,21 +26,24 @@
         <sc-control name="a" bind:value="osc"/>
         <sc-control name="b" bind:value="amp"/>
     </sc-ugen>
+    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="sig"/>
+        <sc-control name="b" bind:value="gate"/>
+    </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="sig"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
     </sc-ugen>
 </sc-synthdef>
 
-<sc-synth name="fm" bind="fm-sine">
+<sc-synth name="fm" synthdef="fm-sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
     <sc-control name="mod-freq" value="2"/>
     <sc-control name="mod-depth" value="200"/>
+    <sc-control name="gate" value="1"/>
 </sc-synth>
-<label>
-    <sc-run/>
-</label>
+<sc-button bind:value="fm.gate" bind:icon="fm.gate ? 'stop' : 'play'"/>
 <div class="controls">
     <div class="knobs">
         <label>

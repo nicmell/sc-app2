@@ -5,7 +5,7 @@ export const spec: ElementSpec = {
   category: "node",
   attrs: {
     name: { type: "string", required: true, runtime: false },
-    bind: { type: "string", runtime: false },
+    synthdef: { type: "string", required: true, runtime: false },
     run: { type: "boolean", runtime: false },
   },
   content: { choice: ["sc-control"] },

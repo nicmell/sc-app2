@@ -7,6 +7,7 @@
 <sc-synthdef name="tone">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
+    <sc-control name="gate" value="1"/>
     <sc-ugen name="osc" type="SinOsc">
         <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
@@ -14,14 +15,19 @@
         <sc-control name="a" bind:value="osc"/>
         <sc-control name="b" bind:value="amp"/>
     </sc-ugen>
+    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="vol"/>
+        <sc-control name="b" bind:value="gate"/>
+    </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="vol"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
     </sc-ugen>
 </sc-synthdef>
-<sc-synth name="s1" bind="tone">
+<sc-synth name="s1" synthdef="tone">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
+    <sc-control name="gate" value="1"/>
 </sc-synth>
 <sc-group name="vars">
     <sc-var name="mode" value="0"/>
@@ -70,9 +76,7 @@
             <sc-radio value="2" label="Auto"/>
         </sc-radio-group>
     </label>
-    <label>
-        <sc-run/>
-    </label>
+    <sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'"/>
 </div>
 </body>
 </html>

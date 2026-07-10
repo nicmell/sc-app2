@@ -83,7 +83,7 @@ export interface SynthDefRuntime extends BaseRuntime {
 }
 
 export interface InputRuntime extends BaseRuntime {
-  /** The live bound target (a state element; a node for sc-run). */
+  /** The live bound target state element. */
   _targetScNode?: ScElement;
 }
 

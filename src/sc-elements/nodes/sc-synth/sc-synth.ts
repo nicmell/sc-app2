@@ -1,4 +1,4 @@
-// <sc-synth> — a synth instance of an sc-synthdef (referenced by `bind`),
+// <sc-synth> — a synth instance of an sc-synthdef (referenced by `synthdef`),
 // with sc-control children as its parameters. The load pass /s_new's it into
 // the nearest ancestor group (the plugin group) — sequentially AFTER the
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
@@ -15,31 +15,28 @@ export class ScSynth extends ScNode {
   }
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    const bind = this.getProp("bind") as string | undefined;
-    if (bind) {
-      const target = resolveNode(this, ctx, [bind]);
-      // The bind must name an actual synthdef — any other named element
-      // (a group, another synth) is the same error.
-      if (!target || !isSynthDefRuntime(target)) {
-        throw new Error(`<sc-synth bind="${bind}">: does not match any <sc-synthdef>`);
-      }
+    const synthdef = this.getProp("synthdef") as string;
+    const target = resolveNode(this, ctx, [synthdef]);
+    // The reference must name an actual synthdef — any other named element
+    // (a group, another synth) is the same error.
+    if (!target || !isSynthDefRuntime(target)) {
+      throw new Error(`<sc-synth synthdef="${synthdef}">: does not match any <sc-synthdef>`);
     }
     return super.resolveRuntime(ctx);
   }
 
   /** Children first (the sc-controls seed/sync their store values), then
-   *  /s_new with those values baked in as control pairs. Created running —
-   *  `run="false"` (/n_run) arrives with the sc-run step. */
+   *  /s_new with those values baked in as control pairs. */
   async load(): Promise<void> {
     const epoch = this._rootScNode?.loadEpoch ?? 0;
     await super.load();
-    const bind = this.getProp("bind") as string | undefined;
-    if (!this.isConnected || !bind || this.loaded) return;
+    const synthdef = this.getProp("synthdef") as string;
+    if (!this.isConnected || this.loaded) return;
     // The pass was invalidated while the children loaded — don't create a
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     const snapshot = this.getControls();
-    const nodeId = await oscClient.createSynth(bind, this.targetGroupId, snapshot);
+    const nodeId = await oscClient.createSynth(synthdef, this.targetGroupId, snapshot);
     // The pass may have been invalidated while /s_new was awaiting /n_go.
     // Never adopt an id from a disconnected or superseded session.
     if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) return;

@@ -120,20 +120,53 @@ export class ScScope extends ScElement {
 
   /** Install + start the tap and subscribe its chunk stream. */
   async load(): Promise<void> {
+    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    // Wire runtime display props before installing the tap. ScElement's
+    // synchronous load prefix performs the initial recompute + subscriptions.
+    await super.load();
     if (!this.isConnected || this.loaded) return;
-    this.scopeIdx = oscClient.allocScopeIndex();
-    await oscClient.sendSynthDef(compileScopeTapSynthDef(this._channels, this._frames));
-    this.tapNodeId = await oscClient.createSynth(
-      scopeTapSynthDefName(this._channels, this._frames),
-      oscClient.sessionGroupId,
-      { inBus: this._bus, scopeNum: this.scopeIdx },
-    );
-    // One call wires the whole stream: the handler is registered under the
-    // minted subId before the subscribe goes out, and dispatch is keyed.
-    this.stream = oscClient.subscribeScope(this.scopeIdx, this._channels, this._frames, (chunk) => {
-      this.chunkRef.current = chunk;
-    });
-    this.loaded = true;
+    if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+
+    const scopeIdx = oscClient.allocScopeIndex();
+    let tapNodeId = 0;
+    let stream: ReturnType<typeof oscClient.subscribeScope> | undefined;
+    const current = () => this.isConnected && (this._rootScNode?.loadEpoch ?? 0) === epoch;
+    const release = () => {
+      stream?.off();
+      if (tapNodeId !== 0) oscClient.freeSynth(tapNodeId);
+      oscClient.freeScopeIndex(scopeIdx);
+    };
+
+    try {
+      await oscClient.sendSynthDef(compileScopeTapSynthDef(this._channels, this._frames));
+      if (!current()) {
+        release();
+        return;
+      }
+
+      tapNodeId = await oscClient.createSynth(
+        scopeTapSynthDefName(this._channels, this._frames),
+        oscClient.sessionGroupId,
+        { inBus: this._bus, scopeNum: scopeIdx },
+      );
+      if (!current()) {
+        release();
+        return;
+      }
+
+      // Register the handler before the subscribe send (no arrival race),
+      // then atomically adopt the fully-created resource set.
+      stream = oscClient.subscribeScope(scopeIdx, this._channels, this._frames, (chunk) => {
+        this.chunkRef.current = chunk;
+      });
+      this.scopeIdx = scopeIdx;
+      this.tapNodeId = tapNodeId;
+      this.stream = stream;
+      this.loaded = true;
+    } catch (error) {
+      release();
+      throw error;
+    }
   }
 
   /** The inverse of load(): stop the stream, free the tap + the slot. The

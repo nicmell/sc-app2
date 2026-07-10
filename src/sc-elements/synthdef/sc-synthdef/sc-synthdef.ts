@@ -81,9 +81,11 @@ export class ScSynthDef extends ScElement {
    *  pipeline failure (surfaced in the plugin's error box). */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
+    const epoch = this._rootScNode?.loadEpoch ?? 0;
     await oscClient.sendSynthDef(
       compileSynthDef(this.getProp("name") as string, this.params, this.specs),
     );
+    if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     this.loaded = true;
   }
 

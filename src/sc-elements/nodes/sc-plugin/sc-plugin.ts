@@ -93,7 +93,14 @@ export class ScPlugin extends ScNode {
    *  the group id, so children target `targetGroupId` uniformly. */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return; // unmounted mid-load / already live
-    this.nodeId = await oscClient.createGroup(oscClient.sessionGroupId);
+    const epoch = this.loadEpoch;
+    const nodeId = await oscClient.createGroup(oscClient.sessionGroupId);
+    if (!this.isConnected || this.loadEpoch !== epoch) {
+      // unload() could not free a group whose id had not arrived yet.
+      oscClient.freeGroup(nodeId);
+      return;
+    }
+    this.nodeId = nodeId;
     this.loaded = true;
     await super.load();
   }

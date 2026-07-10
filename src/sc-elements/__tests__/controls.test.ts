@@ -340,6 +340,52 @@ describe("unmount", () => {
 });
 
 describe("disconnect / reconnect", () => {
+  it("does not adopt a plugin group whose /n_go arrives after unload", async () => {
+    setConnected(true);
+    let pendingGroup: OSC.Message | undefined;
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address === "/g_new") pendingGroup = msg;
+      else autoRespond(msg);
+    });
+
+    const { host } = parseExample();
+    const loading = host.load();
+    await vi.waitFor(() => expect(pendingGroup).toBeDefined());
+    const staleId = pendingGroup!.args[0] as number;
+
+    setConnected(false);
+    autoRespond(pendingGroup!);
+    await loading;
+
+    expect(host.loaded).toBe(false);
+    expect(host.nodeId).toBe(0);
+    expect(sent.map((m) => [m.address, m.args[0]])).toContainEqual(["/n_free", staleId]);
+  });
+
+  it("does not mark a synthdef loaded when /synced arrives after unload", async () => {
+    setConnected(true);
+    let pendingDef: OSC.Message | undefined;
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address === "/d_recv") pendingDef = msg;
+      else autoRespond(msg);
+    });
+
+    const { host } = parseExample();
+    const def = host.querySelector("sc-synthdef") as ScSynthDef;
+    const loading = host.load();
+    await vi.waitFor(() => expect(pendingDef).toBeDefined());
+
+    setConnected(false);
+    autoRespond(pendingDef!);
+    await loading;
+
+    expect(def.loaded).toBe(false);
+  });
+
   it("a connection drop unloads every element; reconnect reloads with the user's values", async () => {
     setConnected(true); // established connection — set before mounting (change-only signal)
     const { host } = await mountExample();

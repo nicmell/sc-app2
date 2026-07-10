@@ -6,7 +6,7 @@
 // gate exactly as against a live server. The scope-slot allocator is armed
 // directly on the client (connect() needs a live worker).
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
@@ -14,8 +14,10 @@ import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
 import {
+  autoRespond,
   installScsynthMock,
   mountPlugin,
+  parsePlugin,
   wrapXml,
   SESSION_GROUP,
 } from "@/lib/utils/test/test-utils";
@@ -29,6 +31,7 @@ const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
 
 let sent: OSC.Message[];
+let send: ReturnType<typeof installScsynthMock>["send"];
 
 /** Arm the private scope-slot allocator (normally done by connect()). */
 function armScopeAllocator(): void {
@@ -70,7 +73,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   strudelMirrors.length = 0;
-  ({ sent } = installScsynthMock());
+  ({ sent, send } = installScsynthMock());
   armScopeAllocator();
 });
 
@@ -80,6 +83,47 @@ afterEach(() => {
 });
 
 describe("sc-scope", () => {
+  it("evaluates and subscribes runtime-bound display properties", async () => {
+    const host = await mountXml(
+      '<sc-var name="scopeGain" value="2"/><sc-scope bind:gain="scopeGain"/>',
+    );
+    const scope = host.querySelector("sc-scope") as unknown as { _gain: number };
+    const gain = host.querySelector("sc-var") as HTMLElement & {
+      setValue(value: number): void;
+    };
+
+    expect(scope._gain).toBe(2);
+    gain.setValue(3);
+    expect(scope._gain).toBe(3);
+  });
+
+  it("releases a late tap and its scope slot when load was invalidated", async () => {
+    let pendingTap: OSC.Message | undefined;
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address === "/s_new") pendingTap = msg;
+      else autoRespond(msg);
+    });
+
+    const { host } = parsePlugin(wrapXml("<sc-scope/>"));
+    const scope = host.querySelector("sc-scope") as ScScope;
+    const loading = host.load();
+    await vi.waitFor(() => expect(pendingTap).toBeDefined());
+    const staleTapId = pendingTap!.args[1] as number;
+
+    host.unload();
+    autoRespond(pendingTap!);
+    await loading;
+
+    expect(scope.loaded).toBe(false);
+    expect(sent.map((m) => [m.address, m.args[0]])).toContainEqual(["/n_free", staleTapId]);
+    expect(sent.some((m) => m.address === "/scope/subscribe")).toBe(false);
+    const recycled = oscClient.allocScopeIndex();
+    expect(recycled).toBe(SCOPE_BASE);
+    oscClient.freeScopeIndex(recycled);
+  });
+
   it("loads a parametrized tap: def per channels, inBus/scopeNum controls, slot subscribe", async () => {
     const host = await mountXml('<sc-scope bus="16" channels="1"/>');
     const scope = host.querySelector("sc-scope") as ScScope;

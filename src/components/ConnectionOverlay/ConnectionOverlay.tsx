@@ -1,4 +1,4 @@
-import { Button, Cluster, Progress } from "@/components/ui";
+import { Button, Flex, Progress } from "@/components/ui";
 import { Modal, modalStyles } from "@/components/ui/Modal";
 import { session, useStatus } from "@/stores/session";
 import styles from "./ConnectionOverlay.module.scss";
@@ -27,9 +27,9 @@ export function ConnectionOverlay() {
       <p className={modalStyles.body}>
         The session could not be established — the server or scsynth may be down.
       </p>
-      <Cluster className={modalStyles.actions}>
+      <Flex wrap align="center" gap="xs" className={modalStyles.actions}>
         <Button label="Retry" onClick={() => void session.retry()} />
-      </Cluster>
+      </Flex>
     </Modal>
   );
 }

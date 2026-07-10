@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Button, Alert, Empty, Stack, Cluster } from "@/components/ui";
+import { Button, Alert, Empty, Flex, Row, Col } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -25,34 +25,38 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
   };
 
   return (
-    <Stack>
+    <Flex orientation="vertical" gap="xs">
       {installed.length === 0 && <Empty>No plugins installed yet.</Empty>}
       {installed.map((p) => (
-        <Cluster key={p.id} className={styles.row}>
-          {onSelect ? (
-            <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
-              <span className="plugin-name">{p.name}</span>
-              <span className={styles.meta}>v{p.version}</span>
-            </button>
-          ) : (
-            <span className={styles.info}>
-              <span className="plugin-name">{p.name}</span>
-              <span className={styles.meta}>
-                {p.author} · v{p.version}
+        <Row align="middle" gutter="xs" key={p.id} className={styles.row}>
+          <Col flex="auto">
+            {onSelect ? (
+              <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
+                <span className="plugin-name">{p.name}</span>
+                <span className={styles.meta}>v{p.version}</span>
+              </button>
+            ) : (
+              <span className={styles.info}>
+                <span className="plugin-name">{p.name}</span>
+                <span className={styles.meta}>
+                  {p.author} · v{p.version}
+                </span>
               </span>
-            </span>
-          )}
+            )}
+          </Col>
           {!onSelect && (
-            <Button
-              variant="danger"
-              size="sm"
-              iconOnly
-              icon="x"
-              label={`Remove ${p.name}`}
-              onClick={() => void deletePlugin(p.id)}
-            />
+            <Col>
+              <Button
+                variant="danger"
+                size="sm"
+                iconOnly
+                icon="x"
+                label={`Remove ${p.name}`}
+                onClick={() => void deletePlugin(p.id)}
+              />
+            </Col>
           )}
-        </Cluster>
+        </Row>
       ))}
 
       {!onSelect && (
@@ -66,6 +70,6 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
         </>
       )}
       {error && <Alert variant="error">{error}</Alert>}
-    </Stack>
+    </Flex>
   );
 }

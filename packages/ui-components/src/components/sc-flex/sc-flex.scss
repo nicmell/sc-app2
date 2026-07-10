@@ -1,0 +1,70 @@
+/* <sc-base-flex> styles. The host itself is the flex container. */
+
+:host {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0;
+}
+
+:host([orientation="vertical"]) {
+  flex-direction: column;
+}
+
+:host([wrap]) {
+  flex-wrap: wrap;
+}
+
+:host([justify="center"]) {
+  justify-content: center;
+}
+
+:host([justify="end"]) {
+  justify-content: flex-end;
+}
+
+:host([justify="space-between"]) {
+  justify-content: space-between;
+}
+
+:host([justify="space-around"]) {
+  justify-content: space-around;
+}
+
+:host([justify="space-evenly"]) {
+  justify-content: space-evenly;
+}
+
+:host([align="start"]) {
+  align-items: flex-start;
+}
+
+:host([align="center"]) {
+  align-items: center;
+}
+
+:host([align="end"]) {
+  align-items: flex-end;
+}
+
+:host([align="baseline"]) {
+  align-items: baseline;
+}
+
+:host([gap="xs"]) {
+  gap: var(--space-xs);
+}
+
+:host([gap="sm"]) {
+  gap: var(--space-sm);
+}
+
+:host([gap="md"]) {
+  gap: var(--space-md);
+}
+
+:host([gap="lg"]) {
+  gap: var(--space-lg);
+}

@@ -1,0 +1,27 @@
+/* <sc-base-col> — a direct flex item of sc-base-row. */
+
+:host {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  order: var(--sc-col-order, 0);
+  margin-inline-start: calc(var(--sc-col-offset, 0) * 4.1666666667%);
+  padding-inline: calc(var(--sc-grid-gutter, 0px) / 2);
+  inset-inline-start: calc((var(--sc-col-push, 0) - var(--sc-col-pull, 0)) * 4.1666666667%);
+}
+
+:host([span]) {
+  flex: 0 0 calc(var(--sc-col-span) * 4.1666666667%);
+  max-width: calc(var(--sc-col-span) * 4.1666666667%);
+}
+
+:host([flex]) {
+  flex: var(--sc-col-flex);
+  max-width: none;
+}
+
+:host([span="0"]) {
+  display: none;
+}

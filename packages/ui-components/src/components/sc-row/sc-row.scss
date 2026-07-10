@@ -1,0 +1,62 @@
+/* <sc-base-row> — flex row over a 24-unit column system. */
+
+:host {
+  --sc-grid-gutter: 0px;
+  --sc-row-wrap: wrap;
+
+  display: flex;
+  flex-flow: row var(--sc-row-wrap);
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+  margin-inline: calc(var(--sc-grid-gutter) / -2);
+  row-gap: var(--sc-grid-gutter);
+}
+
+:host([align="middle"]) {
+  align-items: center;
+}
+
+:host([align="bottom"]) {
+  align-items: flex-end;
+}
+
+:host([align="stretch"]) {
+  align-items: stretch;
+}
+
+:host([justify="center"]) {
+  justify-content: center;
+}
+
+:host([justify="end"]) {
+  justify-content: flex-end;
+}
+
+:host([justify="space-between"]) {
+  justify-content: space-between;
+}
+
+:host([justify="space-around"]) {
+  justify-content: space-around;
+}
+
+:host([justify="space-evenly"]) {
+  justify-content: space-evenly;
+}
+
+:host([gutter="xs"]) {
+  --sc-grid-gutter: var(--space-xs);
+}
+
+:host([gutter="sm"]) {
+  --sc-grid-gutter: var(--space-sm);
+}
+
+:host([gutter="md"]) {
+  --sc-grid-gutter: var(--space-md);
+}
+
+:host([gutter="lg"]) {
+  --sc-grid-gutter: var(--space-lg);
+}

@@ -4,7 +4,7 @@ export const spec: ElementSpec = {
   tag: "sc-strudel",
   category: "widget",
   attrs: {
-    orbit: { type: "integer" },
+    orbit: { type: "integer", runtime: false },
   },
   content: { mixed: true },
 };

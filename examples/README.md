@@ -8,7 +8,10 @@ in-page parse-engine validation — see "Validating example plugins" in the
 root CLAUDE.md. Anything failing outside the `invalid/` fixtures is a bug.
 
 Entries are XHTML (self-closing tags are fine — the loader parses XML and
-adopts nodes; no HTML re-parse). To install one by hand:
+adopts nodes; no HTML re-parse). The `<html>` root declares both
+`xmlns="http://www.w3.org/1999/xhtml"` and
+`xmlns:bind="urn:sc-app:bind"` so dynamic runtime props can use the `bind:`
+namespace. To install one by hand:
 `cd examples/<cat>/<plugin> && zip -r /tmp/p.zip . && curl -X POST
 --data-binary @/tmp/p.zip http://127.0.0.1:3000/api/plugins`.
 
@@ -32,15 +35,15 @@ adopts nodes; no HTML re-parse). To install one by hand:
 |---|---|
 | `nested-groups-plugin` | Multi-segment bind paths (`outer.inner.deep.control`) through nested groups — tests `walkPath` + cumulative scopes. |
 | `group-bind-plugin` | Group-level controls bound from synth params + per-synth run/range/display — tests cross-level binds. |
-| `var-plugin` | `sc-var`s with arithmetic `_value` expressions (mirror, `vars.freq * 2`, sums, products) — tests dynamic state expression resolution. |
-| `conditional-plugin` | `sc-if` with `_when` expressions binding to siblings — tests that `sc-if` is scope-transparent. |
-| `dynamic-props-plugin` | Dynamic widget props (`_min`, `_max`, `_label`) plus string state and ternary `sc-display` expressions. |
+| `var-plugin` | `sc-var`s with arithmetic `bind:value` expressions (mirror, `vars.freq * 2`, sums, products) — tests dynamic state expression resolution. |
+| `conditional-plugin` | `sc-if` with `bind:when` expressions binding to siblings — tests that `sc-if` is scope-transparent. |
+| `dynamic-props-plugin` | Dynamic widget props (`bind:min`, `bind:max`, `bind:label`) plus string state and ternary `sc-display` expressions. |
 
 ## `inputs/` — input widgets
 
 | plugin | purpose |
 |---|---|
-| `button-plugin` | `sc-button` targeting a synth control with dynamic `_icon`/`_label` ternaries and a derived state display. |
+| `button-plugin` | `sc-button` targeting a synth control with dynamic `bind:icon`/`bind:label` ternaries and a derived state display. |
 | `select-plugin` | `sc-select`/`sc-option` dropdowns and `sc-radio-group`/`sc-radio` sets bound to controls/vars. |
 | `waveselect-plugin` | A `Select` UGen switching SinOsc/Saw/Pulse, driven by an `sc-select` — an input wired into a synth graph. |
 
@@ -73,9 +76,9 @@ targets a single error path in the sc-elements runtime
 | `bad-node-bind` | `resolveControlBind` | `bind="ghost.freq"` — no node `ghost` in scope |
 | `bad-synthdef-bind` | `resolveControlBind` | `bind="sine.freq"` resolves to the *synthdef* (not a node) — the classic param-vs-control mistake |
 | `bad-undeclared-control` | `resolveControlBind` | `bind="s1.detune"` — `s1` declares no `detune` control |
-| `bad-circular-bind` | `resolveStateBind` (self-reference guard) | an `sc-var _value="vars.a"` self-reference — the only cycle expressible now that references point strictly backward |
+| `bad-circular-bind` | `resolveStateBind` (self-reference guard) | an `sc-var bind:value="vars.a"` self-reference — the only cycle expressible now that references point strictly backward |
 | `bad-forward-ref` | `resolveNode` | controls/inputs reference a synth declared *after* them — bind targets must be declared before their references in DOM order |
-| `bad-forward-state-ref` | `resolveControlBind` | a same-scope state `_value="vars.b"` before `b` is declared — the honest bind-order error, not "not declared" |
+| `bad-forward-state-ref` | `resolveControlBind` | a same-scope state `bind:value="vars.b"` before `b` is declared — the honest bind-order error, not "not declared" |
 | `bad-synth-target` | `sc-synth resolveRuntime` | `<sc-synth bind="fx">` naming a *group* — the bind must resolve to an actual `<sc-synthdef>` |
 | `bad-unknown-synthdef` | `sc-synth resolveRuntime` | `<sc-synth bind="missing">` matches no `<sc-synthdef>` |
 | `bad-run-bind` | `sc-run resolveRuntime` | `<sc-run bind="ghost">` matches no node |
@@ -83,8 +86,8 @@ targets a single error path in the sc-elements runtime
 | `bad-ugen-ref` | `sc-ugen resolveRuntime` | a ugen input bound to `lfo`, which names no sibling ugen / param |
 | `bad-if-shadow` | `checkDuplicateNames` | a same-named var inside a TRANSPARENT `sc-if` — its contents hydrate into the enclosing sibling scope, so the collision fails the flat-scope duplicate check |
 | `bad-name-syntax` | `requireName` | a dotted `name` (`s1.freq`) — dots are the path separator, so the name would FORGE synth `s1`'s `freq` store key (silent cross-wiring no per-scope check can see); names must be one bind-path segment (the XSD's `scName` pattern is best-effort — fastxml ignores pattern facets, the runtime is the gate) |
-| `bad-runtime-conflict` | `validateProps` | static `value` and dynamic `_value` on the same `sc-var` are mutually exclusive |
-| `bad-derived-graph-input` | `resolveRuntimeProps` | `_value` is not allowed on a synthdef graph-input `sc-control`; graph inputs must use `bind` or `value` |
+| `bad-runtime-conflict` | `validateProps` | static `value` and dynamic `bind:value` on the same `sc-var` are mutually exclusive |
+| `bad-param-bind` | `resolveRuntimeProps` | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value` |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

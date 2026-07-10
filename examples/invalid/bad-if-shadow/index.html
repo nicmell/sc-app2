@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Bad If Shadow (intentional error)</title>
 </head>
@@ -9,7 +9,7 @@
      store paths), so the inner "x" collides with the outer "x" in one flat
      scope and checkDuplicateNames must fail with "duplicate name in scope" -->
 <sc-var name="x" value="1"/>
-<sc-if _when="x">
+<sc-if bind:when="x">
     <div>
         <sc-var name="x" value="2"/>
     </div>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Group Plugin</title>
 </head>
@@ -11,23 +11,23 @@
         <sc-control name="pan" value="0"/>
         <sc-control name="mute" value="0"/>
         <sc-ugen name="osc" type="SinOsc">
-            <sc-control name="freq" bind="freq"/>
+            <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-            <sc-control name="a" bind="osc"/>
-            <sc-control name="b" bind="amp"/>
+            <sc-control name="a" bind:value="osc"/>
+            <sc-control name="b" bind:value="amp"/>
         </sc-ugen>
         <sc-ugen name="panned" type="Pan2">
-            <sc-control name="in" bind="sig"/>
-            <sc-control name="pos" bind="pan"/>
+            <sc-control name="in" bind:value="sig"/>
+            <sc-control name="pos" bind:value="pan"/>
         </sc-ugen>
         <sc-ugen name="muted" type="BinaryOpUGen" op="*">
-            <sc-control name="a" bind="panned"/>
-            <sc-control name="b" bind="mute"/>
+            <sc-control name="a" bind:value="panned"/>
+            <sc-control name="b" bind:value="mute"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
             <sc-control name="bus" value="0"/>
-            <sc-control name="channelsarray" bind="muted"/>
+            <sc-control name="channelsarray" bind:value="muted"/>
         </sc-ugen>
     </sc-synthdef>
 
@@ -52,30 +52,30 @@
         <div class="knobs">
             <label>
                 <sc-knob bind="osc1.freq" min="20" max="2000" step="1"/>
-                <span><sc-display _value="osc1.freq" format="%d Hz"/></span>
+                <span><sc-display bind:value="osc1.freq" format="%d Hz"/></span>
             </label>
             <label>
                 <sc-knob bind="osc1.amp" min="0" max="1" step="0.01"/>
-                <span><sc-display _value="osc1.amp" format="%.2f"/></span>
+                <span><sc-display bind:value="osc1.amp" format="%.2f"/></span>
             </label>
             <label>
                 <sc-slider bind="osc1.pan" min="-1" max="1" step="0.01"/>
-                <span>Pan: <sc-display _value="osc1.pan" format="%.2f"/></span>
+                <span>Pan: <sc-display bind:value="osc1.pan" format="%.2f"/></span>
             </label>
         </div>
         <h3>Oscillator 2</h3>
         <div class="knobs">
             <label>
                 <sc-knob bind="osc2.freq" min="20" max="2000" step="1"/>
-                <span><sc-display _value="osc2.freq" format="%d Hz"/></span>
+                <span><sc-display bind:value="osc2.freq" format="%d Hz"/></span>
             </label>
             <label>
                 <sc-knob bind="osc2.amp" min="0" max="1" step="0.01"/>
-                <span><sc-display _value="osc2.amp" format="%.2f"/></span>
+                <span><sc-display bind:value="osc2.amp" format="%.2f"/></span>
             </label>
             <label>
                 <sc-slider bind="osc2.pan" min="-1" max="1" step="0.01"/>
-                <span>Pan: <sc-display _value="osc2.pan" format="%.2f"/></span>
+                <span>Pan: <sc-display bind:value="osc2.pan" format="%.2f"/></span>
             </label>
         </div>
     </div>

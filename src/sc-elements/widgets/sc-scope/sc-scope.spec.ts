@@ -4,9 +4,10 @@ export const spec: ElementSpec = {
   tag: "sc-scope",
   category: "widget",
   attrs: {
-    bus: { type: "integer" },
-    channels: { type: "integer" },
-    frames: { type: "integer" },
+    // the tap trio is the SUBSCRIPTION identity — no re-tap machinery yet
+    bus: { type: "integer", runtime: false },
+    channels: { type: "integer", runtime: false },
+    frames: { type: "integer", runtime: false },
     trigger: { type: "enum", values: ["auto", "normal", "off"] },
     slope: { type: "enum", values: ["rising", "falling"] },
     level: { type: "decimal" },

@@ -1,7 +1,7 @@
 // <sc-button> — a button bound to a control/var (`bind`/`_targetScNode` on
 // the ScInput base). Renders the ui-components <sc-base-button>, forwarding
 // its props — `label` and `icon` are runtime-capable, the flagship use being
-// a ternary swap (`_icon="s1.gate ? 'stop' : 'play'"`). A click writes
+// a ternary swap (`bind:icon="s1.gate ? 'stop' : 'play'"`). A click writes
 // through the shared commit path: the `value` attribute when given (a
 // fixed-value trigger), else it TOGGLES the target between 0 and 1 on the
 // current `_state`'s truthiness. Writes to derived state stay inert (the

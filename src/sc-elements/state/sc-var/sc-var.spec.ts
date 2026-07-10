@@ -4,8 +4,8 @@ export const spec: ElementSpec = {
   tag: "sc-var",
   category: "state",
   attrs: {
-    name: { type: "string", required: true },
+    name: { type: "string", required: true, runtime: false },
     // scalar: a literal var may hold a string (feeds displays/ternaries).
-    value: { type: "scalar", runtime: true },
+    value: { type: "scalar" },
   },
 };

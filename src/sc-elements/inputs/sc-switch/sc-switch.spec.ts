@@ -4,8 +4,8 @@ export const spec: ElementSpec = {
   tag: "sc-switch",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true },
+    bind: { type: "string", required: true, runtime: false },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean", runtime: true },
+    disabled: { type: "boolean" },
   },
 };

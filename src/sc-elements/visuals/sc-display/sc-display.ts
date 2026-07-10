@@ -1,9 +1,9 @@
 // <sc-display> — a read-only formatted view of a value: usually the dynamic
-// `_value` expression (`_value="s1.freq"`, `_value="vars.amp * 100"`,
-// `_value="osc.gate ? 'playing' : 'stopped'"`), or a static `value` constant.
+// `bind:value` expression (`bind:value="s1.freq"`, `bind:value="vars.amp * 100"`,
+// `bind:value="osc.gate ? 'playing' : 'stopped'"`), or a static `value` constant.
 // Both read through `getProp("value")` (the ScElement runtime-prop machinery
 // keeps the dynamic one live), rendered through the printf-style `format` —
-// itself runtime-capable (`_format`).
+// itself runtime-capable (`bind:format`).
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";

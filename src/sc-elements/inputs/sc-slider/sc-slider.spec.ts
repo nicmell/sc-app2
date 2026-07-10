@@ -4,14 +4,15 @@ export const spec: ElementSpec = {
   tag: "sc-slider",
   category: "input",
   attrs: {
-    bind: { type: "string" },
-    min: { type: "decimal", runtime: true },
-    max: { type: "decimal", runtime: true },
-    step: { type: "decimal", runtime: true },
-    value: { type: "decimal" },
-    label: { type: "string", runtime: true },
+    bind: { type: "string", runtime: false },
+    min: { type: "decimal" },
+    max: { type: "decimal" },
+    step: { type: "decimal" },
+    // the widget-reactive value is fed by the bind target, never evaluated
+    value: { type: "decimal", runtime: false },
+    label: { type: "string" },
     size: { type: "enum", values: ["sm", "md", "lg"] },
     orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    disabled: { type: "boolean", runtime: true },
+    disabled: { type: "boolean" },
   },
 };

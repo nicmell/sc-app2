@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Bad Forward State Reference (intentional error)</title>
 </head>
@@ -9,7 +9,7 @@
      reference; resolveControlBind must fail with the honest bind-order error
      "referenced before it is declared" (not "not declared") -->
 <sc-group name="vars">
-    <sc-var name="a" _value="vars.b"/>
+    <sc-var name="a" bind:value="vars.b"/>
     <sc-var name="b" value="1"/>
 </sc-group>
 </body>

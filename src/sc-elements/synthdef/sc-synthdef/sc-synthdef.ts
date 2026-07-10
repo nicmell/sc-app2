@@ -28,12 +28,19 @@ function collectUgenInputs(node: ScUgen): Record<string, string> {
   for (const child of node._scChildren!) {
     if (isControlRuntime(child)) {
       const name = child.getProp("name") as string;
-      const bind = child.getProp("bind") as string | undefined;
+      // The graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc:1"`) —
+      // the same spelling as a state expression, consumed raw here (never
+      // resolved on the state graph; resolveRuntimeProps skips ugen children).
+      // Empty references count as absent — the old parse-time error beats a
+      // junk "" reaching the compiler at /d_recv time.
+      const bind = child.getAttribute("bind:value");
       const value = child.getProp("value") as number | undefined;
       if (!bind && value == null) {
-        throw new Error(`<sc-control name="${name}">: requires either a bind or value attribute`);
+        throw new Error(
+          `<sc-control name="${name}">: requires either a value or bind:value attribute`,
+        );
       }
-      inputs[name] = bind ?? String(value);
+      inputs[name] = bind || String(value);
     }
   }
   return inputs;

@@ -5,11 +5,12 @@ root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
 in each element's colocated `<tag>.spec.ts` (the spec IS the attribute
 contract — it also generates the backend XSD) and are read on demand via
 `getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
-properties). Every spec attr flagged `runtime: true` accepts a `_`-prefixed
-sibling holding a bind expression (`_min="vars.lo"`,
-`_icon="s1.gate ? 'stop' : 'play'"`) — mutually exclusive with the static
-form, evaluated live and reactive on its sources; `getProp` then returns the
-evaluated value. Validation is layered — the spec-driven `validateProps()`
+properties). Every spec attr (unless flagged `runtime: false`) accepts a
+`bind:`-namespaced sibling holding a bind expression (`bind:min="vars.lo"`,
+`bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
+`xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
+static form, evaluated live and reactive on its sources; `getProp` then
+returns the evaluated value. Validation is layered — the spec-driven `validateProps()`
 (required/numeric/enum + the runtime-prop rules) before the component's own
 SEMANTIC `validate()` (both called by `process` during parse — the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
@@ -30,7 +31,7 @@ Folders mirror the old sc-app's class/guard taxonomy:
 ```
 internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
             processChildren — the common runtime fields, AND the runtime-prop
-            machinery: `_attr` → runtimeProps (targets/expression), the live
+            machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything
             reads); validation.ts (the require*/failValidation primitives +
@@ -121,21 +122,23 @@ synthdef param (runtime-validated).
 ### `<sc-control>`
 
 A named parameter. Props: `name` (required), and exactly one of `value`
-(number) or `_value` (a dot-path to another control/var, or an expression
+(number) or `bind:value` (a dot-path to another control/var, or an expression
 over paths — arithmetic, comparisons evaluating to 1/0, the ternary,
 string literals: `vars.freq * 2`, `vars.amp > 0.9`; a bare name-shaped
 expression is always a PATH, so hyphenated names like `fm.mod-freq` stay
 addressable). Enabled when its parent is a node (plugin/group/synth);
-disabled (pure graph input) inside synthdefs/ugens — where `bind` keeps its
-graph-input-reference meaning (`bind="lfo"`); `bind` on a node control is a
-parse error. `/n_set`s its parent node when the value changes (user writes
-and derived recomputes alike), coercing at the boundary — a string value
-skips the send with a console warning.
+disabled (pure graph input) inside ugens — where the SAME `bind:value`
+spelling is a graph-input REFERENCE (`bind:value="lfo"`) the synthdef
+collectors consume raw; on a synthdef PARAM a `bind:` is a parse error, and
+the legacy `bind` attribute gets a pointed migration error everywhere.
+`/n_set`s its parent node when the value changes (user writes and derived
+recomputes alike), coercing at the boundary — a string value skips the send
+with a console warning.
 
 ### `<sc-var>`
 
 A state variable: like `sc-control` but always enabled and never sent over
-OSC. Props: `name` (required), `value` xor `_value` (expressions allowed;
+OSC. Props: `name` (required), `value` xor `bind:value` (expressions allowed;
 `value` is a SCALAR — a string literal like `value="lin"` is legal state).
 Its live value is `_state` on the shared state machinery: a literal var is
 one store-slice key (path-keyed, like controls), a derived var recomputes
@@ -153,9 +156,9 @@ The value inputs share the `ScInput` seam: one subscription to the target's
 the value onto the widget (coercing — non-numeric strings leave the widget
 as-is), and `commit()` — `setValue()` then a re-read snap-back so a gesture
 against DERIVED (read-only) state reverts. Their `bind` is a target
-REFERENCE and stays non-reactive; the presentational props flagged
-`runtime: true` in each spec (min/max/step/label/placeholder/disabled)
-accept the `_`-form and re-render live.
+REFERENCE and stays non-reactive; the presentational props not opted out in each spec
+(min/max/step/label/placeholder/disabled)
+accept the `bind:` form and re-render live.
 
 ### `<sc-slider>` — functional (ui-components `<sc-base-slider>`)
 
@@ -209,7 +212,7 @@ collected and projected as `<sc-base-radio>`s exactly like select/option.
 A push button over the ScInput seam. Props: `bind` (required — the target
 control/var), `value` (a fixed value to write on click; ABSENT = the click
 TOGGLES the target 0 ↔ 1 on its truthiness), `label`, `icon`,
-`disabled` (all three runtime-capable — `_icon="s1.gate ? 'stop' : 'play'"`
+`disabled` (all three runtime-capable — `bind:icon="s1.gate ? 'stop' : 'play'"`
 is the flagship swap), `variant` (primary|secondary|ghost|danger), `size`.
 Writes go through `commit()`, so derived targets stay inert.
 
@@ -224,23 +227,23 @@ Will: `/n_run` toggle button.
 Both visuals are read-only SINKS on the state graph, running entirely on
 the ScElement runtime-prop machinery — their condition/value is a full
 evaluable expression (plain paths, arithmetic, comparisons, ternaries,
-string literals), resolved like `_value` binds and recomputed on every
+string literals), resolved like `bind:value` binds and recomputed on every
 source statechange; the render reads it back through `getProp`.
 
 ### `<sc-display>`
 
 Read-only formatted view of a value: static `value` or the dynamic
-`_value` expression (`_value="s1.freq"`, `_value="vars.amp * 100"`,
-`_value="osc.gate ? 'playing' : 'stopped'"`). Props: `value` (required, in
+`bind:value` expression (`bind:value="s1.freq"`, `bind:value="vars.amp * 100"`,
+`bind:value="osc.gate ? 'playing' : 'stopped'"`). Props: `value` (required, in
 either form), `format` (printf-style: `%d`, `%.2f`, `%b`, `%s` — itself
-runtime-capable as `_format`).
+runtime-capable as `bind:format`).
 
 ### `<sc-if>`
 
-Conditional rendering on the TRUTHINESS of the `_when` expression
-(`_when="osc.gate"`, `_when="vars.freq > 440"`, `_when="osc.gate == 0"`):
+Conditional rendering on the TRUTHINESS of the `bind:when` expression
+(`bind:when="osc.gate"`, `bind:when="vars.freq > 440"`, `bind:when="osc.gate == 0"`):
 the children show when the value is truthy (non-zero, non-empty string).
-Props: `when` (required — in practice always the `_when` form).
+Props: `when` (required — in practice always the `bind:when` form).
 Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
 `[hidden] display: none`). sc-if is a TRANSPARENT container: it opens no
 sibling scope and no path segment — its contents are hydrated,

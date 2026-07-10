@@ -14,25 +14,32 @@
 // widget's `value`/`_checked`/…) stay as Lit properties. Runtime values are
 // plain fields.
 //
-// RUNTIME PROPS: any spec attr flagged `runtime: true` accepts a `_`-prefixed
-// sibling attribute holding a bind expression (`_min="vars.lo"`,
-// `_value="osc.freq * 2"`, `_icon="s1.gate ? 'stop' : 'play'"`) — mutually
-// exclusive with the static attribute. `process()` resolves each into live
-// targets (+ parsed expression); `load()` computes the initial value and
-// recomputes on every target's statechange, feeding `getProp` (and, for the
-// `value` prop, the state elements' `_state` + the "statechange" event that
-// notifies dependents). Element-to-element push propagation — the bind-order
-// constraint makes the target graph a DAG resolved in DOM order, so the
-// initial load settles in one pass; diamond dependencies can transiently
-// dispatch once per intermediate before converging — accepted, each hop is
-// Object.is-guarded.
+// RUNTIME PROPS: every spec attr (unless flagged `runtime: false`) accepts a
+// `bind:`-namespaced sibling attribute holding a bind expression
+// (`bind:min="vars.lo"`, `bind:value="osc.freq * 2"`,
+// `bind:icon="s1.gate ? 'stop' : 'play'"`) — mutually exclusive with the
+// static attribute. The namespace (`xmlns:bind="urn:sc-app:bind"`, declared
+// on the entry root) makes the markup namespace-well-formed; the runtime
+// matches by QUALIFIED NAME (`getAttribute("bind:min")` — the one attribute
+// API portable across happy-dom and Chrome; getAttributeNS is NOT). The
+// canonical `bind` prefix is enforced (validateProps rejects foreign
+// prefixes — the XSD admits by namespace, the runtime by name).
+// `process()` resolves each into live targets (+ parsed expression);
+// `load()` computes the initial value and recomputes on every target's
+// statechange, feeding `getProp` (and, for the `value` prop, the state
+// elements' `_state` + the "statechange" event that notifies dependents).
+// Element-to-element push propagation — the bind-order constraint makes the
+// target graph a DAG resolved in DOM order, so the initial load settles in
+// one pass; diamond dependencies can transiently dispatch once per
+// intermediate before converging — accepted, each hop is Object.is-guarded.
 //
 // Still unported (return with their migration steps): the buffer family
 // (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides.
 
 import { LitElement } from "lit";
+import { ELEMENTS } from "@/constants/sc-elements";
 import { evalExpr } from "@/lib/utils/expression";
-import { isNodeType } from "@/lib/utils/guards";
+import { isNodeType, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import {
   baseRuntime,
@@ -43,7 +50,7 @@ import {
   resolveStateBind,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import type { AttrSpec, ElementSpec } from "@/sc-elements/internal/xsd/types";
+import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
@@ -70,7 +77,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  sequential walk re-checks it after every awaited child and aborts when
    *  it moved (disconnect unload, or a newer pass superseding this one). */
   loadEpoch = 0;
-  /** The resolved runtime props (`_min="vars.lo"` → key "min"): live bind
+  /** The resolved runtime props (`bind:min="vars.lo"` → key "min"): live bind
    *  targets + parsed expression per prop, assigned in `process()`. */
   runtimeProps?: Record<string, RuntimeProp>;
 
@@ -94,14 +101,14 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
    *  call site (`this.getProp("min") as number`). Absent → undefined; a
    *  forwarded prop then falls back to the base widget's own default. When the
-   *  attr is runtime-flagged and its `_attr` is present, this returns the LIVE
+   *  attr is runtime-flagged and its `bind:` form is present, this returns the LIVE
    *  evaluated value instead (undefined until the targets settle) — reads from
    *  render() re-run on every recompute. The genuinely-reactive fields (a
    *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
    *  as reactive class fields. */
   getProp(name: string): string | number | boolean | undefined {
     const attr = this.spec?.attrs?.[name];
-    if (attr?.runtime && this.hasAttribute(`_${name}`)) {
+    if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
       return this.coerceProp(attr, this.#runtime[name], true);
     }
     const raw = this.getAttribute(name);
@@ -133,18 +140,23 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** Spec-driven attribute validation, run before `validate()`: required
-   *  present (a runtime attr satisfies it with either form), static/`_`
-   *  mutual exclusion, numeric non-NaN, enum membership, and no stray
-   *  `_`-attrs (only runtime-flagged spec attrs have a `_` form).
-   *  Element-specific semantic and range rules (name syntax, positive/≤max,
-   *  no-sc-children) stay in the per-element `validate()` override. */
+   *  present (a runtime attr satisfies it with either form), static/`bind:`
+   *  mutual exclusion, numeric non-NaN, enum membership (static form only —
+   *  evaluated values are unvalidated, an accepted limitation), and the
+   *  attribute-name hygiene: only the canonical `bind:` prefix carries
+   *  runtime props (the XSD admits the NAMESPACE, the runtime matches the
+   *  QUALIFIED NAME — a foreign prefix would silently no-op, so it fails
+   *  loudly), only spec attrs not opted out have a `bind:` form, and the
+   *  retired `_` sigil gets a pointed migration error. Element-specific
+   *  semantic and range rules (name syntax, positive/≤max, no-sc-children)
+   *  stay in the per-element `validate()` override. */
   validateProps(): void {
     const attrs = this.spec?.attrs ?? {};
     for (const [name, attr] of Object.entries(attrs)) {
       const raw = this.getAttribute(name);
-      const dynamic = attr.runtime ? this.getAttribute(`_${name}`) : null;
+      const dynamic = attr.runtime !== false ? this.getAttribute(bindAttr(name)) : null;
       if (raw !== null && dynamic !== null) {
-        failValidation(this, `"${name}" and "_${name}" are mutually exclusive`);
+        failValidation(this, `"${name}" and "${bindAttr(name)}" are mutually exclusive`);
       }
       if (raw === null) {
         if (attr.required && dynamic === null) {
@@ -160,7 +172,18 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       }
     }
     for (const { name } of Array.from(this.attributes)) {
-      if (name.startsWith("_") && !attrs[name.slice(1)]?.runtime) {
+      if (name.startsWith("_")) {
+        failValidation(this, `"${name}" is no longer supported — use "${bindAttr(name.slice(1))}"`);
+      }
+      const colon = name.indexOf(":");
+      if (colon === -1) continue;
+      const prefix = name.slice(0, colon);
+      if (prefix === "xmlns") continue;
+      if (prefix !== "bind") {
+        failValidation(this, `unknown attribute namespace prefix "${prefix}:" (use "bind:")`);
+      }
+      const base = attrs[name.slice(colon + 1)];
+      if (base === undefined || base.runtime === false) {
         failValidation(this, `unknown runtime attribute "${name}"`);
       }
     }
@@ -207,22 +230,25 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return this;
   }
 
-  /** Resolve every present `_attr` into live targets + expression — the same
-   *  machinery state binds use, so the bind-order constraint applies. Runs
-   *  AFTER `resolveRuntime` (enablement is known): a `_attr` on a DISABLED
-   *  element (a graph input inside synthdefs/ugens) is rejected loudly — it
-   *  has no node scope to resolve against, and the graph collectors read the
-   *  static attributes only. */
+  /** Resolve every present `bind:attr` into live targets + expression — the
+   *  same machinery state binds use, so the bind-order constraint applies.
+   *  Runs AFTER `resolveRuntime` (enablement is known). DISABLED elements
+   *  split by position: inside an sc-ugen, `bind:value` is a GRAPH-INPUT
+   *  reference the synthdef collectors consume raw (skip — never resolved on
+   *  the state graph); on a direct sc-synthdef child (a param), a `bind:` is
+   *  rejected loudly — the param collector reads static values only and
+   *  would silently drop it from the def. */
   private resolveRuntimeProps(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
     for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
-      if (!attr.runtime) continue;
-      const expr = this.getAttribute(`_${name}`);
+      if (attr.runtime === false) continue;
+      const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
       if (!this.enabled) {
-        failValidation(this, `"_${name}" is not allowed on a synthdef graph input`);
+        if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) continue;
+        failValidation(this, `"${bindAttr(name)}" is not allowed on a synthdef param`);
       }
-      (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, `_${name}`);
+      (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
     }
   }
 

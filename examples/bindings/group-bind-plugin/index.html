@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Group Bind Plugin</title>
 </head>
@@ -11,25 +11,25 @@
         <sc-control name="amp" value="0.2"/>
         <sc-control name="gate" value="1"/>
         <sc-ugen name="osc" type="SinOsc">
-            <sc-control name="freq" bind="freq"/>
+            <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="env" type="Linen">
-            <sc-control name="gate" bind="gate"/>
+            <sc-control name="gate" bind:value="gate"/>
             <sc-control name="attacktime" value="0.01"/>
             <sc-control name="susLevel" value="1"/>
             <sc-control name="releasetime" value="0.1"/>
         </sc-ugen>
         <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-            <sc-control name="a" bind="osc"/>
-            <sc-control name="b" bind="amp"/>
+            <sc-control name="a" bind:value="osc"/>
+            <sc-control name="b" bind:value="amp"/>
         </sc-ugen>
         <sc-ugen name="gated" type="BinaryOpUGen" op="*">
-            <sc-control name="a" bind="sig"/>
-            <sc-control name="b" bind="env"/>
+            <sc-control name="a" bind:value="sig"/>
+            <sc-control name="b" bind:value="env"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
             <sc-control name="bus" value="0"/>
-            <sc-control name="channelsarray" bind="gated"/>
+            <sc-control name="channelsarray" bind:value="gated"/>
         </sc-ugen>
     </sc-synthdef>
 
@@ -60,11 +60,11 @@
             <sc-run bind="low"/>
         </label>
         <label>
-            <span>Freq: <sc-display _value="low.freq" format="%d Hz"/></span>
+            <span>Freq: <sc-display bind:value="low.freq" format="%d Hz"/></span>
             <sc-knob bind="low.freq" min="20" max="1000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display _value="low.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display bind:value="low.amp" format="%.2f"/></span>
             <sc-knob bind="low.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>
@@ -75,11 +75,11 @@
             <sc-run bind="high"/>
         </label>
         <label>
-            <span>Freq: <sc-display _value="high.freq" format="%d Hz"/></span>
+            <span>Freq: <sc-display bind:value="high.freq" format="%d Hz"/></span>
             <sc-knob bind="high.freq" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display _value="high.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display bind:value="high.amp" format="%.2f"/></span>
             <sc-knob bind="high.amp" min="0" max="1" step="0.01"/>
         </label>
     </div>

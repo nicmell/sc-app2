@@ -27,9 +27,10 @@ export class ScUgen extends ScElement {
 
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     this.processChildren(ctx);
-    // Every input bind must reference a sibling ugen or a synthdef param.
+    // Every input reference (bind:value) must name a sibling ugen or a
+    // synthdef param.
     for (const child of this._scChildren!) {
-      const childBind = child.getProp("bind") as string | undefined;
+      const childBind = child.getAttribute("bind:value");
       if (!isControlRuntime(child) || !childBind) continue;
       for (const ref of childBind.split(",").map((s) => s.trim())) {
         const refId = ref.split(":")[0];

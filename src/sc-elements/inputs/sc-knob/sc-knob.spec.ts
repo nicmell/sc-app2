@@ -4,13 +4,14 @@ export const spec: ElementSpec = {
   tag: "sc-knob",
   category: "input",
   attrs: {
-    bind: { type: "string" },
-    min: { type: "decimal", runtime: true },
-    max: { type: "decimal", runtime: true },
-    step: { type: "decimal", runtime: true },
-    value: { type: "decimal" },
-    label: { type: "string", runtime: true },
+    bind: { type: "string", runtime: false },
+    min: { type: "decimal" },
+    max: { type: "decimal" },
+    step: { type: "decimal" },
+    // the widget-reactive value is fed by the bind target, never evaluated
+    value: { type: "decimal", runtime: false },
+    label: { type: "string" },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean", runtime: true },
+    disabled: { type: "boolean" },
   },
 };

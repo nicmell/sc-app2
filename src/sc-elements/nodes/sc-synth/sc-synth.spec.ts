@@ -4,9 +4,9 @@ export const spec: ElementSpec = {
   tag: "sc-synth",
   category: "node",
   attrs: {
-    name: { type: "string", required: true },
-    bind: { type: "string" },
-    run: { type: "boolean" },
+    name: { type: "string", required: true, runtime: false },
+    bind: { type: "string", runtime: false },
+    run: { type: "boolean", runtime: false },
   },
   content: { choice: ["sc-control"] },
 };

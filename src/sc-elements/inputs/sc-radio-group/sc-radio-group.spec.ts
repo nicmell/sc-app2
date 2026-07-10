@@ -4,11 +4,11 @@ export const spec: ElementSpec = {
   tag: "sc-radio-group",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true },
+    bind: { type: "string", required: true, runtime: false },
     orientation: { type: "enum", values: ["horizontal", "vertical"] },
-    label: { type: "string", runtime: true },
+    label: { type: "string" },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean", runtime: true },
+    disabled: { type: "boolean" },
   },
   content: { choice: ["sc-radio"] },
 };

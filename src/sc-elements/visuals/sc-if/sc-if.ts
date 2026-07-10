@@ -1,6 +1,6 @@
-// <sc-if> — conditional rendering on the TRUTHINESS of a `_when` expression
-// (the ScElement runtime-prop machinery): `_when="osc.gate"`,
-// `_when="vars.freq > 440"`, `_when="osc.gate == 0"` — anything the
+// <sc-if> — conditional rendering on the TRUTHINESS of a `bind:when`
+// expression (the ScElement runtime-prop machinery): `bind:when="osc.gate"`,
+// `bind:when="vars.freq > 440"`, `bind:when="osc.gate == 0"` — anything the
 // expression engine evaluates; children show when the live value is truthy
 // (non-zero, non-empty-string).
 //

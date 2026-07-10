@@ -5,10 +5,10 @@ export const spec: ElementSpec = {
   tag: "sc-ugen",
   category: "ugen",
   attrs: {
-    name: { type: "string", required: true },
-    type: { type: "string", required: true },
-    rate: { type: "string" },
-    op: { type: "string" },
+    name: { type: "string", required: true, runtime: false },
+    type: { type: "string", required: true, runtime: false },
+    rate: { type: "string", runtime: false },
+    op: { type: "string", runtime: false },
   },
   content: { choice: ["sc-control"] },
 };

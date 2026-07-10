@@ -220,7 +220,7 @@ describe("inputs and display", () => {
     const synth = host.querySelector("sc-synth") as ScSynth;
     // The first range binds s1.freq; its sibling display formats "%d Hz".
     const range = inputByBind(host, "s1.freq");
-    const display = host.querySelector('sc-display[_value="s1.freq"]') as ScDisplay;
+    const display = host.querySelector('sc-display[bind\\:value="s1.freq"]') as ScDisplay;
 
     dragWidget(range, 880);
 
@@ -381,13 +381,13 @@ describe("state propagation (vars + bound state)", () => {
     <sc-group name="vars">
       <sc-var name="a" value="0.5"/>
       <sc-var name="b" value="0"/>
-      <sc-var name="mirror" _value="vars.a"/>
-      <sc-var name="doubled" _value="vars.a * 2"/>
-      <sc-var name="sum" _value="vars.a + vars.b"/>
-      <sc-var name="ratio" _value="vars.a / vars.b"/>
+      <sc-var name="mirror" bind:value="vars.a"/>
+      <sc-var name="doubled" bind:value="vars.a * 2"/>
+      <sc-var name="sum" bind:value="vars.a + vars.b"/>
+      <sc-var name="ratio" bind:value="vars.a / vars.b"/>
     </sc-group>
     <sc-slider bind="vars.a" min="0" max="1" step="0.01"/>
-    <sc-display _value="vars.doubled" format="%.2f"/>
+    <sc-display bind:value="vars.doubled" format="%.2f"/>
   `);
 
   const mountVars = () => mountPlugin(VAR_XML);
@@ -448,7 +448,7 @@ describe("state propagation (vars + bound state)", () => {
     const SNAP_XML = wrapXml(`
       <sc-group name="vars">
         <sc-var name="a" value="0"/>
-        <sc-var name="doubled" _value="vars.a * 2"/>
+        <sc-var name="doubled" bind:value="vars.a * 2"/>
       </sc-group>
       <sc-slider bind="vars.doubled" min="0" max="4" step="0.01"/>
       <sc-checkbox bind="vars.doubled"/>
@@ -501,15 +501,15 @@ describe("bound enabled control on a synth", () => {
     <sc-synthdef name="sine">
       <sc-control name="freq" value="440"/>
       <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind="freq"/>
+        <sc-control name="freq" bind:value="freq"/>
       </sc-ugen>
       <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind="osc"/>
+        <sc-control name="channelsarray" bind:value="osc"/>
       </sc-ugen>
     </sc-synthdef>
     <sc-synth name="s1" bind="sine">
-      <sc-control name="freq" _value="vars.master * 2"/>
+      <sc-control name="freq" bind:value="vars.master * 2"/>
     </sc-synth>
   `);
 
@@ -565,9 +565,9 @@ describe("sc-if", () => {
   const IF_XML = wrapXml(`
     <sc-var name="gate" value="1"/>
     <sc-var name="freq" value="440"/>
-    <sc-if _when="gate"><p>on</p></sc-if>
-    <sc-if _when="gate == 0"><p>off</p></sc-if>
-    <sc-if _when="freq > 440"><p>high</p></sc-if>
+    <sc-if bind:when="gate"><p>on</p></sc-if>
+    <sc-if bind:when="gate == 0"><p>off</p></sc-if>
+    <sc-if bind:when="freq > 440"><p>high</p></sc-if>
     <sc-checkbox bind="gate"/>
   `);
 
@@ -704,12 +704,12 @@ describe("sc-if transparency", () => {
   // outer sibling — only its visibility follows the sc-if.
   const TRANSPARENT_XML = wrapXml(`
     <sc-var name="gate" value="1"/>
-    <sc-if _when="gate">
+    <sc-if bind:when="gate">
       <div>
-        <sc-var name="mirror" _value="gate * 2"/>
+        <sc-var name="mirror" bind:value="gate * 2"/>
       </div>
     </sc-if>
-    <sc-display _value="mirror" format="%d"/>
+    <sc-display bind:value="mirror" format="%d"/>
   `);
 
   it("contents key at the enclosing path and are referenceable from outside", async () => {
@@ -733,13 +733,13 @@ describe("sc-if transparency", () => {
   it("a same-named element inside the sc-if collides with the enclosing scope", () => {
     const XML = wrapXml(`
       <sc-var name="x" value="1"/>
-      <sc-if _when="x"><div><sc-var name="x" value="2"/></div></sc-if>
+      <sc-if bind:when="x"><div><sc-var name="x" value="2"/></div></sc-if>
     `);
     expect(() => parsePlugin(XML)).toThrow('<sc-var name="x">: duplicate name in scope');
   });
 
   it("the sc-if's own bind cannot reference its own contents (bind order)", () => {
-    const XML = wrapXml(`<sc-if _when="x"><sc-var name="x" value="1"/></sc-if>`);
+    const XML = wrapXml(`<sc-if bind:when="x"><sc-var name="x" value="1"/></sc-if>`);
     expect(() => parsePlugin(XML)).toThrow('<sc-if>: "x" is referenced before it is declared');
   });
 
@@ -748,15 +748,15 @@ describe("sc-if transparency", () => {
       <sc-synthdef name="beep">
         <sc-control name="freq" value="440"/>
         <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" bind="freq"/>
+          <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
           <sc-control name="bus" value="0"/>
-          <sc-control name="channelsarray" bind="osc"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
       <sc-var name="show" value="0"/>
-      <sc-if _when="show">
+      <sc-if bind:when="show">
         <sc-synth name="s" bind="beep">
           <sc-control name="freq" value="440"/>
         </sc-synth>
@@ -782,17 +782,17 @@ describe("sc-group", () => {
       <sc-synthdef name="sine">
         <sc-control name="freq" value="440"/>
         <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" bind="freq"/>
+          <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
           <sc-control name="bus" value="0"/>
-          <sc-control name="channelsarray" bind="osc"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
       <sc-synth name="s1" bind="sine">
         <sc-control name="freq" value="330"/>
       </sc-synth>
-      <sc-if _when="g.vol">
+      <sc-if bind:when="g.vol">
         <sc-control name="mix" value="0"/>
       </sc-if>
     </sc-group>
@@ -879,14 +879,14 @@ describe("sc-group", () => {
   });
 });
 
-describe("runtime props (_attr)", () => {
+describe("runtime props (bind:)", () => {
   const DYN_XML = wrapXml(`
     <sc-var name="lo" value="100"/>
     <sc-var name="hi" value="2000"/>
     <sc-var name="freq" value="440"/>
     <sc-var name="mode" value="lin"/>
-    <sc-slider bind="freq" _min="lo" _max="hi" _label="'f (' + mode + ')'"/>
-    <sc-display _value="freq > 1000 ? 'high' : 'low'"/>
+    <sc-slider bind="freq" bind:min="lo" bind:max="hi" bind:label="'f (' + mode + ')'"/>
+    <sc-display bind:value="freq > 1000 ? 'high' : 'low'"/>
   `);
   const varByName = (host: ScPlugin, name: string) =>
     [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
@@ -929,12 +929,18 @@ describe("runtime props (_attr)", () => {
     expect(widgetOf(range).getAttribute("min")).toBe("25"); // one fresh subscription
   });
 
-  it("the static and _ forms are mutually exclusive", () => {
-    const XML = wrapXml(`
-      <sc-var name="b" value="2"/>
-      <sc-var name="a" value="1" _value="b"/>
-    `);
-    expect(() => parsePlugin(XML)).toThrow('<sc-var>: "value" and "_value" are mutually exclusive');
+  it("the static and bind: forms are mutually exclusive (direct validateProps)", () => {
+    // happy-dom's XML parser DROPS the later of two attributes whose LOCAL
+    // names collide (`value` + `bind:value`) — Chrome keeps both, so the
+    // conflict is pinned here on a constructed element (and end-to-end by
+    // the bad-runtime-conflict fixture through the CDP harness).
+    const el = document.createElement("sc-var") as ScVar;
+    el.setAttribute("name", "a");
+    el.setAttribute("value", "1");
+    el.setAttribute("bind:value", "b");
+    expect(() => el.validateProps()).toThrow(
+      '<sc-var>: "value" and "bind:value" are mutually exclusive',
+    );
   });
 
   it("a required runtime attr is satisfied by either form — but not by neither", () => {
@@ -944,71 +950,103 @@ describe("runtime props (_attr)", () => {
     );
   });
 
-  it("rejects _attrs whose base attribute is not runtime-flagged", () => {
+  it("rejects bind: forms whose base attribute is unknown", () => {
     const XML = wrapXml(`
       <sc-var name="freq" value="440"/>
-      <sc-slider bind="freq" _foo="freq"/>
+      <sc-slider bind="freq" bind:foo="freq"/>
     `);
-    expect(() => parsePlugin(XML)).toThrow('<sc-slider>: unknown runtime attribute "_foo"');
+    expect(() => parsePlugin(XML)).toThrow('<sc-slider>: unknown runtime attribute "bind:foo"');
   });
 
-  it("rejects a _value on a synthdef graph input (disabled state)", () => {
+  it("bind:value inside a ugen is a graph REFERENCE — parses, collects, compiles", () => {
     const XML = wrapXml(`
       <sc-synthdef name="sine">
         <sc-control name="freq" value="440"/>
         <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" _value="freq"/>
-        </sc-ugen>
-      </sc-synthdef>
-    `);
-    expect(() => parsePlugin(XML)).toThrow(
-      '<sc-control>: "_value" is not allowed on a synthdef graph input',
-    );
-  });
-
-  it("keeps value and bind exclusive on synthdef graph inputs", () => {
-    const XML = wrapXml(`
-      <sc-synthdef name="sine">
-        <sc-control name="freq" value="440"/>
-        <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" value="1" bind="freq"/>
-        </sc-ugen>
-      </sc-synthdef>
-    `);
-    expect(() => parsePlugin(XML)).toThrow(
-      '<sc-control>: "value" and "bind" are mutually exclusive',
-    );
-  });
-
-  it("rejects bind on an enabled node control (graph vocabulary only)", () => {
-    const XML = wrapXml(`
-      <sc-var name="master" value="200"/>
-      <sc-synthdef name="sine">
-        <sc-control name="freq" value="440"/>
-        <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" bind="freq"/>
+          <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
           <sc-control name="bus" value="0"/>
-          <sc-control name="channelsarray" bind="osc"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
-      <sc-synth name="s1" bind="sine">
-        <sc-control name="freq" bind="master"/>
-      </sc-synth>
+    `);
+    const { host } = parsePlugin(XML);
+    const def = host.querySelector("sc-synthdef") as ScSynthDef;
+    expect(def.specs[0].inputs).toEqual({ freq: "freq" });
+    expect(def.specs[1].inputs).toEqual({ bus: "0", channelsarray: "osc" });
+  });
+
+  it("the exclusion applies to graph inputs too (same generic check)", () => {
+    const el = document.createElement("sc-control") as ScControl;
+    el.setAttribute("name", "freq");
+    el.setAttribute("value", "1");
+    el.setAttribute("bind:value", "freq");
+    expect(() => el.validateProps()).toThrow(
+      '<sc-control>: "value" and "bind:value" are mutually exclusive',
+    );
+  });
+
+  it("rejects a bind: on a synthdef PARAM (the collector reads static values only)", () => {
+    const XML = wrapXml(`
+      <sc-synthdef name="sine">
+        <sc-control name="freq" bind:value="vars.x"/>
+        <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+        </sc-ugen>
+      </sc-synthdef>
     `);
     expect(() => parsePlugin(XML)).toThrow(
-      '<sc-control>: "bind" is a synthdef graph input — use "_value" on a node control',
+      '<sc-control>: "bind:value" is not allowed on a synthdef param',
+    );
+  });
+
+  it("the legacy bind attribute gets pointed migration errors", () => {
+    expect(() =>
+      parsePlugin(
+        wrapXml(`
+          <sc-synthdef name="sine">
+            <sc-control name="freq" value="440"/>
+            <sc-ugen name="osc" type="SinOsc">
+              <sc-control name="freq" bind="freq"/>
+            </sc-ugen>
+          </sc-synthdef>
+        `),
+      ),
+    ).toThrow('<sc-control>: "bind" is not supported — use "bind:value"');
+    expect(() => parsePlugin(wrapXml(`<sc-var name="a" bind="b"/>`))).toThrow(
+      '<sc-var>: "bind" is not supported — use "bind:value"',
+    );
+  });
+
+  it("the retired _ sigil and foreign prefixes fail loudly", () => {
+    expect(() =>
+      parsePlugin(wrapXml(`<sc-var name="b" value="2"/><sc-var name="a" _value="b"/>`)),
+    ).toThrow('<sc-var>: "_value" is no longer supported — use "bind:value"');
+    expect(() =>
+      parsePlugin(
+        wrapXml(`<sc-var name="b" value="2"/><sc-var name="a" xmlns:x="urn:other" x:value="b"/>`),
+      ),
+    ).toThrow('<sc-var>: unknown attribute namespace prefix "x:" (use "bind:")');
+  });
+
+  it("rejects bind:attrs on runtime-opted-out attributes (direct validateProps)", () => {
+    // `bind` + `bind:bind` also collide on local name in happy-dom's parser.
+    const el = document.createElement("sc-slider") as ScElement;
+    el.setAttribute("bind", "freq");
+    el.setAttribute("bind:bind", "freq");
+    expect(() => el.validateProps()).toThrow(
+      '<sc-slider>: unknown runtime attribute "bind:bind"',
     );
   });
 
   it("resolution errors name the real attribute", () => {
     const XML = wrapXml(`
       <sc-var name="freq" value="440"/>
-      <sc-slider bind="freq" _min="ghost.x"/>
+      <sc-slider bind="freq" bind:min="ghost.x"/>
     `);
     expect(() => parsePlugin(XML)).toThrow(
-      '<sc-slider _min="ghost.x">: does not match any node in scope',
+      '<sc-slider bind:min="ghost.x">: does not match any node in scope',
     );
   });
 
@@ -1021,15 +1059,15 @@ describe("runtime props (_attr)", () => {
       <sc-synthdef name="sine">
         <sc-control name="freq" value="440"/>
         <sc-ugen name="osc" type="SinOsc">
-          <sc-control name="freq" bind="freq"/>
+          <sc-control name="freq" bind:value="freq"/>
         </sc-ugen>
         <sc-ugen name="out" type="Out">
           <sc-control name="bus" value="0"/>
-          <sc-control name="channelsarray" bind="osc"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
         </sc-ugen>
       </sc-synthdef>
       <sc-synth name="s1" bind="sine">
-        <sc-control name="freq" _value="vars.mode"/>
+        <sc-control name="freq" bind:value="vars.mode"/>
       </sc-synth>
     `);
     const { host } = await mountPlugin(XML);
@@ -1053,7 +1091,7 @@ describe("runtime props (_attr)", () => {
 describe("sc-button", () => {
   const BTN_XML = wrapXml(`
     <sc-var name="gate" value="0"/>
-    <sc-button bind="gate" _icon="gate ? 'stop' : 'play'" _label="gate ? 'Stop' : 'Play'"/>
+    <sc-button bind="gate" bind:icon="gate ? 'stop' : 'play'" bind:label="gate ? 'Stop' : 'Play'"/>
     <sc-button bind="gate" value="1" label="Trigger"/>
   `);
   const buttons = (host: ScPlugin) =>

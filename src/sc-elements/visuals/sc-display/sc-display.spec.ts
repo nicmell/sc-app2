@@ -4,7 +4,7 @@ export const spec: ElementSpec = {
   tag: "sc-display",
   category: "visual",
   attrs: {
-    value: { type: "scalar", runtime: true, required: true },
-    format: { type: "string", runtime: true },
+    value: { type: "scalar", required: true },
+    format: { type: "string" },
   },
 };

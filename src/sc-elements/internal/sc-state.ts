@@ -9,7 +9,7 @@
 //     external store writes (a second input, future presets) notify
 //     dependents through the uniform statechange — with no OSC (see
 //     ScControl: /n_set lives on the WRITE path only).
-//   - DERIVED state (a `_value` expression) is pure inherited runtime-prop
+//   - DERIVED state (a `bind:value` expression) is pure inherited runtime-prop
 //     behavior: `_state` derives from the targets, there is NO store key,
 //     and writes are inert (`setValue` on derived state is a no-op — the old
 //     app's writes to bound state were equally inert).
@@ -37,7 +37,7 @@ import { ScElement } from "@/sc-elements/internal/sc-element";
 export abstract class ScState extends ScElement {
   validate(): void {
     requireName(this);
-    // value XOR _value is the generic validateProps mutual exclusion.
+    // value XOR bind:value is the generic validateProps mutual exclusion.
   }
 
   /** The element's live value — the derived `value` runtime prop, or the
@@ -46,12 +46,12 @@ export abstract class ScState extends ScElement {
     return this.runtimeValue("value");
   }
 
-  /** Derived state (a `_value` expression): read-only, no store key. */
+  /** Derived state (a `bind:value` expression): read-only, no store key. */
   protected get derived(): boolean {
     return this.runtimeProps?.value !== undefined;
   }
 
-  /** Resolve the state runtime — just the enablement: the `_value` bind (when
+  /** Resolve the state runtime — just the enablement: the `bind:value` (when
    *  present) is resolved by the base's generic runtime-prop pass. Disabled
    *  state (a pure graph input inside synthdefs/ugens) stays a plain
    *  attribute mirror the graph collection reads. */

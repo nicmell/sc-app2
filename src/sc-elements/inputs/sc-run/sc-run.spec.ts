@@ -5,6 +5,6 @@ export const spec: ElementSpec = {
   tag: "sc-run",
   category: "input",
   attrs: {
-    bind: { type: "string" },
+    bind: { type: "string", runtime: false },
   },
 };

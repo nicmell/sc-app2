@@ -22,7 +22,7 @@ export const FIRST_NODE_ID = 2000;
  *  self-closing tags — they must be parsed as text/xml, not HTML). */
 export function wrapXml(bodyXml: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
   <body>${bodyXml}</body>
 </html>`;
 }

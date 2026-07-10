@@ -40,6 +40,13 @@ const UPLOAD_FIXTURES = new Set([
   "bad-asset-mismatch",
 ]);
 
+/** CDP-harness-only fixtures: happy-dom's XML parser DROPS the later of two
+ *  attributes whose LOCAL names collide (`value` + `bind:value`), so the
+ *  conflict is unrepresentable here — Chrome keeps both, and the mutual
+ *  exclusion is pinned by controls.test.ts (direct validateProps) plus the
+ *  harness (validate-examples.mjs EXPECT_RUNTIME_FAIL). */
+const HARNESS_ONLY = new Set(["bad-runtime-conflict"]);
+
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
   "bad-bindings": '<sc-synth name="sine">: duplicate name in scope',
@@ -53,13 +60,12 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-synth-target": '<sc-synth bind="fx">: does not match any <sc-synthdef>',
   "bad-unknown-synthdef": '<sc-synth bind="missing">: does not match any <sc-synthdef>',
   "bad-run-bind": '<sc-run>: bind "ghost" does not match any node in scope',
-  "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
+  "bad-ugen-input": '<sc-control name="freq">: requires either a value or bind:value attribute',
   "bad-ugen-ref": '<sc-ugen name="osc">: input "freq" references unknown "lfo"',
   "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
   "bad-name-syntax":
     '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
-  "bad-runtime-conflict": '<sc-var>: "value" and "_value" are mutually exclusive',
-  "bad-derived-graph-input": '<sc-control>: "_value" is not allowed on a synthdef graph input',
+  "bad-param-bind": '<sc-control>: "bind:value" is not allowed on a synthdef param',
 };
 
 interface ExampleCase {
@@ -73,7 +79,7 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
     const m = path.match(/^\/examples\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
     return { category: m[1], name: m[2], xml };
   })
-  .filter((c) => !UPLOAD_FIXTURES.has(c.name))
+  .filter((c) => !UPLOAD_FIXTURES.has(c.name) && !HARNESS_ONLY.has(c.name))
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const passing = cases.filter((c) => !(c.name in RUNTIME_FAILURES));

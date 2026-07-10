@@ -71,7 +71,7 @@ export interface OscState {
  *  full named path (e.g. `"s1.freq"`; a plugin-level control is just
  *  `"freq"`). Values are numbers or strings (string vars feed the
  *  presentation layer; the OSC boundary coerces and skips non-numerics).
- *  Only literal, user-writable state is store-backed — derived (`_value`)
+ *  Only literal, user-writable state is store-backed — derived (`bind:value`)
  *  values live on the elements as `_state` and propagate via "statechange".
  *  Seeded from the declarative `value` attributes in the load pass; written
  *  through `ScState.setValue` (for controls the write path that also

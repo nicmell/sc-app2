@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Scope Channels Plugin</title>
 </head>
@@ -10,26 +10,26 @@
     <sc-control name="amp" value="0.4"/>
     <sc-control name="gate" value="1"/>
     <sc-ugen name="oscL" type="SinOsc">
-        <sc-control name="freq" bind="freqL"/>
+        <sc-control name="freq" bind:value="freqL"/>
     </sc-ugen>
     <sc-ugen name="oscR" type="Saw">
-        <sc-control name="freq" bind="freqR"/>
+        <sc-control name="freq" bind:value="freqR"/>
     </sc-ugen>
     <sc-ugen name="level" type="BinaryOpUGen" op="*" rate="kr">
-        <sc-control name="a" bind="amp"/>
-        <sc-control name="b" bind="gate"/>
+        <sc-control name="a" bind:value="amp"/>
+        <sc-control name="b" bind:value="gate"/>
     </sc-ugen>
     <sc-ugen name="sigL" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="oscL"/>
-        <sc-control name="b" bind="level"/>
+        <sc-control name="a" bind:value="oscL"/>
+        <sc-control name="b" bind:value="level"/>
     </sc-ugen>
     <sc-ugen name="sigR" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="oscR"/>
-        <sc-control name="b" bind="level"/>
+        <sc-control name="a" bind:value="oscR"/>
+        <sc-control name="b" bind:value="level"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind="sigL,sigR"/>
+        <sc-control name="channelsarray" bind:value="sigL,sigR"/>
     </sc-ugen>
 </sc-synthdef>
 <sc-synth name="s1" bind="stereoPair">
@@ -41,15 +41,15 @@
 <div style="display:flex;flex-direction:column;height:100%;gap:8px;">
     <div style="display:flex;gap:16px;align-items:center;flex:none;">
         <label>
-            <span>L (sine): <sc-display _value="s1.freqL" format="%d Hz"/></span>
+            <span>L (sine): <sc-display bind:value="s1.freqL" format="%d Hz"/></span>
             <sc-slider bind="s1.freqL" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>R (saw): <sc-display _value="s1.freqR" format="%d Hz"/></span>
+            <span>R (saw): <sc-display bind:value="s1.freqR" format="%d Hz"/></span>
             <sc-slider bind="s1.freqR" min="20" max="2000" step="1"/>
         </label>
         <label>
-            <span>Amp: <sc-display _value="s1.amp" format="%.2f"/></span>
+            <span>Amp: <sc-display bind:value="s1.amp" format="%.2f"/></span>
             <sc-slider bind="s1.amp" min="0" max="1" step="0.01"/>
         </label>
         <label>

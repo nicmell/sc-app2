@@ -59,11 +59,12 @@ export interface NodeRuntime extends BaseRuntime {
   nodeId: number;
 }
 
-/** One resolved runtime prop (`_min="vars.lo"`, `_value="osc.freq * 2"`):
+/** One resolved runtime prop (`bind:min="vars.lo"`, `bind:value="osc.freq * 2"`):
  *  the live bind targets + the optional parsed expression over them. Every
  *  element carries `runtimeProps?: Record<name, RuntimeProp>` (keyed by the
  *  UNPREFIXED attribute name), resolved by the ScElement base in `process()`
- *  for each spec attr flagged `runtime: true` whose `_attr` is present. The
+ *  for each spec attr not opted out (`runtime: false`) whose `bind:` form is
+ *  present. The
  *  LIVE evaluated values feed `getProp` (and, for `value`, the element's
  *  `_state`), recomputed on the targets' statechange. */
 export interface RuntimeProp {

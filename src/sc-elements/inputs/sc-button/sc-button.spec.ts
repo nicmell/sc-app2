@@ -7,12 +7,12 @@ export const spec: ElementSpec = {
   tag: "sc-button",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true },
+    bind: { type: "string", required: true, runtime: false },
     value: { type: "decimal" },
-    label: { type: "string", runtime: true },
-    icon: { type: "string", runtime: true },
+    label: { type: "string" },
+    icon: { type: "string" },
     variant: { type: "enum", values: ["primary", "secondary", "ghost", "danger"] },
     size: { type: "enum", values: ["sm", "md", "lg"] },
-    disabled: { type: "boolean", runtime: true },
+    disabled: { type: "boolean" },
   },
 };

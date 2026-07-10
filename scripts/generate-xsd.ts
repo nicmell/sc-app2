@@ -13,7 +13,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { ELEMENTS } from "../src/constants/sc-elements";
 import { BLOCK_CONTENT, BLOCK_GROUPS, GROUP_NAMES } from "../src/sc-elements/internal/xsd/groups";
-import type { AttrSpec, ElementSpec } from "../src/sc-elements/internal/xsd/types";
+import { BIND_NS, type AttrSpec, type ElementSpec } from "../src/sc-elements/internal/xsd/types";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SPEC_ROOT = resolve(ROOT, "src/sc-elements");
@@ -50,27 +50,24 @@ function assertBijection(specs: Map<string, ElementSpec>): void {
 }
 
 function attribute(name: string, a: AttrSpec): string[] {
-  // A runtime attr is satisfied by EITHER form (`min` or `_min`), which XSD
-  // 1.0 can't express — both emit optional; the runtime gate owns required
-  // and the mutual exclusion (XSD 1.1 asserts are the future upgrade).
-  const use = a.required && !a.runtime ? ' use="required"' : "";
-  const lines =
-    a.type === "enum"
-      ? [
-          `    <xs:attribute name="${name}"${use}>`,
-          `      <xs:simpleType>`,
-          `        <xs:restriction base="xs:string">`,
-          ...a.values.map((v) => `          <xs:enumeration value="${v}"/>`),
-          `        </xs:restriction>`,
-          `      </xs:simpleType>`,
-          `    </xs:attribute>`,
-        ]
-      : [`    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`];
-  if (a.runtime) {
-    // The `_`-prefixed sibling: a bind expression, always an optional string.
-    lines.push(`    <xs:attribute name="_${name}" type="xs:string"/>`);
+  // A runtime attr (the default) is satisfied by EITHER its static form or
+  // its `bind:` sibling, which XSD 1.0 can't express — it emits optional;
+  // the runtime gate owns required and the mutual exclusion (XSD 1.1
+  // asserts are the future upgrade). Only opted-out attrs keep
+  // use="required".
+  const use = a.required && a.runtime === false ? ' use="required"' : "";
+  if (a.type === "enum") {
+    return [
+      `    <xs:attribute name="${name}"${use}>`,
+      `      <xs:simpleType>`,
+      `        <xs:restriction base="xs:string">`,
+      ...a.values.map((v) => `          <xs:enumeration value="${v}"/>`),
+      `        </xs:restriction>`,
+      `      </xs:simpleType>`,
+      `    </xs:attribute>`,
+    ];
   }
-  return lines;
+  return [`    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`];
 }
 
 function complexType(spec: ElementSpec): string[] {
@@ -86,8 +83,15 @@ function complexType(spec: ElementSpec): string[] {
     }
     lines.push(`    </xs:choice>`);
   }
-  for (const [name, a] of Object.entries(spec.attrs ?? {})) lines.push(...attribute(name, a));
+  const attrs = Object.entries(spec.attrs ?? {});
+  for (const [name, a] of attrs) lines.push(...attribute(name, a));
   lines.push(`    <xs:attributeGroup ref="commonAttrs"/>`);
+  // Any runtime attr admits its whole `bind:` namespace here (fastxml doesn't
+  // validate attributes; libxml2/CI enforces the namespace boundary) — WHICH
+  // bind:* names are legal is the runtime validateProps' job.
+  if (attrs.some(([, a]) => a.runtime !== false)) {
+    lines.push(`    <xs:anyAttribute namespace="${BIND_NS}" processContents="skip"/>`);
+  }
   lines.push(`  </xs:complexType>`);
   return lines;
 }

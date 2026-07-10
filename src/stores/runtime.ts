@@ -3,7 +3,7 @@
 // Only literal, user-writable state (a `value` attribute) is store-backed:
 // the load pass seeds the declarative default and mirrors the key into the
 // element's live `_state`, whose "statechange" event is what every reader
-// subscribes to (sc-elements/internal/sc-element.ts). Derived (`_value`)
+// subscribes to (sc-elements/internal/sc-element.ts). Derived (`bind:value`)
 // values never touch the store — they live on the elements. The only
 // OSC-dispatching write path is `ScState.setValue` — writing the slice
 // directly (future presets: literal keys only) updates the subscribed

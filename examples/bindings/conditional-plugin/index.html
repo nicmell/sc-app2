@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Conditional Plugin</title>
 </head>
@@ -10,25 +10,25 @@
     <sc-control name="amp" value="0.2"/>
     <sc-control name="gate" value="1"/>
     <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind="freq"/>
+        <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
     <sc-ugen name="env" type="Linen">
-        <sc-control name="gate" bind="gate"/>
+        <sc-control name="gate" bind:value="gate"/>
         <sc-control name="attacktime" value="0.01"/>
         <sc-control name="susLevel" value="1"/>
         <sc-control name="releasetime" value="0.1"/>
     </sc-ugen>
     <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="osc"/>
-        <sc-control name="b" bind="amp"/>
+        <sc-control name="a" bind:value="osc"/>
+        <sc-control name="b" bind:value="amp"/>
     </sc-ugen>
     <sc-ugen name="gated" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="sig"/>
-        <sc-control name="b" bind="env"/>
+        <sc-control name="a" bind:value="sig"/>
+        <sc-control name="b" bind:value="env"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind="gated"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
     </sc-ugen>
 </sc-synthdef>
 
@@ -43,11 +43,11 @@
 
 <div>
     <label>
-        <span>Freq: <sc-display _value="osc.freq" format="%d Hz"/></span>
+        <span>Freq: <sc-display bind:value="osc.freq" format="%d Hz"/></span>
         <sc-knob bind="osc.freq" min="20" max="2000" step="1"/>
     </label>
     <label>
-        <span>Amp: <sc-display _value="osc.amp" format="%.2f"/></span>
+        <span>Amp: <sc-display bind:value="osc.amp" format="%.2f"/></span>
         <sc-knob bind="osc.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
@@ -57,20 +57,20 @@
      from OUTSIDE (and after) the sc-if; only visibility follows the bind (a
      full expression: truthiness shows the children, and the inverse section
      compares against the live control with `== 0`). -->
-<sc-if _when="osc.gate">
+<sc-if bind:when="osc.gate">
     <div>
         <h3>Gate is ON</h3>
         <label>
-            <span>Gate: <sc-display _value="osc.gate" format="%d"/></span>
+            <span>Gate: <sc-display bind:value="osc.gate" format="%d"/></span>
             <sc-checkbox bind="osc.gate"/>
         </label>
-        <sc-var name="octaveUp" _value="osc.freq * 2"/>
+        <sc-var name="octaveUp" bind:value="osc.freq * 2"/>
     </div>
 </sc-if>
 <label>
-    <span>Octave up (a var declared inside the sc-if): <sc-display _value="octaveUp" format="%d Hz"/></span>
+    <span>Octave up (a var declared inside the sc-if): <sc-display bind:value="octaveUp" format="%d Hz"/></span>
 </label>
-<sc-if _when="osc.gate == 0">
+<sc-if bind:when="osc.gate == 0">
     <div>
         <h3>Gate is OFF — click to re-enable</h3>
         <label>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Button Plugin</title>
 </head>
@@ -10,23 +10,23 @@
     <sc-control name="pan" value="0"/>
     <sc-control name="gate" value="0"/>
     <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind="freq"/>
+        <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
     <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="osc"/>
-        <sc-control name="b" bind="amp"/>
+        <sc-control name="a" bind:value="osc"/>
+        <sc-control name="b" bind:value="amp"/>
     </sc-ugen>
     <sc-ugen name="panned" type="Pan2">
-        <sc-control name="in" bind="sig"/>
-        <sc-control name="pos" bind="pan"/>
+        <sc-control name="in" bind:value="sig"/>
+        <sc-control name="pos" bind:value="pan"/>
     </sc-ugen>
     <sc-ugen name="gated" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="panned"/>
-        <sc-control name="b" bind="gate"/>
+        <sc-control name="a" bind:value="panned"/>
+        <sc-control name="b" bind:value="gate"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind="gated"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
     </sc-ugen>
 </sc-synthdef>
 <sc-synth name="s1" bind="sine">
@@ -35,9 +35,9 @@
     <sc-control name="pan" value="0"/>
     <sc-control name="gate" value="0"/>
 </sc-synth>
-<sc-button bind="s1.gate" _icon="s1.gate ? 'stop' : 'play'" _label="s1.gate ? 'Stop' : 'Play'"/>
+<sc-button bind="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'" bind:label="s1.gate ? 'Stop' : 'Play'"/>
 <div>State:
-    <sc-display _value="s1.gate ? 'playing' : 'stopped'"/>
+    <sc-display bind:value="s1.gate ? 'playing' : 'stopped'"/>
 </div>
 </body>
 </html>

@@ -2,7 +2,7 @@
 // seam/propagation live on the ScState/ScElement bases) but always enabled
 // and never sent over OSC — a literal var is a store-backed key writes reach
 // through the base's plain store dispatch (and may hold a STRING: its `value`
-// is a scalar); a derived var (`_value`) computes its `_state` from its
+// is a scalar); a derived var (`bind:value`) computes its `_state` from its
 // targets (no store key) and is read-only.
 //
 // A var must be declared ON A NODE (plugin/group/synth): its store key is its
@@ -19,10 +19,10 @@ import { ScState } from "@/sc-elements/internal/sc-state";
 export class ScVar extends ScState {
   validate(): void {
     super.validate();
-    // Migration honesty: vars never had a graph role, so a leftover `bind`
-    // gets a pointed error instead of the generic unknown-attribute silence.
+    // Migration honesty: a leftover `bind` gets a pointed error instead of
+    // the generic unknown-attribute silence.
     if (this.getAttribute("bind") !== null) {
-      failValidation(this, `"bind" is not supported — use "_value" for state expressions`);
+      failValidation(this, `"bind" is not supported — use "bind:value"`);
     }
   }
 

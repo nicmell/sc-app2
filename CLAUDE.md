@@ -286,14 +286,18 @@ parser-item design; each decision is load-bearing for the recipe below:
    other way: `value` is the plain declarative attribute mirror everywhere
    (the synthdef collection depends on telling a missing attribute apart),
    and the live value is the element's `_state` — fed by the store for
-   literal state, by the `_value` recompute for derived — with the
+   literal state, by the `bind:value` recompute for derived — with the
    "statechange" event as the uniform notification seam. This generalized
-   into the RUNTIME PROPS (`_attr`) machinery on ScElement: any spec attr
-   flagged `runtime: true` accepts a `_`-prefixed sibling holding a bind
-   expression (`_min="vars.lo"`, `_icon="s1.gate ? 'stop' : 'play'"`),
-   mutually exclusive with the static form, evaluated live and reactive on
-   its sources (see XSD-CODEGEN-DRAFT.md Phase 3; a literal `:value` sigil is
-   impossible — not namespace-well-formed XML, not an XSD NCName).
+   into the RUNTIME PROPS (`bind:` namespace) machinery on ScElement: every
+   spec attr (unless `runtime: false`) accepts a `bind:`-namespaced sibling
+   holding a bind expression (`bind:min="vars.lo"`,
+   `bind:icon="s1.gate ? 'stop' : 'play'"`), mutually exclusive with the
+   static form, evaluated live and reactive on its sources. Entries declare
+   `xmlns:bind="urn:sc-app:bind"` on the root; the runtime matches by
+   QUALIFIED NAME — getAttribute("bind:min"), never getAttributeNS (the one
+   portable API across happy-dom and Chrome). See XSD-CODEGEN-DRAFT.md
+   Phase 3 (a bare `:value` sigil is impossible — not namespace-well-formed
+   XML, not an XSD NCName; a DECLARED prefix is).
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
    one shared object per sibling scope; it attaches the element to its
@@ -339,16 +343,19 @@ further `sc-*` element:
    contract.** Ship a `<tag>.spec.ts` exporting a pure-JSON `ElementSpec`
    (`internal/xsd/types.ts`: attrs typed
    `string|decimal|integer|boolean|scalar|enum`, `required`,
-   `runtime: true` for `_attr`-bindable props; category; content model),
+   `runtime: false` to opt attrs out of `bind:` bindability; category;
+   content model),
    auto-globbed into the runtime `SPECS` registry. Run `yarn generate:xsd`
    (the snapshot test fails otherwise). Components read attributes on
    demand via `getProp(name)` (spec-coerced, untyped — cast at the call
-   site; with a `_attr` present it returns the LIVE evaluated value); only
+   site; with the `bind:` form present it returns the LIVE evaluated
+   value); only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
 3. **Validation is layered**: `validateProps()` (ScElement, spec-driven)
-   enforces required/numeric/enum plus the runtime-prop rules (static-XOR-`_`
-   mutual exclusion, required-by-either-form, no stray `_attrs`); override
+   enforces required/numeric/enum plus the runtime-prop rules (static-XOR-
+   `bind:` mutual exclusion, required-by-either-form, no stray `bind:` attrs,
+   foreign-prefix and retired-`_`-sigil rejection); override
    `validate()` only for SEMANTIC rules (name syntax via
    `requireName(this)`, ranges, `requireNoScChildren(this)`,
    `failValidation(this, …)`). `process` calls both before resolving and a
@@ -379,7 +386,7 @@ further `sc-*` element:
    bind)`, `resolveNode(ctx, path)` — and the runtime values build over
    `baseRuntime(ctx)` (or ScNode's `this.nodeRuntime(ctx)`); the base
    `process(ctx)` assigns them onto the element, then resolves every
-   present `_attr` itself (`resolveRuntimeProps` → `resolveStateBind`, so
+   present `bind:attr` itself (`resolveRuntimeProps` → `resolveStateBind`, so
    runtime props need NO per-element code — just the spec flag). `ctx` is
    the per-LEVEL state ({rootNode, nodes, scope, parentNode, path}) shared
    by all siblings. The default is the self-contained leaf. Extend
@@ -398,16 +405,16 @@ further `sc-*` element:
 |---|---|
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
-| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a DERIVED control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); derived (`_value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). On nodes `bind` is ILLEGAL (state expressions are `_value`); inside synthdefs/ugens it keeps its graph-input-reference role. `run="false"` not honored yet (sc-run step) |
+| sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a DERIVED control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). The legacy `bind` attribute is GONE: state expressions AND synthdef graph-input references are both `bind:value` (fixed graph inputs stay `value`). `run="false"` not honored yet (sc-run step) |
 | sc-slider, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
 | sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
 | sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput seam syncs the selection from `_state` and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
-| sc-display | functional: the read-only value visual — static `value` or dynamic `_value` expression (string ternaries included), printf `format` (also runtime-capable) |
-| sc-var | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`_value`) recompute element-to-element on their targets' statechange |
-| sc-if | functional: conditional rendering on the TRUTHINESS of the `_when` expression (`_when="osc.gate"`, `_when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none) |
+| sc-display | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable) |
+| sc-var | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange |
+| sc-if | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none) |
 | sc-group | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` not honored yet — `OscClient.setNodeRun`/`ScNode.setRunning` exist as the seam for the sc-run step |
 | sc-run | **stub**: parsed + validated + bind-resolved; no UI/logic (needs /n_run — arrives with the node-lifecycle step) |
-| sc-button | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; a click commits `value` when given (fixed-value trigger) else toggles the bound state 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`_icon="s1.gate ? 'stop' : 'play'"`) |
+| sc-button | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; a click commits `value` when given (fixed-value trigger) else toggles the bound state 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`) |
 | sc-console | functional leaf (the OSC console; no attributes) |
 | sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
@@ -440,8 +447,10 @@ into the new connection. Parse failures stay permanent (`parsed` flips only
 when `process()` succeeds — reload never retries them).
 
 **Runtime values**: the RUNTIME-PROP machinery lives on `ScElement`
-(internal/sc-element.ts): each spec attr flagged `runtime: true` accepts a
-`_`-prefixed sibling holding a bind expression, resolved in `process()`
+(internal/sc-element.ts): every spec attr not flagged `runtime: false`
+accepts a `bind:`-namespaced sibling holding a bind expression
+(`xmlns:bind="urn:sc-app:bind"` declared on the entry root; qualified-name
+matching, canonical prefix enforced), resolved in `process()`
 (`resolveRuntimeProps` → `resolveStateBind`, per prop) into
 `runtimeProps[name] = {targets, expression}`, wired in `load()`'s
 synchronous prefix (drop-first re-entrancy: initial recompute + recompute on
@@ -450,7 +459,7 @@ next)` — the Object.is-guarded single writer (→ requestUpdate → the
 `runtimeValueChanged` subclass hook → for the `value` prop, the non-bubbling
 "statechange" CustomEvent; `onStateChange()` is the ONE subscription seam
 every reader uses). `getProp` returns the live evaluated value when the
-`_attr` is present (spec-coerced), the static attribute otherwise — so
+`bind:` form is present (spec-coerced), the static attribute otherwise — so
 render() reads stay uniform and re-render on every recompute. The element's
 `_state` (ScState) IS the `value` runtime slot. Values are `number | string`
 (store slice included): the expression engine carries single-quoted string
@@ -464,9 +473,11 @@ keys: ScState seeds the declarative default in the load pass (a reload keeps
 user-moved values) and mirrors the store key into `_state`, so external
 slice writes (a second input, future presets — literal keys only) notify
 dependents through the same statechange, with no OSC. DERIVED state (a
-`_value` expression — the old `bind`, which on sc-control now means ONLY the
-synthdef graph-input reference and is illegal on node controls; sc-var
-rejects it outright) recomputes element-to-element — NO store key at all;
+`bind:value` expression — the legacy `bind` attribute is gone: inside ugens
+the SAME `bind:value` spelling is the graph-input REFERENCE the synthdef
+collectors consume raw, on a synthdef PARAM it is a loud parse error, and a
+literal `bind` on control/var gets a pointed migration error) recomputes
+element-to-element — NO store key at all;
 the bind-order constraint makes the target graph a DAG resolved in DOM
 order, so it settles in one pass and terminates (diamond deps can
 transiently double-dispatch before converging — accepted). Derived state is
@@ -503,7 +514,7 @@ key (`bad-name-syntax`; the XSD cannot express the grammar — fastxml
 ignores pattern facets, the runtime is the gate). The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
 group-level control's /n_set on the group node is the server-side
-replacement (scsynth fans it out), plus explicit `_value="group.ctl"`.
+replacement (scsynth fans it out), plus explicit `bind:value="group.ctl"`.
 
 Runtime layer: all old handlers ported (bind resolution incl. expressions
 via lib/utils/expression parseBind/evalExpr — arithmetic, the

@@ -1,10 +1,10 @@
-// <sc-control> — a named parameter: a literal `value` or a `_value`
+// <sc-control> — a named parameter: a literal `value` or a `bind:value`
 // expression (mutually exclusive; the store seam and the statechange
 // propagation live on the ScState/ScElement bases). Enabled when the parent
-// is a node (plugin/group/synth); a pure graph input inside synthdefs/ugens —
-// where `bind` keeps its OLD meaning, a graph-input REFERENCE (`bind="lfo"`)
-// the synthdef collectors read. On nodes `bind` is therefore illegal: state
-// expressions are `_value`.
+// is a node (plugin/group/synth); a pure graph input inside ugens — where
+// the SAME spelling means a graph-input REFERENCE (`bind:value="lfo"`) the
+// synthdef collectors consume raw. The legacy `bind` attribute is gone in
+// both roles.
 //
 // The only control-specific behavior is the OSC side of a value change,
 // /n_set on the owning node when it is live, fired from exactly two places:
@@ -28,19 +28,15 @@ import { ScState } from "@/sc-elements/internal/sc-state";
 export class ScControl extends ScState {
   validate(): void {
     super.validate();
-    // The graph-input role keeps the old exclusivity: the collectors would
-    // otherwise silently disagree on which of the two wins.
-    if (this.getAttribute("bind") !== null && this.getAttribute("value") !== null) {
-      failValidation(this, `"value" and "bind" are mutually exclusive`);
+    // Migration honesty: the old `bind` (state expression OR graph reference)
+    // is one attribute now — a pointed error beats silent no-op markup.
+    if (this.getAttribute("bind") !== null) {
+      failValidation(this, `"bind" is not supported — use "bind:value"`);
     }
   }
 
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    const enabled = ctx.parentNode != null && isNodeRuntime(ctx.parentNode);
-    if (enabled && this.getAttribute("bind") !== null) {
-      failValidation(this, `"bind" is a synthdef graph input — use "_value" on a node control`);
-    }
-    return this.stateRuntime(ctx, enabled);
+    return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
   }
 
   /** /n_set the owning node — only when it is live (the load-pass initial

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Bad Circular Bind (intentional error)</title>
 </head>
@@ -10,7 +10,7 @@
      resolveStateBind's self-reference guard must fail with "circular bind
      reference detected" -->
 <sc-group name="vars">
-    <sc-var name="a" _value="vars.a"/>
+    <sc-var name="a" bind:value="vars.a"/>
 </sc-group>
 </body>
 </html>

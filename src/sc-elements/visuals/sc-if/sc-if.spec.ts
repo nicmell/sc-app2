@@ -7,7 +7,7 @@ export const spec: ElementSpec = {
   category: "visual",
   attrs: {
     // scalar (NOT string): an evaluated 0 must stay falsy for the truthiness.
-    when: { type: "scalar", runtime: true, required: true },
+    when: { type: "scalar", required: true },
   },
   content: { choice: ["blockContent"], mixed: true },
 };

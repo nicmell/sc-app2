@@ -4,7 +4,7 @@ export const spec: ElementSpec = {
   tag: "sc-radio",
   category: "option",
   attrs: {
-    value: { type: "decimal", required: true },
-    label: { type: "string", required: true },
+    value: { type: "decimal", required: true, runtime: false },
+    label: { type: "string", required: true, runtime: false },
   },
 };

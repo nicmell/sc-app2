@@ -149,8 +149,8 @@ export function resolveNode(
 /** Resolve `el`'s bind into its node + control-name pair: the leading
  *  segments name a node in scope (none targets the parent node), the last
  *  segment a state child declared on it. `attr` names the attribute the
- *  expression came from in the error messages (`bind` for inputs, `_min`/
- *  `_value`/… for runtime props). */
+ *  expression came from in the error messages (`bind` for inputs, `bind:min`/
+ *  `bind:value`/… for runtime props). */
 export function resolveControlBind(
   el: Element,
   ctx: RuntimeContext,
@@ -181,8 +181,8 @@ export function resolveControlBind(
   return { target, controlName };
 }
 
-/** Resolve a stateful bind expression (a runtime `_attr` — `_value` on
- *  state, `_min`/`_label`/… anywhere): plain dot-paths or an arithmetic/
+/** Resolve a stateful bind expression (a runtime prop — `bind:value` on
+ *  state, `bind:min`/`bind:label`/… anywhere): plain dot-paths or an arithmetic/
  *  ternary expression over them. `attr` names the source attribute in the
  *  error messages. */
 export function resolveStateBind(

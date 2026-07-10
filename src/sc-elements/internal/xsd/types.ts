@@ -19,13 +19,23 @@ export type Category =
   | "ugen"
   | "option";
 
+/** The runtime-prop attribute namespace: `bind:min="vars.lo"` is the dynamic
+ *  sibling of `min`. Entries declare it once on the root
+ *  (`xmlns:bind="urn:sc-app:bind"` — required for Chrome's namespace-strict
+ *  text/xml parse); the RUNTIME matches by QUALIFIED NAME (`bind:` prefix,
+ *  canonical — the portable API across happy-dom and the browser), while the
+ *  XSD admits the whole namespace via xs:anyAttribute. */
+export const BIND_NS = "urn:sc-app:bind";
+export const bindAttr = (name: string): string => `bind:${name}`;
+
 /** Shared to every attribute: `required` → `use="required"` (else `"optional"`);
- *  `runtime` marks the attr as bindable — the generator additionally declares
- *  the `_`-prefixed sibling (`min` → `_min`, an xs:string bind expression), the
- *  runtime evaluates it live (ScElement's runtime-prop machinery), and the two
- *  forms are mutually exclusive (validateProps; a `required` runtime attr is
- *  satisfied by either form, so the XSD emits both optional — one-of waits for
- *  XSD 1.1 asserts). */
+ *  `runtime` (DEFAULT TRUE — set `false` to opt out) marks the attr as
+ *  bindable: the runtime evaluates its `bind:`-prefixed sibling live
+ *  (ScElement's runtime-prop machinery), the two forms are mutually exclusive
+ *  (validateProps), and a `required` runtime attr is satisfied by either form
+ *  — so it emits `use="optional"` in the XSD (one-of waits for XSD 1.1
+ *  asserts). Opt out for target references (`bind`), parse-time-only data,
+ *  and genuinely-reactive widget props. */
 interface AttrCommon {
   required?: boolean;
   runtime?: boolean;

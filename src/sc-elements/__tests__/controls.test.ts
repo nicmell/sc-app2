@@ -1125,22 +1125,60 @@ describe("runtime props (bind:)", () => {
     ]);
 
     const baseFlex = flex.shadowRoot!.querySelector("sc-base-flex")!;
-    const baseRow = row.shadowRoot!.querySelector("sc-base-row") as HTMLElement & { wrap: boolean };
     const baseCol = col.shadowRoot!.querySelector("sc-base-col")!;
     const baseText = text.shadowRoot!.querySelector("sc-base-text")!;
 
     expect(baseFlex.getAttribute("orientation")).toBe("vertical");
     expect(baseFlex.getAttribute("gap")).toBe("sm");
+    const baseRow = row.shadowRoot!.querySelector("sc-base-row") as HTMLElement & {
+      wrap: boolean;
+    };
+    expect(baseRow).not.toBeNull();
+    expect(baseRow.querySelector("slot")).not.toBeNull();
     expect(baseRow.getAttribute("align")).toBe("middle");
     expect(baseRow.getAttribute("justify")).toBe("space-between");
     expect(baseRow.getAttribute("gutter")).toBe("md");
     expect(baseRow.wrap).toBe(false);
-    expect(baseCol.getAttribute("span")).toBe("12");
-    expect(baseCol.getAttribute("offset")).toBe("2");
+    expect(col.getAttribute("span")).toBe("12");
+    expect(col.getAttribute("offset")).toBe("2");
+    expect(col.getAttribute("flex")).toBe("auto");
+    expect(col.getAttribute("style")).toBeNull();
     expect(baseCol.getAttribute("flex")).toBe("auto");
+    expect(baseCol.querySelector("slot")).not.toBeNull();
     expect(baseText.getAttribute("as")).toBe("label");
     expect(baseText.getAttribute("tone")).toBe("dim");
     expect(display.textContent).toContain("440 Hz");
+  });
+
+  it("sc-col sizes its slotted host and uses sc-base-col for its content box", async () => {
+    const { host } = await mountPlugin(
+      wrapXml(`
+        <sc-row>
+          <sc-col span="12"><sc-text>left</sc-text></sc-col>
+          <sc-col span="12"><sc-text>right</sc-text></sc-col>
+        </sc-row>
+      `),
+    );
+    const cols = [...host.querySelectorAll("sc-col")] as Array<
+      ScElement & { updateComplete: Promise<boolean> }
+    >;
+    await Promise.all(cols.map((col) => col.updateComplete));
+    const baseCols = cols.map((col) => col.shadowRoot!.querySelector("sc-base-col")!);
+    expect(cols.map((col) => col.shadowRoot!.adoptedStyleSheets.length)).toEqual([1, 1]);
+    expect(cols.map((col) => col.getAttribute("span"))).toEqual(["12", "12"]);
+    expect(cols.map((col) => col.getAttribute("style"))).toEqual([null, null]);
+    expect(baseCols.map((col) => col.getAttribute("flex"))).toEqual(["auto", "auto"]);
+  });
+
+  it("keeps sc-col layout attributes structural rather than runtime-bound", () => {
+    expect(() =>
+      parsePlugin(
+        wrapXml(`
+          <sc-var name="span" value="12"/>
+          <sc-row><sc-col bind:span="span"><sc-text>column</sc-text></sc-col></sc-row>
+        `),
+      ),
+    ).toThrow('<sc-col>: unknown runtime attribute "bind:span"');
   });
 
   it("rejects bind: forms whose base attribute is unknown", () => {

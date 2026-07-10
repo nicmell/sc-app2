@@ -579,7 +579,6 @@
     <xs:attribute name="pull" type="xs:integer"/>
     <xs:attribute name="flex" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
-    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scSelectType">

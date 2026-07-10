@@ -103,6 +103,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return this;
   }
 
+  /** Create a Lit-managed shadow root for visual wrappers that project their
+   *  authored children through a slot. Unlike calling attachShadow directly,
+   *  this adopts the concrete element class's `static styles`. */
+  protected createShadowRenderRoot(): HTMLElement | DocumentFragment {
+    return super.createRenderRoot();
+  }
+
   /** This element's spec (its colocated `<tag>.spec.ts`) — the single source
    *  for its declarative attribute contract. `getProp`/`validateProps` read it. */
   get spec(): ElementSpec | undefined {

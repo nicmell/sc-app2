@@ -1,6 +1,6 @@
 // <sc-base-row> — the container half of the 24-unit grid. Only sc-base-col
-// should be direct children. Gutter is tokenized; columns inherit it and own
-// their half-padding, while the row offsets the outer halves.
+// should be direct children. A real flex gap supplies tokenized gutters;
+// fixed-span columns subtract their proportional gap share so each row fits.
 
 import { LitElement, html } from "lit";
 import { property } from "lit/decorators.js";

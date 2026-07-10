@@ -40,7 +40,7 @@ export class ScPlugin extends ScNode {
    *  root: the plugin markup stays in the light DOM and shows through the
    *  slot, next to the parse error. */
   createRenderRoot(): HTMLElement | DocumentFragment {
-    return this.attachShadow({ mode: "open" });
+    return this.createShadowRenderRoot();
   }
 
   connectedCallback(): void {

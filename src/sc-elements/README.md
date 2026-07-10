@@ -276,8 +276,9 @@ Non-responsive 24-unit grid wrappers over `<sc-base-row>` and `<sc-base-col>`.
 Row props: `align` (`top|middle|bottom|stretch`), `justify`
 (`start|center|end|space-between|space-around|space-evenly`), `gutter`
 (`none|xs|sm|md|lg`), `wrap`. Row content is `sc-col` children.
-Column props: `span`, `offset`, `order`, `push`, `pull`, `flex`. Column
-content accepts normal block plugin content.
+Column props: `span`, `offset`, `order`, `push`, `pull`, `flex`. These are
+static structural attributes; column content accepts normal block plugin
+content.
 
 ## `widgets/` — functional, new-app features
 

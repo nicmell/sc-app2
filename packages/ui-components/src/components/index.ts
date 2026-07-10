@@ -63,7 +63,7 @@ export {
   type ScGap,
 } from "./sc-flex/sc-flex";
 export { ScRowBase, type ScRowAlign } from "./sc-row/sc-row";
-export { ScColBase } from "./sc-col/sc-col";
+export { ScColBase, scColLayoutStyles } from "./sc-col/sc-col";
 export { ScDisclosureBase } from "./sc-disclosure/sc-disclosure";
 export {
   ScProgressBase,

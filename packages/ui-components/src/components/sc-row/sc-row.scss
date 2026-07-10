@@ -9,8 +9,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   min-width: 0;
-  margin-inline: calc(var(--sc-grid-gutter) / -2);
-  row-gap: var(--sc-grid-gutter);
+  gap: var(--sc-grid-gutter);
 }
 
 :host([align="middle"]) {

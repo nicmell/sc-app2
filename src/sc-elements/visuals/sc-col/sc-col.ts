@@ -1,25 +1,19 @@
-// <sc-col> — plugin-facing 24-unit grid column wrapper over <sc-base-col>.
+// <sc-col> — plugin-facing grid item. The host must be the flex item because it
+// is the node assigned to <sc-base-row>'s slot; <sc-base-col> owns the gutter
+// box and renders the plugin content inside that correctly sized item.
 
 import { html } from "lit";
-import { ifDefined } from "lit/directives/if-defined.js";
+import { scColLayoutStyles } from "@sc-app/ui-components/lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import "@sc-app/ui-components/lit";
 
 export class ScCol extends ScElement {
+  static styles = scColLayoutStyles;
+
   createRenderRoot(): HTMLElement | DocumentFragment {
-    return this.attachShadow({ mode: "open" });
+    return this.createShadowRenderRoot();
   }
 
   render() {
-    return html`<sc-base-col
-      span=${ifDefined(this.getProp("span"))}
-      offset=${ifDefined(this.getProp("offset"))}
-      order=${ifDefined(this.getProp("order"))}
-      push=${ifDefined(this.getProp("push"))}
-      pull=${ifDefined(this.getProp("pull"))}
-      flex=${ifDefined(this.getProp("flex"))}
-    >
-      <slot></slot>
-    </sc-base-col>`;
+    return html`<sc-base-col flex="auto"><slot></slot></sc-base-col>`;
   }
 }

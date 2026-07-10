@@ -1,24 +1,37 @@
-/* <sc-base-col> — a direct flex item of sc-base-row. */
+/* Shared 24-unit grid-item layout for <sc-base-col> and plugin-facing
+   wrappers. Structural props are reflected attributes, so CSS owns the
+   complete layout calculation—including the row's real flex gap. */
 
 :host {
+  --sc-col-span: clamp(0, attr(span type(<number>), 24), 24);
+  --sc-col-offset: clamp(0, attr(offset type(<number>), 0), 24);
+  --sc-col-push: clamp(0, attr(push type(<number>), 0), 24);
+  --sc-col-pull: clamp(0, attr(pull type(<number>), 0), 24);
+
   position: relative;
   display: block;
   box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
-  order: var(--sc-col-order, 0);
-  margin-inline-start: calc(var(--sc-col-offset, 0) * 4.1666666667%);
-  padding-inline: calc(var(--sc-grid-gutter, 0px) / 2);
-  inset-inline-start: calc((var(--sc-col-push, 0) - var(--sc-col-pull, 0)) * 4.1666666667%);
+  flex: 0 1 auto;
+  order: attr(order type(<integer>), 0);
+  margin-inline-start: calc(var(--sc-col-offset) / 24 * (100% + var(--sc-grid-gutter, 0px)));
+  inset-inline-start: calc(
+    (var(--sc-col-push) - var(--sc-col-pull)) / 24 * (100% + var(--sc-grid-gutter, 0px))
+  );
 }
 
 :host([span]) {
-  flex: 0 0 calc(var(--sc-col-span) * 4.1666666667%);
-  max-width: calc(var(--sc-col-span) * 4.1666666667%);
+  --sc-col-span-width: calc(
+    var(--sc-col-span) / 24 * (100% + var(--sc-grid-gutter, 0px)) - var(--sc-grid-gutter, 0px)
+  );
+
+  flex: 0 0 var(--sc-col-span-width);
+  max-width: var(--sc-col-span-width);
 }
 
 :host([flex]) {
-  flex: var(--sc-col-flex);
+  flex: attr(flex type(*));
   max-width: none;
 }
 

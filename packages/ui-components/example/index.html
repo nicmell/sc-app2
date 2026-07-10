@@ -46,6 +46,9 @@
         font-size: var(--font-size-xs);
         color: var(--color-text-mute);
       }
+      .grid-probe sc-base-panel {
+        min-height: 5rem;
+      }
     </style>
   </head>
   <body>
@@ -185,6 +188,17 @@
             <sc-base-col span="6"><sc-base-panel>6</sc-base-panel></sc-base-col>
           </sc-base-row>
         </sc-base-flex>
+        <p class="demo-cap">
+          plugin-wrapper regression — two shadow-wrapped span=12 columns must each occupy half
+        </p>
+        <demo-plugin-row class="grid-probe" id="plugin-grid-probe">
+          <demo-plugin-col span="12">
+            <sc-base-panel>plugin column A · span 12</sc-base-panel>
+          </demo-plugin-col>
+          <demo-plugin-col span="12">
+            <sc-base-panel>plugin column B · span 12</sc-base-panel>
+          </demo-plugin-col>
+        </demo-plugin-row>
         <p class="demo-cap">offset, ordering, and a flexible remainder</p>
         <sc-base-flex orientation="vertical" gap="sm">
           <sc-base-row gutter="sm">

@@ -831,17 +831,18 @@ describe("content wrappers", () => {
       row.style.getPropertyValue("--sc-row-wrap"),
     ]).toEqual(["middle", "space-between", "md", "nowrap"]);
     expect([
-      col.style.getPropertyValue("--sc-col-span"),
-      col.style.getPropertyValue("--sc-col-offset"),
-      col.style.getPropertyValue("--sc-col-order"),
-      col.style.getPropertyValue("--sc-col-push"),
+      col.getAttribute("span"),
+      col.getAttribute("offset"),
+      col.getAttribute("order"),
+      col.getAttribute("push"),
     ]).toEqual(["8", "2", "3", "1"]);
+    expect(col.getAttribute("style")).toBeNull();
 
-    col.span = 99; // grid placement is clamped to the 24-unit contract
+    col.span = 99; // CSS clamps grid placement to the 24-unit contract
     col.flex = "auto";
     await col.updateComplete;
-    expect(col.style.getPropertyValue("--sc-col-span")).toBe("24");
-    expect(col.style.getPropertyValue("--sc-col-flex")).toBe("auto");
+    expect(col.getAttribute("span")).toBe("99");
+    expect(col.getAttribute("flex")).toBe("auto");
   });
 });
 

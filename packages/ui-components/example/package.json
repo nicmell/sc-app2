@@ -9,7 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sc-app/ui-components": "workspace:*"
+    "@sc-app/ui-components": "workspace:*",
+    "lit": "^3.3.3"
   },
   "devDependencies": {
     "vite": "^6.0.3"

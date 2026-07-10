@@ -7,7 +7,7 @@ import "@sc-app/ui-components/lit";
 
 export class ScFlex extends ScElement {
   createRenderRoot(): HTMLElement | DocumentFragment {
-    return this.attachShadow({ mode: "open" });
+    return this.createShadowRenderRoot();
   }
 
   render() {

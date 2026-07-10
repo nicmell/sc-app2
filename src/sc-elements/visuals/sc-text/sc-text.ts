@@ -9,7 +9,7 @@ import "@sc-app/ui-components/lit";
 
 export class ScText extends ScElement {
   createRenderRoot(): HTMLElement | DocumentFragment {
-    return this.attachShadow({ mode: "open" });
+    return this.createShadowRenderRoot();
   }
 
   render() {

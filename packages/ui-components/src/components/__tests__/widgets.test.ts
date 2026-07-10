@@ -582,6 +582,16 @@ describe("sc-base-text", () => {
     expect(el.textContent).toBe("Title");
   });
 
+  it("supports label as a semantic element", async () => {
+    const el = document.createElement("sc-base-text");
+    el.as = "label";
+    el.textContent = "Frequency";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("label")).not.toBeNull();
+    expect(el.textContent).toBe("Frequency");
+  });
+
   it("reflects the truncate/inline boolean modifiers to the host", async () => {
     const el = document.createElement("sc-base-text");
     el.truncate = true;

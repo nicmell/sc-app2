@@ -1083,6 +1083,66 @@ describe("runtime props (bind:)", () => {
     );
   });
 
+  it("sc-display renders through the sc-text label wrapper", async () => {
+    const { host } = await mountPlugin(wrapXml(`<sc-display value="440" format="%d Hz"/>`));
+    const display = host.querySelector("sc-display") as ScDisplay;
+    await display.updateComplete;
+    const text = display.querySelector("sc-text") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    expect(text.getAttribute("as")).toBe("label");
+    await text.updateComplete;
+    expect(text.shadowRoot!.querySelector("sc-base-text")!.getAttribute("as")).toBe("label");
+    expect(display.textContent).toContain("440 Hz");
+  });
+
+  it("visual layout wrappers forward props and stay transparent to binds", async () => {
+    const { host } = await mountPlugin(
+      wrapXml(`
+        <sc-flex orientation="vertical" gap="sm">
+          <sc-row align="middle" justify="space-between" gutter="md" wrap="false">
+            <sc-col span="12" offset="2" flex="auto">
+              <sc-var name="freq" value="440"/>
+              <sc-text as="label" tone="dim">Freq</sc-text>
+            </sc-col>
+          </sc-row>
+        </sc-flex>
+        <sc-display bind:value="freq" format="%d Hz"/>
+      `),
+    );
+    const flex = host.querySelector("sc-flex") as ScElement & { updateComplete: Promise<boolean> };
+    const row = host.querySelector("sc-row") as ScElement & { updateComplete: Promise<boolean> };
+    const col = host.querySelector("sc-col") as ScElement & { updateComplete: Promise<boolean> };
+    const text = host.querySelector("sc-text") as ScElement & { updateComplete: Promise<boolean> };
+    const display = host.querySelector("sc-display") as ScDisplay;
+
+    await Promise.all([
+      flex.updateComplete,
+      row.updateComplete,
+      col.updateComplete,
+      text.updateComplete,
+      display.updateComplete,
+    ]);
+
+    const baseFlex = flex.shadowRoot!.querySelector("sc-base-flex")!;
+    const baseRow = row.shadowRoot!.querySelector("sc-base-row") as HTMLElement & { wrap: boolean };
+    const baseCol = col.shadowRoot!.querySelector("sc-base-col")!;
+    const baseText = text.shadowRoot!.querySelector("sc-base-text")!;
+
+    expect(baseFlex.getAttribute("orientation")).toBe("vertical");
+    expect(baseFlex.getAttribute("gap")).toBe("sm");
+    expect(baseRow.getAttribute("align")).toBe("middle");
+    expect(baseRow.getAttribute("justify")).toBe("space-between");
+    expect(baseRow.getAttribute("gutter")).toBe("md");
+    expect(baseRow.wrap).toBe(false);
+    expect(baseCol.getAttribute("span")).toBe("12");
+    expect(baseCol.getAttribute("offset")).toBe("2");
+    expect(baseCol.getAttribute("flex")).toBe("auto");
+    expect(baseText.getAttribute("as")).toBe("label");
+    expect(baseText.getAttribute("tone")).toBe("dim");
+    expect(display.textContent).toContain("440 Hz");
+  });
+
   it("rejects bind: forms whose base attribute is unknown", () => {
     const XML = wrapXml(`
       <sc-var name="freq" value="440"/>

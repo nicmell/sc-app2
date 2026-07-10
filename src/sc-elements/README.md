@@ -233,7 +233,8 @@ Read-only formatted view of a value: static `value` or the dynamic
 `bind:value` expression (`bind:value="s1.freq"`, `bind:value="vars.amp * 100"`,
 `bind:value="osc.gate ? 'playing' : 'stopped'"`). Props: `value` (required, in
 either form), `format` (printf-style: `%d`, `%.2f`, `%b`, `%s` — itself
-runtime-capable as `bind:format`).
+runtime-capable as `bind:format`). Renders through `<sc-text as="label">`, so
+display output follows the same typography primitive as authored text.
 
 ### `<sc-if>`
 
@@ -250,6 +251,33 @@ enclosing node as their effective owner). Full block content is allowed and
 is UNCONDITIONALLY live — a synth inside a hidden sc-if keeps playing, a var
 keys at the enclosing path, an outer sibling can bind to elements inside —
 only visibility follows the condition.
+
+### `<sc-text>`
+
+Typography wrapper over ui-components `<sc-base-text>`. Props: `as`
+(`span|p|div|label|h1|h2|h3|h4|h5|h6`), `size` (`xs|sm|md|lg|xl`),
+`weight` (`regular|medium|bold`), `tone`
+(`default|dim|mute|faint|primary|ok|warn|error|info`), `font` (`sans|mono`),
+`align` (`start|center|end`), `transform`
+(`none|uppercase|lowercase|capitalize`), `truncate`, `inline`. Content is
+mixed inline content, including nested `sc-display`, `sc-if`, and `sc-text`.
+
+### `<sc-flex>`
+
+Neutral flexbox layout wrapper over `<sc-base-flex>`. Props: `orientation`
+(`horizontal|vertical`), `wrap`, `justify`
+(`start|center|end|space-between|space-around|space-evenly`), `align`
+(`start|center|end|stretch|baseline`), `gap` (`none|xs|sm|md|lg`). Content
+accepts normal block plugin content.
+
+### `<sc-row>` / `<sc-col>`
+
+Non-responsive 24-unit grid wrappers over `<sc-base-row>` and `<sc-base-col>`.
+Row props: `align` (`top|middle|bottom|stretch`), `justify`
+(`start|center|end|space-between|space-around|space-evenly`), `gutter`
+(`none|xs|sm|md|lg`), `wrap`. Row content is `sc-col` children.
+Column props: `span`, `offset`, `order`, `push`, `pull`, `flex`. Column
+content accepts normal block plugin content.
 
 ## `widgets/` — functional, new-app features
 

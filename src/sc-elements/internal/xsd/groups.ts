@@ -24,6 +24,7 @@ export const BLOCK_CONTENT = "blockContent";
  *  category groups + `blockContent` are generated. */
 export const GROUP_NAMES: ReadonlySet<string> = new Set([
   "htmlElements",
+  "inlineContent",
   BLOCK_CONTENT,
   ...BLOCK_GROUPS.map((g) => g.group),
 ]);

@@ -75,11 +75,13 @@ export { ScInputNumberBase } from "./sc-inputnumber/sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea/sc-textarea";
 export {
   ScTextBase,
+  type ScTextAs,
   type ScTextSize,
   type ScTextWeight,
   type ScTextTone,
   type ScTextFont,
   type ScTextAlign,
+  type ScTextTransform,
 } from "./sc-text/sc-text";
 
 /** Tag → constructor for every registrable `-base` widget. */

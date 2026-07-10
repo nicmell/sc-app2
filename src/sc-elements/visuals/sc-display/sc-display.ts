@@ -7,6 +7,7 @@
 
 import { html } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";
+import "@/sc-elements/visuals/sc-text";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
@@ -30,6 +31,7 @@ export class ScDisplay extends ScElement {
   render() {
     const value = this.getProp("value");
     const format = this.getProp("format") as string | undefined;
-    return html`${format ? formatValue(format, value) : String(value ?? "")}`;
+    const text = format ? formatValue(format, value) : String(value ?? "");
+    return html`<sc-text as="label">${text}</sc-text>`;
   }
 }

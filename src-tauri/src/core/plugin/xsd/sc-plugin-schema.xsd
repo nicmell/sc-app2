@@ -53,6 +53,10 @@
   <xs:element name="sc-switch" type="scSwitchType"/>
   <xs:element name="sc-display" type="scDisplayType"/>
   <xs:element name="sc-if" type="scIfType"/>
+  <xs:element name="sc-text" type="scTextType"/>
+  <xs:element name="sc-flex" type="scFlexType"/>
+  <xs:element name="sc-row" type="scRowType"/>
+  <xs:element name="sc-col" type="scColType"/>
   <xs:element name="sc-select" type="scSelectType"/>
   <xs:element name="sc-option" type="scOptionType"/>
   <xs:element name="sc-radio-group" type="scRadioGroupType"/>
@@ -100,6 +104,10 @@
     <xs:choice>
       <xs:element ref="sc-display"/>
       <xs:element ref="sc-if"/>
+      <xs:element ref="sc-text"/>
+      <xs:element ref="sc-flex"/>
+      <xs:element ref="sc-row"/>
+      <xs:element ref="sc-col"/>
     </xs:choice>
   </xs:group>
 
@@ -151,6 +159,7 @@
       <xs:element ref="br"/>
       <xs:element ref="sc-display"/>
       <xs:element ref="sc-if"/>
+      <xs:element ref="sc-text"/>
     </xs:choice>
   </xs:group>
 
@@ -374,6 +383,201 @@
       <xs:group ref="blockContent"/>
     </xs:choice>
     <xs:attribute name="when" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
+  </xs:complexType>
+
+  <xs:complexType name="scTextType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="inlineContent"/>
+    </xs:choice>
+    <xs:attribute name="as">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="span"/>
+          <xs:enumeration value="p"/>
+          <xs:enumeration value="div"/>
+          <xs:enumeration value="label"/>
+          <xs:enumeration value="h1"/>
+          <xs:enumeration value="h2"/>
+          <xs:enumeration value="h3"/>
+          <xs:enumeration value="h4"/>
+          <xs:enumeration value="h5"/>
+          <xs:enumeration value="h6"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="size">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="xs"/>
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+          <xs:enumeration value="xl"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="weight">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="regular"/>
+          <xs:enumeration value="medium"/>
+          <xs:enumeration value="bold"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="tone">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="default"/>
+          <xs:enumeration value="dim"/>
+          <xs:enumeration value="mute"/>
+          <xs:enumeration value="faint"/>
+          <xs:enumeration value="primary"/>
+          <xs:enumeration value="ok"/>
+          <xs:enumeration value="warn"/>
+          <xs:enumeration value="error"/>
+          <xs:enumeration value="info"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="font">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="sans"/>
+          <xs:enumeration value="mono"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="start"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="end"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="transform">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="uppercase"/>
+          <xs:enumeration value="lowercase"/>
+          <xs:enumeration value="capitalize"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="truncate" type="xs:boolean"/>
+    <xs:attribute name="inline" type="xs:boolean"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
+  </xs:complexType>
+
+  <xs:complexType name="scFlexType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="blockContent"/>
+    </xs:choice>
+    <xs:attribute name="orientation">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="horizontal"/>
+          <xs:enumeration value="vertical"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="wrap" type="xs:boolean"/>
+    <xs:attribute name="justify">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="start"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="end"/>
+          <xs:enumeration value="space-between"/>
+          <xs:enumeration value="space-around"/>
+          <xs:enumeration value="space-evenly"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="start"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="end"/>
+          <xs:enumeration value="stretch"/>
+          <xs:enumeration value="baseline"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="gap">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="xs"/>
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
+  </xs:complexType>
+
+  <xs:complexType name="scRowType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="sc-col"/>
+    </xs:choice>
+    <xs:attribute name="align">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="top"/>
+          <xs:enumeration value="middle"/>
+          <xs:enumeration value="bottom"/>
+          <xs:enumeration value="stretch"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="justify">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="start"/>
+          <xs:enumeration value="center"/>
+          <xs:enumeration value="end"/>
+          <xs:enumeration value="space-between"/>
+          <xs:enumeration value="space-around"/>
+          <xs:enumeration value="space-evenly"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="gutter">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="xs"/>
+          <xs:enumeration value="sm"/>
+          <xs:enumeration value="md"/>
+          <xs:enumeration value="lg"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="wrap" type="xs:boolean"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
+  </xs:complexType>
+
+  <xs:complexType name="scColType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="blockContent"/>
+    </xs:choice>
+    <xs:attribute name="span" type="xs:integer"/>
+    <xs:attribute name="offset" type="xs:integer"/>
+    <xs:attribute name="order" type="xs:integer"/>
+    <xs:attribute name="push" type="xs:integer"/>
+    <xs:attribute name="pull" type="xs:integer"/>
+    <xs:attribute name="flex" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

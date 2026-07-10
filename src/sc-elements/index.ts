@@ -24,7 +24,11 @@ import { ScVar } from "./state/sc-var";
 import { ScSynthDef } from "./synthdef/sc-synthdef";
 import { ScUgen } from "./synthdef/sc-ugen";
 import { ScDisplay } from "./visuals/sc-display";
+import { ScCol } from "./visuals/sc-col";
+import { ScFlex } from "./visuals/sc-flex";
 import { ScIf } from "./visuals/sc-if";
+import { ScRow } from "./visuals/sc-row";
+import { ScText } from "./visuals/sc-text";
 import { ScConsole } from "./widgets/sc-console";
 import { ScScope } from "./widgets/sc-scope";
 import { ScStrudel } from "./widgets/sc-strudel";
@@ -47,7 +51,7 @@ export {
   ScSlider,
   ScSwitch,
 };
-export { ScDisplay, ScIf };
+export { ScCol, ScDisplay, ScFlex, ScIf, ScRow, ScText };
 export { ScConsole, ScScope, ScStrudel };
 
 const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
@@ -65,6 +69,10 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_SWITCH]: ScSwitch,
   [ELEMENTS.SC_DISPLAY]: ScDisplay,
   [ELEMENTS.SC_IF]: ScIf,
+  [ELEMENTS.SC_TEXT]: ScText,
+  [ELEMENTS.SC_FLEX]: ScFlex,
+  [ELEMENTS.SC_ROW]: ScRow,
+  [ELEMENTS.SC_COL]: ScCol,
   [ELEMENTS.SC_SELECT]: ScSelect,
   [ELEMENTS.SC_OPTION]: ScOption,
   [ELEMENTS.SC_RADIO_GROUP]: ScRadioGroup,

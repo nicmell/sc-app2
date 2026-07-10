@@ -75,6 +75,7 @@
       <xs:element ref="br"/>
       <xs:element ref="sc-display"/>
       <xs:element ref="sc-if"/>
+      <xs:element ref="sc-text"/>
     </xs:choice>
   </xs:group>
 

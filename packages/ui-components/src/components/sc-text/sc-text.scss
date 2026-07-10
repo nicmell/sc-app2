@@ -16,7 +16,7 @@
    `:host([attr]) > *` modifiers (specificity 0,1,0) override it cleanly — and the UA
    <h1>… type scale is dropped. Display is left to the tag's nature — <span> inline,
    <p>/<div>/<h1–6> block — so the element flows like the tag it semantically is. */
-:where(h1, h2, h3, h4, h5, h6, p, span, div) {
+:where(h1, h2, h3, h4, h5, h6, p, span, div, label) {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--font-size-md);

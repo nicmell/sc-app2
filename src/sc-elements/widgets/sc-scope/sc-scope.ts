@@ -105,13 +105,13 @@ export class ScScope extends ScElement {
       );
     }
     if (!Number.isInteger(this._frames) || this._frames < 1) {
-      failValidation(
-        this,
-        `"frames" attribute must be a positive integer (got "${this._frames}")`,
-      );
+      failValidation(this, `"frames" attribute must be a positive integer (got "${this._frames}")`);
     }
     if (this._frames > SCOPE_MAX_FRAMES) {
-      failValidation(this, `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this._frames}")`);
+      failValidation(
+        this,
+        `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this._frames}")`,
+      );
     }
     if (!(this._gain > 0)) {
       failValidation(this, `"gain" attribute must be a positive number (got "${this._gain}")`);

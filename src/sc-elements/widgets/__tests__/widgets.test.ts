@@ -177,7 +177,13 @@ describe("sc-scope", () => {
     );
     // The display props are declarative — read (coerced + defaulted) through
     // the element's private getters over `getProp`.
-    type Display = { _trigger: string; _slope: string; _level: number; _gain: number; _layout: string };
+    type Display = {
+      _trigger: string;
+      _slope: string;
+      _level: number;
+      _gain: number;
+      _layout: string;
+    };
     const scope = host.querySelector("sc-scope") as unknown as Display;
     expect([scope._trigger, scope._slope, scope._level, scope._gain, scope._layout]).toEqual([
       "normal",

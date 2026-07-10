@@ -53,6 +53,17 @@ import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
+/** The attributes shared by every generated sc-* complex type through the
+ *  XSD's commonAttrs group. Keep this in step with xsd/preamble.xml. */
+const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
+
+// XML Schema lexical spaces for the primitive attribute types we coerce.
+// Number() is deliberately not used for validation: it accepts empty strings,
+// whitespace, exponents for decimals, and fractional integers.
+const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const XSD_INTEGER = /^[+-]?\d+$/;
+const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
+
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
@@ -146,13 +157,16 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     if (attr?.type === "decimal" || attr?.type === "integer") {
       const n = Number(value);
       if (evaluated && Number.isNaN(n)) {
-        this.#warnOnce(name, `"${bindAttr(name)}" evaluated to non-numeric ${JSON.stringify(value)} — falling back`);
+        this.#warnOnce(
+          name,
+          `"${bindAttr(name)}" evaluated to non-numeric ${JSON.stringify(value)} — falling back`,
+        );
         return undefined;
       }
       return n;
     }
     if (attr?.type === "boolean") {
-      return evaluated ? Boolean(value) : value !== "false";
+      return evaluated ? Boolean(value) : value === "true" || value === "1";
     }
     if (attr?.type === "scalar") {
       if (typeof value === "number") return value;
@@ -161,7 +175,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
     const s = String(value);
     if (evaluated && attr?.type === "enum" && !attr.values.includes(s)) {
-      this.#warnOnce(name, `"${bindAttr(name)}" evaluated to "${s}" — not one of ${attr.values.join("|")}`);
+      this.#warnOnce(
+        name,
+        `"${bindAttr(name)}" evaluated to "${s}" — not one of ${attr.values.join("|")}`,
+      );
     }
     return s; // string / enum
   }
@@ -191,11 +208,20 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         }
         continue;
       }
-      if ((attr.type === "decimal" || attr.type === "integer") && Number.isNaN(Number(raw))) {
-        failValidation(this, `"${name}" attribute must be a number`);
+      if (attr.type === "decimal" && !XSD_DECIMAL.test(raw)) {
+        failValidation(this, `"${name}" attribute must be a decimal number`);
+      }
+      if (attr.type === "integer" && !XSD_INTEGER.test(raw)) {
+        failValidation(this, `"${name}" attribute must be an integer`);
+      }
+      if (attr.type === "boolean" && !XSD_BOOLEAN.has(raw)) {
+        failValidation(this, `"${name}" attribute must be one of true|false|1|0 (got "${raw}")`);
       }
       if (attr.type === "enum" && !attr.values.includes(raw)) {
-        failValidation(this, `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`);
+        failValidation(
+          this,
+          `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
+        );
       }
     }
     for (const { name } of Array.from(this.attributes)) {
@@ -203,7 +229,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         failValidation(this, `"${name}" is no longer supported — use "${bindAttr(name.slice(1))}"`);
       }
       const colon = name.indexOf(":");
-      if (colon === -1) continue;
+      if (colon === -1) {
+        if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {
+          failValidation(this, `unknown attribute "${name}"`);
+        }
+        continue;
+      }
       const prefix = name.slice(0, colon);
       if (prefix === "xmlns") continue;
       if (prefix !== "bind") {

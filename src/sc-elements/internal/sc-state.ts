@@ -31,10 +31,20 @@ import {
   setRuntimeValue,
 } from "@/stores/runtime";
 import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
-import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
+import { baseRuntime, failValidation, requireName } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
+  validateProps(): void {
+    // Migration honesty first: `bind` used to carry state expressions and
+    // graph references. Preserve the pointed diagnostic now that unknown
+    // ordinary attributes are rejected generically by ScElement.
+    if (this.getAttribute("bind") !== null) {
+      failValidation(this, `"bind" is not supported — use "bind:value"`);
+    }
+    super.validateProps();
+  }
+
   validate(): void {
     requireName(this);
     // value XOR bind:value is the generic validateProps mutual exclusion.

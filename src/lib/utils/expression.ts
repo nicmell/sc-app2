@@ -187,9 +187,7 @@ export function evalExpr(expr: Expr, values: Record<string, StateValue>): StateV
         // `+` concatenates when either side is a string; the rest coerce
         // numerically (strings become NaN — guarded at the OSC boundary).
         case "+":
-          return typeof l === "string" || typeof r === "string"
-            ? String(l) + String(r)
-            : l + r;
+          return typeof l === "string" || typeof r === "string" ? String(l) + String(r) : l + r;
         case "-":
           return Number(l) - Number(r);
         case "*":

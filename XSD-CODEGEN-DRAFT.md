@@ -154,7 +154,7 @@ The value inputs joined the same binding vocabulary, deleting their parallel mac
   (sc-select/sc-radio-group/sc-synthdef) from the spec's content model.
 - **`bind:run` + sc-run** — honor `run="false"` at load and lift `run`'s `runtime: false`
   over the existing `OscClient.setNodeRun`/`ScNode.setRunning` seam; implement the sc-run
-  element (also close ScSynth's missing epoch re-check after `await createSynth`).
+  element.
 - **Rust-side spec table for the upload gate** — generate an attribute-rules table from the
   same specs and enforce it in `manager.rs` (fastxml validates NO attributes); the
   pragmatic strictness win, no validator swap. See the review notes below.
@@ -178,11 +178,11 @@ enforces, the quirks that persist, and the improvement paths considered.
 
 ### The three validation gates, by actual strength
 
-| gate | what it REALLY enforces |
-|---|---|
-| **Upload** (fastxml 0.8.0, the only gate real plugins hit) | well-formedness, element declarations, content models (leniently — laxer than libxml2), text content. **Attributes: NOTHING** — `validate_attributes` in fastxml is a stub, so every `use="required"`, enum, type, and the `anyAttribute` namespace boundary is decorative at upload. |
-| **CI/dev** (xmllint/libxml2) | full XSD 1.0 — the only place the schema's attribute rules bite (required, enums, types, `bind:*` admitted / foreign namespaces rejected). Runs only when we run it. |
-| **Runtime** (`validateProps` + `validate` + `resolveRuntimeProps` + `validateRuntimeProps`) | the authoritative gate: required-by-either-form, static-XOR-`bind:`, name grammar, foreign prefixes, the `_` migration, bind resolution + bind order, ugen/param position rules, writable-target rules. |
+| gate                                                                                        | what it REALLY enforces                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload** (fastxml 0.8.0, the only gate real plugins hit)                                  | well-formedness, element declarations, content models (leniently — laxer than libxml2), text content. **Attributes: NOTHING** — `validate_attributes` in fastxml is a stub, so every `use="required"`, enum, type, and the `anyAttribute` namespace boundary is decorative at upload. |
+| **CI/dev** (xmllint/libxml2)                                                                | full XSD 1.0 — the only place the schema's attribute rules bite (required, enums, types, `bind:*` admitted / foreign namespaces rejected). Runs only when we run it.                                                                                                                  |
+| **Runtime** (`validateProps` + `validate` + `resolveRuntimeProps` + `validateRuntimeProps`) | the authoritative gate: known/common attributes, required-by-either-form, XSD-compatible primitive types, static-XOR-`bind:`, name grammar, foreign prefixes, the `_` migration, bind resolution + bind order, ugen/param position rules, writable-target rules.                      |
 
 Consequence: a wrong plugin usually uploads fine (201) and dies at parse with a pointed
 error in the plugin box. Acceptable by design — but the upload gate advertises more than
@@ -229,9 +229,6 @@ it enforces, and the 400-vs-parse split is mostly historical accident.
 - **Per-prop listener fan-out.** Each runtime prop subscribes to its targets separately —
   an element with three props bound to one var recomputes three times per change. Fine at
   this scale; batchable (Phase 4).
-- **ScSynth epoch gap.** No epoch re-check after `await createSynth` (ScGroup has one) — a
-  very late /n_go after an invalidating unload could adopt a stale nodeId. Pre-existing;
-  belongs to the sc-run/node-lifecycle step.
 - **`getProp` is untyped by design** — the growing `as number` cast noise at call sites is
   the accepted price; typed helpers (numberProp/stringProp) would tidy it if it grows.
 - **Static-value widgets flash their Lit default** until their sequential load turn seeds

@@ -22,19 +22,9 @@
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
-  validate(): void {
-    super.validate();
-    // Migration honesty: the old `bind` (state expression OR graph reference)
-    // is one attribute now — a pointed error beats silent no-op markup.
-    if (this.getAttribute("bind") !== null) {
-      failValidation(this, `"bind" is not supported — use "bind:value"`);
-    }
-  }
-
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
   }

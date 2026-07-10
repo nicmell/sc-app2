@@ -376,6 +376,40 @@ describe("disconnect / reconnect", () => {
     expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv", "/s_new"]);
     expect(sent.filter((m) => m.address === "/s_new")).toHaveLength(1);
   });
+
+  it("does not adopt a synth id from a load invalidated during the /n_go wait", async () => {
+    setConnected(true);
+    let pendingSNew: OSC.Message | undefined;
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address === "/s_new") pendingSNew = msg;
+      else autoRespond(msg);
+    });
+
+    const { host } = parseExample();
+    const synth = host.querySelector("sc-synth") as ScSynth;
+    const firstLoad = host.load();
+    await vi.waitFor(() => expect(pendingSNew).toBeDefined());
+    const staleId = pendingSNew!.args[1] as number;
+
+    // Invalidate without closing the mock transport, then deliver the late
+    // ack. The old pass resolves but must not resurrect the stale synth.
+    setConnected(false);
+    oscClient.handleReply(new OSC.Message("/n_go", staleId, 1, -1, -1, 0));
+    await firstLoad;
+    expect(synth.loaded).toBe(false);
+    expect(synth.nodeId).toBe(0);
+
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      autoRespond(msg);
+    });
+    setConnected(true);
+    await vi.waitFor(() => expect(synth.loaded).toBe(true));
+    expect(synth.nodeId).not.toBe(staleId);
+  });
 });
 
 describe("state propagation (vars + bound state)", () => {
@@ -394,7 +428,9 @@ describe("state propagation (vars + bound state)", () => {
 
   const mountVars = () => mountPlugin(VAR_XML);
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find(
+      (v) => (v as ScVar).getProp("name") === name,
+    ) as ScVar;
 
   it("literal vars seed their store keys; bound vars settle off-store in _state", async () => {
     const { host } = await mountVars();
@@ -583,7 +619,9 @@ describe("sc-if", () => {
   };
   const hiddenStates = (ifs: Element[]) => ifs.map((el) => el.hasAttribute("hidden"));
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find(
+      (v) => (v as ScVar).getProp("name") === name,
+    ) as ScVar;
 
   it("shows children on the truthiness of the expression bind", async () => {
     const { ifs } = await mountIf();
@@ -891,7 +929,9 @@ describe("runtime props (bind:)", () => {
     <sc-display bind:value="freq > 1000 ? 'high' : 'low'"/>
   `);
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find(
+      (v) => (v as ScVar).getProp("name") === name,
+    ) as ScVar;
   const slider = (host: ScPlugin) =>
     host.querySelector("sc-slider") as ScElement & { updateComplete: Promise<boolean> };
 
@@ -958,6 +998,39 @@ describe("runtime props (bind:)", () => {
       <sc-slider bind:value="freq" bind:foo="freq"/>
     `);
     expect(() => parsePlugin(XML)).toThrow('<sc-slider>: unknown runtime attribute "bind:foo"');
+  });
+
+  it("rejects unknown static attributes but accepts the XSD common attributes", () => {
+    expect(() =>
+      parsePlugin(
+        wrapXml(
+          `<sc-var name="freq" value="440" id="freq-id" class="control" title="Frequency" style="color: red"/>`,
+        ),
+      ),
+    ).not.toThrow();
+    expect(() => parsePlugin(wrapXml(`<sc-var name="freq" value="440" disabeld="true"/>`))).toThrow(
+      '<sc-var>: unknown attribute "disabeld"',
+    );
+  });
+
+  it("enforces the XSD lexical forms for decimal, integer, and boolean attributes", () => {
+    for (const value of ["", " ", "1e2"]) {
+      expect(() => parsePlugin(wrapXml(`<sc-slider value="${value}"/>`))).toThrow(
+        '<sc-slider>: "value" attribute must be a decimal number',
+      );
+    }
+    expect(() => parsePlugin(wrapXml(`<sc-scope channels="1.5"/>`))).toThrow(
+      '<sc-scope>: "channels" attribute must be an integer',
+    );
+    expect(() => parsePlugin(wrapXml(`<sc-checkbox value="0" disabled="flase"/>`))).toThrow(
+      '<sc-checkbox>: "disabled" attribute must be one of true|false|1|0 (got "flase")',
+    );
+
+    for (const value of ["true", "false", "1", "0"]) {
+      expect(() =>
+        parsePlugin(wrapXml(`<sc-checkbox value="0" disabled="${value}"/>`)),
+      ).not.toThrow();
+    }
   });
 
   it("bind:value inside a ugen is a graph REFERENCE — parses, collects, compiles", () => {
@@ -1039,9 +1112,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "s1");
     el.setAttribute("bind", "sine");
     el.setAttribute("bind:bind", "sine");
-    expect(() => el.validateProps()).toThrow(
-      '<sc-synth>: unknown runtime attribute "bind:bind"',
-    );
+    expect(() => el.validateProps()).toThrow('<sc-synth>: unknown runtime attribute "bind:bind"');
   });
 
   it("resolution errors name the real attribute", () => {
@@ -1135,7 +1206,9 @@ describe("sc-button", () => {
 
 describe("inputs on bind:value (Phase 3.2)", () => {
   const varByName = (host: ScPlugin, name: string) =>
-    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
+    [...host.querySelectorAll("sc-var")].find(
+      (v) => (v as ScVar).getProp("name") === name,
+    ) as ScVar;
 
   it("an expression bind:value makes the input a read-only live meter", async () => {
     const XML = wrapXml(`

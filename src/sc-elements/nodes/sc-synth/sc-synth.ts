@@ -39,7 +39,11 @@ export class ScSynth extends ScNode {
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     const snapshot = this.getControls();
-    this.nodeId = await oscClient.createSynth(bind, this.targetGroupId, snapshot);
+    const nodeId = await oscClient.createSynth(bind, this.targetGroupId, snapshot);
+    // The pass may have been invalidated while /s_new was awaiting /n_go.
+    // Never adopt an id from a disconnected or superseded session.
+    if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+    this.nodeId = nodeId;
     this.loaded = true;
     // Writes landing between the /s_new send and its /n_go ack were baked
     // stale AND skipped the /n_set (dispatch gates on `loaded`) — catch the

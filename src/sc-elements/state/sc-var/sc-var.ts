@@ -13,19 +13,9 @@
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext, BaseRuntime } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScVar extends ScState {
-  validate(): void {
-    super.validate();
-    // Migration honesty: a leftover `bind` gets a pointed error instead of
-    // the generic unknown-attribute silence.
-    if (this.getAttribute("bind") !== null) {
-      failValidation(this, `"bind" is not supported — use "bind:value"`);
-    }
-  }
-
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     if (!ctx.parentNode || !isNodeRuntime(ctx.parentNode)) {
       throw new Error(`<sc-var name="${this.getProp("name")}">: must be declared on a node`);

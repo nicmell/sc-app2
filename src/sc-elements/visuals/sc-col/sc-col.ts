@@ -1,6 +1,6 @@
 // <sc-col> — plugin-facing grid item. The host must be the grid item because it
-// is the node assigned to <sc-base-row>'s slot; <sc-base-col> owns the gutter
-// box and renders the plugin content inside that correctly sized item.
+// is the node assigned to <sc-base-row>'s slot. The row owns the native grid
+// gap; <sc-base-col> supplies the content box inside the correctly sized item.
 
 import { html } from "lit";
 import { scColLayoutStyles } from "@sc-app/ui-components/lit";

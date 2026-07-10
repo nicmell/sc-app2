@@ -1,10 +1,33 @@
 # XSD generation from per-component spec files
 
-Status: **Phases 1–3.2 implemented** (branch `xsd-codegen-draft`). The spec is the single
+Status: **Phases 1–3.2 implemented and integration-reviewed** (branch
+`xsd-codegen-draft`). The spec is the single
 source for the XSD (build-time), attribute coercion (`getProp`), validation
 (`validateProps`), the runtime-evaluated `bind:` attribute surface (Phase 3), and the
 inputs' binding (Phase 3.2). See "State of the implementation — review notes" at the end
 for the honest gates/quirks/improvements map.
+
+## Final branch state — merge review (2026-07-10)
+
+The branch now covers the complete maintained `src/` plugin surface. In addition to the
+schema/runtime work described below, the integration pass established these conventions:
+
+- Wrapper elements forward only attributes that are actually present (`ifDefined`), so an
+  omitted plugin attribute preserves the ui-component's default instead of becoming an
+  empty string.
+- `sc-text`, `sc-flex`, `sc-row`, and `sc-col` are schema-backed visual elements. Display
+  output uses `sc-text as="label"`, and the example plugins use the same typography and
+  layout primitives as authored plugin markup.
+- `sc-row`/`sc-col` use a native 24-track CSS Grid. The row owns spacing through `gap`; the
+  slotted `sc-col` host is the grid item and adopts the shared column layout stylesheet in
+  a Lit-managed shadow root. This is the WebKit/Tauri-compatible form; layout must not rely
+  on styling a slotted element from inside `sc-base-row`'s shadow tree.
+- `ScElement.createShadowRenderRoot()` is the standard wrapper shadow-root seam. It lets
+  Lit adopt static component styles while preserving the parsed plugin children in light
+  DOM for the runtime traversal.
+- The examples were refreshed to exercise the new components without changing their audio
+  or control behavior. The old top-level `sc-app/` tree is historical reference material;
+  it is not part of this branch's maintained or generated surface.
 
 ## Phase 1 — the generated schema
 
@@ -95,7 +118,8 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   slider/knob `value` (the widget-reactive prop is
   fed by the bind target); sc-ugen `type`/`rate`/`op`; nodes' `run`; sc-scope
   `bus`/`channels`/`frames` (the tap identity — no re-tap machinery); sc-strudel `orbit`;
-  sc-option/sc-radio `value`/`label` (parse-time data). Everything else is bindable by
+  sc-option/sc-radio `value`/`label` (parse-time data); sc-col `span`/`offset`/`order`
+  (static layout structure). Everything else is bindable by
   default, including sc-scope's display props (read per frame) and sc-button's `value`.
 - **Accepted limitations** (documented, revisit in Phase 4): `validate()` range checks and
   enum membership apply to the STATIC form only — evaluated values are unvalidated and
@@ -116,6 +140,14 @@ on its sources — the generalization of the old ScState `bind` (which it replac
 - The `sc-run` stub was removed completely. Examples use icon-only `sc-button` controls
   bound to writable `gate` controls, including group-level gates when one control should
   affect every synth in the group.
+- UI wrappers no longer forward absent attributes as empty strings; this preserves the
+  defaults and rendering contracts of `packages/ui-components`.
+- The visual vocabulary now includes schema-backed `sc-text`, `sc-flex`, `sc-row`, and
+  `sc-col`. The former stack/cluster split was replaced by the orientation-driven flex
+  primitive.
+- The row/column implementation is native CSS Grid rather than nested flex calculations.
+  Static column selectors are shared by the base and plugin-facing elements, keeping the
+  web and Tauri render paths identical.
 
 ## Phase 3.2 — inputs on `bind:value`, widget-state unification, evaluated-value warnings
 
@@ -251,3 +283,23 @@ it enforces, and the 400-vs-parse split is mostly historical accident.
 - **The two-gate testing discipline** (pinned exact messages in happy-dom + the CDP
   harness in real Chrome) caught every environment divergence this work hit — the
   namespace strictness, the localName dedup, the stale-registry cases.
+
+## Final review follow-ups
+
+The integration review found three lifecycle/contract edges that should be resolved or
+explicitly accepted before merging:
+
+1. **Partial plugin-load rollback.** `ScPlugin.boot()` and `reload()` surface a rejected
+   child load in the plugin error box, but do not currently call `unload()`. If the plugin
+   group or earlier children were already created, they remain live until disconnect or
+   unmount. The catch path should roll back the partial load before retaining the error.
+2. **Synthdef acknowledgement race.** If a `/d_recv` acknowledgement arrives after the
+   plugin load epoch was invalidated, `ScSynthDef.load()` correctly refuses to mark itself
+   loaded, but the installed global definition is then outside `unload()`'s `loaded` guard.
+   The stale completion path should send `/d_free`, with a focused regression test.
+3. **Grid integer contract.** `sc-col`'s static stylesheet has selectors only for canonical
+   `span` 0–24, `offset` 1–23, and `order` -24–24 values, while the current spec accepts any
+   `xs:integer` lexical form. Out-of-range or non-canonical values (for example `span="99"`
+   or `span="+12"`) validate but silently miss the intended selector. Add spec-supported
+   integer bounds/canonicalization, or an element-level validator that rejects values the
+   stylesheet cannot represent.

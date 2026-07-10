@@ -29,7 +29,7 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
+internal/   ScElement (parse engine — hydrate/process/
             processChildren — the common runtime fields, AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
@@ -38,8 +38,8 @@ internal/   ScElement (light-DOM root, the parse engine — hydrate/process/
             the bind-resolution machinery, as plain functions over the
             elements); the category bases ScNode (run + nodeId/loaded),
             ScState (`_state` = the `value` runtime slot + the store backing
-            for LITERAL state), ScInput (bind + _targetScNode — the writing
-            inputs); xsd/ (the spec types + the runtime SPECS registry +
+            for LITERAL state), ScInput (targetScState + commit — the writing
+            half of inputs); xsd/ (the spec types + the runtime SPECS registry +
             the generator preamble)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
@@ -88,7 +88,7 @@ teardown.
 
 A synth instance of an `sc-synthdef`. Props: `name` and `synthdef` (both required;
 the latter is runtime-validated to resolve to an actual synthdef in
-scope), `run` (`run="false"` parsed, honored at the node-lifecycle step).
+scope), `run` (`run="false"` is parsed but not yet honored).
 Children: `sc-control` params. The load pass `/s_new`s it into the nearest
 loaded ancestor group AFTER its children settle (their `_state` bakes in as
 the control pairs), gated on `/n_go`, with a catch-up `/n_set` diff for
@@ -275,7 +275,8 @@ accepts normal block plugin content.
 Non-responsive 24-unit grid wrappers over `<sc-base-row>` and `<sc-base-col>`.
 Row props: `align` (`top|middle|bottom|stretch`) and `gutter`
 (`none|xs|sm|md|lg`). Row content is `sc-col` children. Column props:
-`span`, `offset`, and `order`. These are static structural attributes;
+`span` (1–24, or 0 to hide), `offset` (0–23), and `order` (-24–24). These are
+static structural attributes;
 column content accepts normal block plugin content.
 
 ## `widgets/` — functional, new-app features

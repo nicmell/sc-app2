@@ -52,7 +52,7 @@ class DemoPluginCol extends DemoScElement {
   }
 
   render() {
-    return html`<sc-base-col flex="auto"><slot></slot></sc-base-col>`;
+    return html`<sc-base-col><slot></slot></sc-base-col>`;
   }
 }
 

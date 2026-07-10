@@ -1,13 +1,10 @@
-/* <sc-base-row> — flex row over a 24-unit column system. */
+/* <sc-base-row> — native 24-track grid with tokenized gaps. */
 
 :host {
   --sc-grid-gutter: 0px;
-  --sc-row-wrap: wrap;
-
-  display: flex;
-  flex-flow: row var(--sc-row-wrap);
-  align-items: flex-start;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  align-items: start;
   min-width: 0;
   gap: var(--sc-grid-gutter);
 }
@@ -17,31 +14,11 @@
 }
 
 :host([align="bottom"]) {
-  align-items: flex-end;
+  align-items: end;
 }
 
 :host([align="stretch"]) {
   align-items: stretch;
-}
-
-:host([justify="center"]) {
-  justify-content: center;
-}
-
-:host([justify="end"]) {
-  justify-content: flex-end;
-}
-
-:host([justify="space-between"]) {
-  justify-content: space-between;
-}
-
-:host([justify="space-around"]) {
-  justify-content: space-around;
-}
-
-:host([justify="space-evenly"]) {
-  justify-content: space-evenly;
 }
 
 :host([gutter="xs"]) {

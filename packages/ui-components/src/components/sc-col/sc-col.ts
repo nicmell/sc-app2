@@ -14,9 +14,6 @@ export class ScColBase extends LitElement {
   @property({ type: Number, reflect: true }) accessor span: number | undefined;
   @property({ type: Number, reflect: true }) accessor offset: number | undefined;
   @property({ type: Number, reflect: true }) accessor order: number | undefined;
-  @property({ type: Number, reflect: true }) accessor push: number | undefined;
-  @property({ type: Number, reflect: true }) accessor pull: number | undefined;
-  @property({ reflect: true }) accessor flex: string | undefined;
 
   render() {
     return html`<slot></slot>`;

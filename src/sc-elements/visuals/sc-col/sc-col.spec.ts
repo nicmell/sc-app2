@@ -7,9 +7,6 @@ export const spec: ElementSpec = {
     span: { type: "integer", runtime: false },
     offset: { type: "integer", runtime: false },
     order: { type: "integer", runtime: false },
-    push: { type: "integer", runtime: false },
-    pull: { type: "integer", runtime: false },
-    flex: { type: "string", runtime: false },
   },
   content: { choice: ["blockContent"], mixed: true },
 };

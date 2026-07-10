@@ -1,38 +1,30 @@
-/* Shared 24-unit grid-item layout for <sc-base-col> and plugin-facing
-   wrappers. Structural props are reflected attributes, so CSS owns the
-   complete layout calculation—including the row's real flex gap. */
+/* Shared 24-track grid item for <sc-base-col> and plugin-facing wrappers.
+   Static selectors avoid typed attr() and behave consistently in WebKit. */
 
 :host {
-  --sc-col-span: clamp(0, attr(span type(<number>), 24), 24);
-  --sc-col-offset: clamp(0, attr(offset type(<number>), 0), 24);
-  --sc-col-push: clamp(0, attr(push type(<number>), 0), 24);
-  --sc-col-pull: clamp(0, attr(pull type(<number>), 0), 24);
-
   position: relative;
   display: block;
   box-sizing: border-box;
   min-width: 0;
-  max-width: 100%;
-  flex: 0 1 auto;
-  order: attr(order type(<integer>), 0);
-  margin-inline-start: calc(var(--sc-col-offset) / 24 * (100% + var(--sc-grid-gutter, 0px)));
-  inset-inline-start: calc(
-    (var(--sc-col-push) - var(--sc-col-pull)) / 24 * (100% + var(--sc-grid-gutter, 0px))
-  );
+  grid-column-end: span 24;
 }
 
-:host([span]) {
-  --sc-col-span-width: calc(
-    var(--sc-col-span) / 24 * (100% + var(--sc-grid-gutter, 0px)) - var(--sc-grid-gutter, 0px)
-  );
-
-  flex: 0 0 var(--sc-col-span-width);
-  max-width: var(--sc-col-span-width);
+@for $span from 1 through 24 {
+  :host([span="#{$span}"]) {
+    grid-column-end: span $span;
+  }
 }
 
-:host([flex]) {
-  flex: attr(flex type(*));
-  max-width: none;
+@for $offset from 1 through 23 {
+  :host([offset="#{$offset}"]) {
+    grid-column-start: $offset + 1;
+  }
+}
+
+@for $order from -24 through 24 {
+  :host([order="#{$order}"]) {
+    order: $order;
+  }
 }
 
 :host([span="0"]) {

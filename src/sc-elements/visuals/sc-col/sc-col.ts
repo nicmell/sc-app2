@@ -1,4 +1,4 @@
-// <sc-col> — plugin-facing grid item. The host must be the flex item because it
+// <sc-col> — plugin-facing grid item. The host must be the grid item because it
 // is the node assigned to <sc-base-row>'s slot; <sc-base-col> owns the gutter
 // box and renders the plugin content inside that correctly sized item.
 
@@ -14,6 +14,6 @@ export class ScCol extends ScElement {
   }
 
   render() {
-    return html`<sc-base-col flex="auto"><slot></slot></sc-base-col>`;
+    return html`<sc-base-col><slot></slot></sc-base-col>`;
   }
 }

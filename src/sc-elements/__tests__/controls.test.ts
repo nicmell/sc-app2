@@ -1100,8 +1100,8 @@ describe("runtime props (bind:)", () => {
     const { host } = await mountPlugin(
       wrapXml(`
         <sc-flex orientation="vertical" gap="sm">
-          <sc-row align="middle" justify="space-between" gutter="md" wrap="false">
-            <sc-col span="12" offset="2" flex="auto">
+          <sc-row align="middle" gutter="md">
+            <sc-col span="12" offset="2">
               <sc-var name="freq" value="440"/>
               <sc-text as="label" tone="dim">Freq</sc-text>
             </sc-col>
@@ -1130,20 +1130,15 @@ describe("runtime props (bind:)", () => {
 
     expect(baseFlex.getAttribute("orientation")).toBe("vertical");
     expect(baseFlex.getAttribute("gap")).toBe("sm");
-    const baseRow = row.shadowRoot!.querySelector("sc-base-row") as HTMLElement & {
-      wrap: boolean;
-    };
+    const baseRow = row.shadowRoot!.querySelector("sc-base-row")!;
     expect(baseRow).not.toBeNull();
     expect(baseRow.querySelector("slot")).not.toBeNull();
     expect(baseRow.getAttribute("align")).toBe("middle");
-    expect(baseRow.getAttribute("justify")).toBe("space-between");
     expect(baseRow.getAttribute("gutter")).toBe("md");
-    expect(baseRow.wrap).toBe(false);
     expect(col.getAttribute("span")).toBe("12");
     expect(col.getAttribute("offset")).toBe("2");
-    expect(col.getAttribute("flex")).toBe("auto");
     expect(col.getAttribute("style")).toBeNull();
-    expect(baseCol.getAttribute("flex")).toBe("auto");
+    expect(baseCol.attributes).toHaveLength(0);
     expect(baseCol.querySelector("slot")).not.toBeNull();
     expect(baseText.getAttribute("as")).toBe("label");
     expect(baseText.getAttribute("tone")).toBe("dim");
@@ -1167,7 +1162,7 @@ describe("runtime props (bind:)", () => {
     expect(cols.map((col) => col.shadowRoot!.adoptedStyleSheets.length)).toEqual([1, 1]);
     expect(cols.map((col) => col.getAttribute("span"))).toEqual(["12", "12"]);
     expect(cols.map((col) => col.getAttribute("style"))).toEqual([null, null]);
-    expect(baseCols.map((col) => col.getAttribute("flex"))).toEqual(["auto", "auto"]);
+    expect(baseCols.map((col) => col.attributes.length)).toEqual([0, 0]);
   });
 
   it("keeps sc-col layout attributes structural rather than runtime-bound", () => {

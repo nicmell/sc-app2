@@ -1,6 +1,6 @@
 // <sc-row> — plugin-facing 24-unit grid row wrapper over <sc-base-row>.
-// The internal base row is the flex container; each slotted <sc-col> host is
-// the actual flex item and uses <sc-base-col> for its gutter/content box.
+// The internal base row is the grid container; each slotted <sc-col> host is
+// the actual grid item and uses <sc-base-col> for its content box.
 
 import { css, html } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -22,9 +22,7 @@ export class ScRow extends ScElement {
   render() {
     return html`<sc-base-row
       align=${ifDefined(this.getProp("align"))}
-      justify=${ifDefined(this.getProp("justify"))}
       gutter=${ifDefined(this.getProp("gutter"))}
-      .wrap=${this.getProp("wrap") ?? true}
     >
       <slot></slot>
     </sc-base-row>`;

@@ -540,18 +540,6 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
-    <xs:attribute name="justify">
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:enumeration value="start"/>
-          <xs:enumeration value="center"/>
-          <xs:enumeration value="end"/>
-          <xs:enumeration value="space-between"/>
-          <xs:enumeration value="space-around"/>
-          <xs:enumeration value="space-evenly"/>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:attribute>
     <xs:attribute name="gutter">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -563,7 +551,6 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
-    <xs:attribute name="wrap" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
@@ -575,9 +562,6 @@
     <xs:attribute name="span" type="xs:integer"/>
     <xs:attribute name="offset" type="xs:integer"/>
     <xs:attribute name="order" type="xs:integer"/>
-    <xs:attribute name="push" type="xs:integer"/>
-    <xs:attribute name="pull" type="xs:integer"/>
-    <xs:attribute name="flex" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

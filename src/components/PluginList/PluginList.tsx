@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Button, Alert, Empty, Flex, Row, Col } from "@/components/ui";
+import { Button, Alert, Empty, Flex } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -28,35 +28,31 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
     <Flex orientation="vertical" gap="xs">
       {installed.length === 0 && <Empty>No plugins installed yet.</Empty>}
       {installed.map((p) => (
-        <Row align="middle" gutter="xs" key={p.id} className={styles.row}>
-          <Col flex="auto">
-            {onSelect ? (
-              <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
-                <span className="plugin-name">{p.name}</span>
-                <span className={styles.meta}>v{p.version}</span>
-              </button>
-            ) : (
-              <span className={styles.info}>
-                <span className="plugin-name">{p.name}</span>
-                <span className={styles.meta}>
-                  {p.author} · v{p.version}
-                </span>
+        <Flex justify="space-between" align="center" gap="xs" key={p.id} className={styles.row}>
+          {onSelect ? (
+            <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
+              <span className="plugin-name">{p.name}</span>
+              <span className={styles.meta}>v{p.version}</span>
+            </button>
+          ) : (
+            <span className={styles.info}>
+              <span className="plugin-name">{p.name}</span>
+              <span className={styles.meta}>
+                {p.author} · v{p.version}
               </span>
-            )}
-          </Col>
-          {!onSelect && (
-            <Col>
-              <Button
-                variant="danger"
-                size="sm"
-                iconOnly
-                icon="x"
-                label={`Remove ${p.name}`}
-                onClick={() => void deletePlugin(p.id)}
-              />
-            </Col>
+            </span>
           )}
-        </Row>
+          {!onSelect && (
+            <Button
+              variant="danger"
+              size="sm"
+              iconOnly
+              icon="x"
+              label={`Remove ${p.name}`}
+              onClick={() => void deletePlugin(p.id)}
+            />
+          )}
+        </Flex>
       ))}
 
       {!onSelect && (

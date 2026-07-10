@@ -256,14 +256,14 @@ export const Flex = createComponent({
   elementClass: ScFlexBase,
 });
 
-/** <sc-base-row>. A 24-unit grid row controlling gutter, wrapping, and axes. */
+/** <sc-base-row>. A native 24-track grid row with tokenized gaps. */
 export const Row = createComponent({
   react: React,
   tagName: "sc-base-row",
   elementClass: ScRowBase,
 });
 
-/** <sc-base-col>. A row child with span/offset/order/push/pull/flex sizing. */
+/** <sc-base-col>. A static grid item with span, offset, and order placement. */
 export const Col = createComponent({
   react: React,
   tagName: "sc-base-col",

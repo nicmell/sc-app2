@@ -811,38 +811,27 @@ describe("content wrappers", () => {
     document.body.appendChild(row);
     await Promise.all([row.updateComplete, col.updateComplete]);
 
-    expect([row.align, row.justify, row.gutter, row.wrap]).toEqual(["top", "start", "none", true]);
+    expect([row.align, row.gutter]).toEqual(["top", "none"]);
     expect(row.querySelector("sc-base-col")).toBe(col); // direct slotted child
 
     row.align = "middle";
-    row.justify = "space-between";
     row.gutter = "md";
-    row.wrap = false;
     col.span = 8;
     col.offset = 2;
     col.order = 3;
-    col.push = 1;
     await Promise.all([row.updateComplete, col.updateComplete]);
 
-    expect([
-      row.getAttribute("align"),
-      row.getAttribute("justify"),
-      row.getAttribute("gutter"),
-      row.style.getPropertyValue("--sc-row-wrap"),
-    ]).toEqual(["middle", "space-between", "md", "nowrap"]);
+    expect([row.getAttribute("align"), row.getAttribute("gutter")]).toEqual(["middle", "md"]);
     expect([
       col.getAttribute("span"),
       col.getAttribute("offset"),
       col.getAttribute("order"),
-      col.getAttribute("push"),
-    ]).toEqual(["8", "2", "3", "1"]);
+    ]).toEqual(["8", "2", "3"]);
     expect(col.getAttribute("style")).toBeNull();
 
-    col.span = 99; // CSS clamps grid placement to the 24-unit contract
-    col.flex = "auto";
+    col.span = 24;
     await col.updateComplete;
-    expect(col.getAttribute("span")).toBe("99");
-    expect(col.getAttribute("flex")).toBe("auto");
+    expect(col.getAttribute("span")).toBe("24");
   });
 });
 

@@ -7,6 +7,7 @@
 import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import type { ScCheckboxBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
@@ -25,8 +26,8 @@ export class ScCheckbox extends ScInput {
 
   render() {
     return html`<sc-base-checkbox
-      label=${this.getProp("label")}
-      size=${this.getProp("size")}
+      label=${ifDefined(this.getProp("label"))}
+      size=${ifDefined(this.getProp("size"))}
       ?disabled=${this.getProp("disabled")}
       .checked=${live(this._checked)}
       @change=${this.onChange}

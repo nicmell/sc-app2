@@ -6,6 +6,7 @@
 import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import type { ScKnobBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
@@ -27,11 +28,11 @@ export class ScKnob extends ScInput {
 
   render() {
     return html`<sc-base-knob
-      min=${this.getProp("min")}
-      max=${this.getProp("max")}
-      step=${this.getProp("step")}
-      label=${this.getProp("label")}
-      size=${this.getProp("size")}
+      min=${ifDefined(this.getProp("min"))}
+      max=${ifDefined(this.getProp("max"))}
+      step=${ifDefined(this.getProp("step"))}
+      label=${ifDefined(this.getProp("label"))}
+      size=${ifDefined(this.getProp("size"))}
       ?disabled=${this.getProp("disabled")}
       .value=${live(this._value)}
       @input=${this.onInput}

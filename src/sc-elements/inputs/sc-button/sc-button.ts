@@ -11,6 +11,7 @@
 // writable target is dead weight — validateRuntimeProps rejects it.
 
 import { html } from "lit";
+import { ifDefined } from "lit/directives/if-defined.js";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import { failValidation } from "@/sc-elements/internal/validation";
 import "@sc-app/ui-components/lit";
@@ -39,10 +40,10 @@ export class ScButton extends ScInput {
 
   render() {
     return html`<sc-base-button
-      label=${this.getProp("label")}
-      icon=${this.getProp("icon")}
-      size=${this.getProp("size")}
-      variant=${this.getProp("variant")}
+      label=${ifDefined(this.getProp("label"))}
+      icon=${ifDefined(this.getProp("icon"))}
+      size=${ifDefined(this.getProp("size"))}
+      variant=${ifDefined(this.getProp("variant"))}
       ?disabled=${this.getProp("disabled")}
       @click=${this.onClick}
     ></sc-base-button>`;

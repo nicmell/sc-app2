@@ -8,6 +8,7 @@
 import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import type { ScRadioGroupBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { ScRadio } from "@/sc-elements/inputs/sc-radio";
@@ -38,9 +39,9 @@ export class ScRadioGroup extends ScInput {
 
   render() {
     return html`<sc-base-radio-group
-      orientation=${this.getProp("orientation")}
-      label=${this.getProp("label")}
-      size=${this.getProp("size")}
+      orientation=${ifDefined(this.getProp("orientation"))}
+      label=${ifDefined(this.getProp("label"))}
+      size=${ifDefined(this.getProp("size"))}
       ?disabled=${this.getProp("disabled")}
       .value=${live(this._value)}
       @change=${this.onChange}

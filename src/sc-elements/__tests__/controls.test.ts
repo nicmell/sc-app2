@@ -217,6 +217,51 @@ describe("ScControl.setValue", () => {
 });
 
 describe("inputs and display", () => {
+  it("omits undefined forwarded attributes so base-component defaults survive", async () => {
+    const pairs = [
+      ["sc-button", "sc-base-button"],
+      ["sc-checkbox", "sc-base-checkbox"],
+      ["sc-knob", "sc-base-knob"],
+      ["sc-slider", "sc-base-slider"],
+      ["sc-select", "sc-base-select"],
+      ["sc-radio-group", "sc-base-radio-group"],
+      ["sc-switch", "sc-base-switch"],
+    ] as const;
+
+    for (const [wrapperTag, baseTag] of pairs) {
+      const wrapper = document.createElement(wrapperTag) as ScElement;
+      document.body.appendChild(wrapper);
+      await wrapper.updateComplete;
+      const base = wrapper.querySelector(baseTag) as HTMLElement & {
+        updateComplete: Promise<boolean>;
+      };
+      await base.updateComplete;
+      expect(
+        Array.from(base.attributes).filter((attribute) => attribute.value === ""),
+        `${wrapperTag} forwarded an empty attribute`,
+      ).toEqual([]);
+    }
+
+    const button = document.querySelector("sc-button sc-base-button")!;
+    expect(button.getAttribute("size")).toBe("md");
+    expect(button.getAttribute("variant")).toBe("primary");
+    expect(button.hasAttribute("label")).toBe(false);
+    expect(button.hasAttribute("icon")).toBe(false);
+
+    const slider = document.querySelector("sc-slider sc-base-slider") as HTMLElement & {
+      min: number;
+      max: number;
+      step: number;
+      orientation: string;
+    };
+    expect([slider.min, slider.max, slider.step, slider.orientation]).toEqual([
+      0,
+      1,
+      0.01,
+      "horizontal",
+    ]);
+  });
+
   it("range input events flow store → /n_set → sibling display", async () => {
     const { host } = await mountExample();
     const synth = host.querySelector("sc-synth") as ScSynth;
@@ -1311,9 +1356,10 @@ describe("inputs on bind:value (Phase 3.2)", () => {
       updateComplete: Promise<boolean>;
     };
     await range.updateComplete;
-    // Lit renders the undefined fallback as an EMPTY attribute (not "NaN");
-    // the base widget's Number converter reads "" as its own default.
-    expect(widgetOf(range).getAttribute("min")).toBe("");
+    // ifDefined removes the invalid optional attribute, preserving the base
+    // widget's own default instead of feeding its converter an empty string.
+    expect(widgetOf(range).getAttribute("min")).toBeNull();
+    expect((widgetOf(range) as ValueWidget & { min: number }).min).toBe(0);
     expect(widgetOf(range).getAttribute("max")).toBe("2000");
     const warns = warn.mock.calls.filter(([m]) => String(m).includes("bind:min"));
     expect(warns).toHaveLength(1); // once per element+prop, across re-renders

@@ -38,37 +38,37 @@
     <sc-control name="amp" value="0.4"/>
     <sc-control name="gate" value="1"/>
 </sc-synth>
-<div style="display:flex;flex-direction:column;height:100%;gap:8px;">
-    <div style="display:flex;gap:16px;align-items:center;flex:none;">
-        <label>
-            <span>L (sine): <sc-display bind:value="s1.freqL" format="%d Hz"/></span>
+<sc-flex orientation="vertical" gap="sm" style="height:100%;">
+    <sc-flex gap="md" align="center" wrap="true" style="flex:none;">
+        <sc-flex orientation="vertical" gap="xs">
+            <sc-text as="label">L sine <sc-display bind:value="s1.freqL" format="%d Hz"/></sc-text>
             <sc-slider bind:value="s1.freqL" min="20" max="2000" step="1"/>
-        </label>
-        <label>
-            <span>R (saw): <sc-display bind:value="s1.freqR" format="%d Hz"/></span>
+        </sc-flex>
+        <sc-flex orientation="vertical" gap="xs">
+            <sc-text as="label">R saw <sc-display bind:value="s1.freqR" format="%d Hz"/></sc-text>
             <sc-slider bind:value="s1.freqR" min="20" max="2000" step="1"/>
-        </label>
-        <label>
-            <span>Amp: <sc-display bind:value="s1.amp" format="%.2f"/></span>
+        </sc-flex>
+        <sc-flex orientation="vertical" gap="xs">
+            <sc-text as="label">Amp <sc-display bind:value="s1.amp" format="%.2f"/></sc-text>
             <sc-slider bind:value="s1.amp" min="0" max="1" step="0.01"/>
-        </label>
-        <label>
+        </sc-flex>
+        <sc-flex align="center" gap="xs">
             <sc-checkbox bind:value="s1.gate"/>
-            <span>Gate</span>
-        </label>
-    </div>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
-        <span>Both channels — one 2-channel tap (bus 0–1), split lanes</span>
+            <sc-text as="label">Gate</sc-text>
+        </sc-flex>
+    </sc-flex>
+    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+        <sc-text tone="dim">Both channels, one 2-channel tap (bus 0-1), split lanes</sc-text>
         <sc-scope bus="0" channels="2" layout="split"/>
-    </div>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
-        <span>Left only (bus 0)</span>
+    </sc-flex>
+    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+        <sc-text tone="dim">Left only (bus 0)</sc-text>
         <sc-scope bus="0" channels="1"/>
-    </div>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
-        <span>Right only (bus 1)</span>
+    </sc-flex>
+    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+        <sc-text tone="dim">Right only (bus 1)</sc-text>
         <sc-scope bus="1" channels="1"/>
-    </div>
-</div>
+    </sc-flex>
+</sc-flex>
 </body>
 </html>

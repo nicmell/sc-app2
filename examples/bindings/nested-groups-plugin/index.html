@@ -44,39 +44,47 @@
     </sc-synth>
 </sc-group>
 
-<div>
-    <h3>Nested: outer.inner.deep</h3>
-    <sc-button bind:value="outer.inner.deep.gate" bind:icon="outer.inner.deep.gate ? 'stop' : 'play'"/>
-    <label>
-        <span>Freq: <sc-display bind:value="outer.inner.deep.freq" format="%d Hz"/></span>
-        <sc-knob bind:value="outer.inner.deep.freq" min="20" max="1000" step="1"/>
-    </label>
-    <label>
-        <span>Amp: <sc-display bind:value="outer.inner.deep.amp" format="%.2f"/></span>
-        <sc-knob bind:value="outer.inner.deep.amp" min="0" max="1" step="0.01"/>
-    </label>
-</div>
-
-<div>
-    <h3>Shallow: outer.shallow</h3>
-    <sc-button bind:value="outer.shallow.gate" bind:icon="outer.shallow.gate ? 'stop' : 'play'"/>
-    <label>
-        <span>Freq: <sc-display bind:value="outer.shallow.freq" format="%d Hz"/></span>
-        <sc-knob bind:value="outer.shallow.freq" min="20" max="2000" step="1"/>
-    </label>
-</div>
-
-<div>
-    <h3>Group controls</h3>
-    <sc-button bind:value="outer.gate" bind:icon="outer.gate ? 'stop' : 'play'"/>
-    <label>
-        <span>Outer amp: <sc-display bind:value="outer.amp" format="%.2f"/></span>
+<sc-flex orientation="vertical" gap="md">
+    <sc-row gutter="md">
+        <sc-col span="12">
+            <sc-flex orientation="vertical" gap="sm">
+                <sc-flex align="center" gap="sm">
+                    <sc-button bind:value="outer.inner.deep.gate" bind:icon="outer.inner.deep.gate ? 'stop' : 'play'"/>
+                    <sc-text weight="bold">outer.inner.deep</sc-text>
+                </sc-flex>
+                <sc-flex orientation="vertical" gap="xs" align="center">
+                    <sc-knob bind:value="outer.inner.deep.freq" min="20" max="1000" step="1"/>
+                    <sc-text as="label">Freq <sc-display bind:value="outer.inner.deep.freq" format="%d Hz"/></sc-text>
+                </sc-flex>
+                <sc-flex orientation="vertical" gap="xs" align="center">
+                    <sc-knob bind:value="outer.inner.deep.amp" min="0" max="1" step="0.01"/>
+                    <sc-text as="label">Amp <sc-display bind:value="outer.inner.deep.amp" format="%.2f"/></sc-text>
+                </sc-flex>
+            </sc-flex>
+        </sc-col>
+        <sc-col span="12">
+            <sc-flex orientation="vertical" gap="sm">
+                <sc-flex align="center" gap="sm">
+                    <sc-button bind:value="outer.shallow.gate" bind:icon="outer.shallow.gate ? 'stop' : 'play'"/>
+                    <sc-text weight="bold">outer.shallow</sc-text>
+                </sc-flex>
+                <sc-flex orientation="vertical" gap="xs" align="center">
+                    <sc-knob bind:value="outer.shallow.freq" min="20" max="2000" step="1"/>
+                    <sc-text as="label">Freq <sc-display bind:value="outer.shallow.freq" format="%d Hz"/></sc-text>
+                </sc-flex>
+            </sc-flex>
+        </sc-col>
+    </sc-row>
+    <sc-flex orientation="vertical" gap="sm">
+        <sc-flex align="center" gap="sm">
+            <sc-button bind:value="outer.gate" bind:icon="outer.gate ? 'stop' : 'play'"/>
+            <sc-text weight="bold">Group controls</sc-text>
+        </sc-flex>
+        <sc-text as="label">Outer amp <sc-display bind:value="outer.amp" format="%.2f"/></sc-text>
         <sc-slider bind:value="outer.amp" min="0" max="1" step="0.01"/>
-    </label>
-    <label>
-        <span>Inner amp: <sc-display bind:value="outer.inner.amp" format="%.2f"/></span>
+        <sc-text as="label">Inner amp <sc-display bind:value="outer.inner.amp" format="%.2f"/></sc-text>
         <sc-slider bind:value="outer.inner.amp" min="0" max="1" step="0.01"/>
-    </label>
-</div>
+    </sc-flex>
+</sc-flex>
 </body>
 </html>

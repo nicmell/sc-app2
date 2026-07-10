@@ -35,31 +35,37 @@
     <sc-control name="pan" value="0"/>
     <sc-control name="gate" value="1"/>
 </sc-synth>
-<sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'"/>
-<div class="controls">
-    <div class="knobs">
-        <label>
-            <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
-            <span><sc-display bind:value="s1.freq" format="%d Hz"/></span>
-        </label>
-        <label>
-            <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
-            <span><sc-display bind:value="s1.amp" format="%.2f"/></span>
-        </label>
-    </div>
-    <div class="sliders">
-        <label>
-            <span>Pan: <sc-display bind:value="s1.pan" format="%.2f"/></span>
-            <sc-slider bind:value="s1.pan" min="-1" max="1" step="0.01"/>
-        </label>
-        <label>
+<sc-flex orientation="vertical" gap="md">
+    <sc-flex align="center" gap="sm">
+        <sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'"/>
+        <sc-text weight="bold">Sine voice</sc-text>
+        <sc-text tone="dim">Gate, level, frequency and pan</sc-text>
+    </sc-flex>
+    <sc-row gutter="md" align="middle">
+        <sc-col span="12">
+            <sc-flex orientation="vertical" gap="xs" align="center">
+                <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
+                <sc-text as="label">Frequency <sc-display bind:value="s1.freq" format="%d Hz"/></sc-text>
+            </sc-flex>
+        </sc-col>
+        <sc-col span="12">
+            <sc-flex orientation="vertical" gap="xs" align="center">
+                <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
+                <sc-text as="label">Amplitude <sc-display bind:value="s1.amp" format="%.2f"/></sc-text>
+            </sc-flex>
+        </sc-col>
+    </sc-row>
+    <sc-flex orientation="vertical" gap="sm">
+        <sc-text as="label">Pan <sc-display bind:value="s1.pan" format="%.2f"/></sc-text>
+        <sc-slider bind:value="s1.pan" min="-1" max="1" step="0.01"/>
+        <sc-flex align="center" gap="md" wrap="true">
             <sc-checkbox bind:value="s1.gate" label="Gate"/>
-        </label>
-        <label>
-            <sc-switch bind:value="s1.gate"/>
-            <span>Gate (switch)</span>
-        </label>
-    </div>
-</div>
+            <sc-flex align="center" gap="xs">
+                <sc-switch bind:value="s1.gate"/>
+                <sc-text as="label">Gate switch</sc-text>
+            </sc-flex>
+        </sc-flex>
+    </sc-flex>
+</sc-flex>
 </body>
 </html>

@@ -47,6 +47,10 @@ namespace. To install one by hand:
 | `select-plugin` | `sc-select`/`sc-option` dropdowns and `sc-radio-group`/`sc-radio` sets bound to controls/vars. |
 | `waveselect-plugin` | A `Select` UGen switching SinOsc/Saw/Pulse, driven by an `sc-select` — an input wired into a synth graph. |
 
+Input widgets bind their editable value with `bind:value`. Bare `bind` remains
+only on `sc-run` (node target) and `sc-synth` (synthdef reference). An
+`sc-button` fixed-value payload uses `set`, with runtime-capable `bind:set`.
+
 ## `widgets/` — the widget leaves' parameters
 
 | plugin | purpose |
@@ -73,9 +77,9 @@ targets a single error path in the sc-elements runtime
 | plugin | error path | fails with |
 |---|---|---|
 | `bad-bindings` | `checkDuplicateNames` | duplicate `sine` name in scope (the grab-bag legacy fixture: also carries unknown-node and undeclared-control binds behind the first error) |
-| `bad-node-bind` | `resolveControlBind` | `bind="ghost.freq"` — no node `ghost` in scope |
-| `bad-synthdef-bind` | `resolveControlBind` | `bind="sine.freq"` resolves to the *synthdef* (not a node) — the classic param-vs-control mistake |
-| `bad-undeclared-control` | `resolveControlBind` | `bind="s1.detune"` — `s1` declares no `detune` control |
+| `bad-node-bind` | `resolveControlBind` | `bind:value="ghost.freq"` — no node `ghost` in scope |
+| `bad-synthdef-bind` | `resolveControlBind` | `bind:value="sine.freq"` resolves to the *synthdef* (not a node) — the classic param-vs-control mistake |
+| `bad-undeclared-control` | `resolveControlBind` | `bind:value="s1.detune"` — `s1` declares no `detune` control |
 | `bad-circular-bind` | `resolveStateBind` (self-reference guard) | an `sc-var bind:value="vars.a"` self-reference — the only cycle expressible now that references point strictly backward |
 | `bad-forward-ref` | `resolveNode` | controls/inputs reference a synth declared *after* them — bind targets must be declared before their references in DOM order |
 | `bad-forward-state-ref` | `resolveControlBind` | a same-scope state `bind:value="vars.b"` before `b` is declared — the honest bind-order error, not "not declared" |

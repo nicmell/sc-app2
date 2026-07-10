@@ -29,7 +29,7 @@
 <div class="controls">
     <label>
         <span>Frequency:</span>
-        <sc-select bind="s1.freq">
+        <sc-select bind:value="s1.freq">
             <sc-option value="261" label="C4 (261 Hz)"/>
             <sc-option value="330" label="E4 (330 Hz)"/>
             <sc-option value="392" label="G4 (392 Hz)"/>
@@ -40,12 +40,12 @@
     </label>
     <label>
         <span>Amplitude:</span>
-        <sc-knob bind="s1.amp" min="0" max="1" step="0.01"/>
+        <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
         <span><sc-display bind:value="s1.amp" format="%.2f"/></span>
     </label>
     <label>
         <span>Mode (var):</span>
-        <sc-select bind="vars.mode">
+        <sc-select bind:value="vars.mode">
             <sc-option value="0" label="Off"/>
             <sc-option value="1" label="On"/>
             <sc-option value="2" label="Auto"/>
@@ -54,7 +54,7 @@
     </label>
     <label>
         <span>Frequency (radio):</span>
-        <sc-radio-group bind="s1.freq">
+        <sc-radio-group bind:value="s1.freq">
             <sc-radio value="261" label="C4"/>
             <sc-radio value="330" label="E4"/>
             <sc-radio value="392" label="G4"/>
@@ -64,7 +64,7 @@
     </label>
     <label>
         <span>Mode (radio):</span>
-        <sc-radio-group bind="vars.mode">
+        <sc-radio-group bind:value="vars.mode">
             <sc-radio value="0" label="Off"/>
             <sc-radio value="1" label="On"/>
             <sc-radio value="2" label="Auto"/>

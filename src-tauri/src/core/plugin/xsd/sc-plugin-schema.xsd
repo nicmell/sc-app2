@@ -255,7 +255,6 @@
   </xs:complexType>
 
   <xs:complexType name="scSliderType">
-    <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
     <xs:attribute name="max" type="xs:decimal"/>
     <xs:attribute name="step" type="xs:decimal"/>
@@ -284,7 +283,6 @@
   </xs:complexType>
 
   <xs:complexType name="scKnobType">
-    <xs:attribute name="bind" type="xs:string"/>
     <xs:attribute name="min" type="xs:decimal"/>
     <xs:attribute name="max" type="xs:decimal"/>
     <xs:attribute name="step" type="xs:decimal"/>
@@ -305,8 +303,8 @@
   </xs:complexType>
 
   <xs:complexType name="scButtonType">
-    <xs:attribute name="bind" type="xs:string" use="required"/>
     <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="set" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
     <xs:attribute name="icon" type="xs:string"/>
     <xs:attribute name="variant">
@@ -334,7 +332,7 @@
   </xs:complexType>
 
   <xs:complexType name="scCheckboxType">
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="label" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
@@ -351,7 +349,7 @@
   </xs:complexType>
 
   <xs:complexType name="scSwitchType">
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="size">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -391,7 +389,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-option"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="placeholder" type="xs:string"/>
     <xs:attribute name="size">
       <xs:simpleType>
@@ -417,7 +415,7 @@
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-radio"/>
     </xs:choice>
-    <xs:attribute name="bind" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="orientation">
       <xs:simpleType>
         <xs:restriction base="xs:string">

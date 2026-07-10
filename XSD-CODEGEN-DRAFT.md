@@ -1,8 +1,10 @@
 # XSD generation from per-component spec files
 
-Status: **Phases 1–3 implemented** (branch `xsd-codegen-draft`). The spec is the single
-source for the XSD (build-time), attribute coercion (`getProp`), validation (`validateProps`),
-and — since Phase 3 — the runtime-evaluated `bind:` attribute surface.
+Status: **Phases 1–3.2 implemented** (branch `xsd-codegen-draft`). The spec is the single
+source for the XSD (build-time), attribute coercion (`getProp`), validation
+(`validateProps`), the runtime-evaluated `bind:` attribute surface (Phase 3), and the
+inputs' binding (Phase 3.2). See "State of the implementation — review notes" at the end
+for the honest gates/quirks/improvements map.
 
 ## Phase 1 — the generated schema
 
@@ -108,20 +110,144 @@ on its sources — the generalization of the old ScState `bind` (which it replac
   deleted (its markup is now the legal graph-reference syntax), `bad-ugen-input`'s message
   now names value/bind:value.
 
+## Phase 3.2 — inputs on `bind:value`, widget-state unification, evaluated-value warnings
+
+The value inputs joined the same binding vocabulary, deleting their parallel machinery:
+
+- **Inputs bind via `bind:value`** (`<sc-knob bind:value="s1.freq"/>`): the generic
+  runtime-prop machinery carries the whole READ side; `ScInput` keeps only the WRITE half —
+  `targetScState` derives from the resolved prop (a PLAIN single path → one writable state
+  element; an EXPRESSION → no target, the input is a read-only live meter that snaps back;
+  a static `value` → a fixed inert widget), `syncFromState` rides the `runtimeValueChanged`
+  hook (no extra subscription), `commit()` = setValue + re-read snap-back (the explicit
+  re-sync + forced update is load-bearing for the unchanged-value case — the Object.is
+  guard means the hook won't fire). `resolveVisualBind` and ScInput's `_targetScNode` are
+  gone (the field survives on sc-run alone — its `bind` targets a NODE; with sc-synth's
+  synthdef ref they are the only `bind` attributes left: `bind` now always means
+  "reference to a non-state thing"). `value` is `required: true` on every value input
+  (satisfied by either form); a legacy `bind` gets a pointed migration error (checked
+  BEFORE the generic required-missing one).
+- **Widget-state unification**: sc-slider/sc-knob's `@property({type:Number}) value` — the
+  last attribute-linked reactive prop, whose Lit converter bypassed getProp/the spec and
+  offered an uncontrolled public write path — became `@state() _value` like
+  checkbox/switch/select/radio-group. The static `value` attribute now seeds through
+  `getProp` in load() (accepted: a static-value widget shows the Lit default until its
+  sequential load turn).
+- **sc-button**: WRITE-ONLY, so `validateRuntimeProps()` (a new post-resolution hook on
+  ScElement) requires a writable target — expression or static `value` fails at parse. Its
+  click payload renamed `value` → `set` (the binding slot claimed `value`); `bind:set`
+  gives a dynamic payload for free.
+- **statechange gating**: `updateRuntimeValue` dispatches only for a STATE element's
+  `value` (`isStateRuntime(this)`) — sound because only named state is targetable
+  (`resolveControlBind` matches ScState children exclusively); inputs/visuals recompute
+  silently.
+- **Evaluated-value warnings** (`coerceProp`): once per element+prop (per INSTANCE — the
+  AttrSpec objects are shared per tag), an evaluated non-numeric on a decimal/integer prop
+  warns and returns undefined (Lit renders the fallback as an EMPTY attribute → the base
+  widget's own default, never "NaN"); an evaluated enum miss warns and passes the string
+  through. Covers the type/enum half of "re-validate evaluated values"; range checks remain
+  static-only.
+
 ## Phase 4 — candidates
 
 - **Child collection off `content.choice`** — single-source the runtime child filters
   (sc-select/sc-radio-group/sc-synthdef) from the spec's content model.
 - **`bind:run` + sc-run** — honor `run="false"` at load and lift `run`'s `runtime: false`
   over the existing `OscClient.setNodeRun`/`ScNode.setRunning` seam; implement the sc-run
-  element.
-- **Re-validate evaluated values** — apply range/enum checks to runtime-prop recomputes
-  (today static-form-only; a `bind:gain` ≤ 0 or a bad enum string degrades silently).
-- **XSD 1.1 validator swap** — replace fastxml with an assert-capable validator to express
-  the static/`bind:` mutual exclusion (and value-XOR-`bind:value`) at upload time — and to
-  actually validate attributes at all.
+  element (also close ScSynth's missing epoch re-check after `await createSynth`).
+- **Rust-side spec table for the upload gate** — generate an attribute-rules table from the
+  same specs and enforce it in `manager.rs` (fastxml validates NO attributes); the
+  pragmatic strictness win, no validator swap. See the review notes below.
+- **Evaluated-value RANGE checks** — 3.2 covers type/enum; sc-scope-style range rules
+  (gain > 0 etc.) still apply to the static form only.
+- **XSD 1.1 validator swap** — an assert-capable validator to express mutual exclusion,
+  required-one-of, wildcard constraints, and the ugen/param position rules at upload time.
 - **sc-scope tap re-arm** — lift `bus`/`channels`/`frames` `runtime: false` by re-running
   the tap subscription on recompute.
+- **Recompute batching** — one listener per (element, target) instead of per
+  (prop, target): an element with N props on one source currently recomputes N times per
+  change.
 - **Shared attr-group spreads** — deduplicate the per-input attr blocks (`...INPUT_ATTRS`).
 - **Generator `--check` in CI/pre-commit** — regenerate-and-diff instead of relying on the
   snapshot test alone.
+
+## State of the implementation — review notes
+
+An honest map of where the design stands after Phases 1–3.2: what each gate really
+enforces, the quirks that persist, and the improvement paths considered.
+
+### The three validation gates, by actual strength
+
+| gate | what it REALLY enforces |
+|---|---|
+| **Upload** (fastxml 0.8.0, the only gate real plugins hit) | well-formedness, element declarations, content models (leniently — laxer than libxml2), text content. **Attributes: NOTHING** — `validate_attributes` in fastxml is a stub, so every `use="required"`, enum, type, and the `anyAttribute` namespace boundary is decorative at upload. |
+| **CI/dev** (xmllint/libxml2) | full XSD 1.0 — the only place the schema's attribute rules bite (required, enums, types, `bind:*` admitted / foreign namespaces rejected). Runs only when we run it. |
+| **Runtime** (`validateProps` + `validate` + `resolveRuntimeProps` + `validateRuntimeProps`) | the authoritative gate: required-by-either-form, static-XOR-`bind:`, name grammar, foreign prefixes, the `_` migration, bind resolution + bind order, ugen/param position rules, writable-target rules. |
+
+Consequence: a wrong plugin usually uploads fine (201) and dies at parse with a pointed
+error in the plugin box. Acceptable by design — but the upload gate advertises more than
+it enforces, and the 400-vs-parse split is mostly historical accident.
+
+### Two paths to a stricter upload gate
+
+1. **XSD 1.1 swap.** `xs:assert` makes most runtime-structural rules expressible AND
+   generatable from the specs: mutual exclusion (`not(@value and @bind:value)`),
+   required-one-of (`@value or @bind:value` — restoring the required semantics we had to
+   drop to `use="optional"`), constraining the `anyAttribute` wildcard to the spec'd names
+   (`every $a in @bind:* satisfies local-name($a) = (…)`), and — because asserts see
+   downward — the position rules as PARENT-side asserts (scUgenType: every sc-control
+   child has `@value` or `@bind:value`; scSynthdefType: direct sc-control children carry
+   no `bind:*`). A real validator would also enforce plain 1.0 `xs:pattern`, so the
+   `scName` grammar could return to the schema. What stays runtime-only regardless: bind
+   RESOLUTION (targets exist, order, the DAG), scope-level duplicate names through
+   transparency, expression syntax, evaluated values. Risk: the Rust XSD 1.1 ecosystem is
+   thin — this is a bet on a young validator or a heavier embed.
+2. **Rust-side spec table (recommended first).** Generate a small attribute-rules table
+   from the same `*.spec.ts` files and enforce it directly in `manager.rs` — everything in
+   path 1 except the parent-side position asserts, with no validator swap, extending the
+   spec-single-source principle to the backend.
+
+### Quirks that persist (known, accepted, tracked)
+
+- **`value` polysemy.** One word, several roles: literal state (store-backed), graph-input
+  constant (ugen child), param default (synthdef child), the inputs' binding slot,
+  display content. Phase 3.2 removed the worst two (the slider's attribute-linked reactive
+  prop; the button payload → `set`); the synthdef sub-language keeps its own two meanings
+  by design — it IS a different DSL sharing the syntax.
+- **The namespace is half-real.** The runtime matches QUALIFIED names (`bind:` prefix,
+  canonical, enforced) because happy-dom doesn't namespace-resolve; the URI only means
+  something to libxml2. Contained by the foreign-prefix rejection — but if the test DOM
+  ever changes, revisit `namespaceURI` matching. Related upstream bug worth reporting:
+  happy-dom's XML parser DROPS the later of two attributes whose LOCAL names collide
+  (`value` + `bind:value`), which is why the mutual-exclusion conflict is pinned by direct
+  `validateProps` tests and the `bad-runtime-conflict` fixture is CDP-harness-only.
+- **Evaluated values are partially validated.** 3.2's coerceProp warnings cover type +
+  enum; `validate()`'s RANGE rules (sc-scope's gain > 0 etc.) still see the static form
+  only — a `bind:gain` going non-positive degrades silently (Phase 4 item).
+- **`required` + runtime = `use="optional"` in the XSD** — one-of is inexpressible in
+  XSD 1.0; upload accepts, parse errors (path 1/2 above closes it).
+- **Per-prop listener fan-out.** Each runtime prop subscribes to its targets separately —
+  an element with three props bound to one var recomputes three times per change. Fine at
+  this scale; batchable (Phase 4).
+- **ScSynth epoch gap.** No epoch re-check after `await createSynth` (ScGroup has one) — a
+  very late /n_go after an invalidating unload could adopt a stale nodeId. Pre-existing;
+  belongs to the sc-run/node-lifecycle step.
+- **`getProp` is untyped by design** — the growing `as number` cast noise at call sites is
+  the accepted price; typed helpers (numberProp/stringProp) would tidy it if it grows.
+- **Static-value widgets flash their Lit default** until their sequential load turn seeds
+  them (a consequence of removing the attribute-linked property — accepted).
+- **Diamond dependencies** can transiently double-dispatch before converging (each hop is
+  Object.is-guarded; settles in one pass by the DAG/bind-order construction) — accepted
+  since the first state-layer step.
+
+### What has proven itself
+
+- **The spec as single source** has paid out four times: the generated XSD, runtime
+  coercion/validation, the `bind:` runtime-prop surface, and the inputs' binding — each
+  phase got cheaper because the previous one centralized the contract.
+- **The bind-order/DAG constraint** keeps financing features: runtime props and the input
+  unification inherited one-pass settling and cycle-freedom with zero new logic.
+- **Transparency + `namedScParent`** survived four refactors untouched.
+- **The two-gate testing discipline** (pinned exact messages in happy-dom + the CDP
+  harness in real Chrome) caught every environment divergence this work hit — the
+  namespace strictness, the localName dedup, the stale-registry cases.

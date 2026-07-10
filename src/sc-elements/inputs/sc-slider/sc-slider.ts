@@ -1,5 +1,5 @@
-// <sc-slider> — a slider bound to a control/var (`bind`/`_targetScNode` on the
-// ScInput base). Renders the ui-components <sc-base-slider>, forwarding every
+// <sc-slider> — a slider bound to a control/var (`bind:value` on the ScInput
+// base — a plain path is writable, an expression makes it a read-only meter). Renders the ui-components <sc-base-slider>, forwarding every
 // slider prop; the value plumbing (drag/wheel/keyboard, quantise, composed
 // input/change) lives in the base widget. The shared ScInput seam wires the
 // load-pass subscription (syncFromState) and the write path (commit): reads
@@ -7,21 +7,21 @@
 // derived alike), writes go through the target's `setValue()`.
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
+import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
 import type { ScSliderBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import "@sc-app/ui-components/lit";
 
 export class ScSlider extends ScInput {
-  /** Genuinely reactive: attribute-seeded, then reassigned by syncFromState
-   *  and bound through `live()`. The rest (min/max/step/label/size/…) are
-   *  declarative — read via `getProp`, forwarded (absent → base default). */
-  @property({ type: Number }) accessor value = 0;
+  /** Genuinely reactive widget-facing value: seeded by the load pass (bound
+   *  recompute or the static `value` attribute) and bound through `live()`.
+   *  Internal — the attributes are read via `getProp` like everywhere else. */
+  @state() accessor _value = 0;
 
   protected syncFromState(value: number | string | undefined): void {
     const n = this.numericState(value);
-    if (n !== undefined) this.value = n;
+    if (n !== undefined) this._value = n;
   }
 
   private onInput = (e: Event) => {
@@ -37,7 +37,7 @@ export class ScSlider extends ScInput {
       size=${this.getProp("size")}
       orientation=${this.getProp("orientation")}
       ?disabled=${this.getProp("disabled")}
-      .value=${live(this.value)}
+      .value=${live(this._value)}
       @input=${this.onInput}
     ></sc-base-slider>`;
   }

@@ -50,10 +50,10 @@ const HARNESS_ONLY = new Set(["bad-runtime-conflict"]);
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
   "bad-bindings": '<sc-synth name="sine">: duplicate name in scope',
-  "bad-node-bind": '<sc-knob bind="ghost.freq">: does not match any node in scope',
-  "bad-synthdef-bind": '<sc-knob bind="sine.freq">: does not match any node in scope',
+  "bad-node-bind": '<sc-knob bind:value="ghost.freq">: does not match any node in scope',
+  "bad-synthdef-bind": '<sc-knob bind:value="sine.freq">: does not match any node in scope',
   "bad-undeclared-control":
-    '<sc-knob bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
+    '<sc-knob bind:value="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
   "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
   "bad-forward-state-ref": '<sc-var>: "b" is referenced before it is declared',
@@ -154,18 +154,23 @@ describe("example-plugin structure", () => {
     }
   });
 
-  it("resolves every sc-slider/sc-knob bind to an enabled control on the synth", () => {
+  it("resolves every sc-slider/sc-knob bind:value to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
     const inputs = [...nodes].filter((el): el is ScSlider | ScKnob =>
       ["sc-slider", "sc-knob"].includes(el.tagName.toLowerCase()),
     );
     expect(inputs.length).toBeGreaterThan(0);
     for (const input of inputs) {
-      const target = input._targetScNode as ScControl | undefined;
-      expect(target).toBeDefined();
-      expect(target!.tagName.toLowerCase()).toBe("sc-control");
-      expect(target!.enabled).toBe(true);
-      expect(nodes.has(target!)).toBe(true);
+      // A plain-path bind:value resolves to exactly one writable state target.
+      const prop = input.runtimeProps?.value;
+      expect(prop).toBeDefined();
+      expect(prop!.expression).toBeUndefined();
+      const targets = Object.values(prop!.targets);
+      expect(targets).toHaveLength(1);
+      const target = targets[0] as ScControl;
+      expect(target.tagName.toLowerCase()).toBe("sc-control");
+      expect(target.enabled).toBe(true);
+      expect(nodes.has(target)).toBe(true);
     }
   });
 

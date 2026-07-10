@@ -25,10 +25,10 @@
 </sc-synth>
 
 <!-- Typo in bind path: "freqq" instead of "freq" -->
-<sc-knob bind="sine.freqq" min="20" max="2000" step="1"/>
+<sc-knob bind:value="sine.freqq" min="20" max="2000" step="1"/>
 
 <!-- References non-existent synth -->
-<sc-checkbox bind="nonexistent.mute"/>
+<sc-checkbox bind:value="nonexistent.mute"/>
 
 <!-- Invalid display path -->
 <sc-display bind:value="sine.volume"/>

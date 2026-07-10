@@ -12,7 +12,7 @@ import { parseBind } from "@/lib/utils/expression";
 import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
-import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/runtime";
+import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
@@ -212,13 +212,4 @@ export function resolveStateBind(
   }
 
   return { targets, expression: parsed.expression };
-}
-
-/** Resolve `el`'s visual/input bind to its target state element. */
-export function resolveVisualBind(el: Element, ctx: RuntimeContext, bind: string): InputRuntime {
-  const { target, controlName } = resolveControlBind(el, ctx, bind);
-  const control = [...scChildrenThrough(target)].find(
-    (c) => isStateRuntime(c) && nameOf(c) === controlName,
-  )!;
-  return { ...baseRuntime(ctx), _targetScNode: control };
 }

@@ -406,15 +406,15 @@ further `sc-*` element:
 | sc-plugin | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass |
 | sc-synthdef, sc-ugen | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount |
 | sc-synth, sc-control | functional: oscClient.createSynth (controls baked in — a DERIVED control bakes its computed value — gated on /n_go, plus a post-ack catch-up /n_set for writes landing in the send→/n_go window); setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). The legacy `bind` attribute is GONE: state expressions AND synthdef graph-input references are both `bind:value` (fixed graph inputs stay `value`). `run="false"` not honored yet (sc-run step) |
-| sc-slider, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), reading the bound control/var through the shared `ScInput` seam (`_state`/`onStateChange` subscription + `syncFromState`) and writing via `commit()` on the widget's composed `input` — a write to bound/derived state is inert and the widget snaps back. sc-knob is the rotary sibling (no `orientation`) |
-| sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
-| sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput seam syncs the selection from `_state` and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
+| sc-slider, sc-knob | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`) |
+| sc-checkbox, sc-switch | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput `bind:value` seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`) |
+| sc-select, sc-option, sc-radio-group, sc-radio | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled) |
 | sc-display | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable) |
 | sc-var | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange |
 | sc-if | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none) |
 | sc-group | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` not honored yet — `OscClient.setNodeRun`/`ScNode.setRunning` exist as the seam for the sc-run step |
 | sc-run | **stub**: parsed + validated + bind-resolved; no UI/logic (needs /n_run — arrives with the node-lifecycle step) |
-| sc-button | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; a click commits `value` when given (fixed-value trigger) else toggles the bound state 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`) |
+| sc-button | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`) |
 | sc-console | functional leaf (the OSC console; no attributes) |
 | sc-scope | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback |
@@ -488,11 +488,17 @@ ScControl's override adds the /n_set — the user-gesture WRITE path), while a
 derived control's recompute /n_set lives in the `runtimeValueChanged` hook
 (guarded on `runtimeProps.value` + the live-node gate, so external store
 writes stay UI-only and two inputs on one control converge with one /n_set
-per gesture). The WRITING inputs (range/checkbox/button —
-internal/sc-input's single writable `_targetScNode`, subscriptions parked on
-the base's shared lifecycle via `addRuntimeSubscription`) and the READ-ONLY
-visuals (sc-display's `value`, sc-if's `when`) all read through the same
-machinery. Native inputs bind with Lit's `live()` (the user mutates the DOM
+per gesture). The inputs bind via `bind:value` like
+everything else — internal/sc-input derives the single WRITABLE target from
+the resolved runtime prop (plain path, one target, no expression; an
+expression bind is a read-only meter), the widget sync rides the
+`runtimeValueChanged` hook (no extra subscription), and `bind` survives only
+as a NON-state reference (sc-run → node, sc-synth → synthdef). The
+statechange dispatch is gated on `isStateRuntime` — only named state is
+targetable, so consumers stay silent. The READ-ONLY visuals (sc-display's
+`value`, sc-if's `when`) read through the same machinery; evaluated values
+that miss their spec type warn once per element+prop (non-numeric on a
+numeric prop falls back to the widget default). Native inputs bind with Lit's `live()` (the user mutates the DOM
 directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,

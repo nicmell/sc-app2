@@ -31,11 +31,11 @@
     </label>
     <label>
         <span>Freq: <sc-display bind:value="s1.freq" format="%d Hz"/></span>
-        <sc-knob bind="s1.freq" min="20" max="2000" step="1"/>
+        <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
     </label>
     <label>
         <span>Amp: <sc-display bind:value="s1.amp" format="%.2f"/></span>
-        <sc-knob bind="s1.amp" min="0" max="1" step="0.01"/>
+        <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
     </label>
 </div>
 

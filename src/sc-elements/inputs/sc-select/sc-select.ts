@@ -1,5 +1,5 @@
 // <sc-select> — a dropdown over its sc-option children, bound to a control/var
-// (`bind`/`_targetScNode` on the ScInput base). Renders the ui-components
+// (`bind:value` on the ScInput base). Renders the ui-components
 // <sc-base-select>, projecting each sc-option's collected {value,label} into an
 // <sc-base-option>. The sc-option children are pure data (consumed at parse,
 // never enabled); the shared ScInput seam syncs the selection from the target's

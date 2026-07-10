@@ -14,11 +14,11 @@
 </sc-group>
 <div class="controls">
     <label>
-        <sc-knob bind="vars.knobValue" min="0" max="1" step="0.01"/>
+        <sc-knob bind:value="vars.knobValue" min="0" max="1" step="0.01"/>
         <span>Knob: <sc-display bind:value="vars.knobValue" format="%.2f"/></span>
     </label>
     <label>
-        <sc-slider bind="vars.sliderValue" min="-1" max="1" step="0.01"/>
+        <sc-slider bind:value="vars.sliderValue" min="-1" max="1" step="0.01"/>
         <span>Slider: <sc-display bind:value="vars.sliderValue" format="%.2f"/></span>
     </label>
     <label>

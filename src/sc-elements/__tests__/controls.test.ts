@@ -59,7 +59,9 @@ type ValueWidget = HTMLElement & { value: number };
 const widgetOf = (el: Element) => el.querySelector("sc-base-slider, sc-base-knob") as ValueWidget;
 /** The sc-slider/sc-knob wired to a given bind (tag-agnostic — freq is a knob). */
 const inputByBind = (host: ScPlugin, bind: string) =>
-  host.querySelector(`sc-slider[bind="${bind}"], sc-knob[bind="${bind}"]`) as ScElement & {
+  host.querySelector(
+    `sc-slider[bind\\:value="${bind}"], sc-knob[bind\\:value="${bind}"]`,
+  ) as ScElement & {
     updateComplete: Promise<boolean>;
   };
 /** Simulate a user gesture on an input's widget: move the value + re-emit. */
@@ -386,7 +388,7 @@ describe("state propagation (vars + bound state)", () => {
       <sc-var name="sum" bind:value="vars.a + vars.b"/>
       <sc-var name="ratio" bind:value="vars.a / vars.b"/>
     </sc-group>
-    <sc-slider bind="vars.a" min="0" max="1" step="0.01"/>
+    <sc-slider bind:value="vars.a" min="0" max="1" step="0.01"/>
     <sc-display bind:value="vars.doubled" format="%.2f"/>
   `);
 
@@ -450,8 +452,8 @@ describe("state propagation (vars + bound state)", () => {
         <sc-var name="a" value="0"/>
         <sc-var name="doubled" bind:value="vars.a * 2"/>
       </sc-group>
-      <sc-slider bind="vars.doubled" min="0" max="4" step="0.01"/>
-      <sc-checkbox bind="vars.doubled"/>
+      <sc-slider bind:value="vars.doubled" min="0" max="4" step="0.01"/>
+      <sc-checkbox bind:value="vars.doubled"/>
     `);
     const { host } = await mountPlugin(SNAP_XML);
     const range = host.querySelector("sc-slider") as ScElement & {
@@ -568,7 +570,7 @@ describe("sc-if", () => {
     <sc-if bind:when="gate"><p>on</p></sc-if>
     <sc-if bind:when="gate == 0"><p>off</p></sc-if>
     <sc-if bind:when="freq > 440"><p>high</p></sc-if>
-    <sc-checkbox bind="gate"/>
+    <sc-checkbox bind:value="gate"/>
   `);
 
   const mountIf = async () => {
@@ -620,12 +622,12 @@ describe("selection inputs (select + radio-group)", () => {
     <sc-group name="vars">
       <sc-var name="mode" value="1"/>
     </sc-group>
-    <sc-select bind="vars.mode">
+    <sc-select bind:value="vars.mode">
       <sc-option value="0" label="Off"/>
       <sc-option value="1" label="On"/>
       <sc-option value="2" label="Auto"/>
     </sc-select>
-    <sc-radio-group bind="vars.mode">
+    <sc-radio-group bind:value="vars.mode">
       <sc-radio value="0" label="Off"/>
       <sc-radio value="1" label="On"/>
       <sc-radio value="2" label="Auto"/>
@@ -885,7 +887,7 @@ describe("runtime props (bind:)", () => {
     <sc-var name="hi" value="2000"/>
     <sc-var name="freq" value="440"/>
     <sc-var name="mode" value="lin"/>
-    <sc-slider bind="freq" bind:min="lo" bind:max="hi" bind:label="'f (' + mode + ')'"/>
+    <sc-slider bind:value="freq" bind:min="lo" bind:max="hi" bind:label="'f (' + mode + ')'"/>
     <sc-display bind:value="freq > 1000 ? 'high' : 'low'"/>
   `);
   const varByName = (host: ScPlugin, name: string) =>
@@ -953,7 +955,7 @@ describe("runtime props (bind:)", () => {
   it("rejects bind: forms whose base attribute is unknown", () => {
     const XML = wrapXml(`
       <sc-var name="freq" value="440"/>
-      <sc-slider bind="freq" bind:foo="freq"/>
+      <sc-slider bind:value="freq" bind:foo="freq"/>
     `);
     expect(() => parsePlugin(XML)).toThrow('<sc-slider>: unknown runtime attribute "bind:foo"');
   });
@@ -1031,19 +1033,21 @@ describe("runtime props (bind:)", () => {
   });
 
   it("rejects bind:attrs on runtime-opted-out attributes (direct validateProps)", () => {
-    // `bind` + `bind:bind` also collide on local name in happy-dom's parser.
-    const el = document.createElement("sc-slider") as ScElement;
-    el.setAttribute("bind", "freq");
-    el.setAttribute("bind:bind", "freq");
+    // `bind` + `bind:bind` also collide on local name in happy-dom's parser;
+    // sc-synth keeps `bind` with runtime: false, exercising the opt-out branch.
+    const el = document.createElement("sc-synth") as ScElement;
+    el.setAttribute("name", "s1");
+    el.setAttribute("bind", "sine");
+    el.setAttribute("bind:bind", "sine");
     expect(() => el.validateProps()).toThrow(
-      '<sc-slider>: unknown runtime attribute "bind:bind"',
+      '<sc-synth>: unknown runtime attribute "bind:bind"',
     );
   });
 
   it("resolution errors name the real attribute", () => {
     const XML = wrapXml(`
       <sc-var name="freq" value="440"/>
-      <sc-slider bind="freq" bind:min="ghost.x"/>
+      <sc-slider bind:value="freq" bind:min="ghost.x"/>
     `);
     expect(() => parsePlugin(XML)).toThrow(
       '<sc-slider bind:min="ghost.x">: does not match any node in scope',
@@ -1091,8 +1095,8 @@ describe("runtime props (bind:)", () => {
 describe("sc-button", () => {
   const BTN_XML = wrapXml(`
     <sc-var name="gate" value="0"/>
-    <sc-button bind="gate" bind:icon="gate ? 'stop' : 'play'" bind:label="gate ? 'Stop' : 'Play'"/>
-    <sc-button bind="gate" value="1" label="Trigger"/>
+    <sc-button bind:value="gate" bind:icon="gate ? 'stop' : 'play'" bind:label="gate ? 'Stop' : 'Play'"/>
+    <sc-button bind:value="gate" set="1" label="Trigger"/>
   `);
   const buttons = (host: ScPlugin) =>
     [...host.querySelectorAll("sc-button")] as Array<
@@ -1119,13 +1123,152 @@ describe("sc-button", () => {
     expect(appStore.get().runtime[host.id]["gate"]).toBe(0);
   });
 
-  it("a value attribute makes it a fixed-value trigger", async () => {
+  it("a set attribute makes it a fixed-value trigger", async () => {
     const { host } = await mountPlugin(BTN_XML);
     const [, trigger] = buttons(host);
     clickWidget(trigger);
     expect(appStore.get().runtime[host.id]["gate"]).toBe(1);
     clickWidget(trigger); // already 1 — idempotent
     expect(appStore.get().runtime[host.id]["gate"]).toBe(1);
+  });
+});
+
+describe("inputs on bind:value (Phase 3.2)", () => {
+  const varByName = (host: ScPlugin, name: string) =>
+    [...host.querySelectorAll("sc-var")].find((v) => (v as ScVar).getProp("name") === name) as ScVar;
+
+  it("an expression bind:value makes the input a read-only live meter", async () => {
+    const XML = wrapXml(`
+      <sc-group name="vars">
+        <sc-var name="a" value="0.5"/>
+      </sc-group>
+      <sc-slider bind:value="vars.a * 2" min="0" max="4" step="0.01"/>
+    `);
+    const { host } = await mountPlugin(XML);
+    const range = host.querySelector("sc-slider") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(1); // 0.5 * 2, live
+
+    varByName(host, "a").setValue(1.5);
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(3); // follows the sources
+
+    dragWidget(range, 0.25); // no writable target — the gesture is inert
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(3); // snapped back
+    expect(appStore.get().runtime[host.id]).toEqual({ "vars.a": 1.5 }); // store untouched
+  });
+
+  it("a static value is a fixed inert widget", async () => {
+    const XML = wrapXml(`<sc-slider value="0.7" min="0" max="1" step="0.01"/>`);
+    const { host } = await mountPlugin(XML);
+    const range = host.querySelector("sc-slider") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(0.7); // seeded from the attribute
+
+    dragWidget(range, 0.2);
+    await range.updateComplete;
+    expect(widgetOf(range).value).toBe(0.7); // snapped back, nothing written
+    expect(appStore.get().runtime[host.id]).toBeUndefined();
+  });
+
+  it("a value input requires the value binding (either form)", () => {
+    expect(() => parsePlugin(wrapXml(`<sc-slider min="0" max="1"/>`))).toThrow(
+      '<sc-slider>: missing required "value" attribute',
+    );
+  });
+
+  it("legacy input bind gets the pointed migration error", () => {
+    const XML = wrapXml(`
+      <sc-var name="freq" value="440"/>
+      <sc-slider bind="freq"/>
+    `);
+    expect(() => parsePlugin(XML)).toThrow(
+      '<sc-slider>: "bind" is not supported — use "bind:value"',
+    );
+  });
+
+  it("sc-button demands a writable target — expressions and static values fail", () => {
+    const BTN_ERROR = '<sc-button>: "bind:value" must reference a single writable control/var';
+    expect(() =>
+      parsePlugin(
+        wrapXml(`
+          <sc-var name="a" value="0"/>
+          <sc-var name="b" value="1"/>
+          <sc-button bind:value="a + b" label="x"/>
+        `),
+      ),
+    ).toThrow(BTN_ERROR);
+    expect(() => parsePlugin(wrapXml(`<sc-button value="1" label="x"/>`))).toThrow(BTN_ERROR);
+    // A DERIVED target is read-only (setValue is inert) — equally rejected.
+    expect(() =>
+      parsePlugin(
+        wrapXml(`
+          <sc-group name="vars">
+            <sc-var name="a" value="1"/>
+            <sc-var name="doubled" bind:value="vars.a * 2"/>
+          </sc-group>
+          <sc-button bind:value="vars.doubled" label="x"/>
+        `),
+      ),
+    ).toThrow(BTN_ERROR);
+  });
+
+  it("bind:set makes the click payload dynamic", async () => {
+    const XML = wrapXml(`
+      <sc-var name="preset" value="5"/>
+      <sc-var name="gate" value="0"/>
+      <sc-button bind:value="gate" bind:set="preset" label="Apply"/>
+    `);
+    const { host } = await mountPlugin(XML);
+    const widget = host.querySelector("sc-base-button")!;
+    widget.dispatchEvent(new Event("click", { bubbles: true, composed: true }));
+    expect(appStore.get().runtime[host.id]["gate"]).toBe(5);
+  });
+
+  it("inputs do not dispatch statechange (only named state is targetable)", async () => {
+    const XML = wrapXml(`
+      <sc-group name="vars">
+        <sc-var name="a" value="1"/>
+      </sc-group>
+      <sc-slider bind:value="vars.a" min="0" max="4"/>
+      <sc-display bind:value="vars.a * 2"/>
+    `);
+    const { host } = await mountPlugin(XML);
+    const leaked: Event[] = [];
+    host.querySelector("sc-slider")!.addEventListener("statechange", (e) => leaked.push(e));
+    host.querySelector("sc-display")!.addEventListener("statechange", (e) => leaked.push(e));
+    const seen: Array<number | string> = [];
+    varByName(host, "a").onStateChange((v) => seen.push(v));
+
+    varByName(host, "a").setValue(2); // recomputes both consumers
+    expect(seen).toEqual([2]); // the state element still notifies
+    expect(leaked).toEqual([]); // the consumers stay silent
+  });
+
+  it("a non-numeric evaluated numeric prop falls back to the widget default and warns once", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const XML = wrapXml(`
+      <sc-var name="mode" value="lin"/>
+      <sc-var name="freq" value="440"/>
+      <sc-slider bind:value="freq" bind:min="mode" max="2000"/>
+    `);
+    const { host } = await mountPlugin(XML);
+    const range = host.querySelector("sc-slider") as ScElement & {
+      updateComplete: Promise<boolean>;
+    };
+    await range.updateComplete;
+    // Lit renders the undefined fallback as an EMPTY attribute (not "NaN");
+    // the base widget's Number converter reads "" as its own default.
+    expect(widgetOf(range).getAttribute("min")).toBe("");
+    expect(widgetOf(range).getAttribute("max")).toBe("2000");
+    const warns = warn.mock.calls.filter(([m]) => String(m).includes("bind:min"));
+    expect(warns).toHaveLength(1); // once per element+prop, across re-renders
+    warn.mockRestore();
   });
 });
 

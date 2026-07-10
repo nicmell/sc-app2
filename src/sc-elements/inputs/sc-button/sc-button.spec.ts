@@ -1,14 +1,14 @@
 import type { ElementSpec } from "@/sc-elements/internal/xsd/types";
 
-// A click commits `value` when given (fixed-value trigger), else toggles the
-// bound state 0 ↔ 1 — hence bind is required (a bindless button has nothing
-// to write to).
+// A click commits `set` when given (a fixed-value trigger), else toggles
+// the bound state 0 ↔ 1. Buttons are write-only, so `bind:value` must be a
+// plain writable path (validateRuntimeProps).
 export const spec: ElementSpec = {
   tag: "sc-button",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true, runtime: false },
-    value: { type: "decimal" },
+    value: { type: "decimal", required: true },
+    set: { type: "decimal" },
     label: { type: "string" },
     icon: { type: "string" },
     variant: { type: "enum", values: ["primary", "secondary", "ghost", "danger"] },

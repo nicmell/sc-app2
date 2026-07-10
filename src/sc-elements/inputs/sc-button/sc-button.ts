@@ -1,27 +1,40 @@
-// <sc-button> — a button bound to a control/var (`bind`/`_targetScNode` on
-// the ScInput base). Renders the ui-components <sc-base-button>, forwarding
-// its props — `label` and `icon` are runtime-capable, the flagship use being
-// a ternary swap (`bind:icon="s1.gate ? 'stop' : 'play'"`). A click writes
-// through the shared commit path: the `value` attribute when given (a
-// fixed-value trigger), else it TOGGLES the target between 0 and 1 on the
-// current `_state`'s truthiness. Writes to derived state stay inert (the
-// ScInput snap-back).
+// <sc-button> — a button writing to a control/var (`bind:value` on the
+// ScInput base). Renders the ui-components <sc-base-button>, forwarding its
+// props — `label` and `icon` are runtime-capable, the flagship use being a
+// ternary swap (`bind:icon="s1.gate ? 'stop' : 'play'"`). A click writes
+// through the shared commit path: the `set` attribute when given (a
+// fixed-value trigger — itself runtime-capable as `bind:set`), else it
+// TOGGLES the target between 0 and 1 on the live value's truthiness.
+//
+// Buttons are WRITE-ONLY, so unlike the other inputs (where an expression or
+// static `value` is a legitimate read-only meter) a button without a
+// writable target is dead weight — validateRuntimeProps rejects it.
 
 import { html } from "lit";
-import { isStateRuntime } from "@/lib/utils/guards";
 import { ScInput } from "@/sc-elements/internal/sc-input";
+import { failValidation } from "@/sc-elements/internal/validation";
 import "@sc-app/ui-components/lit";
 
 export class ScButton extends ScInput {
+  protected validateRuntimeProps(): void {
+    // Requires a plain single-path bind:value resolving to WRITABLE state —
+    // an expression bind, a static `value`, or a DERIVED target (whose
+    // setValue is inert) all leave nothing to click into. The bind-order
+    // constraint guarantees the target processed first, so its own
+    // runtimeProps are settled here.
+    const target = this.targetScState;
+    if (!target || target.runtimeProps?.value !== undefined) {
+      failValidation(this, `"bind:value" must reference a single writable control/var`);
+    }
+  }
+
   private onClick = () => {
-    const value = this.getProp("value") as number | undefined;
-    if (value !== undefined) {
-      this.commit(value);
+    const set = this.getProp("set") as number | undefined;
+    if (set !== undefined) {
+      this.commit(set);
       return;
     }
-    const target = this._targetScNode;
-    if (!target || !isStateRuntime(target)) return;
-    this.commit(target._state ? 0 : 1);
+    this.commit(this.runtimeValue("value") ? 0 : 1);
   };
 
   render() {

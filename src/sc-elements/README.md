@@ -151,47 +151,53 @@ non-node levels (e.g. inside a synthdef).
 
 ## `inputs/`
 
-The value inputs share the `ScInput` seam: one subscription to the target's
-`_state` over the load/unload/disconnect lifecycle, `syncFromState()` mapping
-the value onto the widget (coercing — non-numeric strings leave the widget
-as-is), and `commit()` — `setValue()` then a re-read snap-back so a gesture
-against DERIVED (read-only) state reverts. Their `bind` is a target
-REFERENCE and stays non-reactive; the presentational props not opted out in each spec
-(min/max/step/label/placeholder/disabled)
-accept the `bind:` form and re-render live.
+The value inputs bind through `bind:value` exactly like the visuals — the
+ScElement runtime-prop machinery carries the whole READ side (resolution,
+subscription, recompute), and the `ScInput` seam adds only the write half:
+`targetScState` (a PLAIN single-path `bind:value` resolves to one writable
+state element; an EXPRESSION has no writable target — the input becomes a
+read-only live meter, and a static `value` a fixed inert widget),
+`syncFromState()` mapping the live value onto the widget (riding the
+`runtimeValueChanged` hook — coercing, non-numeric strings leave the widget
+as-is), and `commit()` — `setValue()` then a re-read snap-back so inert
+gestures revert. The old target-reference `bind` survives ONLY on sc-run
+(a node) — a leftover `bind` on a value input gets a pointed migration
+error. The presentational props not opted out in each spec
+(min/max/step/label/placeholder/disabled) accept the `bind:` form and
+re-render live.
 
 ### `<sc-slider>` — functional (ui-components `<sc-base-slider>`)
 
-Props (all forwarded to the inner slider): `bind` (target control/var path),
-`min`, `max`, `step`, `value` (numbers, validated), plus `label`, `size`
-(sm|md|lg), `orientation` (horizontal|vertical), `disabled`. Reads the target
-through `_state`/`onStateChange`, writes via `commit()` on the slider's
-composed `input`. XSD also allows the legacy presentational attributes
+Props (all forwarded to the inner slider): `value` (required — in practice
+`bind:value="s1.freq"`; a plain path is writable, an expression is a
+read-only meter, a static number a fixed widget), `min`, `max`, `step`,
+plus `label`, `size` (sm|md|lg), `orientation` (horizontal|vertical),
+`disabled`. Writes go via `commit()` on the slider's composed `input`. XSD also allows the legacy presentational attributes
 (`width`, `height`, `src`, `sprites`, `fgcolor`, `bgcolor`) — not declared yet.
 
 ### `<sc-knob>` — functional (ui-components `<sc-base-knob>`)
 
 The rotary sibling of sc-slider: the same seam and forwarding, minus
 `orientation` (a knob has none), rendering `<sc-base-knob>` (dial visual,
-dominant-axis drag). Props: `bind`, `min`, `max`, `step`, `value`, `label`,
-`size`, `disabled` (+ legacy `diameter`/`width`/`height`/`src`/colors in XSD).
+dominant-axis drag). Props: `value` (required, usually `bind:value`), `min`,
+`max`, `step`, `label`, `size`, `disabled`.
 
 ### `<sc-checkbox>` — functional (ui-components `<sc-base-checkbox>`)
 
-Props: `bind` (required), `label`, `size`, `disabled`. Checked maps to 1/0
-through the shared ScInput seam (inert against bound state, snaps back). XSD
-also allows width/height/src/colors.
+Props: `value` (required, usually `bind:value`), `label`, `size`,
+`disabled`. Checked maps to 1/0 through the shared ScInput seam (inert
+against derived state, snaps back).
 
 ### `<sc-switch>` — functional (ui-components `<sc-base-switch>`)
 
 The toggle sibling of sc-checkbox: same 1/0 seam, rendering `<sc-base-switch>`
-(track + thumb), minus `label` (the base switch has none). Props: `bind`
-(required), `size`, `disabled`.
+(track + thumb), minus `label` (the base switch has none). Props: `value`
+(required, usually `bind:value`), `size`, `disabled`.
 
 ### `<sc-select>` — functional (ui-components `<sc-base-select>`)
 
-A dropdown over its `<sc-option>` children. Props: `bind` (required),
-`placeholder`, `size`, `disabled`. Collects each option's `{value,label}` at
+A dropdown over its `<sc-option>` children. Props: `value` (required,
+usually `bind:value`), `placeholder`, `size`, `disabled`. Collects each option's `{value,label}` at
 parse and projects them as `<sc-base-option>`s; the selection syncs from the
 target's `_state` and a choice dispatches through `commit()`.
 
@@ -202,19 +208,22 @@ One declarative choice. Props: `value` (number, required by the XSD),
 
 ### `<sc-radio-group>` / `<sc-radio>` — functional (ui-components `<sc-base-radio-group>`)
 
-Radio set over `<sc-radio>` children. Group props: `bind` (required),
-`orientation` (`horizontal|vertical`), `label`, `size`, `disabled`. Radio
+Radio set over `<sc-radio>` children. Group props: `value` (required,
+usually `bind:value`), `orientation` (`horizontal|vertical`), `label`,
+`size`, `disabled`. Radio
 props: `value` (number), `label` (+ XSD-allowed width/height/src/colors) —
 collected and projected as `<sc-base-radio>`s exactly like select/option.
 
 ### `<sc-button>` — functional (ui-components `<sc-base-button>`)
 
-A push button over the ScInput seam. Props: `bind` (required — the target
-control/var), `value` (a fixed value to write on click; ABSENT = the click
-TOGGLES the target 0 ↔ 1 on its truthiness), `label`, `icon`,
-`disabled` (all three runtime-capable — `bind:icon="s1.gate ? 'stop' : 'play'"`
-is the flagship swap), `variant` (primary|secondary|ghost|danger), `size`.
-Writes go through `commit()`, so derived targets stay inert.
+A push button over the ScInput seam — WRITE-ONLY: `bind:value` must be a
+plain writable path (an expression or static value fails at parse,
+validateRuntimeProps). Props: `value` (required, the binding slot), `set`
+(a fixed value to write on click, runtime-capable as `bind:set`; ABSENT =
+the click TOGGLES the target 0 ↔ 1 on the live value's truthiness),
+`label`, `icon`, `disabled` (all three runtime-capable —
+`bind:icon="s1.gate ? 'stop' : 'play'"` is the flagship swap), `variant`
+(primary|secondary|ghost|danger), `size`.
 
 ### `<sc-run>` — stub
 

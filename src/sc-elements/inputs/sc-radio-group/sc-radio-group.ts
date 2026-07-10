@@ -1,5 +1,5 @@
 // <sc-radio-group> — a radio set over its sc-radio children, bound to a
-// control/var (`bind`/`_targetScNode` on the ScInput base). Renders the
+// control/var (`bind:value` on the ScInput base). Renders the
 // ui-components <sc-base-radio-group>, projecting each sc-radio's collected
 // {value,label} into an <sc-base-radio>. The sc-radio children are pure data
 // (consumed at parse, never enabled); the shared ScInput seam syncs the

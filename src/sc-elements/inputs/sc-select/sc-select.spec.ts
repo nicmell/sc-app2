@@ -4,7 +4,7 @@ export const spec: ElementSpec = {
   tag: "sc-select",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true, runtime: false },
+    value: { type: "decimal", required: true },
     placeholder: { type: "string" },
     size: { type: "enum", values: ["sm", "md", "lg"] },
     disabled: { type: "boolean" },

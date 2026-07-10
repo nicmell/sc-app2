@@ -4,7 +4,7 @@ export const spec: ElementSpec = {
   tag: "sc-checkbox",
   category: "input",
   attrs: {
-    bind: { type: "string", required: true, runtime: false },
+    value: { type: "decimal", required: true },
     label: { type: "string" },
     size: { type: "enum", values: ["sm", "md", "lg"] },
     disabled: { type: "boolean" },

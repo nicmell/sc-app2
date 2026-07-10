@@ -39,7 +39,7 @@
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { evalExpr } from "@/lib/utils/expression";
-import { isNodeType, typeOf } from "@/lib/utils/guards";
+import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import {
   baseRuntime,
@@ -109,25 +109,48 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   getProp(name: string): string | number | boolean | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
-      return this.coerceProp(attr, this.#runtime[name], true);
+      return this.coerceProp(attr, name, this.#runtime[name], true);
     }
     const raw = this.getAttribute(name);
     if (raw === null) return undefined;
-    return this.coerceProp(attr, raw, false);
+    return this.coerceProp(attr, name, raw, false);
+  }
+
+  /** Once-per-element+prop warning bookkeeping for evaluated-value type
+   *  misses (per INSTANCE — AttrSpec objects are shared per tag via SPECS,
+   *  so they can't key this). */
+  #warned = new Set<string>();
+
+  #warnOnce(name: string, message: string): void {
+    if (this.#warned.has(name)) return;
+    this.#warned.add(name);
+    console.warn(`<${this.tagName.toLowerCase()}>: ${message}`);
   }
 
   /** Coerce a raw attribute string or an evaluated runtime value per the spec
    *  type: decimal/integer → Number, boolean → `!== "false"` for the static
    *  attribute (run/disabled) and plain truthiness for evaluated values (an
    *  evaluated `''`/0 is falsy), scalar → number-if-numeric-else-string,
-   *  string/enum → String. */
+   *  string/enum → String. Evaluated values that miss their spec type warn
+   *  once per element+prop (the static forms fail at parse in validateProps;
+   *  evaluated ones can only be checked live): a non-numeric on a numeric
+   *  prop returns undefined so the reader falls back to its default instead
+   *  of receiving NaN; an enum miss returns the string (graceful). */
   private coerceProp(
     attr: AttrSpec | undefined,
+    name: string,
     value: StateValue | undefined,
     evaluated: boolean,
   ): string | number | boolean | undefined {
     if (value === undefined) return undefined;
-    if (attr?.type === "decimal" || attr?.type === "integer") return Number(value);
+    if (attr?.type === "decimal" || attr?.type === "integer") {
+      const n = Number(value);
+      if (evaluated && Number.isNaN(n)) {
+        this.#warnOnce(name, `"${bindAttr(name)}" evaluated to non-numeric ${JSON.stringify(value)} — falling back`);
+        return undefined;
+      }
+      return n;
+    }
     if (attr?.type === "boolean") {
       return evaluated ? Boolean(value) : value !== "false";
     }
@@ -136,7 +159,11 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       const n = Number(value);
       return value.trim() !== "" && !Number.isNaN(n) ? n : value;
     }
-    return String(value); // string / enum
+    const s = String(value);
+    if (evaluated && attr?.type === "enum" && !attr.values.includes(s)) {
+      this.#warnOnce(name, `"${bindAttr(name)}" evaluated to "${s}" — not one of ${attr.values.join("|")}`);
+    }
+    return s; // string / enum
   }
 
   /** Spec-driven attribute validation, run before `validate()`: required
@@ -226,9 +253,14 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     this.validate();
     Object.assign(this, this.resolveRuntime(ctx));
     this.resolveRuntimeProps(ctx);
+    this.validateRuntimeProps();
     if (parent) this._parentScNode = parent;
     return this;
   }
+
+  /** Post-resolution validation hook — for rules that need the RESOLVED
+   *  runtime props (sc-button: the bind:value must be a writable target). */
+  protected validateRuntimeProps(): void {}
 
   /** Resolve every present `bind:attr` into live targets + expression — the
    *  same machinery state binds use, so the bind-order constraint applies.
@@ -289,16 +321,19 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** The single internal writer: Object.is-guarded, re-renders (reads go
    *  through `getProp` in render), runs the subclass side-effect hook (BEFORE
    *  notifying, so an element's own effect — e.g. ScControl's /n_set —
-   *  precedes its dependents' recomputes), then, for the `value` prop (the
-   *  one dependents can bind to), dispatches the non-bubbling "statechange".
-   *  Never call from willUpdate/render (it schedules an update). */
+   *  precedes its dependents' recomputes), then, for a STATE element's
+   *  `value` prop, dispatches the non-bubbling "statechange". The gate is
+   *  sound because only named state is targetable — `resolveControlBind`
+   *  matches `isStateRuntime` children exclusively — so an input's or
+   *  visual's `value` recompute has no possible subscriber. Never call from
+   *  willUpdate/render (it schedules an update). */
   protected updateRuntimeValue(name: string, next: StateValue): void {
     const prev = this.#runtime[name];
     if (Object.is(prev, next)) return;
     this.#runtime[name] = next;
     this.requestUpdate();
     this.runtimeValueChanged(name, prev, next);
-    if (name === "value") {
+    if (name === "value" && isStateRuntime(this)) {
       this.dispatchEvent(new CustomEvent<StateValue>("statechange", { detail: next }));
     }
   }

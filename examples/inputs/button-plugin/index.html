@@ -35,7 +35,7 @@
     <sc-control name="pan" value="0"/>
     <sc-control name="gate" value="0"/>
 </sc-synth>
-<sc-button bind="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'" bind:label="s1.gate ? 'Stop' : 'Play'"/>
+<sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'" bind:label="s1.gate ? 'Stop' : 'Play'"/>
 <div>State:
     <sc-display bind:value="s1.gate ? 'playing' : 'stopped'"/>
 </div>

@@ -43,6 +43,7 @@
   <xs:element name="sc-group" type="scGroupType"/>
   <xs:element name="sc-synthdef" type="scSynthdefType"/>
   <xs:element name="sc-ugen" type="scUgenType"/>
+  <xs:element name="sc-env" type="scEnvType"/>
   <xs:element name="sc-control" type="scControlType"/>
   <xs:element name="sc-var" type="scVarType"/>
   <xs:element name="sc-synth" type="scSynthType"/>
@@ -231,11 +232,32 @@
   <xs:complexType name="scUgenType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element ref="sc-control"/>
+      <xs:element ref="sc-env"/>
     </xs:choice>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
     <xs:attribute name="rate" type="xs:string"/>
     <xs:attribute name="op" type="xs:string"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scEnvType">
+    <xs:attribute name="shape" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="adsr"/>
+          <xs:enumeration value="perc"/>
+          <xs:enumeration value="asr"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="attack" type="xs:decimal"/>
+    <xs:attribute name="decay" type="xs:decimal"/>
+    <xs:attribute name="sustain" type="xs:decimal"/>
+    <xs:attribute name="release" type="xs:decimal"/>
+    <xs:attribute name="peak" type="xs:decimal"/>
+    <xs:attribute name="level" type="xs:decimal"/>
+    <xs:attribute name="curve" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

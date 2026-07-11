@@ -8,6 +8,7 @@ export const ELEMENTS = {
   SC_GROUP: "sc-group",
   SC_SYNTHDEF: "sc-synthdef",
   SC_UGEN: "sc-ugen",
+  SC_ENV: "sc-env",
   SC_CONTROL: "sc-control",
   SC_VAR: "sc-var",
   SC_SYNTH: "sc-synth",

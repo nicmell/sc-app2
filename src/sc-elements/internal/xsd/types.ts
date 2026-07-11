@@ -7,8 +7,9 @@
 
 /** An element's placement class. Feeds the per-category content-model groups
  *  (internal/xsd/groups.ts): `input`/`visual`/`widget`/`state`/`node`/`synthdef`
- *  each become an `<xs:group>` that `blockContent` composes; `ugen`/`option` are
- *  child-only — reached solely through a parent's `content.choice`, never a group. */
+ *  each become an `<xs:group>` that `blockContent` composes; `ugen`/`option`/
+ *  `envelope` are child-only — reached solely through a parent's
+ *  `content.choice`, never a group. */
 export type Category =
   | "input"
   | "visual"
@@ -17,7 +18,8 @@ export type Category =
   | "node"
   | "synthdef"
   | "ugen"
-  | "option";
+  | "option"
+  | "envelope";
 
 /** The runtime-prop attribute namespace: `bind:min="vars.lo"` is the dynamic
  *  sibling of `min`. Entries declare it once on the root

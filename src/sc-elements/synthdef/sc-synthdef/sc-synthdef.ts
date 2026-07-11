@@ -10,6 +10,7 @@ import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
 import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
+import type { ScEnv } from "@/sc-elements/synthdef/sc-env";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
 function collectControlParams(node: ScParentElement): Record<string, number> {
@@ -64,13 +65,17 @@ export class ScSynthDef extends ScElement {
     // every ugen input has a bind or value. Compilation waits for load.
     const params = collectControlParams(this as ScElement as ScParentElement);
     const specs = this._scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
-      (c) => ({
-        name: c.getProp("name") as string,
-        type: c.getProp("type") as string,
-        rate: (c.getProp("rate") as string) ?? "ar",
-        op: c.getProp("op") as string | undefined,
-        inputs: collectUgenInputs(c),
-      }),
+      (c) => {
+        const env = c._scChildren?.find((ch): ch is ScEnv => typeOf(ch) === ELEMENTS.SC_ENV);
+        return {
+          name: c.getProp("name") as string,
+          type: c.getProp("type") as string,
+          rate: (c.getProp("rate") as string) ?? "ar",
+          op: c.getProp("op") as string | undefined,
+          inputs: collectUgenInputs(c),
+          env: env?.toEnvSpec(),
+        };
+      },
     );
     return { ...baseRuntime(ctx), loaded: false, params, specs };
   }

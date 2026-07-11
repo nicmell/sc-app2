@@ -21,6 +21,7 @@ import { ScPlugin } from "./nodes/sc-plugin";
 import { ScSynth } from "./nodes/sc-synth";
 import { ScControl } from "./state/sc-control";
 import { ScVar } from "./state/sc-var";
+import { ScEnv } from "./synthdef/sc-env";
 import { ScSynthDef } from "./synthdef/sc-synthdef";
 import { ScUgen } from "./synthdef/sc-ugen";
 import { ScDisplay } from "./visuals/sc-display";
@@ -39,7 +40,7 @@ export { ScNode } from "./internal/sc-node";
 export { ScState } from "./internal/sc-state";
 export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
-export { ScSynthDef, ScUgen };
+export { ScEnv, ScSynthDef, ScUgen };
 export { ScControl, ScVar };
 export {
   ScButton,
@@ -60,6 +61,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_GROUP]: ScGroup,
   [ELEMENTS.SC_SYNTHDEF]: ScSynthDef,
   [ELEMENTS.SC_UGEN]: ScUgen,
+  [ELEMENTS.SC_ENV]: ScEnv,
   [ELEMENTS.SC_CONTROL]: ScControl,
   [ELEMENTS.SC_VAR]: ScVar,
   [ELEMENTS.SC_SYNTH]: ScSynth,

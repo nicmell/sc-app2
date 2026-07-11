@@ -22,6 +22,8 @@ export type {
 } from "./synthdef.js";
 export { lookupUgen, ugensByCategory } from "./registry.js";
 export type { UGenRegistryEntry, UGenRegistryDefault } from "./registry.js";
+export { encodeEnv, envAdsr, envPerc, envAsr } from "./env.js";
+export type { EnvSpec, Curve } from "./env.js";
 export * as builders from "./builders/index.js";
 export { synthdef, ar, kr, ir } from "./sugar/index.js";
 export type { Graph, GraphUGens, GraphOperators, ControlWrapper } from "./sugar/index.js";

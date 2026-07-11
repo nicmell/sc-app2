@@ -16,12 +16,14 @@
 import {
   SynthDef,
   binaryOpIndex,
+  encodeEnv,
   k,
   lookupUgen,
   parseRate,
   u,
   unaryOpIndex,
   uo,
+  type EnvSpec,
   type UGenInput,
   type UGenRegistryDefault,
 } from "@sc-app/synthdef-compiler";
@@ -34,6 +36,9 @@ export interface UgenSpec {
   op?: string;
   /** Input name → bind reference ("osc", "osc:1", "a,b") or literal string. */
   inputs: Record<string, string>;
+  /** For EnvGen: the parsed envelope (from an <sc-env> child), spliced into
+   *  the `envelope` tail input as a run of constants. */
+  env?: EnvSpec;
 }
 
 const OP_TABLES: Record<string, (op: string) => number | null> = {
@@ -87,6 +92,12 @@ class UGenGraphBuilder {
     const arrayInputs: UGenInput[] = [];
     for (const { name: defName, default: defValue } of defaults) {
       if (defName === "numChannels") continue; // structural, not a signal input
+      // EnvGen's `envelope` is a variadic tail array (like channelsArray), but
+      // its contents are the flat Env encoding from an <sc-env> child, not refs.
+      if (defName === "envelope" && spec.env) {
+        for (const v of encodeEnv(spec.env)) arrayInputs.push(k(v));
+        continue;
+      }
       const attrValue = findMatchingInput(spec.inputs, defName);
 
       if (attrValue !== undefined) {

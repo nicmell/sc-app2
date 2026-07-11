@@ -5,7 +5,7 @@
 // order, registry defaults fill).
 
 import { describe, expect, it } from "vitest";
-import { parseScgf } from "@sc-app/synthdef-compiler";
+import { encodeEnv, envAdsr, parseScgf } from "@sc-app/synthdef-compiler";
 import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 
 /** The example-plugin "sine" graph, exactly as sc-synthdef collects it. */
@@ -85,6 +85,33 @@ describe("compileSynthDef", () => {
       { ugenIndex: 2, outputIndex: 0 },
       { ugenIndex: 2, outputIndex: 1 },
     ]);
+  });
+
+  it("splices an EnvGen envelope run at the tail, after the scalar args", () => {
+    const env = envAdsr({ attack: 0.01, decay: 0.1, sustain: 0.7, release: 0.3 });
+    const json = parseScgf(
+      compileSynthDef("note", { freq: 440, gate: 1 }, [
+        { name: "e", type: "EnvGen", rate: "kr", inputs: { gate: "gate", action: "2" }, env },
+        { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "freq" } },
+        { name: "sig", type: "BinaryOpUGen", rate: "ar", op: "*", inputs: { a: "osc", b: "e" } },
+        { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "sig" } },
+      ]),
+    );
+
+    const eg = json.ugens.find((u) => u.className === "EnvGen")!;
+    const flat = encodeEnv(env);
+    // scsynth input order: gate, levelScale, levelBias, timeScale, doneAction,
+    // then the envelope run.
+    expect(eg.numInputs).toBe(5 + flat.length);
+
+    const constAt = (i: number) => {
+      expect(eg.inputs[i].ugenIndex).toBe(-1);
+      return json.constants[eg.inputs[i].outputIndex];
+    };
+    expect(eg.inputs[0].ugenIndex).toBe(0); // gate ← Control slot
+    expect([constAt(1), constAt(2), constAt(3), constAt(4)]).toEqual([1, 0, 1, 2]); // scale/bias/time/doneAction
+    const tail = eg.inputs.slice(5).map((_, i) => constAt(5 + i));
+    expect(tail).toEqual(flat.map(Math.fround));
   });
 
   it("rejects a synthdef without ugens", () => {

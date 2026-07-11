@@ -10,5 +10,5 @@ export const spec: ElementSpec = {
     rate: { type: "string", runtime: false },
     op: { type: "string", runtime: false },
   },
-  content: { choice: ["sc-control"] },
+  content: { choice: ["sc-control", "sc-env"] },
 };

@@ -42,24 +42,38 @@ const METHOD_RE =
   /<h3 class='method-code'>[\s\S]*?<a class='method-name' name='([^']+)'[^>]*>([^<]*)<\/a>((?:\([\s\S]*?\))?)<\/h3>/g;
 const ARGSTR_RE = /<span class='argstr'>([\s\S]*?)<\/span>/g;
 
-/** Parse every CLASS-method (name attr starts with `*`) signature on a page →
- *  [{ method, args: [{ name, default, raw }] }]. */
-export function parseClassMethods(html) {
+function parseArgs(argsBlock) {
+  const args = [];
+  for (const a of argsBlock.matchAll(ARGSTR_RE)) {
+    const span = a[1].trim();
+    const colon = span.indexOf(":");
+    const name = colon < 0 ? span : span.slice(0, colon).trim();
+    const def = colon < 0 ? undefined : span.slice(colon + 1);
+    args.push({ name, ...parseDefault(def) });
+  }
+  return args;
+}
+
+/** Every CLASS-method (name attr starts with `*`) on a page, each with the
+ *  slice of HTML from its prototype up to the next method (its description +
+ *  its own Arguments table) → [{ method, args, section }]. */
+export function parseClassMethodSections(html) {
+  const bounds = [...html.matchAll(METHOD_RE)]; // all method-code blocks (class + instance)
   const out = [];
-  for (const m of html.matchAll(METHOD_RE)) {
-    const [, nameAttr, label, argsBlock] = m;
-    if (!nameAttr.startsWith("*")) continue; // class methods only
-    const args = [];
-    for (const a of argsBlock.matchAll(ARGSTR_RE)) {
-      const span = a[1].trim();
-      const colon = span.indexOf(":");
-      const name = colon < 0 ? span : span.slice(0, colon).trim();
-      const def = colon < 0 ? undefined : span.slice(colon + 1);
-      args.push({ name, ...parseDefault(def) });
-    }
-    out.push({ method: label.trim(), args });
+  for (let i = 0; i < bounds.length; i++) {
+    const m = bounds[i];
+    if (!m[1].startsWith("*")) continue;
+    const start = m.index + m[0].length;
+    const end = i + 1 < bounds.length ? bounds[i + 1].index : html.length;
+    out.push({ method: m[2].trim(), args: parseArgs(m[3]), section: html.slice(start, end) });
   }
   return out;
+}
+
+/** Class-method signatures only (no section slice) — for pages with a single
+ *  shared Arguments table (a typical UGen page). */
+export function parseClassMethods(html) {
+  return parseClassMethodSections(html).map(({ method, args }) => ({ method, args }));
 }
 
 const stripTags = (s) =>
@@ -67,6 +81,16 @@ const stripTags = (s) =>
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+/** A method's prose description: the text of its section up to the first
+ *  sub-heading (Arguments/Returns/Discussion) or nested block. */
+export function methodDescription(section) {
+  const cut = ["<h4", "<h3", "<div class='doclink'", "<table class='arguments'"]
+    .map((t) => section.indexOf(t))
+    .filter((i) => i >= 0);
+  const end = cut.length ? Math.min(...cut) : section.length;
+  return stripTags(section.slice(0, end));
+}
 
 /** Parse the "Arguments:" table → { argName: description }. */
 export function parseArgDocs(html) {

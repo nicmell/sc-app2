@@ -3,6 +3,7 @@
   "shapes": [
     {
       "name": "new",
+      "doc": "Create a new envelope specification.",
       "args": [
         {
           "name": "levels",
@@ -37,6 +38,7 @@
     },
     {
       "name": "linen",
+      "doc": "Creates a new envelope specification which has a trapezoidal shape.",
       "args": [
         {
           "name": "attackTime",
@@ -60,11 +62,16 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "attackTime": "the duration of the attack portion.",
+        "sustainTime": "the duration of the sustain portion.",
+        "releaseTime": "the duration of the release portion.",
+        "level": "the level of the sustain portion.",
+        "curve": "the curvature of the envelope."
       }
     },
     {
       "name": "triangle",
+      "doc": "Creates a new envelope specification which has a triangle shape.",
       "args": [
         {
           "name": "dur",
@@ -75,10 +82,14 @@
           "default": 1
         }
       ],
-      "argDocs": {}
+      "argDocs": {
+        "dur": "the duration of the envelope.",
+        "level": "the peak level of the envelope."
+      }
     },
     {
       "name": "sine",
+      "doc": "Creates a new envelope specification which has a hanning window shape.",
       "args": [
         {
           "name": "dur",
@@ -89,10 +100,14 @@
           "default": 1
         }
       ],
-      "argDocs": {}
+      "argDocs": {
+        "dur": "the duration of the envelope.",
+        "level": "the peak level of the envelope."
+      }
     },
     {
       "name": "perc",
+      "doc": "Creates a new envelope specification which (usually) has a percussive shape.",
       "args": [
         {
           "name": "attackTime",
@@ -112,11 +127,15 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "attackTime": "the duration of the attack portion.",
+        "releaseTime": "the duration of the release portion.",
+        "level": "the peak level of the envelope.",
+        "curve": "the curvature of the envelope."
       }
     },
     {
       "name": "pairs",
+      "doc": "Creates a new envelope specification from coordinates / control points",
       "args": [
         {
           "name": "pairs",
@@ -128,21 +147,26 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "pairs": "an array of pairs [[time, level], ...] if possible, pairs are sorted regarding their point in time",
+        "curve": "the curvature of the envelope."
       }
     },
     {
       "name": "xyc",
+      "doc": "Creates a new envelope specification from coordinates / control points with curvature.",
       "args": [
         {
           "name": "xyc",
           "default": null
         }
       ],
-      "argDocs": {}
+      "argDocs": {
+        "xyc": "an array of triplets [[time, level, curve], ...] if possible, pairs are sorted regarding their point in time"
+      }
     },
     {
       "name": "step",
+      "doc": "Creates a new envelope specification where all the segments are horizontal lines. Given n values of times only n levels need to be provided, corresponding to the fixed value of each segment.",
       "args": [
         {
           "name": "levels",
@@ -167,11 +191,15 @@
       ],
       "argDocs": {
         "levels": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion ).",
-        "times": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values."
+        "times": "an array of durations of segments in seconds. It should be the same size as the levels array.",
+        "releaseNode": "an Integer or nil . The envelope will sustain at the release node until released.",
+        "loopNode": "an Integer or nil . If not nil the output will loop through those nodes starting at the loop node to the node immediately preceding the release node, before back to the loop node, and so on. Note that the envelope only transitions to the release node when released. Examples are below. The loop is escaped when a gate signal is sent, when the output transitions to the release node, as described below.",
+        "offset": "an offset to all time values (only applies in IEnvGen )."
       }
     },
     {
       "name": "adsr",
+      "doc": "Creates a new envelope specification which is shaped like traditional analog attack-decay-sustain-release (adsr) envelopes.",
       "args": [
         {
           "name": "attackTime",
@@ -203,11 +231,18 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "attackTime": "the duration of the attack portion.",
+        "decayTime": "the duration of the decay portion.",
+        "sustainLevel": "the level of the sustain portion as a ratio of the peak level.",
+        "releaseTime": "the duration of the release portion.",
+        "peakLevel": "the peak level of the envelope.",
+        "curve": "the curvature of the envelope.",
+        "bias": "offset"
       }
     },
     {
       "name": "dadsr",
+      "doc": "As *adsr above, but with its onset delayed by delayTime in seconds. The default delay is 0.1.",
       "args": [
         {
           "name": "delayTime",
@@ -242,12 +277,11 @@
           "default": 0
         }
       ],
-      "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
-      }
+      "argDocs": {}
     },
     {
       "name": "asr",
+      "doc": "Creates a new envelope specification which is shaped like traditional analog attack-sustain-release (asr) envelopes.",
       "args": [
         {
           "name": "attackTime",
@@ -267,11 +301,15 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "attackTime": "the duration of the attack portion.",
+        "sustainLevel": "the level of the sustain portion as a ratio of the peak level.",
+        "releaseTime": "the duration of the release portion.",
+        "curve": "the curvature of the envelope."
       }
     },
     {
       "name": "cutoff",
+      "doc": "Creates a new envelope specification which has no attack segment. It simply sustains at the peak level until released. Useful if you only need a fadeout, and more versatile than Line .",
       "args": [
         {
           "name": "releaseTime",
@@ -287,11 +325,14 @@
         }
       ],
       "argDocs": {
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "releaseTime": "the duration of the release portion.",
+        "level": "the peak level of the envelope.",
+        "curve": "the curvature of the envelope."
       }
     },
     {
       "name": "circle",
+      "doc": "Creates a new envelope which, when used by an EnvGen , cycles through its values. For making an already-created envelope cyclic, you can use the -circle instance method, which takes the looparound time and curve as arguments.",
       "args": [
         {
           "name": "levels",
@@ -307,9 +348,9 @@
         }
       ],
       "argDocs": {
-        "levels": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion ).",
-        "times": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values.",
-        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+        "levels": "The levels through which the envelope passes.",
+        "times": "The time between subsequent levels in the envelope. The last value is the looparound time. The array size of times should be the same size of the levels array.",
+        "curve": "The curvature of the envelope segments. The last value is the looparound curve. See *new for valid values. The array size of curve should be the same size of the levels array. NOTE: If the array of times or curve is too short, it will be extended by wrapping around the given values. If a single value is given, it applies to all envelope stages."
       }
     }
   ]

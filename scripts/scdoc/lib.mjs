@@ -76,7 +76,7 @@ export function parseClassMethods(html) {
   return parseClassMethodSections(html).map(({ method, args }) => ({ method, args }));
 }
 
-const stripTags = (s) =>
+export const stripTags = (s) =>
   s
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")

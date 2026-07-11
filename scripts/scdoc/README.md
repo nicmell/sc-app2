@@ -9,6 +9,7 @@ at [doc.sccode.org](https://doc.sccode.org), used to seed / cross-check the
 | --- | --- | --- |
 | `extract-env.mjs` | `yarn scdoc:env` | `out/env-doc.json` — every `Env` class-method constructor (params + defaults + arg docs) |
 | `extract-ugens.mjs` | `yarn scdoc:ugens` | `out/ugens-doc.json` — one entry per standard UGen with an `ar`/`kr`/`ir` constructor (name, rates, defaults, argDocs) |
+| `extract-server-commands.mjs` | `yarn scdoc:server` | `out/server-commands-doc.json` — every scsynth command/reply (address, arg table, prose) from the Server Command Reference, grouped by section |
 | `diff-ugens.ts` | `yarn scdoc:diff` | `out/ugens-diff.md` — the crawl vs the committed registry |
 | `reconcile-ugens.mjs` | `node scripts/scdoc/reconcile-ugens.mjs` | edits the specs + builders in place to the doc's rates + genuine defaults (idempotent) |
 
@@ -79,3 +80,25 @@ registry is deliberately a reshaped, markup-oriented view of the doc:
 Note: the release/loop node INDICES are set inside each `Env` constructor's
 _body_, not its signature, so `extract-env.mjs` cannot recover them — the
 registry supplies them from the SC semantics.
+
+### Server commands — `out/server-commands-doc.json` vs `packages/server-commands`
+
+The doc is grouped into sections, each with an `intro` (shared prose + a shared
+arg table, e.g. the common node-notification format) and `commands` (one per
+anchored `/address`, with a structured `args` table — repeating groups modelled
+as `{ repeat, group }` — plus `description` and full `notes`).
+
+Coverage: **82 of the 84** addresses the package encodes appear verbatim in the
+parsed doc (command constructors + reply accessors). The two exceptions are not
+script bugs:
+
+- **`/rt_memoryStatus`** — the package has it, but it is not documented on the
+  reference page at all (a genuine doc gap; can't extract what isn't there).
+- **`/n_query.reply`** — the package's name for the reply the doc documents as
+  **`/n_info`** ("Reply to /n_query"), which IS present (with the shared
+  node-notification args in its section intro). Same info, different label.
+
+Structural note: replies documented inline rather than as their own `/address`
+heading are still captured — e.g. the 9-field `/status.reply` format lives in a
+`<dl>` inside the `/status` command, so it lands in that command's `args` +
+`description` rather than a standalone entry.

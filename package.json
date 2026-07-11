@@ -15,6 +15,7 @@
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",
     "scdoc:diff": "tsx scripts/scdoc/diff-ugens.ts",
+    "scdoc:server": "node scripts/scdoc/extract-server-commands.mjs",
     "lint": "eslint src packages",
     "format": "prettier --write src packages",
     "format:check": "prettier --check src packages",

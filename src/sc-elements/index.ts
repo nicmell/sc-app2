@@ -30,6 +30,7 @@ import { ScIf } from "./visuals/sc-if";
 import { ScRow } from "./visuals/sc-row";
 import { ScText } from "./visuals/sc-text";
 import { ScConsole } from "./widgets/sc-console";
+import { ScKeyboard } from "./widgets/sc-keyboard";
 import { ScScope } from "./widgets/sc-scope";
 import { ScStrudel } from "./widgets/sc-strudel";
 
@@ -52,7 +53,7 @@ export {
   ScSwitch,
 };
 export { ScCol, ScDisplay, ScFlex, ScIf, ScRow, ScText };
-export { ScConsole, ScScope, ScStrudel };
+export { ScConsole, ScKeyboard, ScScope, ScStrudel };
 
 const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_PLUGIN]: ScPlugin,
@@ -80,6 +81,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_CONSOLE]: ScConsole,
   [ELEMENTS.SC_SCOPE]: ScScope,
   [ELEMENTS.SC_STRUDEL]: ScStrudel,
+  [ELEMENTS.SC_KEYBOARD]: ScKeyboard,
 };
 
 /** Define the custom elements (idempotent — safe to call more than once). */

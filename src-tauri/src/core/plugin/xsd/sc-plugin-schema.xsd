@@ -64,6 +64,7 @@
   <xs:element name="sc-console" type="scConsoleType"/>
   <xs:element name="sc-scope" type="scScopeType"/>
   <xs:element name="sc-strudel" type="scStrudelType"/>
+  <xs:element name="sc-keyboard" type="scKeyboardType"/>
 
   <!-- ==================== Content model groups ==================== -->
 
@@ -116,6 +117,7 @@
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
+      <xs:element ref="sc-keyboard"/>
     </xs:choice>
   </xs:group>
 
@@ -666,6 +668,16 @@
 
   <xs:complexType name="scStrudelType" mixed="true">
     <xs:attribute name="orbit" type="xs:integer"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scKeyboardType">
+    <xs:attribute name="synthdef" type="xs:string" use="required"/>
+    <xs:attribute name="freq" type="xs:string"/>
+    <xs:attribute name="amp" type="xs:string"/>
+    <xs:attribute name="gate" type="xs:string"/>
+    <xs:attribute name="octaves" type="xs:integer"/>
+    <xs:attribute name="start" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

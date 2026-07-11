@@ -57,6 +57,7 @@ fixed-value payload uses `set`, with runtime-capable `bind:set`.
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `scope-frames-plugin`   | A simple sine synth (freq/amp/gate) feeding four `sc-scope`s with `frames` 1024/2048/4096/8192 — the same signal at four window sizes (and four refresh rates: bigger windows page rather than flow). Tests per-(channels, frames) tap compilation + concurrent slots.                               |
 | `scope-channels-plugin` | A two-channel synthdef (sine left, saw right — `Out` with a comma-list `channelsarray`) under three scopes: one 2-channel tap over bus 0–1 plus per-channel mono taps. Tests multichannel lane separation (the chunk's planar layout — this example caught the renderer indexing it as interleaved). |
+| `keyboard-plugin`       | A `sc-keyboard` over a self-freeing `sineNote` synthdef (`Linen` amp env, `action="2"`): each pressed key spawns a voice (`freq` = note.midicps, `amp` = velocity), key-up sets `gate` → 0. Tests the widget's transient-voice spawn/release into the plugin group. Play by click, the `a…k` row, or MIDI hardware. |
 
 ## `invalid/` — intentional failures (the negative fixtures)
 

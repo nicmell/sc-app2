@@ -29,4 +29,5 @@ export const ELEMENTS = {
   SC_CONSOLE: "sc-console",
   SC_SCOPE: "sc-scope",
   SC_STRUDEL: "sc-strudel",
+  SC_KEYBOARD: "sc-keyboard",
 } as const;

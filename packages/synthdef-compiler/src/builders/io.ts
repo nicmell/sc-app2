@@ -482,6 +482,14 @@ export class OffsetOut {
     b._channelsArray = [];
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): OffsetOut {
+    const b = new OffsetOut();
+    b._calcRate = "control";
+    b._bus = { tag: "constant", val: 0 };
+    b._channelsArray = [];
+    return b;
+  }
 
   /**
    * the index of the buss to write to. The lowest index numbers are written to the

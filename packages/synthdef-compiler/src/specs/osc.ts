@@ -48,7 +48,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "DetectIndex",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -101,7 +101,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Index",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -115,7 +115,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "IndexInBetween",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -293,7 +293,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Shaper",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },
@@ -482,7 +482,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "WrapIndex",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bufnum", default: null },
       { name: "in", default: 0 },

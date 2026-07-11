@@ -84,7 +84,7 @@ export class Convolution2 {
     b._in = { tag: "constant", val: 0 };
     b._kernel = { tag: "constant", val: 0 };
     b._trigger = { tag: "constant", val: 0 };
-    b._framesize = { tag: "constant", val: 512 };
+    b._framesize = { tag: "constant", val: 2048 };
     return b;
   }
 
@@ -158,7 +158,7 @@ export class Convolution2L {
     b._in = { tag: "constant", val: 0 };
     b._kernel = { tag: "constant", val: 0 };
     b._trigger = { tag: "constant", val: 0 };
-    b._framesize = { tag: "constant", val: 512 };
+    b._framesize = { tag: "constant", val: 2048 };
     b._crossfade = { tag: "constant", val: 1 };
     return b;
   }
@@ -242,7 +242,7 @@ export class Convolution3 {
     b._in = { tag: "constant", val: 0 };
     b._kernel = { tag: "constant", val: 0 };
     b._trigger = { tag: "constant", val: 0 };
-    b._framesize = { tag: "constant", val: 512 };
+    b._framesize = { tag: "constant", val: 2048 };
     return b;
   }
 
@@ -253,7 +253,7 @@ export class Convolution3 {
     b._in = { tag: "constant", val: 0 };
     b._kernel = { tag: "constant", val: 0 };
     b._trigger = { tag: "constant", val: 0 };
-    b._framesize = { tag: "constant", val: 512 };
+    b._framesize = { tag: "constant", val: 2048 };
     return b;
   }
 
@@ -625,7 +625,7 @@ export class StereoConvolution2L {
     b._kernelL = { tag: "constant", val: 0 };
     b._kernelR = { tag: "constant", val: 0 };
     b._trigger = { tag: "constant", val: 0 };
-    b._framesize = { tag: "constant", val: 512 };
+    b._framesize = { tag: "constant", val: 2048 };
     b._crossfade = { tag: "constant", val: 1 };
     return b;
   }

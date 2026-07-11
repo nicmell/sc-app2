@@ -277,16 +277,16 @@ export class CheckBadValues {
     b._post = { tag: "constant", val: 2 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): CheckBadValues {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): CheckBadValues {
     const b = new CheckBadValues();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._in = { tag: "constant", val: 0 };
     b._id = { tag: "constant", val: 0 };
     b._post = { tag: "constant", val: 2 };
     return b;
   }
+
 
   /** the UGen whose output is to be tested */
   in(v: UGenInputLike): this {

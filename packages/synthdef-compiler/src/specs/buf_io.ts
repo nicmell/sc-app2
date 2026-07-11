@@ -175,7 +175,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "ScopeOut",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "inputArray", default: null },
       { name: "bufnum", default: 0 },

@@ -62,6 +62,12 @@ export class ClipNoise {
     b._calcRate = "audio";
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): ClipNoise {
+    const b = new ClipNoise();
+    b._calcRate = "control";
+    return b;
+  }
 
   /**
    * Materialise this UGen into `def`'s node list.
@@ -229,6 +235,12 @@ export class GrayNoise {
     b._calcRate = "audio";
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): GrayNoise {
+    const b = new GrayNoise();
+    b._calcRate = "control";
+    return b;
+  }
 
   /**
    * Materialise this UGen into `def`'s node list.
@@ -256,6 +268,13 @@ export class Hasher {
   static ar(): Hasher {
     const b = new Hasher();
     b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    return b;
+  }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Hasher {
+    const b = new Hasher();
+    b._calcRate = "control";
     b._in = { tag: "constant", val: 0 };
     return b;
   }
@@ -678,6 +697,15 @@ export class Logistic {
     b._init = { tag: "constant", val: 0.5 };
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Logistic {
+    const b = new Logistic();
+    b._calcRate = "control";
+    b._chaosParam = { tag: "constant", val: 3 };
+    b._freq = { tag: "constant", val: 1000 };
+    b._init = { tag: "constant", val: 0.5 };
+    return b;
+  }
 
   /**
    * a parameter of the chaotic function with useful values from 0.0 to 4.0. Chaos
@@ -734,6 +762,14 @@ export class MantissaMask {
   static ar(): MantissaMask {
     const b = new MantissaMask();
     b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._bits = { tag: "constant", val: 3 };
+    return b;
+  }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): MantissaMask {
+    const b = new MantissaMask();
+    b._calcRate = "control";
     b._in = { tag: "constant", val: 0 };
     b._bits = { tag: "constant", val: 3 };
     return b;

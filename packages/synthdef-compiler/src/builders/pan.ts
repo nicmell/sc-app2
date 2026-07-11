@@ -32,6 +32,16 @@ export class Balance2 {
     b._level = { tag: "constant", val: 1 };
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Balance2 {
+    const b = new Balance2();
+    b._calcRate = "control";
+    b._left = { tag: "constant", val: 0 };
+    b._right = { tag: "constant", val: 0 };
+    b._pos = { tag: "constant", val: 0 };
+    b._level = { tag: "constant", val: 1 };
+    return b;
+  }
 
   /** channel 1 of input stereo signal */
   left(v: UGenInputLike): this {

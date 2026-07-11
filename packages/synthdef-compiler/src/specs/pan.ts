@@ -7,7 +7,7 @@ import { UGenRegistryEntry } from "../registry.js";
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Balance2",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "left", default: null },
       { name: "right", default: null },

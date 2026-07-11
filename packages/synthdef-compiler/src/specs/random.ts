@@ -7,7 +7,7 @@ import { UGenRegistryEntry } from "../registry.js";
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "CoinGate",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "prob", default: null },
       { name: "trig", default: null },
@@ -110,7 +110,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "RandID",
-    rates: ["scalar", "control"],
+    rates: ["control", "scalar"],
     defaults: [{ name: "seed", default: 0 }],
     numOutputs: 1,
     extends: null,
@@ -121,7 +121,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "RandSeed",
-    rates: ["scalar", "control"],
+    rates: ["audio", "control", "scalar"],
     defaults: [
       { name: "trig", default: 0 },
       { name: "seed", default: 56789 },
@@ -157,7 +157,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TIRand",
-    rates: ["control", "audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 127 },
@@ -176,7 +176,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TRand",
-    rates: ["control", "audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "lo", default: 0 },
       { name: "hi", default: 1 },

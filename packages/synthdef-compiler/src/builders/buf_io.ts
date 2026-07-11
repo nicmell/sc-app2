@@ -544,6 +544,14 @@ export class ScopeOut {
     b._inputArray = [];
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): ScopeOut {
+    const b = new ScopeOut();
+    b._calcRate = "control";
+    b._bufnum = { tag: "constant", val: 0 };
+    b._inputArray = [];
+    return b;
+  }
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);

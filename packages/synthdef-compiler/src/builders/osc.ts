@@ -151,15 +151,15 @@ export class DetectIndex {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): DetectIndex {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): DetectIndex {
     const b = new DetectIndex();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._bufnum = { tag: "constant", val: 0 };
     b._in = { tag: "constant", val: 0 };
     return b;
   }
+
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -316,15 +316,15 @@ export class Index {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): Index {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): Index {
     const b = new Index();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._bufnum = { tag: "constant", val: 0 };
     b._in = { tag: "constant", val: 0 };
     return b;
   }
+
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -368,15 +368,15 @@ export class IndexInBetween {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): IndexInBetween {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): IndexInBetween {
     const b = new IndexInBetween();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._bufnum = { tag: "constant", val: 0 };
     b._in = { tag: "constant", val: 0 };
     return b;
   }
+
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -920,15 +920,15 @@ export class Shaper {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): Shaper {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): Shaper {
     const b = new Shaper();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._bufnum = { tag: "constant", val: 0 };
     b._in = { tag: "constant", val: 0 };
     return b;
   }
+
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -1521,15 +1521,15 @@ export class WrapIndex {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): WrapIndex {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): WrapIndex {
     const b = new WrapIndex();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._bufnum = { tag: "constant", val: 0 };
     b._in = { tag: "constant", val: 0 };
     return b;
   }
+
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);

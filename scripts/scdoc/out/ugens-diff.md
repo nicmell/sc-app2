@@ -1,0 +1,319 @@
+# UGen registry: SCDoc crawl vs committed specs
+
+- doc UGens (with ar/kr/ir): **350**
+- registry UGens: **367**
+- in common: **302**
+- only in doc: **48**   only in registry: **65**
+- of common: **125** carry the doc's trailing `mul, add` (the `.ar` wrapper args; scsynth applies them via MulAdd, so the Overtone-based registry omits them — expected)
+- rate mismatches: **0**, other arg-name diffs: **77**, default-value diffs: **106**
+
+## Only in the SCDoc crawl (candidates missing from the registry)
+
+- AnalogIn
+- AnalogOut
+- AudioControl
+- AudioIn
+- BHiPass4
+- BLowPass4
+- BelaScopeOut
+- BufInfoUGenBase
+- Changed
+- CompanderD
+- Control
+- DigitalIO
+- DigitalIn
+- DigitalOut
+- DynKlang
+- DynKlank
+- FoldIndex
+- HilbertFIR
+- InBus
+- IndexL
+- InfoUGenBase
+- LagControl
+- LinLin
+- LinSelectX
+- Mix
+- ModDif
+- MultiTap
+- MultiplexAnalogIn
+- NamedControl
+- NumChannels
+- OscN
+- PMOsc
+- PingPong
+- Sanitize
+- SelectX
+- SelectXFocus
+- SendPeakRMS
+- SoundIn
+- Splay
+- SplayAz
+- SplayZ
+- TChoose
+- TWChoose
+- Tap
+- TrigControl
+- VarLag
+- XIn
+- XInFeedback
+
+## Only in the committed registry (not found in the standard UGens crawl)
+
+- BinaryOpUGen
+- ClearBuf
+- Dbrown
+- Dbufrd
+- Dbufwr
+- Dgeom
+- Dibrown
+- Diwhite
+- Donce
+- Dpoll
+- Drand
+- Dseq
+- Dser
+- Dseries
+- Dshuf
+- Dstutter
+- Dswitch
+- Dswitch1
+- Dwhite
+- Dxrand
+- ExpRand
+- FFT
+- FFTTrigger
+- IRand
+- LinRand
+- LocalBuf
+- MaxLocalBufs
+- MulAdd
+- NRand
+- PV_Add
+- PV_BinScramble
+- PV_BinShift
+- PV_BinWipe
+- PV_BrickWall
+- PV_ConformalMap
+- PV_Conj
+- PV_Copy
+- PV_CopyPhase
+- PV_Diffuser
+- PV_Div
+- PV_LocalMax
+- PV_MagAbove
+- PV_MagBelow
+- PV_MagClip
+- PV_MagDiv
+- PV_MagFreeze
+- PV_MagMul
+- PV_MagNoise
+- PV_MagShift
+- PV_MagSmear
+- PV_MagSquared
+- PV_Max
+- PV_Min
+- PV_Mul
+- PV_PhaseShift
+- PV_PhaseShift270
+- PV_PhaseShift90
+- PV_RandComb
+- PV_RandWipe
+- PV_RectComb
+- PV_RectComb2
+- Rand
+- SetBuf
+- Trapezoid
+- UnaryOpUGen
+
+## Rate mismatches
+
+
+## Argument-name differences (excluding the expected mul/add tail)
+
+- AllpassC: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- AllpassL: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- AllpassN: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- BufAllpassC: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufAllpassL: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufAllpassN: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufChannels: doc-only[bufnum] reg-only[buf]
+- BufCombC: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufCombL: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufCombN: doc-only[delaytime,decaytime,mul,add] reg-only[delayTime,decayTime]
+- BufDelayC: doc-only[delaytime,mul,add] reg-only[delayTime]
+- BufDelayL: doc-only[delaytime,mul,add] reg-only[delayTime]
+- BufDelayN: doc-only[delaytime,mul,add] reg-only[delayTime]
+- BufDur: doc-only[bufnum] reg-only[buf]
+- BufFrames: doc-only[bufnum] reg-only[buf]
+- BufRateScale: doc-only[bufnum] reg-only[buf]
+- BufSampleRate: doc-only[bufnum] reg-only[buf]
+- BufSamples: doc-only[bufnum] reg-only[buf]
+- CoinGate: doc-only[in] reg-only[trig]
+- CombC: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- CombL: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- CombN: doc-only[maxdelaytime,delaytime,decaytime,mul,add] reg-only[maxDelayTime,delayTime,decayTime]
+- DecodeB2: doc-only[numChans] reg-only[numChannels]
+- DelTapRd: doc-only[delTime,mul,add] reg-only[delay]
+- Delay1: doc-only[mul,add,x1] reg-only[—]
+- Delay2: doc-only[mul,add,x1,x2] reg-only[—]
+- DelayC: doc-only[maxdelaytime,delaytime,mul,add] reg-only[maxDelayTime,delayTime]
+- DelayL: doc-only[maxdelaytime,delaytime,mul,add] reg-only[maxDelayTime,delayTime]
+- DelayN: doc-only[maxdelaytime,delaytime,mul,add] reg-only[maxDelayTime,delayTime]
+- Demand: doc-only[demandUGens] reg-only[demandUgens]
+- DemandEnvGen: doc-only[doneAction] reg-only[action]
+- DetectSilence: doc-only[doneAction] reg-only[action]
+- Duty: doc-only[doneAction] reg-only[action]
+- EnvGen: doc-only[doneAction] reg-only[action]
+- Formlet: doc-only[attacktime,decaytime,mul,add] reg-only[attackTime,decayTime]
+- Gendy1: doc-only[initCPs,mul,add] reg-only[initCps]
+- Gendy2: doc-only[initCPs,mul,add] reg-only[initCps]
+- Gendy3: doc-only[initCPs,mul,add] reg-only[initCps]
+- GrainFM: doc-only[carfreq,modfreq,mul,add] reg-only[carFreq,modFreq]
+- IEnvGen: doc-only[envelope,mul,add] reg-only[ienvelope]
+- IFFT: doc-only[buffer] reg-only[chain]
+- InRect: doc-only[rect] reg-only[left,top,right,bottom]
+- Klang: doc-only[specificationsArrayRef] reg-only[specs]
+- Klank: doc-only[specificationsArrayRef] reg-only[specs]
+- LFGauss: doc-only[doneAction] reg-only[action]
+- Lag2UD: doc-only[lagTimeU,lagTimeD,mul,add] reg-only[lagTimeUp,lagTimeDown]
+- Lag3UD: doc-only[lagTimeU,lagTimeD,mul,add] reg-only[lagTimeUp,lagTimeDown]
+- LagUD: doc-only[lagTimeU,lagTimeD,mul,add] reg-only[lagTimeUp,lagTimeDown]
+- Line: doc-only[mul,add,doneAction] reg-only[action]
+- Linen: doc-only[doneAction] reg-only[action]
+- LocalIn: doc-only[default] reg-only[—]
+- MouseButton: doc-only[minval,maxval] reg-only[up,down]
+- MouseX: doc-only[minval,maxval] reg-only[min,max]
+- MouseY: doc-only[minval,maxval] reg-only[min,max]
+- Osc: doc-only[bufnum,mul,add] reg-only[buffer]
+- PV_HainsworthFoote: doc-only[waittime] reg-only[waitTime]
+- PV_JensenAndersen: doc-only[waittime] reg-only[waitTime]
+- PanAz: doc-only[numChans] reg-only[numChannels]
+- Peak: doc-only[in] reg-only[reset]
+- PlayBuf: doc-only[doneAction] reg-only[action]
+- Poll: doc-only[trigid] reg-only[trigId]
+- PulseDivider: doc-only[start] reg-only[startVal]
+- RandID: doc-only[id] reg-only[seed]
+- RecordBuf: doc-only[doneAction] reg-only[action]
+- Ringz: doc-only[decaytime,mul,add] reg-only[decayTime]
+- Select: doc-only[array] reg-only[channelsArray]
+- SendReply: doc-only[replyID] reg-only[replyId]
+- SpecCentroid: doc-only[buffer] reg-only[chain]
+- SpecFlatness: doc-only[buffer] reg-only[chain]
+- SpecPcile: doc-only[buffer,binout] reg-only[chain]
+- TDelay: doc-only[in] reg-only[trig]
+- TDuty: doc-only[doneAction] reg-only[action]
+- TWindex: doc-only[in,array] reg-only[trig,channelsArray]
+- Trig: doc-only[in] reg-only[trig]
+- Trig1: doc-only[in] reg-only[trig]
+- Vibrato: doc-only[trig] reg-only[—]
+- XLine: doc-only[mul,add,doneAction] reg-only[action]
+
+## Default-value differences (shared args)
+
+- APF.radius: doc=0.8 reg=0.800000011920929
+- AmpComp.freq: doc=null reg=261.6256103515625
+- AmpComp.root: doc=null reg=261.6256103515625
+- AmpComp.exp: doc=0.3333 reg=0.33329999446868896
+- AmpCompA.minAmp: doc=0.32 reg=0.3199999928474426
+- BeatTrack2.weightingscheme: doc=null reg=-2.0999999046325684
+- BufRd.numChannels: doc=null reg=1
+- CheckBadValues.in: doc=0 reg=null
+- Clip.in: doc=null reg=0
+- Compander.relaxTime: doc=0.1 reg=0.10000000149011612
+- Convolution2.trigger: doc=0 reg=null
+- Convolution2L.trigger: doc=0 reg=null
+- CuspL.b: doc=1.9 reg=1.899999976158142
+- CuspN.b: doc=1.9 reg=1.899999976158142
+- DC.in: doc=0 reg=null
+- DelTapRd.buffer: doc=null reg=0
+- DelTapRd.phase: doc=null reg=0
+- DelTapWr.buffer: doc=null reg=0
+- DelTapWr.in: doc=null reg=0
+- Demand.reset: doc=null reg=0
+- DetectSilence.time: doc=0.1 reg=0.10000000149011612
+- FBSineC.fb: doc=0.1 reg=0.10000000149011612
+- FBSineC.a: doc=1.1 reg=1.100000023841858
+- FBSineC.xi: doc=0.1 reg=0.10000000149011612
+- FBSineC.yi: doc=0.1 reg=0.10000000149011612
+- FBSineL.fb: doc=0.1 reg=0.10000000149011612
+- FBSineL.a: doc=1.1 reg=1.100000023841858
+- FBSineL.xi: doc=0.1 reg=0.10000000149011612
+- FBSineL.yi: doc=0.1 reg=0.10000000149011612
+- FBSineN.fb: doc=0.1 reg=0.10000000149011612
+- FBSineN.a: doc=1.1 reg=1.100000023841858
+- FBSineN.xi: doc=0.1 reg=0.10000000149011612
+- FBSineN.yi: doc=0.1 reg=0.10000000149011612
+- Fold.in: doc=null reg=0
+- FreeVerb.mix: doc=0.33 reg=0.33000001311302185
+- FreeVerb2.mix: doc=0.33 reg=0.33000001311302185
+- GVerb.earlyreflevel: doc=0.7 reg=0.699999988079071
+- GbmanL.xi: doc=1.2 reg=1.2000000476837158
+- GbmanL.yi: doc=2.1 reg=2.0999999046325684
+- GbmanN.xi: doc=1.2 reg=1.2000000476837158
+- GbmanN.yi: doc=2.1 reg=2.0999999046325684
+- Gendy1.knum: doc=null reg=12
+- Gendy2.knum: doc=null reg=12
+- Gendy2.a: doc=1.17 reg=1.1699999570846558
+- Gendy2.c: doc=0.31 reg=0.3100000023841858
+- Gendy3.knum: doc=null reg=12
+- HenonC.a: doc=1.4 reg=1.399999976158142
+- HenonC.b: doc=0.3 reg=0.30000001192092896
+- HenonL.a: doc=1.4 reg=1.399999976158142
+- HenonL.b: doc=0.3 reg=0.30000001192092896
+- HenonN.a: doc=1.4 reg=1.399999976158142
+- HenonN.b: doc=0.3 reg=0.30000001192092896
+- InRange.in: doc=null reg=0
+- InRect.x: doc=null reg=0
+- InRect.y: doc=null reg=0
+- KeyState.lag: doc=0.2 reg=0.20000000298023224
+- LFGauss.width: doc=0.1 reg=0.10000000149011612
+- Lag.lagTime: doc=0.1 reg=0.10000000149011612
+- Lag2.lagTime: doc=0.1 reg=0.10000000149011612
+- Lag3.lagTime: doc=0.1 reg=0.10000000149011612
+- LagIn.lag: doc=0.1 reg=0.10000000149011612
+- LeakDC.coef: doc=0.995 reg=0.9950000047683716
+- Limiter.in: doc=0 reg=null
+- LinCongC.a: doc=1.1 reg=1.100000023841858
+- LinCongC.c: doc=0.13 reg=0.12999999523162842
+- LinCongL.a: doc=1.1 reg=1.100000023841858
+- LinCongL.c: doc=0.13 reg=0.12999999523162842
+- LinCongN.a: doc=1.1 reg=1.100000023841858
+- LinCongN.c: doc=0.13 reg=0.12999999523162842
+- LinXFade2.inB: doc=0 reg=null
+- LorenzL.b: doc=2.667 reg=2.6670000553131104
+- LorenzL.xi: doc=0.1 reg=0.10000000149011612
+- MoogFF.in: doc=null reg=0
+- MouseButton.lag: doc=0.2 reg=0.20000000298023224
+- MouseX.lag: doc=0.2 reg=0.20000000298023224
+- MouseY.lag: doc=0.2 reg=0.20000000298023224
+- Normalizer.in: doc=0 reg=null
+- Onsets.odftype: doc="rcomplex" reg=3
+- Onsets.floor: doc=0.1 reg=0.10000000149011612
+- PSinGrain.dur: doc=0.2 reg=0.20000000298023224
+- PeakFollower.decay: doc=0.999 reg=0.9990000128746033
+- Pitch.in: doc=0 reg=null
+- PitchShift.in: doc=0 reg=null
+- PitchShift.windowSize: doc=0.2 reg=0.20000000298023224
+- Pluck.maxdelaytime: doc=0.2 reg=0.20000000298023224
+- Pluck.delaytime: doc=0.2 reg=0.20000000298023224
+- Poll.trig: doc=null reg=0
+- Poll.in: doc=null reg=0
+- Ramp.lagTime: doc=0.1 reg=0.10000000149011612
+- Schmidt.in: doc=null reg=0
+- ScopeOut2.scopeFrames: doc=null reg=4096
+- SendReply.cmdName: doc="/reply" reg=null
+- SendReply.values: doc=null reg=0
+- Stepper.resetval: doc=null reg=1
+- StereoConvolution2L.trigger: doc=0 reg=null
+- TDelay.dur: doc=0.1 reg=0.10000000149011612
+- TGrains.numChannels: doc=null reg=2
+- TGrains.dur: doc=0.1 reg=0.10000000149011612
+- TGrains.amp: doc=0.1 reg=0.10000000149011612
+- Trig.dur: doc=0.1 reg=0.10000000149011612
+- Trig1.dur: doc=0.1 reg=0.10000000149011612
+- TwoPole.radius: doc=0.8 reg=0.800000011920929
+- TwoZero.radius: doc=0.8 reg=0.800000011920929
+- Vibrato.depthVariation: doc=0.1 reg=0.10000000149011612
+- Wrap.in: doc=null reg=0
+- XFade2.inB: doc=0 reg=null

@@ -7,7 +7,7 @@ import { UGenRegistryEntry } from "../registry.js";
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Blip",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "numharm", default: 200 },
@@ -105,7 +105,7 @@ export const UGENS: UGenRegistryEntry[] = [
     defaults: [
       { name: "freq", default: 440 },
       { name: "dur", default: 0.20000000298023224 },
-      { name: "amp", default: 1 },
+      { name: "amp", default: 0.1 },
     ],
     numOutputs: null,
     extends: null,
@@ -120,7 +120,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Pulse",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "freq", default: 440 },
       { name: "width", default: 0.5 },
@@ -140,7 +140,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Saw",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [{ name: "freq", default: 440 }],
     numOutputs: null,
     extends: null,

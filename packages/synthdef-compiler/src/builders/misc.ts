@@ -26,6 +26,16 @@ export class Ball {
     b._friction = { tag: "constant", val: 0.01 };
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Ball {
+    const b = new Ball();
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._g = { tag: "constant", val: 1 };
+    b._damp = { tag: "constant", val: 0 };
+    b._friction = { tag: "constant", val: 0.01 };
+    return b;
+  }
 
   /** modulated surface level */
   in(v: UGenInputLike): this {
@@ -1256,7 +1266,16 @@ export class Spring {
     const b = new Spring();
     b._calcRate = "audio";
     b._in = { tag: "constant", val: 0 };
-    b._spring = { tag: "constant", val: 0 };
+    b._spring = { tag: "constant", val: 1 };
+    b._damp = { tag: "constant", val: 0 };
+    return b;
+  }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Spring {
+    const b = new Spring();
+    b._calcRate = "control";
+    b._in = { tag: "constant", val: 0 };
+    b._spring = { tag: "constant", val: 1 };
     b._damp = { tag: "constant", val: 0 };
     return b;
   }
@@ -1310,6 +1329,16 @@ export class TBall {
   static ar(): TBall {
     const b = new TBall();
     b._calcRate = "audio";
+    b._in = { tag: "constant", val: 0 };
+    b._g = { tag: "constant", val: 10 };
+    b._damp = { tag: "constant", val: 0 };
+    b._friction = { tag: "constant", val: 0.01 };
+    return b;
+  }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): TBall {
+    const b = new TBall();
+    b._calcRate = "control";
     b._in = { tag: "constant", val: 0 };
     b._g = { tag: "constant", val: 10 };
     b._damp = { tag: "constant", val: 0 };

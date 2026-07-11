@@ -18,7 +18,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "ClipNoise",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [],
     numOutputs: null,
     extends: null,
@@ -67,7 +67,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "GrayNoise",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [],
     numOutputs: null,
     extends: null,
@@ -78,7 +78,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Hasher",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [{ name: "in", default: 0 }],
     numOutputs: null,
     extends: null,
@@ -177,7 +177,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Logistic",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "chaosParam", default: 3 },
       { name: "freq", default: 1000 },
@@ -202,7 +202,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "MantissaMask",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "bits", default: 3 },

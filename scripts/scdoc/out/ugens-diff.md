@@ -5,7 +5,7 @@
 - in common: **302**
 - only in doc: **48**   only in registry: **65**
 - of common: **125** carry the doc's trailing `mul, add` (the `.ar` wrapper args; scsynth applies them via MulAdd, so the Overtone-based registry omits them — expected)
-- rate mismatches: **45**, other arg-name diffs: **77**, default-value diffs: **114**
+- rate mismatches: **0**, other arg-name diffs: **77**, default-value diffs: **106**
 
 ## Only in the SCDoc crawl (candidates missing from the registry)
 
@@ -128,51 +128,6 @@
 
 ## Rate mismatches
 
-- Balance2: doc[ar,kr] vs reg[ar]
-- Ball: doc[ar,kr] vs reg[ar]
-- Blip: doc[ar,kr] vs reg[ar]
-- CheckBadValues: doc[ar,kr] vs reg[ir,kr]
-- ClipNoise: doc[ar,kr] vs reg[ar]
-- CoinGate: doc[ar,kr] vs reg[ir,kr]
-- CuspL: doc[ar] vs reg[ar,kr]
-- CuspN: doc[ar] vs reg[ar,kr]
-- DetectIndex: doc[ar,kr] vs reg[ir,kr]
-- FBSineC: doc[ar] vs reg[ar,kr]
-- FBSineL: doc[ar] vs reg[ar,kr]
-- FBSineN: doc[ar] vs reg[ar,kr]
-- GbmanL: doc[ar] vs reg[ar,kr]
-- GbmanN: doc[ar] vs reg[ar,kr]
-- GrayNoise: doc[ar,kr] vs reg[ar]
-- Hasher: doc[ar,kr] vs reg[ar]
-- HenonC: doc[ar] vs reg[ar,kr]
-- HenonL: doc[ar] vs reg[ar,kr]
-- HenonN: doc[ar] vs reg[ar,kr]
-- InRange: doc[ar,ir,kr] vs reg[ar,kr]
-- Index: doc[ar,kr] vs reg[ir,kr]
-- IndexInBetween: doc[ar,kr] vs reg[ir,kr]
-- LatoocarfianC: doc[ar] vs reg[ar,kr]
-- LatoocarfianL: doc[ar] vs reg[ar,kr]
-- LatoocarfianN: doc[ar] vs reg[ar,kr]
-- LinCongC: doc[ar] vs reg[ar,kr]
-- LinCongL: doc[ar] vs reg[ar,kr]
-- LinCongN: doc[ar] vs reg[ar,kr]
-- Logistic: doc[ar,kr] vs reg[ar]
-- LorenzL: doc[ar] vs reg[ar,kr]
-- MantissaMask: doc[ar,kr] vs reg[ar]
-- OffsetOut: doc[ar,kr] vs reg[ar]
-- Pulse: doc[ar,kr] vs reg[ar]
-- QuadC: doc[ar] vs reg[ar,kr]
-- QuadL: doc[ar] vs reg[ar,kr]
-- QuadN: doc[ar] vs reg[ar,kr]
-- RandSeed: doc[ar,ir,kr] vs reg[ir,kr]
-- Saw: doc[ar,kr] vs reg[ar]
-- ScopeOut: doc[ar,kr] vs reg[ar]
-- Shaper: doc[ar,kr] vs reg[ir,kr]
-- Spring: doc[ar,kr] vs reg[ar]
-- StandardL: doc[ar] vs reg[ar,kr]
-- StandardN: doc[ar] vs reg[ar,kr]
-- TBall: doc[ar,kr] vs reg[ar]
-- WrapIndex: doc[ar,kr] vs reg[ir,kr]
 
 ## Argument-name differences (excluding the expected mul/add tail)
 
@@ -267,10 +222,7 @@
 - Clip.in: doc=null reg=0
 - Compander.relaxTime: doc=0.1 reg=0.10000000149011612
 - Convolution2.trigger: doc=0 reg=null
-- Convolution2.framesize: doc=2048 reg=512
 - Convolution2L.trigger: doc=0 reg=null
-- Convolution2L.framesize: doc=2048 reg=512
-- Convolution3.framesize: doc=2048 reg=512
 - CuspL.b: doc=1.9 reg=1.899999976158142
 - CuspN.b: doc=1.9 reg=1.899999976158142
 - DC.in: doc=0 reg=null
@@ -305,7 +257,6 @@
 - Gendy2.a: doc=1.17 reg=1.1699999570846558
 - Gendy2.c: doc=0.31 reg=0.3100000023841858
 - Gendy3.knum: doc=null reg=12
-- GrainBuf.pos: doc=0 reg=1
 - HenonC.a: doc=1.4 reg=1.399999976158142
 - HenonC.b: doc=0.3 reg=0.30000001192092896
 - HenonL.a: doc=1.4 reg=1.399999976158142
@@ -340,7 +291,6 @@
 - Onsets.odftype: doc="rcomplex" reg=3
 - Onsets.floor: doc=0.1 reg=0.10000000149011612
 - PSinGrain.dur: doc=0.2 reg=0.20000000298023224
-- PSinGrain.amp: doc=0.1 reg=1
 - PeakFollower.decay: doc=0.999 reg=0.9990000128746033
 - Pitch.in: doc=0 reg=null
 - PitchShift.in: doc=0 reg=null
@@ -354,10 +304,8 @@
 - ScopeOut2.scopeFrames: doc=null reg=4096
 - SendReply.cmdName: doc="/reply" reg=null
 - SendReply.values: doc=null reg=0
-- Spring.spring: doc=1 reg=0
 - Stepper.resetval: doc=null reg=1
 - StereoConvolution2L.trigger: doc=0 reg=null
-- StereoConvolution2L.framesize: doc=2048 reg=512
 - TDelay.dur: doc=0.1 reg=0.10000000149011612
 - TGrains.numChannels: doc=null reg=2
 - TGrains.dur: doc=0.1 reg=0.10000000149011612
@@ -367,6 +315,5 @@
 - TwoPole.radius: doc=0.8 reg=0.800000011920929
 - TwoZero.radius: doc=0.8 reg=0.800000011920929
 - Vibrato.depthVariation: doc=0.1 reg=0.10000000149011612
-- Warp1.windowSize: doc=0.2 reg=0.10000000149011612
 - Wrap.in: doc=null reg=0
 - XFade2.inB: doc=0 reg=null

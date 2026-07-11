@@ -10,6 +10,7 @@ at [doc.sccode.org](https://doc.sccode.org), used to seed / cross-check the
 | `extract-env.mjs` | `yarn scdoc:env` | `out/env-doc.json` — every `Env` class-method constructor (params + defaults + arg docs) |
 | `extract-ugens.mjs` | `yarn scdoc:ugens` | `out/ugens-doc.json` — one entry per standard UGen with an `ar`/`kr`/`ir` constructor (name, rates, defaults, argDocs) |
 | `diff-ugens.ts` | `yarn scdoc:diff` | `out/ugens-diff.md` — the crawl vs the committed registry |
+| `reconcile-ugens.mjs` | `node scripts/scdoc/reconcile-ugens.mjs` | edits the specs + builders in place to the doc's rates + genuine defaults (idempotent) |
 
 The UGen class list + categories come from the site's `docmap.js` (the
 machine-readable index behind `Browse.html#UGens`); each class page supplies the
@@ -19,7 +20,13 @@ method signatures. `lib.mjs` holds the shared HTML/docmap parsing.
 
 The committed `packages/synthdef-compiler` specs came from an **Overtone** dump;
 this crawl is from **SCDoc HTML**. Both describe the same UGens but diverge — see
-`out/ugens-diff.md` for the full classification. The load-bearing differences:
+`out/ugens-diff.md` for the full classification.
+
+`reconcile-ugens.mjs` has been applied: the **rate lists** were aligned to the
+doc (0 mismatches remain) and the **8 genuine default-value bugs** fixed
+(`Convolution2/2L/3` + `StereoConvolution2L` framesize 512→2048, `Spring.spring`
+0→1, `GrainBuf.pos` 1→0, `Warp1.windowSize` 0.1→0.2, `PSinGrain.amp` 1→0.1) in
+both specs and builders. The remaining, deliberately-unreconciled differences:
 
 - **Constructor style the crawl can't see.** The crawl only follows `ar`/`kr`/`ir`
   class methods, so UGens constructed via `*new` are missed: the demand-rate

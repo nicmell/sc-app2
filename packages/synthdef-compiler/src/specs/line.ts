@@ -18,7 +18,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "AmpComp",
-    rates: ["scalar", "audio", "control"],
+    rates: ["audio", "control", "scalar"],
     defaults: [
       { name: "freq", default: 261.6256103515625 },
       { name: "root", default: 261.6256103515625 },
@@ -41,7 +41,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "AmpCompA",
-    rates: ["scalar", "audio", "control"],
+    rates: ["audio", "control", "scalar"],
     defaults: [
       { name: "freq", default: 1000 },
       { name: "root", default: 0 },

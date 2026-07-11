@@ -30,7 +30,7 @@ export class GrainBuf {
     b._dur = { tag: "constant", val: 1 };
     b._sndbuf = { tag: "constant", val: 0 };
     b._rate = { tag: "constant", val: 1 };
-    b._pos = { tag: "constant", val: 1 };
+    b._pos = { tag: "constant", val: 0 };
     b._interp = { tag: "constant", val: 2 };
     b._pan = { tag: "constant", val: 0 };
     b._envbufnum = { tag: "constant", val: -1 };
@@ -486,7 +486,7 @@ export class Warp1 {
     b._bufnum = { tag: "constant", val: 0 };
     b._pointer = { tag: "constant", val: 0 };
     b._freqScale = { tag: "constant", val: 1 };
-    b._windowSize = { tag: "constant", val: 0.1 };
+    b._windowSize = { tag: "constant", val: 0.2 };
     b._envbufnum = { tag: "constant", val: -1 };
     b._overlaps = { tag: "constant", val: 8 };
     b._windowRandRatio = { tag: "constant", val: 0 };

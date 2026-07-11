@@ -32,6 +32,14 @@ export class Blip {
     b._numharm = { tag: "constant", val: 200 };
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Blip {
+    const b = new Blip();
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._numharm = { tag: "constant", val: 200 };
+    return b;
+  }
 
   /** Frequency in Hertz (control rate) */
   freq(v: UGenInputLike): this {
@@ -278,7 +286,7 @@ export class PSinGrain {
     b._calcRate = "audio";
     b._freq = { tag: "constant", val: 440 };
     b._dur = { tag: "constant", val: 0.2 };
-    b._amp = { tag: "constant", val: 1 };
+    b._amp = { tag: "constant", val: 0.1 };
     return b;
   }
 
@@ -339,6 +347,14 @@ export class Pulse {
     b._width = { tag: "constant", val: 0.5 };
     return b;
   }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Pulse {
+    const b = new Pulse();
+    b._calcRate = "control";
+    b._freq = { tag: "constant", val: 440 };
+    b._width = { tag: "constant", val: 0.5 };
+    return b;
+  }
 
   /** Frequency in Hertz (control rate) */
   freq(v: UGenInputLike): this {
@@ -384,6 +400,13 @@ export class Saw {
   static ar(): Saw {
     const b = new Saw();
     b._calcRate = "audio";
+    b._freq = { tag: "constant", val: 440 };
+    return b;
+  }
+  /** Build at kr rate (Rate::Control). */
+  static kr(): Saw {
+    const b = new Saw();
+    b._calcRate = "control";
     b._freq = { tag: "constant", val: 440 };
     return b;
   }

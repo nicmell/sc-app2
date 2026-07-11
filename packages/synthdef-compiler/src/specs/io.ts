@@ -157,7 +157,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "OffsetOut",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "bus", default: null },
       { name: "channelsArray", default: null },

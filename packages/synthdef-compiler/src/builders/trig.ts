@@ -229,6 +229,15 @@ export class InRange {
     b._hi = { tag: "constant", val: 1 };
     return b;
   }
+  /** Build at ir rate (Rate::Scalar). */
+  static ir(): InRange {
+    const b = new InRange();
+    b._calcRate = "scalar";
+    b._in = { tag: "constant", val: 0 };
+    b._lo = { tag: "constant", val: 0 };
+    b._hi = { tag: "constant", val: 1 };
+    return b;
+  }
 
   /** input signal */
   in(v: UGenInputLike): this {

@@ -73,7 +73,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "CheckBadValues",
-    rates: ["control", "scalar"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: null },
       { name: "id", default: 0 },
@@ -172,7 +172,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "NumRunningSynths",
-    rates: ["scalar", "control"],
+    rates: ["control", "scalar"],
     defaults: [],
     numOutputs: null,
     extends: null,

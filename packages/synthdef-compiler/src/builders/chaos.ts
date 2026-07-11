@@ -30,16 +30,6 @@ export class CuspL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): CuspL {
-    const b = new CuspL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: 1.9 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -104,16 +94,6 @@ export class CuspN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): CuspN {
-    const b = new CuspN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: 1.9 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -186,19 +166,6 @@ export class FBSineC {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): FBSineC {
-    const b = new FBSineC();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._im = { tag: "constant", val: 1 };
-    b._fb = { tag: "constant", val: 0.1 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.1 };
-    b._yi = { tag: "constant", val: 0.1 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -292,19 +259,6 @@ export class FBSineL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): FBSineL {
-    const b = new FBSineL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._im = { tag: "constant", val: 1 };
-    b._fb = { tag: "constant", val: 0.1 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.1 };
-    b._yi = { tag: "constant", val: 0.1 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -397,19 +351,6 @@ export class FBSineN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): FBSineN {
-    const b = new FBSineN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._im = { tag: "constant", val: 1 };
-    b._fb = { tag: "constant", val: 0.1 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.1 };
-    b._yi = { tag: "constant", val: 0.1 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -493,15 +434,6 @@ export class GbmanL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): GbmanL {
-    const b = new GbmanL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._xi = { tag: "constant", val: 1.2 };
-    b._yi = { tag: "constant", val: 2.1 };
-    return b;
-  }
 
   /** iteration frequency in Hz */
   freq(v: UGenInputLike): this {
@@ -557,15 +489,6 @@ export class GbmanN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): GbmanN {
-    const b = new GbmanN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._xi = { tag: "constant", val: 1.2 };
-    b._yi = { tag: "constant", val: 2.1 };
-    return b;
-  }
 
   /** iteration frequency in Hz */
   freq(v: UGenInputLike): this {
@@ -627,17 +550,6 @@ export class HenonC {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): HenonC {
-    const b = new HenonC();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.4 };
-    b._b = { tag: "constant", val: 0.3 };
-    b._x0 = { tag: "constant", val: 0 };
-    b._x1 = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -713,17 +625,6 @@ export class HenonL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): HenonL {
-    const b = new HenonL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.4 };
-    b._b = { tag: "constant", val: 0.3 };
-    b._x0 = { tag: "constant", val: 0 };
-    b._x1 = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -799,17 +700,6 @@ export class HenonN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): HenonN {
-    const b = new HenonN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.4 };
-    b._b = { tag: "constant", val: 0.3 };
-    b._x0 = { tag: "constant", val: 0 };
-    b._x1 = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -890,19 +780,6 @@ export class LatoocarfianC {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LatoocarfianC {
-    const b = new LatoocarfianC();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: 3 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._d = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.5 };
-    b._yi = { tag: "constant", val: 0.5 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -997,19 +874,6 @@ export class LatoocarfianL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LatoocarfianL {
-    const b = new LatoocarfianL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: 3 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._d = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.5 };
-    b._yi = { tag: "constant", val: 0.5 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1104,19 +968,6 @@ export class LatoocarfianN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LatoocarfianN {
-    const b = new LatoocarfianN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: 3 };
-    b._c = { tag: "constant", val: 0.5 };
-    b._d = { tag: "constant", val: 0.5 };
-    b._xi = { tag: "constant", val: 0.5 };
-    b._yi = { tag: "constant", val: 0.5 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1204,17 +1055,6 @@ export class LinCongC {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LinCongC {
-    const b = new LinCongC();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.13 };
-    b._m = { tag: "constant", val: 1 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
@@ -1288,17 +1128,6 @@ export class LinCongL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LinCongL {
-    const b = new LinCongL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.13 };
-    b._m = { tag: "constant", val: 1 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
@@ -1372,17 +1201,6 @@ export class LinCongN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LinCongN {
-    const b = new LinCongN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1.1 };
-    b._c = { tag: "constant", val: 0.13 };
-    b._m = { tag: "constant", val: 1 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
@@ -1465,20 +1283,6 @@ export class LorenzL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): LorenzL {
-    const b = new LorenzL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._s = { tag: "constant", val: 10 };
-    b._r = { tag: "constant", val: 28 };
-    b._b = { tag: "constant", val: 2.667 };
-    b._h = { tag: "constant", val: 0.05 };
-    b._xi = { tag: "constant", val: 0.1 };
-    b._yi = { tag: "constant", val: 0 };
-    b._zi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1573,17 +1377,6 @@ export class QuadC {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): QuadC {
-    const b = new QuadC();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: -1 };
-    b._c = { tag: "constant", val: -0.75 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1657,17 +1450,6 @@ export class QuadL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): QuadL {
-    const b = new QuadL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: -1 };
-    b._c = { tag: "constant", val: -0.75 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1741,17 +1523,6 @@ export class QuadN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): QuadN {
-    const b = new QuadN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._a = { tag: "constant", val: 1 };
-    b._b = { tag: "constant", val: -1 };
-    b._c = { tag: "constant", val: -0.75 };
-    b._xi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1824,16 +1595,6 @@ export class StandardL {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): StandardL {
-    const b = new StandardL();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._k = { tag: "constant", val: 1 };
-    b._xi = { tag: "constant", val: 0.5 };
-    b._yi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1898,16 +1659,6 @@ export class StandardN {
     return b;
   }
 
-  /** Build at kr rate (Rate::Control). */
-  static kr(): StandardN {
-    const b = new StandardN();
-    b._calcRate = "control";
-    b._freq = { tag: "constant", val: 22050 };
-    b._k = { tag: "constant", val: 1 };
-    b._xi = { tag: "constant", val: 0.5 };
-    b._yi = { tag: "constant", val: 0 };
-    return b;
-  }
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {

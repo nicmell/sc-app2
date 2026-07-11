@@ -7,7 +7,7 @@ import { UGenRegistryEntry } from "../registry.js";
 export const UGENS: UGenRegistryEntry[] = [
   {
     name: "Ball",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "g", default: 1 },
@@ -435,10 +435,10 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "Spring",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
-      { name: "spring", default: 0 },
+      { name: "spring", default: 1 },
       { name: "damp", default: 0 },
     ],
     numOutputs: null,
@@ -454,7 +454,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "TBall",
-    rates: ["audio"],
+    rates: ["audio", "control"],
     defaults: [
       { name: "in", default: 0 },
       { name: "g", default: 10 },

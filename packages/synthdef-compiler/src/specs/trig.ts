@@ -65,7 +65,7 @@ export const UGENS: UGenRegistryEntry[] = [
   },
   {
     name: "InRange",
-    rates: ["audio", "control"],
+    rates: ["audio", "control", "scalar"],
     defaults: [
       { name: "in", default: 0 },
       { name: "lo", default: 0 },

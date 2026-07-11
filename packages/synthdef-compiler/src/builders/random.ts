@@ -25,15 +25,15 @@ export class CoinGate {
     b._trig = { tag: "constant", val: 0 };
     return b;
   }
-
-  /** Build at ir rate (Rate::Scalar). */
-  static ir(): CoinGate {
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): CoinGate {
     const b = new CoinGate();
-    b._calcRate = "scalar";
+    b._calcRate = "audio";
     b._prob = { tag: "constant", val: 0 };
     b._trig = { tag: "constant", val: 0 };
     return b;
   }
+
 
   /** Value between 0 and 1 determines probability of either possibilities */
   prob(v: UGenInputLike): this {
@@ -366,6 +366,14 @@ export class RandSeed {
   static kr(): RandSeed {
     const b = new RandSeed();
     b._calcRate = "control";
+    b._trig = { tag: "constant", val: 0 };
+    b._seed = { tag: "constant", val: 56789 };
+    return b;
+  }
+  /** Build at ar rate (Rate::Audio). */
+  static ar(): RandSeed {
+    const b = new RandSeed();
+    b._calcRate = "audio";
     b._trig = { tag: "constant", val: 0 };
     b._seed = { tag: "constant", val: 56789 };
     return b;

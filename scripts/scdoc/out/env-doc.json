@@ -1,0 +1,316 @@
+{
+  "source": "https://doc.sccode.org/Classes/Env.html",
+  "shapes": [
+    {
+      "name": "new",
+      "args": [
+        {
+          "name": "levels",
+          "default": "[0, 1, 0]"
+        },
+        {
+          "name": "times",
+          "default": "[1, 1]"
+        },
+        {
+          "name": "curve",
+          "default": "lin"
+        },
+        {
+          "name": "releaseNode",
+          "default": null
+        },
+        {
+          "name": "loopNode",
+          "default": null
+        },
+        {
+          "name": "offset",
+          "default": 0
+        }
+      ],
+      "argDocs": {
+        "levels": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion ).",
+        "times": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values.",
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "linen",
+      "args": [
+        {
+          "name": "attackTime",
+          "default": 0.01
+        },
+        {
+          "name": "sustainTime",
+          "default": 1
+        },
+        {
+          "name": "releaseTime",
+          "default": 1
+        },
+        {
+          "name": "level",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": "lin"
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "triangle",
+      "args": [
+        {
+          "name": "dur",
+          "default": 1
+        },
+        {
+          "name": "level",
+          "default": 1
+        }
+      ],
+      "argDocs": {}
+    },
+    {
+      "name": "sine",
+      "args": [
+        {
+          "name": "dur",
+          "default": 1
+        },
+        {
+          "name": "level",
+          "default": 1
+        }
+      ],
+      "argDocs": {}
+    },
+    {
+      "name": "perc",
+      "args": [
+        {
+          "name": "attackTime",
+          "default": 0.01
+        },
+        {
+          "name": "releaseTime",
+          "default": 1
+        },
+        {
+          "name": "level",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": -4
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "pairs",
+      "args": [
+        {
+          "name": "pairs",
+          "default": null
+        },
+        {
+          "name": "curve",
+          "default": null
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "xyc",
+      "args": [
+        {
+          "name": "xyc",
+          "default": null
+        }
+      ],
+      "argDocs": {}
+    },
+    {
+      "name": "step",
+      "args": [
+        {
+          "name": "levels",
+          "default": "[0, 1]"
+        },
+        {
+          "name": "times",
+          "default": "[1, 1]"
+        },
+        {
+          "name": "releaseNode",
+          "default": null
+        },
+        {
+          "name": "loopNode",
+          "default": null
+        },
+        {
+          "name": "offset",
+          "default": 0
+        }
+      ],
+      "argDocs": {
+        "levels": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion ).",
+        "times": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values."
+      }
+    },
+    {
+      "name": "adsr",
+      "args": [
+        {
+          "name": "attackTime",
+          "default": 0.01
+        },
+        {
+          "name": "decayTime",
+          "default": 0.3
+        },
+        {
+          "name": "sustainLevel",
+          "default": 0.5
+        },
+        {
+          "name": "releaseTime",
+          "default": 1
+        },
+        {
+          "name": "peakLevel",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": -4
+        },
+        {
+          "name": "bias",
+          "default": 0
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "dadsr",
+      "args": [
+        {
+          "name": "delayTime",
+          "default": 0.1
+        },
+        {
+          "name": "attackTime",
+          "default": 0.01
+        },
+        {
+          "name": "decayTime",
+          "default": 0.3
+        },
+        {
+          "name": "sustainLevel",
+          "default": 0.5
+        },
+        {
+          "name": "releaseTime",
+          "default": 1
+        },
+        {
+          "name": "peakLevel",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": -4
+        },
+        {
+          "name": "bias",
+          "default": 0
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "asr",
+      "args": [
+        {
+          "name": "attackTime",
+          "default": 0.01
+        },
+        {
+          "name": "sustainLevel",
+          "default": 1
+        },
+        {
+          "name": "releaseTime",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": -4
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "cutoff",
+      "args": [
+        {
+          "name": "releaseTime",
+          "default": 0.1
+        },
+        {
+          "name": "level",
+          "default": 1
+        },
+        {
+          "name": "curve",
+          "default": "lin"
+        }
+      ],
+      "argDocs": {
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    },
+    {
+      "name": "circle",
+      "args": [
+        {
+          "name": "levels",
+          "default": null
+        },
+        {
+          "name": "times",
+          "default": null
+        },
+        {
+          "name": "curve",
+          "default": "lin"
+        }
+      ],
+      "argDocs": {
+        "levels": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion ).",
+        "times": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values.",
+        "curve": "a Symbol , Float , or an Array of those. Determines the shape of the envelope segments. The possible values are: \\step flat segments (immediately jumps to final value) \\hold flat segments (holds initial value, jump to final value at the end of the segment) \\linear \\lin linear segments, the default \\exponential \\exp natural exponential growth and decay. In this case, the levels must all be nonzero and have the same sign. \\sine \\sin sinusoidal S shaped segments. \\welch \\wel sinusoidal segments shaped like the sides of a Welch window. \\squared \\sqr squared segment \\cubed \\cub cubed segment a Float a curvature value for all segments. 0 means linear, positive and negative numbers curve the segment up and down. an Array of symbols or floats curvature values for each segment."
+      }
+    }
+  ]
+}

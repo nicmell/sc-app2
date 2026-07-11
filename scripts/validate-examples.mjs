@@ -24,11 +24,12 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-forward-state-ref", // same-scope state bound before its declaration
   "bad-synth-target", // sc-synth bind naming a non-synthdef element
   "bad-unknown-synthdef", // sc-synth bind matches no synthdef
-  "bad-run-bind", // sc-run bind matches no node
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
-  "bad-if-node", // a node-owning element nested inside sc-if
-  "bad-var-scope", // a var declared off-node (inside a transparent container)
+  "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope
+  "bad-name-syntax", // a dotted name forging another scope's store key
+  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive
+  "bad-param-bind", // runtime prop on a synthdef param position
 ]);
 
 // CDP setup

@@ -46,6 +46,9 @@
         font-size: var(--font-size-xs);
         color: var(--color-text-mute);
       }
+      .grid-probe sc-base-panel {
+        min-height: 5rem;
+      }
     </style>
   </head>
   <body>
@@ -85,26 +88,26 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-textarea&gt;</h2>
         <p class="demo-cap">sizes (vertical resize)</p>
-        <sc-base-stack gap="sm">
+        <sc-base-flex orientation="vertical" gap="sm">
           <sc-base-textarea size="sm" rows="2" placeholder="small"></sc-base-textarea>
           <sc-base-textarea size="md" rows="3" placeholder="medium"></sc-base-textarea>
           <sc-base-textarea size="lg" rows="3" placeholder="large"></sc-base-textarea>
           <sc-base-textarea rows="2" value="disabled" disabled></sc-base-textarea>
-        </sc-base-stack>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-text&gt;</h2>
         <p class="demo-cap">sizes</p>
-        <sc-base-stack gap="sm">
+        <sc-base-flex orientation="vertical" gap="sm">
           <sc-base-text size="xl" weight="bold">Extra-large bold</sc-base-text>
           <sc-base-text size="lg" weight="medium">Large medium</sc-base-text>
           <sc-base-text size="md">Medium (default body)</sc-base-text>
           <sc-base-text size="sm">Small</sc-base-text>
           <sc-base-text size="xs" font="mono">Extra-small mono readout</sc-base-text>
-        </sc-base-stack>
+        </sc-base-flex>
         <p class="demo-cap">tones</p>
-        <sc-base-cluster gap="md">
+        <sc-base-flex wrap align="center" gap="md">
           <sc-base-text>default</sc-base-text>
           <sc-base-text tone="dim">dim</sc-base-text>
           <sc-base-text tone="mute">mute</sc-base-text>
@@ -113,7 +116,7 @@
           <sc-base-text tone="warn">warn</sc-base-text>
           <sc-base-text tone="error">error</sc-base-text>
           <sc-base-text tone="info">info</sc-base-text>
-        </sc-base-cluster>
+        </sc-base-flex>
         <p class="demo-cap">inline (flows in text) + rich children</p>
         <sc-base-text>
           Status:
@@ -129,7 +132,7 @@
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-disclosure&gt;</h2>
         <p class="demo-cap">collapsible card over a native &lt;details&gt; (rotating chevron)</p>
-        <sc-base-stack gap="sm">
+        <sc-base-flex orientation="vertical" gap="sm">
           <sc-base-disclosure>
             <span slot="summary">Details summary (click to expand)</span>
             <sc-base-text size="sm" tone="dim">
@@ -140,73 +143,130 @@
             <span slot="summary">Open by default</span>
             <sc-base-text size="sm" tone="dim">Already showing.</sc-base-text>
           </sc-base-disclosure>
-        </sc-base-stack>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
-        <h2 class="demo-section-title">&lt;sc-base-stack&gt; + &lt;sc-base-cluster&gt;</h2>
-        <p class="demo-cap">layout primitives — vertical / horizontal flex with a gap scale</p>
-        <sc-base-stack gap="md">
-          <sc-base-cluster>
+        <h2 class="demo-section-title">&lt;sc-base-flex&gt;</h2>
+        <p class="demo-cap">orientation, wrapping, alignment, justification, and token gaps</p>
+        <sc-base-flex orientation="vertical" gap="md">
+          <sc-base-flex wrap align="center" gap="xs">
             <sc-base-button label="one" size="sm" variant="secondary"></sc-base-button>
             <sc-base-button label="two" size="sm" variant="secondary"></sc-base-button>
             <sc-base-chip dot variant="ok" label="cluster (base gap)"></sc-base-chip>
-          </sc-base-cluster>
-          <sc-base-cluster gap="lg">
+          </sc-base-flex>
+          <sc-base-flex wrap align="center" gap="lg">
             <sc-base-button label="one" size="sm" variant="secondary"></sc-base-button>
             <sc-base-button label="two" size="sm" variant="secondary"></sc-base-button>
             <sc-base-chip dot variant="info" label="cluster gap=lg"></sc-base-chip>
-          </sc-base-cluster>
-          <sc-base-chip label="stack gap=md between rows"></sc-base-chip>
-        </sc-base-stack>
+          </sc-base-flex>
+          <sc-base-flex justify="space-between" align="center" gap="sm">
+            <sc-base-chip label="start"></sc-base-chip>
+            <sc-base-chip variant="info" label="space-between"></sc-base-chip>
+            <sc-base-chip label="end"></sc-base-chip>
+          </sc-base-flex>
+        </sc-base-flex>
+      </section>
+
+      <section class="demo-section">
+        <h2 class="demo-section-title">&lt;sc-base-row&gt; + &lt;sc-base-col&gt;</h2>
+        <p class="demo-cap">24-unit grid — spans wrap as complete columns when a row exceeds 24</p>
+        <sc-base-flex orientation="vertical" gap="sm">
+          <sc-base-row gutter="sm">
+            <sc-base-col span="12"><sc-base-panel>12 / 24</sc-base-panel></sc-base-col>
+            <sc-base-col span="12"><sc-base-panel>12 / 24</sc-base-panel></sc-base-col>
+          </sc-base-row>
+          <sc-base-row gutter="sm">
+            <sc-base-col span="8"><sc-base-panel>8</sc-base-panel></sc-base-col>
+            <sc-base-col span="8"><sc-base-panel>8</sc-base-panel></sc-base-col>
+            <sc-base-col span="8"><sc-base-panel>8</sc-base-panel></sc-base-col>
+          </sc-base-row>
+          <sc-base-row gutter="sm">
+            <sc-base-col span="6"><sc-base-panel>6</sc-base-panel></sc-base-col>
+            <sc-base-col span="6"><sc-base-panel>6</sc-base-panel></sc-base-col>
+            <sc-base-col span="6"><sc-base-panel>6</sc-base-panel></sc-base-col>
+            <sc-base-col span="6"><sc-base-panel>6</sc-base-panel></sc-base-col>
+          </sc-base-row>
+        </sc-base-flex>
+        <p class="demo-cap">
+          plugin-wrapper regression — two shadow-wrapped span=12 columns must each occupy half
+        </p>
+        <demo-plugin-row class="grid-probe" id="plugin-grid-probe">
+          <demo-plugin-col span="12">
+            <sc-base-panel>plugin column A · span 12</sc-base-panel>
+          </demo-plugin-col>
+          <demo-plugin-col span="12">
+            <sc-base-panel>plugin column B · span 12</sc-base-panel>
+          </demo-plugin-col>
+        </demo-plugin-row>
+        <p class="demo-cap">offset and ordering</p>
+        <sc-base-flex orientation="vertical" gap="sm">
+          <sc-base-row gutter="sm">
+            <sc-base-col span="6" offset="6"
+              ><sc-base-panel>span 6 · offset 6</sc-base-panel></sc-base-col
+            >
+            <sc-base-col span="6"><sc-base-panel>span 6</sc-base-panel></sc-base-col>
+          </sc-base-row>
+          <sc-base-row gutter="sm">
+            <sc-base-col span="8" order="3"
+              ><sc-base-panel>first · order 3</sc-base-panel></sc-base-col
+            >
+            <sc-base-col span="8" order="1"
+              ><sc-base-panel>second · order 1</sc-base-panel></sc-base-col
+            >
+            <sc-base-col span="8" order="2"
+              ><sc-base-panel>third · order 2</sc-base-panel></sc-base-col
+            >
+          </sc-base-row>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-panel&gt;</h2>
-        <sc-base-cluster gap="md" style="align-items: flex-start">
+        <sc-base-flex wrap align="start" gap="md">
           <sc-base-panel>
             <header>Panel header</header>
-            <sc-base-cluster gap="md">
+            <sc-base-flex wrap align="center" gap="md">
               <sc-base-text size="sm">cluster: row of inline things</sc-base-text>
               <sc-base-button label="action" size="sm" variant="secondary"></sc-base-button>
-            </sc-base-cluster>
-            <sc-base-stack gap="sm">
+            </sc-base-flex>
+            <sc-base-flex orientation="vertical" gap="sm">
               <sc-base-text size="sm">stack item 1</sc-base-text>
               <sc-base-text size="sm">stack item 2</sc-base-text>
               <sc-base-text size="sm">stack item 3</sc-base-text>
-            </sc-base-stack>
+            </sc-base-flex>
           </sc-base-panel>
           <sc-base-panel disabled>
             <header>Offline panel</header>
             <sc-base-text size="sm">muted + non-interactive (disabled)</sc-base-text>
             <sc-base-button label="action" size="sm" variant="secondary"></sc-base-button>
           </sc-base-panel>
-        </sc-base-cluster>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-chip&gt;</h2>
-        <sc-base-cluster gap="sm">
+        <sc-base-flex wrap align="center" gap="sm">
           <sc-base-chip dot label="idle"></sc-base-chip>
           <sc-base-chip dot variant="ok" label="alive"></sc-base-chip>
           <sc-base-chip dot variant="warn" label="degraded"></sc-base-chip>
           <sc-base-chip dot variant="error" label="unreachable"></sc-base-chip>
           <sc-base-chip dot variant="info" label="probing"></sc-base-chip>
-        </sc-base-cluster>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-badge&gt;</h2>
-        <sc-base-cluster gap="sm">
+        <sc-base-flex wrap align="center" gap="sm">
           <sc-base-badge label="connected"></sc-base-badge>
           <sc-base-badge label="degraded" variant="warn"></sc-base-badge>
           <sc-base-badge label="offline" variant="error"></sc-base-badge>
-        </sc-base-cluster>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
         <h2 class="demo-section-title">&lt;sc-base-empty&gt; + &lt;sc-base-alert&gt;</h2>
-        <sc-base-stack gap="sm">
+        <sc-base-flex orientation="vertical" gap="sm">
           <sc-base-empty>no items — click <strong>+ Item</strong> to add one</sc-base-empty>
           <sc-base-alert>Info — the bridge session is reviving under the saved id.</sc-base-alert>
           <sc-base-alert variant="success">Success — synthdef compiled and sent.</sc-base-alert>
@@ -214,7 +274,7 @@
           <sc-base-alert variant="error"
             >scsynth didn't reply to /status at 127.0.0.1:57110</sc-base-alert
           >
-        </sc-base-stack>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
@@ -279,7 +339,7 @@
           Toasts normally live inside a fixed-position <code>.sc-toast-stack</code> at the
           bottom-right of the viewport. Below renders the cards in flow.
         </p>
-        <sc-base-stack>
+        <sc-base-flex orientation="vertical" gap="xs">
           <sc-base-toast message="Default toast — muted accent."></sc-base-toast>
           <sc-base-toast
             variant="info"
@@ -297,7 +357,7 @@
             variant="error"
             message="Error — couldn't reach scsynth: Connection refused (os error 61)."
           ></sc-base-toast>
-        </sc-base-stack>
+        </sc-base-flex>
       </section>
 
       <section class="demo-section">
@@ -510,10 +570,10 @@
                 onclick="document.getElementById('demo-drawer-r').open = false"
               ></sc-base-button>
             </header>
-            <sc-base-stack class="sc-drawer__body" gap="sm">
+            <sc-base-flex class="sc-drawer__body" orientation="vertical" gap="sm">
               <sc-base-text tone="dim" size="sm">Right-side drawer content.</sc-base-text>
               <sc-base-empty>no plugins installed yet</sc-base-empty>
-            </sc-base-stack>
+            </sc-base-flex>
           </sc-base-drawer>
           <sc-base-drawer id="demo-drawer-l" side="left" dismissable label="Navigation">
             <header>

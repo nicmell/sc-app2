@@ -1,13 +1,13 @@
-// <sc-display> — a read-only formatted view of an expression bind (the
-// ScDerived base): a plain control/var path (`bind="s1.freq"`) or any
-// evaluable expression (`bind="vars.amp * 100"`), rendered through the
-// printf-style `format` from the live `_state`.
+// <sc-display> — a read-only formatted view of a value: usually the dynamic
+// `bind:value` expression (`bind:value="s1.freq"`, `bind:value="vars.amp * 100"`,
+// `bind:value="osc.gate ? 'playing' : 'stopped'"`), or a static `value` constant.
+// Both read through `getProp("value")` (the ScElement runtime-prop machinery
+// keeps the dynamic one live), rendered through the printf-style `format` —
+// itself runtime-capable (`bind:format`).
 
 import { html } from "lit";
-import { property } from "lit/decorators.js";
-import type { DerivedRuntime, RuntimeContext } from "@/types/runtime";
-import { requireProp } from "@/sc-elements/internal/validation";
-import { ScDerived } from "@/sc-elements/internal/sc-derived";
+import { ScElement } from "@/sc-elements/internal/sc-element";
+import "@/sc-elements/visuals/sc-text";
 
 /** Old-app printf-style formatting: `%b` booleans, `%s` strings, and
  *  `%(.N)?[df]` numbers (`%d` rounds, `%.2f` fixes the precision). */
@@ -27,18 +27,11 @@ export function formatValue(
   return String(value ?? "");
 }
 
-export class ScDisplay extends ScDerived {
-  @property() accessor format = "";
-
-  validate(): void {
-    requireProp(this, "bind", this.bind ?? "");
-  }
-
-  protected resolveRuntime(ctx: RuntimeContext): DerivedRuntime {
-    return this.derivedRuntime(ctx);
-  }
-
+export class ScDisplay extends ScElement {
   render() {
-    return html`${this.format ? formatValue(this.format, this._state) : String(this._state ?? "")}`;
+    const value = this.getProp("value");
+    const format = this.getProp("format") as string | undefined;
+    const text = format ? formatValue(format, value) : String(value ?? "");
+    return html`<sc-text as="label">${text}</sc-text>`;
   }
 }

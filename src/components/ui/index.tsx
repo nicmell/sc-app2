@@ -42,8 +42,9 @@ import {
   ScAlertBase,
   ScPanelBase,
   ScEmptyBase,
-  ScStackBase,
-  ScClusterBase,
+  ScFlexBase,
+  ScRowBase,
+  ScColBase,
   ScDisclosureBase,
   ScProgressBase,
 } from "@sc-app/ui-components/lit";
@@ -247,20 +248,26 @@ export const Empty = createComponent({
   elementClass: ScEmptyBase,
 });
 
-/** <sc-base-stack>. Pass items as children; `gap` (xs | sm | md | lg) selects
- *  spacing. */
-export const Stack = createComponent({
+/** <sc-base-flex>. A wrapper-free flex layout primitive with orientation,
+ *  wrap, alignment, justification, and tokenized gap controls. */
+export const Flex = createComponent({
   react: React,
-  tagName: "sc-base-stack",
-  elementClass: ScStackBase,
+  tagName: "sc-base-flex",
+  elementClass: ScFlexBase,
 });
 
-/** <sc-base-cluster>. Pass items as children; `gap` (xs | sm | md | lg) selects
- *  spacing. */
-export const Cluster = createComponent({
+/** <sc-base-row>. A native 24-track grid row with tokenized gaps. */
+export const Row = createComponent({
   react: React,
-  tagName: "sc-base-cluster",
-  elementClass: ScClusterBase,
+  tagName: "sc-base-row",
+  elementClass: ScRowBase,
+});
+
+/** <sc-base-col>. A static grid item with span, offset, and order placement. */
+export const Col = createComponent({
+  react: React,
+  tagName: "sc-base-col",
+  elementClass: ScColBase,
 });
 
 /** <sc-base-disclosure>. Put the summary in a `slot="summary"` child and the

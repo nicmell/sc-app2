@@ -15,7 +15,7 @@ import { property } from "lit/decorators.js";
 import resetStyles from "../../foundations/reset.scss";
 import styles from "./sc-text.scss";
 
-export type ScTextAs = "span" | "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+export type ScTextAs = "span" | "p" | "div" | "label" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 export type ScTextSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type ScTextWeight = "regular" | "medium" | "bold";
 export type ScTextTone =
@@ -38,6 +38,7 @@ const TAGS: Record<ScTextAs, ReturnType<typeof literal>> = {
   span: literal`span`,
   p: literal`p`,
   div: literal`div`,
+  label: literal`label`,
   h1: literal`h1`,
   h2: literal`h2`,
   h3: literal`h3`,

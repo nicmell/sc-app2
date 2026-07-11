@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
 <head>
     <title>Bad SynthDef Bind (intentional error)</title>
 </head>
@@ -8,18 +8,18 @@
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
     <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind="freq"/>
+        <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
     <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind="osc"/>
-        <sc-control name="b" bind="amp"/>
+        <sc-control name="a" bind:value="osc"/>
+        <sc-control name="b" bind:value="amp"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind="sig"/>
+        <sc-control name="channelsarray" bind:value="sig"/>
     </sc-ugen>
 </sc-synthdef>
-<sc-synth name="s1" bind="sine">
+<sc-synth name="s1" synthdef="sine">
     <sc-control name="freq" value="440"/>
     <sc-control name="amp" value="0.2"/>
 </sc-synth>
@@ -28,6 +28,6 @@
      "sine" resolves to the <sc-synthdef>, which is not a node, so
      resolveControlBind must fail with "does not match any node in scope"
      (the correct bind is "s1.freq") -->
-<sc-range type="knob" bind="sine.freq" min="20" max="2000" step="1" diameter="48"/>
+<sc-knob bind:value="sine.freq" min="20" max="2000" step="1"/>
 </body>
 </html>

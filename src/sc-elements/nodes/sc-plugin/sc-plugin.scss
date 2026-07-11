@@ -1,5 +1,6 @@
-/* <sc-plugin> — the plugin root element. Light DOM (createRenderRoot returns
-   `this`), imported as a side effect from sc-plugin.ts.
+/* <sc-plugin> — the plugin root element, imported as a side effect from
+   sc-plugin.ts. Parsed plugin children remain in its light DOM and are
+   projected through the component's shadow-root slot.
 
    The plugin root must carry the height chain down to the entry markup: custom
    elements default to display:inline, which makes the element content-sized —

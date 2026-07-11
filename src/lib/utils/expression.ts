@@ -1,12 +1,14 @@
 // Minimal arithmetic expression parser and evaluator.
-// Supports: comparisons (>, <, >=, <=, ==, != — evaluating to 1/0), +, -, *, /,
-// unary -, parentheses, numbers, and variable references. The comparison layer
-// sits above additive and is NON-associative — `a > b > c` is a parse error
-// (the trailing-input check); parenthesized comparisons compose as operands
+// Supports: the right-associative ternary conditional (`a ? b : c`, over the
+// cond's truthiness), comparisons (>, <, >=, <=, == , != — evaluating to 1/0),
+// +, -, *, /, unary -, parentheses, numbers, single-quoted string literals
+// ('play' — no escapes), and variable references. The comparison layer sits
+// above additive and is NON-associative — `a > b > c` is a parse error (the
+// trailing-input check); parenthesized comparisons compose as operands
 // (`(vars.a > 0) * 10`). Variables are dot-separated paths (e.g., "vars.freq")
 // extracted during parsing.
 
-import type { Expr } from "@/types/runtime";
+import type { Expr, StateValue } from "@/types/runtime";
 
 export interface ParsedBind {
   paths: string[];
@@ -39,9 +41,26 @@ export function parseBind(input: string): ParsedBind {
     while (pos < trimmed.length && trimmed[pos] === " ") pos++;
   }
 
+  /** The loosest layer: an optional ternary over a comparison-level cond.
+   *  Right-associative — the branches recurse into the full expression, so
+   *  `a ? b : c ? d : e` nests into the else (and a ternary in the then
+   *  branch consumes its own `:` first, JS-style). */
+  function parseExpr(): Expr {
+    const cond = parseComparison();
+    skipWhitespace();
+    if (peek() !== "?") return cond;
+    advance();
+    skipWhitespace();
+    const then = parseExpr();
+    skipWhitespace();
+    if (advance() !== ":") throw new Error(`Expected ':' in bind expression: "${input}"`);
+    skipWhitespace();
+    return { type: "ternary", cond, then, else: parseExpr() };
+  }
+
   /** One optional comparison over additive operands (non-associative: a
    *  second comparison operator is left as trailing input → parse error). */
-  function parseExpr(): Expr {
+  function parseComparison(): Expr {
     const left = parseAdditive();
     skipWhitespace();
     const op = peekComparisonOp();
@@ -101,6 +120,18 @@ export function parseBind(input: string): ParsedBind {
       return expr;
     }
 
+    if (c === "'") {
+      advance();
+      const start = pos;
+      while (pos < trimmed.length && trimmed[pos] !== "'") pos++;
+      if (pos >= trimmed.length) {
+        throw new Error(`Unterminated string in bind expression: "${input}"`);
+      }
+      const value = trimmed.slice(start, pos);
+      advance();
+      return { type: "string", value };
+    }
+
     if ((c >= "0" && c <= "9") || c === ".") {
       const start = pos;
       while (
@@ -136,35 +167,43 @@ export function parseBind(input: string): ParsedBind {
   return { paths: [...varPaths], expression: expr };
 }
 
-export function evalExpr(expr: Expr, values: Record<string, number>): number {
+export function evalExpr(expr: Expr, values: Record<string, StateValue>): StateValue {
   switch (expr.type) {
     case "number":
+    case "string":
       return expr.value;
     case "var":
       return values[expr.name] ?? 0;
     case "unary":
-      return -evalExpr(expr.expr, values);
+      return -Number(evalExpr(expr.expr, values));
+    case "ternary":
+      return evalExpr(expr.cond, values)
+        ? evalExpr(expr.then, values)
+        : evalExpr(expr.else, values);
     case "binary": {
       const l = evalExpr(expr.left, values);
       const r = evalExpr(expr.right, values);
       switch (expr.op) {
+        // `+` concatenates when either side is a string; the rest coerce
+        // numerically (strings become NaN — guarded at the OSC boundary).
         case "+":
-          return l + r;
+          return typeof l === "string" || typeof r === "string" ? String(l) + String(r) : l + r;
         case "-":
-          return l - r;
+          return Number(l) - Number(r);
         case "*":
-          return l * r;
+          return Number(l) * Number(r);
         case "/":
-          return r !== 0 ? l / r : 0;
-        // Comparisons evaluate to 1/0 (the truthiness sc-if & co. consume).
+          return Number(r) !== 0 ? Number(l) / Number(r) : 0;
+        // Comparisons evaluate to 1/0 (the truthiness sc-if & co. consume);
+        // two strings compare lexicographically (plain JS relationals).
         case ">":
-          return l > r ? 1 : 0;
+          return (l as number) > (r as number) ? 1 : 0;
         case "<":
-          return l < r ? 1 : 0;
+          return (l as number) < (r as number) ? 1 : 0;
         case ">=":
-          return l >= r ? 1 : 0;
+          return (l as number) >= (r as number) ? 1 : 0;
         case "<=":
-          return l <= r ? 1 : 0;
+          return (l as number) <= (r as number) ? 1 : 0;
         case "==":
           return l === r ? 1 : 0;
         case "!=":

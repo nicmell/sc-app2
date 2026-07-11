@@ -582,6 +582,16 @@ describe("sc-base-text", () => {
     expect(el.textContent).toBe("Title");
   });
 
+  it("supports label as a semantic element", async () => {
+    const el = document.createElement("sc-base-text");
+    el.as = "label";
+    el.textContent = "Frequency";
+    document.body.appendChild(el);
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("label")).not.toBeNull();
+    expect(el.textContent).toBe("Frequency");
+  });
+
   it("reflects the truncate/inline boolean modifiers to the host", async () => {
     const el = document.createElement("sc-base-text");
     el.truncate = true;
@@ -763,16 +773,65 @@ describe("content wrappers", () => {
     expect(el.textContent).toBe("no items yet");
   });
 
-  it("sc-base-stack / sc-base-cluster slot children and apply the gap class", async () => {
-    for (const tag of ["sc-base-stack", "sc-base-cluster"] as const) {
-      const el = document.createElement(tag);
-      el.innerHTML = "<span>a</span><span>b</span>";
-      el.gap = "md";
-      document.body.appendChild(el);
-      await el.updateComplete;
-      expect(el.querySelectorAll("span").length).toBe(2); // slotted light DOM
-      expect(el.getAttribute("gap")).toBe("md");
-    }
+  it("sc-base-flex exposes neutral defaults and reflects its layout axes", async () => {
+    const el = document.createElement("sc-base-flex");
+    el.innerHTML = "<span>a</span><span>b</span>";
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.querySelectorAll("span").length).toBe(2); // slotted light DOM
+    expect([el.orientation, el.wrap, el.justify, el.align, el.gap]).toEqual([
+      "horizontal",
+      false,
+      "start",
+      "stretch",
+      "none",
+    ]);
+
+    el.orientation = "vertical";
+    el.wrap = true;
+    el.justify = "space-between";
+    el.align = "center";
+    el.gap = "md";
+    await el.updateComplete;
+    expect([
+      el.getAttribute("orientation"),
+      el.hasAttribute("wrap"),
+      el.getAttribute("justify"),
+      el.getAttribute("align"),
+      el.getAttribute("gap"),
+    ]).toEqual(["vertical", true, "space-between", "center", "md"]);
+  });
+
+  it("sc-base-row / sc-base-col expose the non-responsive 24-unit grid", async () => {
+    const row = document.createElement("sc-base-row");
+    const col = document.createElement("sc-base-col");
+    col.textContent = "content";
+    row.appendChild(col);
+    document.body.appendChild(row);
+    await Promise.all([row.updateComplete, col.updateComplete]);
+
+    expect([row.align, row.gutter]).toEqual(["top", "none"]);
+    expect(row.querySelector("sc-base-col")).toBe(col); // direct slotted child
+
+    row.align = "middle";
+    row.gutter = "md";
+    col.span = 8;
+    col.offset = 2;
+    col.order = 3;
+    await Promise.all([row.updateComplete, col.updateComplete]);
+
+    expect([row.getAttribute("align"), row.getAttribute("gutter")]).toEqual(["middle", "md"]);
+    expect([
+      col.getAttribute("span"),
+      col.getAttribute("offset"),
+      col.getAttribute("order"),
+    ]).toEqual(["8", "2", "3"]);
+    expect(col.getAttribute("style")).toBeNull();
+
+    col.span = 24;
+    await col.updateComplete;
+    expect(col.getAttribute("span")).toBe("24");
   });
 });
 

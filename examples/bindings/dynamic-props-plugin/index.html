@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Dynamic Props Plugin</title>
+</head>
+<body>
+<sc-var name="lo" value="100"/>
+<sc-var name="hi" value="2000"/>
+<sc-var name="freq" value="440"/>
+<sc-var name="mode" value="lin"/>
+<sc-flex orientation="vertical" gap="sm">
+    <sc-text weight="bold">Dynamic slider props</sc-text>
+    <sc-text as="label">Frequency <sc-display bind:value="freq" format="%d Hz"/></sc-text>
+    <sc-slider bind:value="freq" bind:min="lo" bind:max="hi" step="1" bind:label="'freq (' + mode + ')'"/>
+    <sc-flex align="center" gap="md" wrap="true">
+        <sc-text tone="dim">Range <sc-display bind:value="freq > 1000 ? 'high' : 'low'"/></sc-text>
+        <sc-text tone="dim">Mode <sc-display bind:value="mode"/></sc-text>
+    </sc-flex>
+</sc-flex>
+</body>
+</html>

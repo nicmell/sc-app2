@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Bad Name Syntax (intentional error)</title>
+</head>
+<body>
+<!-- INTENTIONAL: a dotted name forges the path separator — "s1.freq" here
+     would alias the store key of synth s1's freq control (silent
+     cross-wiring the per-scope duplicate check cannot see). requireName must
+     reject it at parse: names are ONE bind-path segment (letters, digits,
+     "_", "-"). The XSD carries a matching scName pattern, but fastxml does
+     not enforce pattern facets — the runtime is the gate. -->
+<sc-synthdef name="sine">
+    <sc-control name="freq" value="440"/>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind:value="freq"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind:value="osc"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="s1" synthdef="sine">
+    <sc-control name="freq" value="440"/>
+</sc-synth>
+<sc-var name="s1.freq" value="1"/>
+</body>
+</html>

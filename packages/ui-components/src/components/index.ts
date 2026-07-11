@@ -26,8 +26,9 @@ import { ScDrawerBase } from "./sc-drawer/sc-drawer";
 import { ScAlertBase } from "./sc-alert/sc-alert";
 import { ScPanelBase } from "./sc-panel/sc-panel";
 import { ScEmptyBase } from "./sc-empty/sc-empty";
-import { ScStackBase } from "./sc-stack/sc-stack";
-import { ScClusterBase } from "./sc-cluster/sc-cluster";
+import { ScFlexBase } from "./sc-flex/sc-flex";
+import { ScRowBase } from "./sc-row/sc-row";
+import { ScColBase } from "./sc-col/sc-col";
 import { ScDisclosureBase } from "./sc-disclosure/sc-disclosure";
 import { ScProgressBase } from "./sc-progress/sc-progress";
 
@@ -54,8 +55,15 @@ export { ScDrawerBase, type ScDrawerSide } from "./sc-drawer/sc-drawer";
 export { ScAlertBase, type ScAlertVariant } from "./sc-alert/sc-alert";
 export { ScPanelBase } from "./sc-panel/sc-panel";
 export { ScEmptyBase } from "./sc-empty/sc-empty";
-export { ScStackBase, type ScGap } from "./sc-stack/sc-stack";
-export { ScClusterBase } from "./sc-cluster/sc-cluster";
+export {
+  ScFlexBase,
+  type ScFlexOrientation,
+  type ScFlexJustify,
+  type ScFlexAlign,
+  type ScGap,
+} from "./sc-flex/sc-flex";
+export { ScRowBase, type ScRowAlign } from "./sc-row/sc-row";
+export { ScColBase, scColLayoutStyles } from "./sc-col/sc-col";
 export { ScDisclosureBase } from "./sc-disclosure/sc-disclosure";
 export {
   ScProgressBase,
@@ -67,11 +75,13 @@ export { ScInputNumberBase } from "./sc-inputnumber/sc-inputnumber";
 export { ScTextareaBase } from "./sc-textarea/sc-textarea";
 export {
   ScTextBase,
+  type ScTextAs,
   type ScTextSize,
   type ScTextWeight,
   type ScTextTone,
   type ScTextFont,
   type ScTextAlign,
+  type ScTextTransform,
 } from "./sc-text/sc-text";
 
 /** Tag → constructor for every registrable `-base` widget. */
@@ -102,8 +112,9 @@ export const REGISTRY = {
   "sc-base-alert": ScAlertBase,
   "sc-base-panel": ScPanelBase,
   "sc-base-empty": ScEmptyBase,
-  "sc-base-stack": ScStackBase,
-  "sc-base-cluster": ScClusterBase,
+  "sc-base-flex": ScFlexBase,
+  "sc-base-row": ScRowBase,
+  "sc-base-col": ScColBase,
   "sc-base-disclosure": ScDisclosureBase,
   "sc-base-progress": ScProgressBase,
 } as const satisfies Record<string, CustomElementConstructor>;
@@ -140,8 +151,9 @@ declare global {
     "sc-base-alert": ScAlertBase;
     "sc-base-panel": ScPanelBase;
     "sc-base-empty": ScEmptyBase;
-    "sc-base-stack": ScStackBase;
-    "sc-base-cluster": ScClusterBase;
+    "sc-base-flex": ScFlexBase;
+    "sc-base-row": ScRowBase;
+    "sc-base-col": ScColBase;
     "sc-base-disclosure": ScDisclosureBase;
     "sc-base-progress": ScProgressBase;
   }

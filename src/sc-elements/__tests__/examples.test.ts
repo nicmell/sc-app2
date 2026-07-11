@@ -17,7 +17,8 @@ import {
   registerScElements,
   type ScControl,
   type ScElement,
-  type ScRange,
+  type ScKnob,
+  type ScSlider,
   type ScSynthDef,
 } from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
@@ -39,23 +40,31 @@ const UPLOAD_FIXTURES = new Set([
   "bad-asset-mismatch",
 ]);
 
+/** CDP-harness-only fixtures: happy-dom's XML parser DROPS the later of two
+ *  attributes whose LOCAL names collide (`value` + `bind:value`), so the
+ *  conflict is unrepresentable here — Chrome keeps both, and the mutual
+ *  exclusion is pinned by controls.test.ts (direct validateProps) plus the
+ *  harness (validate-examples.mjs EXPECT_RUNTIME_FAIL). */
+const HARNESS_ONLY = new Set(["bad-runtime-conflict"]);
+
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
   "bad-bindings": '<sc-synth name="sine">: duplicate name in scope',
-  "bad-node-bind": '<sc-range bind="ghost.freq">: does not match any node in scope',
-  "bad-synthdef-bind": '<sc-range bind="sine.freq">: does not match any node in scope',
+  "bad-node-bind": '<sc-knob bind:value="ghost.freq">: does not match any node in scope',
+  "bad-synthdef-bind": '<sc-knob bind:value="sine.freq">: does not match any node in scope',
   "bad-undeclared-control":
-    '<sc-range bind="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
+    '<sc-knob bind:value="s1.detune">: control "detune" is not declared on <sc-synth name="s1">',
   "bad-circular-bind": '<sc-var name="a">: circular bind reference detected',
-  "bad-forward-ref": '<sc-run>: "s1" is referenced before it is declared',
+  "bad-forward-ref": '<sc-button>: "s1" is referenced before it is declared',
   "bad-forward-state-ref": '<sc-var>: "b" is referenced before it is declared',
-  "bad-synth-target": '<sc-synth bind="fx">: does not match any <sc-synthdef>',
-  "bad-unknown-synthdef": '<sc-synth bind="missing">: does not match any <sc-synthdef>',
-  "bad-run-bind": '<sc-run>: bind "ghost" does not match any node in scope',
-  "bad-ugen-input": '<sc-control name="freq">: requires either a bind or value attribute',
+  "bad-synth-target": '<sc-synth synthdef="fx">: does not match any <sc-synthdef>',
+  "bad-unknown-synthdef": '<sc-synth synthdef="missing">: does not match any <sc-synthdef>',
+  "bad-ugen-input": '<sc-control name="freq">: requires either a value or bind:value attribute',
   "bad-ugen-ref": '<sc-ugen name="osc">: input "freq" references unknown "lfo"',
-  "bad-if-node": "<sc-if>: must not contain node elements (found <sc-synth>)",
-  "bad-var-scope": '<sc-var name="y">: must be declared on a node',
+  "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
+  "bad-name-syntax":
+    '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
+  "bad-param-bind": '<sc-control>: "bind:value" is not allowed on a synthdef param',
 };
 
 interface ExampleCase {
@@ -69,7 +78,7 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
     const m = path.match(/^\/examples\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
     return { category: m[1], name: m[2], xml };
   })
-  .filter((c) => !UPLOAD_FIXTURES.has(c.name))
+  .filter((c) => !UPLOAD_FIXTURES.has(c.name) && !HARNESS_ONLY.has(c.name))
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const passing = cases.filter((c) => !(c.name in RUNTIME_FAILURES));
@@ -107,7 +116,9 @@ describe("every example synthdef compiles", () => {
       const { host } = parseExample(c.xml);
       const defs = [...host.querySelectorAll("sc-synthdef")] as ScSynthDef[];
       for (const def of defs) {
-        expect(() => compileSynthDef(def.name, def.params, def.specs)).not.toThrow();
+        expect(() =>
+          compileSynthDef(def.getProp("name") as string, def.params, def.specs),
+        ).not.toThrow();
       }
     });
   }
@@ -133,7 +144,6 @@ describe("example-plugin structure", () => {
     expect(host._rootScNode).toBe(host);
     expect(host._parentScNode).toBeUndefined();
     expect(host.enabled).toBe(true);
-    expect(host.run).toBe(true);
     expect(host._scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
@@ -143,18 +153,23 @@ describe("example-plugin structure", () => {
     }
   });
 
-  it("resolves every sc-range bind to an enabled control on the synth", () => {
+  it("resolves every sc-slider/sc-knob bind:value to an enabled control on the synth", () => {
     const { nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
-    const ranges = [...nodes].filter(
-      (el): el is ScRange => el.tagName.toLowerCase() === "sc-range",
+    const inputs = [...nodes].filter((el): el is ScSlider | ScKnob =>
+      ["sc-slider", "sc-knob"].includes(el.tagName.toLowerCase()),
     );
-    expect(ranges.length).toBeGreaterThan(0);
-    for (const r of ranges) {
-      const target = r._targetScNode as ScControl | undefined;
-      expect(target).toBeDefined();
-      expect(target!.tagName.toLowerCase()).toBe("sc-control");
-      expect(target!.enabled).toBe(true);
-      expect(nodes.has(target!)).toBe(true);
+    expect(inputs.length).toBeGreaterThan(0);
+    for (const input of inputs) {
+      // A plain-path bind:value resolves to exactly one writable state target.
+      const prop = input.runtimeProps?.value;
+      expect(prop).toBeDefined();
+      expect(prop!.expression).toBeUndefined();
+      const targets = Object.values(prop!.targets);
+      expect(targets).toHaveLength(1);
+      const target = targets[0] as ScControl;
+      expect(target.tagName.toLowerCase()).toBe("sc-control");
+      expect(target.enabled).toBe(true);
+      expect(nodes.has(target)).toBe(true);
     }
   });
 

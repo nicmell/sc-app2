@@ -1,65 +1,36 @@
-// <sc-checkbox> — a toggle bound to a control/var (`bind`/`_targetScNode` on
-// the ScInput base). Deliberately unstyled for now: a native <input
-// type="checkbox"> (the switch UI returns with a later step). Checked maps to
-// the value 1, unchecked to 0; the load pass subscribes the checked state to
-// the target's live value (the uniform `_state` + `onStateChange()` seam) and
-// writes go through the target's `setValue()` (the /n_set dispatch point).
+// <sc-checkbox> — a checkbox bound to a control/var (`bind:value` on the
+// ScInput base). Renders the ui-components <sc-base-checkbox>, forwarding
+// its props. Checked maps to the value 1, unchecked to 0; the shared ScInput
+// seam wires the load-pass subscription (syncFromState) and the write path
+// (commit), reading the target through `_state`/`onStateChange`.
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { live } from "lit/directives/live.js";
-import { isStateRuntime } from "@/lib/utils/guards";
-import type {} from "@/types/runtime";
-import { requireProp } from "@/sc-elements/internal/validation";
+import { ifDefined } from "lit/directives/if-defined.js";
+import type { ScCheckboxBase } from "@sc-app/ui-components/lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
+import "@sc-app/ui-components/lit";
 
 export class ScCheckbox extends ScInput {
   @state() accessor _checked = false;
 
-  private offValue?: () => void;
-
-  validate(): void {
-    requireProp(this, "bind", this.bind);
-  }
-
-  async load(): Promise<void> {
-    this.offValue?.(); // re-entrant: drop the stale subscription on reload
-    this.offValue = undefined;
-    const target = this._targetScNode;
-    if (target && isStateRuntime(target) && target.enabled) {
-      this._checked = (target._state ?? 0) !== 0; // statechange is change-only — sync once
-      this.offValue = target.onStateChange((next) => (this._checked = next !== 0));
-    }
-    await super.load();
-  }
-
-  unload(): void {
-    super.unload();
-    this.offValue?.();
-    this.offValue = undefined;
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.offValue?.();
-    this.offValue = undefined;
+  protected syncFromState(value: number | string | undefined): void {
+    const n = this.numericState(value);
+    if (n !== undefined) this._checked = n !== 0;
   }
 
   private onChange = (e: Event) => {
-    const checked = (e.target as HTMLInputElement).checked;
-    const target = this._targetScNode;
-    if (target && isStateRuntime(target)) {
-      target.setValue(checked ? 1 : 0);
-      // Re-read: a write to BOUND (derived, read-only) state is inert — the
-      // live() binding then snaps the box back to the real value. For a
-      // literal target the synchronous statechange echo already synced.
-      this._checked = (target._state ?? 0) !== 0;
-    }
+    this.commit((e.target as ScCheckboxBase).checked ? 1 : 0);
   };
 
   render() {
-    // live(): the user mutates the native input directly, so the binding
-    // must compare against the DOM value, not the last committed render.
-    return html`<input type="checkbox" .checked=${live(this._checked)} @change=${this.onChange} />`;
+    return html`<sc-base-checkbox
+      label=${ifDefined(this.getProp("label"))}
+      size=${ifDefined(this.getProp("size"))}
+      ?disabled=${this.getProp("disabled")}
+      .checked=${live(this._checked)}
+      @change=${this.onChange}
+    ></sc-base-checkbox>`;
   }
 }

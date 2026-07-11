@@ -1,0 +1,32 @@
+/* Shared 24-track grid item for <sc-base-col> and plugin-facing wrappers.
+   Static selectors avoid typed attr() and behave consistently in WebKit. */
+
+:host {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  grid-column-end: span 24;
+}
+
+@for $span from 1 through 24 {
+  :host([span="#{$span}"]) {
+    grid-column-end: span $span;
+  }
+}
+
+@for $offset from 1 through 23 {
+  :host([offset="#{$offset}"]) {
+    grid-column-start: $offset + 1;
+  }
+}
+
+@for $order from -24 through 24 {
+  :host([order="#{$order}"]) {
+    order: $order;
+  }
+}
+
+:host([span="0"]) {
+  display: none;
+}

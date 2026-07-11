@@ -2,12 +2,13 @@
 //
 // The bind-expression parser + evaluator, including the comparison layer
 // (non-associative, above additive, evaluating to 1/0 — the truthiness the
-// derived visuals consume).
+// derived visuals consume), the right-associative ternary above it, and
+// single-quoted string literals.
 
 import { describe, expect, it } from "vitest";
 import { evalExpr, parseBind } from "@/lib/utils/expression";
 
-const evaluate = (input: string, values: Record<string, number> = {}) =>
+const evaluate = (input: string, values: Record<string, number | string> = {}) =>
   evalExpr(parseBind(input).expression!, values);
 
 describe("parseBind", () => {
@@ -33,6 +34,13 @@ describe("parseBind", () => {
     expect(() => parseBind("a = 1")).toThrow(/Unexpected character '='/);
     expect(() => parseBind("a ! b")).toThrow(/Unexpected character '!'/);
     expect(() => parseBind("1 + 2")).toThrow(/must reference at least one variable/);
+  });
+
+  it("rejects string/ternary malformations (and keeps the variable requirement)", () => {
+    expect(() => parseBind("a ? 'on")).toThrow(/Unterminated string/);
+    expect(() => parseBind("a ? 1")).toThrow(/Expected ':'/);
+    // Constants belong in the static attribute — a bind must reference state.
+    expect(() => parseBind("1 ? 'a' : 'b'")).toThrow(/must reference at least one variable/);
   });
 });
 
@@ -67,5 +75,25 @@ describe("evalExpr", () => {
 
   it("missing variables default to 0", () => {
     expect(evaluate("ghost == 0")).toBe(1);
+  });
+
+  it("ternary selects on truthiness and is right-associative", () => {
+    expect(evaluate("a ? 10 : 20", { a: 1 })).toBe(10);
+    expect(evaluate("a ? 10 : 20", { a: 0 })).toBe(20);
+    expect(evaluate("a > 440 ? 1 : 0", { a: 441 })).toBe(1); // comparison as cond
+    expect(evaluate("a ? 1 : b ? 2 : 3", { a: 0, b: 0 })).toBe(3); // nests into the else
+    expect(evaluate("a ? b ? 1 : 2 : 3", { a: 1, b: 0 })).toBe(2); // then owns its ':' first
+  });
+
+  it("string literals flow through ternaries, ==, and concatenation", () => {
+    expect(evaluate("gate ? 'stop' : 'play'", { gate: 1 })).toBe("stop");
+    expect(evaluate("gate ? 'stop' : 'play'", { gate: 0 })).toBe("play");
+    expect(evaluate("mode == 'lin'", { mode: "lin" })).toBe(1);
+    expect(evaluate("mode == 'lin'", { mode: "exp" })).toBe(0);
+    expect(evaluate("'f = ' + a", { a: 440 })).toBe("f = 440");
+    // Strict equality: no cross-type coercion.
+    expect(evaluate("a == '1'", { a: 1 })).toBe(0);
+    // The empty string is falsy, like 0.
+    expect(evaluate("s ? 1 : 2", { s: "" })).toBe(2);
   });
 });

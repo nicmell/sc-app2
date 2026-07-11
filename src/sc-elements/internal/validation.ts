@@ -12,7 +12,7 @@ import { parseBind } from "@/lib/utils/expression";
 import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
-import type { BaseRuntime, Expr, InputRuntime, RuntimeContext } from "@/types/runtime";
+import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
 
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
@@ -26,6 +26,26 @@ export function failValidation(el: Element, message: string): never {
 /** Require a non-empty reactive property (backing a required attribute). */
 export function requireProp(el: Element, name: string, value: string): void {
   if (!value) failValidation(el, `missing required "${name}" attribute`);
+}
+
+/** One bind-path segment: hyphenated identifier words (`freq`, `mod-freq`). */
+const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
+
+/** Require a well-formed `name`: exactly the grammar of ONE bind-path
+ *  segment. Dots are the path separator — a dotted name would FORGE another
+ *  scope's runtime store key (`name="s1.freq"` at the root aliases the
+ *  `freq` control of synth `s1`: silent cross-wiring the per-scope duplicate
+ *  check cannot see) — and any other illegal character would make the name
+ *  unreferenceable by binds/expressions. */
+export function requireName(el: Element): void {
+  const value = el.getAttribute("name") ?? "";
+  requireProp(el, "name", value);
+  if (!NAME_SEGMENT.test(value)) {
+    failValidation(
+      el,
+      `"name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${value}")`,
+    );
+  }
 }
 
 /** Reject a numeric property whose attribute didn't parse as a number. */
@@ -59,7 +79,29 @@ export function checkDuplicateNames(scope: ScElement[]): void {
 // ── Runtime inference (process-time) ────────────────────────────────────────
 
 export function nameOf(el: Element): string | undefined {
-  return (el as { name?: string }).name;
+  return el.getAttribute("name") ?? undefined;
+}
+
+/** Transparent containers: NAMELESS non-node sc elements (sc-if, sc-select,
+ *  sc-radio-group). Naming containers — group/synth/synthdef/ugen, all with
+ *  a required `name` — open a sibling scope and a store-path segment;
+ *  transparent ones open neither: the parse walks through them, so their
+ *  contents live in the enclosing level (unconditionally — an sc-if only
+ *  hides visually). The nameless PLUGIN ROOT is a node, not a container —
+ *  hence the node exclusion. Lives here (not lib/utils/guards) to avoid an
+ *  import cycle: guards ← validation. */
+export function isTransparent(el: Element): boolean {
+  return !nameOf(el) && !isNodeRuntime(el);
+}
+
+/** A parent's sc children as name lookups see them: recursing through
+ *  transparent containers, so state inside an sc-if stays addressable on the
+ *  enclosing node (`bind="g.x"` with x wrapped in an sc-if under g). */
+export function* scChildrenThrough(parent: ScElement): Generator<ScElement> {
+  for (const child of parent._scChildren ?? []) {
+    yield child;
+    if (isTransparent(child)) yield* scChildrenThrough(child);
+  }
 }
 
 /** The runtime core every element shares. */
@@ -76,8 +118,9 @@ function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
   if (node._scChildren) {
     const [name, ...rest] = path;
-    const child = node._scChildren.find((c) => nameOf(c) === name);
-    return child ? walkPath(child, rest) : undefined;
+    for (const child of scChildrenThrough(node)) {
+      if (nameOf(child) === name) return walkPath(child, rest);
+    }
   }
   return undefined;
 }
@@ -105,20 +148,23 @@ export function resolveNode(
 
 /** Resolve `el`'s bind into its node + control-name pair: the leading
  *  segments name a node in scope (none targets the parent node), the last
- *  segment a state child declared on it. */
+ *  segment a state child declared on it. `attr` names the attribute the
+ *  expression came from in the error messages (`bind` for inputs, `bind:min`/
+ *  `bind:value`/… for runtime props). */
 export function resolveControlBind(
   el: Element,
   ctx: RuntimeContext,
   bind: string,
+  attr = "bind",
 ): { target: ScElement; controlName: string } {
   const tag = el.tagName.toLowerCase();
   const segments = bind.split(".");
   const controlName = segments.pop()!;
   const target = segments.length > 0 ? resolveNode(el, ctx, segments) : ctx.parentNode;
   if (!target || !isNodeRuntime(target)) {
-    throw new Error(`<${tag} bind="${bind}">: does not match any node in scope`);
+    throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
   }
-  if (!target._scChildren?.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+  if (![...scChildrenThrough(target)].some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // When the state IS declared on the target but only later in the
     // document (not yet processed), give the honest bind-order error
     // instead of "not declared".
@@ -129,26 +175,28 @@ export function resolveControlBind(
     }
     const targetName = nameOf(target) ?? target.id;
     throw new Error(
-      `<${tag} bind="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
+      `<${tag} ${attr}="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
     );
   }
   return { target, controlName };
 }
 
-/** Resolve `el`'s stateful bind (an enabled sc-control / sc-var referencing
- *  other controls/vars): plain dot-paths or an arithmetic expression over
- *  them. */
+/** Resolve a stateful bind expression (a runtime prop — `bind:value` on
+ *  state, `bind:min`/`bind:label`/… anywhere): plain dot-paths or an arithmetic/
+ *  ternary expression over them. `attr` names the source attribute in the
+ *  error messages. */
 export function resolveStateBind(
   el: ScElement,
   ctx: RuntimeContext,
   bind: string,
+  attr = "bind",
 ): { targets: Record<string, ScState>; expression?: Expr } {
   const parsed = parseBind(bind);
   const targets: Record<string, ScState> = {};
 
   for (const path of parsed.paths) {
-    const { target, controlName } = resolveControlBind(el, ctx, path);
-    const targetState = target._scChildren!.find(
+    const { target, controlName } = resolveControlBind(el, ctx, path, attr);
+    const targetState = [...scChildrenThrough(target)].find(
       (c) => isStateRuntime(c) && nameOf(c) === controlName,
     ) as ScState;
     // With references restricted to already-processed elements, processing
@@ -164,11 +212,4 @@ export function resolveStateBind(
   }
 
   return { targets, expression: parsed.expression };
-}
-
-/** Resolve `el`'s visual/input bind to its target state element. */
-export function resolveVisualBind(el: Element, ctx: RuntimeContext, bind: string): InputRuntime {
-  const { target, controlName } = resolveControlBind(el, ctx, bind);
-  const control = target._scChildren!.find((c) => isStateRuntime(c) && nameOf(c) === controlName)!;
-  return { ...baseRuntime(ctx), _targetScNode: control };
 }

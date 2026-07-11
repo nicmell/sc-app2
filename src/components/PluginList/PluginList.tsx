@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Button, Alert, Empty, Stack, Cluster } from "@/components/ui";
+import { Button, Alert, Empty, Flex } from "@/components/ui";
 import { useStore } from "@/stores/useStore";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
 import type { PluginInfo } from "@/types/api";
@@ -25,10 +25,10 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
   };
 
   return (
-    <Stack>
+    <Flex orientation="vertical" gap="xs">
       {installed.length === 0 && <Empty>No plugins installed yet.</Empty>}
       {installed.map((p) => (
-        <Cluster key={p.id} className={styles.row}>
+        <Flex justify="space-between" align="center" gap="xs" key={p.id} className={styles.row}>
           {onSelect ? (
             <button type="button" className={styles.pick} onClick={() => onSelect(p)}>
               <span className="plugin-name">{p.name}</span>
@@ -52,7 +52,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
               onClick={() => void deletePlugin(p.id)}
             />
           )}
-        </Cluster>
+        </Flex>
       ))}
 
       {!onSelect && (
@@ -66,6 +66,6 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
         </>
       )}
       {error && <Alert variant="error">{error}</Alert>}
-    </Stack>
+    </Flex>
   );
 }

@@ -7,13 +7,15 @@
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElementTagNames } from "@/types/sc-elements";
+import { ScButton } from "./inputs/sc-button";
 import { ScCheckbox } from "./inputs/sc-checkbox";
+import { ScKnob } from "./inputs/sc-knob";
 import { ScOption } from "./inputs/sc-option";
 import { ScRadio } from "./inputs/sc-radio";
 import { ScRadioGroup } from "./inputs/sc-radio-group";
-import { ScRange } from "./inputs/sc-range";
-import { ScRun } from "./inputs/sc-run";
 import { ScSelect } from "./inputs/sc-select";
+import { ScSlider } from "./inputs/sc-slider";
+import { ScSwitch } from "./inputs/sc-switch";
 import { ScGroup } from "./nodes/sc-group";
 import { ScPlugin } from "./nodes/sc-plugin";
 import { ScSynth } from "./nodes/sc-synth";
@@ -22,7 +24,11 @@ import { ScVar } from "./state/sc-var";
 import { ScSynthDef } from "./synthdef/sc-synthdef";
 import { ScUgen } from "./synthdef/sc-ugen";
 import { ScDisplay } from "./visuals/sc-display";
+import { ScCol } from "./visuals/sc-col";
+import { ScFlex } from "./visuals/sc-flex";
 import { ScIf } from "./visuals/sc-if";
+import { ScRow } from "./visuals/sc-row";
+import { ScText } from "./visuals/sc-text";
 import { ScConsole } from "./widgets/sc-console";
 import { ScScope } from "./widgets/sc-scope";
 import { ScStrudel } from "./widgets/sc-strudel";
@@ -34,8 +40,18 @@ export { ScInput } from "./internal/sc-input";
 export { ScGroup, ScPlugin, ScSynth };
 export { ScSynthDef, ScUgen };
 export { ScControl, ScVar };
-export { ScCheckbox, ScOption, ScRadio, ScRadioGroup, ScRange, ScRun, ScSelect };
-export { ScDisplay, ScIf };
+export {
+  ScButton,
+  ScCheckbox,
+  ScKnob,
+  ScOption,
+  ScRadio,
+  ScRadioGroup,
+  ScSelect,
+  ScSlider,
+  ScSwitch,
+};
+export { ScCol, ScDisplay, ScFlex, ScIf, ScRow, ScText };
 export { ScConsole, ScScope, ScStrudel };
 
 const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
@@ -46,11 +62,17 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_CONTROL]: ScControl,
   [ELEMENTS.SC_VAR]: ScVar,
   [ELEMENTS.SC_SYNTH]: ScSynth,
-  [ELEMENTS.SC_RANGE]: ScRange,
+  [ELEMENTS.SC_SLIDER]: ScSlider,
+  [ELEMENTS.SC_KNOB]: ScKnob,
+  [ELEMENTS.SC_BUTTON]: ScButton,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,
-  [ELEMENTS.SC_RUN]: ScRun,
+  [ELEMENTS.SC_SWITCH]: ScSwitch,
   [ELEMENTS.SC_DISPLAY]: ScDisplay,
   [ELEMENTS.SC_IF]: ScIf,
+  [ELEMENTS.SC_TEXT]: ScText,
+  [ELEMENTS.SC_FLEX]: ScFlex,
+  [ELEMENTS.SC_ROW]: ScRow,
+  [ELEMENTS.SC_COL]: ScCol,
   [ELEMENTS.SC_SELECT]: ScSelect,
   [ELEMENTS.SC_OPTION]: ScOption,
   [ELEMENTS.SC_RADIO_GROUP]: ScRadioGroup,

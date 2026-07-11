@@ -34,6 +34,7 @@ import {
   gNewOne,
   nFree,
   NodeEvent,
+  nRunOne,
   nSet,
   parseScopeChunkArgs,
   SCOPE_CHUNK_ADDRESS,
@@ -310,6 +311,12 @@ export class OscClient {
   freeGroup(groupId: number): void {
     this.send(gFreeAll(groupId));
     this.send(nFree(groupId));
+  }
+
+  /** Pause (0) / resume (1) a node — fire-and-forget (/n_run has no reply;
+   *  the node-lifecycle notifications ride /notify). */
+  setNodeRun(nodeId: number, flag: 0 | 1): void {
+    this.send(nRunOne(nodeId, flag));
   }
 
   /** Install a compiled synthdef; resolves once its embedded `/sync`

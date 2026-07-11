@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Button Plugin</title>
+</head>
+<body>
+<sc-synthdef name="sine">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+    <sc-control name="pan" value="0"/>
+    <sc-control name="gate" value="0"/>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind:value="freq"/>
+    </sc-ugen>
+    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="osc"/>
+        <sc-control name="b" bind:value="amp"/>
+    </sc-ugen>
+    <sc-ugen name="panned" type="Pan2">
+        <sc-control name="in" bind:value="sig"/>
+        <sc-control name="pos" bind:value="pan"/>
+    </sc-ugen>
+    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="panned"/>
+        <sc-control name="b" bind:value="gate"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind:value="gated"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="s1" synthdef="sine">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+    <sc-control name="pan" value="0"/>
+    <sc-control name="gate" value="0"/>
+</sc-synth>
+<sc-flex orientation="vertical" gap="sm">
+    <sc-flex align="center" gap="sm">
+        <sc-button bind:value="s1.gate" bind:icon="s1.gate ? 'stop' : 'play'" bind:label="s1.gate ? 'Stop' : 'Play'"/>
+        <sc-text weight="bold">Gate control</sc-text>
+    </sc-flex>
+    <sc-text tone="dim">State <sc-display bind:value="s1.gate ? 'playing' : 'stopped'"/></sc-text>
+</sc-flex>
+</body>
+</html>

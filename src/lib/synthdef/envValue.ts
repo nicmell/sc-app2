@@ -2,7 +2,7 @@
 // flat numeric array can be an `Env.asArray` encoding:
 //   [ start, numSegments, releaseNode, loopNode,
 //     to₁, time₁, curveType₁, curveVal₁, … ]
-// The engine treats envelopes as plain number[] state; <sc-env-editor>
+// The engine treats envelopes as plain number[] state; <sc-envelope>
 // decodes for its breakpoint canvas and encodes fresh arrays on commit
 // (zero-padded to the bound array's width — the def's control-array size —
 // with the true numSegments in the header: sclang's Env.newClear + setn

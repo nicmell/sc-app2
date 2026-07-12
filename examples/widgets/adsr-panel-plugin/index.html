@@ -48,7 +48,7 @@
         <sc-text weight="bold">ADSR panel</sc-text>
         <sc-text tone="dim">Turn a knob and the curve moves; drag a breakpoint and the knobs follow — every NEW note latches the current shape</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="env" minbreakpoints="4" maxbreakpoints="4"/>
+    <sc-envelope bind:value="env" minbreakpoints="4" maxbreakpoints="4"/>
     <sc-flex align="center" gap="md">
         <sc-flex orientation="vertical" gap="xs" align="center">
             <sc-knob bind:value="env.5" min="0.001" max="0.5" step="0.001"/>

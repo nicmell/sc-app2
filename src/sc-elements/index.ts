@@ -9,7 +9,7 @@ import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElementTagNames } from "@/types/sc-elements";
 import { ScButton } from "./inputs/sc-button";
 import { ScCheckbox } from "./inputs/sc-checkbox";
-import { ScEnvEditor } from "./inputs/sc-env-editor";
+import { ScEnvelope } from "./inputs/sc-envelope";
 import { ScKnob } from "./inputs/sc-knob";
 import { ScOption } from "./inputs/sc-option";
 import { ScRadio } from "./inputs/sc-radio";
@@ -45,7 +45,7 @@ export { ScControl, ScVar };
 export {
   ScButton,
   ScCheckbox,
-  ScEnvEditor,
+  ScEnvelope,
   ScKnob,
   ScOption,
   ScRadio,
@@ -66,7 +66,7 @@ const REGISTRY: Record<ScElementTagNames, CustomElementConstructor> = {
   [ELEMENTS.SC_VAR]: ScVar,
   [ELEMENTS.SC_SYNTH]: ScSynth,
   [ELEMENTS.SC_SLIDER]: ScSlider,
-  [ELEMENTS.SC_ENV_EDITOR]: ScEnvEditor,
+  [ELEMENTS.SC_ENVELOPE]: ScEnvelope,
   [ELEMENTS.SC_KNOB]: ScKnob,
   [ELEMENTS.SC_BUTTON]: ScButton,
   [ELEMENTS.SC_CHECKBOX]: ScCheckbox,

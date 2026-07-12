@@ -1,7 +1,7 @@
-/* <sc-env-editor> — light DOM (createRenderRoot returns `this`), imported as
-   `styles` in sc-env-editor.ts. The host rule targets the element tag. */
+/* <sc-envelope> — light DOM (createRenderRoot returns `this`), imported as
+   `styles` in sc-envelope.ts. The host rule targets the element tag. */
 
-:global(sc-env-editor) {
+:global(sc-envelope) {
   display: block;
   width: 100%;
   height: 160px;

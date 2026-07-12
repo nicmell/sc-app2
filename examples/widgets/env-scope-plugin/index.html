@@ -92,7 +92,7 @@
         <sc-text weight="bold">Envelope verification</sc-text>
         <sc-text tone="dim">The scope trace below must MATCH the editor's curve — drag and compare</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="shape"/>
+    <sc-envelope bind:value="shape"/>
     <!-- range="unipolar": the [0, 1] envelope fills the whole lane instead of
          the upper half of a ±1 bipolar view. trigger="auto": pin to the
          rising edge when found, free-run otherwise — never hold a stale

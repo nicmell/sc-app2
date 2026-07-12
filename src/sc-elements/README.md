@@ -219,6 +219,22 @@ the click TOGGLES the target 0 ↔ 1 on the live value's truthiness),
 `bind:icon="s1.gate ? 'stop' : 'play'"` is the flagship swap), `variant`
 (primary|secondary|ghost|danger), `size`.
 
+### `<sc-envelope>` — functional (canvas)
+
+The draggable-breakpoint envelope editor over an ordinary ARRAY-valued
+control/var holding an `Env.asArray` encoding (`bind:value` — a plain
+WRITABLE path; the codec is lib/synthdef/envValue.ts, zero-padded to the
+bound array's width with the true segment count in the header). Gestures:
+drag points (level + segment time; pinned to the canvas edges — the scale
+freezes per gesture, so nothing reshapes on release), drag a segment
+midpoint to bend its curvature (double-click resets to linear),
+double-click to insert/remove breakpoints. A readout shows the grabbed
+handle's live value. Props: `value` (required), `minbreakpoints`/
+`maxbreakpoints` (count bounds incl. the start point — EQUAL bounds lock
+the structure while positions stay draggable, keeping `env.N` slot-lens
+binds meaningful). Authoring defaults pair naturally with the expression
+plane: `value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"`.
+
 ## `visuals/`
 
 Both visuals are read-only SINKS on the state graph, running entirely on
@@ -304,3 +320,20 @@ A Strudel editor whose patterns route to StrudelDirt through the OSC bridge
 pattern code; `orbit` stamps a default orbit onto events the pattern doesn't
 route itself (`.orbit(n)` wins). The editor works offline; unload stops
 playback on connection loss.
+
+### `<sc-keyboard>`
+
+An on-screen MIDI-style piano spawning a transient voice per pressed key
+from a referenced synthdef (`synthdef`, required — must name an
+`<sc-synthdef>` in scope): `/s_new` into the plugin group with
+`freq = note.midicps` and `amp = velocity`, gate-0 on release (the def
+pairs gate with a doneAction so voices self-free). Three input sources
+funnel into ONE held-note map: pointer (velocity from the vertical click
+position), the computer tracker row (`a…k`), and Web MIDI hardware.
+Releases racing the `/n_go` ack are deferred; a lost ack `/n_free`s the
+allocated id; focus leaving the element releases everything held. Props:
+`freq`/`amp`/`gate` remap the def's param names; `octaves`/`start` set the
+drawn range; `envelope` (usually `bind:envelope="env"`) latches an
+Env.asArray value into each voice on the def's SINGLE array param — new
+voices sound the current shape, playing voices keep the one they were born
+with.

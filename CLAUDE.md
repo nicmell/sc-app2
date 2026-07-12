@@ -66,9 +66,9 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          per-element docs): nodes/ (plugin/group/synth),
                          synthdef/ (synthdef/ugen), state/ (control/var),
                          inputs/ (slider/knob/checkbox/switch/select/option/
-                         radio-group/radio/button), visuals/ (display/if/text/
-                         flex/row/col), widgets/ (strudel/
-                         scope/console). index.ts is the barrel +
+                         radio-group/radio/button/envelope), visuals/
+                         (display/if/text/flex/row/col), widgets/ (strudel/
+                         scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
                          ScElement base carries the parse engine (hydrate/
@@ -104,6 +104,17 @@ constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
 lib/                     non-React infrastructure
+  expression/              the bind-expression LANGUAGE: ast (the Expr union),
+                         parser (grammar: arithmetic, comparisons, ternary,
+                         string literals, dotted paths incl. numeric SLOT
+                         tails, FUNCTION CALLS — SC envelope constructors
+                         `adsr(0.01, 0.1, 0.7, 0.3)` bridged from the
+                         synthdef-compiler's env-registry + `pad()`),
+                         evaluate (runtime eval, multichannel expansion,
+                         NaN-guarded calls), functions (the registry),
+                         literal (the STRICT static-`value` evaluator,
+                         memoized), split (the paren-aware top-level comma
+                         splitter every comma consumer uses)
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (carries the response body, e.g. plugin validation errors)
   osc/                   the OSC transport (see lib/osc/README.md):
@@ -301,9 +312,13 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    static form, evaluated live and reactive on its sources. Entries declare
    `xmlns:bind="urn:sc-app:bind"` on the root; the runtime matches by
    QUALIFIED NAME — getAttribute("bind:min"), never getAttributeNS (the one
-   portable API across happy-dom and Chrome). See XSD-CODEGEN-DRAFT.md
-   Phase 3 (a bare `:value` sigil is impossible — not namespace-well-formed
-   XML, not an XSD NCName; a DECLARED prefix is).
+   portable API across happy-dom and Chrome; a bare `:value` sigil is
+   impossible — not namespace-well-formed XML, not an XSD NCName; a
+   DECLARED prefix is). Upload-gate honesty: fastxml 0.8.0 validates NO
+   attributes (`validate_attributes` is a stub) — the schema's attribute
+   rules bite only under libxml2 in dev; `validateProps` at parse is the
+   authoritative gate, so a wrong plugin usually uploads 201 and dies with
+   a pointed error in the plugin box.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
    one shared object per sibling scope; it attaches the element to its
@@ -422,8 +437,10 @@ further `sc-*` element:
 | sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                    |
 | sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                               |
 | sc-console                                                 | functional leaf (the OSC console; no attributes)                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
+| sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split), `range` (bipolar\|unipolar — envelopes/control taps fill the lane) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel                                                 | functional + parametrized: text content = initial pattern code, `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                                                                            |
+| sc-keyboard                                                | NEW (no old-app counterpart): on-screen/tracker-row/Web MIDI piano spawning a transient voice per key from a referenced synthdef (`/s_new` into the plugin group, gate-0 release, ack-window race handling, focusout release-all); `bind:envelope` latches an Env.asArray value into each voice on the def's single array param; `freq`/`amp`/`gate` remap param names                                                                                                                          |
+| sc-envelope                                                | NEW: the draggable-breakpoint envelope editor over an ordinary ARRAY-valued control/var (`bind:value` — writable plain path; Env.asArray codec in lib/synthdef/envValue.ts); gesture-frozen scale + edge pinning (no runaway feedback), `minbreakpoints`/`maxbreakpoints` lock the structure (positions stay draggable — stable `env.N` slot-lens binds), drag readout, double-click curve reset                                                                                                |
 | sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step)                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 **The load pass**: after the sync parse, `ScPlugin.firstUpdated` awaits
@@ -498,7 +515,18 @@ everything else — internal/sc-input derives the single WRITABLE target from
 the resolved runtime prop (plain path, one target, no expression; an
 expression bind is a read-only meter), the widget sync rides the
 `runtimeValueChanged` hook (no extra subscription); sc-synth uses the explicit
-non-state `synthdef` reference. The
+non-state `synthdef` reference. A numeric path TAIL is an array-SLOT LENS
+(`bind:value="env.5"`): the read half evaluates that element live, the
+write half (ScInput.commit) replaces the slot in a fresh copy of the whole
+array — one statechange, every other lens/editor resyncs. Bare-name state
+binds resolve on the parent node first, then fall back LEXICALLY through
+the enclosing scopes (a synth's instance control can derive from a
+plugin-level var). Expression FUNCTION CALLS (lib/expression/functions):
+SC envelope constructors (`adsr`/`perc`/`linen`/… from the compiler's
+env-registry) + `pad()` work in static `value` attributes (strict, loud,
+memoized), in runtime binds (NaN-guarded), and in synthdef GRAPHS — where
+param REFS pass into the modulatable envelope slots (a live server-side
+ADSR retunable via /n_set) and calls on non-variadic inputs are rejected. The
 statechange dispatch is gated on `isStateRuntime` — only named state is
 targetable, so consumers stay silent. The READ-ONLY visuals (sc-display's
 `value`, sc-if's `when`) read through the same machinery; evaluated values

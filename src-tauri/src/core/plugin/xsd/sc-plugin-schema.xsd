@@ -47,7 +47,7 @@
   <xs:element name="sc-var" type="scVarType"/>
   <xs:element name="sc-synth" type="scSynthType"/>
   <xs:element name="sc-slider" type="scSliderType"/>
-  <xs:element name="sc-env-editor" type="scEnvEditorType"/>
+  <xs:element name="sc-envelope" type="scEnvelopeType"/>
   <xs:element name="sc-knob" type="scKnobType"/>
   <xs:element name="sc-button" type="scButtonType"/>
   <xs:element name="sc-checkbox" type="scCheckboxType"/>
@@ -93,7 +93,7 @@
   <xs:group name="scInputs">
     <xs:choice>
       <xs:element ref="sc-slider"/>
-      <xs:element ref="sc-env-editor"/>
+      <xs:element ref="sc-envelope"/>
       <xs:element ref="sc-knob"/>
       <xs:element ref="sc-button"/>
       <xs:element ref="sc-checkbox"/>
@@ -301,7 +301,7 @@
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
-  <xs:complexType name="scEnvEditorType">
+  <xs:complexType name="scEnvelopeType">
     <xs:attribute name="value" type="xs:string"/>
     <xs:attribute name="minbreakpoints" type="xs:integer"/>
     <xs:attribute name="maxbreakpoints" type="xs:integer"/>

@@ -57,7 +57,7 @@
         <sc-text weight="bold">Envelope editor</sc-text>
         <sc-text tone="dim">Drag points; double-click to add/remove; drag a midpoint to bend</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="env"/>
+    <sc-envelope bind:value="env"/>
     <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env"/>
     <sc-console/>
 </sc-flex>

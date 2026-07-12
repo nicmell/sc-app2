@@ -1,4 +1,4 @@
-// <sc-env-editor> — the draggable-breakpoint envelope editor. An ScInput
+// <sc-envelope> — the draggable-breakpoint envelope editor. An ScInput
 // whose bound target is an ordinary ARRAY-valued control/var holding an
 // Env.asArray encoding: `syncFromState` DECODES the flat array into
 // breakpoints and repaints; every gesture ENCODES a fresh array (same width
@@ -35,7 +35,7 @@ import {
 import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
-import styles from "./sc-env-editor.module.scss";
+import styles from "./sc-envelope.module.scss";
 
 const PAD = 10; // px inset around the drawing area
 const HIT_RADIUS = 10; // px hit-test radius for points and curve handles
@@ -87,7 +87,7 @@ type Drag =
   | { kind: "point"; index: number } // 0 = the start point, i = segment i-1's end
   | { kind: "curve"; index: number; startY: number; startCurve: number };
 
-export class ScEnvEditor extends ScInput {
+export class ScEnvelope extends ScInput {
   /** Breakpoint-count bounds (start point included; segments + 1). Insert
    *  blocks at max, removal at min — equal bounds LOCK the structure while
    *  positions stay draggable (stable slots for `env.N` lens binds). */

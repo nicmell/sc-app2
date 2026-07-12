@@ -12,7 +12,7 @@ export const ELEMENTS = {
   SC_VAR: "sc-var",
   SC_SYNTH: "sc-synth",
   SC_SLIDER: "sc-slider",
-  SC_ENV_EDITOR: "sc-env-editor",
+  SC_ENVELOPE: "sc-envelope",
   SC_KNOB: "sc-knob",
   SC_BUTTON: "sc-button",
   SC_CHECKBOX: "sc-checkbox",

@@ -1,4 +1,4 @@
-// <sc-env-editor> gate: the writable-ARRAY target validation, the
+// <sc-envelope> gate: the writable-ARRAY target validation, the
 // programmatic edit seam (pointer geometry is untestable under happy-dom —
 // the drag handlers funnel into the same applyEdit/commit path), and the
 // pure breakpoint edit helpers (insert/remove with flag preservation). The
@@ -10,7 +10,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { OSC } from "@sc-app/server-commands";
 import { registerScElements, type ScControl } from "@/sc-elements";
-import { insertPoint, removePoint, type ScEnvEditor } from "@/sc-elements/inputs/sc-env-editor";
+import { insertPoint, removePoint, type ScEnvelope } from "@/sc-elements/inputs/sc-envelope";
 import type { EnvBreakpoints } from "@/lib/synthdef/envValue";
 import { installScsynthMock, mountPlugin, wrapXml } from "@/lib/utils/test/test-utils";
 
@@ -19,7 +19,7 @@ let sent: OSC.Message[];
 const ENV = "0, 2, 1, -99, 1, 0.01, 5, -4, 0, 0.3, 5, -4";
 
 const PLUGIN = wrapXml(`<sc-control name="env" value="${ENV}"/>
-  <sc-env-editor bind:value="env"/>`);
+  <sc-envelope bind:value="env"/>`);
 
 beforeAll(() => registerScElements());
 
@@ -31,10 +31,10 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("sc-env-editor", () => {
+describe("sc-envelope", () => {
   it("decodes the bound array and commits a fresh same-width encoding", async () => {
     const { host } = await mountPlugin(PLUGIN);
-    const editor = host.querySelector("sc-env-editor") as ScEnvEditor;
+    const editor = host.querySelector("sc-envelope") as ScEnvelope;
     const control = host.querySelector("sc-control") as ScControl;
     sent.length = 0;
 
@@ -52,17 +52,17 @@ describe("sc-env-editor", () => {
 
   it("rejects a scalar target and an expression bind", async () => {
     await expect(
-      mountPlugin(wrapXml(`<sc-var name="x" value="1"/><sc-env-editor bind:value="x"/>`)),
+      mountPlugin(wrapXml(`<sc-var name="x" value="1"/><sc-envelope bind:value="x"/>`)),
     ).rejects.toThrow('"bind:value" must reference an ARRAY-valued control/var');
     document.body.replaceChildren();
     await expect(
-      mountPlugin(wrapXml(`<sc-var name="x" value="1"/><sc-env-editor bind:value="x * 2"/>`)),
+      mountPlugin(wrapXml(`<sc-var name="x" value="1"/><sc-envelope bind:value="x * 2"/>`)),
     ).rejects.toThrow('"bind:value" must reference a single writable envelope state');
   });
 
   it("rejects an array too narrow for a header + one segment", async () => {
     await expect(
-      mountPlugin(wrapXml(`<sc-var name="x" value="1, 2, 3"/><sc-env-editor bind:value="x"/>`)),
+      mountPlugin(wrapXml(`<sc-var name="x" value="1, 2, 3"/><sc-envelope bind:value="x"/>`)),
     ).rejects.toThrow("envelope array needs at least 8 slots");
   });
 
@@ -70,21 +70,21 @@ describe("sc-env-editor", () => {
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>
-          <sc-env-editor bind:value="env" minbreakpoints="1"/>`),
+          <sc-envelope bind:value="env" minbreakpoints="1"/>`),
       ),
     ).rejects.toThrow('"minbreakpoints" must be an integer ≥ 2');
     document.body.replaceChildren();
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>
-          <sc-env-editor bind:value="env" minbreakpoints="4" maxbreakpoints="3"/>`),
+          <sc-envelope bind:value="env" minbreakpoints="4" maxbreakpoints="3"/>`),
       ),
     ).rejects.toThrow('"maxbreakpoints" must be an integer ≥ minbreakpoints');
     document.body.replaceChildren();
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>
-          <sc-env-editor bind:value="env" minbreakpoints="3" maxbreakpoints="3"/>`),
+          <sc-envelope bind:value="env" minbreakpoints="3" maxbreakpoints="3"/>`),
       ),
     ).resolves.toBeTruthy(); // a LOCKED structure parses clean
   });

@@ -6,6 +6,11 @@ It is the ground-up successor of the old `sc-app` project (checked out as the
 `sc-app/` submodule), whose features are being migrated here — see
 **Migration plan** at the bottom.
 
+**Pre-release policy: nothing is deployed.** Breaking changes to any signature
+or format (markup syntax, bind grammar, OSC contracts, HTTP payloads) need NO
+deprecation errors, migration hints, or compat shims — change it outright and
+sweep every usage in the repo (examples, tests, docs) in the same commit.
+
 ## Quick reference
 
 ```bash

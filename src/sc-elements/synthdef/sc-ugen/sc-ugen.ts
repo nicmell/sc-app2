@@ -29,20 +29,21 @@ export class ScUgen extends ScElement {
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     this.processChildren(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
-    // synthdef param. A comma-token may be a plain ref, a `name:idx` ref, or an
-    // arithmetic EXPRESSION — validate each operand var it names (parseBind
-    // collects them into `paths`; a bare number contributes none).
+    // synthdef param. A comma-token may be a plain ref, a `name.idx`
+    // output/slot selector, or an arithmetic EXPRESSION — validate each
+    // operand var it names (parseBind collects them into `paths`; a bare
+    // number contributes none) with any numeric selector stripped off.
+    const name = this.getProp("name") as string;
     for (const child of this._scChildren!) {
       const childBind = child.getAttribute("bind:value");
       if (!isControlRuntime(child) || !childBind) continue;
+      const input = child.getProp("name") as string;
       for (const token of childBind.split(",").map((s) => s.trim())) {
-        // Multi-output refs (`name:idx`) can't appear inside an expression (the
-        // parser rejects ':') — treat a ':' token as a plain ref.
-        const refs = token.includes(":") ? [token.split(":")[0]] : parseBind(token).paths;
-        for (const refId of refs) {
+        for (const path of parseBind(token).paths) {
+          const refId = path.replace(/\.\d+$/, ""); // drop a `.idx` selector
           if (!resolveNode(this, ctx, [refId])) {
             throw new Error(
-              `<sc-ugen name="${this.getProp("name") as string}">: input "${child.getProp("name") as string}" references unknown "${refId}"`,
+              `<sc-ugen name="${name}">: input "${input}" references unknown "${refId}"`,
             );
           }
         }

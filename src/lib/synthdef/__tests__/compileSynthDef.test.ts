@@ -75,7 +75,7 @@ describe("compileSynthDef", () => {
           name: "out",
           type: "Out",
           rate: "ar",
-          inputs: { bus: "0", channelsarray: "panned:0, panned:1" },
+          inputs: { bus: "0", channelsarray: "panned.0, panned.1" },
         },
       ]),
     );
@@ -179,12 +179,47 @@ describe("compileSynthDef", () => {
       expect(tail).toEqual(env.map(Math.fround));
     });
 
-    it("an array expression lowers element-wise and name:idx maps per instance", () => {
+    it("a name.idx dot ref selects a control-array SLOT (also inside expressions)", () => {
+      const env = [0, 2, 1, -99, 1, 0.1, 5, -4, 0, 0.3, 5, -4];
+      const json = parseScgf(
+        compileSynthDef("x", { env }, [
+          // env.5 = seg 0's time; the expression form must resolve too.
+          { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "env.5" } },
+          { name: "sum", type: "BinaryOpUGen", rate: "kr", op: "+", inputs: { a: "env.5 + env.9", b: "osc" } },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "sum" } },
+        ]),
+      );
+      // SinOsc's freq input = the Control node's output slot 5.
+      const osc = json.ugens.find((u) => u.className === "SinOsc")!;
+      expect(osc.inputs[0]).toEqual({ ugenIndex: 0, outputIndex: 5 });
+      // The expression's add reads slots 5 and 9 off the same Control node.
+      const add = json.ugens.find((u) => u.className === "BinaryOpUGen" && u.specialIndex === 0)!;
+      expect(add.inputs).toEqual([
+        { ugenIndex: 0, outputIndex: 5 },
+        { ugenIndex: 0, outputIndex: 9 },
+      ]);
+    });
+
+    it("rejects an out-of-range slot and deep dots", () => {
+      const specs = (input: string): UgenSpec[] => [
+        { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: input } },
+        { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "osc" } },
+      ];
+      const env = [0, 1, 0, -99, 1, 0.1, 5, -4];
+      expect(() => compileSynthDef("x", { env }, specs("env.99"))).toThrow(
+        'control array "env" has only 8 slots',
+      );
+      expect(() => compileSynthDef("x", { env }, specs("env.5.2"))).toThrow(
+        'Cannot resolve input "env.5.2"',
+      );
+    });
+
+    it("an array expression lowers element-wise and name.idx maps per instance", () => {
       const json = parseScgf(
         compileSynthDef("x", { spread: 2 }, [
           { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "220, 330 * spread" } },
-          { name: "panned", type: "Pan2", rate: "ar", inputs: { in: "osc:0", pos: "0" } },
-          OUT("panned:0, panned:1"),
+          { name: "panned", type: "Pan2", rate: "ar", inputs: { in: "osc.0", pos: "0" } },
+          OUT("panned.0, panned.1"),
         ]),
       );
       // The comma-list mixes a literal and an expression: one mul op node.

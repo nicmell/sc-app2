@@ -24,7 +24,7 @@ the general value plane gained ARRAYS + SC's multichannel expansion:
    comparisons → 1/0 arrays, array ternary cond selects element-wise. Graph
    (`compileSynthDef`): `Signal = UGenInput | UGenInput[]`; an array on a
    scalar ugen input DUPLICATES the ugen max(len) times (wrapAt per input)
-   and the name resolves to the instance array downstream (`name:idx` maps
+   and the name resolves to the instance array downstream (`name.idx` maps
    per instance); expressions lower element-wise through op nodes; VARIADIC
    inputs — `channelsArray`, `inputArray`, and now `envelope` — flatten
    their signal into the tail (SC's own rule).

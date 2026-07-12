@@ -44,8 +44,8 @@ export interface UgenSpec {
   type: string;
   rate: string; // "ar" | "kr" | "ir" (validated by sc-ugen)
   op?: string;
-  /** Input name → bind reference ("osc", "osc:1", "a,b", "freq * 2") or
-   *  literal string (a comma-list literal is an array). */
+  /** Input name → bind reference ("osc", "osc.1", "env.5", "a,b",
+   *  "freq * 2") or literal string (a comma-list literal is an array). */
   inputs: Record<string, string>;
 }
 
@@ -171,21 +171,35 @@ class UGenGraphBuilder {
     return this.resolveToken(tokens[0] ?? value);
   }
 
-  /** One token → a Signal: a numeric literal, a `name`/`name:idx` reference
+  /** One token → a Signal: a numeric literal, a `name`/`name.idx` reference
    *  (arrays when the target is expanded / an array param), or an arithmetic
    *  expression lowered to op nodes (element-wise over arrays). */
   private resolveToken(value: string): Signal {
     const num = Number(value);
     if (!isNaN(num) && value.trim() !== "") return k(num);
 
-    // A strict `name:idx` multi-output ref (not a ternary's ':', which falls
-    // through to expression lowering below).
-    const colonRef = /^([A-Za-z_][\w-]*):(\d+)$/.exec(value);
-    if (colonRef) {
-      const base = this.ugenIndices.get(colonRef[1]);
-      const outIdx = Number(colonRef[2]);
-      if (base === undefined) throw new Error(`Unknown UGen ref: "${colonRef[1]}" in "${value}"`);
-      return Array.isArray(base) ? base.map((b) => uo(b, outIdx)) : uo(base, outIdx);
+    // A `name.idx` selector — names cannot start with a digit, so a numeric
+    // segment is unambiguously an INDEX: output `idx` of a ugen (of each
+    // instance when expanded), or slot `idx` of a control ARRAY (a slot IS
+    // an output of the shared Control node). Two levels only. Legal inside
+    // expressions too — the tokenizer carries the dotted name whole.
+    const dotRef = /^([A-Za-z_][\w-]*)\.(\d+)$/.exec(value);
+    if (dotRef) {
+      const idx = Number(dotRef[2]);
+      const base = this.ugenIndices.get(dotRef[1]);
+      if (base !== undefined) {
+        return Array.isArray(base) ? base.map((b) => uo(b, idx)) : uo(base, idx);
+      }
+      const ctrl = this.controlInputs.get(dotRef[1]);
+      if (Array.isArray(ctrl)) {
+        if (idx >= ctrl.length) {
+          throw new Error(
+            `"${value}": control array "${dotRef[1]}" has only ${ctrl.length} slots`,
+          );
+        }
+        return ctrl[idx];
+      }
+      throw new Error(`Unknown ref "${dotRef[1]}" in "${value}" — not a UGen or array param`);
     }
 
     const idx = this.ugenIndices.get(value);
@@ -195,9 +209,13 @@ class UGenGraphBuilder {
     if (ctrl) return ctrl;
 
     // A bare name matched nothing above; an arithmetic expression lowers into
-    // op nodes (a plain unresolved path has no `expression` → falls through).
+    // op nodes. A plain path has no `expression`, and a single unresolvable
+    // var token must not re-enter itself (parseBind hands back `name.5.2`
+    // and friends as one var) — both fall through to the error.
     const parsed = parseBind(value);
-    if (parsed.expression) return this.lowerExpr(parsed.expression);
+    if (parsed.expression && !(parsed.expression.type === "var" && parsed.expression.name === value)) {
+      return this.lowerExpr(parsed.expression);
+    }
 
     throw new Error(`Cannot resolve input "${value}" — not a number, UGen id, or param name`);
   }

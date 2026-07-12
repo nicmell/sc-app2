@@ -27,7 +27,7 @@ function collectControlParams(node: ScParentElement): Record<string, number | nu
 
 /** Collect an element's <sc-control> children into name → ref-or-literal
  *  strings — the shared shape for both ugen inputs and <sc-env> params. The
- *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc:1"`) is read raw
+ *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc.1"`) is read raw
  *  (never resolved on the state graph; resolveRuntimeProps skips these
  *  children); an empty reference counts as absent — the parse-time error beats
  *  a junk "" reaching the compiler at /d_recv time. */

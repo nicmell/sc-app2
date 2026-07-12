@@ -255,6 +255,61 @@ describe("compileSynthDef", () => {
       expect(json.ugens[2].inputs[0]).toEqual({ ugenIndex: 1, outputIndex: 0 });
     });
 
+    it("lowers a ternary to Select(which, [else, then]) with a binarized cond", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1, freq: 440 }, [
+          { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "gate ? freq : 220" } },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "osc" } },
+        ]),
+      );
+      expect(json.ugens.map((u) => u.className)).toEqual([
+        "Control",
+        "BinaryOpUGen", // gate != 0 (truthiness parity — Select truncates)
+        "Select",
+        "SinOsc",
+        "Out",
+      ]);
+      const neq = json.ugens[1];
+      expect(neq.specialIndex).toBe(7); // '!='
+      expect(neq.inputs[0]).toEqual({ ugenIndex: 0, outputIndex: 0 }); // gate slot
+      expect(json.constants[neq.inputs[1].outputIndex]).toBe(0);
+      const sel = json.ugens[2];
+      expect(sel.inputs[0]).toEqual({ ugenIndex: 1, outputIndex: 0 }); // which = the neq
+      expect(json.constants[sel.inputs[1].outputIndex]).toBe(220); // index 0 → ELSE
+      expect(sel.inputs[2]).toEqual({ ugenIndex: 0, outputIndex: 1 }); // index 1 → THEN (freq)
+    });
+
+    it("a comparison cond feeds Select directly (already 1/0)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { freq: 440 }, [
+          { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "freq > 800 ? 800 : freq" } },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "osc" } },
+        ]),
+      );
+      // Exactly ONE BinaryOpUGen — the `>`; no extra `!= 0`.
+      const bins = json.ugens.filter((u) => u.className === "BinaryOpUGen");
+      expect(bins).toHaveLength(1);
+      expect(bins[0].specialIndex).toBe(9); // '>'
+      expect(json.ugens.filter((u) => u.className === "Select")).toHaveLength(1);
+    });
+
+    it("a ternary over array branches expands element-wise, sharing the cond", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1, a: [1, 2], b: [3, 4] }, [
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "gate ? a : b" } },
+        ]),
+      );
+      // One shared binarize node, one Select per channel.
+      expect(json.ugens.filter((u) => u.className === "BinaryOpUGen")).toHaveLength(1);
+      const sels = json.ugens.filter((u) => u.className === "Select");
+      expect(sels).toHaveLength(2);
+      // Each Select: [which, b_i (else), a_i (then)] — a slots 1,2; b slots 3,4.
+      sels.forEach((sel, i) => {
+        expect(sel.inputs[1]).toEqual({ ugenIndex: 0, outputIndex: 3 + i });
+        expect(sel.inputs[2]).toEqual({ ugenIndex: 0, outputIndex: 1 + i });
+      });
+    });
+
     it("lowers unary minus to a UnaryOpUGen (neg)", () => {
       const json = parseScgf(
         compileSynthDef("x", { a: 1 }, [
@@ -301,17 +356,12 @@ describe("compileSynthDef", () => {
       expect(json.ugens.find((u) => u.className === "BinaryOpUGen")!.specialIndex).toBe(9); // '>'
     });
 
-    it("rejects a string literal and a ternary in a graph expression", () => {
+    it("rejects a string literal in a graph expression", () => {
       expect(() =>
         compileSynthDef("x", { a: 1 }, [
           { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "a + 'hi'" } },
         ]),
       ).toThrow(/string literal is not allowed/);
-      expect(() =>
-        compileSynthDef("x", { a: 1 }, [
-          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "a > 0 ? 1 : 2" } },
-        ]),
-      ).toThrow(/ternary is not supported/);
     });
   });
 

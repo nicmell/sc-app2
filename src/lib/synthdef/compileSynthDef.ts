@@ -255,6 +255,27 @@ class UGenGraphBuilder {
     );
   }
 
+  /** `cond != 0` — the truthiness gate a Select's `which` needs: Select
+   *  TRUNCATES (0.5 would pick the else branch, -1 is out of range), while
+   *  the runtime ternary treats any non-zero as true. Comparisons already
+   *  emit exactly 1/0 and skip this. */
+  private binarize(cond: Signal): Signal {
+    const special = binaryOpIndex("!=")!;
+    return Array.isArray(cond)
+      ? cond.map((c) => this.emitBinary(c, k(0), special))
+      : this.emitBinary(cond, k(0), special);
+  }
+
+  /** One Select node picking between two branches: which 0 → else, 1 → then.
+   *  Select has no scalar implementation — an all-constant pick still runs
+   *  at control rate. */
+  private emitSelect(which: UGenInput, other: UGenInput, then: UGenInput): UGenInput {
+    const rate = this.combinedRate([which, other, then]);
+    return u(
+      this.def.addUgen("Select", rate === "scalar" ? "control" : rate, [which, other, then], 1, 0),
+    );
+  }
+
   /** Lower a parsed bind expression into UGen nodes, multichannel-expanded:
    *  ops over array signals emit one op node per element with the shorter
    *  operand cycling (SC's wrap). Operand vars resolve through resolveToken
@@ -289,10 +310,37 @@ class UGenGraphBuilder {
       }
       case "string":
         throw new Error(`a string literal is not allowed in a synthdef graph expression`);
-      case "ternary":
-        throw new Error(`a ternary is not supported in a synthdef graph expression`);
+      case "ternary": {
+        // A DATAFLOW pick, not control flow: Select(which, [else, then]) —
+        // both branches always compute (no short-circuit) and the switch is
+        // a hard per-sample step (no crossfade). The cond binarizes through
+        // `!= 0` for runtime-ternary truthiness parity unless it is already
+        // a comparison (1/0 by construction).
+        const cond = this.lowerExpr(expr.cond);
+        const which = isComparison(expr.cond) ? cond : this.binarize(cond);
+        const then = this.lowerExpr(expr.then);
+        const other = this.lowerExpr(expr.else);
+        if (!Array.isArray(which) && !Array.isArray(then) && !Array.isArray(other)) {
+          return this.emitSelect(which, other, then);
+        }
+        const wa = Array.isArray(which) ? which : [which];
+        const ta = Array.isArray(then) ? then : [then];
+        const oa = Array.isArray(other) ? other : [other];
+        const count = Math.max(wa.length, ta.length, oa.length);
+        return Array.from({ length: count }, (_, i) =>
+          this.emitSelect(wa[i % wa.length], oa[i % oa.length], ta[i % ta.length]),
+        );
+      }
     }
   }
+}
+
+/** A comparison node's output is exactly 1/0 — no truthiness binarization
+ *  needed when it feeds a Select's `which`. */
+function isComparison(expr: Expr): boolean {
+  return (
+    expr.type === "binary" && [">", "<", ">=", "<=", "==", "!="].includes(expr.op)
+  );
 }
 
 function resolveSpecialIndex(spec: UgenSpec): number {

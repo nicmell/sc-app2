@@ -63,5 +63,6 @@ arrays as comma-lists; MCE arrays are flat (no nesting).
 
 - Registry-driven variadic-input flags (replace the hardcoded ARRAY_INPUTS).
 - Rate inference for AUTHORED ugens (op nodes already infer).
-- `pow`/`%` in the expression grammar; ternary→Select in the graph.
+- `pow`/`%` in the expression grammar (ternary→Select and `name.idx`
+  output/slot refs SHIPPED on this branch).
 - Presets (roadmap 8) — array values are JSON-ready.

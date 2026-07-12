@@ -1,3 +1,4 @@
+import type { Expr } from "@/lib/expression";
 import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
@@ -10,7 +11,7 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 // attribute contract). The runtime registry maps ids straight to the live
 // elements.
 
-// ── Bind expressions (lib/utils/expression) ──────────────────────────────
+// ── Bind expressions (lib/expression) ─────────────────────────────────────
 
 /** What a runtime value can hold: numbers everywhere, strings for the
  *  presentation layer (string vars, ternary labels/icons), and numeric
@@ -19,27 +20,10 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
  *  Object.is guards never see in-place mutation). Expressions evaluate over
  *  arrays with SC's multichannel expansion; the OSC boundary sends /n_setn
  *  for arrays and /n_set for scalars (NaN skipped either way). */
-export type StateValue = number | string | number[];
+export type StateValue = string | number | number[];
 
-export type Expr =
-  | { type: "number"; value: number }
-  | { type: "string"; value: string }
-  | { type: "var"; name: string }
-  | { type: "unary"; op: "-"; expr: Expr }
-  | {
-      type: "binary";
-      /** Arithmetic, plus the non-associative comparisons (evaluating to 1/0). */
-      op: "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
-      left: Expr;
-      right: Expr;
-    }
-  | {
-      type: "ternary";
-      /** Right-associative conditional over the cond's truthiness. */
-      cond: Expr;
-      then: Expr;
-      else: Expr;
-    };
+/** The bind-expression AST — defined by the language module. */
+export type { Expr } from "@/lib/expression";
 
 // ── Runtime value mixins ──────────────────────────────────────────────────
 //

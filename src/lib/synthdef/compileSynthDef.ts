@@ -35,7 +35,7 @@ import {
   type UGenInput,
   type UGenRegistryDefault,
 } from "@sc-app/synthdef-compiler";
-import { parseBind } from "@/lib/utils/expression";
+import { lookupFunction, parseBind, splitTopLevel, type LoweredArg } from "@/lib/expression";
 import type { Expr } from "@/types/runtime";
 
 export interface UgenSpec {
@@ -141,6 +141,14 @@ class UGenGraphBuilder {
       const attrValue = findMatchingInput(spec.inputs, defName);
 
       if (attrValue !== undefined) {
+        // An envelope call on a FIXED input would silently multichannel-
+        // expand the ugen ×16 — calls belong on the variadic inputs.
+        const head = /^([A-Za-z_]\w*)\(/.exec(attrValue.trim());
+        if (head && !ARRAY_INPUTS.has(defName) && lookupFunction(head[1])) {
+          throw new Error(
+            `UGen "${spec.name}" (${spec.type}): "${head[1]}(…)" on input "${defName}" — array-producing calls only feed variadic inputs (envelope/channelsArray/inputArray)`,
+          );
+        }
         const signal = this.resolveSignal(attrValue);
         if (ARRAY_INPUTS.has(defName)) {
           tail.push(...(Array.isArray(signal) ? signal : [signal]));
@@ -156,12 +164,13 @@ class UGenGraphBuilder {
     return { fixed, tail };
   }
 
-  /** A raw input string → a Signal: top-level commas make an array (each
-   *  token resolved independently, array-yielding tokens flattened); a
+  /** A raw input string → a Signal: TOP-LEVEL commas make an array (each
+   *  token resolved independently, array-yielding tokens flattened) — commas
+   *  inside call parentheses belong to the call (`adsr(0.01, 0.1, …)`); a
    *  single token may itself resolve to an array (an expanded ugen, an
-   *  array param, an array expression). */
+   *  array param, an array expression, an envelope call). */
   private resolveSignal(value: string): Signal {
-    const tokens = value.split(",").map((s) => s.trim()).filter((s) => s !== "");
+    const tokens = splitTopLevel(value);
     if (tokens.length > 1) {
       return tokens.flatMap((token) => {
         const signal = this.resolveToken(token);
@@ -310,6 +319,20 @@ class UGenGraphBuilder {
       }
       case "string":
         throw new Error(`a string literal is not allowed in a synthdef graph expression`);
+      case "call": {
+        // Lower each arg, then UNWRAP constants to raw numbers — the env
+        // registry's constant-only slots (sustain, peak, dur…) check
+        // `typeof === "number"`; UGen/param REFS pass through untouched into
+        // the modulatable slots (live server-side envelope args), and the
+        // registry throws its honest not-modulatable error otherwise.
+        const args: LoweredArg[] = expr.args.map((argExpr) => {
+          const signal = this.lowerExpr(argExpr);
+          const one = (input: UGenInput): number | UGenInput =>
+            input.tag === "constant" ? input.val : input;
+          return Array.isArray(signal) ? signal.map(one) : one(signal);
+        });
+        return lookupFunction(expr.name)!.lower(args);
+      }
       case "ternary": {
         // A DATAFLOW pick, not control flow: Select(which, [else, then]) —
         // both branches always compute (no short-circuit) and the switch is

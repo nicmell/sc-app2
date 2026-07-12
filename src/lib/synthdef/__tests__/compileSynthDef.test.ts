@@ -356,6 +356,71 @@ describe("compileSynthDef", () => {
       expect(json.ugens.find((u) => u.className === "BinaryOpUGen")!.specialIndex).toBe(9); // '>'
     });
 
+    it("a constant envelope call feeds EnvGen's variadic envelope input", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1 }, [
+          {
+            name: "e",
+            type: "EnvGen",
+            rate: "kr",
+            inputs: { gate: "gate", action: "2", envelope: "adsr(0.01, 0.1, 0.7, 0.3)" },
+          },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "e" } },
+        ]),
+      );
+      const eg = json.ugens.find((u) => u.className === "EnvGen")!;
+      expect(eg.numInputs).toBe(5 + 16);
+      const tail = eg.inputs.slice(5).map((i) => {
+        expect(i.ugenIndex).toBe(-1);
+        return json.constants[i.outputIndex];
+      });
+      expect(tail).toEqual(
+        [0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4].map(Math.fround),
+      );
+    });
+
+    it("modulatable envelope args pass PARAM REFS through (live server-side ADSR)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { att: 0.01, rel: 0.3, gate: 1 }, [
+          {
+            name: "e",
+            type: "EnvGen",
+            rate: "kr",
+            inputs: { gate: "gate", envelope: "adsr(att, 0.1, 0.5, rel)" },
+          },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "e" } },
+        ]),
+      );
+      const eg = json.ugens.find((u) => u.className === "EnvGen")!;
+      // Run layout: [start, n, rel, loop, l1, t1, c1, v1, …] — t1 (attack)
+      // is run index 5 → EnvGen input 5+5; t3 (release) run index 13.
+      expect(eg.inputs[5 + 5]).toEqual({ ugenIndex: 0, outputIndex: 0 }); // att slot
+      expect(eg.inputs[5 + 13]).toEqual({ ugenIndex: 0, outputIndex: 1 }); // rel slot
+    });
+
+    it("a ref on a constant-only envelope arg throws the registry's honest error", () => {
+      expect(() =>
+        compileSynthDef("x", { s: 0.5, gate: 1 }, [
+          {
+            name: "e",
+            type: "EnvGen",
+            rate: "kr",
+            inputs: { gate: "gate", envelope: "adsr(0.01, 0.1, s, 0.3)" },
+          },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "e" } },
+        ]),
+      ).toThrow('adsr: "sustain" is not modulatable');
+    });
+
+    it("rejects an envelope call on a FIXED input (would silently expand ×16)", () => {
+      expect(() =>
+        compileSynthDef("x", { gate: 1 }, [
+          { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "adsr(0.01)" } },
+          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "osc" } },
+        ]),
+      ).toThrow('array-producing calls only feed variadic inputs');
+    });
+
     it("rejects a string literal in a graph expression", () => {
       expect(() =>
         compileSynthDef("x", { a: 1 }, [

@@ -38,7 +38,7 @@
 
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
-import { evalExpr } from "@/lib/utils/expression";
+import { evalExpr, tryEvalCallLiteral } from "@/lib/expression";
 import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import {
@@ -64,12 +64,24 @@ const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const XSD_INTEGER = /^[+-]?\d+$/;
 const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
 
-/** Vector coercion: an already-array value passes through; a comma-list of
- *  numerics becomes number[]; anything else keeps the scalar semantics
- *  (number-if-numeric-else-string — string vars keep working, commas in
- *  non-numeric strings included). */
-function coerceVector(value: number | string | number[]): string | number | number[] {
+/** Vector coercion: an already-array value passes through; a STATIC string
+ *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
+ *  — evaluated to number[] through lib/expression, memoized per raw string;
+ *  a KNOWN function head with bad args throws loud at parse, an unknown head
+ *  keeps the string semantics); a comma-list of numerics becomes number[];
+ *  anything else keeps the scalar semantics (number-if-numeric-else-string —
+ *  string vars keep working, commas in non-numeric strings included).
+ *  EVALUATED values are never call-evaluated: a bind-computed string that
+ *  happens to look like a call must not turn into an array. */
+function coerceVector(
+  value: number | string | number[],
+  evaluated: boolean,
+): string | number | number[] {
   if (typeof value !== "string") return value;
+  if (!evaluated) {
+    const call = tryEvalCallLiteral(value);
+    if (call) return call;
+  }
   const tokens = value.split(",").map((s) => s.trim());
   if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
     return tokens.map(Number);
@@ -175,7 +187,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     evaluated: boolean,
   ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
-    if (attr?.type === "vector") return coerceVector(value);
+    if (attr?.type === "vector") return coerceVector(value, evaluated);
     // Array values have no scalar coercion outside vector attrs — getProp
     // readers fall back to their defaults; the value rides `_state` instead.
     if (typeof value === "object") return undefined;

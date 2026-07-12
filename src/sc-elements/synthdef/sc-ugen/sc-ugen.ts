@@ -2,7 +2,7 @@
 // inputs). The attributes live in the colocated spec (read via getProp); the
 // graph collection consumes them at parse for the /d_recv-time compile.
 
-import { parseBind } from "@/lib/utils/expression";
+import { parseBind, splitTopLevel } from "@/lib/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import {
@@ -38,7 +38,10 @@ export class ScUgen extends ScElement {
       const childBind = child.getAttribute("bind:value");
       if (!isControlRuntime(child) || !childBind) continue;
       const input = child.getProp("name") as string;
-      for (const token of childBind.split(",").map((s) => s.trim())) {
+      // TOP-LEVEL commas only — commas inside `adsr(0.01, gate, …)` belong
+      // to the call (whose NAME the parser never records as a path; its
+      // args' references land in `paths` like any other operand).
+      for (const token of splitTopLevel(childBind)) {
         for (const path of parseBind(token).paths) {
           const refId = path.replace(/\.\d+$/, ""); // drop a `.idx` selector
           if (!resolveNode(this, ctx, [refId])) {

@@ -8,7 +8,7 @@
 // pinned verbatim by src/sc-elements/examples.test.ts and the CDP harness.
 
 import { ELEMENTS } from "@/constants/sc-elements";
-import { parseBind } from "@/lib/utils/expression";
+import { parseBind } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";

@@ -13,10 +13,10 @@
                  the editor
        keyboard  latches the CURRENT `shape` into each voice's /s_new
                  (playing voices keep the shape they were born with)
-     The arrays are 36 wide: 4 header slots + 8 segments of 4, zero-padded
-     (Env.newClear style — slot 1 holds the REAL segment count), so the
-     editor can add breakpoints up to 8 segments. -->
-<sc-var name="shape" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+     `pad(adsr(…), 36)` builds the Env.asArray run zero-padded to 36 slots
+     (4 header + 8 segments of 4; slot 1 holds the REAL segment count), so
+     the editor can add breakpoints up to 8 segments. -->
+<sc-var name="shape" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
 
 <!-- The envelope, drawn by the server: Impulse retriggers a gate held for
      the envelope's OWN pre-release duration, computed in-graph from the
@@ -26,7 +26,7 @@
      — no truncation; EnvGen.ar renders the shape onto bus 16. -->
 <sc-synthdef name="envTrace">
     <sc-control name="rate" value="2"/>
-    <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+    <sc-control name="env" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
     <sc-ugen name="tick" type="Impulse" rate="kr">
         <sc-control name="freq" bind:value="rate"/>
     </sc-ugen>
@@ -55,7 +55,7 @@
     <sc-control name="freq" value="261.63"/>
     <sc-control name="amp" value="0.15"/>
     <sc-control name="gate" value="1"/>
-    <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+    <sc-control name="env" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
     <sc-ugen name="e" type="EnvGen" rate="kr">
         <sc-control name="gate" bind:value="gate"/>
         <sc-control name="envelope" bind:value="env"/>

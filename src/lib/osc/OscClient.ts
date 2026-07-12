@@ -364,7 +364,16 @@ export class OscClient {
       values.forEach((value, i) => pairs.push([index + i, value]));
     }
     this.send(sNewPairs(defName, nodeId, AddToTail, targetId, pairs));
-    await reply;
+    try {
+      await reply;
+    } catch (err) {
+      // The /s_new is already SENT: on a lost/late ack the node may exist
+      // with nobody holding its id — and a gated voice would sustain
+      // FOREVER. Free it fire-and-forget: a no-node /fail is noise, an
+      // untracked drone is not. (A closed connection drops the send.)
+      this.freeSynth(nodeId);
+      throw err;
+    }
     return nodeId;
   }
 

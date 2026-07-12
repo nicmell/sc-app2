@@ -493,6 +493,24 @@ describe("sc-keyboard", () => {
     expect(sNew.args[5] as number).toBeCloseTo(261.63, 1); // midicps(60)
   });
 
+  it("releases every held note when focus leaves the keyboard", async () => {
+    const { kbd } = await mountKeyboard();
+    await kbd.noteOn(60, 0.5);
+    await kbd.noteOn(64, 0.5);
+    sent.length = 0;
+
+    // Focus moving WITHIN the keyboard keeps the notes held.
+    kbd.dispatchEvent(new FocusEvent("focusout", { relatedTarget: kbd.querySelector("div") }));
+    expect(nSets()).toHaveLength(0);
+
+    // Focus leaving (e.g. a click into the envelope editor) releases all —
+    // the element-level keyup can never arrive once focus is gone.
+    kbd.dispatchEvent(new FocusEvent("focusout", { relatedTarget: document.body }));
+    const gates = nSets().filter((m) => m.args[1] === "gate" && m.args[2] === 0);
+    expect(gates).toHaveLength(2);
+    expect((kbd as unknown as { held: Map<number, unknown> }).held.size).toBe(0);
+  });
+
   it("drops held voices on unload (connection loss)", async () => {
     const { kbd } = await mountKeyboard();
     await kbd.noteOn(69, 0.5);

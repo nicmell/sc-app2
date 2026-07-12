@@ -228,16 +228,27 @@ export class ScKeyboard extends ScElement {
     this.requestUpdate();
   }
 
+  /** Focus leaving the keyboard releases every held note: the tracker-row
+   *  keyup only reaches this element while it is focused, so clicking away
+   *  mid-hold (into the envelope editor, say) would otherwise strand a
+   *  sustaining voice AND deafen that key (`held` blocks re-presses). */
+  private onFocusOut = (e: FocusEvent): void => {
+    if (e.relatedTarget instanceof Node && this.contains(e.relatedTarget)) return;
+    for (const note of [...this.held.keys()]) this.noteOff(note);
+  };
+
   connectedCallback(): void {
     super.connectedCallback();
     this.addEventListener("keydown", this.onKeyDown);
     this.addEventListener("keyup", this.onKeyUp);
+    this.addEventListener("focusout", this.onFocusOut);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.removeEventListener("keydown", this.onKeyDown);
     this.removeEventListener("keyup", this.onKeyUp);
+    this.removeEventListener("focusout", this.onFocusOut);
     for (const input of this.midiInputs) input.onmidimessage = null;
     this.midiInputs = [];
   }

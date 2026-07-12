@@ -63,7 +63,8 @@
         <sc-control name="freq" bind:value="e * 1800 + freq - 200"/>
     </sc-ugen>
     <sc-ugen name="panned" type="Pan2">
-        <sc-control name="in" bind:value="osc * e * amp"/>
+        <!-- 0.15 headroom — velocity rides `amp` whole; see env-editor-plugin. -->
+        <sc-control name="in" bind:value="osc * e * amp * 0.15"/>
         <sc-control name="pos" value="0"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">

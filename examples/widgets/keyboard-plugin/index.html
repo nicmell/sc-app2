@@ -25,9 +25,11 @@
         <sc-control name="a" bind:value="osc"/>
         <sc-control name="b" bind:value="env"/>
     </sc-ugen>
+    <!-- 0.15 headroom: velocity maps straight onto `amp` (up to 1.0 per
+         voice); unscaled chords sum past +-1 and clip. -->
     <sc-ugen name="voice" type="BinaryOpUGen" op="*">
         <sc-control name="a" bind:value="sig"/>
-        <sc-control name="b" bind:value="amp"/>
+        <sc-control name="b" bind:value="amp * 0.15"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>

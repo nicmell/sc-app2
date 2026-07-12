@@ -28,7 +28,7 @@
 .log {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: var(--space-2xs) var(--space-xs);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);

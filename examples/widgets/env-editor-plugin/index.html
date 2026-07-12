@@ -28,7 +28,10 @@
         <sc-control name="freq" bind:value="freq"/>
     </sc-ugen>
     <sc-ugen name="panned" type="Pan2">
-        <sc-control name="in" bind:value="osc * e * amp"/>
+        <!-- 0.15 headroom: the keyboard maps velocity straight onto `amp`
+             (up to 1.0 per voice) — unscaled, a two-note chord already sums
+             past +-1 and the DAC clips into buzzing distortion. -->
+        <sc-control name="in" bind:value="osc * e * amp * 0.15"/>
         <sc-control name="pos" value="0"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">

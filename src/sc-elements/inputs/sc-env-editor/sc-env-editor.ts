@@ -36,6 +36,25 @@ const PAD = 10; // px inset around the drawing area
 const HIT_RADIUS = 10; // px hit-test radius for points and curve handles
 const MIN_TIME = 0.005; // s — a dragged segment can't collapse to zero
 const CURVE_LIMIT = 10;
+/** Hard bound on a drawn LEVEL. Over-unity envelopes are legal (pitch/depth
+ *  curves), runaway ones are not: with pointer capture a drag past the
+ *  canvas edge maps outside [lo, hi], the auto-expanding scale would grow to
+ *  include it, and the SAME pixel offset then maps further out — an
+ *  exponential feedback (×2 per RAF commit) that reached 1e19 in the wild.
+ *  The gesture-frozen scale kills the loop; this clamp caps the damage of
+ *  any single gesture AND lets a corrupted envelope heal on its next drag. */
+const LEVEL_LIMIT = 16;
+
+const clampLevel = (v: number): number =>
+  Math.max(-LEVEL_LIMIT, Math.min(LEVEL_LIMIT, Number.isFinite(v) ? v : 0));
+
+/** Hard bound on ONE segment's duration — the time axis has the same
+ *  ratcheting exposure (a drag past the right edge grows `total`, and the
+ *  next gesture's scale multiplies from there). */
+const TIME_LIMIT = 60;
+
+const clampTime = (v: number): number =>
+  Math.max(MIN_TIME, Math.min(TIME_LIMIT, Number.isFinite(v) ? v : MIN_TIME));
 /** Safety margin added to the derived `hold` output (s) — the gate must
  *  outlive the pre-release ramp by at least one control period. */
 const HOLD_MARGIN = 0.02;
@@ -169,7 +188,12 @@ export class ScEnvEditor extends ScInput {
     return out;
   }
 
+  /** The scale FROZEN for a whole drag gesture — recomputing per move would
+   *  feed dragged-out-of-range levels back into [lo, hi] exponentially. */
+  private dragFrame: { w: number; h: number; lo: number; hi: number; total: number } | null = null;
+
   private frame(): { w: number; h: number; lo: number; hi: number; total: number } {
+    if (this.dragFrame) return this.dragFrame;
     const canvas = this.canvas!;
     const w = canvas.clientWidth - PAD * 2;
     const h = canvas.clientHeight - PAD * 2;
@@ -256,6 +280,7 @@ export class ScEnvEditor extends ScInput {
         startCurve: typeof curve === "number" ? curve : 0,
       };
     }
+    this.dragFrame = this.frame(); // freeze the scale for the whole gesture
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
@@ -285,6 +310,8 @@ export class ScEnvEditor extends ScInput {
       this.pendingCommit = null;
     }
     this.drag = null;
+    this.dragFrame = null;
+    this.draw(); // redraw on the live scale (a level may have moved lo/hi)
   };
 
   private onDblClick = (e: MouseEvent): void => {
@@ -298,19 +325,19 @@ export class ScEnvEditor extends ScInput {
     if (point === null) {
       const budget = Math.floor((this.width - 4) / 4);
       if (this.value.segments.length >= budget) return;
-      this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), this.fromY(y)));
+      this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))));
     }
   };
 
   private dragPoint(index: number, x: number, y: number): EnvBreakpoints {
     const v = this.value!;
-    const level = this.fromY(y);
+    const level = clampLevel(this.fromY(y));
     if (index === 0) return { ...v, start: level };
     const times = this.times;
     const seg = index - 1;
     // The dragged breakpoint moves its own segment's duration; later
     // breakpoints slide with it (their durations are untouched).
-    const time = Math.max(MIN_TIME, this.fromX(x) - times[seg]);
+    const time = clampTime(this.fromX(x) - times[seg]);
     return {
       ...v,
       segments: v.segments.map((s, i) => (i === seg ? { ...s, to: level, time } : s)),

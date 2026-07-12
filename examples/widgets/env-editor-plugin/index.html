@@ -21,8 +21,20 @@
     <sc-control name="env" value="0, 3, 2, -99,  1, 0.02, 5, -4,  0.6, 0.15, 5, -4,  0, 0.3, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
     <sc-ugen name="e" type="EnvGen" rate="kr">
         <sc-control name="gate" bind:value="gate"/>
-        <sc-control name="action" value="2"/>
         <sc-control name="envelope" bind:value="env"/>
+    </sc-ugen>
+    <!-- The DECLICKER owns the free: the drawn envelope may end at any
+         level (WYSIWYG), so its completion must not cut the node — `lin`
+         sustains at 1 while the gate holds, then fades to EXACT zero over
+         the drawn release's own duration (post-releaseNode segment times,
+         computed in-graph from the env slots) + 50 ms, and only then frees
+         (doneAction 2). A nonzero drawn end level fades instead of clicking. -->
+    <sc-ugen name="lin" type="Linen" rate="kr">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="attackTime" value="0"/>
+        <sc-control name="susLevel" value="1"/>
+        <sc-control name="releaseTime" bind:value="(env.2 &lt;= 0 ? env.5 : 0) + (env.2 &lt;= 1 ? env.9 : 0) + (env.2 &lt;= 2 ? env.13 : 0) + (env.2 &lt;= 3 ? env.17 : 0) + (env.2 &lt;= 4 ? env.21 : 0) + (env.2 &lt;= 5 ? env.25 : 0) + (env.2 &lt;= 6 ? env.29 : 0) + (env.2 &lt;= 7 ? env.33 : 0) + 0.05"/>
+        <sc-control name="action" value="2"/>
     </sc-ugen>
     <sc-ugen name="osc" type="SinOsc">
         <sc-control name="freq" bind:value="freq"/>
@@ -31,7 +43,7 @@
         <!-- 0.15 headroom: the keyboard maps velocity straight onto `amp`
              (up to 1.0 per voice) — unscaled, a two-note chord already sums
              past +-1 and the DAC clips into buzzing distortion. -->
-        <sc-control name="in" bind:value="osc * e * amp * 0.15"/>
+        <sc-control name="in" bind:value="osc * e * lin * amp * 0.15"/>
         <sc-control name="pos" value="0"/>
     </sc-ugen>
     <sc-ugen name="out" type="Out">

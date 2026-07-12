@@ -12,6 +12,7 @@ export const ELEMENTS = {
   SC_VAR: "sc-var",
   SC_SYNTH: "sc-synth",
   SC_SLIDER: "sc-slider",
+  SC_ENV_EDITOR: "sc-env-editor",
   SC_KNOB: "sc-knob",
   SC_BUTTON: "sc-button",
   SC_CHECKBOX: "sc-checkbox",
@@ -29,4 +30,5 @@ export const ELEMENTS = {
   SC_CONSOLE: "sc-console",
   SC_SCOPE: "sc-scope",
   SC_STRUDEL: "sc-strudel",
+  SC_KEYBOARD: "sc-keyboard",
 } as const;

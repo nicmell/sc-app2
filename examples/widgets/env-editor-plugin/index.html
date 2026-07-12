@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Envelope Editor Plugin</title>
+</head>
+<body>
+<!-- The LIVE envelope: a plugin-level var holding a flat Env.asArray
+     encoding. The editor writes it; the keyboard latches its CURRENT value
+     into each new voice's /s_new (playing voices keep the shape they were
+     born with). The array is 36 wide: 4 header slots + 8 segments of 4,
+     zero-padded (slot 1 holds the REAL segment count), so the editor can
+     add breakpoints up to 8 segments. -->
+<sc-var name="env" value="0, 3, 2, -99,  1, 0.02, 5, -4,  0.6, 0.15, 5, -4,  0, 0.3, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+<!-- The voice declares the SAME array as a control-array param (its compiled
+     defaults) and reads it on EnvGen's variadic `envelope` input.
+     doneAction 2 frees a released voice. -->
+<sc-synthdef name="editNote">
+    <sc-control name="freq" value="261.63"/>
+    <sc-control name="amp" value="0.1"/>
+    <sc-control name="gate" value="1"/>
+    <sc-control name="env" value="0, 3, 2, -99,  1, 0.02, 5, -4,  0.6, 0.15, 5, -4,  0, 0.3, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+    <sc-ugen name="e" type="EnvGen" rate="kr">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="action" value="2"/>
+        <sc-control name="envelope" bind:value="env"/>
+    </sc-ugen>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind:value="freq"/>
+    </sc-ugen>
+    <sc-ugen name="panned" type="Pan2">
+        <sc-control name="in" bind:value="osc * e * amp"/>
+        <sc-control name="pos" value="0"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind:value="panned:0, panned:1"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-flex orientation="vertical" gap="md">
+    <sc-flex align="center" gap="sm">
+        <sc-text weight="bold">Envelope editor</sc-text>
+        <sc-text tone="dim">Drag points; double-click to add/remove; drag a midpoint to bend</sc-text>
+    </sc-flex>
+    <sc-env-editor bind:value="env"/>
+    <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env"/>
+    <sc-console/>
+</sc-flex>
+</body>
+</html>

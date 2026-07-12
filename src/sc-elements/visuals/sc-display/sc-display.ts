@@ -29,7 +29,9 @@ export function formatValue(
 
 export class ScDisplay extends ScElement {
   render() {
-    const value = this.getProp("value");
+    const raw = this.getProp("value");
+    // An array value renders as its comma-list (displays are scalar-minded).
+    const value = Array.isArray(raw) ? raw.join(", ") : raw;
     const format = this.getProp("format") as string | undefined;
     const text = format ? formatValue(format, value) : String(value ?? "");
     return html`<sc-text as="label">${text}</sc-text>`;

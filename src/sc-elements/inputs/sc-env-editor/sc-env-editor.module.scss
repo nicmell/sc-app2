@@ -1,0 +1,18 @@
+/* <sc-env-editor> — light DOM (createRenderRoot returns `this`), imported as
+   `styles` in sc-env-editor.ts. The host rule targets the element tag. */
+
+:global(sc-env-editor) {
+  display: block;
+  width: 100%;
+  height: 160px;
+  touch-action: none;
+  user-select: none;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 4px;
+  cursor: crosshair;
+}

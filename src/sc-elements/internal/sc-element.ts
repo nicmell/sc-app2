@@ -64,6 +64,20 @@ const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const XSD_INTEGER = /^[+-]?\d+$/;
 const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
 
+/** Vector coercion: an already-array value passes through; a comma-list of
+ *  numerics becomes number[]; anything else keeps the scalar semantics
+ *  (number-if-numeric-else-string — string vars keep working, commas in
+ *  non-numeric strings included). */
+function coerceVector(value: number | string | number[]): string | number | number[] {
+  if (typeof value !== "string") return value;
+  const tokens = value.split(",").map((s) => s.trim());
+  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
+    return tokens.map(Number);
+  }
+  const n = Number(value);
+  return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+}
+
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
@@ -124,7 +138,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  render() re-run on every recompute. The genuinely-reactive fields (a
    *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
    *  as reactive class fields. */
-  getProp(name: string): string | number | boolean | undefined {
+  getProp(name: string): string | number | boolean | number[] | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
       return this.coerceProp(attr, name, this.#runtime[name], true);
@@ -159,8 +173,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     name: string,
     value: StateValue | undefined,
     evaluated: boolean,
-  ): string | number | boolean | undefined {
+  ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
+    if (attr?.type === "vector") return coerceVector(value);
+    // Array values have no scalar coercion outside vector attrs — getProp
+    // readers fall back to their defaults; the value rides `_state` instead.
+    if (typeof value === "object") return undefined;
     if (attr?.type === "decimal" || attr?.type === "integer") {
       const n = Number(value);
       if (evaluated && Number.isNaN(n)) {
@@ -229,6 +247,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
           `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
         );
       }
+      // (`vector` has no lexical gate: an all-numeric comma-list is an array,
+      // anything else keeps the scalar semantics — string vars included. The
+      // numeric-only elements enforce it semantically: ScControl.validate.)
     }
     for (const { name } of Array.from(this.attributes)) {
       const colon = name.indexOf(":");
@@ -311,6 +332,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
       if (!this.enabled) {
+        // A graph-input reference: left raw for the synthdef collector (ugen
+        // inputs), never resolved on the state graph.
         if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) continue;
         failValidation(this, `"${bindAttr(name)}" is not allowed on a synthdef param`);
       }

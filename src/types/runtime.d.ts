@@ -13,9 +13,13 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 // ── Bind expressions (lib/utils/expression) ──────────────────────────────
 
 /** What a runtime value can hold: numbers everywhere, strings for the
- *  presentation layer (string vars, ternary labels/icons). The OSC boundary
- *  stays numeric — senders coerce and skip NaN. */
-export type StateValue = number | string;
+ *  presentation layer (string vars, ternary labels/icons), and numeric
+ *  ARRAYS (a `value` comma-list — control-array params, envelope buffers).
+ *  Arrays are IMMUTABLE by convention — a fresh array per edit (the
+ *  Object.is guards never see in-place mutation). Expressions evaluate over
+ *  arrays with SC's multichannel expansion; the OSC boundary sends /n_setn
+ *  for arrays and /n_set for scalars (NaN skipped either way). */
+export type StateValue = number | string | number[];
 
 export type Expr =
   | { type: "number"; value: number }
@@ -76,9 +80,10 @@ export interface RuntimeProp {
 
 export interface SynthDefRuntime extends BaseRuntime {
   loaded: boolean;
-  /** The param defaults + DOM-ordered ugen specs (collected at parse) —
-   *  compiled to SCgf right at /d_recv time in the load pass. */
-  params: Record<string, number>;
+  /** The param defaults (scalars or control-array comma-lists) + DOM-ordered
+   *  ugen specs (collected at parse) — compiled to SCgf right at /d_recv
+   *  time in the load pass. */
+  params: Record<string, number | number[]>;
   specs: UgenSpec[];
 }
 

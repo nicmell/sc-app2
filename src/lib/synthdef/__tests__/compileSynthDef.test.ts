@@ -87,6 +87,199 @@ describe("compileSynthDef", () => {
     ]);
   });
 
+  describe("multichannel expansion", () => {
+    const OUT = (channels: string): UgenSpec =>
+      ({ name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: channels } });
+
+    it("an array literal on a scalar input expands the ugen (and it propagates)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { amp: 0.2 }, [
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440, 443" } },
+          { name: "sig", type: "BinaryOpUGen", rate: "ar", op: "*", inputs: { a: "osc", b: "amp" } },
+          OUT("sig"),
+        ]),
+      );
+      const oscs = json.ugens.filter((u) => u.className === "SinOsc");
+      expect(oscs).toHaveLength(2);
+      expect(json.constants).toContain(440);
+      expect(json.constants).toContain(443);
+      // `sig` expanded too — one op node per SinOsc instance — and the Out
+      // tail flattened both channels.
+      const ops = json.ugens.filter((u) => u.className === "BinaryOpUGen");
+      expect(ops).toHaveLength(2);
+      const out = json.ugens.at(-1)!;
+      expect(out.inputs).toHaveLength(3); // bus + 2 flattened channels
+    });
+
+    it("wraps the shorter operand array (SC's cycle rule)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", {}, [
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440, 550, 660", phase: "0, 1" } },
+          OUT("osc"),
+        ]),
+      );
+      const oscs = json.ugens.filter((u) => u.className === "SinOsc");
+      expect(oscs).toHaveLength(3); // max(3, 2)
+      const freqOf = (i: number) => json.constants[oscs[i].inputs[0].outputIndex];
+      const phaseOf = (i: number) => json.constants[oscs[i].inputs[1].outputIndex];
+      expect([freqOf(0), freqOf(1), freqOf(2)]).toEqual([440, 550, 660]);
+      expect([phaseOf(0), phaseOf(1), phaseOf(2)]).toEqual([0, 1, 0]); // wrapped
+    });
+
+    it("an array PARAM compiles as a control array and feeds EnvGen's tail", () => {
+      const env = [0, 1, 2, -99, 1, 0.01, 5, -4, 0, 0.3, 5, -4];
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1, env: env }, [
+          {
+            name: "e",
+            type: "EnvGen",
+            rate: "kr",
+            inputs: { gate: "gate", action: "2", envelope: "env" },
+          },
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440" } },
+          { name: "sig", type: "BinaryOpUGen", rate: "ar", op: "*", inputs: { a: "osc", b: "e" } },
+          OUT("sig"),
+        ]),
+      );
+      // One name entry at the array base; scalar param first.
+      expect(json.parameters.names).toEqual([
+        { name: "gate", index: 0 },
+        { name: "env", index: 1 },
+      ]);
+      expect(json.parameters.values).toEqual([1, ...env].map(Math.fround));
+      // The envelope tail is the control array's slots, in order.
+      const eg = json.ugens.find((u) => u.className === "EnvGen")!;
+      expect(eg.numInputs).toBe(5 + env.length);
+      eg.inputs.slice(5).forEach((input, i) => {
+        expect(input).toEqual({ ugenIndex: 0, outputIndex: 1 + i });
+      });
+    });
+
+    it("a literal comma-list feeds a variadic input directly", () => {
+      const env = [0, 1, 2, -99, 1, 0.01, 5, -4, 0, 0.3, 5, -4];
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1 }, [
+          {
+            name: "e",
+            type: "EnvGen",
+            rate: "kr",
+            inputs: { gate: "gate", action: "2", envelope: env.join(", ") },
+          },
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440" } },
+          { name: "sig", type: "BinaryOpUGen", rate: "ar", op: "*", inputs: { a: "osc", b: "e" } },
+          OUT("sig"),
+        ]),
+      );
+      const eg = json.ugens.find((u) => u.className === "EnvGen")!;
+      expect(eg.numInputs).toBe(5 + env.length);
+      const tail = eg.inputs.slice(5).map((i) => {
+        expect(i.ugenIndex).toBe(-1);
+        return json.constants[i.outputIndex];
+      });
+      expect(tail).toEqual(env.map(Math.fround));
+    });
+
+    it("an array expression lowers element-wise and name:idx maps per instance", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { spread: 2 }, [
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "220, 330 * spread" } },
+          { name: "panned", type: "Pan2", rate: "ar", inputs: { in: "osc:0", pos: "0" } },
+          OUT("panned:0, panned:1"),
+        ]),
+      );
+      // The comma-list mixes a literal and an expression: one mul op node.
+      expect(json.ugens.filter((u) => u.className === "BinaryOpUGen")).toHaveLength(1);
+      expect(json.ugens.filter((u) => u.className === "SinOsc")).toHaveLength(2);
+      // osc:0 on the EXPANDED osc = output 0 of each instance → Pan2 expands.
+      expect(json.ugens.filter((u) => u.className === "Pan2")).toHaveLength(2);
+    });
+  });
+
+  describe("expression lowering", () => {
+    it("lowers `freq * 2` to a BinaryOpUGen feeding the ugen", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { freq: 440 }, [
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "freq * 2" } },
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "osc" } },
+        ]),
+      );
+      // Control, then the synthesized mul (emitted while resolving SinOsc's
+      // input), then SinOsc, then Out.
+      expect(json.ugens.map((u) => u.className)).toEqual([
+        "Control",
+        "BinaryOpUGen",
+        "SinOsc",
+        "Out",
+      ]);
+      const mul = json.ugens[1];
+      expect(mul.specialIndex).toBe(2); // '*'
+      expect(mul.inputs[0]).toEqual({ ugenIndex: 0, outputIndex: 0 }); // freq control slot
+      expect(mul.inputs[1].ugenIndex).toBe(-1); // constant 2
+      expect(json.constants[mul.inputs[1].outputIndex]).toBe(2);
+      // SinOsc's freq now references the mul node's output.
+      expect(json.ugens[2].inputs[0]).toEqual({ ugenIndex: 1, outputIndex: 0 });
+    });
+
+    it("lowers unary minus to a UnaryOpUGen (neg)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { a: 1 }, [
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "-a" } },
+        ]),
+      );
+      const neg = json.ugens.find((u) => u.className === "UnaryOpUGen")!;
+      expect(neg.specialIndex).toBe(0); // 'neg'
+      expect(neg.inputs[0]).toEqual({ ugenIndex: 0, outputIndex: 0 }); // the `a` control
+    });
+
+    it("lowers a nested expression `(a + b) * 2` into two op nodes in order", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { a: 1, b: 2 }, [
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "(a + b) * 2" } },
+        ]),
+      );
+      const ops = json.ugens.filter((u) => u.className === "BinaryOpUGen");
+      expect(ops.map((o) => o.specialIndex)).toEqual([0, 2]); // '+' emitted before '*'
+      // the '*' node takes the '+' node then the constant 2
+      const mul = ops[1];
+      const addIdx = json.ugens.indexOf(ops[0]);
+      expect(mul.inputs[0]).toEqual({ ugenIndex: addIdx, outputIndex: 0 });
+    });
+
+    it("infers the op-node rate from its operands (audio wins)", () => {
+      const json = parseScgf(
+        compileSynthDef("x", {}, [
+          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440" } },
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "osc * 0.5" } },
+        ]),
+      );
+      const mul = json.ugens.find((u) => u.className === "BinaryOpUGen")!;
+      expect(mul.rate).toBe(2); // audio (osc is ar; a control-rate default would be 1)
+    });
+
+    it("lowers a comparison to the matching BinaryOpUGen", () => {
+      const json = parseScgf(
+        compileSynthDef("x", { gate: 1 }, [
+          { name: "o", type: "SinOsc", rate: "ar", inputs: { freq: "gate > 0" } },
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "o" } },
+        ]),
+      );
+      expect(json.ugens.find((u) => u.className === "BinaryOpUGen")!.specialIndex).toBe(9); // '>'
+    });
+
+    it("rejects a string literal and a ternary in a graph expression", () => {
+      expect(() =>
+        compileSynthDef("x", { a: 1 }, [
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "a + 'hi'" } },
+        ]),
+      ).toThrow(/string literal is not allowed/);
+      expect(() =>
+        compileSynthDef("x", { a: 1 }, [
+          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "a > 0 ? 1 : 2" } },
+        ]),
+      ).toThrow(/ternary is not supported/);
+    });
+  });
+
   it("rejects a synthdef without ugens", () => {
     expect(() => compileSynthDef("empty", {}, [])).toThrow(
       '<sc-synthdef name="empty"> has no <sc-ugen> children',

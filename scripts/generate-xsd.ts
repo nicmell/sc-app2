@@ -75,13 +75,18 @@ function complexType(spec: ElementSpec): string[] {
   const lines = [`  <xs:complexType name="${typeName(spec.tag)}"${mixed}>`];
   const choice = spec.content?.choice;
   if (choice?.length) {
-    lines.push(`    <xs:choice minOccurs="0" maxOccurs="unbounded">`);
+    // fastxml 0.8.0 ignores minOccurs="0" on a bare choice (an empty element
+    // fails "requires one of") — an optional SEQUENCE wrapper carries the
+    // emptiness instead, with the same content semantics.
+    lines.push(`    <xs:sequence minOccurs="0">`);
+    lines.push(`      <xs:choice maxOccurs="unbounded">`);
     for (const ref of choice) {
       lines.push(
-        GROUP_NAMES.has(ref) ? `      <xs:group ref="${ref}"/>` : `      <xs:element ref="${ref}"/>`,
+        GROUP_NAMES.has(ref) ? `        <xs:group ref="${ref}"/>` : `        <xs:element ref="${ref}"/>`,
       );
     }
-    lines.push(`    </xs:choice>`);
+    lines.push(`      </xs:choice>`);
+    lines.push(`    </xs:sequence>`);
   }
   const attrs = Object.entries(spec.attrs ?? {});
   for (const [name, a] of attrs) lines.push(...attribute(name, a));

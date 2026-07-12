@@ -25,23 +25,41 @@ export abstract class ScNode extends ScElement {
     return { ...baseRuntime(ctx), loaded: false, nodeId: 0 };
   }
 
-  /** This node's control params as /s_new name-value pairs — the enabled
-   *  sc-control children's live `_state` (settled by the time a synth
-   *  collects them: children load first — literal from the store sync,
+  /** This node's SCALAR control params as /s_new name-value pairs — the
+   *  enabled sc-control children's live `_state` (settled by the time a
+   *  synth collects them: children load first — literal from the store sync,
    *  derived from the initial recompute), falling back to the declarative
    *  attribute mirror. scsynth controls are floats: a string value skips
-   *  the pair (the synthdef default applies) with a console warning. */
+   *  the pair (the synthdef default applies) with a console warning. ARRAY
+   *  controls are excluded — they are seeded post-/n_go with /n_setn (see
+   *  getArrayControls / ScSynth.load). */
   protected getControls(): Record<string, number> {
     const controls: Record<string, number> = {};
     for (const child of this._scChildren ?? []) {
       if (isControlRuntime(child) && child.enabled) {
         const name = child.getProp("name") as string;
-        const value = Number(child._state ?? (child.getProp("value") as number | undefined) ?? 0);
+        const state = child._state ?? child.getProp("value") ?? 0;
+        if (Array.isArray(state)) continue; // array controls seed via /n_setn
+        const value = Number(state);
         if (Number.isNaN(value)) {
           console.warn(`<sc-control name="${name}">: non-numeric value — control pair skipped`);
           continue;
         }
         controls[name] = value;
+      }
+    }
+    return controls;
+  }
+
+  /** This node's ARRAY control params — seeded onto the fresh node with one
+   *  /n_setn each after its /n_go (the def's declared array defaults only
+   *  capture the markup values; the live state may have moved). */
+  protected getArrayControls(): Record<string, number[]> {
+    const controls: Record<string, number[]> = {};
+    for (const child of this._scChildren ?? []) {
+      if (isControlRuntime(child) && child.enabled) {
+        const state = child._state ?? child.getProp("value");
+        if (Array.isArray(state)) controls[child.getProp("name") as string] = state;
       }
     }
     return controls;

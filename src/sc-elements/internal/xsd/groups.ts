@@ -1,9 +1,10 @@
 // The content-model groups the generator derives from element categories. Each
 // entry becomes an `<xs:group>` whose members are the specs of that category (in
 // ELEMENTS order), and `blockContent` = `htmlElements` (from the preamble) + these
-// groups. Categories NOT listed here — `ugen`, `option` — are child-only: they get
-// no group and are referenced explicitly by their parent's `content.choice`
-// (sc-synthdef → sc-ugen, sc-select → sc-option, sc-radio-group → sc-radio).
+// groups. Categories NOT listed here — `ugen`, `option`, `segment` — are
+// child-only: they get no group and are referenced explicitly by their parent's
+// `content.choice` (sc-synthdef → sc-ugen, sc-select → sc-option, sc-radio-group
+// → sc-radio, sc-env → sc-segment).
 
 import type { Category } from "@/sc-elements/internal/xsd/types";
 

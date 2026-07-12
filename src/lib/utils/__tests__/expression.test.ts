@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { evalExpr, parseBind } from "@/lib/utils/expression";
 
-const evaluate = (input: string, values: Record<string, number | string> = {}) =>
+const evaluate = (input: string, values: Record<string, number | string | number[]> = {}) =>
   evalExpr(parseBind(input).expression!, values);
 
 describe("parseBind", () => {
@@ -95,5 +95,32 @@ describe("evalExpr", () => {
     expect(evaluate("a == '1'", { a: 1 })).toBe(0);
     // The empty string is falsy, like 0.
     expect(evaluate("s ? 1 : 2", { s: "" })).toBe(2);
+  });
+});
+
+describe("multichannel expansion (evalExpr over arrays)", () => {
+  it("maps a scalar across an array (broadcast)", () => {
+    expect(evaluate("a * 2", { a: [1, 2, 3] })).toEqual([2, 4, 6]);
+    expect(evaluate("10 - a", { a: [1, 2] })).toEqual([9, 8]);
+  });
+
+  it("zips two arrays with the shorter cycling (SC's wrap)", () => {
+    expect(evaluate("a + b", { a: [1, 2, 3], b: [10, 20] })).toEqual([11, 22, 13]);
+  });
+
+  it("unary minus maps", () => {
+    expect(evaluate("-a", { a: [1, -2] })).toEqual([-1, 2]);
+  });
+
+  it("comparisons yield element-wise 1/0", () => {
+    expect(evaluate("a > 1", { a: [0, 1, 2] })).toEqual([0, 0, 1]);
+  });
+
+  it("an array ternary cond selects element-wise across both branches", () => {
+    expect(evaluate("c ? a : 9", { c: [1, 0, 1], a: [10, 20, 30] })).toEqual([10, 9, 30]);
+  });
+
+  it("a scalar ternary cond keeps the branch semantics (arrays pass whole)", () => {
+    expect(evaluate("g ? a : b", { g: 1, a: [1, 2], b: [3, 4] })).toEqual([1, 2]);
   });
 });

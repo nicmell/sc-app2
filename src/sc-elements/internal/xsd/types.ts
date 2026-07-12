@@ -51,6 +51,11 @@ export type AttrSpec =
   | (AttrCommon & { type: "integer" })
   | (AttrCommon & { type: "boolean" })
   | (AttrCommon & { type: "scalar" })
+  // scalar-or-ARRAY: a comma-list of numerics coerces to number[] (a state
+  // element's `value` — control-array params, envelope buffers); a single
+  // token or a non-numeric list keeps the scalar semantics (string vars).
+  // xs:string in the schema; the runtime is the gate.
+  | (AttrCommon & { type: "vector" })
   | (AttrCommon & { type: "enum"; values: readonly string[] });
 
 /** The content model — XSD's own vocabulary. Omit it entirely for empty content

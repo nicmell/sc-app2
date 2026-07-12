@@ -47,6 +47,7 @@
   <xs:element name="sc-var" type="scVarType"/>
   <xs:element name="sc-synth" type="scSynthType"/>
   <xs:element name="sc-slider" type="scSliderType"/>
+  <xs:element name="sc-env-editor" type="scEnvEditorType"/>
   <xs:element name="sc-knob" type="scKnobType"/>
   <xs:element name="sc-button" type="scButtonType"/>
   <xs:element name="sc-checkbox" type="scCheckboxType"/>
@@ -64,6 +65,7 @@
   <xs:element name="sc-console" type="scConsoleType"/>
   <xs:element name="sc-scope" type="scScopeType"/>
   <xs:element name="sc-strudel" type="scStrudelType"/>
+  <xs:element name="sc-keyboard" type="scKeyboardType"/>
 
   <!-- ==================== Content model groups ==================== -->
 
@@ -91,6 +93,7 @@
   <xs:group name="scInputs">
     <xs:choice>
       <xs:element ref="sc-slider"/>
+      <xs:element ref="sc-env-editor"/>
       <xs:element ref="sc-knob"/>
       <xs:element ref="sc-button"/>
       <xs:element ref="sc-checkbox"/>
@@ -116,6 +119,7 @@
       <xs:element ref="sc-console"/>
       <xs:element ref="sc-scope"/>
       <xs:element ref="sc-strudel"/>
+      <xs:element ref="sc-keyboard"/>
     </xs:choice>
   </xs:group>
 
@@ -209,27 +213,33 @@
   </xs:complexType>
 
   <xs:complexType name="scGroupType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="blockContent"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="blockContent"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scSynthdefType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-control"/>
-      <xs:element ref="sc-ugen"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-control"/>
+        <xs:element ref="sc-ugen"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
   <xs:complexType name="scUgenType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-control"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-control"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
     <xs:attribute name="rate" type="xs:string"/>
@@ -239,22 +249,24 @@
 
   <xs:complexType name="scControlType">
     <xs:attribute name="name" type="xs:string" use="required"/>
-    <xs:attribute name="value" type="xs:decimal"/>
+    <xs:attribute name="value" type="xs:vector"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scVarType">
     <xs:attribute name="name" type="xs:string" use="required"/>
-    <xs:attribute name="value" type="xs:string"/>
+    <xs:attribute name="value" type="xs:vector"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scSynthType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-control"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-control"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="synthdef" type="xs:string" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
@@ -285,6 +297,12 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
+  </xs:complexType>
+
+  <xs:complexType name="scEnvEditorType">
+    <xs:attribute name="value" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
@@ -379,18 +397,22 @@
   </xs:complexType>
 
   <xs:complexType name="scIfType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="blockContent"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="blockContent"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="when" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scTextType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="inlineContent"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="inlineContent"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="as">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -476,9 +498,11 @@
   </xs:complexType>
 
   <xs:complexType name="scFlexType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="blockContent"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="blockContent"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="orientation">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -527,9 +551,11 @@
   </xs:complexType>
 
   <xs:complexType name="scRowType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-col"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-col"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="align">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -556,9 +582,11 @@
   </xs:complexType>
 
   <xs:complexType name="scColType" mixed="true">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="blockContent"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="blockContent"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="span" type="xs:integer"/>
     <xs:attribute name="offset" type="xs:integer"/>
     <xs:attribute name="order" type="xs:integer"/>
@@ -566,9 +594,11 @@
   </xs:complexType>
 
   <xs:complexType name="scSelectType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-option"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-option"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="placeholder" type="xs:string"/>
     <xs:attribute name="size">
@@ -592,9 +622,11 @@
   </xs:complexType>
 
   <xs:complexType name="scRadioGroupType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element ref="sc-radio"/>
-    </xs:choice>
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sc-radio"/>
+      </xs:choice>
+    </xs:sequence>
     <xs:attribute name="value" type="xs:decimal"/>
     <xs:attribute name="orientation">
       <xs:simpleType>
@@ -667,6 +699,18 @@
   <xs:complexType name="scStrudelType" mixed="true">
     <xs:attribute name="orbit" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scKeyboardType">
+    <xs:attribute name="synthdef" type="xs:string" use="required"/>
+    <xs:attribute name="freq" type="xs:string"/>
+    <xs:attribute name="amp" type="xs:string"/>
+    <xs:attribute name="gate" type="xs:string"/>
+    <xs:attribute name="envelope" type="xs:vector"/>
+    <xs:attribute name="octaves" type="xs:integer"/>
+    <xs:attribute name="start" type="xs:integer"/>
+    <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
 </xs:schema>

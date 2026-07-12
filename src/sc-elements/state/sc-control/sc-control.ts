@@ -21,29 +21,55 @@
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
+import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
+  validate(): void {
+    super.validate();
+    // The vector coercion admits strings (sc-var's string values) — a
+    // control is numeric: scalar or comma-list array (the old decimal gate,
+    // array-aware).
+    const value = this.getProp("value");
+    if (typeof value === "string") {
+      failValidation(
+        this,
+        `"value" attribute must be a number or a comma-list of numbers (got "${value}")`,
+      );
+    }
+  }
+
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
   }
 
-  /** /n_set the owning node — only when it is live (the load-pass initial
-   *  lands before the parent's /s_new and rides it via getControls instead;
-   *  the ack-window catch-up in ScSynth.load covers the send→/n_go gap).
-   *  The owner is the nearest NON-TRANSPARENT ancestor: a control wrapped in
-   *  an sc-if under a group still /n_sets the group's node. */
+  /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is
+   *  live (the load-pass initial lands before the parent's /s_new and rides
+   *  it via getControls / the array seed instead; the ack-window catch-up in
+   *  ScSynth.load covers the send→/n_go gap). The owner is the nearest
+   *  NON-TRANSPARENT ancestor: a control wrapped in an sc-if under a group
+   *  still writes the group's node — and a GROUP-level array write fans to
+   *  every synth inside that carries the named control array. */
   private sendControl(next: StateValue): void {
     const parent = this.namedScParent;
     if (!(parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0)) return;
+    const name = this.getProp("name") as string;
+    if (Array.isArray(next)) {
+      if (next.some((v) => Number.isNaN(Number(v)))) {
+        console.warn(`<sc-control name="${name}">: non-numeric array element — /n_setn skipped`);
+        return;
+      }
+      oscClient.setControln(parent.nodeId, name, next.map(Number));
+      return;
+    }
     const value = Number(next);
     if (Number.isNaN(value)) {
       console.warn(
-        `<sc-control name="${this.getProp("name") as string}">: non-numeric value ${JSON.stringify(next)} — /n_set skipped`,
+        `<sc-control name="${name}">: non-numeric value ${JSON.stringify(next)} — /n_set skipped`,
       );
       return;
     }
-    oscClient.setControl(parent.nodeId, this.getProp("name") as string, value);
+    oscClient.setControl(parent.nodeId, name, value);
   }
 
   /** The user-gesture write path: store write + /n_set. */

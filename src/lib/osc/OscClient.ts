@@ -36,11 +36,12 @@ import {
   NodeEvent,
   nRunOne,
   nSet,
+  nSetn,
   parseScopeChunkArgs,
   SCOPE_CHUNK_ADDRESS,
   scopeSubscribe,
   scopeUnsubscribe,
-  sNew,
+  sNewPairs,
   sync,
   Synced,
   type DecodedScopeChunk,
@@ -67,6 +68,9 @@ function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
     avgCpu: Number(args[5]) || 0,
     peakCpu: Number(args[6]) || 0,
     sampleRate: Number(args[8]) || 0,
+    numUgens: Number(args[1]) || 0,
+    numSynths: Number(args[2]) || 0,
+    numGroups: Number(args[3]) || 0,
   };
 }
 
@@ -215,6 +219,13 @@ export class OscClient {
     if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);
   }
 
+  /** Set a contiguous control-array run on a live node (/n_setn) — the
+   *  live-envelope update. Sent to a GROUP, scsynth fans it out to every
+   *  synth inside that carries the named control. */
+  setControln(nodeId: number, name: string, values: readonly number[]): void {
+    this.send(nSetn(nodeId, [name, values.length, ...values]));
+  }
+
   /** Allocate the next node id from the session's server-assigned block.
    *  Throws before `connect` and if the block is exhausted (a bug — the range
    *  is far larger than any realistic session needs). */
@@ -334,16 +345,25 @@ export class OscClient {
     this.send(dFree(name));
   }
 
-  /** Create a synth at the tail of `targetId` with its control name-value
-   *  pairs baked in; resolves with the new node id once `/n_go` confirms. */
+  /** Create a synth at the tail of `targetId` with ALL its controls baked
+   *  into the ONE /s_new — scalars as name pairs, ARRAY controls as
+   *  consecutive (integer-index, value) pairs from each array's base param
+   *  index (/s_new accepts "a control index or name" per pair). The voice
+   *  therefore never computes a block with a stale array — no post-create
+   *  seed, no race. Resolves with the new node id once /n_go confirms. */
   async createSynth(
     defName: string,
     targetId: number,
     controls: Record<string, number>,
+    arrayControls: ReadonlyArray<{ index: number; values: readonly number[] }> = [],
   ): Promise<number> {
     const nodeId = this.nextNodeId();
     const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === nodeId);
-    this.send(sNew(defName, nodeId, AddToTail, targetId, controls));
+    const pairs: Array<[string | number, number]> = Object.entries(controls);
+    for (const { index, values } of arrayControls) {
+      values.forEach((value, i) => pairs.push([index + i, value]));
+    }
+    this.send(sNewPairs(defName, nodeId, AddToTail, targetId, pairs));
     await reply;
     return nodeId;
   }

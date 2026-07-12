@@ -2,6 +2,7 @@
 // inputs). The attributes live in the colocated spec (read via getProp); the
 // graph collection consumes them at parse for the /d_recv-time compile.
 
+import { parseBind } from "@/lib/utils/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import {
@@ -28,16 +29,22 @@ export class ScUgen extends ScElement {
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     this.processChildren(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
-    // synthdef param.
+    // synthdef param. A comma-token may be a plain ref, a `name:idx` ref, or an
+    // arithmetic EXPRESSION — validate each operand var it names (parseBind
+    // collects them into `paths`; a bare number contributes none).
     for (const child of this._scChildren!) {
       const childBind = child.getAttribute("bind:value");
       if (!isControlRuntime(child) || !childBind) continue;
-      for (const ref of childBind.split(",").map((s) => s.trim())) {
-        const refId = ref.split(":")[0];
-        if (!resolveNode(this, ctx, [refId])) {
-          throw new Error(
-            `<sc-ugen name="${this.getProp("name")}">: input "${child.getProp("name")}" references unknown "${refId}"`,
-          );
+      for (const token of childBind.split(",").map((s) => s.trim())) {
+        // Multi-output refs (`name:idx`) can't appear inside an expression (the
+        // parser rejects ':') — treat a ':' token as a plain ref.
+        const refs = token.includes(":") ? [token.split(":")[0]] : parseBind(token).paths;
+        for (const refId of refs) {
+          if (!resolveNode(this, ctx, [refId])) {
+            throw new Error(
+              `<sc-ugen name="${this.getProp("name") as string}">: input "${child.getProp("name") as string}" references unknown "${refId}"`,
+            );
+          }
         }
       }
     }

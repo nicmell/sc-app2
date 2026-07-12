@@ -46,6 +46,9 @@ describe("OscClient.handleReply", () => {
       avgCpu: 12.5,
       peakCpu: 20.25,
       sampleRate: 48000,
+      numUgens: 0,
+      numSynths: 0,
+      numGroups: 0,
     });
     expect(oscClient.log.get()).toHaveLength(0);
   });
@@ -115,6 +118,17 @@ describe("OscClient.once", () => {
     const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
     oscClient.close();
     await expectation;
+  });
+});
+
+describe("OscClient.setControln", () => {
+  it("sends /n_setn with the named contiguous run", () => {
+    const sent: OSC.Message[] = [];
+    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OSC.Message));
+    oscClient.setControln(2001, "shape", [0, 3, 2, -99, 1, 0.5]);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].address).toBe("/n_setn");
+    expect(sent[0].args).toEqual([2001, "shape", 6, 0, 3, 2, -99, 1, 0.5]);
   });
 });
 

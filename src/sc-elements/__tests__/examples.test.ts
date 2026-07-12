@@ -110,7 +110,10 @@ describe("functional examples parse clean", () => {
 describe("every example synthdef compiles", () => {
   // Compilation happens at /d_recv time in the load pass, not at parse — so
   // compile each parsed synthdef's collected params/specs here to keep the
-  // unit gate proving the whole graph vocabulary the examples use.
+  // unit gate proving the whole graph vocabulary the examples use. A LIVE
+  // envelope's flatValue reads the state's default (no store yet at parse) —
+  // the ScEnv element already satisfies the EnvStateRef surface, so the def
+  // compiles as-is.
   for (const c of passing) {
     it(`${c.category}/${c.name}`, () => {
       const { host } = parseExample(c.xml);

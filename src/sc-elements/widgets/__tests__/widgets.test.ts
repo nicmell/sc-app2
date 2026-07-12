@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
+import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
 import {
@@ -356,6 +357,157 @@ describe("sc-strudel", () => {
   it("rejects a negative orbit at parse", async () => {
     await expect(mountXml('<sc-strudel orbit="-1"></sc-strudel>')).rejects.toThrow(
       '"orbit" attribute must be a non-negative integer (got "-1")',
+    );
+  });
+});
+
+describe("sc-keyboard", () => {
+  // A compilable synthdef the keyboard spawns voices from (plain gate/amp
+  // multiply — the demo example exercises the Linen self-free variant).
+  const KBD = `<sc-synthdef name="kbd">
+    <sc-control name="freq" value="440"/>
+    <sc-control name="amp" value="0.2"/>
+    <sc-control name="gate" value="1"/>
+    <sc-ugen name="osc" type="SinOsc"><sc-control name="freq" bind:value="freq"/></sc-ugen>
+    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+      <sc-control name="a" bind:value="osc"/>
+      <sc-control name="b" bind:value="amp"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+      <sc-control name="bus" value="0"/>
+      <sc-control name="channelsarray" bind:value="sig,sig"/>
+    </sc-ugen>
+  </sc-synthdef>`;
+
+  const mountKeyboard = async (attrs = ""): Promise<{ host: ScPlugin; kbd: ScKeyboard }> => {
+    const host = await mountXml(`${KBD}<sc-keyboard synthdef="kbd" ${attrs}/>`);
+    return { host, kbd: host.querySelector("sc-keyboard") as ScKeyboard };
+  };
+
+  const sNews = () => sent.filter((m) => m.address === "/s_new");
+  const nSets = () => sent.filter((m) => m.address === "/n_set");
+
+  it("parses/mounts and stays lazy — no voice until a key is pressed", async () => {
+    const { host, kbd } = await mountKeyboard();
+    expect(kbd).not.toBeNull();
+    expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv"]);
+    expect(host.nodeId).not.toBe(0);
+  });
+
+  it("never reflects a foreign attribute onto the host (validateProps rejects it)", async () => {
+    // The focusable tabindex lives on the inner container — a reflected host
+    // attribute would fail validateProps when render precedes process (the
+    // real-app load order).
+    const { kbd } = await mountKeyboard();
+    await kbd.updateComplete;
+    expect(kbd.hasAttribute("tabindex")).toBe(false);
+    expect(kbd.querySelector("[tabindex]")).not.toBeNull();
+  });
+
+  it("rejects a synthdef that names no <sc-synthdef>", async () => {
+    await expect(mountXml(`${KBD}<sc-keyboard synthdef="nope"/>`)).rejects.toThrow(
+      '<sc-keyboard synthdef="nope">: does not match any <sc-synthdef>',
+    );
+  });
+
+  it("noteOn spawns a voice into the plugin group with mapped freq + amp", async () => {
+    const { host, kbd } = await mountKeyboard();
+    sent.length = 0;
+    await kbd.noteOn(69, 0.5); // A4 → 440 Hz
+
+    expect(sNews()).toHaveLength(1);
+    const sNew = sNews()[0];
+    expect(sNew.args[0]).toBe("kbd");
+    expect(sNew.args[3]).toBe(host.nodeId); // target = plugin group
+    expect(sNew.args.slice(4)).toEqual(["freq", 440, "amp", 0.5]);
+  });
+
+  it("noteOff sets gate 0 on the held voice and empties the map", async () => {
+    const { kbd } = await mountKeyboard();
+    await kbd.noteOn(69, 0.5);
+    const voiceId = sNews()[0].args[1] as number;
+    sent.length = 0;
+
+    kbd.noteOff(69);
+    expect(nSets()).toHaveLength(1);
+    expect(nSets()[0].args).toEqual([voiceId, "gate", 0]);
+
+    // A repeat noteOff is a no-op — the voice is gone.
+    sent.length = 0;
+    kbd.noteOff(69);
+    expect(nSets()).toHaveLength(0);
+  });
+
+  it("maps custom param names onto the /s_new + /n_set", async () => {
+    const { kbd } = await mountKeyboard('freq="hz" amp="level" gate="g"');
+    sent.length = 0;
+    await kbd.noteOn(69, 0.25);
+    const sNew = sNews()[0];
+    expect(sNew.args.slice(4)).toEqual(["hz", 440, "level", 0.25]);
+    const voiceId = sNew.args[1] as number;
+
+    sent.length = 0;
+    kbd.noteOff(69);
+    expect(nSets()[0].args).toEqual([voiceId, "g", 0]);
+  });
+
+  it("defers a release that races the /n_go ack, firing exactly one gate 0", async () => {
+    const { host } = await mountKeyboard();
+    const kbd = host.querySelector("sc-keyboard") as ScKeyboard;
+
+    // Withhold the /s_new reply so the voice stays pending.
+    let pending: OSC.Message | undefined;
+    send.mockImplementation((packet) => {
+      const msg = packet as OSC.Message;
+      sent.push(msg);
+      if (msg.address === "/s_new") pending = msg;
+      else autoRespond(msg);
+    });
+
+    sent.length = 0;
+    const on = kbd.noteOn(69, 0.5);
+    await vi.waitFor(() => expect(pending).toBeDefined());
+    kbd.noteOff(69); // released before the ack — no /n_set yet (no node id)
+    expect(nSets()).toHaveLength(0);
+
+    autoRespond(pending!); // deliver /n_go
+    await on;
+
+    const voiceId = pending!.args[1] as number;
+    expect(nSets()).toHaveLength(1);
+    expect(nSets()[0].args).toEqual([voiceId, "gate", 0]);
+    expect((kbd as unknown as { held: Map<number, unknown> }).held.size).toBe(0);
+  });
+
+  it("spawns a voice from an on-screen key press (pointer wiring)", async () => {
+    const { kbd } = await mountKeyboard('octaves="2" start="48"');
+    const key = kbd.querySelector('[data-note="60"]') as HTMLElement; // C5, a white key
+    expect(key).not.toBeNull();
+
+    sent.length = 0;
+    key.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    await vi.waitFor(() => expect(sNews()).toHaveLength(1));
+    const sNew = sNews()[0];
+    expect(sNew.args[0]).toBe("kbd");
+    expect(sNew.args[4]).toBe("freq");
+    expect(sNew.args[5] as number).toBeCloseTo(261.63, 1); // midicps(60)
+  });
+
+  it("drops held voices on unload (connection loss)", async () => {
+    const { kbd } = await mountKeyboard();
+    await kbd.noteOn(69, 0.5);
+    expect((kbd as unknown as { held: Map<number, unknown> }).held.size).toBe(1);
+    kbd.unload();
+    expect((kbd as unknown as { held: Map<number, unknown> }).held.size).toBe(0);
+  });
+
+  it("rejects an invalid range at parse", async () => {
+    await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" octaves="0"/>`)).rejects.toThrow(
+      '"octaves" attribute must be a positive integer (got "0")',
+    );
+    document.body.replaceChildren();
+    await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" start="200"/>`)).rejects.toThrow(
+      '"start" attribute must be a MIDI note 0–127 (got "200")',
     );
   });
 });

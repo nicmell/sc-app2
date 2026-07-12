@@ -8,8 +8,17 @@ import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
 import { requireName, resolveNode } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
+import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 
 export class ScSynth extends ScNode {
+  /** The resolved definition element (set at parse). NOT for defaults —
+   *  scsynth applies the def's own param defaults; only instance controls
+   *  ride the /s_new. Kept for array controls only: they bake in as
+   *  consecutive INTEGER-index pairs (the encoder has no OSC `[ ]` array
+   *  tags, and a post-create /n_setn would race the first control block),
+   *  and the index is the def's param layout — `paramIndexOf`. */
+  private defElement?: ScSynthDef;
+
   validate(): void {
     requireName(this);
   }
@@ -22,6 +31,7 @@ export class ScSynth extends ScNode {
     if (!target || !isSynthDefRuntime(target)) {
       throw new Error(`<sc-synth synthdef="${synthdef}">: does not match any <sc-synthdef>`);
     }
+    this.defElement = target;
     return super.resolveRuntime(ctx);
   }
 
@@ -36,19 +46,35 @@ export class ScSynth extends ScNode {
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     const snapshot = this.getControls();
-    const nodeId = await oscClient.createSynth(synthdef, this.targetGroupId, snapshot);
+    // ARRAY controls ride the /s_new as consecutive index/value pairs from
+    // each array's base param index. Instance controls only — a def array
+    // param without one keeps its compiled defaults (share live state
+    // explicitly via bind:value, like every other control).
+    const arraySnapshot: Record<string, readonly number[]> = this.getArrayControls();
+    const arrays: Array<{ index: number; values: readonly number[] }> = [];
+    for (const [name, values] of Object.entries(arraySnapshot)) {
+      const index = this.defElement?.paramIndexOf(name);
+      if (index !== undefined) arrays.push({ index, values });
+    }
+    const nodeId = await oscClient.createSynth(synthdef, this.targetGroupId, snapshot, arrays);
     // The pass may have been invalidated while /s_new was awaiting /n_go.
     // Never adopt an id from a disconnected or superseded session.
     if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
     this.nodeId = nodeId;
     this.loaded = true;
-    // Writes landing between the /s_new send and its /n_go ack were baked
-    // stale AND skipped the /n_set (dispatch gates on `loaded`) — catch the
-    // node up on any control that drifted from the snapshot meanwhile.
+    // NOT a resend: the /s_new args are the SEND-TIME snapshot, and /n_go is
+    // awaited asynchronously — a user gesture landing in that window wrote
+    // the store but SKIPPED its /n_set (dispatch gates on `loaded`, false
+    // until here). Diff live state against the snapshot and send only the
+    // drift — the common case sends nothing.
     for (const [name, value] of Object.entries(this.getControls())) {
       if (!Object.is(snapshot[name], value)) {
         oscClient.setControl(this.nodeId, name, value);
       }
+    }
+    // Same for arrays (immutable per edit, so a reference change IS a drift).
+    for (const [name, values] of Object.entries(this.getArrayControls())) {
+      if (arraySnapshot[name] !== values) oscClient.setControln(this.nodeId, name, values);
     }
   }
 

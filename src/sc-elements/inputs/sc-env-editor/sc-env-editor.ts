@@ -36,13 +36,12 @@ const PAD = 10; // px inset around the drawing area
 const HIT_RADIUS = 10; // px hit-test radius for points and curve handles
 const MIN_TIME = 0.005; // s — a dragged segment can't collapse to zero
 const CURVE_LIMIT = 10;
-/** Hard bound on a drawn LEVEL. Over-unity envelopes are legal (pitch/depth
- *  curves), runaway ones are not: with pointer capture a drag past the
- *  canvas edge maps outside [lo, hi], the auto-expanding scale would grow to
- *  include it, and the SAME pixel offset then maps further out — an
- *  exponential feedback (×2 per RAF commit) that reached 1e19 in the wild.
- *  The gesture-frozen scale kills the loop; this clamp caps the damage of
- *  any single gesture AND lets a corrupted envelope heal on its next drag. */
+/** Backstop bound on a drawn LEVEL. Drags pin to the canvas edges (the
+ *  gesture-frozen [lo, hi] — see dragPoint), so this limit is unreachable
+ *  through normal editing; it exists so PRE-EXISTING corrupt data (the
+ *  runaway-scale feedback shipped briefly and reached 1e19 in the wild,
+ *  and such values persist in the session store) heals on its next drag
+ *  instead of re-drawing itself through its own huge scale. */
 const LEVEL_LIMIT = 16;
 
 const clampLevel = (v: number): number =>
@@ -331,7 +330,16 @@ export class ScEnvEditor extends ScInput {
 
   private dragPoint(index: number, x: number, y: number): EnvBreakpoints {
     const v = this.value!;
-    const level = clampLevel(this.fromY(y));
+    // The canvas IS the level range: a drag past the top/bottom edge PINS
+    // the point to that edge (the frozen [lo, hi]) — nothing ever lands
+    // outside the scale, so releasing never reshapes the drawing. Fresh
+    // envelopes therefore live in exactly [0, 1]; over-unity or bipolar
+    // shapes are the def expression's job (`e * 1800`, `e * 2 - 1`). The
+    // ±LEVEL_LIMIT backstop only matters for PRE-EXISTING corrupt data,
+    // whose huge scale would otherwise let the corruption re-draw itself —
+    // one drag snaps it back into range instead.
+    const { lo, hi } = this.frame();
+    const level = clampLevel(Math.max(lo, Math.min(hi, this.fromY(y))));
     if (index === 0) return { ...v, start: level };
     const times = this.times;
     const seg = index - 1;

@@ -4,7 +4,7 @@
 // the header (sclang's Env.newClear + setn model).
 
 import { describe, expect, it } from "vitest";
-import { decodeEnvArray, encodeEnvArray, envPeak, type EnvBreakpoints } from "@/lib/synthdef/envValue";
+import { decodeEnvArray, encodeEnvArray, type EnvBreakpoints } from "@/lib/synthdef/envValue";
 
 const ADSR_FLAT = [0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4];
 
@@ -55,13 +55,5 @@ describe("envelope codec", () => {
   it("rejects a width under the 4-slot header (would pad negatively)", () => {
     const empty: EnvBreakpoints = { start: 0, segments: [] };
     expect(() => encodeEnvArray(empty, 3)).toThrow("cannot hold the 4-slot Env.asArray header");
-  });
-
-  it("envPeak: max |level| over start + REAL targets, floored at 0.001", () => {
-    // 2 segments (targets 0.5 and -0.8); the zero padding is NOT a level.
-    const flat = [0.2, 2, 1, -99, 0.5, 0.1, 5, -4, -0.8, 0.3, 5, -4, 0, 0, 0, 0];
-    expect(envPeak(flat)).toBeCloseTo(0.8, 6);
-    expect(envPeak([0, 1, 0, -99, 0, 0.1, 5, -4])).toBe(0.001); // flat zero → floor
-    expect(envPeak([])).toBe(0.001);
   });
 });

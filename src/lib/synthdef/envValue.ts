@@ -39,17 +39,6 @@ const CURVE_NAMES: Record<number, string> = {
   8: "hold",
 };
 
-/** The envelope's peak magnitude: max |level| over the start and every REAL
- *  segment target (the header's count, clamped). Floored at 0.001 so a
- *  flat-zero envelope can't turn a normalizing divide into infinity. */
-export function envPeak(flat: readonly number[]): number {
-  if (flat.length < 4) return Math.max(Math.abs(flat[0] ?? 0), 0.001);
-  const count = Math.max(0, Math.min(flat[1] | 0, Math.floor((flat.length - 4) / 4)));
-  let peak = Math.abs(flat[0]);
-  for (let i = 0; i < count; i++) peak = Math.max(peak, Math.abs(flat[4 + i * 4]));
-  return Math.max(peak, 0.001);
-}
-
 /** Decode a flat Env.asArray run into breakpoints. Tolerant of a padded or
  *  malformed array: the segment count is the header's claim clamped to what
  *  the array holds; a non-env array decodes to zero segments. */

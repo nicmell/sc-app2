@@ -303,7 +303,6 @@
 
   <xs:complexType name="scEnvEditorType">
     <xs:attribute name="value" type="xs:string"/>
-    <xs:attribute name="hold" type="xs:decimal"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
@@ -708,7 +707,6 @@
     <xs:attribute name="amp" type="xs:string"/>
     <xs:attribute name="gate" type="xs:string"/>
     <xs:attribute name="envelope" type="xs:vector"/>
-    <xs:attribute name="normalize" type="xs:boolean"/>
     <xs:attribute name="octaves" type="xs:integer"/>
     <xs:attribute name="start" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>

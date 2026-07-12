@@ -45,10 +45,7 @@
         <sc-text tone="dim">Drag points; double-click to add/remove; drag a midpoint to bend</sc-text>
     </sc-flex>
     <sc-env-editor bind:value="env"/>
-    <!-- normalize: each voice's amp divides by its LATCHED envelope's peak,
-         so a quietly-drawn shape plays as loud as a full-scale one (the
-         fixed-peak-ADSR feel) while velocity keeps its range. -->
-    <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env" normalize="true"/>
+    <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env"/>
     <sc-console/>
 </sc-flex>
 </body>

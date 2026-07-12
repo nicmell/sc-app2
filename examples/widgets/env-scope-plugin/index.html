@@ -16,20 +16,20 @@
      editor can add breakpoints up to 8 segments. -->
 
 <!-- The envelope, drawn by the server: Impulse retriggers a gate held for
-     `hold` seconds — DERIVED by the editor (bind:hold): on every edit it
-     writes the envelope's pre-release duration, so the gate always covers
-     the ramp to sustain and the trace renders edited envelopes without
-     truncation; EnvGen.ar renders the shape onto bus 16. -->
+     the envelope's OWN pre-release duration, computed in-graph from the
+     `env` control slots (slot 2 = releaseNode, slot 5+4i = segment i's
+     time): Σ (releaseNode > i ? time_i : 0) + a small margin. The gate
+     therefore always covers the ramp to sustain, whatever the editor draws
+     — no truncation; EnvGen.ar renders the shape onto bus 16. -->
 <sc-synthdef name="envTrace">
     <sc-control name="rate" value="2"/>
-    <sc-control name="hold" value="0.17"/>
     <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
     <sc-ugen name="tick" type="Impulse" rate="kr">
         <sc-control name="freq" bind:value="rate"/>
     </sc-ugen>
     <sc-ugen name="gate" type="Trig1" rate="kr">
         <sc-control name="trig" bind:value="tick"/>
-        <sc-control name="dur" bind:value="hold"/>
+        <sc-control name="dur" bind:value="(env.2 > 0 ? env.5 : 0) + (env.2 > 1 ? env.9 : 0) + (env.2 > 2 ? env.13 : 0) + (env.2 > 3 ? env.17 : 0) + (env.2 > 4 ? env.21 : 0) + (env.2 > 5 ? env.25 : 0) + (env.2 > 6 ? env.29 : 0) + (env.2 > 7 ? env.33 : 0) + 0.02"/>
     </sc-ugen>
     <sc-ugen name="sig" type="EnvGen" rate="ar">
         <sc-control name="gate" bind:value="gate"/>
@@ -42,7 +42,6 @@
 </sc-synthdef>
 <sc-synth name="trace" synthdef="envTrace">
     <sc-control name="rate" value="2"/>
-    <sc-control name="hold" value="0.17"/>
     <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
 </sc-synth>
 
@@ -78,7 +77,7 @@
         <sc-text weight="bold">Envelope verification</sc-text>
         <sc-text tone="dim">The scope trace below must MATCH the editor's curve — drag and compare</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="trace.env" bind:hold="trace.hold"/>
+    <sc-env-editor bind:value="trace.env"/>
     <!-- trigger="auto": pin to the envelope's rising edge when it lands in
          the search window, free-run otherwise — never hold a stale trace.
          level 0.03 (just above the 0.02 arming hysteresis) keeps the trigger
@@ -89,7 +88,7 @@
             <sc-knob bind:value="trace.rate" min="0.5" max="4" step="0.1"/>
             <sc-text as="label">Retrigger <sc-display bind:value="trace.rate" format="%.1f Hz"/></sc-text>
         </sc-flex>
-        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="trace.env" normalize="true"/>
+        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="trace.env"/>
     </sc-flex>
     <sc-console/>
 </sc-flex>

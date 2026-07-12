@@ -21,7 +21,6 @@
 
 import { html } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { envPeak } from "@/lib/synthdef/envValue";
 import { isNodeRuntime, isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
@@ -177,19 +176,12 @@ export class ScKeyboard extends ScElement {
       if (Array.isArray(envelope) && index !== undefined) {
         arrays.push({ index, values: envelope });
       }
-      // `normalize`: divide amp by the LATCHED envelope's peak, so amp and
-      // envelope travel as one consistent pair per voice (a quiet drawn
-      // shape plays as loud as a full-scale one; velocity keeps its range).
-      const amp =
-        this.getProp("normalize") === true && Array.isArray(envelope)
-          ? velocity / envPeak(envelope)
-          : velocity;
       const nodeId = await oscClient.createSynth(
         this._synthdef,
         groupId,
         {
           [this._freqParam]: ScKeyboard.midicps(note),
-          [this._ampParam]: amp,
+          [this._ampParam]: velocity,
         },
         arrays,
       );

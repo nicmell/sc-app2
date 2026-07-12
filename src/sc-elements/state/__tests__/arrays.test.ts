@@ -149,24 +149,6 @@ describe("voice array latching", () => {
     expect(sent.filter((m) => m.address === "/n_setn")).toHaveLength(0);
   });
 
-  it("normalize divides the voice's amp by the latched envelope's peak", async () => {
-    const { host } = await mountPlugin(
-      KEYBOARD_PLUGIN.replace('<sc-keyboard synthdef="voice" bind:envelope="env"/>',
-        '<sc-keyboard synthdef="voice" bind:envelope="env" normalize="true"/>'),
-    );
-    const env = host.querySelector('sc-var[name="env"]') as ScVar;
-    env.setValue([0, 1, 0, -99, 0.5, 0.01, 5, -4]); // peak 0.5
-    sent.length = 0;
-
-    const keyboard = host.querySelector("sc-keyboard") as unknown as {
-      noteOn(note: number, velocity: number): Promise<void>;
-    };
-    await keyboard.noteOn(69, 0.4);
-    const sNew = sent.find((m) => m.address === "/s_new")!;
-    const pairs = sNew.args.slice(4);
-    expect(pairs[pairs.indexOf("amp") + 1]).toBeCloseTo(0.8, 6); // 0.4 / 0.5
-  });
-
   it("an sc-synth without an instance array control keeps the def's compiled defaults", async () => {
     const { host } = await mountPlugin(
       wrapXml(`<sc-control name="env" value="0, 1, 0, -99, 1, 0.42, 5, -4"/>

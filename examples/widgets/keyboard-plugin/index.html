@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Keyboard Plugin</title>
+</head>
+<body>
+<sc-synthdef name="sineNote">
+    <sc-control name="freq" value="261.63"/>
+    <sc-control name="amp" value="0.1"/>
+    <sc-control name="gate" value="1"/>
+    <!-- Canonical ADSR straight on EnvGen's variadic `envelope` input —
+         `adsr(attack, decay, sustainLevel, release)` builds the flat
+         Env.asArray run (curvature -4, release node after the decay).
+         action="2" (doneAction 2) frees the voice once the release finishes
+         after gate → 0. -->
+    <sc-ugen name="env" type="EnvGen" rate="kr">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="action" value="2"/>
+        <sc-control name="envelope" value="adsr(0.01, 0.1, 0.7, 0.3)"/>
+    </sc-ugen>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind:value="freq"/>
+    </sc-ugen>
+    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="osc"/>
+        <sc-control name="b" bind:value="env"/>
+    </sc-ugen>
+    <!-- 0.15 headroom: velocity maps straight onto `amp` (up to 1.0 per
+         voice); unscaled chords sum past +-1 and clip. -->
+    <sc-ugen name="voice" type="BinaryOpUGen" op="*">
+        <sc-control name="a" bind:value="sig"/>
+        <sc-control name="b" bind:value="amp * 0.15"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind:value="voice,voice"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-flex orientation="vertical" gap="md">
+    <sc-flex align="center" gap="sm">
+        <sc-text weight="bold">Keyboard</sc-text>
+        <sc-text tone="dim">Click, type the a…k row, or play a MIDI device</sc-text>
+    </sc-flex>
+    <!-- Default param names (freq/amp/gate) match the synthdef controls, so no
+         mapping attributes are needed. -->
+    <sc-keyboard synthdef="sineNote" octaves="2" start="48"/>
+    <sc-console/>
+</sc-flex>
+</body>
+</html>

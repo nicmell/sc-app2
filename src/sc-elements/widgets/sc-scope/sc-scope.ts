@@ -83,6 +83,11 @@ export class ScScope extends ScElement {
   private get _layout(): string {
     return (this.getProp("layout") as string) ?? "overlay";
   }
+  /** Display mapping: `bipolar` (±1 around the band middle) or `unipolar`
+   *  ([0, 1] bottom→top — envelopes/control taps fill the lane). */
+  private get _range(): string {
+    return (this.getProp("range") as string) ?? "bipolar";
+  }
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */
@@ -297,13 +302,18 @@ export class ScScope extends ScElement {
     ctx.fillStyle = this.bg;
     ctx.fillRect(0, 0, w, h);
 
+    // The zero line: band middle for bipolar, the padded band bottom for
+    // unipolar (where the full band spans [0, 1]).
+    const unipolar = this._range === "unipolar";
+    const zeroOf = (band: number): number =>
+      band * bandH + (unipolar ? bandH * (1 + PAD) * 0.5 : bandH / 2);
     ctx.strokeStyle = this.zero;
     ctx.lineWidth = 1;
     for (let b = 0; b < bands; b++) {
-      const mid = b * bandH + bandH / 2;
+      const zy = zeroOf(b);
       ctx.beginPath();
-      ctx.moveTo(0, mid);
-      ctx.lineTo(w, mid);
+      ctx.moveTo(0, zy);
+      ctx.lineTo(w, zy);
       ctx.stroke();
     }
 
@@ -314,8 +324,8 @@ export class ScScope extends ScElement {
     const xStep = w / (win.span - 1);
     ctx.lineWidth = 1.25;
     for (let c = 0; c < channels; c++) {
-      const mid = (this._layout === "split" ? c : 0) * bandH + bandH / 2;
-      const yScale = this._gain * PAD * (bandH / 2);
+      const mid = zeroOf(this._layout === "split" ? c : 0);
+      const yScale = this._gain * PAD * (unipolar ? bandH : bandH / 2);
       ctx.save();
       if (this._layout === "split") {
         // Keep an over-gained lane inside its own band.

@@ -13,5 +13,9 @@ export const spec: ElementSpec = {
     level: { type: "decimal" },
     gain: { type: "decimal" },
     layout: { type: "enum", values: ["overlay", "split"] },
+    // Display mapping: `bipolar` (default) draws ±1 around the band middle;
+    // `unipolar` maps [0, 1] bottom→top — envelopes/control taps fill the
+    // lane instead of squashing into the upper half.
+    range: { type: "enum", values: ["bipolar", "unipolar"] },
   },
 };

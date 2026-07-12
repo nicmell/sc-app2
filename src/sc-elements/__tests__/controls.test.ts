@@ -16,6 +16,7 @@ import { OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { setRuntimeValue } from "@/stores/runtime";
+import type { StateValue } from "@/types/runtime";
 import {
   registerScElements,
   type ScControl,
@@ -200,7 +201,7 @@ describe("ScControl.setValue", () => {
     const { host } = await mountExample();
     const freq = control(host, "freq");
     const range = inputByBind(host, "s1.freq");
-    const seen: Array<number | string> = [];
+    const seen: StateValue[] = [];
     const off = freq.onStateChange((v) => seen.push(v));
 
     setRuntimeValue(host.id, "s1.freq", 660);
@@ -557,7 +558,7 @@ describe("state propagation (vars + bound state)", () => {
   it("bound state is read-only, and a converged recompute notifies nobody", async () => {
     const { host } = await mountVars();
     const before = appStore.get().runtime;
-    const seen: Array<number | string> = [];
+    const seen: StateValue[] = [];
     varByName(host, "sum").onStateChange((v) => seen.push(v));
 
     varByName(host, "mirror").setValue(9); // derived — silently inert
@@ -1475,7 +1476,7 @@ describe("inputs on bind:value (Phase 3.2)", () => {
     const leaked: Event[] = [];
     host.querySelector("sc-slider")!.addEventListener("statechange", (e) => leaked.push(e));
     host.querySelector("sc-display")!.addEventListener("statechange", (e) => leaked.push(e));
-    const seen: Array<number | string> = [];
+    const seen: StateValue[] = [];
     varByName(host, "a").onStateChange((v) => seen.push(v));
 
     varByName(host, "a").setValue(2); // recomputes both consumers

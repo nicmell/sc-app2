@@ -1,3 +1,4 @@
+import type { Expr } from "@/lib/expression";
 import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
@@ -10,32 +11,19 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 // attribute contract). The runtime registry maps ids straight to the live
 // elements.
 
-// ── Bind expressions (lib/utils/expression) ──────────────────────────────
+// ── Bind expressions (lib/expression) ─────────────────────────────────────
 
 /** What a runtime value can hold: numbers everywhere, strings for the
- *  presentation layer (string vars, ternary labels/icons). The OSC boundary
- *  stays numeric — senders coerce and skip NaN. */
-export type StateValue = number | string;
+ *  presentation layer (string vars, ternary labels/icons), and numeric
+ *  ARRAYS (a `value` comma-list — control-array params, envelope buffers).
+ *  Arrays are IMMUTABLE by convention — a fresh array per edit (the
+ *  Object.is guards never see in-place mutation). Expressions evaluate over
+ *  arrays with SC's multichannel expansion; the OSC boundary sends /n_setn
+ *  for arrays and /n_set for scalars (NaN skipped either way). */
+export type StateValue = string | number | number[];
 
-export type Expr =
-  | { type: "number"; value: number }
-  | { type: "string"; value: string }
-  | { type: "var"; name: string }
-  | { type: "unary"; op: "-"; expr: Expr }
-  | {
-      type: "binary";
-      /** Arithmetic, plus the non-associative comparisons (evaluating to 1/0). */
-      op: "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
-      left: Expr;
-      right: Expr;
-    }
-  | {
-      type: "ternary";
-      /** Right-associative conditional over the cond's truthiness. */
-      cond: Expr;
-      then: Expr;
-      else: Expr;
-    };
+/** The bind-expression AST — defined by the language module. */
+export type { Expr } from "@/lib/expression";
 
 // ── Runtime value mixins ──────────────────────────────────────────────────
 //
@@ -76,9 +64,10 @@ export interface RuntimeProp {
 
 export interface SynthDefRuntime extends BaseRuntime {
   loaded: boolean;
-  /** The param defaults + DOM-ordered ugen specs (collected at parse) —
-   *  compiled to SCgf right at /d_recv time in the load pass. */
-  params: Record<string, number>;
+  /** The param defaults (scalars or control-array comma-lists) + DOM-ordered
+   *  ugen specs (collected at parse) — compiled to SCgf right at /d_recv
+   *  time in the load pass. */
+  params: Record<string, number | number[]>;
   specs: UgenSpec[];
 }
 

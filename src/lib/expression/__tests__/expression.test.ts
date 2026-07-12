@@ -6,9 +6,9 @@
 // single-quoted string literals.
 
 import { describe, expect, it } from "vitest";
-import { evalExpr, parseBind } from "@/lib/utils/expression";
+import { evalExpr, parseBind } from "@/lib/expression";
 
-const evaluate = (input: string, values: Record<string, number | string> = {}) =>
+const evaluate = (input: string, values: Record<string, number | string | number[]> = {}) =>
   evalExpr(parseBind(input).expression!, values);
 
 describe("parseBind", () => {
@@ -95,5 +95,80 @@ describe("evalExpr", () => {
     expect(evaluate("a == '1'", { a: 1 })).toBe(0);
     // The empty string is falsy, like 0.
     expect(evaluate("s ? 1 : 2", { s: "" })).toBe(2);
+  });
+});
+
+describe("multichannel expansion (evalExpr over arrays)", () => {
+  it("maps a scalar across an array (broadcast)", () => {
+    expect(evaluate("a * 2", { a: [1, 2, 3] })).toEqual([2, 4, 6]);
+    expect(evaluate("10 - a", { a: [1, 2] })).toEqual([9, 8]);
+  });
+
+  it("zips two arrays with the shorter cycling (SC's wrap)", () => {
+    expect(evaluate("a + b", { a: [1, 2, 3], b: [10, 20] })).toEqual([11, 22, 13]);
+  });
+
+  it("unary minus maps", () => {
+    expect(evaluate("-a", { a: [1, -2] })).toEqual([-1, 2]);
+  });
+
+  it("comparisons yield element-wise 1/0", () => {
+    expect(evaluate("a > 1", { a: [0, 1, 2] })).toEqual([0, 0, 1]);
+  });
+
+  it("an array ternary cond selects element-wise across both branches", () => {
+    expect(evaluate("c ? a : 9", { c: [1, 0, 1], a: [10, 20, 30] })).toEqual([10, 9, 30]);
+  });
+
+  it("a scalar ternary cond keeps the branch semantics (arrays pass whole)", () => {
+    expect(evaluate("g ? a : b", { g: 1, a: [1, 2], b: [3, 4] })).toEqual([1, 2]);
+  });
+});
+
+describe("function calls (grammar)", () => {
+  it("parses a call — the NAME is not a path, the args' references are", () => {
+    const parsed = parseBind("adsr(0.01, vars.dec, 0.7, rel)");
+    expect(parsed.expression?.type).toBe("call");
+    expect(parsed.paths.sort()).toEqual(["rel", "vars.dec"]);
+  });
+
+  it("a call-only expression needs no variable (the pinned error stays for call-less constants)", () => {
+    expect(() => parseBind("adsr(0.01, 0.1, 0.7, 0.3)")).not.toThrow();
+    expect(() => parseBind("1 + 2")).toThrow("must reference at least one variable");
+  });
+
+  it("bare `adsr` (no parens) stays a plain path — only the call form is a function", () => {
+    expect(parseBind("adsr")).toEqual({ paths: ["adsr"] });
+    expect(parseBind("adsr * 2").expression?.type).toBe("binary");
+  });
+
+  it("calls compose as operands (nested, in ternaries, padded)", () => {
+    expect(parseBind("pad(adsr(0.01, 0.1, 0.7, 0.3), 36)").expression?.type).toBe("call");
+    expect(parseBind("g ? adsr() : perc()").paths).toEqual(["g"]);
+  });
+
+  it("rejects unknown names, bad arity, trailing commas, and the two-array shapes", () => {
+    expect(() => parseBind("nope(1)")).toThrow('Unknown function "nope"');
+    expect(() => parseBind("pad(1)")).toThrow('"pad" expects 2 arguments (got 1)');
+    expect(() => parseBind("adsr(1, 2, 3, 4, 5, 6, 7)")).toThrow("expects 0–6 arguments");
+    expect(() => parseBind("adsr(0.1,)")).toThrow("Trailing comma");
+    // pad's capacity check runs at PARSE when both parts are static.
+    expect(() => parseBind("pad(adsr(), 8)")).toThrow("width 8 cannot hold 16 values");
+    expect(() => parseBind("step(0, 1)")).toThrow('env shape "step" takes level/time ARRAYS');
+  });
+
+  it("folds a negated number literal (constant-only env slots need raw numbers)", () => {
+    const parsed = parseBind("perc(0.01, 1, -0.5)");
+    const call = parsed.expression as Extract<NonNullable<typeof parsed.expression>, { type: "call" }>;
+    expect(call.args[2]).toEqual({ type: "number", value: -0.5 });
+  });
+
+  it("evaluates a call over live state and NaN-guards failures to undefined", () => {
+    expect(evaluate("adsr(a, 0.1, 0.7, r)", { a: 0.01, r: 0.3 })).toEqual([
+      0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4,
+    ]);
+    // A string arg fails the call — the WHOLE expression yields undefined.
+    expect(evaluate("adsr(a)", { a: "loud" })).toBeUndefined();
+    expect(evaluate("pad(adsr(a), 36) ? 1 : 2", { a: "loud" })).toBeUndefined();
   });
 });

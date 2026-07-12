@@ -68,6 +68,11 @@ interface Node {
 interface ParamInfo {
   name: string;
   defaultValue: number;
+  /** Whether this slot carries a name entry in the SCgf names table. An
+   *  ARRAY control names only its FIRST slot (sclang's array-control
+   *  encoding — `/n_setn "name"` writes the whole run); the tail slots are
+   *  unnamed value slots. */
+  named: boolean;
 }
 
 interface ControlGroup {
@@ -115,10 +120,48 @@ export class SynthDef {
    * `AudioControl` UGen.
    */
   addControl(name: string, defaultValue: number, rate: Rate): UGenInput {
-    if (this.params.some((p) => p.name === name)) {
+    this.checkControl(name, rate);
+    const paramIndex = this.params.length;
+    this.params.push({ name, defaultValue, named: true });
+    this.lastParamRate = rate;
+
+    if (rate === "audio") {
+      return this.growGroup("audioControlGroup", "AudioControl", "audio", paramIndex);
+    }
+    return this.growGroup("controlGroup", "Control", "control", paramIndex);
+  }
+
+  /**
+   * Add a named ARRAY control (sclang's `\name.kr(defaults)` with an array):
+   * `defaults.length` consecutive value slots, ONE name entry at the base
+   * index (`/n_setn "name"` then writes the whole run), and as many outputs
+   * on the rate's shared control UGen. Returns the per-slot inputs.
+   */
+  addControlArray(name: string, defaults: readonly number[], rate: Rate): UGenInput[] {
+    if (defaults.length === 0) {
+      throw new CompileError(`Array control "${name}" must have at least one value`);
+    }
+    this.checkControl(name, rate);
+    const outputs: UGenInput[] = [];
+    for (let i = 0; i < defaults.length; i++) {
+      const paramIndex = this.params.length;
+      this.params.push({ name, defaultValue: defaults[i], named: i === 0 });
+      outputs.push(
+        rate === "audio"
+          ? this.growGroup("audioControlGroup", "AudioControl", "audio", paramIndex)
+          : this.growGroup("controlGroup", "Control", "control", paramIndex),
+      );
+    }
+    this.lastParamRate = rate;
+    return outputs;
+  }
+
+  /** The shared addControl guards: unique NAMES (the named slots) and no
+   *  rate interleaving. */
+  private checkControl(name: string, rate: Rate): void {
+    if (this.params.some((p) => p.named && p.name === name)) {
       throw new CompileError(`Duplicate control name: "${name}"`);
     }
-
     const isAudio = rate === "audio";
     const alreadyHasThisRate = isAudio
       ? this.audioControlGroup !== null
@@ -132,15 +175,6 @@ export class SynthDef {
         `Duplicate control name: "${name}: rate-interleaved controls are not supported — group all kr params, then all ar params"`,
       );
     }
-
-    const paramIndex = this.params.length;
-    this.params.push({ name, defaultValue });
-    this.lastParamRate = rate;
-
-    if (isAudio) {
-      return this.growGroup("audioControlGroup", "AudioControl", "audio", paramIndex);
-    }
-    return this.growGroup("controlGroup", "Control", "control", paramIndex);
   }
 
   private growGroup(
@@ -206,14 +240,17 @@ export class SynthDef {
     w.i32(constants.length);
     for (const c of constants) w.f32(c);
 
-    // Parameter defaults
+    // Parameter defaults (every slot, named or not)
     w.i32(this.params.length);
     for (const p of this.params) w.f32(p.defaultValue);
 
-    // Parameter names
-    w.i32(this.params.length);
-    for (let i = 0; i < this.params.length; i++) {
-      w.pstring(this.params[i].name);
+    // Parameter names — named slots only (an array control names its base).
+    const named = this.params
+      .map((p, i) => [p, i] as const)
+      .filter(([p]) => p.named);
+    w.i32(named.length);
+    for (const [p, i] of named) {
+      w.pstring(p.name);
       w.i32(i);
     }
 
@@ -268,7 +305,10 @@ export class SynthDef {
       constants: [...constants],
       parameters: {
         values: this.params.map((p) => p.defaultValue),
-        names: this.params.map((p, i) => ({ name: p.name, index: i })),
+        names: this.params
+          .map((p, i) => ({ p, i }))
+          .filter(({ p }) => p.named)
+          .map(({ p, i }) => ({ name: p.name, index: i })),
       },
       ugens,
       variants: [],
@@ -287,14 +327,22 @@ export class SynthDef {
     // The JSON's ugen list already contains Control/AudioControl nodes at
     // their exact positions, so we don't use addControl (which would push
     // another Control node). We rebuild params separately and append every
-    // ugen — Control and otherwise — directly.
+    // ugen — Control and otherwise — directly. Named entries carry the names
+    // table; the slots between them (array-control tails) are unnamed.
+    const nameAt = new Map<number, string>();
     for (const name of j.parameters.names) {
-      const idx = name.index;
-      const defVal = j.parameters.values[idx];
-      if (defVal === undefined) {
+      if (j.parameters.values[name.index] === undefined) {
         throw new CompileError(`Unknown UGen id: "${name.name}"`);
       }
-      def.params.push({ name: name.name, defaultValue: defVal });
+      nameAt.set(name.index, name.name);
+    }
+    for (let i = 0; i < j.parameters.values.length; i++) {
+      const name = nameAt.get(i);
+      def.params.push({
+        name: name ?? "",
+        defaultValue: j.parameters.values[i],
+        named: name !== undefined,
+      });
     }
 
     for (const u of j.ugens) {

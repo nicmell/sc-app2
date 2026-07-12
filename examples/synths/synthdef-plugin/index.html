@@ -22,17 +22,13 @@
     <sc-ugen name="osc" type="SinOsc">
         <sc-control name="freq" bind:value="mod-scaled"/>
     </sc-ugen>
-    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="osc"/>
-        <sc-control name="b" bind:value="amp"/>
-    </sc-ugen>
-    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="sig"/>
-        <sc-control name="b" bind:value="gate"/>
-    </sc-ugen>
+    <!-- An arithmetic bind:value lowers to BinaryOpUGen nodes automatically,
+         replacing hand-built op-node markup: osc * amp * gate.
+         (`mod-scaled` stays a MulAdd: mod-freq/mod-depth are hyphenated names,
+         which the expression tokenizer can't address — use a plain ref/ugen.) -->
     <sc-ugen name="out" type="Out">
         <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="gated"/>
+        <sc-control name="channelsarray" bind:value="osc * amp * gate"/>
     </sc-ugen>
 </sc-synthdef>
 

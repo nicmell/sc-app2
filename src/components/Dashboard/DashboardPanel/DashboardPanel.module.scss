@@ -39,5 +39,9 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Plugin content taller than the panel must SCROLL (an sc-console under a
+     keyboard was unreachable), not clip. Horizontal overflow stays clipped —
+     plugin layouts are fluid-width. */
+  overflow-y: auto;
+  overflow-x: hidden;
 }

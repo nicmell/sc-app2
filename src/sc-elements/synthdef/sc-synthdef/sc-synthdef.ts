@@ -12,49 +12,65 @@ import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
-function collectControlParams(node: ScParentElement): Record<string, number> {
-  const controls: Record<string, number> = {};
+/** Param defaults: a scalar per param, or a numeric ARRAY (a comma-list
+ *  value — compiled as a control array, sclang's `\name.kr([...])`). */
+function collectControlParams(node: ScParentElement): Record<string, number | number[]> {
+  const controls: Record<string, number | number[]> = {};
   for (const child of node._scChildren) {
     if (isControlRuntime(child)) {
-      const value = child.getProp("value") as number | undefined;
+      const value = child.getProp("value") as number | number[] | undefined;
       if (value != null) controls[child.getProp("name") as string] = value;
     }
   }
   return controls;
 }
 
-function collectUgenInputs(node: ScUgen): Record<string, string> {
-  const inputs: Record<string, string> = {};
-  for (const child of node._scChildren!) {
-    if (isControlRuntime(child)) {
-      const name = child.getProp("name") as string;
-      // The graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc:1"`) —
-      // the same spelling as a state expression, consumed raw here (never
-      // resolved on the state graph; resolveRuntimeProps skips ugen children).
-      // Empty references count as absent — the old parse-time error beats a
-      // junk "" reaching the compiler at /d_recv time.
-      const bind = child.getAttribute("bind:value");
-      const value = child.getProp("value") as number | undefined;
-      if (!bind && value == null) {
-        throw new Error(
-          `<sc-control name="${name}">: requires either a value or bind:value attribute`,
-        );
-      }
-      inputs[name] = bind || String(value);
+/** Collect an element's <sc-control> children into name → ref-or-literal
+ *  strings — the shared shape for both ugen inputs and <sc-env> params. The
+ *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc.1"`) is read raw
+ *  (never resolved on the state graph; resolveRuntimeProps skips these
+ *  children); an empty reference counts as absent — the parse-time error beats
+ *  a junk "" reaching the compiler at /d_recv time. */
+export function collectControlEntries(children: readonly ScElement[]): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const child of children) {
+    if (!isControlRuntime(child)) continue;
+    const name = child.getProp("name") as string;
+    const bind = child.getAttribute("bind:value");
+    const value = child.getProp("value") as number | number[] | undefined;
+    if (!bind && value == null) {
+      throw new Error(`<sc-control name="${name}">: requires either a value or bind:value attribute`);
     }
+    // An array value stringifies back to its comma-list — resolveSignal
+    // re-parses it, so literal arrays and refs share one wire shape.
+    entries[name] = bind || String(value);
   }
-  return inputs;
+  return entries;
 }
 
 export class ScSynthDef extends ScElement {
   loaded = false;
   /** The param defaults + DOM-ordered ugen specs, collected at parse —
    *  compiled to SCgf at /d_recv time in the load pass. */
-  params!: Record<string, number>;
+  params!: Record<string, number | number[]>;
   specs!: UgenSpec[];
 
   validate(): void {
     requireName(this);
+  }
+
+  /** The param's base slot index in the compiled def's flat control space —
+   *  params occupy consecutive slots in declaration order, arrays spanning
+   *  their length (the compiler builds from this SAME object, so the layout
+   *  matches by construction). Spawners address array-control slots by
+   *  integer index inside /s_new. */
+  paramIndexOf(name: string): number | undefined {
+    let offset = 0;
+    for (const [param, value] of Object.entries(this.params)) {
+      if (param === name) return offset;
+      offset += Array.isArray(value) ? value.length : 1;
+    }
+    return undefined;
   }
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
@@ -69,7 +85,7 @@ export class ScSynthDef extends ScElement {
         type: c.getProp("type") as string,
         rate: (c.getProp("rate") as string) ?? "ar",
         op: c.getProp("op") as string | undefined,
-        inputs: collectUgenInputs(c),
+        inputs: collectControlEntries(c._scChildren ?? []),
       }),
     );
     return { ...baseRuntime(ctx), loaded: false, params, specs };

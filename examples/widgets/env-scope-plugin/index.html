@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+<head>
+    <title>Envelope Scope Plugin</title>
+</head>
+<body>
+<!-- VERIFICATION rig: ONE envelope — the `shape` var — drives everything.
+       editor    writes `shape`
+       trace     its `env` control DERIVES from `shape` (a bare-name bind
+                 resolves lexically to the enclosing var): every edit is one
+                 /n_setn on the trace node, EnvGen.ar redraws the shape onto
+                 bus 16, and the scope displays it — the trace must MATCH
+                 the editor
+       keyboard  latches the CURRENT `shape` into each voice's /s_new
+                 (playing voices keep the shape they were born with)
+     `pad(adsr(…), 36)` builds the Env.asArray run zero-padded to 36 slots
+     (4 header + 8 segments of 4; slot 1 holds the REAL segment count), so
+     the editor can add breakpoints up to 8 segments. -->
+<sc-var name="shape" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
+
+<!-- The envelope, drawn by the server: Impulse retriggers a gate held for
+     the envelope's OWN pre-release duration, computed in-graph from the
+     `env` control slots (slot 2 = releaseNode, slot 5+4i = segment i's
+     time): Σ (releaseNode > i ? time_i : 0) + a small margin. The gate
+     therefore always covers the ramp to sustain, whatever the editor draws
+     — no truncation; EnvGen.ar renders the shape onto bus 16. -->
+<sc-synthdef name="envTrace">
+    <sc-control name="rate" value="2"/>
+    <sc-control name="env" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
+    <sc-ugen name="tick" type="Impulse" rate="kr">
+        <sc-control name="freq" bind:value="rate"/>
+    </sc-ugen>
+    <sc-ugen name="gate" type="Trig1" rate="kr">
+        <sc-control name="trig" bind:value="tick"/>
+        <sc-control name="dur" bind:value="(env.2 > 0 ? env.5 : 0) + (env.2 > 1 ? env.9 : 0) + (env.2 > 2 ? env.13 : 0) + (env.2 > 3 ? env.17 : 0) + (env.2 > 4 ? env.21 : 0) + (env.2 > 5 ? env.25 : 0) + (env.2 > 6 ? env.29 : 0) + (env.2 > 7 ? env.33 : 0) + 0.02"/>
+    </sc-ugen>
+    <sc-ugen name="sig" type="EnvGen" rate="ar">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="envelope" bind:value="env"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="16"/>
+        <sc-control name="channelsarray" bind:value="sig"/>
+    </sc-ugen>
+</sc-synthdef>
+<sc-synth name="trace" synthdef="envTrace">
+    <sc-control name="rate" value="2"/>
+    <sc-control name="env" bind:value="shape"/>
+</sc-synth>
+
+<!-- The audible half: the SAME envelope gates each voice's amp and bends its
+     pitch, so a dragged breakpoint is unmistakable by ear too. doneAction 2
+     frees a released voice. -->
+<sc-synthdef name="zap">
+    <sc-control name="freq" value="261.63"/>
+    <sc-control name="amp" value="0.15"/>
+    <sc-control name="gate" value="1"/>
+    <sc-control name="env" value="pad(adsr(0.05, 0.1, 0.5, 0.15), 36)"/>
+    <sc-ugen name="e" type="EnvGen" rate="kr">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="envelope" bind:value="env"/>
+    </sc-ugen>
+    <!-- The DECLICKER owns the free: the drawn envelope may end at any
+         level (WYSIWYG), so its completion must not cut the node — `lin`
+         sustains at 1 while the gate holds, then fades to EXACT zero over
+         the drawn release's own duration (post-releaseNode segment times,
+         computed in-graph from the env slots) + 50 ms, and only then frees
+         (doneAction 2). A nonzero drawn end level fades instead of clicking. -->
+    <sc-ugen name="lin" type="Linen" rate="kr">
+        <sc-control name="gate" bind:value="gate"/>
+        <sc-control name="attackTime" value="0"/>
+        <sc-control name="susLevel" value="1"/>
+        <sc-control name="releaseTime" bind:value="(env.2 &lt;= 0 ? env.5 : 0) + (env.2 &lt;= 1 ? env.9 : 0) + (env.2 &lt;= 2 ? env.13 : 0) + (env.2 &lt;= 3 ? env.17 : 0) + (env.2 &lt;= 4 ? env.21 : 0) + (env.2 &lt;= 5 ? env.25 : 0) + (env.2 &lt;= 6 ? env.29 : 0) + (env.2 &lt;= 7 ? env.33 : 0) + 0.05"/>
+        <sc-control name="action" value="2"/>
+    </sc-ugen>
+    <sc-ugen name="osc" type="SinOsc">
+        <sc-control name="freq" bind:value="e * 1800 + freq - 200"/>
+    </sc-ugen>
+    <sc-ugen name="panned" type="Pan2">
+        <!-- 0.15 headroom — velocity rides `amp` whole; see env-editor-plugin. -->
+        <sc-control name="in" bind:value="osc * e * lin * amp * 0.15"/>
+        <sc-control name="pos" value="0"/>
+    </sc-ugen>
+    <sc-ugen name="out" type="Out">
+        <sc-control name="bus" value="0"/>
+        <sc-control name="channelsarray" bind:value="panned.0, panned.1"/>
+    </sc-ugen>
+</sc-synthdef>
+
+<sc-flex orientation="vertical" gap="md">
+    <sc-flex align="center" gap="sm">
+        <sc-text weight="bold">Envelope verification</sc-text>
+        <sc-text tone="dim">The scope trace below must MATCH the editor's curve — drag and compare</sc-text>
+    </sc-flex>
+    <sc-envelope bind:value="shape"/>
+    <!-- range="unipolar": the [0, 1] envelope fills the whole lane instead of
+         the upper half of a ±1 bipolar view. trigger="auto": pin to the
+         rising edge when found, free-run otherwise — never hold a stale
+         trace; level 0.03 sits just above the arming hysteresis. -->
+    <sc-scope bus="16" channels="1" frames="16384" trigger="auto" level="0.03" range="unipolar"/>
+    <sc-flex align="center" gap="md">
+        <sc-flex orientation="vertical" gap="xs" align="center">
+            <sc-knob bind:value="trace.rate" min="0.5" max="4" step="0.1"/>
+            <sc-text as="label">Retrigger <sc-display bind:value="trace.rate" format="%.1f Hz"/></sc-text>
+        </sc-flex>
+        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="shape"/>
+    </sc-flex>
+    <sc-console/>
+</sc-flex>
+</body>
+</html>

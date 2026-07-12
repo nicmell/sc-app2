@@ -1,14 +1,17 @@
-// Minimal arithmetic expression parser and evaluator.
+// The bind-expression parser (moved from lib/utils/expression.ts).
 // Supports: the right-associative ternary conditional (`a ? b : c`, over the
 // cond's truthiness), comparisons (>, <, >=, <=, == , != — evaluating to 1/0),
 // +, -, *, /, unary -, parentheses, numbers, single-quoted string literals
-// ('play' — no escapes), and variable references. The comparison layer sits
-// above additive and is NON-associative — `a > b > c` is a parse error (the
-// trailing-input check); parenthesized comparisons compose as operands
-// (`(vars.a > 0) * 10`). Variables are dot-separated paths (e.g., "vars.freq")
-// extracted during parsing.
+// ('play' — no escapes), variable references, and FUNCTION CALLS
+// (`adsr(0.01, 0.1, 0.7, 0.3)`, `pad(expr, 36)` — functions.ts registry;
+// unknown names fail at parse). The comparison layer sits above additive and
+// is NON-associative — `a > b > c` is a parse error (the trailing-input
+// check); parenthesized comparisons compose as operands (`(vars.a > 0) * 10`).
+// Variables are dot-separated paths (e.g., "vars.freq") extracted during
+// parsing — a call's NAME is never a path, its arguments' references are.
 
-import type { Expr, StateValue } from "@/types/runtime";
+import type { Expr } from "./ast";
+import { lookupFunction, UNSUPPORTED_FUNCTIONS } from "./functions";
 
 export interface ParsedBind {
   paths: string[];
@@ -23,13 +26,17 @@ export function parseBind(input: string): ParsedBind {
   // name-shaped bind is ALWAYS a path, never a subtraction: `a-b` reads as
   // the name "a-b". Inside real expressions the tokenizer owns `-`
   // (subtraction/negation) — hyphenated names are not addressable there.
+  // A bare `adsr` (no parens) is therefore a PATH too: only the CALL form
+  // consults the function registry. A numeric TAIL (`env.5`) is a plain
+  // path as well — the array-SLOT lens, writable like any single path.
   const segment = String.raw`[a-zA-Z_]\w*(?:-[a-zA-Z_]\w*)*`;
-  if (new RegExp(`^${segment}(?:\\.${segment})*$`).test(trimmed)) {
+  if (new RegExp(`^${segment}(?:\\.${segment})*(?:\\.\\d+)?$`).test(trimmed)) {
     return { paths: [trimmed] };
   }
 
   let pos = 0;
   const varPaths = new Set<string>();
+  let sawCall = false;
 
   function peek(): string {
     return trimmed[pos] ?? "";
@@ -102,6 +109,48 @@ export function parseBind(input: string): ParsedBind {
     return left;
   }
 
+  /** `name(args…)` — the name was already lexed, the '(' is current. The
+   *  name is NOT a var path; the args' references are (collected by the
+   *  recursive parseExpr). Arity and known-name checks happen HERE: the
+   *  registry is static, so a bad call must never survive the parse. */
+  function parseCall(name: string): Expr {
+    if (name in UNSUPPORTED_FUNCTIONS) {
+      throw new Error(`${UNSUPPORTED_FUNCTIONS[name]}: "${input}"`);
+    }
+    const fn = lookupFunction(name);
+    if (!fn) throw new Error(`Unknown function "${name}" in bind expression: "${input}"`);
+    advance(); // consume '('
+    const args: Expr[] = [];
+    skipWhitespace();
+    if (peek() === ")") {
+      advance();
+    } else {
+      for (;;) {
+        args.push(parseExpr());
+        skipWhitespace();
+        const c = advance();
+        if (c === ")") break;
+        if (c !== ",") {
+          throw new Error(`Expected ',' or ')' in call to "${name}": "${input}"`);
+        }
+        skipWhitespace();
+        if (peek() === ")") throw new Error(`Trailing comma in call to "${name}": "${input}"`);
+      }
+    }
+    if (args.length < fn.minArgs || args.length > fn.maxArgs) {
+      const range =
+        fn.maxArgs === Infinity
+          ? `at least ${fn.minArgs}`
+          : fn.minArgs === fn.maxArgs
+            ? `${fn.minArgs}`
+            : `${fn.minArgs}–${fn.maxArgs}`;
+      throw new Error(`"${name}" expects ${range} arguments (got ${args.length}): "${input}"`);
+    }
+    fn.validateStatic?.(args);
+    sawCall = true;
+    return { type: "call", name, args };
+  }
+
   function parseFactor(): Expr {
     skipWhitespace();
     const c = peek();
@@ -109,7 +158,12 @@ export function parseBind(input: string): ParsedBind {
     if (c === "-") {
       advance();
       skipWhitespace();
-      return { type: "unary", op: "-", expr: parseFactor() };
+      const operand = parseFactor();
+      // Fold a negated number literal — env constructors' constant-only
+      // slots (bias, dur) need raw numbers, and there is no negative-number
+      // token otherwise.
+      if (operand.type === "number") return { type: "number", value: -operand.value };
+      return { type: "unary", op: "-", expr: operand };
     }
 
     if (c === "(") {
@@ -146,6 +200,9 @@ export function parseBind(input: string): ParsedBind {
       const start = pos;
       while (pos < trimmed.length && /[\w.]/.test(trimmed[pos])) pos++;
       const name = trimmed.slice(start, pos);
+      // IMMEDIATELY-following '(' (no whitespace, matching the static-value
+      // detection) makes this a call.
+      if (peek() === "(") return parseCall(name);
       varPaths.add(name);
       return { type: "var", name };
     }
@@ -160,55 +217,9 @@ export function parseBind(input: string): ParsedBind {
       `Unexpected character '${peek()}' at position ${pos} in bind expression: "${input}"`,
     );
   }
-  if (varPaths.size === 0) {
+  if (varPaths.size === 0 && !sawCall) {
     throw new Error(`Bind expression must reference at least one variable: "${input}"`);
   }
 
   return { paths: [...varPaths], expression: expr };
-}
-
-export function evalExpr(expr: Expr, values: Record<string, StateValue>): StateValue {
-  switch (expr.type) {
-    case "number":
-    case "string":
-      return expr.value;
-    case "var":
-      return values[expr.name] ?? 0;
-    case "unary":
-      return -Number(evalExpr(expr.expr, values));
-    case "ternary":
-      return evalExpr(expr.cond, values)
-        ? evalExpr(expr.then, values)
-        : evalExpr(expr.else, values);
-    case "binary": {
-      const l = evalExpr(expr.left, values);
-      const r = evalExpr(expr.right, values);
-      switch (expr.op) {
-        // `+` concatenates when either side is a string; the rest coerce
-        // numerically (strings become NaN — guarded at the OSC boundary).
-        case "+":
-          return typeof l === "string" || typeof r === "string" ? String(l) + String(r) : l + r;
-        case "-":
-          return Number(l) - Number(r);
-        case "*":
-          return Number(l) * Number(r);
-        case "/":
-          return Number(r) !== 0 ? Number(l) / Number(r) : 0;
-        // Comparisons evaluate to 1/0 (the truthiness sc-if & co. consume);
-        // two strings compare lexicographically (plain JS relationals).
-        case ">":
-          return (l as number) > (r as number) ? 1 : 0;
-        case "<":
-          return (l as number) < (r as number) ? 1 : 0;
-        case ">=":
-          return (l as number) >= (r as number) ? 1 : 0;
-        case "<=":
-          return (l as number) <= (r as number) ? 1 : 0;
-        case "==":
-          return l === r ? 1 : 0;
-        case "!=":
-          return l !== r ? 1 : 0;
-      }
-    }
-  }
 }

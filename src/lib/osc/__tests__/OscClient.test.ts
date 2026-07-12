@@ -46,6 +46,9 @@ describe("OscClient.handleReply", () => {
       avgCpu: 12.5,
       peakCpu: 20.25,
       sampleRate: 48000,
+      numUgens: 0,
+      numSynths: 0,
+      numGroups: 0,
     });
     expect(oscClient.log.get()).toHaveLength(0);
   });
@@ -115,6 +118,40 @@ describe("OscClient.once", () => {
     const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
     oscClient.close();
     await expectation;
+  });
+});
+
+describe("OscClient.createSynth", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("frees the allocated node when the /n_go ack times out (no untracked drones)", async () => {
+    const sent: OSC.Message[] = [];
+    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OSC.Message));
+    vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => 4242);
+    vi.useFakeTimers();
+    const create = oscClient.createSynth("sine", 1, { freq: 440 });
+    const expectation = expect(create).rejects.toThrow("timed out");
+    vi.advanceTimersByTime(REPLY_TIMEOUT_MS);
+    await expectation;
+    const sNew = sent.find((m) => m.address === "/s_new")!;
+    const nodeId = sNew.args[1] as number;
+    // The /s_new already went out — the catch must send the matching free.
+    const nFree = sent.find((m) => m.address === "/n_free");
+    expect(nFree?.args).toEqual([nodeId]);
+  });
+});
+
+describe("OscClient.setControln", () => {
+  it("sends /n_setn with the named contiguous run", () => {
+    const sent: OSC.Message[] = [];
+    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OSC.Message));
+    oscClient.setControln(2001, "shape", [0, 3, 2, -99, 1, 0.5]);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].address).toBe("/n_setn");
+    expect(sent[0].args).toEqual([2001, "shape", 6, 0, 3, 2, -99, 1, 0.5]);
   });
 });
 

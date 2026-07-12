@@ -38,7 +38,7 @@
 
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
-import { evalExpr } from "@/lib/utils/expression";
+import { evalExpr, tryEvalCallLiteral } from "@/lib/expression";
 import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { randomId } from "@/lib/utils/randomId";
 import {
@@ -63,6 +63,39 @@ const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
 const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const XSD_INTEGER = /^[+-]?\d+$/;
 const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
+
+/** Vector coercion: an already-array value passes through; a STATIC string
+ *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
+ *  — evaluated to number[] through lib/expression, memoized per raw string;
+ *  a KNOWN function head with bad args throws loud at parse, an unknown head
+ *  keeps the string semantics); a comma-list of numerics becomes number[];
+ *  anything else keeps the scalar semantics (number-if-numeric-else-string —
+ *  string vars keep working, commas in non-numeric strings included).
+ *  EVALUATED values are never call-evaluated: a bind-computed string that
+ *  happens to look like a call must not turn into an array. */
+function coerceVector(
+  value: number | string | number[],
+  evaluated: boolean,
+): string | number | number[] {
+  if (typeof value !== "string") return value;
+  if (!evaluated) {
+    const call = tryEvalCallLiteral(value);
+    if (call) return call;
+  }
+  const tokens = value.split(",").map((s) => s.trim());
+  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
+    return tokens.map(Number);
+  }
+  const n = Number(value);
+  return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+}
+
+/** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
+ *  names cannot start with a digit, so the tail is unambiguous. */
+export function slotIndexOf(path: string): number | null {
+  const tail = path.slice(path.lastIndexOf(".") + 1);
+  return path.includes(".") && /^\d+$/.test(tail) ? Number(tail) : null;
+}
 
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
@@ -124,7 +157,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  render() re-run on every recompute. The genuinely-reactive fields (a
    *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
    *  as reactive class fields. */
-  getProp(name: string): string | number | boolean | undefined {
+  getProp(name: string): string | number | boolean | number[] | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
       return this.coerceProp(attr, name, this.#runtime[name], true);
@@ -159,8 +192,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     name: string,
     value: StateValue | undefined,
     evaluated: boolean,
-  ): string | number | boolean | undefined {
+  ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
+    if (attr?.type === "vector") return coerceVector(value, evaluated);
+    // Array values have no scalar coercion outside vector attrs — getProp
+    // readers fall back to their defaults; the value rides `_state` instead.
+    if (typeof value === "object") return undefined;
     if (attr?.type === "decimal" || attr?.type === "integer") {
       const n = Number(value);
       if (evaluated && Number.isNaN(n)) {
@@ -229,6 +266,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
           `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
         );
       }
+      // (`vector` has no lexical gate: an all-numeric comma-list is an array,
+      // anything else keeps the scalar semantics — string vars included. The
+      // numeric-only elements enforce it semantically: ScControl.validate.)
     }
     for (const { name } of Array.from(this.attributes)) {
       const colon = name.indexOf(":");
@@ -311,6 +351,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
       if (!this.enabled) {
+        // A graph-input reference: left raw for the synthdef collector (ugen
+        // inputs), never resolved on the state graph.
         if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) continue;
         failValidation(this, `"${bindAttr(name)}" is not allowed on a synthdef param`);
       }
@@ -385,12 +427,17 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** A runtime prop's value right now: the targets' `_state` through the
-   *  expression (a plain single-path bind is the identity). `undefined` when
-   *  any target has no value yet — evaluating would push NaN downstream. */
+   *  expression (a plain single-path bind is the identity). A numeric path
+   *  TAIL is an array-SLOT read (`env.5` = element 5 of the array state
+   *  `env` — the read half of the slot lens; ScInput owns the write half).
+   *  `undefined` when any target has no value yet — evaluating would push
+   *  NaN downstream. */
   #computeRuntime(prop: RuntimeProp): StateValue | undefined {
     const values: Record<string, StateValue> = {};
     for (const [path, target] of Object.entries(prop.targets)) {
-      const v = target._state;
+      let v = target._state;
+      const slot = slotIndexOf(path);
+      if (slot !== null) v = Array.isArray(v) ? v[slot] : undefined;
       if (v === undefined) return undefined;
       values[path] = v;
     }

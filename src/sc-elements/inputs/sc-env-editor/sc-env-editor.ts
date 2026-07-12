@@ -14,6 +14,9 @@
 //                            segment's flag moves to the new last segment)
 //   drag a segment MIDPOINT vertically → bend its curvature (numeric, ±10;
 //                            a symbolic curve becomes numeric once dragged)
+//   double-click a MIDPOINT → reset the segment's curve to linear
+//   while dragging, a readout shows the grabbed handle's value (level @
+//                            time, or the curvature)
 //
 // Canvas per the sc-scope scaffold: light DOM, DPR-aware backing store, CSS
 // custom-property colors; drawn on demand (sync/edit/resize) — no RAF loop —
@@ -279,6 +282,16 @@ export class ScEnvEditor extends ScInput {
       return;
     }
     if (point === null) {
+      // A curve MIDPOINT double-click resets that segment to linear (the
+      // handle otherwise only bends — there was no way back to straight).
+      const handle = this.hitCurveHandle(x, y);
+      if (handle !== null) {
+        this.applyEdit((v) => ({
+          ...v,
+          segments: v.segments.map((s, i) => (i === handle ? { ...s, curve: "lin" } : s)),
+        }));
+        return;
+      }
       const budget = Math.floor((this.width - 4) / 4);
       if (this.value.segments.length >= budget) return;
       this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))));
@@ -430,6 +443,38 @@ export class ScEnvEditor extends ScInput {
       ctx.beginPath();
       ctx.arc(this.toX(times[i]), this.toY(levels[i]), 5, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // Live readout for the grabbed handle: level @ time for a breakpoint
+    // (the start point is level-only), curvature for a curve midpoint —
+    // kept inside the canvas near the handle.
+    if (this.drag) {
+      let label: string;
+      let px: number;
+      let py: number;
+      if (this.drag.kind === "point") {
+        const i = this.drag.index;
+        label =
+          i === 0
+            ? levels[0].toFixed(2)
+            : `${levels[i].toFixed(2)} @ ${times[i].toFixed(3)}s`;
+        px = this.toX(times[i]);
+        py = this.toY(levels[i]);
+      } else {
+        const i = this.drag.index;
+        const curve = this.value.segments[i].curve;
+        label = `curve ${typeof curve === "number" ? curve.toFixed(1) : (curve ?? "lin")}`;
+        px = this.toX((times[i] + times[i + 1]) / 2);
+        py = this.toY(curvePoint(levels[i], levels[i + 1], curve, 0.5));
+      }
+      ctx.font = "10px monospace";
+      ctx.fillStyle = this.line;
+      const tw = ctx.measureText(label).width;
+      ctx.fillText(
+        label,
+        Math.min(Math.max(px + 10, PAD), w - PAD - tw),
+        Math.min(Math.max(py - 10, 14), h - 4),
+      );
     }
   }
 }

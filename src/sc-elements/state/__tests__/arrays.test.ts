@@ -113,6 +113,36 @@ describe("array-valued controls", () => {
   });
 });
 
+describe("array slot lenses (numeric-tail binds)", () => {
+  const LENS_PLUGIN = wrapXml(`<sc-var name="env" value="pad(adsr(0.01, 0.1, 0.7, 0.3), 36)"/>
+    <sc-var name="sustain" bind:value="env.8"/>
+    <sc-button bind:value="env.9" set="0.42"/>`);
+
+  it("reads one array element live and writes a fresh copy through the slot", async () => {
+    const { host } = await mountPlugin(LENS_PLUGIN);
+    const env = host.querySelector('sc-var[name="env"]') as ScVar;
+    const sustain = host.querySelector('sc-var[name="sustain"]') as ScVar;
+    expect(env._state).toHaveLength(36); // the static call literal evaluated
+    expect(sustain._state).toBe(0.7); // slot 8 = the adsr sustain level
+
+    // The WRITE half: a click commits 0.42 through the env.9 lens — one
+    // fresh array, one statechange, the other lens recomputes.
+    const before = env._state as number[];
+    (host.querySelector("sc-button")!.querySelector("sc-base-button") as HTMLElement).click();
+    const after = env._state as number[];
+    expect(after[9]).toBe(0.42);
+    expect(after).not.toBe(before); // immutable-by-identity
+    expect(after[8]).toBe(0.7); // untouched slots survive
+
+    // The READ half stays live: an editor-style whole-array write moves the
+    // lens value.
+    const next = [...after];
+    next[8] = 0.33;
+    env.setValue(next);
+    expect(sustain._state).toBe(0.33);
+  });
+});
+
 describe("voice array latching", () => {
   const KEYBOARD_PLUGIN = wrapXml(`<sc-var name="env" value="0, 1, 0, -99, 1, 0.01, 5, -4"/>
     <sc-synthdef name="voice">

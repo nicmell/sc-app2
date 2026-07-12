@@ -162,7 +162,14 @@ export function resolveControlBind(
 ): { target: ScElement; controlName: string } {
   const tag = el.tagName.toLowerCase();
   const segments = bind.split(".");
-  const controlName = segments.pop()!;
+  let controlName = segments.pop()!;
+  // A numeric TAIL is an array-SLOT selector, not a control name — names
+  // cannot start with a digit (mirroring the graph plane's `name.idx`).
+  // `env.5` binds slot 5 of the array state `env`: existence resolves on
+  // the STATE; the slot indexes its live value at evaluation/write time.
+  if (/^\d+$/.test(controlName) && segments.length > 0) {
+    controlName = segments.pop()!;
+  }
   const target = segments.length > 0 ? resolveNode(el, ctx, segments) : ctx.parentNode;
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);

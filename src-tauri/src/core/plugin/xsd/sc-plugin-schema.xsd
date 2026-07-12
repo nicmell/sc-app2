@@ -303,6 +303,8 @@
 
   <xs:complexType name="scEnvEditorType">
     <xs:attribute name="value" type="xs:string"/>
+    <xs:attribute name="minbreakpoints" type="xs:integer"/>
+    <xs:attribute name="maxbreakpoints" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

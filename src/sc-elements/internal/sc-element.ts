@@ -90,6 +90,13 @@ function coerceVector(
   return value.trim() !== "" && !Number.isNaN(n) ? n : value;
 }
 
+/** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
+ *  names cannot start with a digit, so the tail is unambiguous. */
+export function slotIndexOf(path: string): number | null {
+  const tail = path.slice(path.lastIndexOf(".") + 1);
+  return path.includes(".") && /^\d+$/.test(tail) ? Number(tail) : null;
+}
+
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
@@ -420,12 +427,17 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** A runtime prop's value right now: the targets' `_state` through the
-   *  expression (a plain single-path bind is the identity). `undefined` when
-   *  any target has no value yet — evaluating would push NaN downstream. */
+   *  expression (a plain single-path bind is the identity). A numeric path
+   *  TAIL is an array-SLOT read (`env.5` = element 5 of the array state
+   *  `env` — the read half of the slot lens; ScInput owns the write half).
+   *  `undefined` when any target has no value yet — evaluating would push
+   *  NaN downstream. */
   #computeRuntime(prop: RuntimeProp): StateValue | undefined {
     const values: Record<string, StateValue> = {};
     for (const [path, target] of Object.entries(prop.targets)) {
-      const v = target._state;
+      let v = target._state;
+      const slot = slotIndexOf(path);
+      if (slot !== null) v = Array.isArray(v) ? v[slot] : undefined;
       if (v === undefined) return undefined;
       values[path] = v;
     }

@@ -22,7 +22,7 @@
 
 import type { StateValue } from "@/types/runtime";
 import type { ScState } from "@/sc-elements/internal/sc-state";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScElement, slotIndexOf } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScInput extends ScElement {
   /** The single writable target: a PLAIN single-path `bind:value` resolves
@@ -33,6 +33,18 @@ export abstract class ScInput extends ScElement {
     if (!prop || prop.expression) return undefined;
     const targets = Object.values(prop.targets);
     return targets.length === 1 ? targets[0] : undefined;
+  }
+
+  /** The slot lens' WRITE half: with a numeric-tail bind (`bind:value=
+   *  "env.5"`), the read side already evaluates the array element (the base
+   *  #computeRuntime); commits write a fresh copy of the whole array with
+   *  that slot replaced — one statechange, every other slot lens and the
+   *  envelope editor resync. Null for plain paths. */
+  protected get targetSlot(): number | null {
+    const prop = this.runtimeProps?.value;
+    if (!prop || prop.expression) return null;
+    const paths = Object.keys(prop.targets);
+    return paths.length === 1 ? slotIndexOf(paths[0]) : null;
   }
 
   /** A state value as a widget number — undefined (leave the widget as-is)
@@ -77,7 +89,22 @@ export abstract class ScInput extends ScElement {
    *  static-value (unbound) case; the last arm is the never-settled-target
    *  parity hole (the gesture value sticks — same as the old seam). */
   protected commit(value: StateValue): void {
-    this.targetScState?.setValue(value);
+    const target = this.targetScState;
+    const slot = this.targetSlot;
+    if (target && slot !== null) {
+      // Slot write: replace ONE element in a fresh copy of the array (the
+      // arrays-immutable-by-identity convention). A non-array target or a
+      // non-numeric value makes the write inert — the snap-back re-sync
+      // below restores the widget either way.
+      const current = target._state;
+      if (Array.isArray(current) && slot < current.length && !Number.isNaN(Number(value))) {
+        const next = [...current];
+        next[slot] = Number(value);
+        target.setValue(next);
+      }
+    } else {
+      target?.setValue(value);
+    }
     this.syncFromState(
       this.runtimeValue("value") ?? (this.getProp("value") as StateValue | undefined) ?? value,
     );

@@ -66,6 +66,29 @@ describe("sc-env-editor", () => {
     ).rejects.toThrow("envelope array needs at least 8 slots");
   });
 
+  it("validates the breakpoint-count bounds (min ≥ 2, max ≥ min)", async () => {
+    await expect(
+      mountPlugin(
+        wrapXml(`<sc-control name="env" value="${ENV}"/>
+          <sc-env-editor bind:value="env" minbreakpoints="1"/>`),
+      ),
+    ).rejects.toThrow('"minbreakpoints" must be an integer ≥ 2');
+    document.body.replaceChildren();
+    await expect(
+      mountPlugin(
+        wrapXml(`<sc-control name="env" value="${ENV}"/>
+          <sc-env-editor bind:value="env" minbreakpoints="4" maxbreakpoints="3"/>`),
+      ),
+    ).rejects.toThrow('"maxbreakpoints" must be an integer ≥ minbreakpoints');
+    document.body.replaceChildren();
+    await expect(
+      mountPlugin(
+        wrapXml(`<sc-control name="env" value="${ENV}"/>
+          <sc-env-editor bind:value="env" minbreakpoints="3" maxbreakpoints="3"/>`),
+      ),
+    ).resolves.toBeTruthy(); // a LOCKED structure parses clean
+  });
+
 });
 
 describe("breakpoint edit helpers", () => {

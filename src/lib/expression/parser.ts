@@ -27,9 +27,10 @@ export function parseBind(input: string): ParsedBind {
   // the name "a-b". Inside real expressions the tokenizer owns `-`
   // (subtraction/negation) — hyphenated names are not addressable there.
   // A bare `adsr` (no parens) is therefore a PATH too: only the CALL form
-  // consults the function registry.
+  // consults the function registry. A numeric TAIL (`env.5`) is a plain
+  // path as well — the array-SLOT lens, writable like any single path.
   const segment = String.raw`[a-zA-Z_]\w*(?:-[a-zA-Z_]\w*)*`;
-  if (new RegExp(`^${segment}(?:\\.${segment})*$`).test(trimmed)) {
+  if (new RegExp(`^${segment}(?:\\.${segment})*(?:\\.\\d+)?$`).test(trimmed)) {
     return { paths: [trimmed] };
   }
 

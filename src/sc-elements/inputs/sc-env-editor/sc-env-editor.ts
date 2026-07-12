@@ -9,7 +9,10 @@
 //   drag a breakpoint      → level (y) + the segment's time (x, clamped > 0;
 //                            the start point moves level-only)
 //   double-click a segment → insert a breakpoint (within the target env's
-//                            max-segments budget)
+//                            max-segments budget and `maxbreakpoints`;
+//                            removal stops at `minbreakpoints` — equal
+//                            bounds lock the structure, positions stay
+//                            draggable)
 //   double-click a point   → remove it (≥ 1 segment kept; a removed release
 //                            segment's flag moves to the new last segment)
 //   drag a segment MIDPOINT vertically → bend its curvature (numeric, ±10;
@@ -85,6 +88,28 @@ type Drag =
   | { kind: "curve"; index: number; startY: number; startCurve: number };
 
 export class ScEnvEditor extends ScInput {
+  /** Breakpoint-count bounds (start point included; segments + 1). Insert
+   *  blocks at max, removal at min — equal bounds LOCK the structure while
+   *  positions stay draggable (stable slots for `env.N` lens binds). */
+  private get _minBreakpoints(): number {
+    return (this.getProp("minbreakpoints") as number) ?? 2;
+  }
+  private get _maxBreakpoints(): number | undefined {
+    return this.getProp("maxbreakpoints") as number | undefined;
+  }
+
+  validate(): void {
+    super.validate();
+    const min = this._minBreakpoints;
+    const max = this._maxBreakpoints;
+    if (!Number.isInteger(min) || min < 2) {
+      failValidation(this, `"minbreakpoints" must be an integer ≥ 2 (got "${min}")`);
+    }
+    if (max !== undefined && (!Number.isInteger(max) || max < min)) {
+      failValidation(this, `"maxbreakpoints" must be an integer ≥ minbreakpoints (got "${max}")`);
+    }
+  }
+
   protected validateRuntimeProps(): void {
     // Like sc-button: write-capable, so it needs a plain writable path — and
     // specifically an envelope state (a scalar control has no shape to drag).
@@ -277,7 +302,10 @@ export class ScEnvEditor extends ScInput {
     if (!this.value) return;
     const { x, y } = this.local(e);
     const point = this.hitPoint(x, y);
+    // Breakpoint count = segments + 1 (the start point).
+    const count = this.value.segments.length + 1;
     if (point !== null && point > 0 && this.value.segments.length > 1) {
+      if (count <= this._minBreakpoints) return; // structure locked at min
       this.applyEdit((v) => removePoint(v, point));
       return;
     }
@@ -294,6 +322,8 @@ export class ScEnvEditor extends ScInput {
       }
       const budget = Math.floor((this.width - 4) / 4);
       if (this.value.segments.length >= budget) return;
+      const max = this._maxBreakpoints;
+      if (max !== undefined && count >= max) return; // structure locked at max
       this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))));
     }
   };

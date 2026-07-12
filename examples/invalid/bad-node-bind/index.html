@@ -1,32 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Node Bind (intentional error)</title>
-</head>
-<body>
-<sc-synthdef name="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="osc"/>
-        <sc-control name="b" bind:value="amp"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="sig"/>
-    </sc-ugen>
-</sc-synthdef>
-<sc-synth name="s1" synthdef="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-</sc-synth>
+<sc-plugin title="Bad Node Bind (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="osc"/>
+          <sc-control name="b" bind:value="amp"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="sig"/>
+      </sc-ugen>
+  </sc-synthdef>
+  <sc-synth name="s1" synthdef="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+  </sc-synth>
 
-<!-- INTENTIONAL: the bind path's node segment ("ghost") matches nothing in
-     scope — resolveControlBind must fail with "does not match any node in
-     scope" -->
-<sc-knob bind:value="ghost.freq" min="20" max="2000" step="1"/>
-</body>
-</html>
+  <!-- INTENTIONAL: the bind path's node segment ("ghost") matches nothing in
+       scope — resolveControlBind must fail with "does not match any node in
+       scope" -->
+  <sc-knob bind:value="ghost.freq" min="20" max="2000" step="1"/>
+</sc-plugin>

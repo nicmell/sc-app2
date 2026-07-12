@@ -56,10 +56,23 @@ cd src-tauri && cargo check && cargo test
 ### Frontend (`src/`)
 
 ```
-main.tsx                 boot: register sc-* elements, session.start(), render <App/>
+main.tsx                 boot: register sc-* elements, render <RouterProvider/>
+routes/                  the react-router DATA-MODE tree (router.tsx):
+                         "/" (rootLoader: stored-or-minted id, replace-redirect)
+                         → "/:sessionId" (sessionLoader → SessionLayout, which
+                         owns connect()/disconnect() on the loader's
+                         SessionInfo and hosts ToastStack/ConnectionOverlay)
+                         → DashboardRoute (dashboard + the URL-driven settings
+                         drawer at /:sessionId/settings, presence-only child)
+                         and PluginPage (/:sessionId/plugins/:pluginId — a
+                         full-screen STANDALONE <sc-plugin> instance, id
+                         "plugin:<id>", own runtime map + scsynth group);
+                         SessionBootError is the loader-failure modal (Retry =
+                         same-path replace navigation, re-runs loaders)
 components/              React shell: Dashboard grid, plugin picker/list, toasts,
-                         the connection overlay (boot loader + retry modal over
-                         the session status), ui/ (Modal — the first of the
+                         the connection overlay (connecting scrim + retry modal
+                         over the session status; Retry revalidates the route
+                         loaders in place), ui/ (Modal — the first of the
                          planned components/ui primitives)
 sc-elements/             Lit elements used inside plugin HTML, classified by the
                          old app's taxonomy (see sc-elements/README.md for the
@@ -144,9 +157,14 @@ lib/                     non-React infrastructure
                          → worker.ts (Web Worker entry: protocol ⇄ transport)
                          → transport.ts (createWsTransport: the raw WebSocket,
                            same WorkerTransport interface, in-worker)
-  session/SessionManager (global `session`): mints/revives the session over HTTP,
-                         connects oscClient and observes its close (→ conn status),
-                         10s layout autosave
+  session/               SessionManager (global `session`): the LIVE-connection
+                         half — connect(info)/disconnect() (epoch-guarded, with
+                         a one-tick deferred disconnect so a StrictMode remount
+                         with the same loader info keeps the standing WS),
+                         observes oscClient's close (→ conn status), 10s layout
+                         autosave; resolveSession.ts: the route loaders —
+                         mint/revive over HTTP, localStorage ownership, the
+                         bounded 503 quiet-retry, the mint→redirect handoff
   scope/                 scopeTapSynthDef: the ScopeOut2 tap def, compiled per
                          (channels, chunkSize) with inBus/scopeNum as controls.
                          No controller — each <sc-scope> element owns its tap
@@ -174,19 +192,29 @@ type-checked + `react-hooks`) via `yarn lint`; Prettier (`printWidth` 100) via
 A **live session lives exactly as long as its WebSocket**; its **identity and
 dashboard layout persist** server-side:
 
-1. Boot: `localStorage["sc.session"]` → `GET /api/session/{id}` **revives** the
-   saved session under the same UUID (fresh node-id block) and returns the saved
-   layout; on any failure fall back to `POST /api/session` (new id, stored back).
-   While scsynth is unregistered the server answers 503 (it binds without
-   waiting for scsynth, so the GUI window opens regardless) and the
-   SessionManager retries quietly under the boot overlay — but only within
-   the SCSYNTH_RETRY_LIMIT budget (~5 s), after which the error modal
-   advises that no connection is coming (its Retry restarts the budget).
-   Any other failure, including a WS drop after connecting, shows the error
-   modal immediately.
-2. `oscClient.connect(wsUrl, block)` opens the WS (in the worker) and sends
-   `/g_new` — the session group lives **at the tail of scsynth's root group 0**;
-   synth ids come from `oscClient.nextNodeId()` over the server-assigned block.
+The URL is the session's source of truth (`/:sessionId`); the route loaders
+(`lib/session/resolveSession.ts`) own resolution and every localStorage write:
+
+1. Resolution: `"/"` replace-redirects to the stored `localStorage["sc.session"]`
+   id (or mints one via `POST /api/session` when nothing is stored); the
+   `/:sessionId` loader `GET`s that id — **reviving** the saved session under
+   the same UUID (fresh node-id block, saved layout) — and a dead/unknown id
+   mints a fresh session and replace-redirects again (the minted info rides a
+   module-level handoff to the redirect target's loader, no re-GET). While
+   scsynth is unregistered the server answers 503 (it binds without waiting
+   for scsynth, so the GUI window opens regardless) and the loaders retry
+   quietly under the connecting fallback within the SCSYNTH_RETRY_LIMIT
+   budget (~5 s); exhaustion throws into SessionBootError, whose Retry is a
+   same-path replace navigation (re-runs the loaders, fresh budget).
+2. Connection: SessionLayout's effect hands the loader's SessionInfo to
+   `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS
+   (in the worker) and sends `/g_new` — the session group lives **at the tail
+   of scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`
+   over the server-assigned block. A WS drop after connecting flips the status
+   slice to "error"; the ConnectionOverlay's Retry revalidates the loaders in
+   place (new info object → reconnect; a dead session revives-or-mints).
+   Child navigation (dashboard ↔ settings ↔ plugin page) never re-runs the
+   session loader, so it never reconnects.
 3. Every 10 s the SessionManager `PUT`s the layout to `/api/session/{id}` when it
    changed; the server stores it under the app data dir (see below).
 4. WS close (reload/quit) → the server ends the session and frees its group.
@@ -424,7 +452,7 @@ further `sc-*` element:
 
 | element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sc-plugin                                                  | functional root: loads/parses entry, owns the plugin scsynth group (its `nodeId`), orchestrates the load pass                                                                                                                                                                                                                                                                                                                                                                                 |
+| sc-plugin                                                  | functional authored/runtime root: `title`/`description` attrs are merged into the synthesized host for in-plugin use, then it loads/parses the entry, owns the plugin scsynth group (its `nodeId`), and orchestrates the load pass                                                                                                                                                                                                                                                               |
 | sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                          |
 | sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet           |
 | sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                   |
@@ -455,7 +483,11 @@ internally), built on `oscClient.once(address, match)` (waiters matched in
 `unload()` walks in reverse on unmount; synth
 nodes die with the plugin group's gFreeAll (no per-synth /n_free). Known
 old-app-parity limitation: synthdef names are global to scsynth — two plugins
-declaring the same name overwrite each other.
+declaring the same name overwrite each other, and the SAME plugin mounted
+twice (a dashboard box + the fullscreen PluginPage) shares one def per name:
+unloading either instance /d_frees it under the other (running synths keep
+playing; new /s_new — e.g. keyboard voices — fail until that instance
+reloads).
 
 **Connection lifecycle**: every mounted plugin lives with the connection —
 ScPlugin subscribes to `oscClient.connected` (the ScopeController's pattern).
@@ -583,7 +615,7 @@ setup + shared element-suite helpers in `src/lib/utils/test/` (`test-setup.ts`,
 scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
-mounts it into a connected `<sc-plugin>` host (text/xml parse + importNode),
+mounts it into a connected `<sc-plugin>` host (text/xml parse + `adoptEntry` merge),
 and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
@@ -616,7 +648,8 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    (with `awaitPromise`): create an `<sc-plugin>` host, **append it to the
    document first** (custom elements only upgrade when connected), fetch the
    entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
-   self-closing tags; HTML parsing mis-nests them) and `importNode` the body
+   self-closing tags; HTML parsing mis-nests them), require an authored
+   `<sc-plugin>` root, copy its `title`/`description`, and `importNode` its
    children into the host, then
    `host.process({rootNode: host, nodes: new Set(), scope: [host],
 path: []})` — the host's own parse-engine methods; nothing to import.
@@ -630,8 +663,8 @@ path: []})` — the host's own parse-engine methods; nothing to import.
 ## Migration plan (old `sc-app/` → here)
 
 The old app (see `sc-app/CLAUDE.md` for its full docs) is a declarative
-SuperCollider control surface: plugin zips of XSD-validated XHTML built from
-`sc-*` elements, parsed into a typed element tree, bound to live scsynth node
+SuperCollider control surface: plugin zips of XSD-validated XHTML rooted at an
+authored `<sc-plugin>` and built from `sc-*` elements, parsed into a typed element tree, bound to live scsynth node
 graphs, with in-browser SynthDef compilation. The directory layout here was
 already reshaped to mirror it (`lib/*` infrastructure, `@/` alias). Migration
 steps, each independently shippable:

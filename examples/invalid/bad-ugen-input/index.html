@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Ugen Input (intentional error)</title>
-</head>
-<body>
-<sc-synthdef name="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-ugen name="osc" type="SinOsc">
-        <!-- INTENTIONAL: a ugen input needs a bind or a literal value —
-             collectUgenInputs must fail with "requires either a bind or
-             value attribute" -->
-        <sc-control name="freq"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="osc"/>
-    </sc-ugen>
-</sc-synthdef>
-</body>
-</html>
+<sc-plugin title="Bad Ugen Input (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-ugen name="osc" type="SinOsc">
+          <!-- INTENTIONAL: a ugen input needs a bind or a literal value —
+               collectUgenInputs must fail with "requires either a bind or
+               value attribute" -->
+          <sc-control name="freq"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
+      </sc-ugen>
+  </sc-synthdef>
+</sc-plugin>

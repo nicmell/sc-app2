@@ -1,74 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Scope Channels Plugin</title>
-</head>
-<body>
-<sc-synthdef name="stereoPair">
-    <sc-control name="freqL" value="220"/>
-    <sc-control name="freqR" value="331"/>
-    <sc-control name="amp" value="0.4"/>
-    <sc-control name="gate" value="1"/>
-    <sc-ugen name="oscL" type="SinOsc">
-        <sc-control name="freq" bind:value="freqL"/>
-    </sc-ugen>
-    <sc-ugen name="oscR" type="Saw">
-        <sc-control name="freq" bind:value="freqR"/>
-    </sc-ugen>
-    <sc-ugen name="level" type="BinaryOpUGen" op="*" rate="kr">
-        <sc-control name="a" bind:value="amp"/>
-        <sc-control name="b" bind:value="gate"/>
-    </sc-ugen>
-    <sc-ugen name="sigL" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="oscL"/>
-        <sc-control name="b" bind:value="level"/>
-    </sc-ugen>
-    <sc-ugen name="sigR" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="oscR"/>
-        <sc-control name="b" bind:value="level"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="sigL,sigR"/>
-    </sc-ugen>
-</sc-synthdef>
-<sc-synth name="s1" synthdef="stereoPair">
-    <sc-control name="freqL" value="220"/>
-    <sc-control name="freqR" value="331"/>
-    <sc-control name="amp" value="0.4"/>
-    <sc-control name="gate" value="1"/>
-</sc-synth>
-<sc-flex orientation="vertical" gap="sm" style="height:100%;">
-    <sc-flex gap="md" align="center" wrap="true" style="flex:none;">
-        <sc-flex orientation="vertical" gap="xs">
-            <sc-text as="label">L sine <sc-display bind:value="s1.freqL" format="%d Hz"/></sc-text>
-            <sc-slider bind:value="s1.freqL" min="20" max="2000" step="1"/>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs">
-            <sc-text as="label">R saw <sc-display bind:value="s1.freqR" format="%d Hz"/></sc-text>
-            <sc-slider bind:value="s1.freqR" min="20" max="2000" step="1"/>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs">
-            <sc-text as="label">Amp <sc-display bind:value="s1.amp" format="%.2f"/></sc-text>
-            <sc-slider bind:value="s1.amp" min="0" max="1" step="0.01"/>
-        </sc-flex>
-        <sc-flex align="center" gap="xs">
-            <sc-checkbox bind:value="s1.gate"/>
-            <sc-text as="label">Gate</sc-text>
-        </sc-flex>
-    </sc-flex>
-    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
-        <sc-text tone="dim">Both channels, one 2-channel tap (bus 0-1), split lanes</sc-text>
-        <sc-scope bus="0" channels="2" layout="split"/>
-    </sc-flex>
-    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
-        <sc-text tone="dim">Left only (bus 0)</sc-text>
-        <sc-scope bus="0" channels="1"/>
-    </sc-flex>
-    <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
-        <sc-text tone="dim">Right only (bus 1)</sc-text>
-        <sc-scope bus="1" channels="1"/>
-    </sc-flex>
-</sc-flex>
-</body>
-</html>
+<sc-plugin title="Scope Channels Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="stereoPair">
+      <sc-control name="freqL" value="220"/>
+      <sc-control name="freqR" value="331"/>
+      <sc-control name="amp" value="0.4"/>
+      <sc-control name="gate" value="1"/>
+      <sc-ugen name="oscL" type="SinOsc">
+          <sc-control name="freq" bind:value="freqL"/>
+      </sc-ugen>
+      <sc-ugen name="oscR" type="Saw">
+          <sc-control name="freq" bind:value="freqR"/>
+      </sc-ugen>
+      <sc-ugen name="level" type="BinaryOpUGen" op="*" rate="kr">
+          <sc-control name="a" bind:value="amp"/>
+          <sc-control name="b" bind:value="gate"/>
+      </sc-ugen>
+      <sc-ugen name="sigL" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="oscL"/>
+          <sc-control name="b" bind:value="level"/>
+      </sc-ugen>
+      <sc-ugen name="sigR" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="oscR"/>
+          <sc-control name="b" bind:value="level"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="sigL,sigR"/>
+      </sc-ugen>
+  </sc-synthdef>
+  <sc-synth name="s1" synthdef="stereoPair">
+      <sc-control name="freqL" value="220"/>
+      <sc-control name="freqR" value="331"/>
+      <sc-control name="amp" value="0.4"/>
+      <sc-control name="gate" value="1"/>
+  </sc-synth>
+  <sc-flex orientation="vertical" gap="sm" style="height:100%;">
+      <sc-flex gap="md" align="center" wrap="true" style="flex:none;">
+          <sc-flex orientation="vertical" gap="xs">
+              <sc-text as="label">L sine <sc-display bind:value="s1.freqL" format="%d Hz"/></sc-text>
+              <sc-slider bind:value="s1.freqL" min="20" max="2000" step="1"/>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs">
+              <sc-text as="label">R saw <sc-display bind:value="s1.freqR" format="%d Hz"/></sc-text>
+              <sc-slider bind:value="s1.freqR" min="20" max="2000" step="1"/>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs">
+              <sc-text as="label">Amp <sc-display bind:value="s1.amp" format="%.2f"/></sc-text>
+              <sc-slider bind:value="s1.amp" min="0" max="1" step="0.01"/>
+          </sc-flex>
+          <sc-flex align="center" gap="xs">
+              <sc-checkbox bind:value="s1.gate"/>
+              <sc-text as="label">Gate</sc-text>
+          </sc-flex>
+      </sc-flex>
+      <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+          <sc-text tone="dim">Both channels, one 2-channel tap (bus 0-1), split lanes</sc-text>
+          <sc-scope bus="0" channels="2" layout="split"/>
+      </sc-flex>
+      <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+          <sc-text tone="dim">Left only (bus 0)</sc-text>
+          <sc-scope bus="0" channels="1"/>
+      </sc-flex>
+      <sc-flex orientation="vertical" gap="xs" style="flex:1;min-height:0;">
+          <sc-text tone="dim">Right only (bus 1)</sc-text>
+          <sc-scope bus="1" channels="1"/>
+      </sc-flex>
+  </sc-flex>
+</sc-plugin>

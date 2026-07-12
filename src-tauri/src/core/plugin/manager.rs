@@ -347,9 +347,9 @@ mod tests {
 
     #[test]
     fn entry_xsd_accepts_minimal_plugin_and_rejects_unknown_element() {
-        let ok = r#"<html><head><title>t</title></head><body><sc-scope></sc-scope></body></html>"#;
+        let ok = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope></sc-scope></sc-plugin>"#;
         assert!(validate_entry_xhtml(ok).is_ok());
-        let bad = r#"<html><head><title>t</title></head><body><sc-bogus></sc-bogus></body></html>"#;
+        let bad = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-bogus></sc-bogus></sc-plugin>"#;
         assert!(validate_entry_xhtml(bad).is_err());
     }
 }

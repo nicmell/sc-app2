@@ -13,7 +13,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { ELEMENTS } from "../src/constants/sc-elements";
 import { BLOCK_CONTENT, BLOCK_GROUPS, GROUP_NAMES } from "../src/sc-elements/internal/xsd/groups";
-import { BIND_NS, type AttrSpec, type ElementSpec } from "../src/sc-elements/internal/xsd/types";
+import {
+  BIND_NS,
+  COMMON_ATTRS,
+  type AttrSpec,
+  type ElementSpec,
+} from "../src/sc-elements/internal/xsd/types";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SPEC_ROOT = resolve(ROOT, "src/sc-elements");
@@ -31,22 +36,25 @@ export async function loadSpecs(): Promise<Map<string, ElementSpec>> {
   const files = readdirSync(SPEC_ROOT, { recursive: true }) as string[];
   const specs = new Map<string, ElementSpec>();
   for (const rel of files.filter((f) => f.endsWith(".spec.ts")).sort()) {
-    const mod = (await import(pathToFileURL(resolve(SPEC_ROOT, rel)).href)) as { spec: ElementSpec };
+    const mod = (await import(pathToFileURL(resolve(SPEC_ROOT, rel)).href)) as {
+      spec: ElementSpec;
+    };
     if (specs.has(mod.spec.tag)) throw new Error(`duplicate spec for ${mod.spec.tag}`);
     specs.set(mod.spec.tag, mod.spec);
   }
   return specs;
 }
 
-/** The authored sc-* tags, in ELEMENTS order (sc-plugin is host-only, no spec). */
+/** The authored sc-* tags, in ELEMENTS order. */
 export function authoredTags(): string[] {
-  return Object.values(ELEMENTS).filter((t) => t !== "sc-plugin");
+  return Object.values(ELEMENTS);
 }
 
 function assertBijection(specs: Map<string, ElementSpec>): void {
   const tags = new Set(authoredTags());
   for (const tag of tags) if (!specs.has(tag)) throw new Error(`missing spec for element "${tag}"`);
-  for (const tag of specs.keys()) if (!tags.has(tag)) throw new Error(`spec "${tag}" is not an ELEMENTS entry`);
+  for (const tag of specs.keys())
+    if (!tags.has(tag)) throw new Error(`spec "${tag}" is not an ELEMENTS entry`);
 }
 
 function attribute(name: string, a: AttrSpec): string[] {
@@ -67,7 +75,9 @@ function attribute(name: string, a: AttrSpec): string[] {
       `    </xs:attribute>`,
     ];
   }
-  return [`    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`];
+  return [
+    `    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`,
+  ];
 }
 
 function complexType(spec: ElementSpec): string[] {
@@ -82,14 +92,18 @@ function complexType(spec: ElementSpec): string[] {
     lines.push(`      <xs:choice maxOccurs="unbounded">`);
     for (const ref of choice) {
       lines.push(
-        GROUP_NAMES.has(ref) ? `        <xs:group ref="${ref}"/>` : `        <xs:element ref="${ref}"/>`,
+        GROUP_NAMES.has(ref)
+          ? `        <xs:group ref="${ref}"/>`
+          : `        <xs:element ref="${ref}"/>`,
       );
     }
     lines.push(`      </xs:choice>`);
     lines.push(`    </xs:sequence>`);
   }
   const attrs = Object.entries(spec.attrs ?? {});
-  for (const [name, a] of attrs) lines.push(...attribute(name, a));
+  for (const [name, a] of attrs) {
+    if (!COMMON_ATTRS.has(name)) lines.push(...attribute(name, a));
+  }
   lines.push(`    <xs:attributeGroup ref="commonAttrs"/>`);
   // Any runtime attr admits its whole `bind:` namespace here (fastxml doesn't
   // validate attributes; libxml2/CI enforces the namespace boundary) — WHICH
@@ -128,7 +142,9 @@ export async function generateXsd(): Promise<string> {
     ...group(BLOCK_CONTENT, ["htmlElements", ...BLOCK_GROUPS.map((g) => g.group)], "group"),
   );
 
-  const complexTypes = ordered.flatMap((s, i) => (i === 0 ? complexType(s) : ["", ...complexType(s)]));
+  const complexTypes = ordered.flatMap((s, i) =>
+    i === 0 ? complexType(s) : ["", ...complexType(s)],
+  );
 
   const preamble = readFileSync(PREAMBLE, "utf8");
   return preamble

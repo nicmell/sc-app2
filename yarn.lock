@@ -1681,6 +1681,7 @@ __metadata:
   resolution: "@sc-app/ui-components-example@workspace:packages/ui-components/example"
   dependencies:
     "@sc-app/ui-components": "workspace:*"
+    lit: "npm:^3.3.3"
     vite: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -2995,6 +2996,13 @@ __metadata:
   version: 2.0.0
   resolution: "convert-source-map@npm:2.0.0"
   checksum: 10c0/8f2f7a27a1a011cc6cc88cc4da2d7d0cfa5ee0369508baae3d98c260bb3ac520691464e5bbe4ae7cdf09860c1d69ecc6f70c63c6e7c7f7e3f18ec08484dc7d9b
+  languageName: node
+  linkType: hard
+
+"cookie-es@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "cookie-es@npm:3.1.1"
+  checksum: 10c0/62cf0c325cc547b52477b351e9b5d068b3ffc74f7d143cdf7af854648dd1015fca3aed1498b355365e24b0746333f0b15688ed3a535abecc5ed0a046ae956a84
   languageName: node
   linkType: hard
 
@@ -4469,6 +4477,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router@npm:^8.2.0":
+  version: 8.2.0
+  resolution: "react-router@npm:8.2.0"
+  dependencies:
+    cookie-es: "npm:^3.1.1"
+  peerDependencies:
+    react: ">=19.2.7"
+    react-dom: ">=19.2.7"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10c0/6137d8db61f1a011d40a1b167d509c806a15ea9a04d238d9ea149d9063b640e4cccbf45974a85924fe44bd3e1080fecc613fe6e5af1d7e7caf648bba16280f6f
+  languageName: node
+  linkType: hard
+
 "react@npm:^19":
   version: 19.2.7
   resolution: "react@npm:19.2.7"
@@ -4705,6 +4728,7 @@ __metadata:
     react: "npm:^19"
     react-dom: "npm:^19"
     react-grid-layout: "npm:^2.2.3"
+    react-router: "npm:^8.2.0"
     sass: "npm:^1.101.0"
     tsx: "npm:^4.23.0"
     typescript: "npm:~5.6.2"

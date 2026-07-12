@@ -1,0 +1,31 @@
+.page {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+
+  h1 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+  }
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-md);
+
+  sc-plugin {
+    display: block;
+    height: 100%;
+  }
+}

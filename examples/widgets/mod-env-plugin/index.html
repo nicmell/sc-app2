@@ -1,72 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Modulatable Envelope Plugin</title>
-</head>
-<body>
-<!-- SERVER-SIDE modulatable envelope: `perc(att, rel)` on EnvGen's variadic
-     `envelope` input compiles the def PARAMS straight into the envelope's
-     time slots — the knobs' /n_set retunes the attack/release of the
-     PLAYING node, no client-side envelope recompute, no array control at
-     all. Impulse retriggers the one-shot perc (no release node, so no gate
-     hold is needed); the scope shows the live shape on a private bus. -->
-<sc-synthdef name="modPerc">
-    <sc-control name="rate" value="2"/>
-    <sc-control name="on" value="1"/>
-    <sc-control name="att" value="0.02"/>
-    <sc-control name="rel" value="0.3"/>
-    <sc-control name="amp" value="0.15"/>
-    <sc-ugen name="tick" type="Impulse" rate="kr">
-        <sc-control name="freq" bind:value="rate"/>
-    </sc-ugen>
-    <sc-ugen name="e" type="EnvGen" rate="ar">
-        <!-- `on` gates the retrigger: 0 mutes after the running one-shot. -->
-        <sc-control name="gate" bind:value="tick * on"/>
-        <sc-control name="envelope" bind:value="perc(att, rel)"/>
-    </sc-ugen>
-    <!-- The envelope, visible: written raw onto bus 17 for the scope. -->
-    <sc-ugen name="eOut" type="Out" rate="ar">
-        <sc-control name="bus" value="17"/>
-        <sc-control name="channelsarray" bind:value="e"/>
-    </sc-ugen>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" value="330"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="osc * e * amp, osc * e * amp"/>
-    </sc-ugen>
-</sc-synthdef>
-<sc-synth name="m1" synthdef="modPerc">
-    <sc-control name="rate" value="2"/>
-    <sc-control name="on" value="1"/>
-    <sc-control name="att" value="0.02"/>
-    <sc-control name="rel" value="0.3"/>
-    <sc-control name="amp" value="0.15"/>
-</sc-synth>
+<sc-plugin title="Modulatable Envelope Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- SERVER-SIDE modulatable envelope: `perc(att, rel)` on EnvGen's variadic
+       `envelope` input compiles the def PARAMS straight into the envelope's
+       time slots — the knobs' /n_set retunes the attack/release of the
+       PLAYING node, no client-side envelope recompute, no array control at
+       all. Impulse retriggers the one-shot perc (no release node, so no gate
+       hold is needed); the scope shows the live shape on a private bus. -->
+  <sc-synthdef name="modPerc">
+      <sc-control name="rate" value="2"/>
+      <sc-control name="on" value="1"/>
+      <sc-control name="att" value="0.02"/>
+      <sc-control name="rel" value="0.3"/>
+      <sc-control name="amp" value="0.15"/>
+      <sc-ugen name="tick" type="Impulse" rate="kr">
+          <sc-control name="freq" bind:value="rate"/>
+      </sc-ugen>
+      <sc-ugen name="e" type="EnvGen" rate="ar">
+          <!-- `on` gates the retrigger: 0 mutes after the running one-shot. -->
+          <sc-control name="gate" bind:value="tick * on"/>
+          <sc-control name="envelope" bind:value="perc(att, rel)"/>
+      </sc-ugen>
+      <!-- The envelope, visible: written raw onto bus 17 for the scope. -->
+      <sc-ugen name="eOut" type="Out" rate="ar">
+          <sc-control name="bus" value="17"/>
+          <sc-control name="channelsarray" bind:value="e"/>
+      </sc-ugen>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" value="330"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="osc * e * amp, osc * e * amp"/>
+      </sc-ugen>
+  </sc-synthdef>
+  <sc-synth name="m1" synthdef="modPerc">
+      <sc-control name="rate" value="2"/>
+      <sc-control name="on" value="1"/>
+      <sc-control name="att" value="0.02"/>
+      <sc-control name="rel" value="0.3"/>
+      <sc-control name="amp" value="0.15"/>
+  </sc-synth>
 
-<sc-flex orientation="vertical" gap="md">
-    <sc-flex align="center" gap="sm">
-        <sc-text weight="bold">Modulatable envelope</sc-text>
-        <sc-text tone="dim">The knobs retune the PLAYING node's envelope — scsynth recomputes the shape, watch it morph</sc-text>
-    </sc-flex>
-    <sc-scope bus="17" channels="1" frames="16384" trigger="auto" level="0.03" range="unipolar"/>
-    <sc-flex align="center" gap="md">
-        <sc-button bind:value="m1.on" bind:icon="m1.on ? 'stop' : 'play'"/>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="m1.att" min="0.001" max="0.4" step="0.001"/>
-            <sc-text as="label">Attack <sc-display bind:value="m1.att" format="%.3f s"/></sc-text>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="m1.rel" min="0.02" max="1" step="0.01"/>
-            <sc-text as="label">Release <sc-display bind:value="m1.rel" format="%.2f s"/></sc-text>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="m1.rate" min="0.5" max="4" step="0.1"/>
-            <sc-text as="label">Retrigger <sc-display bind:value="m1.rate" format="%.1f Hz"/></sc-text>
-        </sc-flex>
-    </sc-flex>
-    <sc-console/>
-</sc-flex>
-</body>
-</html>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-flex align="center" gap="sm">
+          <sc-text weight="bold">Modulatable envelope</sc-text>
+          <sc-text tone="dim">The knobs retune the PLAYING node's envelope — scsynth recomputes the shape, watch it morph</sc-text>
+      </sc-flex>
+      <sc-scope bus="17" channels="1" frames="16384" trigger="auto" level="0.03" range="unipolar"/>
+      <sc-flex align="center" gap="md">
+          <sc-button bind:value="m1.on" bind:icon="m1.on ? 'stop' : 'play'"/>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="m1.att" min="0.001" max="0.4" step="0.001"/>
+              <sc-text as="label">Attack <sc-display bind:value="m1.att" format="%.3f s"/></sc-text>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="m1.rel" min="0.02" max="1" step="0.01"/>
+              <sc-text as="label">Release <sc-display bind:value="m1.rel" format="%.2f s"/></sc-text>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="m1.rate" min="0.5" max="4" step="0.1"/>
+              <sc-text as="label">Retrigger <sc-display bind:value="m1.rate" format="%.1f Hz"/></sc-text>
+          </sc-flex>
+      </sc-flex>
+      <sc-console/>
+  </sc-flex>
+</sc-plugin>

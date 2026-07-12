@@ -1,39 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Var Plugin</title>
-</head>
-<body>
-<sc-group name="vars">
-    <sc-var name="knobValue" value="0.5"/>
-    <sc-var name="sliderValue" value="0"/>
-    <sc-var name="mirror" bind:value="vars.knobValue"/>
-    <sc-var name="doubled" bind:value="vars.knobValue * 2"/>
-    <sc-var name="sum" bind:value="vars.knobValue + vars.sliderValue"/>
-    <sc-var name="product" bind:value="vars.knobValue * (vars.sliderValue + 1)"/>
-</sc-group>
-<sc-flex orientation="vertical" gap="md">
-    <sc-text weight="bold">Variable bindings</sc-text>
-    <sc-row gutter="md">
-        <sc-col span="12">
-            <sc-flex orientation="vertical" gap="sm">
-                <sc-flex orientation="vertical" gap="xs" align="center">
-                    <sc-knob bind:value="vars.knobValue" min="0" max="1" step="0.01"/>
-                    <sc-text as="label">Knob <sc-display bind:value="vars.knobValue" format="%.2f"/></sc-text>
-                </sc-flex>
-                <sc-text as="label">Slider <sc-display bind:value="vars.sliderValue" format="%.2f"/></sc-text>
-                <sc-slider bind:value="vars.sliderValue" min="-1" max="1" step="0.01"/>
-            </sc-flex>
-        </sc-col>
-        <sc-col span="12">
-            <sc-flex orientation="vertical" gap="xs">
-                <sc-text>Mirror <sc-display bind:value="vars.mirror" format="%.2f"/></sc-text>
-                <sc-text>Doubled <sc-display bind:value="vars.doubled" format="%.2f"/></sc-text>
-                <sc-text>Sum <sc-display bind:value="vars.sum" format="%.2f"/></sc-text>
-                <sc-text>Product <sc-display bind:value="vars.product" format="%.2f"/></sc-text>
-            </sc-flex>
-        </sc-col>
-    </sc-row>
-</sc-flex>
-</body>
-</html>
+<sc-plugin title="Var Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-group name="vars">
+      <sc-var name="knobValue" value="0.5"/>
+      <sc-var name="sliderValue" value="0"/>
+      <sc-var name="mirror" bind:value="vars.knobValue"/>
+      <sc-var name="doubled" bind:value="vars.knobValue * 2"/>
+      <sc-var name="sum" bind:value="vars.knobValue + vars.sliderValue"/>
+      <sc-var name="product" bind:value="vars.knobValue * (vars.sliderValue + 1)"/>
+  </sc-group>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-text weight="bold">Variable bindings</sc-text>
+      <sc-row gutter="md">
+          <sc-col span="12">
+              <sc-flex orientation="vertical" gap="sm">
+                  <sc-flex orientation="vertical" gap="xs" align="center">
+                      <sc-knob bind:value="vars.knobValue" min="0" max="1" step="0.01"/>
+                      <sc-text as="label">Knob <sc-display bind:value="vars.knobValue" format="%.2f"/></sc-text>
+                  </sc-flex>
+                  <sc-text as="label">Slider <sc-display bind:value="vars.sliderValue" format="%.2f"/></sc-text>
+                  <sc-slider bind:value="vars.sliderValue" min="-1" max="1" step="0.01"/>
+              </sc-flex>
+          </sc-col>
+          <sc-col span="12">
+              <sc-flex orientation="vertical" gap="xs">
+                  <sc-text>Mirror <sc-display bind:value="vars.mirror" format="%.2f"/></sc-text>
+                  <sc-text>Doubled <sc-display bind:value="vars.doubled" format="%.2f"/></sc-text>
+                  <sc-text>Sum <sc-display bind:value="vars.sum" format="%.2f"/></sc-text>
+                  <sc-text>Product <sc-display bind:value="vars.product" format="%.2f"/></sc-text>
+              </sc-flex>
+          </sc-col>
+      </sc-row>
+  </sc-flex>
+</sc-plugin>

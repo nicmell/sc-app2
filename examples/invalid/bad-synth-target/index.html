@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Synth Target (intentional error)</title>
-</head>
-<body>
-<sc-group name="fx">
-    <sc-control name="gain" value="0.5"/>
-</sc-group>
+<sc-plugin title="Bad Synth Target (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-group name="fx">
+      <sc-control name="gain" value="0.5"/>
+  </sc-group>
 
-<!-- INTENTIONAL: the synth binds "fx" — a group, not a synthdef. The bind
-     must name an actual <sc-synthdef>; resolveRuntime must fail with
-     "does not match any <sc-synthdef>" -->
-<sc-synth name="s1" synthdef="fx">
-    <sc-control name="freq" value="440"/>
-</sc-synth>
-</body>
-</html>
+  <!-- INTENTIONAL: the synth binds "fx" — a group, not a synthdef. The bind
+       must name an actual <sc-synthdef>; resolveRuntime must fail with
+       "does not match any <sc-synthdef>" -->
+  <sc-synth name="s1" synthdef="fx">
+      <sc-control name="freq" value="440"/>
+  </sc-synth>
+</sc-plugin>

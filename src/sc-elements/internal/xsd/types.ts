@@ -7,9 +7,10 @@
 
 /** An element's placement class. Feeds the per-category content-model groups
  *  (internal/xsd/groups.ts): `input`/`visual`/`widget`/`state`/`node`/`synthdef`
- *  each become an `<xs:group>` that `blockContent` composes; `ugen`/`option` are
- *  child-only — reached solely through a parent's `content.choice`, never a group. */
+ *  each become an `<xs:group>` that `blockContent` composes; `root`/`ugen`/`option`
+ *  are reached solely through explicit placement, never a category group. */
 export type Category =
+  | "root"
   | "input"
   | "visual"
   | "widget"
@@ -27,6 +28,13 @@ export type Category =
  *  XSD admits the whole namespace via xs:anyAttribute. */
 export const BIND_NS = "urn:sc-app:bind";
 export const bindAttr = (name: string): string => `bind:${name}`;
+
+/** The attributes every element accepts without declaring them: the XSD's
+ *  hand-authored `commonAttrs` attributeGroup (xsd/preamble.xml — keep that in
+ *  step), the runtime's unknown-attribute allowance (validateProps), and the
+ *  generator's skip-list (a spec attr with one of these names is already
+ *  admitted by the group and must not be re-declared). ONE set, three gates. */
+export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
 
 /** Shared to every attribute: `required` → `use="required"` (else `"optional"`);
  *  `runtime` (DEFAULT TRUE — set `false` to opt out) marks the attr as
@@ -66,8 +74,7 @@ export interface Content {
   mixed?: boolean;
 }
 
-/** One authored element's whole schema surface. `tag` must be an `ELEMENTS`
- *  value (sc-plugin excepted — it's the app-synthesized host, never authored). */
+/** One authored element's whole schema surface. `tag` must be an `ELEMENTS` value. */
 export interface ElementSpec {
   tag: string;
   category: Category;

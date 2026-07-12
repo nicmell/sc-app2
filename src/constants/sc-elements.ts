@@ -1,5 +1,5 @@
 // The custom-element tags plugin HTML may use (plus sc-plugin, the
-// app-synthesized root PluginHost mounts — never written in plugin HTML).
+// runtime root PluginHost mounts and merges with the authored entry root).
 // Keep in sync with the backend XSD (src-tauri/src/plugin/xsd/
 // sc-plugin-schema.xsd); sc-elements/index.ts registers one constructor per
 // entry, and the parse engine (sc-elements/internal ScElement) accepts exactly these types.

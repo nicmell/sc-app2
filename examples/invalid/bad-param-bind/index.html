@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Param Bind (intentional error)</title>
-</head>
-<body>
-<sc-synthdef name="sine">
-    <sc-control name="freq" bind:value="vars.x"/>
-    <sc-ugen name="osc" type="SinOsc" rate="ar">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out" rate="ar">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="osc"/>
-    </sc-ugen>
-</sc-synthdef>
-</body>
-</html>
+<sc-plugin title="Bad Param Bind (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="sine">
+      <sc-control name="freq" bind:value="vars.x"/>
+      <sc-ugen name="osc" type="SinOsc" rate="ar">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out" rate="ar">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="osc"/>
+      </sc-ugen>
+  </sc-synthdef>
+</sc-plugin>

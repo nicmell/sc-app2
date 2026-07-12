@@ -1,65 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Envelope Editor Plugin</title>
-</head>
-<body>
-<!-- The LIVE envelope: a plugin-level var holding a flat Env.asArray
-     encoding. The editor writes it; the keyboard latches its CURRENT value
-     into each new voice's /s_new (playing voices keep the shape they were
-     born with). `pad(adsr(attack, decay, sustainLevel, release), 36)`
-     builds the Env.asArray run and zero-pads it to 36 slots (4 header +
-     8 segments of 4; slot 1 holds the REAL segment count), so the editor
-     can add breakpoints up to 8 segments. -->
-<sc-var name="env" value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"/>
-<!-- The voice declares the SAME array as a control-array param (its compiled
-     defaults) and reads it on EnvGen's variadic `envelope` input.
-     doneAction 2 frees a released voice. -->
-<sc-synthdef name="editNote">
-    <sc-control name="freq" value="261.63"/>
-    <sc-control name="amp" value="0.1"/>
-    <sc-control name="gate" value="1"/>
-    <sc-control name="env" value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"/>
-    <sc-ugen name="e" type="EnvGen" rate="kr">
-        <sc-control name="gate" bind:value="gate"/>
-        <sc-control name="envelope" bind:value="env"/>
-    </sc-ugen>
-    <!-- The DECLICKER owns the free: the drawn envelope may end at any
-         level (WYSIWYG), so its completion must not cut the node — `lin`
-         sustains at 1 while the gate holds, then fades to EXACT zero over
-         the drawn release's own duration (post-releaseNode segment times,
-         computed in-graph from the env slots) + 50 ms, and only then frees
-         (doneAction 2). A nonzero drawn end level fades instead of clicking. -->
-    <sc-ugen name="lin" type="Linen" rate="kr">
-        <sc-control name="gate" bind:value="gate"/>
-        <sc-control name="attackTime" value="0"/>
-        <sc-control name="susLevel" value="1"/>
-        <sc-control name="releaseTime" bind:value="(env.2 &lt;= 0 ? env.5 : 0) + (env.2 &lt;= 1 ? env.9 : 0) + (env.2 &lt;= 2 ? env.13 : 0) + (env.2 &lt;= 3 ? env.17 : 0) + (env.2 &lt;= 4 ? env.21 : 0) + (env.2 &lt;= 5 ? env.25 : 0) + (env.2 &lt;= 6 ? env.29 : 0) + (env.2 &lt;= 7 ? env.33 : 0) + 0.05"/>
-        <sc-control name="action" value="2"/>
-    </sc-ugen>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="panned" type="Pan2">
-        <!-- 0.15 headroom: the keyboard maps velocity straight onto `amp`
-             (up to 1.0 per voice) — unscaled, a two-note chord already sums
-             past +-1 and the DAC clips into buzzing distortion. -->
-        <sc-control name="in" bind:value="osc * e * lin * amp * 0.15"/>
-        <sc-control name="pos" value="0"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="panned.0, panned.1"/>
-    </sc-ugen>
-</sc-synthdef>
-<sc-flex orientation="vertical" gap="md">
-    <sc-flex align="center" gap="sm">
-        <sc-text weight="bold">Envelope editor</sc-text>
-        <sc-text tone="dim">Drag points; double-click to add/remove; drag a midpoint to bend</sc-text>
-    </sc-flex>
-    <sc-envelope bind:value="env"/>
-    <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env"/>
-    <sc-console/>
-</sc-flex>
-</body>
-</html>
+<sc-plugin title="Envelope Editor Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- The LIVE envelope: a plugin-level var holding a flat Env.asArray
+       encoding. The editor writes it; the keyboard latches its CURRENT value
+       into each new voice's /s_new (playing voices keep the shape they were
+       born with). `pad(adsr(attack, decay, sustainLevel, release), 36)`
+       builds the Env.asArray run and zero-pads it to 36 slots (4 header +
+       8 segments of 4; slot 1 holds the REAL segment count), so the editor
+       can add breakpoints up to 8 segments. -->
+  <sc-var name="env" value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"/>
+  <!-- The voice declares the SAME array as a control-array param (its compiled
+       defaults) and reads it on EnvGen's variadic `envelope` input.
+       doneAction 2 frees a released voice. -->
+  <sc-synthdef name="editNote">
+      <sc-control name="freq" value="261.63"/>
+      <sc-control name="amp" value="0.1"/>
+      <sc-control name="gate" value="1"/>
+      <sc-control name="env" value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"/>
+      <sc-ugen name="e" type="EnvGen" rate="kr">
+          <sc-control name="gate" bind:value="gate"/>
+          <sc-control name="envelope" bind:value="env"/>
+      </sc-ugen>
+      <!-- The DECLICKER owns the free: the drawn envelope may end at any
+           level (WYSIWYG), so its completion must not cut the node — `lin`
+           sustains at 1 while the gate holds, then fades to EXACT zero over
+           the drawn release's own duration (post-releaseNode segment times,
+           computed in-graph from the env slots) + 50 ms, and only then frees
+           (doneAction 2). A nonzero drawn end level fades instead of clicking. -->
+      <sc-ugen name="lin" type="Linen" rate="kr">
+          <sc-control name="gate" bind:value="gate"/>
+          <sc-control name="attackTime" value="0"/>
+          <sc-control name="susLevel" value="1"/>
+          <sc-control name="releaseTime" bind:value="(env.2 &lt;= 0 ? env.5 : 0) + (env.2 &lt;= 1 ? env.9 : 0) + (env.2 &lt;= 2 ? env.13 : 0) + (env.2 &lt;= 3 ? env.17 : 0) + (env.2 &lt;= 4 ? env.21 : 0) + (env.2 &lt;= 5 ? env.25 : 0) + (env.2 &lt;= 6 ? env.29 : 0) + (env.2 &lt;= 7 ? env.33 : 0) + 0.05"/>
+          <sc-control name="action" value="2"/>
+      </sc-ugen>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="panned" type="Pan2">
+          <!-- 0.15 headroom: the keyboard maps velocity straight onto `amp`
+               (up to 1.0 per voice) — unscaled, a two-note chord already sums
+               past +-1 and the DAC clips into buzzing distortion. -->
+          <sc-control name="in" bind:value="osc * e * lin * amp * 0.15"/>
+          <sc-control name="pos" value="0"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="panned.0, panned.1"/>
+      </sc-ugen>
+  </sc-synthdef>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-flex align="center" gap="sm">
+          <sc-text weight="bold">Envelope editor</sc-text>
+          <sc-text tone="dim">Drag points; double-click to add/remove; drag a midpoint to bend</sc-text>
+      </sc-flex>
+      <sc-envelope bind:value="env"/>
+      <sc-keyboard synthdef="editNote" octaves="2" start="48" bind:envelope="env"/>
+      <sc-console/>
+  </sc-flex>
+</sc-plugin>

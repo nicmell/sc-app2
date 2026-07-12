@@ -1,18 +1,14 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-  <head>
-    <title>Default dashboard</title>
-  </head>
-  <body>
-    <div style="display:flex;flex-direction:column;height:100%;gap:8px;">
-      <div style="flex:1;min-height:0;">
-        <sc-strudel>s("bd hh*2 sd hh")</sc-strudel>
-      </div>
-      <div style="height:120px;flex:none;">
-        <sc-scope bus="0" channels="2"></sc-scope>
-      </div>
-      <div style="flex:none;height:32%;min-height:0;">
-        <sc-console></sc-console>
-      </div>
+<?xml version="1.0" encoding="UTF-8"?>
+<sc-plugin title="Default dashboard" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <div style="display:flex;flex-direction:column;height:100%;gap:8px;">
+    <div style="flex:1;min-height:0;">
+      <sc-strudel>s("bd hh*2 sd hh")</sc-strudel>
     </div>
-  </body>
-</html>
+    <div style="height:120px;flex:none;">
+      <sc-scope bus="0" channels="2"></sc-scope>
+    </div>
+    <div style="flex:none;height:32%;min-height:0;">
+      <sc-console></sc-console>
+    </div>
+  </div>
+</sc-plugin>

@@ -1,7 +1,9 @@
-// <sc-plugin> — the app-synthesized plugin root (never written in plugin
-// HTML; PluginHost renders one per dashboard box, with the box's id as its
-// DOM id). It looks its plugin up in the layout/plugins stores by that id,
-// loads the entry HTML into itself, parses + validates it into the runtime
+// <sc-plugin> — the runtime host for an authored <sc-plugin> entry. PluginHost
+// renders one per dashboard box, and PluginPage renders a standalone one; the
+// loader merges the entry's title/description attrs and children into that
+// host without replacing its runtime id. The attrs are reserved for in-plugin
+// use through getProp. It resolves its plugin — the `plugin` property, else the
+// layout/plugins stores keyed by its DOM id — then parses + validates it into the runtime
 // registry (the ScElement parse engine), and owns the plugin's scsynth
 // group: created inside the session group on mount, freed — with every synth
 // in it — on unmount.
@@ -27,6 +29,11 @@ import "./sc-plugin.scss";
 
 export class ScPlugin extends ScNode {
   @state() accessor _error = "";
+
+  /** Explicit plugin id for instances outside a dashboard box (a plain JS
+   *  property, deliberately not an attribute — validateProps rejects unknown
+   *  attributes; React 19 assigns it as a property since the field exists). */
+  plugin?: string;
 
   /** Parse succeeded — there is a tree to (re)load. A parse failure is
    *  permanent for this mount; reload() never retries it. */
@@ -58,10 +65,11 @@ export class ScPlugin extends ScNode {
   }
 
   private async boot(): Promise<void> {
-    // The DOM id IS the dashboard box id (assigned by PluginHost's JSX) —
-    // resolve the box's assigned plugin from the stores.
-    const box = layout.get().find((b) => b.i === this.id);
-    const info = plugins.get().find((p) => p.id === box?.plugin);
+    // The explicit `plugin` property wins (standalone PluginPage instance);
+    // otherwise the DOM id IS the dashboard box id (assigned by PluginHost's
+    // JSX) and the box's assigned plugin resolves from the stores.
+    const assigned = this.plugin ?? layout.get().find((box) => box.i === this.id)?.plugin;
+    const info = plugins.get().find((candidate) => candidate.id === assigned);
     if (!info) {
       this._error = "sc-plugin: no plugin assigned";
       return;

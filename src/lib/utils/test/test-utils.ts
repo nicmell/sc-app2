@@ -11,6 +11,7 @@
 import { vi, type MockInstance } from "vitest";
 import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
+import { adoptEntry } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
 
 /** The session group id the load pass targets (oscClient.sessionGroupId). */
@@ -18,13 +19,11 @@ export const SESSION_GROUP = 1;
 /** The first node id handed out by the mocked oscClient.nextNodeId. */
 export const FIRST_NODE_ID = 2000;
 
-/** Wrap a body fragment in a minimal XHTML document (entries are XHTML, with
+/** Wrap a fragment in a minimal XHTML plugin entry (entries use
  *  self-closing tags — they must be parsed as text/xml, not HTML). */
-export function wrapXml(bodyXml: string): string {
+export function wrapXml(xml: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-  <body>${bodyXml}</body>
-</html>`;
+<sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">${xml}</sc-plugin>`;
 }
 
 /** Parse plugin XML into a connected <sc-plugin> host and run the parse engine
@@ -37,9 +36,7 @@ export function parsePlugin(xml: string): { host: ScPlugin; nodes: Set<ScElement
   }
   const host = document.createElement("sc-plugin") as ScPlugin;
   document.body.appendChild(host); // custom elements only upgrade when connected
-  host.replaceChildren(
-    ...Array.from(doc.querySelector("body")!.children).map((c) => document.importNode(c, true)),
-  );
+  adoptEntry(host, doc);
   const nodes = new Set<ScElement>();
   host.id = `test-${Math.random().toString(36).slice(2)}`;
   host.process({ rootNode: host, nodes, scope: [host], path: [] });

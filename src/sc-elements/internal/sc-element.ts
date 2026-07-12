@@ -50,12 +50,13 @@ import {
   resolveStateBind,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
+import {
+  bindAttr,
+  COMMON_ATTRS,
+  type AttrSpec,
+  type ElementSpec,
+} from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
-
-/** The attributes shared by every generated sc-* complex type through the
- *  XSD's commonAttrs group. Keep this in step with xsd/preamble.xml. */
-const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
 
 // XML Schema lexical spaces for the primitive attribute types we coerce.
 // Number() is deliberately not used for validation: it accepts empty strings,

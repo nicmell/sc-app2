@@ -47,7 +47,8 @@
     "osc-js": "^2.4.1",
     "react": "^19",
     "react-dom": "^19",
-    "react-grid-layout": "^2.2.3"
+    "react-grid-layout": "^2.2.3",
+    "react-router": "^8.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,9 +1,8 @@
 // Plugin CRUD against the Rust HTTP router (`/api/plugins…`). Always HTTP — even
 // under Tauri we go through the bundled server (never Tauri IPC), via the
 // `src/http` helpers (which resolve against the injected HTTP_BASE_URL). A
-// plugin's entry is a validated XHTML doc using our `sc-*` elements; loading
-// just injects its body and lets the custom elements upgrade themselves (no
-// runtime/bind pipeline).
+// plugin's entry is a validated XHTML doc rooted at `sc-plugin`; loading merges
+// its authored metadata and children into the app-synthesized host.
 
 import { get, post, del } from "@/lib/http";
 import type { PluginInfo } from "@/types/api";
@@ -23,17 +22,29 @@ export async function removePlugin(id: string): Promise<void> {
   await del(`${PLUGINS_BASE}/${id}`);
 }
 
-/** Fetch a plugin's entry (XHTML) and mount its body children into `host`.
- *  Parsed as XML — entries are XHTML and use self-closing custom-element tags
- *  (`<sc-control …/>`), which an HTML re-parse would mis-nest — and adopted
- *  via importNode, so the markup never round-trips through innerHTML. The
- *  `sc-*` custom elements upgrade on insertion. */
+/** Merge an authored entry root into the app-synthesized runtime host. */
+export function adoptEntry(host: HTMLElement, doc: Document): void {
+  const root = doc.documentElement;
+  if (root.localName !== "sc-plugin") {
+    throw new Error(`plugin entry root must be <sc-plugin> (got <${root.localName}>)`);
+  }
+  // Metadata belongs to the authored root. The host id is the runtime key and
+  // must never be replaced by entry markup.
+  for (const name of ["title", "description"]) {
+    const value = root.getAttribute(name);
+    if (value !== null) host.setAttribute(name, value);
+  }
+  host.replaceChildren(
+    ...Array.from(root.children).map((child) => document.importNode(child, true)),
+  );
+}
+
+/** Fetch a plugin's entry (XHTML) and merge it into `host`. Parsed as XML so
+ *  self-closing custom-element tags retain their authored structure. */
 export async function loadPluginInto(host: HTMLElement, plugin: PluginInfo): Promise<void> {
   const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
   const parseError = doc.querySelector("parsererror");
   if (parseError) throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
-  const body = doc.querySelector("body");
-  if (!body) throw new Error("plugin entry has no <body>");
-  host.replaceChildren(...Array.from(body.children).map((c) => document.importNode(c, true)));
+  adoptEntry(host, doc);
 }

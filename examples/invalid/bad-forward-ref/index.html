@@ -1,47 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Forward Reference (intentional error)</title>
-</head>
-<body>
-<sc-synthdef name="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="osc"/>
-        <sc-control name="b" bind:value="amp"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="sig"/>
-    </sc-ugen>
-</sc-synthdef>
+<sc-plugin title="Bad Forward Reference (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="osc"/>
+          <sc-control name="b" bind:value="amp"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="sig"/>
+      </sc-ugen>
+  </sc-synthdef>
 
-<!-- INTENTIONAL: the controls reference "s1" BEFORE it is declared — bind
-     targets must be declared earlier in the document; resolveNode must fail
-     with "referenced before it is declared" (the first error comes from the
-     button) -->
-<div>
-    <h3>Controls (before synth)</h3>
-    <sc-button bind:value="s1.gate" icon="play"/>
-    <label>
-        <span>Freq: <sc-display bind:value="s1.freq" format="%d Hz"/></span>
-        <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
-    </label>
-    <label>
-        <span>Amp: <sc-display bind:value="s1.amp" format="%.2f"/></span>
-        <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
-    </label>
-</div>
+  <!-- INTENTIONAL: the controls reference "s1" BEFORE it is declared — bind
+       targets must be declared earlier in the document; resolveNode must fail
+       with "referenced before it is declared" (the first error comes from the
+       button) -->
+  <div>
+      <h3>Controls (before synth)</h3>
+      <sc-button bind:value="s1.gate" icon="play"/>
+      <label>
+          <span>Freq: <sc-display bind:value="s1.freq" format="%d Hz"/></span>
+          <sc-knob bind:value="s1.freq" min="20" max="2000" step="1"/>
+      </label>
+      <label>
+          <span>Amp: <sc-display bind:value="s1.amp" format="%.2f"/></span>
+          <sc-knob bind:value="s1.amp" min="0" max="1" step="0.01"/>
+      </label>
+  </div>
 
-<!-- Synth defined AFTER the controls that reference it -->
-<sc-synth name="s1" synthdef="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-control name="gate" value="1"/>
-</sc-synth>
-</body>
-</html>
+  <!-- Synth defined AFTER the controls that reference it -->
+  <sc-synth name="s1" synthdef="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-control name="gate" value="1"/>
+  </sc-synth>
+</sc-plugin>

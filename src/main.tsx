@@ -6,19 +6,16 @@
 import "@sc-app/ui-components";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import { RouterProvider } from "react-router/dom";
 import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
+import { router } from "@/routes/router";
 
-// Define the plugin custom elements + the ui-components `-base` widgets (used by
-// the React shell and inside Lit widgets like sc-strudel), then open the session
-// before first render so injected plugin HTML upgrades and the elements have a
-// live session to read. (The HTTP base URL needs no async resolution: Tauri
-// injects HTTP_BASE_URL before any code runs; browsers are same-origin.)
+// Define the plugin custom elements + the ui-components `-base` widgets before
+// the router renders any route that can mount them.
 registerScElements();
 registerUiComponents();
-void session.start();
 
 // DEV-only debug hook: expose the module singletons for CDP-driven live
 // debugging — stable handles onto the store, the OSC client (tx/rx log,
@@ -46,6 +43,6 @@ if (import.meta.env.DEV) {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>,
 );

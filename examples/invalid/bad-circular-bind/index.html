@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Circular Bind (intentional error)</title>
-</head>
-<body>
-<!-- INTENTIONAL: "a" binds itself through its mid-processing parent — the
-     only cycle still expressible now that bind targets must be declared
-     before their references (the targets graph is a DAG by construction);
-     resolveStateBind's self-reference guard must fail with "circular bind
-     reference detected" -->
-<sc-group name="vars">
-    <sc-var name="a" bind:value="vars.a"/>
-</sc-group>
-</body>
-</html>
+<sc-plugin title="Bad Circular Bind (intentional error)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- INTENTIONAL: "a" binds itself through its mid-processing parent — the
+       only cycle still expressible now that bind targets must be declared
+       before their references (the targets graph is a DAG by construction);
+       resolveStateBind's self-reference guard must fail with "circular bind
+       reference detected" -->
+  <sc-group name="vars">
+      <sc-var name="a" bind:value="vars.a"/>
+  </sc-group>
+</sc-plugin>

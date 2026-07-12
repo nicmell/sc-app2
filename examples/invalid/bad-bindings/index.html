@@ -1,41 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Bad Bindings (intentional errors)</title>
-</head>
-<body>
-<sc-synthdef name="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="osc"/>
-        <sc-control name="b" bind:value="amp"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="sig"/>
-    </sc-ugen>
-</sc-synthdef>
-<sc-synth name="sine" synthdef="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-</sc-synth>
+<sc-plugin title="Bad Bindings (intentional errors)" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="osc"/>
+          <sc-control name="b" bind:value="amp"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="sig"/>
+      </sc-ugen>
+  </sc-synthdef>
+  <sc-synth name="sine" synthdef="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+  </sc-synth>
 
-<!-- Typo in bind path: "freqq" instead of "freq" -->
-<sc-knob bind:value="sine.freqq" min="20" max="2000" step="1"/>
+  <!-- Typo in bind path: "freqq" instead of "freq" -->
+  <sc-knob bind:value="sine.freqq" min="20" max="2000" step="1"/>
 
-<!-- References non-existent synth -->
-<sc-checkbox bind:value="nonexistent.mute"/>
+  <!-- References non-existent synth -->
+  <sc-checkbox bind:value="nonexistent.mute"/>
 
-<!-- Invalid display path -->
-<sc-display bind:value="sine.volume"/>
+  <!-- Invalid display path -->
+  <sc-display bind:value="sine.volume"/>
 
-<!-- Broken sc-if bind -->
-<sc-if bind:when="sine.active">
-    <span>Active</span>
-</sc-if>
-</body>
-</html>
+  <!-- Broken sc-if bind -->
+  <sc-if bind:when="sine.active">
+      <span>Active</span>
+  </sc-if>
+</sc-plugin>

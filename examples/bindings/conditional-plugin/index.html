@@ -1,89 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>Conditional Plugin</title>
-</head>
-<body>
-<!-- Tests sc-if (nameless parent) with controls binding to siblings -->
-<sc-synthdef name="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-control name="gate" value="1"/>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="env" type="Linen">
-        <sc-control name="gate" bind:value="gate"/>
-        <sc-control name="attacktime" value="0.01"/>
-        <sc-control name="susLevel" value="1"/>
-        <sc-control name="releasetime" value="0.1"/>
-    </sc-ugen>
-    <sc-ugen name="sig" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="osc"/>
-        <sc-control name="b" bind:value="amp"/>
-    </sc-ugen>
-    <sc-ugen name="gated" type="BinaryOpUGen" op="*">
-        <sc-control name="a" bind:value="sig"/>
-        <sc-control name="b" bind:value="env"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="gated"/>
-    </sc-ugen>
-</sc-synthdef>
+<sc-plugin title="Conditional Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- Tests sc-if (nameless parent) with controls binding to siblings -->
+  <sc-synthdef name="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-control name="gate" value="1"/>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="env" type="Linen">
+          <sc-control name="gate" bind:value="gate"/>
+          <sc-control name="attacktime" value="0.01"/>
+          <sc-control name="susLevel" value="1"/>
+          <sc-control name="releasetime" value="0.1"/>
+      </sc-ugen>
+      <sc-ugen name="sig" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="osc"/>
+          <sc-control name="b" bind:value="amp"/>
+      </sc-ugen>
+      <sc-ugen name="gated" type="BinaryOpUGen" op="*">
+          <sc-control name="a" bind:value="sig"/>
+          <sc-control name="b" bind:value="env"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="gated"/>
+      </sc-ugen>
+  </sc-synthdef>
 
-<sc-synth name="osc" synthdef="sine">
-    <sc-control name="freq" value="440"/>
-    <sc-control name="amp" value="0.2"/>
-    <sc-control name="gate" value="1"/>
-</sc-synth>
-<sc-flex orientation="vertical" gap="md">
-    <sc-flex align="center" gap="sm">
-        <sc-button bind:value="osc.gate" bind:icon="osc.gate ? 'stop' : 'play'"/>
-        <sc-text weight="bold">Conditional voice</sc-text>
-        <sc-text tone="dim">Sections below follow the gate state</sc-text>
-    </sc-flex>
+  <sc-synth name="osc" synthdef="sine">
+      <sc-control name="freq" value="440"/>
+      <sc-control name="amp" value="0.2"/>
+      <sc-control name="gate" value="1"/>
+  </sc-synth>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-flex align="center" gap="sm">
+          <sc-button bind:value="osc.gate" bind:icon="osc.gate ? 'stop' : 'play'"/>
+          <sc-text weight="bold">Conditional voice</sc-text>
+          <sc-text tone="dim">Sections below follow the gate state</sc-text>
+      </sc-flex>
 
-    <sc-row gutter="md" align="middle">
-        <sc-col span="12">
-            <sc-flex orientation="vertical" gap="xs" align="center">
-                <sc-knob bind:value="osc.freq" min="20" max="2000" step="1"/>
-                <sc-text as="label">Freq <sc-display bind:value="osc.freq" format="%d Hz"/></sc-text>
-            </sc-flex>
-        </sc-col>
-        <sc-col span="12">
-            <sc-flex orientation="vertical" gap="xs" align="center">
-                <sc-knob bind:value="osc.amp" min="0" max="1" step="0.01"/>
-                <sc-text as="label">Amp <sc-display bind:value="osc.amp" format="%.2f"/></sc-text>
-            </sc-flex>
-        </sc-col>
-    </sc-row>
+      <sc-row gutter="md" align="middle">
+          <sc-col span="12">
+              <sc-flex orientation="vertical" gap="xs" align="center">
+                  <sc-knob bind:value="osc.freq" min="20" max="2000" step="1"/>
+                  <sc-text as="label">Freq <sc-display bind:value="osc.freq" format="%d Hz"/></sc-text>
+              </sc-flex>
+          </sc-col>
+          <sc-col span="12">
+              <sc-flex orientation="vertical" gap="xs" align="center">
+                  <sc-knob bind:value="osc.amp" min="0" max="1" step="0.01"/>
+                  <sc-text as="label">Amp <sc-display bind:value="osc.amp" format="%.2f"/></sc-text>
+              </sc-flex>
+          </sc-col>
+      </sc-row>
 
-<!-- sc-if is TRANSPARENT: its contents live in the enclosing scope,
-     unconditionally — the var below keys at the root and stays referenceable
-     from OUTSIDE (and after) the sc-if; only visibility follows the bind (a
-     full expression: truthiness shows the children, and the inverse section
-     compares against the live control with `== 0`). -->
-<sc-if bind:when="osc.gate">
-    <sc-flex orientation="vertical" gap="xs">
-        <sc-text weight="bold" tone="ok">Gate is on</sc-text>
-        <sc-flex align="center" gap="sm">
-            <sc-checkbox bind:value="osc.gate"/>
-            <sc-text as="label">Gate <sc-display bind:value="osc.gate" format="%d"/></sc-text>
-        </sc-flex>
-        <sc-var name="octaveUp" bind:value="osc.freq * 2"/>
-    </sc-flex>
-</sc-if>
-<sc-text>Octave up <sc-display bind:value="octaveUp" format="%d Hz"/></sc-text>
-<sc-if bind:when="osc.gate == 0">
-    <sc-flex orientation="vertical" gap="xs">
-        <sc-text weight="bold" tone="warn">Gate is off</sc-text>
-        <sc-flex align="center" gap="sm">
-            <sc-checkbox bind:value="osc.gate"/>
-            <sc-text as="label">Click to re-enable</sc-text>
-        </sc-flex>
-    </sc-flex>
-</sc-if>
-</sc-flex>
-</body>
-</html>
+  <!-- sc-if is TRANSPARENT: its contents live in the enclosing scope,
+       unconditionally — the var below keys at the root and stays referenceable
+       from OUTSIDE (and after) the sc-if; only visibility follows the bind (a
+       full expression: truthiness shows the children, and the inverse section
+       compares against the live control with `== 0`). -->
+  <sc-if bind:when="osc.gate">
+      <sc-flex orientation="vertical" gap="xs">
+          <sc-text weight="bold" tone="ok">Gate is on</sc-text>
+          <sc-flex align="center" gap="sm">
+              <sc-checkbox bind:value="osc.gate"/>
+              <sc-text as="label">Gate <sc-display bind:value="osc.gate" format="%d"/></sc-text>
+          </sc-flex>
+          <sc-var name="octaveUp" bind:value="osc.freq * 2"/>
+      </sc-flex>
+  </sc-if>
+  <sc-text>Octave up <sc-display bind:value="octaveUp" format="%d Hz"/></sc-text>
+  <sc-if bind:when="osc.gate == 0">
+      <sc-flex orientation="vertical" gap="xs">
+          <sc-text weight="bold" tone="warn">Gate is off</sc-text>
+          <sc-flex align="center" gap="sm">
+              <sc-checkbox bind:value="osc.gate"/>
+              <sc-text as="label">Click to re-enable</sc-text>
+          </sc-flex>
+      </sc-flex>
+  </sc-if>
+  </sc-flex>
+</sc-plugin>

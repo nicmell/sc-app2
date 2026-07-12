@@ -1,110 +1,113 @@
-// SessionManager boot-retry unit test: while the server answers 503 ("scsynth
-// not registered yet"), the manager keeps the "connecting" status and retries
-// quietly — but only within the SCSYNTH_RETRY_LIMIT budget, after which the
-// error modal advises that no connection is coming (its manual Retry restarts
-// the budget). Any other failure flips to "error" at once. The http layer is
-// mocked; oscClient is never reached (the session POST fails first), so no
-// worker is involved.
+// SessionManager connection-lifecycle unit test: connect() against a mocked
+// oscClient (no worker involved) — the loader-provided allocation reaches the
+// client verbatim, the epoch guard abandons a connect superseded by
+// disconnect() mid-await, and a transport failure flips the slice to "error".
+// Session resolution (mint/revive/503 budget) is resolveSession.test.ts.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SessionInfo } from "@/types/api";
 
-const http = vi.hoisted(() => ({
-  post: vi.fn(),
-  get: vi.fn(),
-  put: vi.fn(),
-}));
-vi.mock("@/lib/http", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/http")>()),
-  post: http.post,
-  get: http.get,
-  put: http.put,
+const osc = vi.hoisted(() => ({
+  connect: vi.fn(),
+  close: vi.fn(),
+  on: vi.fn(() => 1),
+  off: vi.fn(),
 }));
 
-import { HttpError } from "@/lib/http";
-import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
+vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));
+
 import { SessionManager } from "@/lib/session/SessionManager";
+import { layout } from "@/stores/layout";
 import { appStore } from "@/stores/store";
 
+const info: SessionInfo = {
+  sessionId: "session-1",
+  sessionGroupId: 10,
+  nodeIdBase: 100,
+  nodeIdCount: 20,
+  scopeIndexBase: 2,
+  scopeIndexCount: 4,
+  scsynthAddress: "127.0.0.1:57110",
+  layout: [],
+};
+
 beforeEach(() => {
-  vi.useFakeTimers();
-  http.post.mockReset();
-  http.get.mockReset();
-  http.put.mockReset();
-  localStorage.clear(); // no stored session id → straight to POST
-  appStore.update((s) => ({ ...s, session: { status: "connecting", scsynthAddress: null } }));
+  osc.connect.mockReset().mockResolvedValue(undefined);
+  osc.close.mockReset();
+  osc.on.mockClear();
+  osc.off.mockClear();
+  appStore.update((state) => ({
+    ...state,
+    session: { status: "connecting", scsynthAddress: null },
+  }));
 });
 
-afterEach(() => {
-  vi.useRealTimers();
-});
+afterEach(() => vi.restoreAllMocks());
 
-describe("SessionManager boot", () => {
-  it("retries 503s quietly within the budget, then advises with the error modal", async () => {
-    http.post.mockRejectedValue(
-      new HttpError(503, "Service Unavailable", "scsynth not registered yet; retry\n"),
+describe("SessionManager", () => {
+  it("connects using the loader-provided allocation and marks the session connected", async () => {
+    const manager = new SessionManager();
+    await manager.connect(info);
+
+    expect(osc.connect).toHaveBeenCalledWith(expect.stringContaining("session=session-1"), {
+      sessionGroupId: 10,
+      nodeIdBase: 100,
+      nodeIdCount: 20,
+      scopeIndexBase: 2,
+      scopeIndexCount: 4,
+    });
+    expect(manager.status.get()).toBe("connected");
+    expect(manager.scsynthAddress.get()).toBe("127.0.0.1:57110");
+    manager.disconnect();
+  });
+
+  it("ignores a pending connection after disconnect", async () => {
+    let resolveConnect!: () => void;
+    osc.connect.mockImplementation(
+      () => new Promise<void>((resolve) => (resolveConnect = resolve)),
     );
     const manager = new SessionManager();
+    const pending = manager.connect(info);
+    manager.disconnect();
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the deferred teardown fires
+    resolveConnect();
+    await pending;
 
-    await manager.start();
-    expect(http.post).toHaveBeenCalledTimes(1);
-    expect(manager.status.get()).toBe("connecting"); // boot overlay, not the error modal
-
-    // Each interval fires one more quiet attempt, up to the budget…
-    for (let attempt = 2; attempt <= 1 + SCSYNTH_RETRY_LIMIT; attempt++) {
-      await vi.advanceTimersByTimeAsync(SCSYNTH_RETRY_MS);
-      expect(http.post).toHaveBeenCalledTimes(attempt);
-    }
-    // …whose last failure flips to the error modal, with no further attempts.
-    expect(manager.status.get()).toBe("error");
-    await vi.advanceTimersByTimeAsync(SCSYNTH_RETRY_MS * 5);
-    expect(http.post).toHaveBeenCalledTimes(1 + SCSYNTH_RETRY_LIMIT);
-
-    // The modal's manual Retry restarts the quiet-retry budget.
-    void manager.retry();
-    await vi.advanceTimersByTimeAsync(0);
     expect(manager.status.get()).toBe("connecting");
-    expect(http.post).toHaveBeenCalledTimes(2 + SCSYNTH_RETRY_LIMIT);
-    await vi.advanceTimersByTimeAsync(SCSYNTH_RETRY_MS);
-    expect(http.post).toHaveBeenCalledTimes(3 + SCSYNTH_RETRY_LIMIT);
-
-    manager.dispose();
+    expect(osc.close).toHaveBeenCalled();
   });
 
-  it("the disposed guard stops the quiet-retry loop", async () => {
-    http.post.mockRejectedValue(new HttpError(503, "Service Unavailable"));
+  it("keeps the standing connection across a StrictMode remount (same info)", async () => {
     const manager = new SessionManager();
+    await manager.connect(info);
+    manager.disconnect();
+    await manager.connect(info); // remount cancels the deferred disconnect
 
-    await manager.start();
-    manager.dispose();
-    await vi.advanceTimersByTimeAsync(SCSYNTH_RETRY_MS * 3);
-    // The in-flight timer fires, but the disposed guard stops the loop
-    // before any further request.
-    expect(http.post).toHaveBeenCalledTimes(1);
+    expect(osc.connect).toHaveBeenCalledTimes(1);
+    expect(manager.status.get()).toBe("connected");
+    // A NEW info object (loader re-run) does reconnect.
+    await manager.connect({ ...info });
+    expect(osc.connect).toHaveBeenCalledTimes(2);
+    manager.disconnect();
   });
 
-  it("a 503 on revive enters the quiet loop without burning the fallback POST", async () => {
-    localStorage.setItem(SESSION_KEY, "00000000-0000-0000-0000-000000000000");
-    http.get.mockRejectedValue(new HttpError(503, "Service Unavailable"));
+  it("resets the layout when a fresh session's layout is empty", async () => {
     const manager = new SessionManager();
+    const boxes = [{ i: "box-1", x: 0, y: 0, w: 4, h: 4, plugin: "p1" }];
+    await manager.connect({ ...info, layout: boxes });
+    expect(layout.get()).toEqual(boxes);
 
-    await manager.start();
-    // The revive's 503 already says "scsynth not registered" — the fresh-mint
-    // POST would only spend a second registration long-poll on the same news.
-    expect(http.get).toHaveBeenCalledTimes(1);
-    expect(http.post).not.toHaveBeenCalled();
-    expect(manager.status.get()).toBe("connecting");
-    manager.dispose();
+    // Dead id → mint → redirect hands a fresh session with an empty layout:
+    // the previous session's boxes must not survive onto it.
+    await manager.connect({ ...info, sessionId: "session-2", layout: [] });
+    expect(layout.get()).toEqual([]);
+    manager.disconnect();
   });
 
-  it("any other failure flips to the error modal with no auto-retry", async () => {
-    http.post.mockRejectedValue(new HttpError(500, "Internal Server Error"));
+  it("marks a failed active connection as an error", async () => {
+    osc.connect.mockRejectedValue(new Error("socket failed"));
     const manager = new SessionManager();
-
-    await manager.start();
+    await manager.connect(info);
     expect(manager.status.get()).toBe("error");
-
-    await vi.advanceTimersByTimeAsync(SCSYNTH_RETRY_MS * 5);
-    expect(http.post).toHaveBeenCalledTimes(1);
-    manager.dispose();
   });
 });

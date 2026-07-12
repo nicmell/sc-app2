@@ -61,16 +61,15 @@ See the root CLAUDE.md implementation plan.
 
 ### `<sc-plugin>` — functional
 
-The app-synthesized plugin root: **never written in plugin HTML** — PluginHost
-renders one per dashboard box declaratively (React mounts custom elements like
-any DOM tag), with the box's id as its DOM id. It resolves its plugin from the
-layout/plugins stores by that id, loads the entry XHTML (XML-parsed +
-importNode), runs `process()` (validation inside — the id is already
-its own; the registry then adopts the parsed tree), and owns the plugin's
-scsynth group:
+The authored entry root and app-synthesized runtime host. PluginHost renders one
+per dashboard box with the box id as its DOM id; the loader merges the authored
+root's `title`/`description` attrs and imported children into it without replacing
+that runtime id. It then runs `process()` (validation inside; the registry adopts
+the parsed tree) and owns the plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
-Props: `run` (boolean attribute, `run="false"` is the only falsy spelling).
+Props: `title`, `description` (authored metadata reserved for in-plugin use), and
+`run` (boolean attribute, `run="false"` is the only falsy spelling).
 
 ### `<sc-group>` — functional
 

@@ -7,9 +7,11 @@
   <!-- GENERATED FILE — DO NOT EDIT BY HAND. Produced by scripts/generate-xsd.ts
        from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
        To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
-       fixed HTML scaffolding below is src/sc-elements/internal/xsd/preamble.xml.
+       fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
        `name` syntax (one bind-path segment, no dots) is validated in the
-       components' requireName() — deliberately not carried into the schema. -->
+       components' requireName() — deliberately not carried into the schema.
+       XSD 1.0 permits any global element as the document root; the runtime
+       loader requires sc-plugin. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -40,6 +42,7 @@
   <xs:element name="br"/>
 
   <!-- sc-* elements -->
+  <xs:element name="sc-plugin" type="scPluginType"/>
   <xs:element name="sc-group" type="scGroupType"/>
   <xs:element name="sc-synthdef" type="scSynthdefType"/>
   <xs:element name="sc-ugen" type="scUgenType"/>
@@ -167,28 +170,6 @@
     </xs:choice>
   </xs:group>
 
-  <!-- ==================== Root ==================== -->
-
-  <xs:element name="title" type="xs:string"/>
-  <xs:element name="head">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="title"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="body" type="blockType"/>
-
-  <xs:element name="html">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="head"/>
-        <xs:element ref="body"/>
-      </xs:sequence>
-      <xs:attribute name="id" type="xs:string" use="optional"/>
-    </xs:complexType>
-  </xs:element>
-
   <!-- ==================== Complex types ==================== -->
 
   <xs:complexType name="blockType" mixed="true">
@@ -209,6 +190,16 @@
     <xs:sequence>
       <xs:element ref="li" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attributeGroup ref="commonAttrs"/>
+  </xs:complexType>
+
+  <xs:complexType name="scPluginType">
+    <xs:sequence minOccurs="0">
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="blockContent"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="description" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

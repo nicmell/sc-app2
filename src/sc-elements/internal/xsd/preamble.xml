@@ -7,9 +7,11 @@
   <!-- GENERATED FILE — DO NOT EDIT BY HAND. Produced by scripts/generate-xsd.ts
        from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
        To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
-       fixed HTML scaffolding below is src/sc-elements/internal/xsd/preamble.xml.
+       fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
        `name` syntax (one bind-path segment, no dots) is validated in the
-       components' requireName() — deliberately not carried into the schema. -->
+       components' requireName() — deliberately not carried into the schema.
+       XSD 1.0 permits any global element as the document root; the runtime
+       loader requires sc-plugin. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -78,28 +80,6 @@
       <xs:element ref="sc-text"/>
     </xs:choice>
   </xs:group>
-
-  <!-- ==================== Root ==================== -->
-
-  <xs:element name="title" type="xs:string"/>
-  <xs:element name="head">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="title"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="body" type="blockType"/>
-
-  <xs:element name="html">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="head"/>
-        <xs:element ref="body"/>
-      </xs:sequence>
-      <xs:attribute name="id" type="xs:string" use="optional"/>
-    </xs:complexType>
-  </xs:element>
 
   <!-- ==================== Complex types ==================== -->
 

@@ -1,74 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
-<head>
-    <title>ADSR Panel Plugin</title>
-</head>
-<body>
-<!-- BIDIRECTIONAL ADSR panel: the envelope array is THE state, everything
-     else is a view onto it.
-       editor  writes `env` whole (drag breakpoints) — the structure is
-               LOCKED to 4 breakpoints (min = max), so the Env.asArray slots
-               keep stable meanings while positions stay draggable
-       knobs   are SLOT LENSES (`bind:value="env.5"`): each reads one array
-               element live and writes a fresh copy with that slot replaced
-               — turn a knob and the editor's curve moves; drag a breakpoint
-               and the knobs follow
-       keyboard latches the CURRENT array into each new voice's /s_new
-     Slot map for the locked adsr shape (header 0–3, then to/time/curve/val
-     per segment): 5 = attack time, 8 = sustain level, 9 = decay time,
-     13 = release time. -->
-<sc-var name="env" value="pad(adsr(0.01, 0.1, 0.7, 0.3), 36)"/>
+<sc-plugin title="ADSR Panel Plugin" xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- BIDIRECTIONAL ADSR panel: the envelope array is THE state, everything
+       else is a view onto it.
+         editor  writes `env` whole (drag breakpoints) — the structure is
+                 LOCKED to 4 breakpoints (min = max), so the Env.asArray slots
+                 keep stable meanings while positions stay draggable
+         knobs   are SLOT LENSES (`bind:value="env.5"`): each reads one array
+                 element live and writes a fresh copy with that slot replaced
+                 — turn a knob and the editor's curve moves; drag a breakpoint
+                 and the knobs follow
+         keyboard latches the CURRENT array into each new voice's /s_new
+       Slot map for the locked adsr shape (header 0–3, then to/time/curve/val
+       per segment): 5 = attack time, 8 = sustain level, 9 = decay time,
+       13 = release time. -->
+  <sc-var name="env" value="pad(adsr(0.01, 0.1, 0.7, 0.3), 36)"/>
 
-<sc-synthdef name="panelNote">
-    <sc-control name="freq" value="261.63"/>
-    <sc-control name="amp" value="0.1"/>
-    <sc-control name="gate" value="1"/>
-    <sc-control name="env" value="pad(adsr(0.01, 0.1, 0.7, 0.3), 36)"/>
-    <sc-ugen name="e" type="EnvGen" rate="kr">
-        <sc-control name="gate" bind:value="gate"/>
-        <sc-control name="action" value="2"/>
-        <sc-control name="envelope" bind:value="env"/>
-    </sc-ugen>
-    <sc-ugen name="osc" type="SinOsc">
-        <sc-control name="freq" bind:value="freq"/>
-    </sc-ugen>
-    <sc-ugen name="panned" type="Pan2">
-        <!-- 0.15 headroom — velocity rides `amp` whole. -->
-        <sc-control name="in" bind:value="osc * e * amp * 0.15"/>
-        <sc-control name="pos" value="0"/>
-    </sc-ugen>
-    <sc-ugen name="out" type="Out">
-        <sc-control name="bus" value="0"/>
-        <sc-control name="channelsarray" bind:value="panned.0, panned.1"/>
-    </sc-ugen>
-</sc-synthdef>
+  <sc-synthdef name="panelNote">
+      <sc-control name="freq" value="261.63"/>
+      <sc-control name="amp" value="0.1"/>
+      <sc-control name="gate" value="1"/>
+      <sc-control name="env" value="pad(adsr(0.01, 0.1, 0.7, 0.3), 36)"/>
+      <sc-ugen name="e" type="EnvGen" rate="kr">
+          <sc-control name="gate" bind:value="gate"/>
+          <sc-control name="action" value="2"/>
+          <sc-control name="envelope" bind:value="env"/>
+      </sc-ugen>
+      <sc-ugen name="osc" type="SinOsc">
+          <sc-control name="freq" bind:value="freq"/>
+      </sc-ugen>
+      <sc-ugen name="panned" type="Pan2">
+          <!-- 0.15 headroom — velocity rides `amp` whole. -->
+          <sc-control name="in" bind:value="osc * e * amp * 0.15"/>
+          <sc-control name="pos" value="0"/>
+      </sc-ugen>
+      <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/>
+          <sc-control name="channelsarray" bind:value="panned.0, panned.1"/>
+      </sc-ugen>
+  </sc-synthdef>
 
-<sc-flex orientation="vertical" gap="md">
-    <sc-flex align="center" gap="sm">
-        <sc-text weight="bold">ADSR panel</sc-text>
-        <sc-text tone="dim">Turn a knob and the curve moves; drag a breakpoint and the knobs follow — every NEW note latches the current shape</sc-text>
-    </sc-flex>
-    <sc-envelope bind:value="env" minbreakpoints="4" maxbreakpoints="4"/>
-    <sc-flex align="center" gap="md">
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="env.5" min="0.001" max="0.5" step="0.001"/>
-            <sc-text as="label">Attack <sc-display bind:value="env.5" format="%.3f s"/></sc-text>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="env.9" min="0.01" max="1" step="0.01"/>
-            <sc-text as="label">Decay <sc-display bind:value="env.9" format="%.2f s"/></sc-text>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="env.8" min="0" max="1" step="0.01"/>
-            <sc-text as="label">Sustain <sc-display bind:value="env.8" format="%.2f"/></sc-text>
-        </sc-flex>
-        <sc-flex orientation="vertical" gap="xs" align="center">
-            <sc-knob bind:value="env.13" min="0.01" max="2" step="0.01"/>
-            <sc-text as="label">Release <sc-display bind:value="env.13" format="%.2f s"/></sc-text>
-        </sc-flex>
-    </sc-flex>
-    <sc-keyboard synthdef="panelNote" octaves="2" start="48" bind:envelope="env"/>
-    <sc-console/>
-</sc-flex>
-</body>
-</html>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-flex align="center" gap="sm">
+          <sc-text weight="bold">ADSR panel</sc-text>
+          <sc-text tone="dim">Turn a knob and the curve moves; drag a breakpoint and the knobs follow — every NEW note latches the current shape</sc-text>
+      </sc-flex>
+      <sc-envelope bind:value="env" minbreakpoints="4" maxbreakpoints="4"/>
+      <sc-flex align="center" gap="md">
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="env.5" min="0.001" max="0.5" step="0.001"/>
+              <sc-text as="label">Attack <sc-display bind:value="env.5" format="%.3f s"/></sc-text>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="env.9" min="0.01" max="1" step="0.01"/>
+              <sc-text as="label">Decay <sc-display bind:value="env.9" format="%.2f s"/></sc-text>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="env.8" min="0" max="1" step="0.01"/>
+              <sc-text as="label">Sustain <sc-display bind:value="env.8" format="%.2f"/></sc-text>
+          </sc-flex>
+          <sc-flex orientation="vertical" gap="xs" align="center">
+              <sc-knob bind:value="env.13" min="0.01" max="2" step="0.01"/>
+              <sc-text as="label">Release <sc-display bind:value="env.13" format="%.2f s"/></sc-text>
+          </sc-flex>
+      </sc-flex>
+      <sc-keyboard synthdef="panelNote" octaves="2" start="48" bind:envelope="env"/>
+      <sc-console/>
+  </sc-flex>
+</sc-plugin>

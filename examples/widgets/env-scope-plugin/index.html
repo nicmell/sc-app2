@@ -15,18 +15,21 @@
      (Env.newClear style — slot 1 holds the REAL segment count), so the
      editor can add breakpoints up to 8 segments. -->
 
-<!-- The envelope, drawn by the server: Impulse retriggers a gate held 0.15 s
-     (so the sustain AND the release both show), EnvGen.ar renders the shape
-     onto bus 16. Total envelope time is about 0.3 s at a 2 Hz retrigger. -->
+<!-- The envelope, drawn by the server: Impulse retriggers a gate held for
+     `hold` seconds — DERIVED by the editor (bind:hold): on every edit it
+     writes the envelope's pre-release duration, so the gate always covers
+     the ramp to sustain and the trace renders edited envelopes without
+     truncation; EnvGen.ar renders the shape onto bus 16. -->
 <sc-synthdef name="envTrace">
     <sc-control name="rate" value="2"/>
+    <sc-control name="hold" value="0.17"/>
     <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
     <sc-ugen name="tick" type="Impulse" rate="kr">
         <sc-control name="freq" bind:value="rate"/>
     </sc-ugen>
     <sc-ugen name="gate" type="Trig1" rate="kr">
         <sc-control name="trig" bind:value="tick"/>
-        <sc-control name="dur" value="0.15"/>
+        <sc-control name="dur" bind:value="hold"/>
     </sc-ugen>
     <sc-ugen name="sig" type="EnvGen" rate="ar">
         <sc-control name="gate" bind:value="gate"/>
@@ -39,6 +42,7 @@
 </sc-synthdef>
 <sc-synth name="trace" synthdef="envTrace">
     <sc-control name="rate" value="2"/>
+    <sc-control name="hold" value="0.17"/>
     <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
 </sc-synth>
 
@@ -73,10 +77,12 @@
         <sc-text weight="bold">Envelope verification</sc-text>
         <sc-text tone="dim">The scope trace below must MATCH the editor's curve — drag and compare</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="trace.env"/>
+    <sc-env-editor bind:value="trace.env" bind:hold="trace.hold"/>
     <!-- trigger="auto": pin to the envelope's rising edge when it lands in
-         the search window, free-run otherwise — never hold a stale trace. -->
-    <sc-scope bus="16" channels="1" frames="16384" trigger="auto" level="0.05"/>
+         the search window, free-run otherwise — never hold a stale trace.
+         level 0.03 (just above the 0.02 arming hysteresis) keeps the trigger
+         firing even for envelopes dragged down to small peaks. -->
+    <sc-scope bus="16" channels="1" frames="16384" trigger="auto" level="0.03"/>
     <sc-flex align="center" gap="md">
         <sc-flex orientation="vertical" gap="xs" align="center">
             <sc-knob bind:value="trace.rate" min="0.5" max="4" step="0.1"/>

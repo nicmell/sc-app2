@@ -29,12 +29,28 @@ import {
 import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
+import type { ScState } from "@/sc-elements/internal/sc-state";
 import styles from "./sc-env-editor.module.scss";
 
 const PAD = 10; // px inset around the drawing area
 const HIT_RADIUS = 10; // px hit-test radius for points and curve handles
 const MIN_TIME = 0.005; // s — a dragged segment can't collapse to zero
 const CURVE_LIMIT = 10;
+/** Safety margin added to the derived `hold` output (s) — the gate must
+ *  outlive the pre-release ramp by at least one control period. */
+const HOLD_MARGIN = 0.02;
+
+/** The gate-hold a retrigger rig needs: the time the envelope takes to reach
+ *  its release point (Σ segment times before the release-flagged segment;
+ *  the WHOLE envelope when nothing is flagged — no sustain to hold at). */
+export function preReleaseTime(value: EnvBreakpoints): number {
+  let sum = 0;
+  for (const s of value.segments) {
+    if (s.release) return sum;
+    sum += s.time;
+  }
+  return sum;
+}
 
 /** One sampled point of a segment's shape, sclang's Env curve semantics:
  *  numeric curvature bends via the exponential-mix formula; the symbolic
@@ -83,6 +99,32 @@ export class ScEnvEditor extends ScInput {
         `"bind:value" envelope array needs at least 8 slots — a 4-slot header + one 4-slot segment (got ${declared.length})`,
       );
     }
+    // `hold` is a derived OUTPUT — bind: form only, and like every write
+    // seam it needs a plain single-path bind to WRITABLE (underived) state.
+    if (this.getAttribute("hold") !== null) {
+      failValidation(this, `"hold" supports only the bind: form (bind:hold="…")`);
+    }
+    if (this.runtimeProps?.hold && !this.holdTarget) {
+      failValidation(this, `"bind:hold" must reference a single writable control/var`);
+    }
+  }
+
+  /** The `hold` write target: a plain single-path bind to underived state
+   *  (mirrors `targetScState` for the `value` prop). */
+  private get holdTarget(): ScState | undefined {
+    const prop = this.runtimeProps?.hold;
+    if (!prop || prop.expression) return undefined;
+    const targets = Object.values(prop.targets);
+    const target = targets.length === 1 ? targets[0] : undefined;
+    return target && target.runtimeProps?.value === undefined ? target : undefined;
+  }
+
+  /** Publish the derived gate-hold for the CURRENT envelope. Called from
+   *  syncFromState, so both the editor's own commits (via the statechange
+   *  echo) and external envelope writes keep it honest; the state write is
+   *  Object.is-guarded, so an unchanged hold sends nothing. */
+  private publishHold(value: EnvBreakpoints): void {
+    this.holdTarget?.setValue(+(preReleaseTime(value) + HOLD_MARGIN).toFixed(4));
   }
 
   // ── live model ───────────────────────────────────────────────────────────
@@ -97,6 +139,7 @@ export class ScEnvEditor extends ScInput {
     if (!Array.isArray(value)) return;
     this.width = value.length;
     this.value = decodeEnvArray(value);
+    this.publishHold(this.value);
     this.draw();
   }
 

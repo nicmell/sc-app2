@@ -8,5 +8,10 @@ export const spec: ElementSpec = {
   category: "input",
   attrs: {
     value: { type: "scalar", required: true },
+    // Optional derived OUTPUT (bind: form only): on every envelope sync the
+    // editor writes the pre-release duration (Σ segment times before the
+    // release point, + a small margin) to this state — the gate-hold a
+    // retrigger rig needs to render edited envelopes without truncation.
+    hold: { type: "decimal" },
   },
 };

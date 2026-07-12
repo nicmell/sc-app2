@@ -303,6 +303,7 @@
 
   <xs:complexType name="scEnvEditorType">
     <xs:attribute name="value" type="xs:string"/>
+    <xs:attribute name="hold" type="xs:decimal"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

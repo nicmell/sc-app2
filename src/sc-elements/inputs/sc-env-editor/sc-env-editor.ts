@@ -445,15 +445,27 @@ export class ScEnvEditor extends ScInput {
 // ── pure edit helpers (exported for the unit tests) ────────────────────────
 
 /** Remove breakpoint `index` (≥ 1): its two adjoining segments merge — the
- *  merged segment keeps the SECOND's target level + flags over the summed
- *  duration. Removing the last point keeps the envelope closed by moving the
- *  release flag (if it was there) to the new last segment. */
+ *  merged segment keeps the SECOND's target level over the summed duration
+ *  and INHERITS the removed segment's release/loop flags (dropping the
+ *  release point silently would leave a no-release envelope whose voices
+ *  self-free at a nonzero level — a click on every note). Removing the last
+ *  point keeps the envelope closed by moving the release flag (if it was
+ *  there) to the new last segment. */
 export function removePoint(value: EnvBreakpoints, index: number): EnvBreakpoints {
   const seg = index - 1;
   const removed = value.segments[seg];
   const segments: EnvSegment[] = value.segments.flatMap((s, i) => {
     if (i === seg) return [];
-    if (i === seg + 1) return [{ ...s, time: s.time + removed.time }];
+    if (i === seg + 1) {
+      return [
+        {
+          ...s,
+          time: s.time + removed.time,
+          release: s.release || removed.release || undefined,
+          loop: s.loop || removed.loop || undefined,
+        },
+      ];
+    }
     return [s];
   });
   // Dropping the LAST point: the removed segment simply disappears — restore

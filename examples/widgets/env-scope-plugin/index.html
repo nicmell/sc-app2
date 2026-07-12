@@ -89,7 +89,7 @@
             <sc-knob bind:value="trace.rate" min="0.5" max="4" step="0.1"/>
             <sc-text as="label">Retrigger <sc-display bind:value="trace.rate" format="%.1f Hz"/></sc-text>
         </sc-flex>
-        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="trace.env"/>
+        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="trace.env" normalize="true"/>
     </sc-flex>
     <sc-console/>
 </sc-flex>

@@ -148,6 +148,23 @@ describe("breakpoint edit helpers", () => {
     expect(next.segments[1].time).toBeCloseTo(0.5); // 0.2 + 0.3
   });
 
+  it("removing a MIDDLE release point moves the flag onto the merged segment", () => {
+    const env: EnvBreakpoints = {
+      start: 0,
+      segments: [
+        { to: 1, time: 0.1 },
+        { to: 0.5, time: 0.2, release: true },
+        { to: 0, time: 0.3 },
+      ],
+    };
+    const out = removePoint(env, 2); // drop the release breakpoint itself
+    expect(out.segments).toHaveLength(2);
+    // The flag survives on the merged segment — a silently no-release
+    // envelope would self-free voices at a nonzero level (click per note).
+    expect(out.segments[1].release).toBe(true);
+    expect(out.segments[1].time).toBeCloseTo(0.5, 6);
+  });
+
   it("removing the release point moves the flag to the new last segment", () => {
     const next = removePoint(BASE, 3); // the release breakpoint itself
     expect(next.segments).toHaveLength(2);

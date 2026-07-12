@@ -149,6 +149,42 @@ describe("voice array latching", () => {
     expect(sent.filter((m) => m.address === "/n_setn")).toHaveLength(0);
   });
 
+  it("a synth control derives from an enclosing var via a bare-name bind (lexical fallback)", async () => {
+    const { host } = await mountPlugin(
+      wrapXml(`<sc-var name="shape" value="0, 1, 0, -99, 1, 0.25, 5, -4"/>
+      <sc-synthdef name="voice">
+        <sc-control name="gate" value="1"/>
+        <sc-control name="env" value="0, 1, 0, -99, 1, 0.01, 5, -4"/>
+        <sc-ugen name="e" type="EnvGen" rate="kr">
+          <sc-control name="gate" bind:value="gate"/>
+          <sc-control name="envelope" bind:value="env"/>
+        </sc-ugen>
+        <sc-ugen name="out" type="Out">
+          <sc-control name="bus" value="0"/><sc-control name="channelsarray" bind:value="e"/>
+        </sc-ugen>
+      </sc-synthdef>
+      <sc-synth name="s1" synthdef="voice">
+        <sc-control name="gate" value="1"/>
+        <sc-control name="env" bind:value="shape"/>
+      </sc-synth>`),
+    );
+    // The derived instance control bakes the VAR's live value into /s_new:
+    // def params gate(1), env(8) → env base 1; the 0.25 time = slot 6.
+    const sNew = sent.find((m) => m.address === "/s_new")!;
+    const pairs = sNew.args.slice(4);
+    expect(pairs[pairs.indexOf(6) + 1]).toBe(0.25);
+
+    // A var edit recomputes the derived control → ONE /n_setn on the node.
+    const synth = host.querySelector("sc-synth") as unknown as { nodeId: number };
+    const shape = host.querySelector('sc-var[name="shape"]') as ScVar;
+    sent.length = 0;
+    shape.setValue([0, 1, 0, -99, 1, 0.5, 5, -4]);
+    const setns = sent.filter((m) => m.address === "/n_setn");
+    expect(setns).toHaveLength(1);
+    expect(setns[0].args.slice(0, 3)).toEqual([synth.nodeId, "env", 8]);
+    expect(setns[0].args[8]).toBe(0.5);
+  });
+
   it("an sc-synth without an instance array control keeps the def's compiled defaults", async () => {
     const { host } = await mountPlugin(
       wrapXml(`<sc-control name="env" value="0, 1, 0, -99, 1, 0.42, 5, -4"/>

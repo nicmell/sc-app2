@@ -692,6 +692,14 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
+    <xs:attribute name="range">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="bipolar"/>
+          <xs:enumeration value="unipolar"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

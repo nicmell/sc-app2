@@ -4,16 +4,19 @@
     <title>Envelope Scope Plugin</title>
 </head>
 <body>
-<!-- VERIFICATION rig: ONE envelope — the trace synth's own `env` control
-     (trace.env) — drives everything.
-       editor    writes trace.env: each edit is one /n_setn on the trace
-                 node, EnvGen.ar redraws the shape onto bus 16, and the
-                 scope displays it — the trace must MATCH the editor
-       keyboard  latches the CURRENT trace.env into each voice's /s_new
+<!-- VERIFICATION rig: ONE envelope — the `shape` var — drives everything.
+       editor    writes `shape`
+       trace     its `env` control DERIVES from `shape` (a bare-name bind
+                 resolves lexically to the enclosing var): every edit is one
+                 /n_setn on the trace node, EnvGen.ar redraws the shape onto
+                 bus 16, and the scope displays it — the trace must MATCH
+                 the editor
+       keyboard  latches the CURRENT `shape` into each voice's /s_new
                  (playing voices keep the shape they were born with)
      The arrays are 36 wide: 4 header slots + 8 segments of 4, zero-padded
      (Env.newClear style — slot 1 holds the REAL segment count), so the
      editor can add breakpoints up to 8 segments. -->
+<sc-var name="shape" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
 
 <!-- The envelope, drawn by the server: Impulse retriggers a gate held for
      the envelope's OWN pre-release duration, computed in-graph from the
@@ -42,7 +45,7 @@
 </sc-synthdef>
 <sc-synth name="trace" synthdef="envTrace">
     <sc-control name="rate" value="2"/>
-    <sc-control name="env" value="0, 3, 2, -99,  1, 0.05, 5, -4,  0.5, 0.1, 5, -4,  0, 0.15, 5, -4,  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0"/>
+    <sc-control name="env" bind:value="shape"/>
 </sc-synth>
 
 <!-- The audible half: the SAME envelope gates each voice's amp and bends its
@@ -77,18 +80,18 @@
         <sc-text weight="bold">Envelope verification</sc-text>
         <sc-text tone="dim">The scope trace below must MATCH the editor's curve — drag and compare</sc-text>
     </sc-flex>
-    <sc-env-editor bind:value="trace.env"/>
-    <!-- trigger="auto": pin to the envelope's rising edge when it lands in
-         the search window, free-run otherwise — never hold a stale trace.
-         level 0.03 (just above the 0.02 arming hysteresis) keeps the trigger
-         firing even for envelopes dragged down to small peaks. -->
-    <sc-scope bus="16" channels="1" frames="16384" trigger="auto" level="0.03"/>
+    <sc-env-editor bind:value="shape"/>
+    <!-- range="unipolar": the [0, 1] envelope fills the whole lane instead of
+         the upper half of a ±1 bipolar view. trigger="auto": pin to the
+         rising edge when found, free-run otherwise — never hold a stale
+         trace; level 0.03 sits just above the arming hysteresis. -->
+    <sc-scope bus="16" channels="1" frames="16384" trigger="auto" level="0.03" range="unipolar"/>
     <sc-flex align="center" gap="md">
         <sc-flex orientation="vertical" gap="xs" align="center">
             <sc-knob bind:value="trace.rate" min="0.5" max="4" step="0.1"/>
             <sc-text as="label">Retrigger <sc-display bind:value="trace.rate" format="%.1f Hz"/></sc-text>
         </sc-flex>
-        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="trace.env"/>
+        <sc-keyboard synthdef="zap" octaves="2" start="48" bind:envelope="shape"/>
     </sc-flex>
     <sc-console/>
 </sc-flex>

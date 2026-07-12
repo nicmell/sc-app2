@@ -148,9 +148,12 @@ export function resolveNode(
 
 /** Resolve `el`'s bind into its node + control-name pair: the leading
  *  segments name a node in scope (none targets the parent node), the last
- *  segment a state child declared on it. `attr` names the attribute the
- *  expression came from in the error messages (`bind` for inputs, `bind:min`/
- *  `bind:value`/… for runtime props). */
+ *  segment a state child declared on it. A BARE name that matches no state
+ *  on the parent falls back LEXICALLY: a named state element anywhere in
+ *  the enclosing scope chain (a root-level var, an outer group's control) —
+ *  so a synth's instance control can derive from a plugin-level var. `attr`
+ *  names the attribute the expression came from in the error messages
+ *  (`bind` for inputs, `bind:min`/`bind:value`/… for runtime props). */
 export function resolveControlBind(
   el: Element,
   ctx: RuntimeContext,
@@ -165,6 +168,16 @@ export function resolveControlBind(
     throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
   }
   if (![...scChildrenThrough(target)].some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+    // Lexical fallback for the bare-name form: the name may address a STATE
+    // element in an enclosing scope (declared before, per resolveNode's
+    // bind-order gate). Its effective owner carries the control lookup.
+    if (segments.length === 0) {
+      const scoped = resolveNode(el, ctx, [controlName]);
+      if (scoped && isStateRuntime(scoped)) {
+        const owner = scoped.namedScParent ?? ctx.rootNode;
+        return { target: owner, controlName };
+      }
+    }
     // When the state IS declared on the target but only later in the
     // document (not yet processed), give the honest bind-order error
     // instead of "not declared".

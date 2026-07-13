@@ -1,5 +1,6 @@
 {
   "name": "waveselect-plugin",
+  "title": "Waveform Select",
   "author": "sc-app",
   "version": "0.1.0",
   "entry": "index.html",

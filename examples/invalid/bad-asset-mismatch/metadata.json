@@ -1,9 +1,13 @@
 {
   "name": "bad-asset-mismatch",
+  "title": "Bad Asset Mismatch",
   "author": "test",
   "version": "0.1.0",
   "entry": "index.html",
   "assets": [
-    { "path": "logo.png", "type": "png" }
+    {
+      "path": "logo.png",
+      "type": "png"
+    }
   ]
 }

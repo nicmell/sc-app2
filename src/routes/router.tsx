@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { ConnectingScreen } from "@/components/ConnectionOverlay";
+import { ROUTES } from "@/constants/routes";
 import { rootLoader, sessionLoader } from "@/lib/session/resolveSession";
 import { DashboardRoute } from "./DashboardRoute";
 import { PluginPage } from "./PluginPage";
@@ -13,13 +14,13 @@ import { SessionLayout } from "./SessionLayout";
 // dashboard); plugins/:pluginId is the full-screen standalone plugin instance.
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: ROUTES.ROOT,
     loader: rootLoader,
     errorElement: <SessionBootError />,
     hydrateFallbackElement: <ConnectingScreen />,
   },
   {
-    path: "/:sessionId",
+    path: ROUTES.SESSION,
     loader: sessionLoader,
     element: <SessionLayout />,
     errorElement: <SessionBootError />,
@@ -29,10 +30,10 @@ export const router = createBrowserRouter([
         element: <DashboardRoute />,
         children: [
           { index: true, element: null },
-          { path: "settings", element: null },
+          { path: ROUTES.SESSION_SETTINGS, element: null },
         ],
       },
-      { path: "plugins/:pluginId", element: <PluginPage /> },
+      { path: ROUTES.SESSION_PLUGIN, element: <PluginPage /> },
     ],
   },
 ]);

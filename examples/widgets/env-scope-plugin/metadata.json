@@ -1,5 +1,6 @@
 {
   "name": "env-scope-plugin",
+  "title": "Envelope Scope Plugin",
   "author": "sc-app2",
   "version": "0.1.0",
   "entry": "index.html",

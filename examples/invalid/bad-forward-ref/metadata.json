@@ -1,5 +1,6 @@
 {
   "name": "bad-forward-ref",
+  "title": "Bad Forward Reference (intentional error)",
   "author": "sc-app",
   "version": "0.1.0",
   "entry": "index.html",

@@ -6,16 +6,18 @@
 // ConnectionOverlay's connecting scrim.
 
 import { useEffect } from "react";
-import { Outlet, useMatch, useNavigate, useParams } from "react-router";
+import { generatePath, Outlet, useMatch, useNavigate, useParams } from "react-router";
 import { Dashboard } from "@/components/Dashboard";
+import { ROUTES } from "@/constants/routes";
 import { Drawer } from "@/components/Drawer";
 import { session } from "@/stores/session";
 
 export function DashboardRoute() {
-  const settingsOpen = Boolean(useMatch("/:sessionId/settings"));
+  const settingsOpen = Boolean(useMatch(ROUTES.SESSION_SETTINGS));
   const navigate = useNavigate();
-  const { sessionId } = useParams();
-  const dashboardPath = `/${sessionId}`;
+  const sessionId = useParams().sessionId!;
+  const dashboardPath = generatePath(ROUTES.SESSION, { sessionId });
+  const settingsPath = generatePath(ROUTES.SESSION_SETTINGS, { sessionId });
   const close = () => void navigate(dashboardPath);
 
   useEffect(() => {
@@ -34,9 +36,7 @@ export function DashboardRoute() {
   return (
     <>
       <Dashboard
-        onToggleDrawer={() =>
-          void navigate(settingsOpen ? dashboardPath : `${dashboardPath}/settings`)
-        }
+        onToggleDrawer={() => void navigate(settingsOpen ? dashboardPath : settingsPath)}
       />
       <Drawer open={settingsOpen} onClose={close} />
       <Outlet />

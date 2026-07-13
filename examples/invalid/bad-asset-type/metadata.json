@@ -1,9 +1,13 @@
 {
   "name": "bad-asset-type",
+  "title": "Bad Asset Type",
   "author": "test",
   "version": "0.1.0",
   "entry": "index.html",
   "assets": [
-    { "path": "icon.svg", "type": "svg" }
+    {
+      "path": "icon.svg",
+      "type": "svg"
+    }
   ]
 }

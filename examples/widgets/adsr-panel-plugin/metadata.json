@@ -1,5 +1,6 @@
 {
   "name": "adsr-panel-plugin",
+  "title": "ADSR Panel Plugin",
   "author": "sc-app2",
   "version": "0.1.0",
   "entry": "index.html",

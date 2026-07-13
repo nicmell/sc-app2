@@ -7,10 +7,10 @@ stack + headless Chrome running) uploads every one of them and runs the
 in-page parse-engine validation — see "Validating example plugins" in the
 root CLAUDE.md. Anything failing outside the `invalid/` fixtures is a bug.
 
-Entries are XHTML rooted at `<sc-plugin title="…" description="…">`
-(`description` is optional). The loader parses XML and merges those metadata
-attributes and the root's children into its runtime host, so self-closing tags
-are safe. The root declares `xmlns="http://www.w3.org/1999/xhtml"` and
+Entries are XHTML rooted at `<sc-plugin>`. Display metadata belongs in
+`metadata.json`: `title` and `description` are optional string fields. The loader
+parses XML and imports the root's children into its runtime host, so self-closing
+tags are safe. The root declares `xmlns="http://www.w3.org/1999/xhtml"` and
 `xmlns:bind="urn:sc-app:bind"` so dynamic runtime props can use the `bind:` namespace.
 To install one by hand:
 `cd examples/<cat>/<plugin> && zip -r /tmp/p.zip . && curl -X POST

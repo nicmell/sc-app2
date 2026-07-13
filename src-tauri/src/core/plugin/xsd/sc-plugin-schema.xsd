@@ -199,7 +199,6 @@
         <xs:group ref="blockContent"/>
       </xs:choice>
     </xs:sequence>
-    <xs:attribute name="description" type="xs:string"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 

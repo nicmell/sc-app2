@@ -12,6 +12,7 @@ import { RouterProvider } from "react-router/dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectionOverlay } from "@/components/ConnectionOverlay";
 import { modalStyles } from "@/components/ui/Modal";
+import { ROUTES } from "@/constants/routes";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { ConnStatus } from "@/types/stores";
@@ -35,7 +36,7 @@ beforeEach(async () => {
   document.body.appendChild(container);
   root = createRoot(container);
   loader.mockClear();
-  router = createMemoryRouter([{ path: "/:sessionId", loader, element: <ConnectionOverlay /> }], {
+  router = createMemoryRouter([{ path: ROUTES.SESSION, loader, element: <ConnectionOverlay /> }], {
     initialEntries: ["/session-1"],
   });
   setStatus("connecting");

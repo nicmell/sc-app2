@@ -1,5 +1,6 @@
 {
   "name": "default-dashboard",
+  "title": "Default dashboard",
   "author": "sc-app2",
   "version": "0.1.0",
   "entry": "entry.html",

@@ -23,6 +23,10 @@ pub struct AssetInfo {
 pub struct PluginInfo {
     pub id: String,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub author: String,
     pub version: String,
     pub entry: String,
@@ -72,6 +76,17 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .ok_or_else(|| format!("metadata.json: \"{key}\" must be a non-empty string"))
+    };
+    let get_optional_str = |key: &str| -> Result<Option<String>, String> {
+        match obj.get(key) {
+            None => Ok(None),
+            Some(value) => value
+                .as_str()
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .map(Some)
+                .ok_or_else(|| format!("metadata.json: \"{key}\" must be a non-empty string")),
+        }
     };
 
     let name = get_str("name")?;
@@ -134,6 +149,8 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
         // Minted at install time (add_plugin) — validation is pure.
         id: String::new(),
         name,
+        title: get_optional_str("title")?,
+        description: get_optional_str("description")?,
         author: get_str("author")?,
         version,
         entry,
@@ -338,6 +355,33 @@ mod tests {
     }
 
     #[test]
+    fn optional_display_metadata_must_be_non_empty_strings() {
+        let base = serde_json::json!({
+            "name": "plugin",
+            "author": "author",
+            "version": "1.2.3",
+            "entry": "index.html"
+        });
+        let without_display_metadata = validate_metadata(&base).unwrap();
+        assert_eq!(without_display_metadata.title, None);
+        assert_eq!(without_display_metadata.description, None);
+
+        let mut with_display_metadata = base.clone();
+        with_display_metadata["title"] = serde_json::json!(" Plugin title ");
+        with_display_metadata["description"] = serde_json::json!(" Plugin description ");
+        let info = validate_metadata(&with_display_metadata).unwrap();
+        assert_eq!(info.title.as_deref(), Some("Plugin title"));
+        assert_eq!(info.description.as_deref(), Some("Plugin description"));
+
+        let mut invalid = base;
+        invalid["title"] = serde_json::json!("  ");
+        assert_eq!(
+            validate_metadata(&invalid).err().unwrap(),
+            "metadata.json: \"title\" must be a non-empty string"
+        );
+    }
+
+    #[test]
     fn safe_path_rejects_traversal() {
         assert!(is_safe_path("entry.html"));
         assert!(is_safe_path("assets/logo.png"));
@@ -347,9 +391,11 @@ mod tests {
 
     #[test]
     fn entry_xsd_accepts_minimal_plugin_and_rejects_unknown_element() {
-        let ok = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope></sc-scope></sc-plugin>"#;
+        let ok =
+            r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope></sc-scope></sc-plugin>"#;
         assert!(validate_entry_xhtml(ok).is_ok());
-        let bad = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-bogus></sc-bogus></sc-plugin>"#;
+        let bad =
+            r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-bogus></sc-bogus></sc-plugin>"#;
         assert!(validate_entry_xhtml(bad).is_err());
     }
 }

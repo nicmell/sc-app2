@@ -1,7 +1,7 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// XML-parse + merge its authored root into a connected <sc-plugin> host,
+// XML-parse + import its authored root's children into a connected <sc-plugin> host,
 // and run the host's own process() — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
@@ -83,10 +83,6 @@ const probeRuntime = (pluginId, entry) =>
   try {
     const root = doc.documentElement;
     if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
-    for (const name of ["title", "description"]) {
-      const value = root.getAttribute(name);
-      if (value !== null) host.setAttribute(name, value);
-    }
     host.replaceChildren(...[...root.children].map((child) => document.importNode(child, true)));
 
     host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [] });

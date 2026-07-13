@@ -452,7 +452,7 @@ further `sc-*` element:
 
 | element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sc-plugin                                                  | functional authored/runtime root: `title`/`description` attrs are merged into the synthesized host for in-plugin use, then it loads/parses the entry, owns the plugin scsynth group (its `nodeId`), and orchestrates the load pass                                                                                                                                                                                                                                                               |
+| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; the synthesized host imports and parses the entry children, owns the plugin scsynth group (its `nodeId`), and orchestrates the load pass                                                                                                                                                                                                                                                            |
 | sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                          |
 | sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet           |
 | sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                   |
@@ -615,7 +615,7 @@ setup + shared element-suite helpers in `src/lib/utils/test/` (`test-setup.ts`,
 scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
-mounts it into a connected `<sc-plugin>` host (text/xml parse + `adoptEntry` merge),
+mounts it into a connected `<sc-plugin>` host (text/xml parse + `adoptEntry` child import),
 and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
@@ -649,8 +649,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    document first** (custom elements only upgrade when connected), fetch the
    entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
    self-closing tags; HTML parsing mis-nests them), require an authored
-   `<sc-plugin>` root, copy its `title`/`description`, and `importNode` its
-   children into the host, then
+   `<sc-plugin>` root, and `importNode` its children into the host, then
    `host.process({rootNode: host, nodes: new Set(), scope: [host],
 path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each

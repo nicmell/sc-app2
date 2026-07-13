@@ -6,12 +6,12 @@
 // SessionInfo). A live session still dies with its WebSocket — the id is
 // persisted identity only.
 
+import { ROUTES } from "@/constants/routes";
 import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { get, HttpError, post } from "@/lib/http";
 import { refreshPlugins } from "@/stores/plugins";
 import type { SessionInfo } from "@/types/api";
-import type { LoaderFunctionArgs } from "react-router";
-import { replace } from "react-router";
+import { generatePath, replace, type LoaderFunctionArgs } from "react-router";
 
 /** Mint a fresh session. The server allocates the group id + node range;
  *  503 = scsynth not registered (the bounded quiet-retry case). */
@@ -62,12 +62,14 @@ let handoff: SessionInfo | null = null;
 
 export async function rootLoader() {
   const stored = localStorage.getItem(SESSION_KEY);
-  if (stored) return replace(`/${stored}`); // validity is sessionLoader's problem
+  if (stored) {
+    return replace(generatePath(ROUTES.SESSION, { sessionId: stored }));
+  }
 
   const info = await with503Retry(createSession);
   localStorage.setItem(SESSION_KEY, info.sessionId);
   handoff = info;
-  return replace(`/${info.sessionId}`);
+  return replace(generatePath(ROUTES.SESSION, { sessionId: info.sessionId }));
 }
 
 export async function sessionLoader({ params }: LoaderFunctionArgs) {
@@ -78,7 +80,7 @@ export async function sessionLoader({ params }: LoaderFunctionArgs) {
     console.warn("[session] plugin registry load failed:", error);
   });
   const sessionId = params.sessionId;
-  if (!sessionId) return replace("/");
+  if (!sessionId) return replace(ROUTES.ROOT);
 
   if (handoff?.sessionId === sessionId) {
     const info = handoff;
@@ -95,5 +97,5 @@ export async function sessionLoader({ params }: LoaderFunctionArgs) {
   const fresh = await with503Retry(createSession);
   localStorage.setItem(SESSION_KEY, fresh.sessionId);
   handoff = fresh;
-  return replace(`/${fresh.sessionId}`);
+  return replace(generatePath(ROUTES.SESSION, { sessionId: fresh.sessionId }));
 }

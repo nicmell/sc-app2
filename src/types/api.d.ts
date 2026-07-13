@@ -11,6 +11,8 @@ export interface PluginAsset {
 export interface PluginInfo {
   id: string;
   name: string;
+  title?: string;
+  description?: string;
   author: string;
   version: string;
   entry: string;

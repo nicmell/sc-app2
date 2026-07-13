@@ -1,8 +1,8 @@
 // <sc-plugin> — the runtime host for an authored <sc-plugin> entry. PluginHost
 // renders one per dashboard box, and PluginPage renders a standalone one; the
-// loader merges the entry's title/description attrs and children into that
-// host without replacing its runtime id. The attrs are reserved for in-plugin
-// use through getProp. It resolves its plugin — the `plugin` property, else the
+// loader imports the entry's children into that host without replacing its runtime
+// id. Title and description live in metadata.json / PluginInfo. It resolves its
+// plugin — the `plugin` property, else the
 // layout/plugins stores keyed by its DOM id — then parses + validates it into the runtime
 // registry (the ScElement parse engine), and owns the plugin's scsynth
 // group: created inside the session group on mount, freed — with every synth

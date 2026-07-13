@@ -5,14 +5,16 @@
 // leave exactly like a box unmount. The plugins slice is populated — the
 // session loader awaited refreshPlugins().
 
-import { useNavigate, useParams } from "react-router";
+import { generatePath, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui";
+import { ROUTES } from "@/constants/routes";
 import { plugins } from "@/stores/plugins";
 import { useStore } from "@/stores/useStore";
 import styles from "./PluginPage.module.scss";
 
 export function PluginPage() {
-  const { sessionId, pluginId } = useParams();
+  const { sessionId: matchedSessionId, pluginId } = useParams();
+  const sessionId = matchedSessionId!;
   const navigate = useNavigate();
   const info = useStore(plugins).find((plugin) => plugin.id === pluginId);
 
@@ -24,7 +26,7 @@ export function PluginPage() {
           size="sm"
           icon="arrow-left"
           label="Back"
-          onClick={() => void navigate(`/${sessionId}`)}
+          onClick={() => void navigate(generatePath(ROUTES.SESSION, { sessionId }))}
         />
         <h1>{info?.name ?? "Plugin not found"}</h1>
       </header>

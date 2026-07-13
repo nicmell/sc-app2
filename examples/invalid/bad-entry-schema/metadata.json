@@ -1,5 +1,6 @@
 {
   "name": "bad-entry-schema",
+  "title": "Bad Schema",
   "author": "test",
   "version": "0.1.0",
   "entry": "index.html",

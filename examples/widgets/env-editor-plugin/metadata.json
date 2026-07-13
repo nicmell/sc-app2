@@ -1,5 +1,6 @@
 {
   "name": "env-editor-plugin",
+  "title": "Envelope Editor Plugin",
   "author": "sc-app2",
   "version": "0.1.0",
   "entry": "index.html",

@@ -6,12 +6,14 @@ import { DashboardRoute } from "./DashboardRoute";
 import { PluginPage } from "./PluginPage";
 import { SessionBootError } from "./SessionBootError";
 import { SessionLayout } from "./SessionLayout";
+import { SettingsRoute } from "./SettingsRoute";
 
 // Data-mode route tree. "/" only resolves a session id (stored or minted) and
 // replace-redirects to /:sessionId — the layout route whose loader returns the
 // SessionInfo and whose element owns the OSC connection lifecycle. The settings
-// child is presence-only (the drawer opens on match, over the still-mounted
-// dashboard); plugins/:pluginId is the full-screen standalone plugin instance.
+// child renders the drawer through DashboardRoute's Outlet (over the
+// still-mounted dashboard, open only once the session is connected);
+// plugins/:pluginId is the full-screen standalone plugin instance.
 export const router = createBrowserRouter([
   {
     path: ROUTES.ROOT,
@@ -30,7 +32,7 @@ export const router = createBrowserRouter([
         element: <DashboardRoute />,
         children: [
           { index: true, element: null },
-          { path: ROUTES.SESSION_SETTINGS, element: null },
+          { path: ROUTES.SESSION_SETTINGS, element: <SettingsRoute /> },
         ],
       },
       { path: ROUTES.SESSION_PLUGIN, element: <PluginPage /> },

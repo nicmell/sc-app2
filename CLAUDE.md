@@ -62,8 +62,10 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          → "/:sessionId" (sessionLoader → SessionLayout, which
                          owns connect()/disconnect() on the loader's
                          SessionInfo and hosts ToastStack/ConnectionOverlay)
-                         → DashboardRoute (dashboard + the URL-driven settings
-                         drawer at /:sessionId/settings, presence-only child)
+                         → DashboardRoute (dashboard + <Outlet/>; the settings
+                         child SettingsRoute at /:sessionId/settings renders
+                         the drawer, open only once the session is connected —
+                         never over the connecting scrim / error modal)
                          and PluginPage (/:sessionId/plugins/:pluginId — a
                          full-screen STANDALONE <sc-plugin> instance, id
                          "plugin:<id>", own runtime map + scsynth group);

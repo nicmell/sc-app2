@@ -4,7 +4,6 @@
 // invariant structural.
 
 import type { PluginInfo } from "@/types/api";
-import type { StateValue } from "@/types/runtime";
 
 /** A grid cell: react-grid-layout geometry + the assigned plugin id. */
 export interface BoxItem {
@@ -72,18 +71,6 @@ export interface OscState {
   errors: ScsynthError[];
 }
 
-/** One mounted plugin's LITERAL runtime values, keyed by the state element's
- *  full named path (e.g. `"s1.freq"`; a plugin-level control is just
- *  `"freq"`). Values are numbers, strings (string vars feed the presentation
- *  layer; the OSC boundary coerces and skips non-numerics), or numeric
- *  arrays (comma-list values — immutable per edit).
- *  Only literal, user-writable state is store-backed — derived (`bind:value`)
- *  values live on the elements as `_state` and propagate via "statechange".
- *  Seeded from the declarative defaults in the load pass; written through
- *  `ScState.setValue` (for controls the write path that also dispatches
- *  `/n_set`, or `/n_setn` for arrays). */
-export type PluginRuntimeValues = Record<string, StateValue>;
-
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
@@ -94,7 +81,4 @@ export interface AppState {
   layout: BoxItem[];
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
-  /** Live runtime values per mounted plugin (keyed by the plugin root's
-   *  element id — the dashboard box id); dropped wholesale on unmount. */
-  runtime: Record<string, PluginRuntimeValues>;
 }

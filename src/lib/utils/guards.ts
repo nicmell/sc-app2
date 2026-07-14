@@ -6,6 +6,7 @@
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScNode } from "@/sc-elements/internal/sc-node";
+import type { ScPlugin } from "@/sc-elements/nodes/sc-plugin/sc-plugin";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { ScControl } from "@/sc-elements/state/sc-control";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
@@ -40,4 +41,9 @@ export function isStateRuntime(el: Element): el is ScState {
 export function isNodeRuntime(el: Element): el is ScNode {
   const t = typeOf(el);
   return t === ELEMENTS.SC_PLUGIN || t === ELEMENTS.SC_GROUP || t === ELEMENTS.SC_SYNTH;
+}
+
+/** The plugin root — the element carrying the per-instance runtime store. */
+export function isPluginRuntime(el: Element): el is ScPlugin {
+  return typeOf(el) === ELEMENTS.SC_PLUGIN;
 }

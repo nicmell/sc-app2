@@ -15,7 +15,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
-import { setRuntimeValue } from "@/stores/runtime";
 import type { StateValue } from "@/types/runtime";
 import {
   registerScElements,
@@ -104,7 +103,7 @@ beforeEach(() => {
 
 afterEach(() => {
   document.body.replaceChildren(); // disconnects → unload paths run
-  appStore.update((s) => ({ ...s, runtime: {}, osc: { ...s.osc, connected: false } }));
+  appStore.update((s) => ({ ...s, osc: { ...s.osc, connected: false } }));
 });
 
 /** Drive the `connected` signal the plugins live on (the osc slice). */
@@ -114,7 +113,7 @@ const setConnected = (connected: boolean) =>
 describe("load pass", () => {
   it("seeds exactly the enabled literal controls' defaults, keyed by full path", async () => {
     const { host } = await mountExample();
-    expect(appStore.get().runtime[host.id]).toEqual({
+    expect(host.runtime.get()).toEqual({
       "s1.freq": 440,
       "s1.amp": 0.2,
       "s1.pan": 0,
@@ -123,8 +122,8 @@ describe("load pass", () => {
   });
 
   it("parse alone stays store-pure (no seeding before load)", () => {
-    parseExample();
-    expect(appStore.get().runtime).toEqual({});
+    const { host } = parseExample();
+    expect(host.runtime.get()).toEqual({});
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -184,7 +183,7 @@ describe("ScControl.setValue", () => {
     const synth = host.querySelector("sc-synth") as ScSynth;
 
     freq.setValue(550);
-    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(550);
+    expect(host.runtime.get()["s1.freq"]).toBe(550);
     expect(freq._state).toBe(550);
     expect(freq.getProp("value")).toBe(440); // the declarative attribute mirror never moves
     expect(nSets()).toHaveLength(1);
@@ -204,7 +203,7 @@ describe("ScControl.setValue", () => {
     const seen: StateValue[] = [];
     const off = freq.onStateChange((v) => seen.push(v));
 
-    setRuntimeValue(host.id, "s1.freq", 660);
+    host.runtime.update((s) => ({ ...s, "s1.freq": 660 }));
     await range.updateComplete;
     expect(freq._state).toBe(660);
     expect(seen).toEqual([660]);
@@ -212,7 +211,7 @@ describe("ScControl.setValue", () => {
     expect(nSets()).toHaveLength(0); // the no-echo invariant
 
     off(); // the unregister works — further writes notify nobody
-    setRuntimeValue(host.id, "s1.freq", 670);
+    host.runtime.update((s) => ({ ...s, "s1.freq": 670 }));
     expect(seen).toEqual([660]);
   });
 });
@@ -272,7 +271,7 @@ describe("inputs and display", () => {
 
     dragWidget(range, 880);
 
-    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(880);
+    expect(host.runtime.get()["s1.freq"]).toBe(880);
     expect(nSets()).toHaveLength(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "freq", 880]);
     await display.updateComplete;
@@ -288,10 +287,10 @@ describe("inputs and display", () => {
     expect(toggleOf(checkbox).checked).toBe(true); // seeded default 1
 
     toggleWidget(checkbox, false);
-    expect(appStore.get().runtime[host.id]["s1.gate"]).toBe(0);
+    expect(host.runtime.get()["s1.gate"]).toBe(0);
     expect(nSets()[0].args).toEqual([synth.nodeId, "gate", 0]);
 
-    setRuntimeValue(host.id, "s1.gate", 1);
+    host.runtime.update((s) => ({ ...s, "s1.gate": 1 }));
     await checkbox.updateComplete;
     expect(toggleOf(checkbox).checked).toBe(true);
     expect(nSets()).toHaveLength(1); // the external write sent no OSC
@@ -308,19 +307,28 @@ describe("inputs and display", () => {
 });
 
 describe("unmount", () => {
-  it("drops the plugin's store map and every subscription", async () => {
+  it("drops every subscription; a remount owns a fresh store", async () => {
     const { host } = await mountExample();
     const freq = control(host, "freq");
     const slider = widgetOf(inputByBind(host, "s1.freq"));
 
     host.remove();
-    expect(appStore.get().runtime[host.id]).toBeUndefined();
 
-    // A write straight into the slice reaches no detached element.
-    setRuntimeValue(host.id, "s1.freq", 999);
+    // A write straight into the old instance's store reaches no detached element.
+    host.runtime.update((s) => ({ ...s, "s1.freq": 999 }));
     expect(freq._state).toBe(440);
     expect(slider.value).toBe(440);
     expect(nSets()).toHaveLength(0);
+
+    // A remounted host is a new instance with its own store: fresh defaults.
+    const { host: remounted } = await mountExample();
+    expect(remounted.runtime).not.toBe(host.runtime);
+    expect(remounted.runtime.get()).toEqual({
+      "s1.freq": 440,
+      "s1.amp": 0.2,
+      "s1.pan": 0,
+      "s1.gate": 1,
+    });
   });
 
   it("frees the plugin group wholesale, with no per-synth /n_free", async () => {
@@ -406,8 +414,8 @@ describe("disconnect / reconnect", () => {
     // Teardown attempted, children before the group (the live client drops
     // these on a dead socket; the mock records them).
     expect(sent.map((m) => m.address)).toEqual(["/d_free", "/g_freeAll", "/n_free"]);
-    // The runtime map survives a disconnect — only unmount drops it.
-    expect(appStore.get().runtime[host.id]["s1.freq"]).toBe(880);
+    // The instance's runtime store survives a disconnect — user values kept.
+    expect(host.runtime.get()["s1.freq"]).toBe(880);
 
     sent.length = 0;
     setConnected(true); // reconnect
@@ -433,7 +441,7 @@ describe("disconnect / reconnect", () => {
     // The store wiring was rebuilt, not duplicated: an external write still
     // refreshes the input through the fresh subscription.
     const range = inputByBind(host, "s1.freq");
-    setRuntimeValue(host.id, "s1.freq", 700);
+    host.runtime.update((s) => ({ ...s, "s1.freq": 700 }));
     await range.updateComplete;
     expect(widgetOf(range).value).toBe(700);
   });
@@ -527,7 +535,7 @@ describe("state propagation (vars + bound state)", () => {
   it("literal vars seed their store keys; bound vars settle off-store in _state", async () => {
     const { host } = await mountVars();
     // Only LITERAL state is store-backed — derived values live on the elements.
-    expect(appStore.get().runtime[host.id]).toEqual({
+    expect(host.runtime.get()).toEqual({
       "vars.a": 0.5,
       "vars.b": 0,
     });
@@ -546,7 +554,7 @@ describe("state propagation (vars + bound state)", () => {
 
     dragWidget(host.querySelector("sc-slider")!, 0.8);
 
-    expect(appStore.get().runtime[host.id]["vars.a"]).toBe(0.8); // the literal key
+    expect(host.runtime.get()["vars.a"]).toBe(0.8); // the literal key
     expect(varByName(host, "mirror")._state).toBe(0.8);
     expect(varByName(host, "doubled")._state).toBe(1.6);
     expect(varByName(host, "sum")._state).toBe(0.8);
@@ -557,13 +565,13 @@ describe("state propagation (vars + bound state)", () => {
 
   it("bound state is read-only, and a converged recompute notifies nobody", async () => {
     const { host } = await mountVars();
-    const before = appStore.get().runtime;
+    const before = host.runtime.get();
     const seen: StateValue[] = [];
     varByName(host, "sum").onStateChange((v) => seen.push(v));
 
     varByName(host, "mirror").setValue(9); // derived — silently inert
     varByName(host, "a").setValue(0.5); // already the current value
-    expect(appStore.get().runtime).toBe(before); // same reference: zero writes
+    expect(host.runtime.get()).toBe(before); // same reference: zero writes
     expect(seen).toEqual([]); // no statechange on unchanged recomputes
 
     varByName(host, "b").setValue(0.25); // a real move: exactly one notification
@@ -617,7 +625,7 @@ describe("state propagation (vars + bound state)", () => {
     host.unload();
     await host.load();
 
-    expect(appStore.get().runtime[host.id]["vars.a"]).toBe(0.25);
+    expect(host.runtime.get()["vars.a"]).toBe(0.25);
     varByName(host, "a").setValue(0.1);
     expect(varByName(host, "doubled")._state).toBe(0.2); // one fresh subscription
   });
@@ -654,7 +662,7 @@ describe("bound enabled control on a synth", () => {
     master(host).setValue(300);
     const freq = host.querySelector("sc-synth sc-control") as ScControl;
     expect(freq._state).toBe(600); // derived — no store key, the element holds it
-    expect(appStore.get().runtime[host.id]["s1.freq"]).toBeUndefined();
+    expect(host.runtime.get()["s1.freq"]).toBeUndefined();
     expect(nSets()).toHaveLength(1);
     expect(nSets()[0].args).toEqual([synth.nodeId, "freq", 600]);
 
@@ -739,7 +747,7 @@ describe("sc-if", () => {
   it("unload drops the subscription — later store writes don't re-toggle", async () => {
     const { host, ifs } = await mountIf();
     host.unload();
-    setRuntimeValue(host.id, "gate", 0);
+    host.runtime.update((s) => ({ ...s, gate: 0 }));
     await Promise.all(ifs.map((el) => el.updateComplete));
     expect(hiddenStates(ifs)).toEqual([false, true, true]); // frozen pre-unload state
   });
@@ -784,7 +792,7 @@ describe("selection inputs (select + radio-group)", () => {
   it("choosing on the select writes the var and cascades to the radio-group", async () => {
     const { host } = await mountChoice();
     chooseWidget(select(host), 2);
-    expect(appStore.get().runtime[host.id]["vars.mode"]).toBe(2);
+    expect(host.runtime.get()["vars.mode"]).toBe(2);
     expect(nSets()).toHaveLength(0); // vars never touch scsynth
     await radioGroup(host).updateComplete;
     expect(choiceOf(radioGroup(host)).value).toBe(2);
@@ -793,7 +801,7 @@ describe("selection inputs (select + radio-group)", () => {
   it("choosing on the radio-group writes the var and cascades to the select", async () => {
     const { host } = await mountChoice();
     chooseWidget(radioGroup(host), 0);
-    expect(appStore.get().runtime[host.id]["vars.mode"]).toBe(0);
+    expect(host.runtime.get()["vars.mode"]).toBe(0);
     await select(host).updateComplete;
     expect(choiceOf(select(host)).value).toBe(0);
   });
@@ -852,7 +860,7 @@ describe("sc-if transparency", () => {
     ) as ScVar;
     const display = host.querySelector("sc-display") as ScDisplay;
 
-    expect(appStore.get().runtime[host.id]).toEqual({ gate: 1 }); // literal only, root path
+    expect(host.runtime.get()).toEqual({ gate: 1 }); // literal only, root path
     expect(mirror._state).toBe(2);
     // The tree stays truthful; the OWNER is recovered through transparency.
     expect(mirror._parentScNode).toBe(scIf);
@@ -957,7 +965,7 @@ describe("sc-group", () => {
 
     const mix = groupControl(host, "mix"); // declared inside <sc-if> under the group
     expect(mix.enabled).toBe(true);
-    expect(appStore.get().runtime[host.id]["g.mix"]).toBe(0); // group-pathed key
+    expect(host.runtime.get()["g.mix"]).toBe(0); // group-pathed key
     expect(mix.namedScParent).toBe(g);
     mix.setValue(0.3);
     expect(nSets()[1].args).toEqual([g.nodeId, "mix", 0.3]);
@@ -1356,22 +1364,22 @@ describe("sc-button", () => {
     expect(widgetButton(toggle).getAttribute("label")).toBe("Play");
 
     clickWidget(toggle);
-    expect(appStore.get().runtime[host.id]["gate"]).toBe(1);
+    expect(host.runtime.get()["gate"]).toBe(1);
     await toggle.updateComplete;
     expect(widgetButton(toggle).getAttribute("icon")).toBe("stop");
     expect(widgetButton(toggle).getAttribute("label")).toBe("Stop");
 
     clickWidget(toggle);
-    expect(appStore.get().runtime[host.id]["gate"]).toBe(0);
+    expect(host.runtime.get()["gate"]).toBe(0);
   });
 
   it("a set attribute makes it a fixed-value trigger", async () => {
     const { host } = await mountPlugin(BTN_XML);
     const [, trigger] = buttons(host);
     clickWidget(trigger);
-    expect(appStore.get().runtime[host.id]["gate"]).toBe(1);
+    expect(host.runtime.get()["gate"]).toBe(1);
     clickWidget(trigger); // already 1 — idempotent
-    expect(appStore.get().runtime[host.id]["gate"]).toBe(1);
+    expect(host.runtime.get()["gate"]).toBe(1);
   });
 });
 
@@ -1402,7 +1410,7 @@ describe("inputs on bind:value (Phase 3.2)", () => {
     dragWidget(range, 0.25); // no writable target — the gesture is inert
     await range.updateComplete;
     expect(widgetOf(range).value).toBe(3); // snapped back
-    expect(appStore.get().runtime[host.id]).toEqual({ "vars.a": 1.5 }); // store untouched
+    expect(host.runtime.get()).toEqual({ "vars.a": 1.5 }); // store untouched
   });
 
   it("a static value is a fixed inert widget", async () => {
@@ -1417,7 +1425,7 @@ describe("inputs on bind:value (Phase 3.2)", () => {
     dragWidget(range, 0.2);
     await range.updateComplete;
     expect(widgetOf(range).value).toBe(0.7); // snapped back, nothing written
-    expect(appStore.get().runtime[host.id]).toBeUndefined();
+    expect(host.runtime.get()).toEqual({});
   });
 
   it("a value input requires the value binding (either form)", () => {
@@ -1461,7 +1469,7 @@ describe("inputs on bind:value (Phase 3.2)", () => {
     const { host } = await mountPlugin(XML);
     const widget = host.querySelector("sc-base-button")!;
     widget.dispatchEvent(new Event("click", { bubbles: true, composed: true }));
-    expect(appStore.get().runtime[host.id]["gate"]).toBe(5);
+    expect(host.runtime.get()["gate"]).toBe(5);
   });
 
   it("inputs do not dispatch statechange (only named state is targetable)", async () => {

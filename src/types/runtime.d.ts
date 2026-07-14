@@ -1,5 +1,6 @@
 import type { Expr } from "@/lib/expression";
 import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
+import type { Store } from "@/lib/utils/reactiveStore";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
@@ -21,6 +22,15 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
  *  arrays with SC's multichannel expansion; the OSC boundary sends /n_setn
  *  for arrays and /n_set for scalars (NaN skipped either way). */
 export type StateValue = string | number | number[];
+
+/** One mounted plugin's LITERAL runtime values, keyed by the state element's
+ *  full named path (e.g. `"s1.freq"`; a plugin-level control is just
+ *  `"freq"`). Only literal, user-writable state is store-backed — derived
+ *  (`bind:value`) values live on the elements as `_state` and propagate via
+ *  "statechange". Seeded from the declarative defaults in the load pass;
+ *  written through `ScState.setValue` (for controls the write path that also
+ *  dispatches `/n_set`, or `/n_setn` for arrays). */
+export type PluginRuntimeValues = Record<string, StateValue>;
 
 /** The bind-expression AST — defined by the language module. */
 export type { Expr } from "@/lib/expression";
@@ -45,6 +55,13 @@ export interface BaseRuntime {
 export interface NodeRuntime extends BaseRuntime {
   loaded: boolean;
   nodeId: number;
+}
+
+/** The plugin root's per-instance runtime store: this instance's literal
+ *  state map (path → value), reached by descendants via `_rootScNode`. Lives
+ *  and dies with the element — a remount reseeds. */
+export interface PluginRuntime {
+  runtime: Store<PluginRuntimeValues>;
 }
 
 /** One resolved runtime prop (`bind:min="vars.lo"`, `bind:value="osc.freq * 2"`):

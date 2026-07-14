@@ -3,5 +3,4 @@ export const SliceName = {
   OSC: "osc",
   LAYOUT: "layout",
   PLUGINS: "plugins",
-  RUNTIME: "runtime",
 } as const;

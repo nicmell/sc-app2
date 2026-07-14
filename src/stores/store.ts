@@ -32,5 +32,4 @@ export const appStore = createStore<AppState>({
   osc: initialOscState,
   layout: DEFAULT_LAYOUT,
   plugins: [],
-  runtime: {},
 });

@@ -37,8 +37,9 @@ internal/   ScElement (parse engine — hydrate/process/
             reads); validation.ts (the require*/failValidation primitives +
             the bind-resolution machinery, as plain functions over the
             elements); the category bases ScNode (run + nodeId/loaded),
-            ScState (`_state` = the `value` runtime slot + the store backing
-            for LITERAL state), ScInput (targetScState + commit — the writing
+            ScState (`_state` = the `value` runtime slot + the plugin root's
+            instance-store backing for LITERAL state, reached via
+            `_rootScNode`), ScInput (targetScState + commit — the writing
             half of inputs); xsd/ (the spec types + the runtime SPECS registry +
             the generator preamble)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
@@ -137,7 +138,7 @@ A state variable: like `sc-control` but always enabled and never sent over
 OSC. Props: `name` (required), `value` xor `bind:value` (expressions allowed;
 `value` is a SCALAR — a string literal like `value="lin"` is legal state).
 Its live value is `_state` on the shared state machinery: a literal var is
-one store-slice key (path-keyed, like controls), a derived var recomputes
+one runtime-store key (path-keyed, like controls), a derived var recomputes
 element-to-element from its targets' statechange (no store key) and is
 read-only to inputs. Transparent containers (sc-if) add no path segment, so
 a var inside one keys at the ENCLOSING level — and collides with a

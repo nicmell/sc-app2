@@ -97,19 +97,13 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
 runtime/                 the global parsed-element registry (id → the live
                          ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, osc, layout, plugins, runtime })
-                         — the ONLY store. Cross-module shapes come from @/types
-                         (type-only by construction), so no runtime cycle with
-                         the singletons.
-  runtime.ts             LITERAL runtime values per mounted plugin:
-                         plugin-root-id → state path ("s1.freq", "vars.a") →
-                         number|string. Only literal, user-writable state is
-                         store-backed (derived/bound values live on the
-                         elements as `_state` and propagate via
-                         "statechange"); seeded from the declarative defaults
-                         in the load pass; dropped wholesale on unmount;
-                         ScState.setValue is the only OSC-dispatching writer
-                         (controls add the /n_set)
+  store.ts               createStore({ session, osc, layout, plugins })
+                         — the ONLY app-level store. Cross-module shapes come
+                         from @/types (type-only by construction), so no
+                         runtime cycle with the singletons. Plugin runtime
+                         state is NOT a slice: each mounted <sc-plugin>
+                         instance owns a per-instance createStore (see
+                         "Runtime values")
   layout.ts / plugins.ts / session.ts / osc.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
@@ -495,10 +489,9 @@ reloads).
 ScPlugin subscribes to `oscClient.connected` (the ScopeController's pattern).
 A drop runs `unload()` (the exact inverse of the load pass: store
 subscriptions dropped, flags/node ids reset, teardown sends silently dropped
-on the dead socket) while the per-plugin runtime map survives;
+on the dead socket) while the plugin instance's runtime store survives;
 reestablishment re-runs the load pass — fresh node ids from the new session
-block, and the /s_new carries the user's current values out of the runtime
-slice. A `loadEpoch` on the plugin root (bumped by unload/reload) invalidates
+block, and the /s_new carries the user's current values out of that store. A `loadEpoch` on the plugin root (bumped by unload/reload) invalidates
 any suspended load pass, so a mid-load disconnect can't leak a stale /s_new
 into the new connection. Parse failures stay permanent (`parsed` flips only
 when `process()` succeeds — reload never retries them).
@@ -519,16 +512,22 @@ every reader uses). `getProp` returns the live evaluated value when the
 `bind:` form is present (spec-coerced), the static attribute otherwise — so
 render() reads stay uniform and re-render on every recompute. The element's
 `_state` (ScState) IS the `value` runtime slot. Values are `number | string`
-(store slice included): the expression engine carries single-quoted string
+(runtime store included): the expression engine carries single-quoted string
 literals and the right-associative ternary (`gate ? 'stop' : 'play'`),
 `==`/`!=` strict, `+` concatenating when either side is a string; the OSC
 boundary stays numeric — `sendControl`/`getControls` coerce `Number()` and
 SKIP with a console.warn on NaN, and the numeric widgets coerce in
-`syncFromState`. The `runtime` store slice (plugin-root-id → full state path
-"s1.freq"/"vars.a" → number|string) holds ONLY the literal, user-writable
+`syncFromState`. Each mounted `<sc-plugin>` instance owns its literal
+runtime state as a PER-INSTANCE store (`ScPlugin.runtime`, a plain
+`createStore`; full state path "s1.freq"/"vars.a" → value), reached by every
+descendant through `_rootScNode` (ScState's `#pluginRuntime` getter) — no
+app-store slice, no id-namespacing, and the map's lifetime IS the element's
+(GC does the unmount cleanup; a remount is a new instance with fresh-seeded
+defaults). It holds ONLY the literal, user-writable
 keys: ScState seeds the declarative default in the load pass (a reload keeps
 user-moved values) and mirrors the store key into `_state`, so external
-slice writes (a second input, future presets — literal keys only) notify
+store writes (a second input, future presets — literal keys only, via the
+registry → element → `.runtime`) notify
 dependents through the same statechange, with no OSC. DERIVED state (a
 `bind:value` expression) recomputes element-to-element — NO store key at all.
 Inside ugens the SAME `bind:value` spelling is the graph-input REFERENCE the
@@ -726,7 +725,8 @@ steps, each independently shippable:
    Phasor+SendTrig) is stale — its code uses a shared global-clock synth.
 8. **Persistence & presets** — extend the saved-session layout payload with
    the old per-box `OverrideEntry[]` presets (replaces the old
-   zustand-persist), marshalled as sparse diffs from the runtime slice —
+   zustand-persist), marshalled as sparse diffs read from the element's
+   per-instance runtime store via the registry —
    LITERAL keys only (derived values live on the elements and recompute; a
    preset writing a bound key would create an orphan store entry nothing
    reads).

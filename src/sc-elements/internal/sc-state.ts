@@ -3,12 +3,12 @@
 // `name`/`value` attributes and the runtime-store backing for LITERAL state:
 //
 //   - LITERAL state (a `value` attribute — real, user-writable state) is one
-//     key of the app store's `runtime` slice (its full named path under the
-//     plugin root): the load pass seeds the declarative default (a reload
-//     keeps user-moved values) and mirrors the store key into `_state`, so
-//     external store writes (a second input, future presets) notify
-//     dependents through the uniform statechange — with no OSC (see
-//     ScControl: /n_set lives on the WRITE path only).
+//     key of the plugin root's per-instance runtime store (its full named
+//     path under the plugin root): the load pass seeds the declarative
+//     default (a reload keeps user-moved values) and mirrors the store key
+//     into `_state`, so external store writes (a second input, future
+//     presets) notify dependents through the uniform statechange — with no
+//     OSC (see ScControl: /n_set lives on the WRITE path only).
 //   - DERIVED state (a `bind:value` expression) is pure inherited runtime-prop
 //     behavior: `_state` derives from the targets, there is NO store key,
 //     and writes are inert (`setValue` on derived state is a no-op — the old
@@ -24,13 +24,9 @@
 // same-named element silently share an outer key. Controls encode the rule
 // in their enablement; vars enforce it as a parse error.
 
-import {
-  getRuntimeValue,
-  seedRuntimeValue,
-  selectRuntimeValue,
-  setRuntimeValue,
-} from "@/stores/runtime";
-import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
+import type { Store } from "@/lib/utils/reactiveStore";
+import { isPluginRuntime } from "@/lib/utils/guards";
+import type { BaseRuntime, PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
 import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
@@ -66,13 +62,20 @@ export abstract class ScState extends ScElement {
     return [...this.path, this.getProp("name") as string].join(".");
   }
 
+  /** The plugin root's per-instance runtime store — _rootScNode IS the
+   *  <sc-plugin> host for every parsed element (pinned by examples.test). */
+  get #pluginRuntime(): Store<PluginRuntimeValues> | undefined {
+    return isPluginRuntime(this._rootScNode) ? this._rootScNode.runtime : undefined;
+  }
+
   /** The internal write: Object.is-guarded store update, reporting whether
    *  the value actually moved. ScControl extends it with the /n_set on the
    *  owning node — the user-gesture WRITE path. The store echo runs
    *  updateRuntimeValue (and the statechange to dependents) synchronously. */
   protected dispatchValue(next: StateValue): boolean {
-    if (Object.is(getRuntimeValue(this._rootScNode.id, this.key), next)) return false;
-    setRuntimeValue(this._rootScNode.id, this.key, next);
+    const store = this.#pluginRuntime;
+    if (!store || Object.is(store.get()[this.key], next)) return false;
+    store.update((s) => ({ ...s, [this.key]: next }));
     return true;
   }
 
@@ -93,16 +96,17 @@ export abstract class ScState extends ScElement {
    *  `_state` once (subscriptions are change-only), then mirror every store
    *  write into `_state` — which notifies dependents via statechange. Derived
    *  state takes the inherited runtime-prop path (recompute over the
-   *  targets). The `undefined` guard keeps a dropped plugin map from
-   *  propagating. */
+   *  targets). The `undefined` guard keeps a missing key from propagating. */
   async load(): Promise<void> {
     // super.load()'s synchronous prefix drops the stale subscriptions FIRST
     // (re-entrant reload) — state elements are leaves, so nothing awaits
     // before the store wiring below registers; no write can slip the gap.
     const loading = super.load();
-    if (this.enabled && this.isConnected && !this.derived) {
-      seedRuntimeValue(this._rootScNode.id, this.key, this.defaultStateValue());
-      const view = selectRuntimeValue(this._rootScNode.id, this.key);
+    const store = this.#pluginRuntime;
+    if (store && this.enabled && this.isConnected && !this.derived) {
+      const seed = this.defaultStateValue();
+      store.update((s) => (s[this.key] !== undefined ? s : { ...s, [this.key]: seed }));
+      const view = store.select((s) => s[this.key]);
       const v = view.get();
       if (v !== undefined) this.updateRuntimeValue("value", v);
       this.addRuntimeSubscription(

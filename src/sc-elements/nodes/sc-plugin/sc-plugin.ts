@@ -18,17 +18,22 @@ import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/stores/osc";
-import { dropPluginRuntime } from "@/stores/runtime";
+import { createStore, type Store } from "@/lib/utils/reactiveStore";
 import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import { layout } from "@/stores/layout";
 import { plugins } from "@/stores/plugins";
-import type { RuntimeContext } from "@/types/runtime";
+import type { PluginRuntimeValues, RuntimeContext } from "@/types/runtime";
 import "./sc-plugin.scss";
 
 export class ScPlugin extends ScNode {
   @state() accessor _error = "";
+
+  /** This instance's literal runtime state (path → value): seeded by the load
+   *  pass, written by ScState.dispatchValue, read via _rootScNode by every
+   *  descendant. Lives and dies with the element — a remount reseeds. */
+  readonly runtime: Store<PluginRuntimeValues> = createStore({});
 
   /** Explicit plugin id for instances outside a dashboard box (a plain JS
    *  property, deliberately not an attribute — validateProps rejects unknown
@@ -149,7 +154,6 @@ export class ScPlugin extends ScNode {
     this.offConnected = undefined;
     this.unload();
     if (this.id) {
-      dropPluginRuntime(this.id);
       unregisterTree(this.id);
     }
   }

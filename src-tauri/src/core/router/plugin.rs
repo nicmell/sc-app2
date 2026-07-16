@@ -17,7 +17,7 @@ use crate::core::server::Server;
 pub fn routes() -> Router<Server> {
     Router::new()
         .route("/api/plugins", get(list).post(add))
-        .route("/api/plugins/{id}", delete(remove))
+        .route("/api/plugins/{id}", delete(remove).put(update))
         .route("/api/plugins/{id}/{*file}", get(serve_file))
 }
 
@@ -40,6 +40,18 @@ async fn remove(Path(id): Path<String>) -> Response {
     match manager::remove_plugin(&id) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => (StatusCode::NOT_FOUND, e).into_response(),
+    }
+}
+
+async fn update(Path(id): Path<String>, body: Bytes) -> Response {
+    match manager::update_plugin(&id, &body) {
+        Ok(info) => (StatusCode::OK, Json(info)).into_response(),
+        Err(manager::UpdateError::NotFound(e)) => (StatusCode::NOT_FOUND, e).into_response(),
+        Err(manager::UpdateError::Invalid(e)) => (StatusCode::BAD_REQUEST, e).into_response(),
+        Err(manager::UpdateError::Conflict(e)) => (StatusCode::CONFLICT, e).into_response(),
+        Err(manager::UpdateError::Storage(e)) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
     }
 }
 

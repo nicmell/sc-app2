@@ -1,0 +1,65 @@
+.tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding-top: var(--space-2xs);
+  padding-right: var(--space-xs);
+  padding-bottom: var(--space-2xs);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-surface-2);
+}
+
+.selected {
+  background: var(--color-surface-2);
+  color: var(--color-primary);
+}
+
+.label {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.tag {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-text-mute);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  flex: none;
+  opacity: 0;
+}
+
+.row:hover .actions,
+.row:focus-within .actions,
+.selected .actions {
+  opacity: 1;
+}

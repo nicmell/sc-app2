@@ -1,0 +1,67 @@
+.palette {
+  overflow: auto;
+}
+
+.group {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.header:hover {
+  background: var(--color-surface-2);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-1);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.item:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-2);
+}
+
+.item:active {
+  cursor: grabbing;
+}
+
+.item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,48 @@
+.code-view {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.toolbar {
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-1);
+}
+
+.unapplied {
+  color: var(--color-text-mute);
+  font-size: var(--font-size-xs);
+}
+
+.error {
+  margin: var(--space-sm);
+  white-space: pre-wrap;
+}
+
+.editor {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+
+  :global(.cm-editor) {
+    height: 100%;
+    color: var(--color-text);
+    background: var(--color-bg);
+  }
+
+  :global(.cm-scroller) {
+    font-family: inherit;
+  }
+
+  :global(.cm-gutters) {
+    color: var(--color-text-mute);
+    background: var(--color-surface-1);
+    border-right-color: var(--color-border);
+  }
+}

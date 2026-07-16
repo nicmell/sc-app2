@@ -1,0 +1,70 @@
+.inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+  padding: var(--space-md);
+  color: var(--color-text);
+}
+
+.header,
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.title,
+.sectionTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.sectionTitle {
+  color: var(--color-text-dim);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.required,
+.error {
+  color: var(--color-danger);
+}
+
+.required {
+  margin-left: var(--space-2xs);
+}
+
+.error,
+.muted {
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
+
+.muted {
+  color: var(--color-text-mute);
+}
+
+.expression {
+  font-family: var(--font-mono);
+}

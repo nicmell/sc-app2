@@ -33,6 +33,14 @@ pub struct PluginInfo {
     pub assets: Vec<AssetInfo>,
 }
 
+#[derive(Debug)]
+pub enum UpdateError {
+    NotFound(String),
+    Invalid(String),
+    Conflict(String),
+    Storage(String),
+}
+
 const XSD_SCHEMA: &str = include_str!("xsd/sc-plugin-schema.xsd");
 const SUPPORTED_ASSET_TYPES: &[&str] = &["png", "jpeg"];
 
@@ -260,6 +268,28 @@ fn zip_filename(info: &PluginInfo) -> PathBuf {
     config::plugins_dir().join(format!("{}-{}.{}.zip", info.name, info.version, info.id))
 }
 
+fn plan_update(
+    registry: &[PluginInfo],
+    id: &str,
+    info: &PluginInfo,
+) -> Result<usize, UpdateError> {
+    let idx = registry
+        .iter()
+        .position(|plugin| plugin.id == id)
+        .ok_or_else(|| UpdateError::NotFound(format!("plugin with id \"{id}\" not found")))?;
+
+    if registry.iter().enumerate().any(|(other_idx, plugin)| {
+        other_idx != idx && plugin.name == info.name && plugin.version == info.version
+    }) {
+        return Err(UpdateError::Conflict(format!(
+            "plugin \"{}\" version \"{}\" already exists",
+            info.name, info.version
+        )));
+    }
+
+    Ok(idx)
+}
+
 /// Validate + store a plugin bundle, replacing any existing entry with the same
 /// name+version. Mints the registry id here (validation stays pure) and
 /// returns the stored [`PluginInfo`].
@@ -283,6 +313,27 @@ pub fn add_plugin(data: &[u8]) -> Result<PluginInfo, String> {
     registry.push(info.clone());
     write_registry(&registry)?;
 
+    Ok(info)
+}
+
+/// Validate + replace a plugin bundle by id, preserving its stable registry id.
+pub fn update_plugin(id: &str, data: &[u8]) -> Result<PluginInfo, UpdateError> {
+    let mut info = validate_plugin(data).map_err(UpdateError::Invalid)?;
+    let mut registry = read_registry().map_err(UpdateError::Storage)?;
+    let idx = plan_update(&registry, id, &info)?;
+    info.id = registry[idx].id.clone();
+
+    let old_zip = zip_filename(&registry[idx]);
+    let new_zip = zip_filename(&info);
+    std::fs::create_dir_all(config::plugins_dir())
+        .map_err(|e| UpdateError::Storage(e.to_string()))?;
+    std::fs::write(&new_zip, data).map_err(|e| UpdateError::Storage(e.to_string()))?;
+    if old_zip != new_zip {
+        let _ = std::fs::remove_file(old_zip);
+    }
+
+    registry[idx] = info.clone();
+    write_registry(&registry).map_err(UpdateError::Storage)?;
     Ok(info)
 }
 
@@ -339,6 +390,61 @@ pub fn read_plugin_file(id: &str, file_path: &str) -> Result<(String, Vec<u8>), 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn plugin(id: &str, name: &str, version: &str) -> PluginInfo {
+        PluginInfo {
+            id: id.to_string(),
+            name: name.to_string(),
+            title: None,
+            description: None,
+            author: "author".to_string(),
+            version: version.to_string(),
+            entry: "index.html".to_string(),
+            assets: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn plan_update_rejects_unknown_id() {
+        let registry = vec![plugin("one", "first", "1.0.0")];
+        assert!(matches!(
+            plan_update(&registry, "missing", &plugin("", "first", "1.0.0")),
+            Err(UpdateError::NotFound(_))
+        ));
+    }
+
+    #[test]
+    fn plan_update_allows_same_id_with_identical_name_and_version() {
+        let registry = vec![plugin("one", "first", "1.0.0")];
+        assert_eq!(
+            plan_update(&registry, "one", &plugin("", "first", "1.0.0")).unwrap(),
+            0
+        );
+    }
+
+    #[test]
+    fn plan_update_rejects_collision_with_different_entry() {
+        let registry = vec![
+            plugin("one", "first", "1.0.0"),
+            plugin("two", "second", "2.0.0"),
+        ];
+        assert!(matches!(
+            plan_update(&registry, "one", &plugin("", "second", "2.0.0")),
+            Err(UpdateError::Conflict(_))
+        ));
+    }
+
+    #[test]
+    fn plan_update_allows_name_and_version_change_without_collision() {
+        let registry = vec![
+            plugin("one", "first", "1.0.0"),
+            plugin("two", "second", "2.0.0"),
+        ];
+        assert_eq!(
+            plan_update(&registry, "one", &plugin("", "renamed", "3.0.0")).unwrap(),
+            0
+        );
+    }
 
     #[test]
     fn rejects_non_zip() {

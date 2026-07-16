@@ -16,7 +16,7 @@
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
-import { loadPluginInto } from "@/lib/plugins/PluginManager";
+import { adoptEntryXml, loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/stores/osc";
 import { createStore, type Store } from "@/lib/utils/reactiveStore";
 import { registerAll, unregisterTree } from "@/runtime/registry";
@@ -39,6 +39,12 @@ export class ScPlugin extends ScNode {
    *  property, deliberately not an attribute — validateProps rejects unknown
    *  attributes; React 19 assigns it as a property since the field exists). */
   plugin?: string;
+
+  /** Entry markup override (same plain-JS-property pattern as `plugin`): when
+   *  set, boot parses it directly instead of fetching a stored plugin — the
+   *  editor preview's seam. Boot completion (either way) dispatches the
+   *  non-bubbling "sc-boot" event with `detail.error` (null on success). */
+  source?: string;
 
   /** Parse succeeded — there is a tree to (re)load. A parse failure is
    *  permanent for this mount; reload() never retries it. */
@@ -70,18 +76,20 @@ export class ScPlugin extends ScNode {
   }
 
   private async boot(): Promise<void> {
-    // The explicit `plugin` property wins (standalone PluginPage instance);
-    // otherwise the DOM id IS the dashboard box id (assigned by PluginHost's
-    // JSX) and the box's assigned plugin resolves from the stores.
-    const assigned = this.plugin ?? layout.get().find((box) => box.i === this.id)?.plugin;
-    const info = plugins.get().find((candidate) => candidate.id === assigned);
-    if (!info) {
-      this._error = "sc-plugin: no plugin assigned";
-      return;
-    }
     try {
-      await loadPluginInto(this, info);
-      if (!this.isConnected) return; // unmounted while fetching
+      if (this.source !== undefined) {
+        // Editor preview: the entry markup is fed directly, no stores/HTTP.
+        adoptEntryXml(this, this.source);
+      } else {
+        // The explicit `plugin` property wins (standalone PluginPage instance);
+        // otherwise the DOM id IS the dashboard box id (assigned by PluginHost's
+        // JSX) and the box's assigned plugin resolves from the stores.
+        const assigned = this.plugin ?? layout.get().find((box) => box.i === this.id)?.plugin;
+        const info = plugins.get().find((candidate) => candidate.id === assigned);
+        if (!info) throw new Error("sc-plugin: no plugin assigned");
+        await loadPluginInto(this, info);
+        if (!this.isConnected) return; // unmounted while fetching
+      }
       // Process the tree (validation runs inside; the children derive from
       // the DOM): the registry adopts it (root + scChildren) only on success.
       this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
@@ -90,8 +98,10 @@ export class ScPlugin extends ScNode {
       // sequentially, in DOM order (/d_recv before /s_new etc.). A failure
       // lands in the same error box as a parse failure.
       await this.load();
+      this.dispatchEvent(new CustomEvent("sc-boot", { detail: { error: null } }));
     } catch (e) {
       this._error = e instanceof Error ? e.message : String(e);
+      this.dispatchEvent(new CustomEvent("sc-boot", { detail: { error: this._error } }));
     }
   }
 

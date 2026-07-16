@@ -4,6 +4,7 @@ import { ROUTES } from "@/constants/routes";
 import { rootLoader, sessionLoader } from "@/lib/session/resolveSession";
 import { DashboardRoute } from "./DashboardRoute";
 import { PluginPage } from "./PluginPage";
+import { PluginEditorPage } from "./PluginEditorPage";
 import { SessionBootError } from "./SessionBootError";
 import { SessionLayout } from "./SessionLayout";
 import { SettingsRoute } from "./SettingsRoute";
@@ -35,6 +36,8 @@ export const router = createBrowserRouter([
           { path: ROUTES.SESSION_SETTINGS, element: <SettingsRoute /> },
         ],
       },
+      { path: ROUTES.SESSION_PLUGIN_NEW, element: <PluginEditorPage /> },
+      { path: ROUTES.SESSION_PLUGIN_EDIT, element: <PluginEditorPage /> },
       { path: ROUTES.SESSION_PLUGIN, element: <PluginPage /> },
     ],
   },

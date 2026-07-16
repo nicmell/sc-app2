@@ -1,0 +1,93 @@
+.canvas {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--color-bg);
+}
+
+.previewWrapper {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.preview {
+  display: block;
+  min-height: 100%;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.overlay[data-dragging]:not([data-drop-allowed]) {
+  cursor: not-allowed;
+}
+
+.selectionOutline,
+.hoverOutline {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.selectionOutline {
+  border: 2px solid var(--color-primary);
+}
+
+.hoverOutline {
+  border: 1px dashed var(--color-primary);
+}
+
+.badge {
+  position: absolute;
+  left: -2px;
+  bottom: 100%;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dragHandle {
+  position: absolute;
+  top: -1.5rem;
+  right: -2px;
+  height: 1.5rem;
+  padding: 0 var(--space-xs);
+  border: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.dropInside,
+.dropLine {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.dropInside {
+  border: 2px dashed var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.dropLine {
+  z-index: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transform: translateY(-1px);
+}

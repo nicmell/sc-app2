@@ -4,7 +4,7 @@
 // plugin's entry is a validated XHTML doc rooted at `sc-plugin`; loading imports
 // its children into the app-synthesized host. Display metadata lives in PluginInfo.
 
-import { get, post, del } from "@/lib/http";
+import { get, post, put, del } from "@/lib/http";
 import type { PluginInfo } from "@/types/api";
 
 const PLUGINS_BASE = "/api/plugins";
@@ -15,7 +15,15 @@ export async function listPlugins(): Promise<PluginInfo[]> {
 
 export async function addPlugin(file: File): Promise<PluginInfo> {
   const buf = await file.arrayBuffer();
-  return (await post(PLUGINS_BASE, new Uint8Array(buf))).json();
+  return addPluginBytes(new Uint8Array(buf));
+}
+
+export async function addPluginBytes(zip: Uint8Array): Promise<PluginInfo> {
+  return (await post(PLUGINS_BASE, zip)).json();
+}
+
+export async function replacePlugin(id: string, zip: Uint8Array): Promise<PluginInfo> {
+  return (await put(`${PLUGINS_BASE}/${id}`, zip)).json();
 }
 
 export async function removePlugin(id: string): Promise<void> {
@@ -33,12 +41,17 @@ export function adoptEntry(host: HTMLElement, doc: Document): void {
   );
 }
 
-/** Fetch a plugin's entry (XHTML) and merge it into `host`. Parsed as XML so
- *  self-closing custom-element tags retain their authored structure. */
-export async function loadPluginInto(host: HTMLElement, plugin: PluginInfo): Promise<void> {
-  const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
-  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+/** Parse entry markup (XML — self-closing custom-element tags retain their
+ *  authored structure) and merge its root's children into `host`. */
+export function adoptEntryXml(host: HTMLElement, xml: string): void {
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
   const parseError = doc.querySelector("parsererror");
   if (parseError) throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
   adoptEntry(host, doc);
+}
+
+/** Fetch a plugin's entry (XHTML) and merge it into `host`. */
+export async function loadPluginInto(host: HTMLElement, plugin: PluginInfo): Promise<void> {
+  const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
+  adoptEntryXml(host, await res.text());
 }

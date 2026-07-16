@@ -69,13 +69,35 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          and PluginPage (/:sessionId/plugins/:pluginId — a
                          full-screen STANDALONE <sc-plugin> instance, id
                          "plugin:<id>", own runtime map + scsynth group);
-                         SessionBootError is the loader-failure modal (Retry =
-                         same-path replace navigation, re-runs loaders)
-components/              React shell: Dashboard grid, plugin picker/list, toasts,
+                         PluginEditorPage (/:sessionId/plugins/new +
+                         /:sessionId/plugins/:pluginId/edit — the visual plugin
+                         EDITOR: metadata form, save = client-built zip via
+                         POST (new, then replace-redirect to the edit route of
+                         the minted id) / PUT (edit, stable id), dirty
+                         useBlocker guard); SessionBootError is the
+                         loader-failure modal (Retry = same-path replace
+                         navigation, re-runs loaders)
+components/              React shell: Dashboard grid, plugin picker/list (the
+                         drawer list carries per-row edit pencils + a Create
+                         plugin button in manager mode), toasts,
                          the connection overlay (connecting scrim + retry modal
                          over the session status; Retry revalidates the route
                          loaders in place), ui/ (Modal — the first of the
-                         planned components/ui primitives)
+                         planned components/ui primitives), PluginEditor/ (the
+                         Elementor-style editor: PluginEditor shell — toolbar
+                         with undo/redo + edit⇄play + canvas⇄code, 3-pane grid —
+                         Palette (SPECS by category, pointer-drag sources +
+                         double-click insert), Outline (model tree, selection
+                         for non-visual nodes, move/duplicate/delete), Canvas
+                         (PreviewHost: a REAL <sc-plugin source=…> remounted
+                         per debounced revision; Overlay: hit-test/outlines
+                         over the light DOM via lib/editor's domMap — edit mode
+                         swallows widget input, play mode is live; pointer DnD
+                         via usePointerDnd + lib/editor's computeDrop),
+                         Inspector (spec-driven attr fields, static⇄bind
+                         toggle, common id/class/title/style, text content),
+                         CodeView (lazy CodeMirror 6, xml schema from SPECS,
+                         explicit Apply via controller.applyXml))
 sc-elements/             Lit elements used inside plugin HTML, classified by the
                          old app's taxonomy (see sc-elements/README.md for the
                          per-element docs): nodes/ (plugin/group/synth),
@@ -165,7 +187,23 @@ lib/                     non-React infrastructure
                          (channels, chunkSize) with inBus/scopeNum as controls.
                          No controller — each <sc-scope> element owns its tap
                          through the load/unload pass
-  plugins/PluginManager  plugin CRUD + entry-HTML loading over /api/plugins
+  plugins/               PluginManager (plugin CRUD + entry-HTML loading over
+                         /api/plugins: POST raw zip bytes, PUT /{id} replace
+                         with a stable id, adoptEntry/adoptEntryXml) +
+                         buildPluginZip (fflate zip of metadata.json + entry,
+                         PluginMetadata + the client-side name/version/author
+                         validators mirroring the Rust rules)
+  editor/                the plugin-editor CORE (pure, no React): model
+                         (immutable EditorNode tree + path-copying ops, static
+                         XOR bind: attr invariant), parse/serialize (entry XML
+                         ⇄ model — the app's ONLY XML emitter; mixed-content
+                         text byte-exact, roundtrip pinned over every example),
+                         contentModel (allowedChildren/canContain/acceptsText
+                         expanded from SPECS + xsd groups), validate (lexical
+                         attr checks), dropTarget (pure DnD geometry), domMap
+                         (model-key ⇄ live light-DOM element lockstep walk, no
+                         marker attrs), EditorController (per-instance
+                         reactiveStore + snapshot undo/redo, applyXml/serialize)
   synthdef/              compileSynthDef(name, params, specs): the markup-spec →
                          SCgf compiler over @sc-app/synthdef-compiler's primitives
                          (registry, operators, encoder, graph validation). No topo
@@ -262,7 +300,11 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   stays pure transport). See scope.md
   router/         axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
-                  session on close), plugin.rs, diag.rs, assets.rs
+                  session on close), plugin.rs (list/POST zip/DELETE +
+                  PUT /api/plugins/{id} — id-stable replace via
+                  manager::update_plugin: 404 unknown id, 400 validation,
+                  409 name+version collision with a DIFFERENT plugin),
+                  diag.rs, assets.rs
 ```
 
 App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`,

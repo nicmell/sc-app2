@@ -1,7 +1,7 @@
 // Widget lifecycle + parametrization gate: sc-scope's per-element tap (bus/
 // channels → tap synthdef + scope-slot subscription, through the load/unload
 // pass) and sc-strudel's text-content initial code + orbit stamping. Same
-// scripted-scsynth recipe as controls.test.ts: oscClient.send is mocked into
+// scripted-scsynth recipe as controls.test.ts: worker-side send is mocked into
 // an auto-responder feeding the real handleReply, so the sequenced commands
 // gate exactly as against a live server. The scope-slot allocator is armed
 // directly on the client (connect() needs a live worker).
@@ -9,7 +9,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { flattenPacket, OSC } from "@sc-app/server-commands";
-import { oscClient } from "@/lib/osc/OscClient";
+import { oscClient } from "@/lib/osc/OscClientProxy";
+import { workerOscClient } from "@/lib/utils/test/osc-endpoint";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
@@ -156,12 +157,14 @@ describe("sc-scope", () => {
     const scope = host.querySelector("sc-scope") as ScScope;
     const subId = sent[3].args[0] as number;
 
-    oscClient.handleReply(
+    workerOscClient.handleReply(
       new OSC.Message("/scope/chunk", subId + 99, 1, 0, 2, beBlob([0.5, -0.5])),
     );
     expect(scope.chunkRef.current).toBeNull(); // foreign subId ignored
 
-    oscClient.handleReply(new OSC.Message("/scope/chunk", subId, 1, 0, 2, beBlob([0.5, -0.5])));
+    workerOscClient.handleReply(
+      new OSC.Message("/scope/chunk", subId, 1, 0, 2, beBlob([0.5, -0.5])),
+    );
     expect(scope.chunkRef.current).toMatchObject({ subId, channels: 2, frameCount: 1 });
     expect(scope.chunkRef.current!.data[0]).toBeCloseTo(0.5);
   });

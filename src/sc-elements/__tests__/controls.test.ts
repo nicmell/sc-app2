@@ -13,7 +13,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { OSC } from "@sc-app/server-commands";
-import { oscClient } from "@/lib/osc/OscClient";
+import { oscClient } from "@/lib/osc/OscClientProxy";
+import { workerOscClient } from "@/lib/utils/test/osc-endpoint";
 import { appStore } from "@/stores/store";
 import type { StateValue } from "@/types/runtime";
 import {
@@ -496,7 +497,7 @@ describe("disconnect / reconnect", () => {
     // Invalidate without closing the mock transport, then deliver the late
     // ack. The old pass resolves but must not resurrect the stale synth.
     setConnected(false);
-    oscClient.handleReply(new OSC.Message("/n_go", staleId, 1, -1, -1, 0));
+    workerOscClient.handleReply(new OSC.Message("/n_go", staleId, 1, -1, -1, 0));
     await firstLoad;
     expect(synth.loaded).toBe(false);
     expect(synth.nodeId).toBe(0);
@@ -692,7 +693,7 @@ describe("bound enabled control on a synth", () => {
     master(host).setValue(400);
     expect(nSets()).toHaveLength(0);
 
-    oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
+    workerOscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
     await loading;
     expect(nSets()).toHaveLength(1); // the catch-up diff
     expect(nSets()[0].args).toEqual([nodeId, "freq", 800]);

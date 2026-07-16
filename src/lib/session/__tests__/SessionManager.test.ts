@@ -14,7 +14,7 @@ const osc = vi.hoisted(() => ({
   off: vi.fn(),
 }));
 
-vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));
+vi.mock("@/lib/osc/OscClientProxy", () => ({ oscClient: osc }));
 
 import { SessionManager } from "@/lib/session/SessionManager";
 import { layout } from "@/stores/layout";

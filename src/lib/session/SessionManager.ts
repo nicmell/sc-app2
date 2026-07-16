@@ -5,7 +5,7 @@
 // in the route loaders (`@/lib/session/resolveSession`); SessionLayout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
 // The OSC domain — console log, error banners, scsynth load, heartbeat
-// watchdog — lives on the OscClient itself (`@/lib/osc/OscClient`), which also
+// watchdog — lives on the worker-side OscClient, reached through OscClientProxy, which also
 // terminates the connection on critical failures; this manager only observes
 // the close.
 //
@@ -17,7 +17,7 @@
 import { LAYOUT_SAVE_INTERVAL_MS } from "@/constants/session";
 import { SliceName } from "@/constants/store";
 import { put, wsUrl } from "@/lib/http";
-import { oscClient } from "@/lib/osc/OscClient";
+import { oscClient } from "@/lib/osc/OscClientProxy";
 import { layout, setLayout } from "@/stores/layout";
 import { appStore } from "@/stores/store";
 import type { SessionInfo } from "@/types/api";
@@ -30,7 +30,7 @@ export class SessionManager {
   readonly scsynthAddress = this.state.select((state) => state.scsynthAddress);
 
   /** (event, id) pairs of our oscClient subscriptions, for teardown(). */
-  private subscriptions: Array<[string, number]> = [];
+  private subscriptions: Array<["open" | "close" | "error", number]> = [];
   /** The layout-autosave timer + the last value it saved (reference compare). */
   private saveTimer: ReturnType<typeof setInterval> | null = null;
   private lastSavedLayout: BoxItem[] | null = null;
@@ -147,7 +147,7 @@ export class SessionManager {
     oscClient.close();
   }
 
-  private subscribe(event: string, callback: (...args: any[]) => void): void {
+  private subscribe(event: "open" | "close" | "error", callback: (...args: any[]) => void): void {
     this.subscriptions.push([event, oscClient.on(event, callback)]);
   }
 

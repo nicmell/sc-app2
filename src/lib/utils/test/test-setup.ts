@@ -3,15 +3,14 @@
 // open a connection, so an inert stub is enough.
 
 import { registerUiComponents } from "@sc-app/ui-components/lit";
+import { attachPort } from "@/lib/osc/OscClientProxy";
+import { createOscEndpoint } from "@/lib/osc/worker/endpoint";
+import { createLoopbackPair } from "./loopback";
+import { setWorkerOscClient } from "./osc-endpoint";
 
-class WorkerStub {
-  onmessage: ((ev: MessageEvent) => void) | null = null;
-  onerror: ((ev: ErrorEvent) => void) | null = null;
-  postMessage(): void {}
-  terminate(): void {}
-}
-
-globalThis.Worker ??= WorkerStub as unknown as typeof Worker;
+const [mainPort, workerPort] = createLoopbackPair();
+attachPort(mainPort);
+setWorkerOscClient(createOscEndpoint(workerPort));
 
 // The inputs render the ui-components `-base` widgets (sc-slider → sc-base-slider,
 // sc-knob → sc-base-knob, …); define them so they upgrade under happy-dom like

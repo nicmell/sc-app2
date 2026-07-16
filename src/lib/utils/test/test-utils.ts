@@ -10,13 +10,14 @@
 
 import { vi, type MockInstance } from "vitest";
 import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
-import { oscClient } from "@/lib/osc/OscClient";
+import { oscClient } from "@/lib/osc/OscClientProxy";
+import { workerOscClient } from "./osc-endpoint";
 import { adoptEntry } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
 
 /** The session group id the load pass targets (oscClient.sessionGroupId). */
 export const SESSION_GROUP = 1;
-/** The first node id handed out by the mocked oscClient.nextNodeId. */
+/** The first node id handed out by the mocked worker client allocator. */
 export const FIRST_NODE_ID = 2000;
 
 /** Wrap a fragment in a minimal XHTML plugin entry (entries use
@@ -58,7 +59,7 @@ export async function mountPlugin(xml: string): Promise<{ host: ScPlugin; nodes:
  *  /s_new → /n_go. */
 export function autoRespond(msg: OSC.Message): void {
   const nGo = (nodeId: number) =>
-    oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
+    workerOscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
   switch (msg.address) {
     case "/g_new":
     case "/s_new": {
@@ -68,14 +69,14 @@ export function autoRespond(msg: OSC.Message): void {
     case "/d_recv": {
       const completion = decode(msg.args[1] as unknown as Uint8Array);
       if (isMessage(completion) && completion.address === "/sync") {
-        oscClient.handleReply(new OSC.Message("/synced", completion.args[0]));
+        workerOscClient.handleReply(new OSC.Message("/synced", completion.args[0]));
       }
       break;
     }
   }
 }
 
-/** Install the scsynth-facing spies for a load-pass test: oscClient.send into
+/** Install the scsynth-facing spies for a load-pass test: worker-side send into
  *  a recording auto-responder, plus deterministic node ids and session group.
  *  Returns the recorded sends and the `send` spy (re-mock it to script a
  *  stalled or partial server). Spies auto-restore between tests via the
@@ -85,13 +86,13 @@ export function installScsynthMock(): {
   send: MockInstance<(packet: OscPacket) => void>;
 } {
   const sent: OSC.Message[] = [];
-  const send = vi.spyOn(oscClient, "send").mockImplementation((packet) => {
+  const send = vi.spyOn(workerOscClient, "send").mockImplementation((packet) => {
     const msg = packet as OSC.Message;
     sent.push(msg);
     autoRespond(msg);
   });
   let nextId = FIRST_NODE_ID;
-  vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => nextId++);
+  vi.spyOn(workerOscClient, "nextNodeId").mockImplementation(() => nextId++);
   vi.spyOn(oscClient, "sessionGroupId", "get").mockReturnValue(SESSION_GROUP);
   return { sent, send };
 }

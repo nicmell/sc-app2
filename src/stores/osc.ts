@@ -1,15 +1,15 @@
-// React bindings for the OSC client singleton (@/lib/osc/OscClient):
+// React bindings for the OSC client singleton (@/lib/osc/OscClientProxy):
 // useSyncExternalStore hooks over its reactive views — the bounded tx/rx
 // console log, the coalescing error banners, and scsynth's reported load.
 // The singleton is re-exported so consumers outside React (the `sc-*` Lit
 // elements) reach it the same way.
 
 import { useSyncExternalStore } from "react";
-import { oscClient } from "@/lib/osc/OscClient";
+import { oscClient } from "@/lib/osc/OscClientProxy";
 import type { LoggedEntry, ScsynthError, ScsynthStatus } from "@/types/stores";
 
 // Re-export the singleton so app imports go through the store layer.
-export { oscClient } from "@/lib/osc/OscClient";
+export { oscClient } from "@/lib/osc/OscClientProxy";
 
 /** Subscribe a React component to the bounded OSC log. */
 export function useOscLog(): LoggedEntry[] {

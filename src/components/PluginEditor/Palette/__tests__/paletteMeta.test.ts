@@ -5,8 +5,6 @@ import { serializeEntry } from "@/lib/editor/serialize";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { HTML_PALETTE_TAGS, PALETTE_META } from "../paletteMeta";
 
-const CHILD_ONLY = new Set(["sc-option", "sc-radio"]);
-
 describe("palette metadata", () => {
   it("provides round-trippable, minimally valid templates", () => {
     for (const [tag, meta] of Object.entries(PALETTE_META)) {
@@ -28,9 +26,7 @@ describe("palette metadata", () => {
   });
 
   it("covers every user-droppable spec exactly once", () => {
-    const expected = [...SPECS.keys()]
-      .filter((tag) => tag !== "sc-plugin" && !CHILD_ONLY.has(tag))
-      .sort();
+    const expected = [...SPECS.keys()].filter((tag) => tag !== "sc-plugin").sort();
     const specTags = Object.keys(PALETTE_META).filter((tag) => SPECS.has(tag));
     expect([...new Set(specTags)].sort()).toEqual(expected);
     expect(specTags).toHaveLength(expected.length);

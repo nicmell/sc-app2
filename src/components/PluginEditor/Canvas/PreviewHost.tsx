@@ -4,7 +4,7 @@ import { buildDomMap, type DomMap } from "@/lib/editor/domMap";
 import { serializeEntry } from "@/lib/editor/serialize";
 import { randomId } from "@/lib/utils/randomId";
 import { Overlay } from "./Overlay";
-import { useEditorState } from "./useEditorState";
+import { useEditorState } from "../hooks/useEditorState";
 import { usePointerDnd } from "./usePointerDnd";
 import styles from "./Canvas.module.scss";
 

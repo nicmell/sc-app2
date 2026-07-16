@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui";
 import { EditorController, type EditorState } from "@/lib/editor/EditorController";
 import { parseEntry } from "@/lib/editor/parse";
+import { serializeEntry } from "@/lib/editor/serialize";
 import { Canvas } from "../Canvas/Canvas";
 import { CodeView } from "../CodeView";
 import { Inspector } from "../Inspector";
@@ -56,10 +57,7 @@ function EditorShell({
     controller,
     useCallback((state) => state.parseError, []),
   );
-  const initialSerialized = useMemo(
-    () => new EditorController(parseEntry(initialXml)).serialize(),
-    [initialXml],
-  );
+  const initialSerialized = useMemo(() => serializeEntry(parseEntry(initialXml)), [initialXml]);
 
   useEffect(() => controllerRef?.(controller), [controller, controllerRef]);
   useEffect(

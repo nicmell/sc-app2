@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type RefObject } from "react";
 import type { EditorController } from "@/lib/editor/EditorController";
 import type { DomMap } from "@/lib/editor/domMap";
 import type { NodeKey } from "@/lib/editor/model";
-import { useEditorState } from "./useEditorState";
+import { useEditorState } from "../hooks/useEditorState";
 import { beginPointerDnd, type DropIndicator } from "./usePointerDnd";
 import styles from "./Canvas.module.scss";
 

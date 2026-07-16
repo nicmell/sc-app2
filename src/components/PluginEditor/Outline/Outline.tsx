@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from "react";
 import { Button, Flex } from "@/components/ui";
 import type { EditorController } from "@/lib/editor/EditorController";
 import {
@@ -10,6 +9,7 @@ import {
   type ElementNode,
 } from "@/lib/editor/model";
 import { randomId } from "@/lib/utils/randomId";
+import { useEditorState } from "../hooks/useEditorState";
 import styles from "./Outline.module.scss";
 
 const cloneWithFreshKeys = (node: EditorNode): EditorNode =>
@@ -18,7 +18,7 @@ const cloneWithFreshKeys = (node: EditorNode): EditorNode =>
     : { ...node, key: randomId(), children: node.children.map(cloneWithFreshKeys) };
 
 export function Outline({ controller }: { controller: EditorController }) {
-  const state = useSyncExternalStore(controller.store.subscribe, controller.store.get);
+  const state = useEditorState(controller);
 
   const renderNode = (node: ElementNode, depth: number) => {
     const parent = getParent(state.doc, node.key);

@@ -35,9 +35,12 @@ export const PALETTE_META: Readonly<Record<string, PaletteMeta>> = {
   },
   "sc-var": { label: "Variable", icon: "code", template: element("sc-var", { name: "variable" }) },
   "sc-button": {
+    // Buttons are write-only: the static `value` form is rejected at runtime,
+    // so the template ships a bind placeholder (a pointed parse error until
+    // the author points it at a real control/var — the honest default).
     label: "Button",
     icon: "cursor-click",
-    template: element("sc-button", { value: "0" }),
+    template: element("sc-button", { "bind:value": "gate", label: "Button" }),
   },
   "sc-checkbox": {
     label: "Checkbox",
@@ -45,17 +48,40 @@ export const PALETTE_META: Readonly<Record<string, PaletteMeta>> = {
     template: element("sc-checkbox", { value: "0" }),
   },
   "sc-envelope": {
+    // Write-capable like sc-button: static `value` is rejected at runtime.
     label: "Envelope",
     icon: "chart-line",
-    template: element("sc-envelope", { value: "0" }),
+    template: element("sc-envelope", { "bind:value": "env" }),
   },
   "sc-knob": { label: "Knob", icon: "dial", template: element("sc-knob", { value: "0" }) },
+  "sc-option": {
+    label: "Option",
+    icon: "list-plus",
+    template: element("sc-option", { value: "0", label: "Option" }),
+  },
+  "sc-radio": {
+    label: "Radio",
+    icon: "radio-button",
+    template: element("sc-radio", { value: "0", label: "Radio" }),
+  },
   "sc-radio-group": {
     label: "Radio Group",
     icon: "radio-button",
-    template: element("sc-radio-group", { value: "0" }),
+    template: () =>
+      createElement("sc-radio-group", { value: "0" }, [
+        createElement("sc-radio", { value: "0", label: "Off" }),
+        createElement("sc-radio", { value: "1", label: "On" }),
+      ]),
   },
-  "sc-select": { label: "Select", icon: "list", template: element("sc-select", { value: "0" }) },
+  "sc-select": {
+    label: "Select",
+    icon: "list",
+    template: () =>
+      createElement("sc-select", { value: "0" }, [
+        createElement("sc-option", { value: "0", label: "Off" }),
+        createElement("sc-option", { value: "1", label: "On" }),
+      ]),
+  },
   "sc-slider": { label: "Slider", icon: "sliders", template: element("sc-slider", { value: "0" }) },
   "sc-switch": {
     label: "Switch",

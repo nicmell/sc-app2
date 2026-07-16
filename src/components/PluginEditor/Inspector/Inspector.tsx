@@ -1,6 +1,6 @@
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { Badge, Button, Empty, Textarea } from "@/components/ui";
-import type { EditorController, EditorState } from "@/lib/editor/EditorController";
+import type { EditorController } from "@/lib/editor/EditorController";
 import { acceptsText } from "@/lib/editor/contentModel";
 import {
   findNode,
@@ -14,6 +14,7 @@ import {
 import { randomId } from "@/lib/utils/randomId";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { validateAttrs } from "@/lib/editor/validate";
+import { useEditorState } from "../hooks/useEditorState";
 import { AttrField } from "./AttrField";
 import { CommonAttrsSection } from "./CommonAttrsSection";
 import styles from "./Inspector.module.scss";
@@ -23,14 +24,6 @@ interface InspectorProps {
 }
 
 type ValueTarget = EventTarget & { value: string };
-
-function useEditorState(controller: EditorController): EditorState {
-  return useSyncExternalStore(
-    controller.store.subscribe,
-    controller.store.get,
-    controller.store.get,
-  );
-}
 
 function TextInspector({ controller, node }: { controller: EditorController; node: TextNode }) {
   return (

@@ -24,6 +24,7 @@ const GROUP_LABELS: Record<Group, string> = {
 function paletteGroup(tag: string): Group | null {
   const category = SPECS.get(tag)?.category;
   if (category === "ugen") return "synthdef";
+  if (category === "option") return "input"; // sc-option/sc-radio: extra choices for a selection input
   return category && GROUPS.some((group) => group === category) ? (category as Group) : null;
 }
 

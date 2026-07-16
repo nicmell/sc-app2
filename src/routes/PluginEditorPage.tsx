@@ -6,6 +6,7 @@ import { Modal, modalStyles } from "@/components/ui/Modal";
 import { ROUTES } from "@/constants/routes";
 import { EditorController } from "@/lib/editor/EditorController";
 import { createElement } from "@/lib/editor/model";
+import { parseEntry } from "@/lib/editor/parse";
 import { serializeEntry } from "@/lib/editor/serialize";
 import { get, HttpError } from "@/lib/http";
 import {
@@ -109,9 +110,18 @@ export function PluginEditorPage() {
       .then((xml) => {
         if (!active) return;
         const nextMetadata = metadataFromInfo(info);
+        // The dirty compare runs against controller.serialize(), so the
+        // baseline must be the NORMALIZED form of the stored entry — else a
+        // formatting difference reads as dirty the moment the editor opens.
+        let normalized = xml;
+        try {
+          normalized = serializeEntry(parseEntry(xml));
+        } catch {
+          /* an unparseable entry keeps the raw baseline */
+        }
         setController(null);
         setMetadata(nextMetadata);
-        setSavedSnapshot({ metadata: nextMetadata, xml });
+        setSavedSnapshot({ metadata: nextMetadata, xml: normalized });
         setEntryXml(xml);
       })
       .catch((error: unknown) => {

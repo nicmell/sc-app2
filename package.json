@@ -12,6 +12,7 @@
     "dev:full": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev\" \"yarn serve\"",
     "build": "tsc && vite build",
     "generate:xsd": "tsx scripts/generate-xsd.ts",
+    "generate:server-commands": "./scripts/generate-server-commands.sh",
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",
     "scdoc:diff": "tsx scripts/scdoc/diff-ugens.ts",
@@ -51,6 +52,7 @@
     "react-router": "^8.2.0"
   },
   "devDependencies": {
+    "@bytecodealliance/jco": "^1.25.2",
     "@eslint/js": "^10.0.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^22",

@@ -7,8 +7,9 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   // `yarn lint` targets `src packages` (see package.json), so only build output
-  // under those needs ignoring — node_modules is ignored by default.
-  { ignores: ["**/dist"] },
+  // under those needs ignoring — node_modules is ignored by default. The pkg
+  // dir is the committed jco-transpiled component (generate:server-commands).
+  { ignores: ["**/dist", "packages/server-commands/pkg"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

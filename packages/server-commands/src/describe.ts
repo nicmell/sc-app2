@@ -1,16 +1,29 @@
 /**
- * Display helpers for the OSC console log. Two directions, two shapes:
- * outbound bytes flatten through a real decode (wire truth — every command
- * address is unknown to the reply parser, so it comes back as `other` with
- * the raw args), inbound TYPED replies render from their payload fields.
+ * Display helpers for the OSC console log — no wasm crossings.
+ *
+ * Outbound entries render straight from the typed `ServerMessage`
+ * (`describeMessage`): the worker already holds the value it encodes, so
+ * re-decoding the bytes just for the log would double the component
+ * crossings on every send. Inbound entries render from the typed
+ * `ServerReply` (`describeReply`). `flattenEncoded` is the byte-level
+ * fallback the TESTS use to assert wire truth — and it tolerates outbound
+ * addresses that double as typed replies (`/b_setn` is both a command and
+ * a reply) by rendering them through the reply view instead of throwing.
  */
 
+import type {
+  ControlId,
+  ControlValue,
+  NumericValue,
+  ServerMessage,
+} from "../pkg/interfaces/scserver-commands-commands.js";
 import type { ServerReply } from "../pkg/interfaces/scserver-commands-replies.js";
 import type { OscArg } from "../pkg/interfaces/scserver-commands-core.js";
-import { decodeReplyPacket } from "./component.js";
+import { decodeReplyPacket, encode } from "./component.js";
 
 /** One wire message flattened for logs/assertions: the address plus its
- *  raw arg values (blobs stay `Uint8Array`). */
+ *  raw arg values (blobs stay `Uint8Array`; a typed-reply collision may
+ *  render a display string, e.g. `floats(N)` for a sample run). */
 export interface FlatMessage {
   address: string;
   args: Array<number | string | Uint8Array>;
@@ -25,19 +38,100 @@ export function formatOscArg(arg: unknown): string {
   return String(arg);
 }
 
-function unwrapArg(arg: OscArg): number | string | Uint8Array {
-  return arg.val;
-}
+const unwrapArg = (arg: OscArg) => arg.val;
+const idVal = (id: ControlId) => id.val;
+const numVal = (v: NumericValue | ControlValue) => v.val;
 
 /** Flatten encoded OUTBOUND bytes (message or bundle) into per-message
- *  `{address, args}` entries by decoding what was actually sent. */
+ *  `{address, args}` entries by decoding what was actually sent — the
+ *  test suites' wire-truth view. Command addresses decode as `other`
+ *  (raw args); an address the reply parser also knows renders through
+ *  the typed reply view (lossy for display, never a throw). */
 export function flattenEncoded(bytes: Uint8Array): FlatMessage[] {
-  return decodeReplyPacket(bytes).map((reply) => {
-    if (reply.tag !== "other") {
-      throw new Error(`flattenEncoded: outbound address decodes as a typed reply (${reply.tag})`);
+  return decodeReplyPacket(bytes).map((reply) =>
+    reply.tag === "other"
+      ? { address: reply.val.address, args: reply.val.args.map(unwrapArg) }
+      : {
+          address: REPLY_ADDRESSES[reply.tag],
+          args: replyArgs(reply) as FlatMessage["args"],
+        },
+  );
+}
+
+/** Render one OUTBOUND typed command for the tx log: its wire address plus
+ *  its args in wire order, formatted as display text. Covers the commands
+ *  the app speaks (the builders' surface); anything else falls back to one
+ *  encode+decode roundtrip so the log stays total. */
+export function describeMessage(msg: ServerMessage): { address: string; args: string[] } {
+  const flat = messageArgs(msg);
+  if (flat) return { address: flat.address, args: flat.args.map(formatOscArg) };
+  const [fallback] = flattenEncoded(encode(msg));
+  return { address: fallback.address, args: fallback.args.map(formatOscArg) };
+}
+
+function messageArgs(msg: ServerMessage): { address: string; args: unknown[] } | null {
+  switch (msg.tag) {
+    case "g-new":
+      return { address: "/g_new", args: msg.val.tail.flat() };
+    case "s-new": {
+      const v = msg.val;
+      return {
+        address: "/s_new",
+        args: [
+          v.defName,
+          v.nodeId,
+          v.addAction,
+          v.targetId,
+          ...v.tail.flatMap(([k, val]) => [idVal(k), numVal(val)]),
+        ],
+      };
     }
-    return { address: reply.val.address, args: reply.val.args.map(unwrapArg) };
-  });
+    case "n-set":
+      return {
+        address: "/n_set",
+        args: [msg.val.nodeId, ...msg.val.tail.flatMap(([k, v]) => [idVal(k), numVal(v)])],
+      };
+    case "n-setn":
+      return {
+        address: "/n_setn",
+        args: [
+          msg.val.nodeId,
+          ...msg.val.tail.flatMap(([k, values]) => [
+            idVal(k),
+            values.length,
+            ...values.map(numVal),
+          ]),
+        ],
+      };
+    case "n-run":
+      return { address: "/n_run", args: msg.val.tail.flat() };
+    case "n-free":
+      return { address: "/n_free", args: [...msg.val.nodeIds] };
+    case "g-free-all":
+      return { address: "/g_freeAll", args: [...msg.val.groupIds] };
+    case "d-recv":
+      return {
+        address: "/d_recv",
+        args: [
+          msg.val.bufferOfData,
+          ...(msg.val.completionMsg !== undefined ? [msg.val.completionMsg] : []),
+        ],
+      };
+    case "d-free":
+      return { address: "/d_free", args: msg.val.synthDefNames };
+    case "sync":
+      return { address: "/sync", args: [msg.val.aUniqueNumber] };
+    case "scope-subscribe": {
+      const v = msg.val;
+      return { address: "/scope/subscribe", args: [v.subId, v.scope, v.channels, v.chunkSize] };
+    }
+    case "scope-unsubscribe":
+      return { address: "/scope/unsubscribe", args: [msg.val.subId] };
+    case "other":
+      return { address: msg.val.address, args: msg.val.args.map(unwrapArg) };
+    default:
+      return null;
+  }
 }
 
 const REPLY_ADDRESSES: Record<Exclude<ServerReply["tag"], "other">, string> = {

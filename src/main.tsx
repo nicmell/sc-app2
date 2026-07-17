@@ -33,9 +33,9 @@ if (import.meta.env.DEV) {
       oscClient,
       registry,
       session,
-      // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
-      // (e.g. a /s_getn readback of a live node's control array) and watch
-      // the reply land in the rx log.
+      // The @sc-app/server-commands surface (builders, encode/decode,
+      // describe helpers) — probes can build/inspect typed messages and
+      // drive oscClient's command methods, watching the rx log.
       commands,
     };
   });

@@ -161,6 +161,44 @@ impl ScopeChunkReply {
     pub fn encode(self) -> Result<Vec<u8>, CommandError> {
         self.to_message().encode()
     }
+
+    /// Encode a chunk straight from a slot's raw NATIVE-endian f32 bytes
+    /// (as the sc-app bridge reads them out of scsynth's SHM): the ne→BE
+    /// swap happens in the single blob-building pass — no intermediate
+    /// `Vec<f32>` on the bridge's ~47 Hz per-scope hot path. Rejects a
+    /// misaligned byte slice like the decode side does.
+    pub fn encode_ne_samples(
+        sub_id: i32,
+        tick_index: i32,
+        is_gap: bool,
+        channels: i32,
+        ne_samples: &[u8],
+    ) -> Result<Vec<u8>, CommandError> {
+        if !ne_samples.len().is_multiple_of(4) {
+            return Err(CommandError::ArgType {
+                address: SCOPE_CHUNK_ADDRESS.to_string(),
+                pos: 4,
+                expected: "float32 bytes (length % 4 == 0)",
+                got: format!("{} bytes", ne_samples.len()),
+            });
+        }
+        let mut blob = Vec::with_capacity(ne_samples.len());
+        for chunk in ne_samples.chunks_exact(4) {
+            let bits = u32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)"));
+            blob.extend_from_slice(&bits.to_be_bytes());
+        }
+        OscMessage::with_args(
+            SCOPE_CHUNK_ADDRESS,
+            vec![
+                OscType::Int(sub_id),
+                OscType::Int(tick_index),
+                OscType::Int(is_gap as i32),
+                OscType::Int(channels),
+                OscType::Blob(blob),
+            ],
+        )
+        .encode()
+    }
 }
 
 impl ServerReply {
@@ -508,6 +546,26 @@ mod tests {
             ServerReply::ScopeChunk(back) => assert_eq!(back, chunk),
             other => panic!("expected ScopeChunk, got {:?}", other),
         }
+    }
+
+    /// The ne-bytes fast path must produce byte-identical wire output to the
+    /// typed constructor.
+    #[test]
+    fn scope_chunk_ne_bytes_path_matches_typed_encode() {
+        let samples = [1.0f32, -1.0f32];
+        let ne: Vec<u8> = samples.iter().flat_map(|f| f.to_ne_bytes()).collect();
+        let fast = ScopeChunkReply::encode_ne_samples(7, 3, false, 2, &ne).unwrap();
+        let typed = ScopeChunkReply {
+            sub_id: 7,
+            tick_index: 3,
+            is_gap: false,
+            channels: 2,
+            samples: samples.to_vec(),
+        }
+        .encode()
+        .unwrap();
+        assert_eq!(fast, typed);
+        assert!(ScopeChunkReply::encode_ne_samples(7, 3, false, 2, &ne[..5]).is_err());
     }
 
     #[test]

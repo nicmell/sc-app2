@@ -39,7 +39,9 @@ export function collectControlEntries(children: readonly ScElement[]): Record<st
     const bind = child.getAttribute("bind:value");
     const value = child.getProp("value") as number | number[] | undefined;
     if (!bind && value == null) {
-      throw new Error(`<sc-control name="${name}">: requires either a value or bind:value attribute`);
+      throw new Error(
+        `<sc-control name="${name}">: requires either a value or bind:value attribute`,
+      );
     }
     // An array value stringifies back to its comma-list — resolveSignal
     // re-parses it, so literal arrays and refs share one wire shape.

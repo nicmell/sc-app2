@@ -22,7 +22,7 @@
 // ui-components tokens + the .sc-scope CSS apply; styled in App.css.
 
 import { html } from "lit";
-import type { DecodedScopeChunk } from "@sc-app/server-commands";
+import type { ScopeChunkReply } from "@sc-app/server-commands";
 import {
   SCOPE_CHANNELS,
   SCOPE_CHUNK_SIZE,
@@ -41,7 +41,7 @@ const PAD = 0.9;
 
 /** One resolved draw: which chunk, from which sample, how many samples. */
 interface DrawWindow {
-  chunk: DecodedScopeChunk;
+  chunk: ScopeChunkReply;
   offset: number;
   span: number;
 }
@@ -91,7 +91,7 @@ export class ScScope extends ScElement {
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */
-  readonly chunkRef: { current: DecodedScopeChunk | null } = { current: null };
+  readonly chunkRef: { current: ScopeChunkReply | null } = { current: null };
   loaded = false;
   private tapNodeId = 0;
   private scopeIdx = -1;
@@ -201,7 +201,7 @@ export class ScScope extends ScElement {
    *  chunk (each arrives as a fresh object) or the backing size changed:
    *  chunks land at ~47 Hz against a 60 Hz RAF, and a dark scope costs
    *  nothing. */
-  private drawnChunk: DecodedScopeChunk | null = null;
+  private drawnChunk: ScopeChunkReply | null = null;
   private drawnW = 0;
   private drawnH = 0;
   /** `normal` mode's hold: the last triggered window, redrawn while no new
@@ -247,15 +247,15 @@ export class ScScope extends ScElement {
    *  headroom and display the remaining ¾ from the found crossing, so every
    *  trace starts at the same phase; signals whose period exceeds the
    *  headroom (or never cross the level) fall back per the mode. */
-  private resolveWindow(chunk: DecodedScopeChunk): DrawWindow | null {
-    const perChannel = (chunk.data.length / chunk.channels) | 0;
+  private resolveWindow(chunk: ScopeChunkReply): DrawWindow | null {
+    const perChannel = (chunk.samples.length / chunk.channels) | 0;
     if (perChannel < 2) return null;
     const headroom = perChannel >> 2;
     if (this._trigger === "off" || headroom === 0) {
       return { chunk, offset: 0, span: perChannel };
     }
     const offset = findTriggerOffset(
-      chunk.data, // lane 0 = the planar chunk's first perChannel samples
+      chunk.samples, // lane 0 = the planar chunk's first perChannel samples
       headroom,
       this._level,
       this._slope === "rising",
@@ -294,7 +294,7 @@ export class ScScope extends ScElement {
       canvas.height = bh;
     }
 
-    const win = chunk && chunk.data.length >= 2 ? this.resolveWindow(chunk) : null;
+    const win = chunk && chunk.samples.length >= 2 ? this.resolveWindow(chunk) : null;
     const bands = win && this._layout === "split" ? win.chunk.channels : 1;
     const bandH = h / bands;
 
@@ -318,8 +318,8 @@ export class ScScope extends ScElement {
     }
 
     if (!win || win.span < 2) return;
-    const { data, channels } = win.chunk;
-    const perChannel = (win.chunk.data.length / channels) | 0;
+    const { samples: data, channels } = win.chunk;
+    const perChannel = (data.length / channels) | 0;
 
     const xStep = w / (win.span - 1);
     ctx.lineWidth = 1.25;

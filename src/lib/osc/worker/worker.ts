@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { ProtocolPort } from "../protocol/port";
+import type { ProtocolPort } from "@/lib/osc/protocol/port";
 
 // The endpoint's module graph instantiates the wasm OSC component via
 // top-level await, and the proxy posts its first RPC (`connect`) right

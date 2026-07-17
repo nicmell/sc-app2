@@ -5,7 +5,7 @@ bookkeeping and a typed asynchronous proxy; importing the singleton does not spa
 
 ```
 OscClientProxy.ts                 main thread: store views, RPC pending map, scope slots/subscribers
-  ↕ protocol/{messages,dispatcher,port}.ts
+  ↕ protocol/port.ts (message unions derived in types/osc.d.ts)
 worker/endpoint.ts               protocol composition root and test seam
   → worker/OscClient.ts          encode/decode, reply waiters, node ids, commands, watchdog, telemetry
   → worker/transport.ts          raw WebSocket
@@ -14,11 +14,13 @@ worker/worker.ts                 production DedicatedWorkerGlobalScope entry
 
 ## Protocol
 
-`src/types/osc.d.ts` defines the discriminated `OscRequest`, `OscCommand`, and `OscEvent` unions.
-Call sites never construct those objects directly. `protocol/messages.ts` has one builder per
-message, mints request correlation ids, and owns transfer lists (synthdef bytes and scope sample
-buffers). The small generic `MessageDispatcher` routes messages by `type` on both sides, while
-`ProtocolPort` hides the minor API difference between `Worker` and its global scope.
+`src/types/osc.d.ts` DERIVES the discriminated `OscRequest`, `OscCommand`, and `OscEvent` unions
+from the worker OscClient's own method signatures and its `OscClientEvents` interface — a message
+is just `{type: <method>, args}` (requests add the proxy-minted correlation id), so adding one is
+exactly one worker method/event plus one proxy method. The proxy's generic `request()`/`command()`
+and the endpoint's generic apply are the whole transport; `ProtocolPort` hides the minor API
+difference between `Worker` and its global scope. The one transfer list (the scope chunk's sample
+buffer) lives at the endpoint's single scopeChunk post site.
 
 Awaited operations (`connect`, group/synth creation, synthdef installation) use request/reply RPC.
 Control and teardown operations are FIFO fire-and-forget commands. `connect` resolves only after

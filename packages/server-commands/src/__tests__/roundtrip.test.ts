@@ -9,6 +9,7 @@ import {
   atUnixMs,
   decodeReply,
   decodeReplyPacket,
+  describeMessage,
   dFree,
   dirtPlay,
   dRecv,
@@ -18,7 +19,6 @@ import {
   formatOscArg,
   gFreeAll,
   gNew,
-  IMMEDIATE_TIME,
   nFree,
   nRun,
   nSet,
@@ -28,8 +28,11 @@ import {
   scopeUnsubscribe,
   sNew,
   sync,
-  toScopeChunk,
+  type ServerMessage,
 } from "..";
+
+// The OSC "immediate" tag (what invalid atUnixMs input clamps to).
+const IMMEDIATE_TIME = { seconds: 0, fractional: 1 };
 
 /** The single-message flat view most assertions want. */
 const flat = (msg: Parameters<typeof encode>[0]) => flattenEncoded(encode(msg))[0];
@@ -130,9 +133,8 @@ describe("typed reply classification", () => {
     const reply = decodeReply(encode(raw("/scope/chunk", 5, 9, 0, 2, blob)));
     if (reply.tag !== "scope-chunk") throw new Error(`expected scope-chunk, got ${reply.tag}`);
     expect(Array.from(reply.val.samples)).toEqual([1, -1]);
-    const chunk = toScopeChunk(reply.val);
-    expect(chunk).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, frameCount: 1 });
-    expect(chunk.data.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
+    expect(reply.val).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });
+    expect(reply.val.samples.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
   });
 
   it("decodeReplyPacket splits bundles and errors loudly on garbage", () => {
@@ -146,5 +148,36 @@ describe("display formatting", () => {
   it("formatOscArg tags blobs by size", () => {
     expect(formatOscArg(new Uint8Array(16))).toBe("blob(16B)");
     expect(formatOscArg(440)).toBe("440");
+  });
+
+  it("describeMessage renders the same wire view flattenEncoded decodes (no crossings)", () => {
+    // Every builder the worker's tx log renders typed — pin against the
+    // byte-level truth so the two views can never drift.
+    const msgs: ServerMessage[] = [
+      gNew(2000, AddToTail, 1),
+      sNew("sine", 2001, AddToTail, 2000, [["freq", 440.5]]),
+      nSet(9, { freq: 440 }),
+      nSetn(9, "env", [0, 0.5, 1]),
+      nRun(2001, 0),
+      nFree(2001, 2002),
+      gFreeAll(2000),
+      dFree("sine"),
+      sync(7),
+      scopeSubscribe({ subId: 1, scope: 3, channels: 2, chunkSize: 1024 }),
+      scopeUnsubscribe(1),
+      dirtPlay({ s: "bd", n: 1 }),
+    ];
+    for (const msg of msgs) {
+      const wire = flattenEncoded(encode(msg))[0];
+      expect(describeMessage(msg)).toEqual({
+        address: wire.address,
+        args: wire.args.map(formatOscArg),
+      });
+    }
+    // The blob-carrying case renders size tags on both paths.
+    const recv = dRecv(Uint8Array.from([83, 67, 103, 102]), encode(sync(7)));
+    expect(describeMessage(recv).args.every((a) => a.startsWith("blob("))).toBe(true);
+    // A typed-reply collision on the byte path renders instead of throwing.
+    expect(flattenEncoded(encode(raw("/b_setn", 0, 0, 0)))[0].address).toBe("/b_setn");
   });
 });

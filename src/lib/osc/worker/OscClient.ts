@@ -11,14 +11,13 @@ import {
   AddToTail,
   atUnixMs,
   decodeReplyPacket,
+  describeMessage,
   describeReply,
   dFree,
   dirtPlay,
   dRecv,
   encode,
   encodeBundle,
-  flattenEncoded,
-  formatOscArg,
   gFreeAll,
   gNew,
   nFree,
@@ -29,15 +28,14 @@ import {
   scopeUnsubscribe,
   sNew,
   sync,
-  toScopeChunk,
-  type DecodedScopeChunk,
   type OscTime,
+  type ScopeChunkReply,
   type ServerMessage,
   type ServerReply,
 } from "@sc-app/server-commands";
 import { REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
-import type { OscLogEntryPayload, OscSession } from "@/types/osc";
-import type { ScsynthStatus } from "@/types/stores";
+import type { OscSession } from "@/types/osc";
+import type { OscLogEntry, ScsynthStatus } from "@/types/stores";
 import { TRANSPORT_STATUS, createWsTransport, type WorkerTransport } from "./transport";
 
 type ReplyTag = ServerReply["tag"];
@@ -55,10 +53,10 @@ interface ReplyWaiter {
 export interface OscClientEvents {
   open(): void;
   closed(code?: number, reason?: string): void;
-  log(entries: OscLogEntryPayload[]): void;
+  log(entries: OscLogEntry[]): void;
   banner(address: string, message: string, variant: "error" | "warn"): void;
   status(status: ScsynthStatus): void;
-  scopeChunk(subId: number, chunk: DecodedScopeChunk): void;
+  scopeChunk(subId: number, chunk: ScopeChunkReply): void;
 }
 const noopEvents: OscClientEvents = {
   open() {},
@@ -74,7 +72,7 @@ export class OscClient {
   private endId = 0;
   private waiters: ReplyWaiter[] = [];
   private statusTimer: ReturnType<typeof setTimeout> | null = null;
-  private logQueue: OscLogEntryPayload[] = [];
+  private logQueue: OscLogEntry[] = [];
   private logScheduled = false;
   private openResolve: (() => void) | null = null;
   private openReject: ((error: Error) => void) | null = null;
@@ -143,17 +141,15 @@ export class OscClient {
   }
   send(msg: ServerMessage): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    const bytes = encode(msg);
-    this.appendTx(bytes);
-    this.transport.send(bytes);
+    this.appendTx(msg);
+    this.transport.send(encode(msg));
   }
   /** Send several commands as one timetagged bundle — scsynth applies them
-   *  atomically at the tag. */
+   *  atomically at the tag. Logged per contained message. */
   sendBundle(time: OscTime, msgs: ServerMessage[]): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    const bytes = encodeBundle(time, msgs);
-    this.appendTx(bytes);
-    this.transport.send(bytes);
+    for (const msg of msgs) this.appendTx(msg);
+    this.transport.send(encodeBundle(time, msgs));
   }
   /** Await the next reply of `tag` whose payload satisfies `match` —
    *  registered BEFORE the triggering send (the sequenced-command
@@ -279,10 +275,11 @@ export class OscClient {
       waiter.resolve(val);
     }
     if (reply.tag === "scope-chunk") {
-      try {
-        this.events.scopeChunk(reply.val.subId, toScopeChunk(reply.val));
-      } catch (err) {
-        console.error("[osc] bad /scope/chunk:", err);
+      const c = reply.val;
+      if (c.channels > 0 && c.samples.length % c.channels === 0) {
+        this.events.scopeChunk(c.subId, c);
+      } else {
+        console.error("[osc] bad /scope/chunk:", c.channels, "channels,", c.samples.length);
       }
       return;
     }
@@ -311,12 +308,11 @@ export class OscClient {
     const d = describeReply(reply);
     this.append("rx", d.address, d.args);
   }
-  /** Log outbound bytes as sent — decoded back to per-message wire truth
-   *  (a bundle logs each contained message). */
-  private appendTx(bytes: Uint8Array) {
-    for (const m of flattenEncoded(bytes)) {
-      this.append("tx", m.address, m.args.map(formatOscArg));
-    }
+  /** Log one outbound command, rendered straight from the typed message —
+   *  no second wasm crossing per send just for the console. */
+  private appendTx(msg: ServerMessage) {
+    const d = describeMessage(msg);
+    this.append("tx", d.address, d.args);
   }
   /** Queue one log entry, flushing the batch once per microtask burst —
    *  one `log` event per burst instead of one postMessage per message. */

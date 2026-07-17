@@ -18,6 +18,13 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
+/** How long the proxy waits for the worker to answer an awaited RPC before
+ *  rejecting. Generous: it wraps REPLY_TIMEOUT_MS (a request may itself wait
+ *  on a scsynth ack) plus the WS dial on connect — it only fires when a
+ *  message was LOST (e.g. a worker-init regression), turning a silently
+ *  wedged promise into a loud error. */
+export const RPC_TIMEOUT_MS = 10_000;
+
 // ── scope taps (<sc-scope> defaults) ──────────────────────────────────
 
 /** Default tap input: SuperDirt sums all orbits to the stereo master out

@@ -22,14 +22,14 @@ export { encode, encodeBundle, decodeReply, decodeReplyPacket, atUnixMs } from "
 // Typed command builders + add-action constants.
 export * from "./builders";
 
-// Scope-chunk adaptation to the widget shape.
-export { toScopeChunk, type DecodedScopeChunk } from "./scope";
-
-// Console-log display helpers.
-export { flattenEncoded, formatOscArg, describeReply, type FlatMessage } from "./describe";
-
-// Timetags.
-export { IMMEDIATE_TIME } from "./time";
+// Console-log display helpers (no wasm crossings for the typed paths).
+export {
+  describeMessage,
+  describeReply,
+  flattenEncoded,
+  formatOscArg,
+  type FlatMessage,
+} from "./describe";
 
 // The component's own types, re-exported under the package root.
 export type {

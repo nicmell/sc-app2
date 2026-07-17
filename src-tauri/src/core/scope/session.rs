@@ -76,19 +76,16 @@ impl ScopeSubscription {
                 self.last_stage = stage as i32;
                 self.tick = self.tick.wrapping_add(1);
                 self.idle_polls = 0;
-                // The slot's raw native-endian bytes as typed floats — the
-                // crate's chunk encoder writes them back big-endian (the wire
-                // convention the frontend decodes).
-                let samples: Vec<f32> = samples
-                    .chunks_exact(4)
-                    .map(|chunk| f32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)")))
-                    .collect();
                 // Ground-truth probe: is scsynth actually writing audio into the
                 // SHM slot? Gated on SC_SCOPE_DEBUG, sampled ~1×/sec, logs the
                 // slot's min/max so a flat-zero scope can be traced to the source.
                 if self.debug && self.tick % 50 == 1 {
-                    let min = samples.iter().copied().fold(f32::INFINITY, f32::min);
-                    let max = samples.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+                    let (mut min, mut max) = (f32::INFINITY, f32::NEG_INFINITY);
+                    for chunk in samples.chunks_exact(4) {
+                        let f = f32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)"));
+                        min = min.min(f);
+                        max = max.max(f);
+                    }
                     tracing::info!(
                         scope = self.scope_idx,
                         tick = self.tick,
@@ -100,16 +97,20 @@ impl ScopeSubscription {
                         "scope SHM slot"
                     );
                 }
-                let chunk = ScopeChunkReply {
-                    sub_id: self.sub_id,
-                    // Preserves the u32 counter's bit pattern (the wire arg is
-                    // an OSC Int32).
-                    tick_index: self.tick as i32,
-                    is_gap: false,
-                    channels: channels as i32,
-                    samples,
-                };
-                Some(chunk.encode().expect("encode /scope/chunk"))
+                // The ne-bytes fast path: single-pass ne→BE swap, no
+                // intermediate Vec<f32> at chunk cadence. `tick as i32`
+                // preserves the u32 counter's bit pattern (the wire arg is
+                // an OSC Int32).
+                Some(
+                    ScopeChunkReply::encode_ne_samples(
+                        self.sub_id,
+                        self.tick as i32,
+                        false,
+                        channels as i32,
+                        &samples,
+                    )
+                    .expect("encode /scope/chunk"),
+                )
             }
             // NotInitialized / NoData: leave `last_stage` so we retry next poll.
             // Under SC_SCOPE_DEBUG, surface the stuck state ~1×/sec so "no chunks

@@ -23,9 +23,7 @@ pub mod mmap;
 pub mod reader;
 pub mod session;
 
-pub use scserver_commands::{
-    SCOPE_SUBSCRIBE_ADDRESS as SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE_ADDRESS as SCOPE_UNSUBSCRIBE,
-};
+pub use scserver_commands::{SCOPE_SUBSCRIBE_ADDRESS, SCOPE_UNSUBSCRIBE_ADDRESS};
 pub use session::{poll_interval, SessionScopes};
 
 use layout::{find_scope_buffer_array, ScopeBufferLayout};

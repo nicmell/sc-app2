@@ -160,8 +160,8 @@ describe("sc-scope", () => {
     expect(scope.chunkRef.current).toBeNull(); // foreign subId ignored
 
     workerOscClient.handleReply(scopeChunk(subId, [0.5, -0.5]));
-    expect(scope.chunkRef.current).toMatchObject({ subId, channels: 2, frameCount: 1 });
-    expect(scope.chunkRef.current!.data[0]).toBeCloseTo(0.5);
+    expect(scope.chunkRef.current).toMatchObject({ subId, channels: 2 });
+    expect(scope.chunkRef.current!.samples[0]).toBeCloseTo(0.5);
   });
 
   it("gives concurrent scopes distinct slots and subIds", async () => {
@@ -267,13 +267,12 @@ describe("sc-scope", () => {
   });
 
   it("resolves the drawn window per trigger mode: pin, fallback, hold", async () => {
-    const mkChunk = (data: Float32Array) => ({
+    const mkChunk = (samples: Float32Array) => ({
       subId: 1,
       tickIndex: 0,
       isGap: false,
       channels: 1,
-      frameCount: data.length,
-      data,
+      samples,
     });
     // 8 cycles in 1024 samples starting at the trough: rising zero-crossing
     // at sample 32 — inside the 256-sample search headroom.

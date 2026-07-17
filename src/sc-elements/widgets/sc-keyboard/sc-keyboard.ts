@@ -99,7 +99,10 @@ export class ScKeyboard extends ScElement {
   validate(): void {
     requireNoScChildren(this);
     if (!Number.isInteger(this._octaves) || this._octaves < 1) {
-      failValidation(this, `"octaves" attribute must be a positive integer (got "${this._octaves}")`);
+      failValidation(
+        this,
+        `"octaves" attribute must be a positive integer (got "${this._octaves}")`,
+      );
     }
     if (!Number.isInteger(this._start) || this._start < 0 || this._start > 127) {
       failValidation(this, `"start" attribute must be a MIDI note 0–127 (got "${this._start}")`);
@@ -355,7 +358,10 @@ export class ScKeyboard extends ScElement {
           ${blacks.map(
             (b) => html`
               <div
-                class=${classMap({ [styles.black]: true, [styles.active]: this.active.has(b.note) })}
+                class=${classMap({
+                  [styles.black]: true,
+                  [styles.active]: this.active.has(b.note),
+                })}
                 data-note=${b.note}
                 style="left:${b.leftPct}%;width:${blackWidthPct}%"
                 @pointerdown=${(e: PointerEvent) => this.pressKey(b.note, e)}

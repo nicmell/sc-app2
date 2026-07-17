@@ -22,26 +22,30 @@ export const AddBefore = 2;
 export const AddAfter = 3;
 export const AddReplace = 4;
 
+/** THE numeric-typing rule (integer → int, else float — what osc-js
+ *  encoded): one place to touch, three tagged-union spellings below. */
+const isInt = (v: number) => Number.isInteger(v);
+
 /** A control referenced by declared name or by index. */
-export function toControlId(key: string | number): ControlId {
+function toControlId(key: string | number): ControlId {
   return typeof key === "string" ? { tag: "name", val: key } : { tag: "index", val: key };
 }
 
 function toNumericValue(v: number): NumericValue {
-  return Number.isInteger(v) ? { tag: "int", val: v } : { tag: "float", val: v };
+  return isInt(v) ? { tag: "int", val: v } : { tag: "float", val: v };
 }
 
-/** A control value: number (int/float by integer-ness, as osc-js encoded
- *  them) or a `c`/`a`-prefixed bus-mapping symbol. */
+/** A control value: number (via the numeric rule) or a `c`/`a`-prefixed
+ *  bus-mapping symbol. */
 function toControlValue(v: number | string): ControlValue {
   return typeof v === "string" ? { tag: "bus", val: v } : toNumericValue(v);
 }
 
 /** One variadic OSC arg for the `other` escape hatch. */
-export function toOscArg(v: number | string | Uint8Array): OscArg {
+function toOscArg(v: number | string | Uint8Array): OscArg {
   if (v instanceof Uint8Array) return { tag: "blob", val: v };
   if (typeof v === "string") return { tag: "string", val: v };
-  return Number.isInteger(v) ? { tag: "int32", val: v } : { tag: "float32", val: v };
+  return isInt(v) ? { tag: "int32", val: v } : { tag: "float32", val: v };
 }
 
 /** `/g_new` — create one group under `targetId`. */

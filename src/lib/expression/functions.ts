@@ -139,7 +139,9 @@ const pad: ExprFunction = {
   },
   evalConst: ([arr, width]) => {
     if (!Array.isArray(arr)) {
-      throw new Error(`pad(): the first argument must be an array (an envelope call or array state)`);
+      throw new Error(
+        `pad(): the first argument must be an array (an envelope call or array state)`,
+      );
     }
     const w = Math.floor(Number(width));
     if (typeof width !== "number" || !(w > 0)) throw new Error(PAD_MIN);

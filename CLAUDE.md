@@ -110,7 +110,7 @@ types/                   .d.ts domain shapes (old sc-app convention):
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
                          runtime.d.ts (engine types: runtime mixins + RuntimeContext)
 constants/               per-domain constants (as-const maps + defaults):
-                         env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
+                         env (HTTP_BASE_URL), osc (reply/RPC timeouts, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
 lib/                     non-React infrastructure
   expression/              the bind-expression LANGUAGE: ast (the Expr union),
@@ -129,8 +129,9 @@ lib/                     non-React infrastructure
   osc/                   the worker-resident OSC stack (see lib/osc/README.md):
                          OscClientProxy (global `oscClient`) owns the osc store,
                          session-group/scope-slot bookkeeping and async RPC;
-                         protocol/ owns typed builders (ids + transfer lists),
-                         the shared dispatcher and Worker/global-scope ports;
+                         protocol/ owns the Worker/global-scope
+                         ports (the message unions are DERIVED from the worker
+                         client's method surface in types/osc.d.ts);
                          worker/OscClient owns encode/decode, reply waiters,
                          node ids, sequenced commands, scope parsing, telemetry
                          events and watchdog; worker/endpoint is the production

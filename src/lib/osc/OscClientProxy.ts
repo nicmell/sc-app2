@@ -1,45 +1,33 @@
 // Main-thread façade over the worker-resident OSC engine: every operation
-// is typed protocol traffic (protocol/messages.ts) over the worker port,
-// while all UI-facing state stays here — the app store's `osc` slice
-// (console log, error banners, scsynth status, the `connected` signal), the
-// awaited-RPC pending map, the session-group/scope-slot bookkeeping, and
-// the scope-chunk subscriber callbacks. The split's rule: the WORKER owns
-// protocol facts and time (decode, reply waiters, unthrottled timers), the
-// PROXY owns state and presentation. See lib/osc/README.md.
+// is one typed protocol message over the worker port — a request/command is
+// just `{type: <worker method>, args}` (types/osc.d.ts derives the unions
+// from the OscClient signatures, so the generic request()/command() below
+// are the whole transport) — while all UI-facing state stays here: the app
+// store's `osc` slice (console log, error banners, scsynth status, the
+// `connected` signal), the awaited-RPC pending map, the session-group/
+// scope-slot bookkeeping, and the scope-chunk subscriber callbacks. The
+// split's rule: the WORKER owns protocol facts and time (decode, reply
+// waiters, unthrottled timers), the PROXY owns state and presentation. See
+// lib/osc/README.md.
 //
 // Importing the singleton spawns nothing — the worker is created lazily on
-// the first operation, and a crash tears it down, rejects every pending
-// RPC, and lets the next operation spawn a fresh one.
+// the first operation, and a crash tears it down and rejects every pending
+// RPC; the next operation spawns a fresh one.
 
-import { MAX_ERRORS, MAX_LOG } from "@/constants/osc";
+import { MAX_ERRORS, MAX_LOG, RPC_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
-import type { DecodedScopeChunk } from "@sc-app/server-commands";
-import type { OscEvent, OscSession } from "@/types/osc";
-import { MessageDispatcher } from "./protocol/dispatcher";
-import {
-  closeMessage,
-  connectMessage,
-  createGroupMessage,
-  createSynthMessage,
-  freeGroupMessage,
-  freeSynthDefMessage,
-  freeSynthMessage,
-  sendDirtMessage,
-  sendSynthDefMessage,
-  setControlMessage,
-  setControlnMessage,
-  setNodeRunMessage,
-  subscribeScopeMessage,
-  unsubscribeScopeMessage,
-} from "./protocol/messages";
-import type { BuiltMessage } from "./protocol/messages";
+import type { ScopeChunkReply } from "@sc-app/server-commands";
+import type { OscCommandMethod, OscEvent, OscRequestMethod, OscSession } from "@/types/osc";
 import { workerPort, type ProtocolPort } from "./protocol/port";
+import type { OscClient } from "./worker/OscClient";
 
 type EventName = "open" | "close" | "error";
-type Pending = { resolve(value: unknown): void; reject(error: Error): void };
-const post = (port: ProtocolPort, built: BuiltMessage<unknown>) =>
-  port.postMessage(built.msg, built.transfer);
+type Pending = {
+  resolve(value: unknown): void;
+  reject(error: Error): void;
+  timer: ReturnType<typeof setTimeout>;
+};
 
 export class OscClientProxy {
   private readonly state = appStore.slice(SliceName.OSC);
@@ -52,9 +40,11 @@ export class OscClientProxy {
   readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
   private port: ProtocolPort | null = null;
   private worker: Worker | null = null;
-  /** Awaited RPCs keyed by the builder-minted request id (settled by the
-   *  worker's correlated `reply` event, or rejected wholesale on a crash). */
+  /** Awaited RPCs keyed by the proxy-minted request id — settled by the
+   *  worker's correlated `reply` event, rejected on a crash, and timed out
+   *  loudly so a lost message can never wedge a caller forever. */
   private pending = new Map<number, Pending>();
+  private nextRequestId = 1;
   /** The session group id, armed by connect() (throws before it). */
   private groupId: number | null = null;
   // The scope-slot allocator over the session's server-assigned span
@@ -66,7 +56,7 @@ export class OscClientProxy {
   private freeScopeSlots: number[] = [];
   private nextSubId = 1;
   /** Chunk consumers keyed by the proxy-minted subId (one per <sc-scope>). */
-  private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
+  private scopeChunkSubs = new Map<number, (chunk: ScopeChunkReply) => void>();
   private nextEntryId = 0;
   private nextListenerId = 1;
   private listeners = new Map<EventName, Map<number, (value?: unknown) => void>>();
@@ -81,35 +71,60 @@ export class OscClientProxy {
 
   /** Route the worker's event stream: RPC replies settle `pending`, the
    *  telemetry events land in the store, chunks fan out to their subId's
-   *  callback. */
+   *  callback. Each case's `args` tuple is typed by the OscClientEvents
+   *  signature it mirrors. */
   private bind(port: ProtocolPort) {
     this.port = port;
-    const d = new MessageDispatcher<OscEvent>();
-    d.register("reply", (m) => {
-      const p = this.pending.get(m.id);
-      if (!p) return;
-      this.pending.delete(m.id);
-      if (m.ok) p.resolve(m.result);
-      else p.reject(new Error(m.error));
+    port.onMessage((raw) => {
+      const m = raw as OscEvent;
+      switch (m.type) {
+        case "reply": {
+          const p = this.pending.get(m.id);
+          if (!p) return;
+          this.pending.delete(m.id);
+          clearTimeout(p.timer);
+          if (m.ok) p.resolve(m.result);
+          else p.reject(new Error(m.error));
+          return;
+        }
+        case "open":
+          this.emit("open");
+          return;
+        case "closed": {
+          const [code, reason] = m.args;
+          this.state.update((s) => ({ ...s, connected: false }));
+          this.emit("close", { code, reason });
+          return;
+        }
+        case "log": {
+          const [entries] = m.args;
+          this.state.update((s) => ({
+            ...s,
+            log: [...s.log, ...entries.map((e) => ({ ...e, id: this.nextEntryId++ }))].slice(
+              -MAX_LOG,
+            ),
+          }));
+          return;
+        }
+        case "banner": {
+          const [address, message, variant] = m.args;
+          this.pushError(address, message, variant);
+          return;
+        }
+        case "status": {
+          const [scsynth] = m.args;
+          this.state.update((s) => ({ ...s, scsynthStatus: scsynth }));
+          return;
+        }
+        case "scopeChunk": {
+          const [subId, chunk] = m.args;
+          this.scopeChunkSubs.get(subId)?.(chunk);
+          return;
+        }
+      }
     });
-    d.register("open", () => this.emit("open"));
-    d.register("closed", (m) => {
-      this.state.update((s) => ({ ...s, connected: false }));
-      this.emit("close", { code: m.code, reason: m.reason });
-    });
-    d.register("log", (m) =>
-      this.state.update((s) => ({
-        ...s,
-        log: [...s.log, ...m.entries.map((e) => ({ ...e, id: this.nextEntryId++ }))].slice(
-          -MAX_LOG,
-        ),
-      })),
-    );
-    d.register("banner", (m) => this.pushError(m.address, m.message, m.variant));
-    d.register("status", (m) => this.state.update((s) => ({ ...s, scsynthStatus: m.scsynth })));
-    d.register("scopeChunk", (m) => this.scopeChunkSubs.get(m.subId)?.(m.chunk));
-    port.onMessage((m) => d.dispatch(m as OscEvent));
   }
+
   /** The lazy-spawn seam every operation goes through. */
   private ensurePort() {
     if (this.port) return this.port;
@@ -123,36 +138,55 @@ export class OscClientProxy {
     worker.onerror = (event) => this.workerCrash(event.message || "worker error");
     return this.port!;
   }
-  /** Engine failure containment: reject everything in flight, drop the
-   *  connection state, and spawn a fresh worker so the next operation just
-   *  works — a crashed engine must never wedge the main thread. */
+
+  /** Engine failure containment: reject everything in flight and drop the
+   *  connection state; the NEXT operation lazy-spawns a replacement (no
+   *  eager respawn — a persistently failing worker, e.g. a stale wasm
+   *  asset, must not become a crash/spawn loop). */
   private workerCrash(message: string) {
     this.worker?.terminate();
     this.worker = null;
     this.port = null;
-    for (const p of this.pending.values()) p.reject(new Error(message));
+    for (const p of this.pending.values()) {
+      clearTimeout(p.timer);
+      p.reject(new Error(message));
+    }
     this.pending.clear();
     this.state.update((s) => ({ ...s, connected: false }));
     this.emit("error", new Error(message));
-    this.spawn();
   }
 
-  /** One awaited request: park the resolver under the builder-minted id and
-   *  post — the worker's `reply` event (or a crash) settles it. */
-  private rpc<T>(built: BuiltMessage<T & { id: number }>): Promise<unknown> {
-    const id = built.msg.id;
+  /** One awaited worker call: mint the id, park the resolver, post
+   *  `{type, id, args}`. The timeout is the backstop that turns a lost
+   *  message (a worker init regression, a dead port) into a loud rejection
+   *  instead of a forever-pending promise. */
+  private request<K extends OscRequestMethod>(
+    type: K,
+    ...args: Parameters<OscClient[K]>
+  ): Promise<unknown> {
+    const id = this.nextRequestId++;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      post(this.ensurePort(), built);
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`OscClientProxy.${type}: no reply from the worker (${RPC_TIMEOUT_MS}ms)`));
+      }, RPC_TIMEOUT_MS);
+      this.pending.set(id, { resolve, reject, timer });
+      this.ensurePort().postMessage({ type, id, args });
     });
   }
+
+  /** One fire-and-forget worker call: post `{type, args}`. */
+  private command<K extends OscCommandMethod>(type: K, ...args: Parameters<OscClient[K]>): void {
+    this.ensurePort().postMessage({ type, args });
+  }
+
   /** Open the connection: the RPC resolves once the worker has the socket
    *  open and the session `/g_new` sent — only then are the local group id
    *  and scope allocator armed and `connected` published, so consumers can
    *  treat the signal as "safe to allocate and send". */
   async connect(url: string, session: OscSession): Promise<void> {
     this.state.update((s) => ({ ...s, scsynthStatus: null, errors: [] }));
-    await this.rpc(connectMessage(url, session));
+    await this.request("connect", url, session);
     this.groupId = session.sessionGroupId;
     this.scopeBase = session.scopeIndexBase;
     this.scopeCount = session.scopeIndexCount;
@@ -162,11 +196,12 @@ export class OscClientProxy {
     this.scopeChunkSubs.clear();
     this.state.update((s) => ({ ...s, connected: true }));
   }
+
   /** Orderly disconnect (reload/session end) — flips `connected` first so
    *  subscribers unload before the socket dies under them. */
   close(): void {
     this.state.update((s) => ({ ...s, connected: false }));
-    if (this.port) post(this.port, closeMessage());
+    if (this.port) this.command("close");
   }
 
   /** The session group all plugin groups target (loud before connect —
@@ -201,7 +236,7 @@ export class OscClientProxy {
   // socket — teardown during a disconnect relies on that).
 
   createGroup(targetId: number): Promise<number> {
-    return this.rpc(createGroupMessage(targetId)) as Promise<number>;
+    return this.request("createGroup", targetId) as Promise<number>;
   }
   createSynth(
     defName: string,
@@ -209,39 +244,39 @@ export class OscClientProxy {
     controls: Record<string, number>,
     arrayControls: ReadonlyArray<{ index: number; values: readonly number[] }> = [],
   ): Promise<number> {
-    return this.rpc(
-      createSynthMessage(
-        defName,
-        targetId,
-        controls,
-        arrayControls.map((a) => ({ index: a.index, values: [...a.values] })),
-      ),
+    return this.request(
+      "createSynth",
+      defName,
+      targetId,
+      controls,
+      arrayControls,
     ) as Promise<number>;
   }
   sendSynthDef(bytes: Uint8Array): Promise<void> {
-    return this.rpc(sendSynthDefMessage(bytes)) as Promise<void>;
+    return this.request("sendSynthDef", bytes) as Promise<void>;
   }
   setControl(id: number, name: string, value: number) {
-    post(this.ensurePort(), setControlMessage(id, name, value));
+    this.command("setControl", id, name, value);
   }
   setControln(id: number, name: string, values: readonly number[]) {
-    post(this.ensurePort(), setControlnMessage(id, name, [...values]));
+    this.command("setControln", id, name, values);
   }
   setNodeRun(id: number, flag: 0 | 1) {
-    post(this.ensurePort(), setNodeRunMessage(id, flag));
+    this.command("setNodeRun", id, flag);
   }
   freeSynth(id: number) {
-    post(this.ensurePort(), freeSynthMessage(id));
+    this.command("freeSynth", id);
   }
   freeGroup(id: number) {
-    post(this.ensurePort(), freeGroupMessage(id));
+    this.command("freeGroup", id);
   }
   freeSynthDef(name: string) {
-    post(this.ensurePort(), freeSynthDefMessage(name));
+    this.command("freeSynthDef", name);
   }
   sendDirt(event: Record<string, string | number>, timetag: number) {
-    post(this.ensurePort(), sendDirtMessage(event, timetag));
+    this.command("sendDirt", event, timetag);
   }
+
   /** Register a scope-slot stream: mints the subId the bridge echoes on
    *  every chunk, wires the callback, and returns the `off()` disposer the
    *  element holds through its unload. */
@@ -249,19 +284,19 @@ export class OscClientProxy {
     scope: number,
     channels: number,
     chunkSize: number,
-    onChunk: (chunk: DecodedScopeChunk) => void,
+    onChunk: (chunk: ScopeChunkReply) => void,
   ) {
     const subId = this.nextSubId++;
     this.scopeChunkSubs.set(subId, onChunk);
-    post(this.ensurePort(), subscribeScopeMessage(subId, scope, channels, chunkSize));
+    this.command("subscribeScope", subId, scope, channels, chunkSize);
     return {
       subId,
       off: () => {
-        if (this.scopeChunkSubs.delete(subId))
-          post(this.ensurePort(), unsubscribeScopeMessage(subId));
+        if (this.scopeChunkSubs.delete(subId)) this.command("unsubscribeScope", subId);
       },
     };
   }
+
   // Connection-lifecycle listeners (the SessionManager observes close/error
   // to flip the UI status) — id-keyed so callers can detach exactly theirs.
   on(event: EventName, cb: (value?: unknown) => void) {

@@ -125,11 +125,11 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                 Some(Ok(Message::Binary(bytes))) => {
                     match peek_address(bytes.as_ref()) {
                         // `/scope/*` is bridge-internal: claimed, never routed.
-                        Some(scope::SCOPE_SUBSCRIBE) => {
+                        Some(scope::SCOPE_SUBSCRIBE_ADDRESS) => {
                             let shm = server.scope_shm().await;
                             scopes.subscribe(bytes.as_ref(), shm);
                         }
-                        Some(scope::SCOPE_UNSUBSCRIBE) => scopes.unsubscribe(bytes.as_ref()),
+                        Some(scope::SCOPE_UNSUBSCRIBE_ADDRESS) => scopes.unsubscribe(bytes.as_ref()),
                         _ => server.bridge().dispatch_command(bytes.as_ref()).await,
                     }
                 }

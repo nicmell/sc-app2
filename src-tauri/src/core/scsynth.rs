@@ -1,8 +1,9 @@
 //! scsynth: the SuperCollider server-command protocol plus a supervisor that
 //! keeps the bridge registered with a live scsynth.
 //!
-//! The protocol half encodes `/notify` and `/status` (via the generic
-//! [`osc`](super::osc) helpers) and classifies the replies ([`classify_reply`]).
+//! The protocol half encodes the commands with `scserver-commands`' typed
+//! constructors and classifies the replies ([`classify_reply`], over the
+//! crate's [`ServerReply`] parser).
 //! The supervisor half ([`Scsynth`]) rides on a generic
 //! [`Bridge`](super::bridge::Bridge): it subscribes to inbound datagrams to
 //! track scsynth's state, and sends commands via the bridge. It registers
@@ -13,10 +14,12 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use scserver_commands::commands::{GFreeAll, NFree, Notify, Status};
+use scserver_commands::ServerReply;
 use tokio::sync::{broadcast, watch};
 
 use super::bridge::Bridge;
-use super::osc::{self, OscType};
+use super::osc;
 
 /// Consecutive missed `/status.reply`s before scsynth is considered down.
 const MAX_STATUS_MISSES: u32 = 3;
@@ -32,25 +35,31 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(1);
 // supervisor.
 
 // ── group-command packet builders ─────────────────────────────────────────
+//
+// Fixed, well-formed messages — encoding cannot fail in practice.
 
 fn g_free_all_packet(group_id: i32) -> Vec<u8> {
-    osc::encode("/g_freeAll", vec![OscType::Int(group_id)])
+    GFreeAll::new(vec![group_id])
+        .encode()
+        .expect("encode /g_freeAll")
 }
 
 fn n_free_packet(node_id: i32) -> Vec<u8> {
-    osc::encode("/n_free", vec![OscType::Int(node_id)])
+    NFree::new(vec![node_id]).encode().expect("encode /n_free")
 }
 
 // ── protocol ────────────────────────────────────────────────────────────
 
 /// Encode `/notify <1|0>` — register (`true`) or unregister (`false`).
 fn notify_packet(register: bool) -> Vec<u8> {
-    osc::encode("/notify", vec![OscType::Int(register as i32)])
+    Notify::new(register as i32)
+        .encode()
+        .expect("encode /notify")
 }
 
 /// Encode `/status` — scsynth replies `/status.reply` (the heartbeat).
 fn status_packet() -> Vec<u8> {
-    osc::encode("/status", vec![])
+    Status::new().encode().expect("encode /status")
 }
 
 /// A scsynth reply the supervisor acts on (everything is still forwarded to
@@ -68,45 +77,53 @@ enum Reply {
         message: String,
         extras: Vec<i32>,
     },
-    /// `/late <seconds:float>` — a bundle ran late (mostly dormant in scsynth).
+    /// `/late` — a bundle ran late (mostly dormant in scsynth); the lateness
+    /// in seconds, computed from the two wire timetags.
     Late(f32),
     /// Anything else.
     Other,
 }
 
-/// Read an OSC arg as a string, or `None` if absent/not a string.
-fn string_arg(arg: Option<&OscType>) -> Option<String> {
-    match arg {
-        Some(OscType::String(s)) => Some(s.clone()),
-        _ => None,
-    }
-}
-
-/// Decode a peer packet **once** and classify it.
+/// Decode a peer packet **once** (via the typed [`ServerReply`] parser) and
+/// classify it. Malformed replies — decode errors included — are `Other`.
 fn classify_reply(bytes: &[u8]) -> Reply {
-    let Some(msg) = osc::decode_message(bytes) else {
+    let Ok(reply) = ServerReply::decode(bytes) else {
         return Reply::Other;
     };
-    match msg.addr.as_str() {
-        "/done" => {
-            let is_notify = matches!(msg.args.first(), Some(OscType::String(s)) if s == "/notify");
-            match msg.args.get(1) {
-                Some(arg) if is_notify => osc::int_arg(arg).map_or(Reply::Other, Reply::DoneNotify),
-                _ => Reply::Other,
-            }
+    match reply {
+        ServerReply::Done { address, extras } if address == "/notify" => {
+            // `/done /notify <clientId> [maxLogins]` — the id is the first extra.
+            extras
+                .first()
+                .and_then(osc::int_arg)
+                .map_or(Reply::Other, Reply::DoneNotify)
         }
-        "/status.reply" => Reply::Status,
-        "/fail" => Reply::Fail {
-            // SC protocol: /fail <commandAddress:str> <errorString:str> [extras…].
-            command: string_arg(msg.args.first()).unwrap_or_else(|| "?".into()),
-            message: string_arg(msg.args.get(1)).unwrap_or_else(|| "(no message)".into()),
-            extras: msg.args.iter().skip(2).filter_map(osc::int_arg).collect(),
+        ServerReply::StatusReply(_) => Reply::Status,
+        ServerReply::Fail {
+            address,
+            error,
+            extras,
+        } => Reply::Fail {
+            command: address,
+            message: if error.is_empty() {
+                "(no message)".into()
+            } else {
+                error
+            },
+            extras: extras.iter().filter_map(osc::int_arg).collect(),
         },
-        "/late" => match msg.args.first() {
-            Some(OscType::Float(s)) => Reply::Late(*s),
-            Some(OscType::Double(s)) => Reply::Late(*s as f32),
-            _ => Reply::Late(0.0),
-        },
+        ServerReply::Late {
+            seconds,
+            fractions,
+            late_secs,
+            late_fracs,
+        } => {
+            // Two NTP-style timetags (scheduled, executed), each seconds +
+            // 1/2^32 fractions; the lateness is their difference.
+            let frac = |f: i32| f as u32 as f64 / (u64::from(u32::MAX) + 1) as f64;
+            let late = (late_secs as f64 + frac(late_fracs)) - (seconds as f64 + frac(fractions));
+            Reply::Late(late as f32)
+        }
         _ => Reply::Other,
     }
 }
@@ -315,6 +332,7 @@ impl Scsynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::osc::OscType;
 
     fn message_of(bytes: &[u8]) -> osc::OscMessage {
         osc::decode_message(bytes).expect("expected a message")
@@ -343,10 +361,22 @@ mod tests {
 
     #[test]
     fn classifies_status_and_other() {
-        assert!(matches!(
-            classify_reply(&osc::encode("/status.reply", vec![OscType::Int(1)])),
-            Reply::Status
-        ));
+        // The full 9-arg reply shape — the typed parser rejects less.
+        let status = osc::encode(
+            "/status.reply",
+            vec![
+                OscType::Int(1),     // unused
+                OscType::Int(12),    // numUgens
+                OscType::Int(3),     // numSynths
+                OscType::Int(2),     // numGroups
+                OscType::Int(5),     // numSynthDefs
+                OscType::Float(0.5), // avgCPU
+                OscType::Float(1.5), // peakCPU
+                OscType::Double(48000.0),
+                OscType::Double(48000.01),
+            ],
+        );
+        assert!(matches!(classify_reply(&status), Reply::Status));
         assert!(matches!(
             classify_reply(&osc::encode("/n_go", vec![])),
             Reply::Other
@@ -398,9 +428,19 @@ mod tests {
 
     #[test]
     fn classifies_late() {
-        assert!(matches!(
-            classify_reply(&osc::encode("/late", vec![OscType::Float(0.02)])),
-            Reply::Late(_)
-        ));
+        // /late <scheduled: secs, fracs> <executed: secs, fracs> — two timetags.
+        let bytes = osc::encode(
+            "/late",
+            vec![
+                OscType::Int(100),
+                OscType::Int(0),
+                OscType::Int(101),
+                OscType::Int(0),
+            ],
+        );
+        match classify_reply(&bytes) {
+            Reply::Late(seconds) => assert!((seconds - 1.0).abs() < 1e-6),
+            _ => panic!("expected Late"),
+        }
     }
 }

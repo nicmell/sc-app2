@@ -10,10 +10,15 @@ mod nrt;
 mod osc;
 mod replies;
 
-pub use commands::{ControlId, ControlValue, NumericValue, ServerMessage};
+pub use commands::{
+    ControlId, ControlValue, NumericValue, ScopeSubscribe, ScopeUnsubscribe, ServerMessage,
+    SCOPE_SUBSCRIBE_ADDRESS, SCOPE_UNSUBSCRIBE_ADDRESS,
+};
 pub use error::CommandError;
 pub use nrt::NrtScore;
-pub use osc::OscMessage;
-pub use replies::{BSetnReply, NodeInfo, ServerReply, StatusReply};
+pub use osc::{ntp_from_unix_ms, OscMessage};
+pub use replies::{
+    BSetnReply, NodeInfo, ScopeChunkReply, ServerReply, StatusReply, SCOPE_CHUNK_ADDRESS,
+};
 
 pub use rosc::OscType;

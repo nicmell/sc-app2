@@ -23,14 +23,14 @@ use bindings::exports::scserver::commands::core::{OscArg as WitOscArg, OscTime a
 use bindings::exports::scserver::commands::nrt::{Guest as NrtGuest, GuestNrtScore};
 use bindings::exports::scserver::commands::replies::{
     BSetnReply, DoneInfo, FailInfo, Guest as RepliesGuest, LateInfo, NodeInfo as WitNodeInfo,
-    OtherReply, ReplyBundle as WitReplyBundle, ServerReply as WitServerReply, StatusReplyInfo,
-    SyncedReply, TrInfo,
+    OtherReply, ReplyBundle as WitReplyBundle, ScopeChunkReply as WitScopeChunkReply,
+    ServerReply as WitServerReply, StatusReplyInfo, SyncedReply, TrInfo,
 };
 
 use rosc::{OscBundle, OscPacket, OscTime};
 
 use crate::commands::*;
-use crate::{NodeInfo, NrtScore, OscMessage, ServerReply, StatusReply};
+use crate::{ntp_from_unix_ms, NodeInfo, NrtScore, OscMessage, ServerReply, StatusReply};
 
 pub(crate) struct Component;
 
@@ -69,6 +69,14 @@ impl CommandsGuest for Component {
             content,
         };
         rosc::encoder::encode(&OscPacket::Bundle(bundle)).map_err(|e| format!("{e:?}"))
+    }
+
+    fn at_unix_ms(ms: f64) -> WitOscTime {
+        let t = ntp_from_unix_ms(ms);
+        WitOscTime {
+            seconds: t.seconds,
+            fractional: t.fractional,
+        }
     }
 }
 
@@ -266,6 +274,13 @@ fn reply_to_wit(reply: ServerReply) -> WitServerReply {
             samples: b.samples,
         }),
         ServerReply::Synced { sync_id } => WitServerReply::Synced(SyncedReply { sync_id }),
+        ServerReply::ScopeChunk(c) => WitServerReply::ScopeChunk(WitScopeChunkReply {
+            sub_id: c.sub_id,
+            tick_index: c.tick_index,
+            is_gap: c.is_gap,
+            channels: c.channels,
+            samples: c.samples,
+        }),
         ServerReply::Other { address, args } => WitServerReply::Other(OtherReply {
             address,
             args: osc_args_to_wit(&args),
@@ -554,6 +569,15 @@ fn wit_to_rust(msg: WitServerMessage) -> ServerMessage {
             ))
         }
         WitServerMessage::SNoid(a) => ServerMessage::SNoid(SNoid::new(a.synth_ids)),
+        WitServerMessage::ScopeSubscribe(a) => ServerMessage::ScopeSubscribe(ScopeSubscribe::new(
+            a.sub_id,
+            a.scope,
+            a.channels,
+            a.chunk_size,
+        )),
+        WitServerMessage::ScopeUnsubscribe(a) => {
+            ServerMessage::ScopeUnsubscribe(ScopeUnsubscribe::new(a.sub_id))
+        }
         WitServerMessage::Status => ServerMessage::Status,
         WitServerMessage::Sync(a) => ServerMessage::Sync(Sync::new(a.a_unique_number)),
         WitServerMessage::UCmd(a) => ServerMessage::UCmd(UCmd::new(

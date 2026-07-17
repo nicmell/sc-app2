@@ -85,6 +85,22 @@ interface replies {
         sync-id: s32,
     }
 
+    /// sc-app bridge extension: payload of a `/scope/chunk` reply — one
+    /// chunk of a scope-slot stream, emitted by the bridge in response
+    /// to a `scope-subscribe` command.
+    record scope-chunk-reply {
+        /// the subscription id the chunk belongs to
+        sub-id: s32,
+        /// the bridge's monotonic poll tick — gaps reveal dropped chunks
+        tick-index: s32,
+        /// true when the bridge skipped ticks since the previous chunk
+        is-gap: bool,
+        channels: s32,
+        /// Planar host-endian samples (`frames × channels` floats); lifts
+        /// as `Float32Array` with one memcpy.
+        samples: list<f32>,
+    }
+
     /// Fallback for any reply whose address doesn't match a known shape
     /// — carries the raw decoded message.
     record other-reply {
@@ -108,6 +124,8 @@ interface replies {
         tr(tr-info),
         b-setn(b-setn-reply),
         synced(synced-reply),
+        /// sc-app bridge extension: `/scope/chunk`.
+        scope-chunk(scope-chunk-reply),
         other(other-reply),
     }
 

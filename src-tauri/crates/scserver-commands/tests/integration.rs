@@ -4,7 +4,9 @@
 //! exposes public fields so optional trailing args can be set via struct
 //! update syntax (`{ field: Some(v), ..Foo::new(required) }`).
 
-use scserver_commands::commands::{BAlloc, GNew, NFree, SNew, Status};
+use scserver_commands::commands::{
+    BAlloc, GNew, NFree, SNew, ScopeSubscribe, ScopeUnsubscribe, Status,
+};
 use scserver_commands::{ControlId, ControlValue, OscMessage, OscType, ServerMessage, ServerReply};
 
 #[test]
@@ -184,4 +186,51 @@ fn status_reply_round_trip_via_wire() {
         }
         other => panic!("expected StatusReply, got {other:?}"),
     }
+}
+
+/// The sc-app bridge extensions: /scope/subscribe|unsubscribe encode with
+/// the exact 4-Int / 1-Int arg layout the bridge parses, and decode back
+/// (the bridge is the consumer — these are the first decode-capable
+/// commands).
+#[test]
+fn scope_subscribe_round_trips() {
+    let cmd = ScopeSubscribe::new(7, 3, 2, 1024);
+    let bytes = cmd.clone().encode().unwrap();
+    let msg = OscMessage::decode(&bytes).unwrap();
+    assert_eq!(msg.address, "/scope/subscribe");
+    assert_eq!(
+        msg.args,
+        vec![
+            OscType::Int(7),
+            OscType::Int(3),
+            OscType::Int(2),
+            OscType::Int(1024),
+        ]
+    );
+    assert_eq!(ScopeSubscribe::decode(&bytes).unwrap(), cmd);
+}
+
+#[test]
+fn scope_unsubscribe_round_trips_and_rejects_bad_args() {
+    let bytes = ScopeUnsubscribe::new(7).encode().unwrap();
+    assert_eq!(ScopeUnsubscribe::decode(&bytes).unwrap().sub_id, 7);
+    // Missing arg and non-Int arg are loud errors, garbage never decodes.
+    let empty = OscMessage::new("/scope/unsubscribe").encode().unwrap();
+    assert!(ScopeUnsubscribe::decode(&empty).is_err());
+    let stringy = OscMessage::new("/scope/unsubscribe")
+        .arg("7")
+        .encode()
+        .unwrap();
+    assert!(ScopeUnsubscribe::decode(&stringy).is_err());
+    assert!(ScopeUnsubscribe::decode(b"garbage").is_err());
+}
+
+/// The ServerMessage variants lower to the same wire bytes as the structs.
+#[test]
+fn scope_commands_via_server_message() {
+    let via_enum: ServerMessage = ScopeSubscribe::new(1, 0, 1, 512).into();
+    assert_eq!(
+        via_enum.encode().unwrap(),
+        ScopeSubscribe::new(1, 0, 1, 512).encode().unwrap()
+    );
 }

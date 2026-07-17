@@ -2420,11 +2420,121 @@ impl UCmd {
     }
 }
 
+// ── sc-app bridge extensions (not in the SC command reference) ──────────
+//
+// The `/scope/*` protocol is spoken between the sc-app frontend and its
+// Rust OSC bridge (never routed to scsynth): a client registers a
+// scope-slot stream and the bridge answers with `/scope/chunk` replies
+// (see `ScopeChunkReply` in `replies`). Unlike the scsynth commands
+// above, the bridge is the CONSUMER of these — so they also carry
+// `from_message`/`decode` parsers.
+
+/// OSC address a client sends to register a scope-slot stream.
+pub const SCOPE_SUBSCRIBE_ADDRESS: &str = "/scope/subscribe";
+/// OSC address a client sends to drop a scope-slot stream.
+pub const SCOPE_UNSUBSCRIBE_ADDRESS: &str = "/scope/unsubscribe";
+
+/// sc-app bridge extension: register a scope-slot stream with the bridge.
+/// OSC address: `/scope/subscribe`
+#[derive(Debug, Clone, PartialEq)]
+pub struct ScopeSubscribe {
+    /// Client-minted subscription id, echoed on every chunk.
+    pub sub_id: i32,
+    /// scsynth SHM scope-buffer index to stream.
+    pub scope: i32,
+    /// Channel count (informational — the SHM header carries the truth).
+    pub channels: i32,
+    /// Requested frames per chunk (informational, as above).
+    pub chunk_size: i32,
+}
+
+impl ScopeSubscribe {
+    pub fn new(sub_id: i32, scope: i32, channels: i32, chunk_size: i32) -> Self {
+        Self {
+            sub_id,
+            scope,
+            channels,
+            chunk_size,
+        }
+    }
+
+    /// Encode the typed fields into an OSC `OscMessage`.
+    pub fn to_message(self) -> OscMessage {
+        OscMessage::with_args(
+            SCOPE_SUBSCRIBE_ADDRESS,
+            vec![
+                OscType::Int(self.sub_id),
+                OscType::Int(self.scope),
+                OscType::Int(self.channels),
+                OscType::Int(self.chunk_size),
+            ],
+        )
+    }
+
+    /// Shortcut: build + encode to OSC wire bytes.
+    pub fn encode(self) -> Result<Vec<u8>, crate::CommandError> {
+        self.to_message().encode()
+    }
+
+    /// Parse a decoded `/scope/subscribe` message (Int32 args only).
+    pub fn from_message(msg: &OscMessage) -> Result<Self, crate::CommandError> {
+        let addr = SCOPE_SUBSCRIBE_ADDRESS;
+        Ok(Self {
+            sub_id: crate::replies::take_int(msg, 0, addr)?,
+            scope: crate::replies::take_int(msg, 1, addr)?,
+            channels: crate::replies::take_int(msg, 2, addr)?,
+            chunk_size: crate::replies::take_int(msg, 3, addr)?,
+        })
+    }
+
+    /// Decode raw OSC bytes into the typed command.
+    pub fn decode(bytes: &[u8]) -> Result<Self, crate::CommandError> {
+        Self::from_message(&OscMessage::decode(bytes)?)
+    }
+}
+
+/// sc-app bridge extension: drop a scope-slot stream.
+/// OSC address: `/scope/unsubscribe`
+#[derive(Debug, Clone, PartialEq)]
+pub struct ScopeUnsubscribe {
+    /// The subscription id to drop.
+    pub sub_id: i32,
+}
+
+impl ScopeUnsubscribe {
+    pub fn new(sub_id: i32) -> Self {
+        Self { sub_id }
+    }
+
+    /// Encode the typed fields into an OSC `OscMessage`.
+    pub fn to_message(self) -> OscMessage {
+        OscMessage::with_args(SCOPE_UNSUBSCRIBE_ADDRESS, vec![OscType::Int(self.sub_id)])
+    }
+
+    /// Shortcut: build + encode to OSC wire bytes.
+    pub fn encode(self) -> Result<Vec<u8>, crate::CommandError> {
+        self.to_message().encode()
+    }
+
+    /// Parse a decoded `/scope/unsubscribe` message (Int32 arg only).
+    pub fn from_message(msg: &OscMessage) -> Result<Self, crate::CommandError> {
+        Ok(Self {
+            sub_id: crate::replies::take_int(msg, 0, SCOPE_UNSUBSCRIBE_ADDRESS)?,
+        })
+    }
+
+    /// Decode raw OSC bytes into the typed command.
+    pub fn decode(bytes: &[u8]) -> Result<Self, crate::CommandError> {
+        Self::from_message(&OscMessage::decode(bytes)?)
+    }
+}
+
 // ── ServerMessage: typed dispatch over every command ────────────────────
 
 /// Typed dispatch over every documented SC server command. One variant
-/// per address — 57 carry their per-command arg struct, 6 argless
-/// commands are pure unit cases, and `Other` is an escape hatch for
+/// per address — the payload cases carry their per-command arg struct,
+/// 6 argless commands are pure unit cases, `ScopeSubscribe`/`ScopeUnsubscribe`
+/// are the sc-app bridge extensions, and `Other` is an escape hatch for
 /// addresses outside the catalogue (extensions / plug-in commands).
 ///
 /// Construct via `From<…>` (`let msg: ServerMessage = BAlloc::new(0, 8192).into();`)
@@ -2492,6 +2602,8 @@ pub enum ServerMessage {
     SGetn(SGetn),
     SNew(SNew),
     SNoid(SNoid),
+    ScopeSubscribe(ScopeSubscribe),
+    ScopeUnsubscribe(ScopeUnsubscribe),
     Status,
     Sync(Sync),
     UCmd(UCmd),
@@ -2569,6 +2681,8 @@ impl ServerMessage {
             Self::SGetn(c) => c.to_message(),
             Self::SNew(c) => c.to_message(),
             Self::SNoid(c) => c.to_message(),
+            Self::ScopeSubscribe(c) => c.to_message(),
+            Self::ScopeUnsubscribe(c) => c.to_message(),
             Self::Status => Status::new().to_message(),
             Self::Sync(c) => c.to_message(),
             Self::UCmd(c) => c.to_message(),
@@ -2600,5 +2714,6 @@ impl_from_cmd! {
     DLoadDir, DRecv, DumpOSC, Error, GDeepFree, GDumpTree, GFreeAll,
     GHead, GNew, GQueryTree, GTail, NAfter, NBefore, NFill, NFree, NMap,
     NMapa, NMapan, NMapn, NOrder, NQuery, NRun, NSet, NSetn, NTrace,
-    Notify, PNew, SGet, SGetn, SNew, SNoid, Sync, UCmd,
+    Notify, PNew, SGet, SGetn, SNew, SNoid, ScopeSubscribe, ScopeUnsubscribe,
+    Sync, UCmd,
 }

@@ -510,6 +510,26 @@ interface commands {
         any-arguments: list<osc-arg>,
     }
 
+    /// sc-app bridge extension (not in the SC command reference): register
+    /// a scope-slot stream with the bridge. The bridge answers with
+    /// `scope-chunk` replies (see `replies`).
+    record scope-subscribe-args {
+        /// client-minted subscription id, echoed on every chunk
+        sub-id: s32,
+        /// scsynth SHM scope-buffer index to stream
+        scope: s32,
+        /// channel count (informational — the SHM header carries the truth)
+        channels: s32,
+        /// requested frames per chunk (informational, as above)
+        chunk-size: s32,
+    }
+
+    /// sc-app bridge extension: drop a scope-slot stream.
+    record scope-unsubscribe-args {
+        /// the subscription id to drop
+        sub-id: s32,
+    }
+
     /// Escape hatch for sending an OSC message whose address isn't in the
     /// catalogue (e.g. an SC extension or plug-in command). Carries a raw
     /// address + arg list.
@@ -586,6 +606,10 @@ interface commands {
         s-getn(s-getn-args),
         s-new(s-new-args),
         s-noid(s-noid-args),
+        /// sc-app bridge extension: `/scope/subscribe`.
+        scope-subscribe(scope-subscribe-args),
+        /// sc-app bridge extension: `/scope/unsubscribe`.
+        scope-unsubscribe(scope-unsubscribe-args),
         /// `/status` — Query the server status.
         status,
         sync(sync-args),
@@ -611,4 +635,10 @@ interface commands {
     /// messages in a bundle atomically at the timetag. One boundary
     /// crossing for the whole bundle.
     encode-bundle: func(time: osc-time, msgs: list<server-message>) -> result<list<u8>, string>;
+
+    /// Wall-clock helper: convert a Unix timestamp in milliseconds (what
+    /// `Date.now()` yields) into the NTP `osc-time` a bundle timetag
+    /// carries. Negative or non-finite input yields the OSC "immediate"
+    /// tag `(0, 1)`.
+    at-unix-ms: func(ms: f64) -> osc-time;
 }

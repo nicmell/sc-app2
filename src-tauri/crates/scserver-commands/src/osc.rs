@@ -66,6 +66,23 @@ impl OscMessage {
     }
 }
 
+/// NTP timetag from a wall-clock Unix timestamp in milliseconds (what
+/// `Date.now()` yields): Unix seconds + the 1900↔1970 NTP epoch offset,
+/// fractional = sub-second × 2³². Total — negative or non-finite input
+/// clamps to the OSC "immediate" tag `(0, 1)` (the component boundary
+/// exposes this as a plain function, so it cannot fail).
+pub fn ntp_from_unix_ms(ms: f64) -> rosc::OscTime {
+    use std::time::{Duration, UNIX_EPOCH};
+    const IMMEDIATE: rosc::OscTime = rosc::OscTime {
+        seconds: 0,
+        fractional: 1,
+    };
+    if !ms.is_finite() || ms < 0.0 {
+        return IMMEDIATE;
+    }
+    rosc::OscTime::try_from(UNIX_EPOCH + Duration::from_secs_f64(ms / 1000.0)).unwrap_or(IMMEDIATE)
+}
+
 impl From<OscMessage> for RoscMessage {
     fn from(m: OscMessage) -> Self {
         RoscMessage {
@@ -95,6 +112,24 @@ mod tests {
         let back = OscMessage::decode(&bytes).unwrap();
         assert_eq!(back.address, "/status");
         assert_eq!(back.args.len(), 0);
+    }
+
+    #[test]
+    fn ntp_from_unix_ms_applies_the_epoch_offset() {
+        let t = ntp_from_unix_ms(0.0);
+        assert_eq!((t.seconds, t.fractional), (2_208_988_800, 0));
+        // Half a second lands halfway through the 2^32 fractional range.
+        let t = ntp_from_unix_ms(1500.0);
+        assert_eq!(t.seconds, 2_208_988_801);
+        assert!((t.fractional as f64 - 2f64.powi(31)).abs() < 2f64.powi(22)); // ~1ms slack
+    }
+
+    #[test]
+    fn ntp_from_unix_ms_clamps_invalid_input_to_immediate() {
+        for ms in [-1.0, f64::NAN, f64::INFINITY] {
+            let t = ntp_from_unix_ms(ms);
+            assert_eq!((t.seconds, t.fractional), (0, 1));
+        }
     }
 
     #[test]

@@ -7,11 +7,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
+use scserver_commands::{ScopeChunkReply, ScopeSubscribe, ScopeUnsubscribe};
+
 use crate::core::blocks::SessionBlock;
-use crate::core::osc::decode_message;
 
 use super::reader::{read_scope_slot, read_scope_stage, ScopeReadResult};
-use super::wire::{encode_scope_chunk, parse_subscribe, parse_unsubscribe};
 use super::ScopeShm;
 
 /// How often the WS task polls SHM for new scope slots. A `_stage`-only peek
@@ -76,16 +76,19 @@ impl ScopeSubscription {
                 self.last_stage = stage as i32;
                 self.tick = self.tick.wrapping_add(1);
                 self.idle_polls = 0;
+                // The slot's raw native-endian bytes as typed floats — the
+                // crate's chunk encoder writes them back big-endian (the wire
+                // convention the frontend decodes).
+                let samples: Vec<f32> = samples
+                    .chunks_exact(4)
+                    .map(|chunk| f32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)")))
+                    .collect();
                 // Ground-truth probe: is scsynth actually writing audio into the
                 // SHM slot? Gated on SC_SCOPE_DEBUG, sampled ~1×/sec, logs the
                 // slot's min/max so a flat-zero scope can be traced to the source.
                 if self.debug && self.tick % 50 == 1 {
-                    let (mut min, mut max) = (f32::INFINITY, f32::NEG_INFINITY);
-                    for chunk in samples.chunks_exact(4) {
-                        let f = f32::from_ne_bytes(chunk.try_into().expect("chunks_exact(4)"));
-                        min = min.min(f);
-                        max = max.max(f);
-                    }
+                    let min = samples.iter().copied().fold(f32::INFINITY, f32::min);
+                    let max = samples.iter().copied().fold(f32::NEG_INFINITY, f32::max);
                     tracing::info!(
                         scope = self.scope_idx,
                         tick = self.tick,
@@ -97,13 +100,16 @@ impl ScopeSubscription {
                         "scope SHM slot"
                     );
                 }
-                Some(encode_scope_chunk(
-                    self.sub_id as u32,
-                    self.tick,
-                    false,
-                    channels as u32,
-                    &samples,
-                ))
+                let chunk = ScopeChunkReply {
+                    sub_id: self.sub_id,
+                    // Preserves the u32 counter's bit pattern (the wire arg is
+                    // an OSC Int32).
+                    tick_index: self.tick as i32,
+                    is_gap: false,
+                    channels: channels as i32,
+                    samples,
+                };
+                Some(chunk.encode().expect("encode /scope/chunk"))
             }
             // NotInitialized / NoData: leave `last_stage` so we retry next poll.
             // Under SC_SCOPE_DEBUG, surface the stuck state ~1×/sec so "no chunks
@@ -176,11 +182,15 @@ impl SessionScopes {
     /// subscription. Re-subscribing an existing subId replaces it (fresh
     /// SHM cursor). Malformed frames are ignored.
     pub fn subscribe(&mut self, bytes: &[u8], shm: Option<Arc<ScopeShm>>) {
-        let Some((sub_id, scope_idx)) = decode_message(bytes).as_ref().and_then(parse_subscribe)
-        else {
+        let Ok(ScopeSubscribe { sub_id, scope, .. }) = ScopeSubscribe::decode(bytes) else {
             tracing::debug!("malformed /scope/subscribe ignored");
             return;
         };
+        if scope < 0 {
+            tracing::debug!(sub_id, scope, "negative scope index ignored");
+            return;
+        }
+        let scope_idx = scope as usize;
         if !self.block.owns_scope_index(scope_idx) {
             tracing::warn!(
                 sub_id,
@@ -205,7 +215,7 @@ impl SessionScopes {
     /// its staged chunk. Malformed or unknown subIds are ignored (logged) —
     /// an unsubscribe racing a socket close is normal, not an error.
     pub fn unsubscribe(&mut self, bytes: &[u8]) {
-        let Some(sub_id) = decode_message(bytes).as_ref().and_then(parse_unsubscribe) else {
+        let Ok(ScopeUnsubscribe { sub_id }) = ScopeUnsubscribe::decode(bytes) else {
             tracing::debug!("malformed /scope/unsubscribe ignored");
             return;
         };
@@ -235,29 +245,21 @@ impl SessionScopes {
 
 #[cfg(test)]
 mod tests {
-    use super::super::wire::{SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE};
     use super::*;
     use crate::core::blocks::session_block;
-    use rosc::{OscMessage, OscPacket, OscType};
 
-    fn frame(addr: &str, args: Vec<OscType>) -> Vec<u8> {
-        rosc::encoder::encode(&OscPacket::Message(OscMessage {
-            addr: addr.into(),
-            args,
-        }))
-        .expect("encode frame")
+    /// Frames built through the crate's own constructors — the tests also
+    /// pin the encode ↔ parse roundtrip across the shared contract.
+    fn subscribe_frame(sub_id: i32, scope: i32) -> Vec<u8> {
+        ScopeSubscribe::new(sub_id, scope, 2, 1024)
+            .encode()
+            .expect("encode subscribe")
     }
 
-    fn subscribe_frame(sub_id: i32, scope: i32) -> Vec<u8> {
-        frame(
-            SCOPE_SUBSCRIBE,
-            vec![
-                OscType::Int(sub_id),
-                OscType::Int(scope),
-                OscType::Int(2),
-                OscType::Int(1024),
-            ],
-        )
+    fn unsubscribe_frame(sub_id: i32) -> Vec<u8> {
+        ScopeUnsubscribe::new(sub_id)
+            .encode()
+            .expect("encode unsubscribe")
     }
 
     #[test]
@@ -272,7 +274,7 @@ mod tests {
         assert!(scopes.is_active());
         scopes.subscribe(&subscribe_frame(2, block.scope_index_base - 1), None);
         scopes.subscribe(b"garbage", None);
-        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(2)]));
+        scopes.unsubscribe(&unsubscribe_frame(2));
         assert!(scopes.is_active()); // subId 2 was never installed; 1 remains
     }
 
@@ -283,15 +285,15 @@ mod tests {
         scopes.subscribe(&subscribe_frame(7, block.scope_index_base), None);
         scopes.subscribe(&subscribe_frame(8, block.scope_index_base + 1), None);
 
-        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(7)]));
+        scopes.unsubscribe(&unsubscribe_frame(7));
         assert!(scopes.is_active());
 
         // Garbage frames and unknown subIds leave the rest untouched.
         scopes.unsubscribe(b"garbage");
-        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(99)]));
+        scopes.unsubscribe(&unsubscribe_frame(99));
         assert!(scopes.is_active());
 
-        scopes.unsubscribe(&frame(SCOPE_UNSUBSCRIBE, vec![OscType::Int(8)]));
+        scopes.unsubscribe(&unsubscribe_frame(8));
         assert!(!scopes.is_active());
         // Nothing staged without SHM; the drain seam is empty, not stuck.
         assert!(!scopes.has_pending());

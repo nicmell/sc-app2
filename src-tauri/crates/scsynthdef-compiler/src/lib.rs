@@ -6,6 +6,10 @@
 //!
 //! [SynthDef File Format v2]: https://doc.sccode.org/Reference/Synth-Definition-File-Format.html
 
+// Vendored from nicmell/sc-crates: keep upstream style — the app's
+// clippy -D warnings gate would fail on stylistic lints here.
+#![allow(clippy::all)]
+
 pub mod builders;
 mod error;
 mod operators;

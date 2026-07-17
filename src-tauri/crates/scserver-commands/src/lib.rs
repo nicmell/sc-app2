@@ -2,6 +2,10 @@
 //!
 //! See the [Server Command Reference](https://doc.sccode.org/Reference/Server-Command-Reference.html).
 
+// Vendored from nicmell/sc-crates: keep upstream style — the app's
+// clippy -D warnings gate would fail on stylistic lints here.
+#![allow(clippy::all)]
+
 pub mod commands;
 #[cfg(feature = "component")]
 mod component;

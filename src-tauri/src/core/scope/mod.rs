@@ -9,19 +9,24 @@
 //! * [`mmap`] — the read-only shared mapping + typed (acquire) reads.
 //! * [`layout`] — the `scope_buffer` memory layout + its heuristic discovery.
 //! * [`reader`] — the non-mutating slot reader over the triple buffer.
-//! * [`wire`] — the `/scope/*` OSC contract (addresses, parse, encode).
 //! * [`session`] — the streaming state: per-slot cursors + [`SessionScopes`],
 //!   one session's whole scope state, OWNED by its WS task (a session lives
 //!   exactly as long as its socket), so none of it needs locking.
+//!
+//! The `/scope/*` OSC contract itself (addresses, parse, encode — shared
+//! with the frontend) lives in the `scserver-commands` crate as sc-app
+//! bridge extensions; the address consts are re-exported here for the
+//! pump's routing match.
 
 pub mod layout;
 pub mod mmap;
 pub mod reader;
 pub mod session;
-pub mod wire;
 
+pub use scserver_commands::{
+    SCOPE_SUBSCRIBE_ADDRESS as SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE_ADDRESS as SCOPE_UNSUBSCRIBE,
+};
 pub use session::{poll_interval, SessionScopes};
-pub use wire::{SCOPE_SUBSCRIBE, SCOPE_UNSUBSCRIBE};
 
 use layout::{find_scope_buffer_array, ScopeBufferLayout};
 use mmap::{shm_path, MmapRegion};

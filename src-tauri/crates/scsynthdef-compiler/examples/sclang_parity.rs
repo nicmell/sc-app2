@@ -16,7 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
-use scsynthdef_compiler::builders::{A2K, BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc};
+use scsynthdef_compiler::builders::{BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc, A2K};
 use scsynthdef_compiler::{Rate, SynthDef};
 
 // ── Fixture definitions ──────────────────────────────────────────────────
@@ -241,7 +241,9 @@ fn run() -> Result<ExitCode, Box<dyn std::error::Error>> {
         }
 
         // Structural summary using the library's SCgf reader.
-        let rust_json = SynthDef::from_bytes(&rust).ok().and_then(|d| d.to_json().ok());
+        let rust_json = SynthDef::from_bytes(&rust)
+            .ok()
+            .and_then(|d| d.to_json().ok());
         match SynthDef::from_bytes(&sclang).and_then(|d| d.to_json()) {
             Ok(sclang_json) => {
                 let names = |j: &scsynthdef_compiler::SynthDefJson| {

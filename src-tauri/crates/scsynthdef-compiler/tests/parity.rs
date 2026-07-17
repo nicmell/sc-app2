@@ -166,7 +166,10 @@ fn two_kr_controls_produce_one_grouped_control_ugen() {
         r.i32();
     }
     let nugens = r.i32();
-    assert_eq!(nugens, 4, "expected [Control(grouped), SinOsc, BinaryOpUGen, Out]");
+    assert_eq!(
+        nugens, 4,
+        "expected [Control(grouped), SinOsc, BinaryOpUGen, Out]"
+    );
 
     // First UGen must be the grouped Control with num_outputs=2,
     // special_index=0.

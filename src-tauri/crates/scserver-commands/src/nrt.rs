@@ -42,7 +42,10 @@ impl NrtScore {
     pub fn bundle_at(mut self, time_seconds: f64, msgs: Vec<OscMessage>) -> Self {
         self.bundles.push(OscBundle {
             timetag: seconds_to_osc_time(time_seconds),
-            content: msgs.into_iter().map(|m| OscPacket::Message(m.into())).collect(),
+            content: msgs
+                .into_iter()
+                .map(|m| OscPacket::Message(m.into()))
+                .collect(),
         });
         self
     }
@@ -81,12 +84,9 @@ impl NrtScore {
                     "truncated length prefix at offset {pos}"
                 )));
             }
-            let len = u32::from_be_bytes([
-                bytes[pos],
-                bytes[pos + 1],
-                bytes[pos + 2],
-                bytes[pos + 3],
-            ]) as usize;
+            let len =
+                u32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]])
+                    as usize;
             pos += 4;
             if bytes.len() - pos < len {
                 return Err(CommandError::Nrt(format!(
@@ -151,8 +151,18 @@ mod tests {
     #[test]
     fn round_trip_multiple_nrt_entries() {
         let score = NrtScore::new()
-            .at(0.0, OscMessage::new("/g_new").arg(1001i32).arg(0i32).arg(0i32))
-            .at(0.5, OscMessage::new("/s_new").arg("sine").arg(1002i32).arg(0i32).arg(1001i32))
+            .at(
+                0.0,
+                OscMessage::new("/g_new").arg(1001i32).arg(0i32).arg(0i32),
+            )
+            .at(
+                0.5,
+                OscMessage::new("/s_new")
+                    .arg("sine")
+                    .arg(1002i32)
+                    .arg(0i32)
+                    .arg(1001i32),
+            )
             .at(2.0, OscMessage::new("/n_free").arg(1002i32));
         let back = NrtScore::decode(&score.encode().unwrap()).unwrap();
         assert_eq!(back.len(), 3);

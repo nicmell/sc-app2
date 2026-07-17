@@ -62,7 +62,10 @@ impl CommandsGuest for Component {
             .map(|m| OscPacket::Message(wit_to_rust(m).to_osc_message().into()))
             .collect();
         let bundle = OscBundle {
-            timetag: OscTime { seconds: time.seconds, fractional: time.fractional },
+            timetag: OscTime {
+                seconds: time.seconds,
+                fractional: time.fractional,
+            },
             content,
         };
         rosc::encoder::encode(&OscPacket::Bundle(bundle)).map_err(|e| format!("{e:?}"))
@@ -286,8 +289,8 @@ fn wit_to_rust(msg: WitServerMessage) -> ServerMessage {
             completion_msg: a.completion_msg,
             ..BAllocRead::new(a.bufnum, a.path)
         }),
-        WitServerMessage::BAllocReadChannel(a) => ServerMessage::BAllocReadChannel(
-            BAllocReadChannel {
+        WitServerMessage::BAllocReadChannel(a) => {
+            ServerMessage::BAllocReadChannel(BAllocReadChannel {
                 completion_msg: a.completion_msg,
                 ..BAllocReadChannel::new(
                     a.bufnum,
@@ -296,8 +299,8 @@ fn wit_to_rust(msg: WitServerMessage) -> ServerMessage {
                     a.number_of_frames,
                     a.channels,
                 )
-            },
-        ),
+            })
+        }
         WitServerMessage::BClose(a) => ServerMessage::BClose(BClose {
             completion_msg: a.completion_msg,
             ..BClose::new(a.bufnum)
@@ -377,7 +380,11 @@ fn wit_to_rust(msg: WitServerMessage) -> ServerMessage {
             ServerMessage::CGetn(CGetn::new(tail))
         }
         WitServerMessage::CSet(a) => {
-            let tail: Vec<_> = a.tail.into_iter().map(|t| (t.0, wit_numeric(t.1))).collect();
+            let tail: Vec<_> = a
+                .tail
+                .into_iter()
+                .map(|t| (t.0, wit_numeric(t.1)))
+                .collect();
             ServerMessage::CSet(CSet::new(tail))
         }
         WitServerMessage::CSetn(a) => {

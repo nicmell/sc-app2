@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
@@ -43,7 +49,7 @@ impl A2K {
 /// Note that for frequencies very much smaller than root the amplitudes can
 /// become very high. In this case limit the freqor use amp-comp-a Implements the
 /// (optimized) formula: compensationFactor = (root / freq) ** exp
-/// 
+///
 /// amplitude compensation: because higher frequencies are normally perceived as
 /// louder. Note that for frequencies very much smaller than root the amplitudes
 /// can become very high. In this case limit the freqor use amp-comp-a Implements
@@ -118,7 +124,7 @@ impl AmpComp {
 }
 
 /// Basic psychoacoustic amplitude compensation (ANSI A-weighting curve).
-/// 
+///
 /// Higher frequencies are normally perceived as louder, which amp-comp-a
 /// compensates. Following the measurings by Fletcher and Munson, the ANSI
 /// standard describes a function for loudness vs. frequency. Note that this curve
@@ -277,7 +283,7 @@ impl K2A {
 }
 
 /// Line generator.
-/// 
+///
 /// Generates a line from the start value to the end value.
 pub struct Line {
     _rate: Rate,
@@ -349,7 +355,7 @@ impl Line {
 }
 
 /// Map a linear range to an exponential range
-/// 
+///
 /// Convert from a linear range to an exponential range. The dstlo and dsthi
 /// arguments must be nonzero and have the same sign.
 pub struct LinExp {
@@ -538,7 +544,7 @@ impl T2K {
 }
 
 /// Exponential line generator.
-/// 
+///
 /// Generates an exponential curve from the start value to the end value. Both the
 /// start and end values must be non-zero and have the same sign.
 pub struct XLine {

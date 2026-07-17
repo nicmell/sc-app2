@@ -12,9 +12,17 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"When it receives a trigger, it tosses a coin, and either passes the trigger or doesn't."),
+        doc: Some(
+            r"When it receives a trigger, it tosses a coin, and either passes the trigger or doesn't.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"prob", r"Value between 0 and 1 determines probability of either possibilities"), (r"trig", r"Trigger signal")],
+        arg_docs: &[
+            (
+                r"prob",
+                r"Value between 0 and 1 determines probability of either possibilities",
+            ),
+            (r"trig", r"Trigger signal"),
+        ],
     },
     UGenRegistryEntry {
         name: r"ExpRand",
@@ -23,9 +31,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a single random float value in an exponential distributions from lo to hi."),
+        doc: Some(
+            r"Generates a single random float value in an exponential distributions from lo to hi.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated float"), (r"lo", r"Minimum value of generated float")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated float"),
+            (r"lo", r"Minimum value of generated float"),
+        ],
     },
     UGenRegistryEntry {
         name: r"IRand",
@@ -36,18 +49,34 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"Generates a single random integer value in uniform distribution from lo to hi"),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated integer"), (r"lo", r"Minimum value of generated integer")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated integer"),
+            (r"lo", r"Minimum value of generated integer"),
+        ],
     },
     UGenRegistryEntry {
         name: r"LinRand",
         rates: &[Rate::Scalar],
-        defaults: &[(r"lo", Some(0.0)), (r"hi", Some(1.0)), (r"minmax", Some(0.0))],
+        defaults: &[
+            (r"lo", Some(0.0)),
+            (r"hi", Some(1.0)),
+            (r"minmax", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a single random float value in linear distribution from lo to hi, skewed towards lo if minmax < 0, otherwise skewed towards hi."),
+        doc: Some(
+            r"Generates a single random float value in linear distribution from lo to hi, skewed towards lo if minmax < 0, otherwise skewed towards hi.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated float"), (r"lo", r"Minimum value of generated float"), (r"minmax", r"Skew direction (towards lo if negative otherwise hi)")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated float"),
+            (r"lo", r"Minimum value of generated float"),
+            (
+                r"minmax",
+                r"Skew direction (towards lo if negative otherwise hi)",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"NRand",
@@ -56,9 +85,15 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a single random float value in a sum of n uniform distributions from lo to hi. n = 1 : uniform distribution - same as Rand n = 2 : triangular distribution n = 3 : smooth hump As n increases, distribution converges towards gaussian"),
+        doc: Some(
+            r"Generates a single random float value in a sum of n uniform distributions from lo to hi. n = 1 : uniform distribution - same as Rand n = 2 : triangular distribution n = 3 : smooth hump As n increases, distribution converges towards gaussian",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated float"), (r"lo", r"Minimum value of generated float"), (r"n", r"Distribution choice")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated float"),
+            (r"lo", r"Minimum value of generated float"),
+            (r"n", r"Distribution choice"),
+        ],
     },
     UGenRegistryEntry {
         name: r"Rand",
@@ -78,7 +113,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: Some(1),
         extends: None,
         summary: None,
-        doc: Some(r"Choose which random number generator to use for this synth. All synths that use the same generator reproduce the same sequence of numbers when the same seed is set again."),
+        doc: Some(
+            r"Choose which random number generator to use for this synth. All synths that use the same generator reproduce the same sequence of numbers when the same seed is set again.",
+        ),
         signal_range: None,
         arg_docs: &[(r"seed", r"Seed id")],
     },
@@ -89,31 +126,53 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: Some(1),
         extends: None,
         summary: None,
-        doc: Some(r"When the trigger signal changes from nonpositive to positive, the synth's random generator seed is reset to the given value. All synths that use the same random number generator reproduce the same sequence of numbers again."),
+        doc: Some(
+            r"When the trigger signal changes from nonpositive to positive, the synth's random generator seed is reset to the given value. All synths that use the same random number generator reproduce the same sequence of numbers again.",
+        ),
         signal_range: None,
         arg_docs: &[(r"seed", r"Seed value"), (r"trig", r"Trigger signal")],
     },
     UGenRegistryEntry {
         name: r"TExpRand",
         rates: &[Rate::Audio, Rate::Control],
-        defaults: &[(r"lo", Some(0.01)), (r"hi", Some(1.0)), (r"trig", Some(0.0))],
+        defaults: &[
+            (r"lo", Some(0.01)),
+            (r"hi", Some(1.0)),
+            (r"trig", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a random float value in exponential distribution from lo to hi each time the trig signal changes from nonpositive to positive values lo and hi must both have the same sign and be non-zero."),
+        doc: Some(
+            r"Generates a random float value in exponential distribution from lo to hi each time the trig signal changes from nonpositive to positive values lo and hi must both have the same sign and be non-zero.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated float"), (r"lo", r"Minimum value of generated float"), (r"trig", r"Trigger signal")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated float"),
+            (r"lo", r"Minimum value of generated float"),
+            (r"trig", r"Trigger signal"),
+        ],
     },
     UGenRegistryEntry {
         name: r"TIRand",
         rates: &[Rate::Control, Rate::Audio],
-        defaults: &[(r"lo", Some(0.0)), (r"hi", Some(127.0)), (r"trig", Some(0.0))],
+        defaults: &[
+            (r"lo", Some(0.0)),
+            (r"hi", Some(127.0)),
+            (r"trig", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a random integer value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values"),
+        doc: Some(
+            r"Generates a random integer value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated integer"), (r"lo", r"Minimum value of generated integer"), (r"trig", r"Trigger signal")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated integer"),
+            (r"lo", r"Minimum value of generated integer"),
+            (r"trig", r"Trigger signal"),
+        ],
     },
     UGenRegistryEntry {
         name: r"TRand",
@@ -122,8 +181,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Generates a random float value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values"),
+        doc: Some(
+            r"Generates a random float value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values",
+        ),
         signal_range: None,
-        arg_docs: &[(r"hi", r"Maximum value of generated float"), (r"lo", r"Minimum value of generated float"), (r"trig", r"Trigger signal")],
+        arg_docs: &[
+            (r"hi", r"Maximum value of generated float"),
+            (r"lo", r"Minimum value of generated float"),
+            (r"trig", r"Trigger signal"),
+        ],
     },
 ];

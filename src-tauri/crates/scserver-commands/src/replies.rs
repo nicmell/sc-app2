@@ -165,7 +165,11 @@ impl ServerReply {
                 for i in 0..count {
                     samples.push(take_float(&msg, 3 + i, "/b_setn")?);
                 }
-                Ok(Self::BSetn(BSetnReply { bufnum, start, samples }))
+                Ok(Self::BSetn(BSetnReply {
+                    bufnum,
+                    start,
+                    samples,
+                }))
             }
             "/synced" => Ok(Self::Synced {
                 sync_id: take_int(&msg, 0, "/synced")?,
@@ -192,39 +196,68 @@ fn parse_node_info(msg: &OscMessage) -> Result<NodeInfo, CommandError> {
 }
 
 fn take_int(msg: &OscMessage, i: usize, addr: &str) -> Result<i32, CommandError> {
-    msg.args.get(i).and_then(as_int).ok_or_else(|| CommandError::ArgType {
-        address: addr.to_string(),
-        pos: i,
-        expected: "int32",
-        got: msg.args.get(i).map(|a| format!("{a:?}")).unwrap_or_else(|| "missing".into()),
-    })
+    msg.args
+        .get(i)
+        .and_then(as_int)
+        .ok_or_else(|| CommandError::ArgType {
+            address: addr.to_string(),
+            pos: i,
+            expected: "int32",
+            got: msg
+                .args
+                .get(i)
+                .map(|a| format!("{a:?}"))
+                .unwrap_or_else(|| "missing".into()),
+        })
 }
 
 fn take_float(msg: &OscMessage, i: usize, addr: &str) -> Result<f32, CommandError> {
-    msg.args.get(i).and_then(as_float).ok_or_else(|| CommandError::ArgType {
-        address: addr.to_string(),
-        pos: i,
-        expected: "float32",
-        got: msg.args.get(i).map(|a| format!("{a:?}")).unwrap_or_else(|| "missing".into()),
-    })
+    msg.args
+        .get(i)
+        .and_then(as_float)
+        .ok_or_else(|| CommandError::ArgType {
+            address: addr.to_string(),
+            pos: i,
+            expected: "float32",
+            got: msg
+                .args
+                .get(i)
+                .map(|a| format!("{a:?}"))
+                .unwrap_or_else(|| "missing".into()),
+        })
 }
 
 fn take_double(msg: &OscMessage, i: usize, addr: &str) -> Result<f64, CommandError> {
-    msg.args.get(i).and_then(as_double).ok_or_else(|| CommandError::ArgType {
-        address: addr.to_string(),
-        pos: i,
-        expected: "float64",
-        got: msg.args.get(i).map(|a| format!("{a:?}")).unwrap_or_else(|| "missing".into()),
-    })
+    msg.args
+        .get(i)
+        .and_then(as_double)
+        .ok_or_else(|| CommandError::ArgType {
+            address: addr.to_string(),
+            pos: i,
+            expected: "float64",
+            got: msg
+                .args
+                .get(i)
+                .map(|a| format!("{a:?}"))
+                .unwrap_or_else(|| "missing".into()),
+        })
 }
 
 fn take_string(msg: &OscMessage, i: usize, addr: &str) -> Result<String, CommandError> {
-    msg.args.get(i).and_then(as_string).map(|s| s.to_string()).ok_or_else(|| CommandError::ArgType {
-        address: addr.to_string(),
-        pos: i,
-        expected: "string",
-        got: msg.args.get(i).map(|a| format!("{a:?}")).unwrap_or_else(|| "missing".into()),
-    })
+    msg.args
+        .get(i)
+        .and_then(as_string)
+        .map(|s| s.to_string())
+        .ok_or_else(|| CommandError::ArgType {
+            address: addr.to_string(),
+            pos: i,
+            expected: "string",
+            got: msg
+                .args
+                .get(i)
+                .map(|a| format!("{a:?}"))
+                .unwrap_or_else(|| "missing".into()),
+        })
 }
 
 fn as_int(v: &OscType) -> Option<i32> {

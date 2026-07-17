@@ -1,12 +1,18 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
 /// Noise whose spectrum falls off in power by 6 dB per octave.
-/// 
+///
 /// Useful for generating percussive sounds such as snares and hand claps. Also
 /// useful for simulating wind or sea effects, for producing breath effects in
 /// wind instrument timbres or for producing the typical trance leads.
@@ -17,9 +23,7 @@ pub struct BrownNoise {
 impl BrownNoise {
     /// Build at ar rate (Rate::Audio).
     pub fn ar() -> Self {
-        Self {
-            _rate: Rate::Audio,
-        }
+        Self { _rate: Rate::Audio }
     }
 
     /// Build at kr rate (Rate::Control).
@@ -40,7 +44,7 @@ impl BrownNoise {
 }
 
 /// Noise whose values are either -1 or 1.
-/// 
+///
 /// This produces the maximum energy for the least peak to peak amplitude. Useful
 /// for generating percussive sounds such as snares and hand claps. Also useful
 /// for simulating wind or sea effects, for producing breath effects in wind
@@ -52,9 +56,7 @@ pub struct ClipNoise {
 impl ClipNoise {
     /// Build at ar rate (Rate::Audio).
     pub fn ar() -> Self {
-        Self {
-            _rate: Rate::Audio,
-        }
+        Self { _rate: Rate::Audio }
     }
 
     /// Materialise this UGen into `def`'s node list.
@@ -68,7 +70,7 @@ impl ClipNoise {
 }
 
 /// Chaotic noise generator
-/// 
+///
 /// A noise generator based on a chaotic function. Useful for generating
 /// percussive sounds such as snares and hand claps. Also useful for simulating
 /// wind or sea effects, for producing breath effects in wind instrument timbres
@@ -194,7 +196,7 @@ impl Dust2 {
 }
 
 /// Random impulses from -1 to +1 given a density
-/// 
+///
 /// Creates a sequence of random impulses from -1 to +1. Generates noise which
 /// results from flipping random bits in a word. This type of noise has a high RMS
 /// level relative to its peak to peak level. The spectrum is emphasized towards
@@ -209,9 +211,7 @@ pub struct GrayNoise {
 impl GrayNoise {
     /// Build at ar rate (Rate::Audio).
     pub fn ar() -> Self {
-        Self {
-            _rate: Rate::Audio,
-        }
+        Self { _rate: Rate::Audio }
     }
 
     /// Materialise this UGen into `def`'s node list.
@@ -711,7 +711,7 @@ impl MantissaMask {
 }
 
 /// Noise whose spectrum falls off in power by 3 dB per octave.
-/// 
+///
 /// Noise that gives equal power over the span of each octave. Useful for
 /// generating percussive sounds such as snares and hand claps. Also useful for
 /// simulating wind or sea effects, for producing breath effects in wind
@@ -724,9 +724,7 @@ pub struct PinkNoise {
 impl PinkNoise {
     /// Build at ar rate (Rate::Audio).
     pub fn ar() -> Self {
-        Self {
-            _rate: Rate::Audio,
-        }
+        Self { _rate: Rate::Audio }
     }
 
     /// Build at kr rate (Rate::Control).
@@ -747,7 +745,7 @@ impl PinkNoise {
 }
 
 /// Noise whose spectrum has equal power at all frequencies.
-/// 
+///
 /// Noise that contains equal amounts of energy at every frequency - comparable to
 /// radio static. Useful for generating percussive sounds such as snares and hand
 /// claps. Also useful for simulating wind or sea effects, for producing breath
@@ -759,9 +757,7 @@ pub struct WhiteNoise {
 impl WhiteNoise {
     /// Build at ar rate (Rate::Audio).
     pub fn ar() -> Self {
-        Self {
-            _rate: Rate::Audio,
-        }
+        Self { _rate: Rate::Audio }
     }
 
     /// Build at kr rate (Rate::Control).

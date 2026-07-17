@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 

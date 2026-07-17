@@ -1,12 +1,18 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
 /// stream audio in from disk file
-/// 
+///
 /// Continuously play a longer soundfile from disk. This requires a buffer to be
 /// preloaded with one buffer size of sound. If loop is set to 1, the soundfile
 /// will loop.
@@ -59,7 +65,7 @@ impl DiskIn {
 }
 
 /// stream audio out to disk file
-/// 
+///
 /// The output of DiskOut is the number of frames written to disk. Note that the
 /// number of channels in the buffer and the channelsArray must be the same,
 /// otherwise DiskOut will fail silently (and not write anything to your file).
@@ -86,7 +92,11 @@ impl DiskOut {
     }
 
     /// the Array of channels to write to the file.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -104,7 +114,7 @@ impl DiskOut {
 }
 
 /// Read a signal from a bus.
-/// 
+///
 /// in:kr is functionally similar to in-feedback. That is it reads all data on the
 /// bus whether it is from the current cycle or not. This allows for it to receive
 /// data from later in the node order. in:ar reads only data from the current
@@ -163,7 +173,7 @@ impl In {
 }
 
 /// read signal from a bus with a current or one cycle old timestamp
-/// 
+///
 /// When the various output ugens (out, offsetOut, x-out) write data to a bus,
 /// they mix it with any data from the current cycle, but overwrite any data from
 /// the previous cycle. (replace-out overwrites all data regardless.) Thus
@@ -233,7 +243,7 @@ impl InFeedback {
 }
 
 /// generates a trigger any time the bus is set
-/// 
+///
 /// Any time the bus is 'touched' ie. has its value set (using \"/c_set\" etc.), a
 /// single impulse trigger will be generated. Its amplitude is the value that the
 /// bus was set to.
@@ -278,7 +288,7 @@ impl InTrig {
 }
 
 /// Read a control signal from a bus with a lag.
-/// 
+///
 /// Please document me
 pub struct LagIn {
     _rate: Rate,
@@ -373,7 +383,7 @@ impl LocalIn {
 }
 
 /// write to buses local to a synth
-/// 
+///
 /// local-out writes to buses that are local to the enclosing synth. The buses
 /// should have been defined by a local-in ugen. The channelsArray must be the
 /// same number of channels as were declared in the LocalIn. These are like the
@@ -403,7 +413,11 @@ impl LocalOut {
 
     /// an Array of channels or single output to write out. You cannot change the size
     /// of this once a SynthDef has been built.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -420,7 +434,7 @@ impl LocalOut {
 }
 
 /// write signal to a bus with sample accurate timing
-/// 
+///
 /// Output signal to a bus, the sample offset within the bus is kept exactly; i.e.
 /// if the synth is scheduled to be started part way through a control cycle,
 /// offset-out will maintain the correct offset by buffering the output and
@@ -451,7 +465,11 @@ impl OffsetOut {
 
     /// a list of signals or single output to write out. You cannot change the size of
     /// this once a synth has been defined.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -469,7 +487,7 @@ impl OffsetOut {
 }
 
 /// write a signal to a bus, adding to previous contents.
-/// 
+///
 /// write a signal to a bus, adding to any existing contents N.B. Out is subject
 /// to control rate jitter. Where sample accurate output is needed, use OffsetOut.
 /// When using an array of bus indexes, the channel array will just be copied to
@@ -509,7 +527,11 @@ impl Out {
 
     /// a list of signals or single output to write out. You cannot change the size of
     /// this once a synth has been defined.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -527,7 +549,7 @@ impl Out {
 }
 
 /// Send signal to a bus, overwriting previous contents.
-/// 
+///
 /// Out adds its output to a given bus, making it available to all nodes later in
 /// the node tree (See Synth and Order-of-execution for more information).
 /// ReplaceOut overwrites those contents. This can make it useful for processing.
@@ -565,7 +587,11 @@ impl ReplaceOut {
 
     /// a list of signals or single output to write out. You cannot change the size of
     /// this once a synth has been defined.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -583,7 +609,7 @@ impl ReplaceOut {
 }
 
 /// read from a shared control bus (internal dsp only)
-/// 
+///
 /// Reads from a control bus shared between the internal server and the SC client.
 /// Control rate only. Writing to a shared control bus from the client is
 /// synchronous. When not using the internal server use node arguments or the set
@@ -655,7 +681,11 @@ impl SharedOut {
 
     /// an Array of channels or single output to write out. You cannot change the size
     /// of this once a SynthDef has been built.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -673,7 +703,7 @@ impl SharedOut {
 }
 
 /// stream in audio from a file (with variable rate)
-/// 
+///
 /// Continuously play a longer soundfile from disk. This requires a buffer to be
 /// preloaded with one buffer size of sound.
 pub struct VDiskIn {
@@ -746,7 +776,7 @@ impl VDiskIn {
 }
 
 /// write signal to a bus, crossfading with the existing content
-/// 
+///
 /// xfade is a level for the crossfade between what is on the bus and what you are
 /// sending. The algorithm is equivalent to this: bus_signal = (input_signal *
 /// xfade) + (bus_signal * (1 - xfade));
@@ -793,7 +823,11 @@ impl XOut {
 
     /// an Array of channels or single output to write out. You cannot change the size
     /// of this once a SynthDef has been built.
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }

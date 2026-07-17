@@ -1,12 +1,18 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
 /// Amplitude follower
-/// 
+///
 /// Tracks the peak amplitude of a signal.
 pub struct Amplitude {
     _rate: Rate,
@@ -68,7 +74,7 @@ impl Amplitude {
 }
 
 /// General purpose hard-knee dynamic range processor.
-/// 
+///
 /// The compander will modify the amplitude of the in signal based on an analysis
 /// of the control signal. Typically the in and control signals are the same. The
 /// amplitude of the control signal is calcuated using RMS (Root Mean Square) and

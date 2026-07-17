@@ -6,8 +6,8 @@
 
 #![allow(non_snake_case, unused_mut)]
 
-use rosc::OscType;
 use crate::OscMessage;
+use rosc::OscType;
 
 // ── Polymorphic arg types ───────────────────────────────────────────────
 
@@ -344,10 +344,7 @@ impl BFill {
     /// fields default to `None` — override via struct update syntax:
     /// `BFill { .. BFill::new(...) }`.
     pub fn new(bufnum: i32, tail: Vec<(i32, i32, f32)>) -> Self {
-        Self {
-            bufnum,
-            tail,
-        }
+        Self { bufnum, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -492,10 +489,7 @@ impl BGetn {
     /// fields default to `None` — override via struct update syntax:
     /// `BGetn { .. BGetn::new(...) }`.
     pub fn new(bufnum: i32, tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            bufnum,
-            tail,
-        }
+        Self { bufnum, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -693,10 +687,7 @@ impl BSet {
     /// fields default to `None` — override via struct update syntax:
     /// `BSet { .. BSet::new(...) }`.
     pub fn new(bufnum: i32, tail: Vec<(i32, f32)>) -> Self {
-        Self {
-            bufnum,
-            tail,
-        }
+        Self { bufnum, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -908,9 +899,7 @@ impl CFill {
     /// fields default to `None` — override via struct update syntax:
     /// `CFill { .. CFill::new(...) }`.
     pub fn new(tail: Vec<(i32, i32, NumericValue)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -971,9 +960,7 @@ impl CGetn {
     /// fields default to `None` — override via struct update syntax:
     /// `CGetn { .. CGetn::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1005,9 +992,7 @@ impl CSet {
     /// fields default to `None` — override via struct update syntax:
     /// `CSet { .. CSet::new(...) }`.
     pub fn new(tail: Vec<(i32, NumericValue)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1103,9 +1088,7 @@ impl GDumpTree {
     /// fields default to `None` — override via struct update syntax:
     /// `GDumpTree { .. GDumpTree::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1165,9 +1148,7 @@ impl GHead {
     /// fields default to `None` — override via struct update syntax:
     /// `GHead { .. GHead::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1199,9 +1180,7 @@ impl GNew {
     /// fields default to `None` — override via struct update syntax:
     /// `GNew { .. GNew::new(...) }`.
     pub fn new(tail: Vec<(i32, i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1234,9 +1213,7 @@ impl GQueryTree {
     /// fields default to `None` — override via struct update syntax:
     /// `GQueryTree { .. GQueryTree::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1268,9 +1245,7 @@ impl GTail {
     /// fields default to `None` — override via struct update syntax:
     /// `GTail { .. GTail::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1302,9 +1277,7 @@ impl PNew {
     /// fields default to `None` — override via struct update syntax:
     /// `PNew { .. PNew::new(...) }`.
     pub fn new(tail: Vec<(i32, i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1329,16 +1302,14 @@ impl PNew {
 /// Clear all scheduled bundles. Removes all bundles from the scheduling queue.
 /// OSC address: `/clearSched`
 #[derive(Debug, Clone)]
-pub struct ClearSched {
-}
+pub struct ClearSched {}
 
 impl ClearSched {
     /// Construct `/clearSched` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `ClearSched { .. ClearSched::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1396,9 +1367,7 @@ impl DumpOSC {
     /// fields default to `None` — override via struct update syntax:
     /// `DumpOSC { .. DumpOSC::new(...) }`.
     pub fn new(code: i32) -> Self {
-        Self {
-            code,
-        }
+        Self { code }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1427,9 +1396,7 @@ impl Error {
     /// fields default to `None` — override via struct update syntax:
     /// `Error { .. Error::new(...) }`.
     pub fn new(mode: i32) -> Self {
-        Self {
-            mode,
-        }
+        Self { mode }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1485,16 +1452,14 @@ impl Notify {
 /// Quit program. Exits the synthesis server.
 /// OSC address: `/quit`
 #[derive(Debug, Clone)]
-pub struct Quit {
-}
+pub struct Quit {}
 
 impl Quit {
     /// Construct `/quit` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `Quit { .. Quit::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1512,16 +1477,14 @@ impl Quit {
 /// Queries the amount of currently free real-time memory (in bytes).
 /// OSC address: `/rtMemoryStatus`
 #[derive(Debug, Clone)]
-pub struct RtMemoryStatus {
-}
+pub struct RtMemoryStatus {}
 
 impl RtMemoryStatus {
     /// Construct `/rtMemoryStatus` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `RtMemoryStatus { .. RtMemoryStatus::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1539,16 +1502,14 @@ impl RtMemoryStatus {
 /// Query the status. Replies to sender with the following message:
 /// OSC address: `/status`
 #[derive(Debug, Clone)]
-pub struct Status {
-}
+pub struct Status {}
 
 impl Status {
     /// Construct `/status` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `Status { .. Status::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1576,9 +1537,7 @@ impl Sync {
     /// fields default to `None` — override via struct update syntax:
     /// `Sync { .. Sync::new(...) }`.
     pub fn new(a_unique_number: i32) -> Self {
-        Self {
-            a_unique_number,
-        }
+        Self { a_unique_number }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1598,16 +1557,14 @@ impl Sync {
 /// message:
 /// OSC address: `/version`
 #[derive(Debug, Clone)]
-pub struct Version {
-}
+pub struct Version {}
 
 impl Version {
     /// Construct `/version` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `Version { .. Version::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1637,9 +1594,7 @@ impl NAfter {
     /// fields default to `None` — override via struct update syntax:
     /// `NAfter { .. NAfter::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1671,9 +1626,7 @@ impl NBefore {
     /// fields default to `None` — override via struct update syntax:
     /// `NBefore { .. NBefore::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1707,10 +1660,7 @@ impl NFill {
     /// fields default to `None` — override via struct update syntax:
     /// `NFill { .. NFill::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32, NumericValue)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1774,10 +1724,7 @@ impl NMap {
     /// fields default to `None` — override via struct update syntax:
     /// `NMap { .. NMap::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1812,10 +1759,7 @@ impl NMapa {
     /// fields default to `None` — override via struct update syntax:
     /// `NMapa { .. NMapa::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1850,10 +1794,7 @@ impl NMapan {
     /// fields default to `None` — override via struct update syntax:
     /// `NMapan { .. NMapan::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32, i32)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1889,10 +1830,7 @@ impl NMapn {
     /// fields default to `None` — override via struct update syntax:
     /// `NMapn { .. NMapn::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32, i32)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -1992,9 +1930,7 @@ impl NRun {
     /// fields default to `None` — override via struct update syntax:
     /// `NRun { .. NRun::new(...) }`.
     pub fn new(tail: Vec<(i32, i32)>) -> Self {
-        Self {
-            tail,
-        }
+        Self { tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -2028,10 +1964,7 @@ impl NSet {
     /// fields default to `None` — override via struct update syntax:
     /// `NSet { .. NSet::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, NumericValue)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -2124,16 +2057,14 @@ impl NTrace {
 /// close the sound file. Replies to sender with /done when complete.
 /// OSC address: `/nrt_end`
 #[derive(Debug, Clone)]
-pub struct NrtEnd {
-}
+pub struct NrtEnd {}
 
 impl NrtEnd {
     /// Construct `/nrt_end` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `NrtEnd { .. NrtEnd::new(...) }`.
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -2196,10 +2127,7 @@ impl SGetn {
     /// fields default to `None` — override via struct update syntax:
     /// `SGetn { .. SGetn::new(...) }`.
     pub fn new(node_id: i32, tail: Vec<(ControlId, i32)>) -> Self {
-        Self {
-            node_id,
-            tail,
-        }
+        Self { node_id, tail }
     }
 
     /// Encode the typed fields into an OSC `OscMessage`.
@@ -2239,7 +2167,13 @@ impl SNew {
     /// Construct `/s_new` with all required args. Optional
     /// fields default to `None` — override via struct update syntax:
     /// `SNew { .. SNew::new(...) }`.
-    pub fn new(def_name: String, node_id: i32, add_action: i32, target_id: i32, tail: Vec<(ControlId, ControlValue)>) -> Self {
+    pub fn new(
+        def_name: String,
+        node_id: i32,
+        add_action: i32,
+        target_id: i32,
+        tail: Vec<(ControlId, ControlValue)>,
+    ) -> Self {
         Self {
             def_name,
             node_id,

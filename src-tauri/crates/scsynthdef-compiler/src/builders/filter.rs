@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
@@ -62,7 +68,7 @@ impl APF {
 }
 
 /// second order Butterworth bandpass filter
-/// 
+///
 /// A band pass filter permits the frequencies around a specified centre frequency
 /// to pass unaltered through the filter while the frequencies either side are
 /// attenuated. The frequencies that pass through are known as the bandwidth or
@@ -169,7 +175,7 @@ impl BPZ2 {
 }
 
 /// second order Butterworth band reject filter
-/// 
+///
 /// Band reject filters, also known as notch filters, attenuate a selected range
 /// of frequencies effectively creating a notch in the sound. This type of filter
 /// is handy for scooping out frequencies, thinning out a sound while leaving the
@@ -275,7 +281,7 @@ impl BRZ2 {
 }
 
 /// triggered exponential decay.
-/// 
+///
 /// This is essentially the same as integrator except that instead of supplying
 /// the coefficient directly, it is calculated from a 60 dB decay time. This is
 /// the time required for the integrator to lose 99.9 % of its value or -60dB.
@@ -613,7 +619,7 @@ impl FOS {
 }
 
 /// second order high pass filter
-/// 
+///
 /// A high pass filter lets through the frequencies above the cutoff point and
 /// successfully dampens the frequencies below the cutoff point. This effectively
 /// removes the fundamental frequency of the sound, leaving only the fizz harmonic
@@ -1200,7 +1206,7 @@ impl LeakDC {
 }
 
 /// second order Butterworth low pass filter
-/// 
+///
 /// A low pass filter is a standard subtractive synthesis tool which removes
 /// frequencies above a defined cut-off point. This typically has the effect of
 /// making bright sounds duller. Using a low pass filter allows you to have
@@ -1676,7 +1682,7 @@ impl Resonz {
 }
 
 /// resonant high pass filter
-/// 
+///
 /// A resonant high pass filter lets through the frequencies above the cutoff
 /// point and successfully dampens the frequencies below the cutoff point. This
 /// effectively removes the fundamental frequency of the sound, leaving only the
@@ -1811,7 +1817,7 @@ impl Ringz {
 }
 
 /// resonant low pass filter
-/// 
+///
 /// A resonant low pass filter is a standard subtractive synthesis tool which
 /// removes frequencies above a defined cut-off point. This typically has the
 /// effect of making bright sounds duller. However, in addition to this behaviour,

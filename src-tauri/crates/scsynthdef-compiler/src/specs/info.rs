@@ -34,7 +34,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"returns the current number of allocated frames i.e. the size of the buffer. This is the equivalent of Clojure's count on a seq."),
+        doc: Some(
+            r"returns the current number of allocated frames i.e. the size of the buffer. This is the equivalent of Clojure's count on a seq.",
+        ),
         signal_range: None,
         arg_docs: &[(r"buf", r"a buffer")],
     },
@@ -78,9 +80,18 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"test for infinity, not-a-number, and denormals. If one of these is found, it posts a warning. Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal."),
+        doc: Some(
+            r"test for infinity, not-a-number, and denormals. If one of these is found, it posts a warning. Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"id", r"an id number to identify this UGen."), (r"in", r"the UGen whose output is to be tested"), (r"post", r"One of three post modes: 0 = no posting; 1 = post a line for every bad value; 2 = post a line only when the floating-point classification changes (e.g., normal -> NaN and vice versa)")],
+        arg_docs: &[
+            (r"id", r"an id number to identify this UGen."),
+            (r"in", r"the UGen whose output is to be tested"),
+            (
+                r"post",
+                r"One of three post modes: 0 = no posting; 1 = post a line for every bad value; 2 = post a line only when the floating-point classification changes (e.g., normal -> NaN and vice versa)",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"ControlDur",
@@ -144,7 +155,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"returns the number of input buses allocated on the server. This is the number of hardware inputs provided by the host machine such as a mic."),
+        doc: Some(
+            r"returns the number of input buses allocated on the server. This is the number of hardware inputs provided by the host machine such as a mic.",
+        ),
         signal_range: None,
         arg_docs: &[],
     },
@@ -155,7 +168,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"returns the number of output buses allocated on the server. This is the number of hardware outputs provided by the host machine such as left and right speakers."),
+        doc: Some(
+            r"returns the number of output buses allocated on the server. This is the number of hardware outputs provided by the host machine such as left and right speakers.",
+        ),
         signal_range: None,
         arg_docs: &[],
     },
@@ -173,13 +188,34 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"Poll",
         rates: &[Rate::Audio, Rate::Control],
-        defaults: &[(r"trig", Some(0.0)), (r"in", Some(0.0)), (r"label", None), (r"trigId", Some(-1.0))],
+        defaults: &[
+            (r"trig", Some(0.0)),
+            (r"in", Some(0.0)),
+            (r"label", None),
+            (r"trigId", Some(-1.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"This ugen has been internalised for scserver compatibility. Please use the poll cgen instead."),
+        doc: Some(
+            r"This ugen has been internalised for scserver compatibility. Please use the poll cgen instead.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"in", r"the signal you want to poll"), (r"label", r"a string or symbol to be printed with the polled value"), (r"trig", r"a non-positive to positive transition telling Poll to return a value"), (r"trigId", r"if greater than 0, a '/tr' message is sent back to the client (similar to send-trig)")],
+        arg_docs: &[
+            (r"in", r"the signal you want to poll"),
+            (
+                r"label",
+                r"a string or symbol to be printed with the polled value",
+            ),
+            (
+                r"trig",
+                r"a non-positive to positive transition telling Poll to return a value",
+            ),
+            (
+                r"trigId",
+                r"if greater than 0, a '/tr' message is sent back to the client (similar to send-trig)",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"RadiansPerSample",

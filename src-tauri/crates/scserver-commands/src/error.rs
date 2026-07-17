@@ -12,7 +12,9 @@ pub enum CommandError {
         got: usize,
     },
 
-    #[error("Argument type mismatch at position {pos} of {address}: expected {expected}, got {got}")]
+    #[error(
+        "Argument type mismatch at position {pos} of {address}: expected {expected}, got {got}"
+    )]
     ArgType {
         address: String,
         pos: usize,

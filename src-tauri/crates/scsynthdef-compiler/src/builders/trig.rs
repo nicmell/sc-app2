@@ -1,12 +1,18 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
 /// Clip a signal outside given thresholds.
-/// 
+///
 /// Clip a signal outside given thresholds. This differs from the ugen clip2 in
 /// that it allows one to set both low and high thresholds.
 pub struct Clip {
@@ -69,7 +75,7 @@ impl Clip {
 }
 
 /// Fold a signal outside given thresholds.
-/// 
+///
 /// Folds input wave to within the lo and hi thresholds. This differs from the
 /// ugen fold2 in that it allows one to set both low and high thresholds.
 pub struct Fold {
@@ -132,7 +138,7 @@ impl Fold {
 }
 
 /// Gate or hold
-/// 
+///
 /// Lets signal flow when trig is positive, otherwise holds last input value
 pub struct Gate {
     _rate: Rate,
@@ -185,7 +191,7 @@ impl Gate {
 }
 
 /// Tests if a signal is within a given range
-/// 
+///
 /// If in is >= lo and <= hi output 1.0, otherwise output 0.0. Output is initially
 /// zero.
 pub struct InRange {
@@ -248,7 +254,7 @@ impl InRange {
 }
 
 /// Test if a point is within a given rectangle.
-/// 
+///
 /// Outputs one if the 2d coordinate of x,y input values falls inside a rectangle,
 /// else zero
 pub struct InRect {
@@ -337,7 +343,7 @@ impl InRect {
 }
 
 /// Output the last value before the input changed
-/// 
+///
 /// Output the last value before the input changed by a threshold of diff
 pub struct LastValue {
     _rate: Rate,
@@ -389,7 +395,7 @@ impl LastValue {
 }
 
 /// Sample and hold
-/// 
+///
 /// Holds input signal value when triggered.
 pub struct Latch {
     _rate: Rate,
@@ -442,7 +448,7 @@ impl Latch {
 }
 
 /// Output least changed
-/// 
+///
 /// output whichever signal changed the least
 pub struct LeastChange {
     _rate: Rate,
@@ -494,7 +500,7 @@ impl LeastChange {
 }
 
 /// Output most changed
-/// 
+///
 /// output whichever signal changed the most
 pub struct MostChange {
     _rate: Rate,
@@ -546,7 +552,7 @@ impl MostChange {
 }
 
 /// Track peak signal amplitude
-/// 
+///
 /// Outputs the peak amplitude of the signal so far, a trigger resets to current
 /// value
 pub struct Peak {
@@ -600,7 +606,7 @@ impl Peak {
 }
 
 /// Track peak signal amplitude
-/// 
+///
 /// Outputs the peak signal amplitude, falling with decay over time until reaching
 /// signal level
 pub struct PeakFollower {
@@ -653,7 +659,7 @@ impl PeakFollower {
 }
 
 /// Resettable linear ramp between two levels
-/// 
+///
 /// Phasor is a linear ramp between start and end values. When its trigger input
 /// crosses from non-positive to positive, Phasor's output will jump to its reset
 /// position. Upon reaching the end of its ramp Phasor will wrap back to its
@@ -741,7 +747,7 @@ impl Phasor {
 }
 
 /// Autocorrelation pitch follower
-/// 
+///
 /// This is a better pitch follower than zero-crossing, but more costly of CPU.
 /// For most purposes the default settings can be used and only in needs to be
 /// supplied. Pitch returns two values (via an Array of OutputProxys, a freq which
@@ -880,7 +886,7 @@ impl Pitch {
 }
 
 /// Pulse counter
-/// 
+///
 /// Each input trigger increments a counter value that is output.
 pub struct PulseCount {
     _rate: Rate,
@@ -933,7 +939,7 @@ impl PulseCount {
 }
 
 /// Pulse divider
-/// 
+///
 /// Outputs a trigger every div input triggers
 pub struct PulseDivider {
     _rate: Rate,
@@ -998,7 +1004,7 @@ impl PulseDivider {
 }
 
 /// Track maximum level
-/// 
+///
 /// Outputs the maximum value received at the input. When triggered, the maximum
 /// output value is reset to the current value.
 pub struct RunningMax {
@@ -1052,7 +1058,7 @@ impl RunningMax {
 }
 
 /// Track minimum level
-/// 
+///
 /// Outputs the minimum value received at the input. When triggered, the minimum
 /// output value is reset to the current value.
 pub struct RunningMin {
@@ -1106,7 +1112,7 @@ impl RunningMin {
 }
 
 /// Schmidt trigger
-/// 
+///
 /// Outout one when signal greater than high, and zero when lower than low.
 pub struct Schmidt {
     _rate: Rate,
@@ -1168,7 +1174,7 @@ impl Schmidt {
 }
 
 /// Send information via OSC to Overtone
-/// 
+///
 /// Send an array of values from the server via an message. The OSC message is
 /// formed with cmd-name as the path, followed by two compulsary args: node-id
 /// (the id of the node that sent the message) and reply-id (the value specified
@@ -1247,7 +1253,7 @@ impl SendReply {
 }
 
 /// Send a /tr OSC message to Overtone
-/// 
+///
 /// On receiving a trigger sends a :trigger event with id and value. This command
 /// is the mechanism that synths can use to trigger events in clients. The trigger
 /// message sent back to the client is this: int - node ID int - trigger ID float
@@ -1319,7 +1325,7 @@ impl SendTrig {
 }
 
 /// Set-reset flip flop
-/// 
+///
 /// When a trigger is received the output is set to 1.0 Subsequent triggers have
 /// no effect When a trigger is received in the reset input, the output is set
 /// back to 0.0 One use of this is to have some precipitating event cause
@@ -1375,7 +1381,7 @@ impl SetResetFF {
 }
 
 /// Pulse counter
-/// 
+///
 /// Triggers increment a counter which is output as a signal. The counter loops
 /// around from max to min by step increments
 pub struct Stepper {
@@ -1469,7 +1475,7 @@ impl Stepper {
 }
 
 /// Triggered linear ramp
-/// 
+///
 /// outputs a linear increasing signal by rate/second when trig input crosses from
 /// non-positive to positive
 pub struct Sweep {
@@ -1522,7 +1528,7 @@ impl Sweep {
 }
 
 /// Trigger delay
-/// 
+///
 /// Delays an input trigger by dur, ignoring other triggers in the meantime
 pub struct TDelay {
     _rate: Rate,
@@ -1574,7 +1580,7 @@ impl TDelay {
 }
 
 /// Trigger timer
-/// 
+///
 /// Outputs time since last trigger
 pub struct Timer {
     _rate: Rate,
@@ -1616,7 +1622,7 @@ impl Timer {
 }
 
 /// Toggle flip flop
-/// 
+///
 /// Flip-flops between zero and one each trigger
 pub struct ToggleFF {
     _rate: Rate,
@@ -1732,7 +1738,7 @@ impl Trapezoid {
 }
 
 /// Timed trigger
-/// 
+///
 /// When a nonpositive to positive transition occurs at the input, Trig outputs
 /// the level of the triggering input for the specified duration, otherwise it
 /// outputs zero.
@@ -1787,7 +1793,7 @@ impl Trig {
 }
 
 /// Timed trigger
-/// 
+///
 /// Outputs one for dur seconds whenever the input goes from negative to positive,
 /// otherwise outputs 0.
 pub struct Trig1 {
@@ -1841,7 +1847,7 @@ impl Trig1 {
 }
 
 /// Triggered window
-/// 
+///
 /// When triggered, returns a random index value based on array as a list of
 /// probabilities. By default the list of probabilities should sum to 1.0, when
 /// the normalize flag is set to 1, the values get normalized by the ugen (less
@@ -1888,7 +1894,11 @@ impl TWindex {
     }
 
     /// list of probabilities
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -1907,7 +1917,7 @@ impl TWindex {
 }
 
 /// Wrap a signal outside given thresholds.
-/// 
+///
 /// Wraps input wave to the low and high thresholds. This differs from the ugen
 /// wrap2 in that it allows one to set both low and high thresholds.
 pub struct Wrap {
@@ -1970,7 +1980,7 @@ impl Wrap {
 }
 
 /// Zero crossing frequency follower
-/// 
+///
 /// Outputs a frequency based upon the distance between interceptions of the X
 /// axis. The X intercepts are determined via linear interpolation so this gives
 /// better than just integer wavelength resolution. This is a very crude pitch

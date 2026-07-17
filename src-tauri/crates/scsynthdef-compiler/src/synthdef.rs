@@ -150,7 +150,9 @@ impl SynthDef {
             self.control_group.is_some()
         };
         if already_has_this_rate
-            && self.last_param_rate.map_or(false, |r| (r == Rate::Audio) != is_audio)
+            && self
+                .last_param_rate
+                .map_or(false, |r| (r == Rate::Audio) != is_audio)
         {
             return Err(CompileError::DuplicateParam(format!(
                 "{name}: rate-interleaved controls are not supported — group all kr params, then all ar params"
@@ -328,7 +330,9 @@ impl SynthDef {
                     .map(|i| resolve_input_spec(i, &constant_map))
                     .collect(),
                 outputs: (0..n.num_outputs)
-                    .map(|_| OutputSpec { rate: n.rate.as_i8() })
+                    .map(|_| OutputSpec {
+                        rate: n.rate.as_i8(),
+                    })
                     .collect(),
             })
             .collect();
@@ -393,23 +397,22 @@ impl SynthDef {
                 2 => Rate::Audio,
                 other => return Err(CompileError::UnknownRate(other.to_string())),
             };
-            let inputs = u
-                .inputs
-                .iter()
-                .map(|i| {
-                    if i.ugen_index < 0 {
-                        let c_idx = i.output_index as usize;
-                        let c = j
-                            .constants
-                            .get(c_idx)
-                            .copied()
-                            .ok_or_else(|| CompileError::UGenIndexOutOfRange(c_idx as u32))?;
-                        Ok(UGenInput::Constant(c))
-                    } else {
-                        Ok(UGenInput::UGenOutput(i.ugen_index as u32, i.output_index))
-                    }
-                })
-                .collect::<Result<Vec<_>, CompileError>>()?;
+            let inputs =
+                u.inputs
+                    .iter()
+                    .map(|i| {
+                        if i.ugen_index < 0 {
+                            let c_idx = i.output_index as usize;
+                            let c =
+                                j.constants.get(c_idx).copied().ok_or_else(|| {
+                                    CompileError::UGenIndexOutOfRange(c_idx as u32)
+                                })?;
+                            Ok(UGenInput::Constant(c))
+                        } else {
+                            Ok(UGenInput::UGenOutput(i.ugen_index as u32, i.output_index))
+                        }
+                    })
+                    .collect::<Result<Vec<_>, CompileError>>()?;
             def.nodes.push(Node {
                 class_name: u.class_name.clone(),
                 rate,

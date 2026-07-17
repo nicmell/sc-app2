@@ -8,35 +8,99 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"FFT",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"in", Some(0.0)), (r"hop", Some(0.5)), (r"wintype", Some(0.0)), (r"active", Some(1.0)), (r"winsize", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"in", Some(0.0)),
+            (r"hop", Some(0.5)),
+            (r"wintype", Some(0.0)),
+            (r"active", Some(1.0)),
+            (r"winsize", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands) Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand."),
+        doc: Some(
+            r"fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands) Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"active", r"is a simple control allowing FFT analysis to be active (>0) or inactive (<=0). This is mainly useful for signal analysis processes which are only intended to analyse at specific times rather than continuously"), (r"buffer", r"The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place. Use buffer-2n if you wish to create an external buffer."), (r"hop", r"the amount of offset from one FFT analysis frame to the next, measured in multiples of the analysis frame size. This can range between zero and one, and the default is 0.5 (meaning each frame has a 50% overlap with the preceding/following frames)."), (r"in", r"the signal to be analyzed. The signal's rate determines the rate at which the input is read."), (r"winsize", r"the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding."), (r"wintype", r"defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.")],
+        arg_docs: &[
+            (
+                r"active",
+                r"is a simple control allowing FFT analysis to be active (>0) or inactive (<=0). This is mainly useful for signal analysis processes which are only intended to analyse at specific times rather than continuously",
+            ),
+            (
+                r"buffer",
+                r"The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place. Use buffer-2n if you wish to create an external buffer.",
+            ),
+            (
+                r"hop",
+                r"the amount of offset from one FFT analysis frame to the next, measured in multiples of the analysis frame size. This can range between zero and one, and the default is 0.5 (meaning each frame has a 50% overlap with the preceding/following frames).",
+            ),
+            (
+                r"in",
+                r"the signal to be analyzed. The signal's rate determines the rate at which the input is read.",
+            ),
+            (
+                r"winsize",
+                r"the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding.",
+            ),
+            (
+                r"wintype",
+                r"defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"FFTTrigger",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"hop", Some(0.5)), (r"polar", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"hop", Some(0.5)),
+            (r"polar", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"Outputs the necessary signal for FFT chains, without doing an FFT on a signal"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"a buffer to condition for FFT use"), (r"hop", r"the hop size for timing triggers"), (r"polar", r"a flag. If 0.0, the buffer will be prepared for complex data, if > 0.0, polar data is set up.")],
+        arg_docs: &[
+            (r"buffer", r"a buffer to condition for FFT use"),
+            (r"hop", r"the hop size for timing triggers"),
+            (
+                r"polar",
+                r"a flag. If 0.0, the buffer will be prepared for complex data, if > 0.0, polar data is set up.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"IFFT",
         rates: &[Rate::Audio, Rate::Control],
-        defaults: &[(r"chain", None), (r"wintype", Some(0.0)), (r"winsize", Some(0.0))],
+        defaults: &[
+            (r"chain", None),
+            (r"wintype", Some(0.0)),
+            (r"winsize", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"inverse fast fourier transform, converts buffer data from frequency domain to time domain The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and overlap-adds the result to produce a continuous signal at its output."),
+        doc: Some(
+            r"inverse fast fourier transform, converts buffer data from frequency domain to time domain The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and overlap-adds the result to produce a continuous signal at its output.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"chain", r"The FFT chain signal coming originally from an FFT UGen, perhaps via other PV UGens."), (r"winsize", r"can be used to account for zero-padding, in the same way as the FFT UGen."), (r"wintype", r"defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.")],
+        arg_docs: &[
+            (
+                r"chain",
+                r"The FFT chain signal coming originally from an FFT UGen, perhaps via other PV UGens.",
+            ),
+            (
+                r"winsize",
+                r"can be used to account for zero-padding, in the same way as the FFT UGen.",
+            ),
+            (
+                r"wintype",
+                r"defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_Add",
@@ -52,24 +116,52 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"PV_BinScramble",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"wipe", Some(0.0)), (r"width", Some(0.2)), (r"trig", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"wipe", Some(0.0)),
+            (r"width", Some(0.2)),
+            (r"trig", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"randomizes the order of the bins. The trigger will select a new random ordering."),
+        doc: Some(
+            r"randomizes the order of the bins. The trigger will select a new random ordering.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"trig", r"a trigger selects a new random ordering."), (r"width", r"a value from zero to one, indicating the maximum randomized distance of a bin from its original location in the spectrum."), (r"wipe", r"scrambles more bins as wipe moves from zero to one.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"trig", r"a trigger selects a new random ordering."),
+            (
+                r"width",
+                r"a value from zero to one, indicating the maximum randomized distance of a bin from its original location in the spectrum.",
+            ),
+            (
+                r"wipe",
+                r"scrambles more bins as wipe moves from zero to one.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_BinShift",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"stretch", Some(1.0)), (r"shift", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"stretch", Some(1.0)),
+            (r"shift", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"shift and scale the positions of the bins. Can be used as a very crude frequency shifter/scaler."),
+        doc: Some(
+            r"shift and scale the positions of the bins. Can be used as a very crude frequency shifter/scaler.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer."), (r"shift", r"add an offset to bin position."), (r"stretch", r"scale bin location by factor.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer."),
+            (r"shift", r"add an offset to bin position."),
+            (r"stretch", r"scale bin location by factor."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_BinWipe",
@@ -80,7 +172,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"copies low bins from one input and the high bins of the other"),
         signal_range: None,
-        arg_docs: &[(r"bufferA", r"fft buffer A"), (r"bufferB", r"fft buffer B"), (r"wipe", r"can range between -1 and +1; if wipe == 0 then the output is the same as inA; if wipe > 0 then it begins replacing with bins from inB from the bottom up;if wipe < 0 then it begins replacing with bins from inB from the top down.")],
+        arg_docs: &[
+            (r"bufferA", r"fft buffer A"),
+            (r"bufferB", r"fft buffer B"),
+            (
+                r"wipe",
+                r"can range between -1 and +1; if wipe == 0 then the output is the same as inA; if wipe > 0 then it begins replacing with bins from inB from the bottom up;if wipe < 0 then it begins replacing with bins from inB from the top down.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_BrickWall",
@@ -91,7 +190,13 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"clears bins above or below a cutoff point"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"wipe", r"can range between -1 and +1. if wipe == 0 then there is no effect; if wipe > 0 then it acts like a high pass filter, clearing bins from the bottom up; if wipe < 0 then it acts like a low pass filter, clearing bins from the top down.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (
+                r"wipe",
+                r"can range between -1 and +1. if wipe == 0 then there is no effect; if wipe > 0 then it acts like a high pass filter, clearing bins from the bottom up; if wipe < 0 then it acts like a low pass filter, clearing bins from the top down.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_Conj",
@@ -100,7 +205,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: Some(r"PV_MagSquared"),
         summary: None,
-        doc: Some(r"converts the FFT frames to their complex conjugate (i.e. reverses the sign of their imaginary part). This is not usually a useful audio effect in itself, but may be a component of other analysis or transformation processes..."),
+        doc: Some(
+            r"converts the FFT frames to their complex conjugate (i.e. reverses the sign of their imaginary part). This is not usually a useful audio effect in itself, but may be a component of other analysis or transformation processes...",
+        ),
         signal_range: None,
         arg_docs: &[(r"buffer", r"fft buffer")],
     },
@@ -111,9 +218,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: Some(r"PV_MagMul"),
         summary: None,
-        doc: Some(r"copies the spectral frame in bufferA to bufferB at that point in the chain of PV UGens. This allows for parallel processing of spectral data without the need for multiple FFT UGens, and to copy out data at that point in the chain for other purposes. bufferA and bufferB must be the same size."),
+        doc: Some(
+            r"copies the spectral frame in bufferA to bufferB at that point in the chain of PV UGens. This allows for parallel processing of spectral data without the need for multiple FFT UGens, and to copy out data at that point in the chain for other purposes. bufferA and bufferB must be the same size.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"bufferA", r"source buffer"), (r"bufferB", r"destination buffer")],
+        arg_docs: &[
+            (r"bufferA", r"source buffer"),
+            (r"bufferB", r"destination buffer"),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_CopyPhase",
@@ -133,9 +245,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"adds a different constant random phase shift to each bin. The trigger will select a new set of random phases."),
+        doc: Some(
+            r"adds a different constant random phase shift to each bin. The trigger will select a new set of random phases.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"trig", r"a trigger selects a new set of random values.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"trig", r"a trigger selects a new set of random values."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_Div",
@@ -155,9 +272,14 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: Some(r"PV_MagAbove"),
         summary: None,
-        doc: Some(r"passes only bins whose magnitude is above a threshold and above their nearest neighbors"),
+        doc: Some(
+            r"passes only bins whose magnitude is above a threshold and above their nearest neighbors",
+        ),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"threshold", r"magnitude threshold.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"threshold", r"magnitude threshold."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagAbove",
@@ -168,7 +290,10 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"passes only bins whose magnitude is above a threshold"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"threshold", r"magnitude threshold.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"threshold", r"magnitude threshold."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagBelow",
@@ -179,7 +304,10 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"passes only bins whose magnitude is below a threshold"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"threshold", r"magnitude threshold.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"threshold", r"magnitude threshold."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagClip",
@@ -190,18 +318,32 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"clips bin magnitudes to a maximum threshold"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"threshold", r"magnitude threshold.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"threshold", r"magnitude threshold."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagDiv",
         rates: &[Rate::Control],
-        defaults: &[(r"bufferA", None), (r"bufferB", None), (r"zeroed", Some(0.0001))],
+        defaults: &[
+            (r"bufferA", None),
+            (r"bufferB", None),
+            (r"zeroed", Some(0.0001)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"divides magnitudes of two inputs and keeps the phases of the first input"),
         signal_range: None,
-        arg_docs: &[(r"bufferA", r"fft buffer A."), (r"bufferB", r"fft buffer B."), (r"zeroed", r"number to use when bins are zeroed out, i.e. causing division by zero")],
+        arg_docs: &[
+            (r"bufferA", r"fft buffer A."),
+            (r"bufferB", r"fft buffer B."),
+            (
+                r"zeroed",
+                r"number to use when bins are zeroed out, i.e. causing division by zero",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagFreeze",
@@ -212,7 +354,13 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"freezes magnitudes at current levels when freeze > 0"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"freeze", r"if freeze > 0 then magnitudes are frozen at current levels.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (
+                r"freeze",
+                r"if freeze > 0 then magnitudes are frozen at current levels.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagMul",
@@ -239,13 +387,23 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"PV_MagShift",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"stretch", Some(1.0)), (r"shift", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"stretch", Some(1.0)),
+            (r"shift", Some(0.0)),
+        ],
         num_outputs: None,
         extends: Some(r"PV_BinShift"),
         summary: None,
-        doc: Some(r"shift and stretch the positions of only the magnitude of the bins. Can be used as a very crude frequency shifter/scaler."),
+        doc: Some(
+            r"shift and stretch the positions of only the magnitude of the bins. Can be used as a very crude frequency shifter/scaler.",
+        ),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer."), (r"shift", r"add an offset to bin position."), (r"stretch", r"scale bin location by factor.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer."),
+            (r"shift", r"add an offset to bin position."),
+            (r"stretch", r"scale bin location by factor."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagSmear",
@@ -256,7 +414,13 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"average a bin's magnitude with its neighbors"),
         signal_range: None,
-        arg_docs: &[(r"bins", r"number of bins to average on each side of bin. As this number rises, so will CPU usage."), (r"buffer", r"fft buffer")],
+        arg_docs: &[
+            (
+                r"bins",
+                r"number of bins to average on each side of bin. As this number rises, so will CPU usage.",
+            ),
+            (r"buffer", r"fft buffer"),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_MagSquared",
@@ -265,7 +429,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"squares the magnitudes and renormalizes to previous peak. This makes weak bins weaker."),
+        doc: Some(
+            r"squares the magnitudes and renormalizes to previous peak. This makes weak bins weaker.",
+        ),
         signal_range: None,
         arg_docs: &[(r"buffer", r"fft buffer")],
     },
@@ -298,7 +464,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: Some(r"PV_MagMul"),
         summary: None,
-        doc: Some(r"complex multiplication: (RealA * RealB) - (ImagA * ImagB) (ImagA * RealB) + (RealA * ImagB)"),
+        doc: Some(
+            r"complex multiplication: (RealA * RealB) - (ImagA * ImagB) (ImagA * RealB) + (RealA * ImagB)",
+        ),
         signal_range: None,
         arg_docs: &[(r"bufferA", r"fft buffer A"), (r"bufferB", r"fft buffer B")],
     },
@@ -311,7 +479,10 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         summary: None,
         doc: Some(r"shift phase of all bins"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer"), (r"shift", r"phase shift in radians")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer"),
+            (r"shift", r"phase shift in radians"),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_PhaseShift270",
@@ -338,45 +509,91 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"PV_RandComb",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"wipe", Some(0.0)), (r"trig", Some(0.0))],
+        defaults: &[
+            (r"buffer", None),
+            (r"wipe", Some(0.0)),
+            (r"trig", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"randomly clear bins"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer."), (r"trig", r"a trigger selects a new random ordering."), (r"wipe", r"clears bins from input in a random order as wipe goes from 0 to 1.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer."),
+            (r"trig", r"a trigger selects a new random ordering."),
+            (
+                r"wipe",
+                r"clears bins from input in a random order as wipe goes from 0 to 1.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_RandWipe",
         rates: &[Rate::Control],
-        defaults: &[(r"bufferA", None), (r"bufferB", None), (r"wipe", Some(0.0)), (r"trig", Some(0.0))],
+        defaults: &[
+            (r"bufferA", None),
+            (r"bufferB", None),
+            (r"wipe", Some(0.0)),
+            (r"trig", Some(0.0)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"cross fades between two sounds by copying bins in a random order"),
         signal_range: None,
-        arg_docs: &[(r"bufferA", r"fft buffer A."), (r"bufferB", r"fft buffer B."), (r"trig", r"a trigger selects a new random ordering."), (r"wipe", r"copies bins from bufferB in a random order as wipe goes from 0 to 1.")],
+        arg_docs: &[
+            (r"bufferA", r"fft buffer A."),
+            (r"bufferB", r"fft buffer B."),
+            (r"trig", r"a trigger selects a new random ordering."),
+            (
+                r"wipe",
+                r"copies bins from bufferB in a random order as wipe goes from 0 to 1.",
+            ),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_RectComb",
         rates: &[Rate::Control],
-        defaults: &[(r"buffer", None), (r"numTeeth", Some(0.0)), (r"phase", Some(0.0)), (r"width", Some(0.5))],
+        defaults: &[
+            (r"buffer", None),
+            (r"numTeeth", Some(0.0)),
+            (r"phase", Some(0.0)),
+            (r"width", Some(0.5)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"makes a series of gaps in a spectrum"),
         signal_range: None,
-        arg_docs: &[(r"buffer", r"fft buffer."), (r"numTeeth", r"number of teeth in the comb."), (r"phase", r"starting phase of comb pulse."), (r"width", r"pulse width of comb.")],
+        arg_docs: &[
+            (r"buffer", r"fft buffer."),
+            (r"numTeeth", r"number of teeth in the comb."),
+            (r"phase", r"starting phase of comb pulse."),
+            (r"width", r"pulse width of comb."),
+        ],
     },
     UGenRegistryEntry {
         name: r"PV_RectComb2",
         rates: &[Rate::Control],
-        defaults: &[(r"bufferA", None), (r"bufferB", None), (r"numTeeth", Some(0.0)), (r"phase", Some(0.0)), (r"width", Some(0.5))],
+        defaults: &[
+            (r"bufferA", None),
+            (r"bufferB", None),
+            (r"numTeeth", Some(0.0)),
+            (r"phase", Some(0.0)),
+            (r"width", Some(0.5)),
+        ],
         num_outputs: None,
         extends: None,
         summary: None,
         doc: Some(r"alternates blocks of bins between the two inputs"),
         signal_range: None,
-        arg_docs: &[(r"bufferA", r"fft buffer A."), (r"bufferB", r"fft buffer B."), (r"numTeeth", r"number of teeth in the comb."), (r"phase", r"starting phase of comb pulse."), (r"width", r"pulse width of comb.")],
+        arg_docs: &[
+            (r"bufferA", r"fft buffer A."),
+            (r"bufferB", r"fft buffer B."),
+            (r"numTeeth", r"number of teeth in the comb."),
+            (r"phase", r"starting phase of comb pulse."),
+            (r"width", r"pulse width of comb."),
+        ],
     },
 ];

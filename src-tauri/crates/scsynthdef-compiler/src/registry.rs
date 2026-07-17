@@ -83,10 +83,7 @@ mod tests {
     #[test]
     fn common_ugens_present() {
         for class in ["SinOsc", "Out", "BinaryOpUGen", "RecordBuf", "Phasor"] {
-            assert!(
-                lookup_ugen(class).is_some(),
-                "expected {class} in registry"
-            );
+            assert!(lookup_ugen(class).is_some(), "expected {class} in registry");
         }
     }
 

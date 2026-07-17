@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
@@ -293,7 +299,7 @@ impl PSinGrain {
 }
 
 /// band limited pulse wave generator with pulse width modulation.
-/// 
+///
 /// Pulse waves are a general form of square wave that allow for the width of the
 /// pulses to be varied. A square wave is therefore a pulse with a width of 0.5
 /// i.e. the width of the high and low states is identical. Adjusting the ratio of
@@ -341,7 +347,7 @@ impl Pulse {
 }
 
 /// band limited sawtooth wave generator
-/// 
+///
 /// The sawtooth wave produces even and odd harmonics in series and therefore
 /// produces a bright sound that is an excellent starting point for brassy, raspy
 /// sounds. It's also suitable for creating the gritty, bright sounds needed for

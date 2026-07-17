@@ -1,12 +1,18 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
 /// Read the contents of a buffer at a specified index
-/// 
+///
 /// reads the contents of a buffer at a given index.
 pub struct BufRd {
     _rate: Rate,
@@ -143,7 +149,11 @@ impl BufWr {
     }
 
     /// input ugens (channelArray)
-    pub fn input_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn input_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.input_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -471,7 +481,11 @@ impl RecordBuf {
     }
 
     /// an Array of input channels
-    pub fn input_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn input_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.input_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -516,7 +530,11 @@ impl ScopeOut {
         self
     }
 
-    pub fn input_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn input_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.input_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -579,7 +597,11 @@ impl ScopeOut2 {
         self
     }
 
-    pub fn input_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn input_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.input_array = iter.into_iter().map(Into::into).collect();
         self
     }

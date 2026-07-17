@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
@@ -20,7 +26,7 @@ use crate::{Rate, SynthDef, UGenInput};
 /// obviously best at transient 4/4 heavy material without much expressive tempo
 /// variation), and can form the basis of computer processing that is decidedly
 /// faster than human.
-/// 
+///
 /// The underlying model assumes 4/4, but it should work on any isochronous beat
 /// structure, though there are biases to 100-120 bpm; a fast 7/8 may not be
 /// tracked in that sense. There are four k-rate outputs, being ticks at quarter,
@@ -538,7 +544,7 @@ impl SpecFlatness {
 /// interpolate specifies whether interpolation should be used to try and make the
 /// percentile frequency estimate more accurate, at the cost of a little higher
 /// CPU usage. Set it to 1 to enable this.
-/// 
+///
 /// Given an FFT chain this calculates the cumulative distribution of the
 /// frequency spectrum, and outputs the frequency value which corresponds to the
 /// desired percentile. For example, to find the frequency at which 90% of the

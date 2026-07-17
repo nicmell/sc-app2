@@ -12,7 +12,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Multi-function binary ugen representing many operations (e.g. +, *, <, min, max, etc...)"),
+        doc: Some(
+            r"Multi-function binary ugen representing many operations (e.g. +, *, <, min, max, etc...)",
+        ),
         signal_range: None,
         arg_docs: &[(r"a", r"First input"), (r"b", r"Second input")],
     },
@@ -23,9 +25,15 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Multiply the input source by mul then add the add value. Equivalent to, but more efficient than, (+ add (* mul in))"),
+        doc: Some(
+            r"Multiply the input source by mul then add the add value. Equivalent to, but more efficient than, (+ add (* mul in))",
+        ),
         signal_range: None,
-        arg_docs: &[(r"add", r"Addition Value"), (r"in", r"Input to modify"), (r"mul", r"Multiplier Value")],
+        arg_docs: &[
+            (r"add", r"Addition Value"),
+            (r"in", r"Input to modify"),
+            (r"mul", r"Multiplier Value"),
+        ],
     },
     UGenRegistryEntry {
         name: r"UnaryOpUGen",
@@ -34,7 +42,9 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         num_outputs: None,
         extends: None,
         summary: None,
-        doc: Some(r"Multi-function unary ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)"),
+        doc: Some(
+            r"Multi-function unary ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)",
+        ),
         signal_range: None,
         arg_docs: &[(r"a", r"input")],
     },

@@ -1,7 +1,13 @@
 // @generated — DO NOT EDIT.
 // Regenerate with `node scripts/generate_ugens_rust.mjs`.
 
-#![allow(non_camel_case_types, unused_mut, unused_variables, clippy::useless_conversion, clippy::needless_update)]
+#![allow(
+    non_camel_case_types,
+    unused_mut,
+    unused_variables,
+    clippy::useless_conversion,
+    clippy::needless_update
+)]
 
 use crate::{Rate, SynthDef, UGenInput};
 
@@ -679,7 +685,7 @@ impl LFSaw {
 }
 
 /// a non-band-limited triangle oscillator
-/// 
+///
 /// The triangle wave shape features two linear slopes and is not as harmonically
 /// rich as a sawtooth wave since it only contains odd harmonics (partials).
 /// Ideally, this type of wave form is mixed with a sine, square or pulse wave to
@@ -835,7 +841,11 @@ impl Select {
     }
 
     /// List of ugens to choose from
-    pub fn channels_array<I, T>(mut self, iter: I) -> Self where I: IntoIterator<Item = T>, T: Into<UGenInput> {
+    pub fn channels_array<I, T>(mut self, iter: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<UGenInput>,
+    {
         self.channels_array = iter.into_iter().map(Into::into).collect();
         self
     }
@@ -901,7 +911,7 @@ impl Shaper {
 }
 
 /// Sine table lookup oscillator
-/// 
+///
 /// Outputs a sine wave with values oscillating between -1 and 1 similar to osc
 /// except that the table has already been fixed as a sine table of 8192 entries.
 /// Sine waves are often used for creating sub-basses or are mixed with other
@@ -961,7 +971,7 @@ impl SinOsc {
 }
 
 /// Sine oscillator with phase modulation feedback
-/// 
+///
 /// Different feedback values results in a modulation between a sine wave and a
 /// sawtooth like wave. Overmodulation causes chaotic oscillation.
 pub struct SinOscFB {
@@ -1014,7 +1024,7 @@ impl SinOscFB {
 }
 
 /// hard sync sawtooth wave oscillator
-/// 
+///
 /// A sawtooth wave that is hard synched to a fundamental pitch. This produces an
 /// effect similar to moving formants or pulse width modulation. The sawtooth
 /// oscillator has its phase reset when the sync oscillator completes a cycle.
@@ -1131,7 +1141,7 @@ impl VarSaw {
 }
 
 /// Models a slow frequency modulation.
-/// 
+///
 /// Vibrato is a slow frequency modulation. Consider the systematic deviation in
 /// pitch of a singer around a fundamental frequency, or a violinist whose finger
 /// wobbles in position on the fingerboard, slightly tightening and loosening the

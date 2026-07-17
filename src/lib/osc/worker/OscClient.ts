@@ -1,4 +1,12 @@
-/** Worker-resident OSC engine: all packet work, sequencing, allocation and watchdog state live here. */
+// The worker-resident OSC engine: all packet work, sequencing, allocation
+// and watchdog state live HERE — colocated with the socket and exempt from
+// the main thread's background-tab timer throttling. Encode/decode is the
+// wasm component (@sc-app/server-commands): typed ServerMessage values go
+// out, typed ServerReply values come in, and everything downstream — the
+// `once(tag, match)` waiters, telemetry arms, log rendering — consumes the
+// single decode. State/UI live across the port in OscClientProxy; this
+// class only emits `OscClientEvents`. See lib/osc/README.md for the split.
+
 import {
   AddToTail,
   atUnixMs,
@@ -93,6 +101,10 @@ export class OscClient {
       else this.closed(event.code, event.reason);
     });
   }
+  /** Open the socket, arm the node-id allocator over the session's block,
+   *  and create the session group at the tail of scsynth's root group. The
+   *  server pre-assigned the group id, so no ack gates the send — the
+   *  bridge rejects a wrong one. */
   async connect(url: string, session: OscSession): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       this.openResolve = resolve;
@@ -104,6 +116,10 @@ export class OscClient {
     this.send(gNew(session.sessionGroupId, AddToTail, 0));
     this.armWatchdog();
   }
+
+  /** Claim the next id from the session's server-assigned block — loud
+   *  before connect and on exhaustion (ids are never recycled; the block
+   *  is sized for a session's lifetime). */
   nextNodeId(): number {
     if (this.endId === 0) throw new Error("OscClient.nextNodeId: not connected");
     if (this.nextId >= this.endId) throw new Error("OscClient.nextNodeId: node-id block exhausted");
@@ -139,6 +155,10 @@ export class OscClient {
     this.appendTx(bytes);
     this.transport.send(bytes);
   }
+  /** Await the next reply of `tag` whose payload satisfies `match` —
+   *  registered BEFORE the triggering send (the sequenced-command
+   *  invariant), one-shot FIFO per match, rejecting on timeout or close so
+   *  a load pass fails loudly instead of wedging. */
   once<T extends ReplyTag>(
     tag: T,
     match: (val: ReplyVal<T>) => boolean = () => true,
@@ -166,6 +186,11 @@ export class OscClient {
       waiter.reject(err);
     }
   }
+  // ── sequenced commands (the RPC surface) ────────────────────────────────
+  // Each composes allocate → register waiter → send → await ack as one
+  // worker-side unit, so the waiter can never race its own trigger.
+
+  /** `/g_new` gated on the `/n_go` ack. */
   async createGroup(targetId: number): Promise<number> {
     const id = this.nextNodeId();
     const reply = this.once("n-go", (n) => n.nodeId === id);
@@ -173,6 +198,10 @@ export class OscClient {
     await reply;
     return id;
   }
+  /** `/s_new` gated on `/n_go`, controls (array controls flattened to their
+   *  base-index slots) baked into the spawn. The `/s_new` went out before a
+   *  timeout can land, so the catch frees the allocated id — no untracked
+   *  drones. */
   async createSynth(
     defName: string,
     targetId: number,
@@ -193,12 +222,20 @@ export class OscClient {
     }
     return id;
   }
+
+  /** `/d_recv` with an embedded `/sync` completion, gated on its `/synced`
+   *  echo — the ack means the def is INSTALLED, so a dependent `/s_new` can
+   *  follow immediately. (The sync id spends a node id; harmless, unique.) */
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const id = this.nextNodeId();
     const reply = this.once("synced", (s) => s.syncId === id);
     this.send(dRecv(bytes, encode(sync(id))));
     await reply;
   }
+  // ── fire-and-forget commands ────────────────────────────────────────────
+  // All silently dropped on a dead socket (`send` gates on IS_OPEN): the
+  // teardown paths rely on that during a disconnect.
+
   setControl(id: number, name: string, value: number) {
     this.send(nSet(id, { [name]: value }));
   }
@@ -211,6 +248,8 @@ export class OscClient {
   freeSynth(id: number) {
     this.send(nFree(id));
   }
+  /** Free a group and everything inside it — `/g_freeAll` empties, `/n_free`
+   *  removes the group node itself. */
   freeGroup(id: number) {
     this.send(gFreeAll(id));
     this.send(nFree(id));
@@ -227,6 +266,10 @@ export class OscClient {
   sendDirt(event: Record<string, string | number>, timetag: number) {
     this.sendBundle(atUnixMs(timetag), [dirtPlay(event)]);
   }
+  /** Route one typed inbound reply: satisfy at most one waiter, then the
+   *  telemetry arms — scope chunks and status stay OUT of the console log
+   *  (they stream continuously), everything else lands as an rx entry.
+   *  Public on purpose: the unit suites feed replies here directly. */
   handleReply(reply: ServerReply): void {
     const val: unknown = reply.val;
     const waiter = this.waiters.find((w) => w.tag === reply.tag && w.match(val));
@@ -275,6 +318,8 @@ export class OscClient {
       this.append("tx", m.address, m.args.map(formatOscArg));
     }
   }
+  /** Queue one log entry, flushing the batch once per microtask burst —
+   *  one `log` event per burst instead of one postMessage per message. */
   private append(dir: "tx" | "rx", address: string, args: string[]) {
     this.logQueue.push({ ts: Date.now(), dir, address, args });
     if (this.logScheduled) return;
@@ -286,6 +331,10 @@ export class OscClient {
       this.events.log(entries);
     });
   }
+  /** The liveness watchdog: the bridge heartbeats scsynth at 1 s and fans
+   *  every `/status.reply` to us — re-armed on each one (in handleReply),
+   *  so sustained silence means the bridge is gone and the connection
+   *  closes loudly. Worker timers keep this honest in backgrounded tabs. */
   private armWatchdog() {
     this.disarmWatchdog();
     this.statusTimer = setTimeout(() => {

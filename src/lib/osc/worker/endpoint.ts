@@ -1,4 +1,10 @@
-/** Composition seam shared by the real worker entry and the synchronous test loopback. */
+// The protocol composition root, shared by the real worker entry
+// (worker.ts) and the synchronous test loopback (test-setup.ts): wire an
+// OscClient's events onto a ProtocolPort and its command methods onto the
+// inbound dispatcher. This is the WHOLE worker-side protocol surface — one
+// dispatcher registration per OscRequest/OscCommand type, nothing else
+// consumes the port.
+
 import { MessageDispatcher } from "../protocol/dispatcher";
 import {
   bannerMessage,
@@ -17,6 +23,12 @@ import type { WorkerTransport } from "./transport";
 
 const post = (port: ProtocolPort, built: { msg: unknown; transfer?: Transferable[] }) =>
   port.postMessage(built.msg, built.transfer);
+
+/** Build the worker-side endpoint: an OscClient whose telemetry events post
+ *  back over `port`, with every inbound protocol message routed into it.
+ *  Returns the client — the production entry discards it, the test setup
+ *  keeps it as the spy/`handleReply` seam. `transport` defaults to the real
+ *  WebSocket; tests inject stubs. */
 export function createOscEndpoint(port: ProtocolPort, transport?: WorkerTransport): OscClient {
   const client = new OscClient(
     {
@@ -30,6 +42,8 @@ export function createOscEndpoint(port: ProtocolPort, transport?: WorkerTranspor
     transport,
   );
   const dispatcher = new MessageDispatcher<OscRequest | OscCommand>();
+  // Awaited requests settle back as a correlated reply event — resolution
+  // value or stringified error; commands below register plain one-way calls.
   const rpc =
     <T extends OscRequest>(handler: (msg: T) => Promise<unknown>) =>
     (msg: T) => {

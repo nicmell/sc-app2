@@ -1,4 +1,16 @@
-/** Main-thread façade: owns UI/store bookkeeping while every OSC operation is typed protocol traffic. */
+// Main-thread façade over the worker-resident OSC engine: every operation
+// is typed protocol traffic (protocol/messages.ts) over the worker port,
+// while all UI-facing state stays here — the app store's `osc` slice
+// (console log, error banners, scsynth status, the `connected` signal), the
+// awaited-RPC pending map, the session-group/scope-slot bookkeeping, and
+// the scope-chunk subscriber callbacks. The split's rule: the WORKER owns
+// protocol facts and time (decode, reply waiters, unthrottled timers), the
+// PROXY owns state and presentation. See lib/osc/README.md.
+//
+// Importing the singleton spawns nothing — the worker is created lazily on
+// the first operation, and a crash tears it down, rejects every pending
+// RPC, and lets the next operation spawn a fresh one.
+
 import { MAX_ERRORS, MAX_LOG } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
@@ -31,29 +43,45 @@ const post = (port: ProtocolPort, built: BuiltMessage<unknown>) =>
 
 export class OscClientProxy {
   private readonly state = appStore.slice(SliceName.OSC);
+  /** The read-only store views consumers subscribe to. `connected` is the
+   *  transport-level "session group exists, allocators armed" signal the
+   *  plugin lifecycle arms on — distinct from the session slice's UI status. */
   readonly connected = this.state.select((s) => s.connected);
   readonly log = this.state.select((s) => s.log);
   readonly errors = this.state.select((s) => s.errors);
   readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
   private port: ProtocolPort | null = null;
   private worker: Worker | null = null;
+  /** Awaited RPCs keyed by the builder-minted request id (settled by the
+   *  worker's correlated `reply` event, or rejected wholesale on a crash). */
   private pending = new Map<number, Pending>();
+  /** The session group id, armed by connect() (throws before it). */
   private groupId: number | null = null;
+  // The scope-slot allocator over the session's server-assigned span
+  // (scopeIndexBase/Count): one slot per mounted <sc-scope>, recycled
+  // through a free list. scopeCount = 0 doubles as "not connected".
   private scopeBase = 0;
   private scopeCount = 0;
   private scopeUsed = 0;
   private freeScopeSlots: number[] = [];
   private nextSubId = 1;
+  /** Chunk consumers keyed by the proxy-minted subId (one per <sc-scope>). */
   private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
   private nextEntryId = 0;
   private nextListenerId = 1;
   private listeners = new Map<EventName, Map<number, (value?: unknown) => void>>();
 
+  /** Swap in an external port (the unit suites' synchronous loopback),
+   *  terminating any real worker. */
   attachPort(port: ProtocolPort): void {
     this.worker?.terminate();
     this.worker = null;
     this.bind(port);
   }
+
+  /** Route the worker's event stream: RPC replies settle `pending`, the
+   *  telemetry events land in the store, chunks fan out to their subId's
+   *  callback. */
   private bind(port: ProtocolPort) {
     this.port = port;
     const d = new MessageDispatcher<OscEvent>();
@@ -82,6 +110,7 @@ export class OscClientProxy {
     d.register("scopeChunk", (m) => this.scopeChunkSubs.get(m.subId)?.(m.chunk));
     port.onMessage((m) => d.dispatch(m as OscEvent));
   }
+  /** The lazy-spawn seam every operation goes through. */
   private ensurePort() {
     if (this.port) return this.port;
     return this.spawn();
@@ -94,6 +123,9 @@ export class OscClientProxy {
     worker.onerror = (event) => this.workerCrash(event.message || "worker error");
     return this.port!;
   }
+  /** Engine failure containment: reject everything in flight, drop the
+   *  connection state, and spawn a fresh worker so the next operation just
+   *  works — a crashed engine must never wedge the main thread. */
   private workerCrash(message: string) {
     this.worker?.terminate();
     this.worker = null;
@@ -104,6 +136,9 @@ export class OscClientProxy {
     this.emit("error", new Error(message));
     this.spawn();
   }
+
+  /** One awaited request: park the resolver under the builder-minted id and
+   *  post — the worker's `reply` event (or a crash) settles it. */
   private rpc<T>(built: BuiltMessage<T & { id: number }>): Promise<unknown> {
     const id = built.msg.id;
     return new Promise((resolve, reject) => {
@@ -111,6 +146,10 @@ export class OscClientProxy {
       post(this.ensurePort(), built);
     });
   }
+  /** Open the connection: the RPC resolves once the worker has the socket
+   *  open and the session `/g_new` sent — only then are the local group id
+   *  and scope allocator armed and `connected` published, so consumers can
+   *  treat the signal as "safe to allocate and send". */
   async connect(url: string, session: OscSession): Promise<void> {
     this.state.update((s) => ({ ...s, scsynthStatus: null, errors: [] }));
     await this.rpc(connectMessage(url, session));
@@ -123,14 +162,22 @@ export class OscClientProxy {
     this.scopeChunkSubs.clear();
     this.state.update((s) => ({ ...s, connected: true }));
   }
+  /** Orderly disconnect (reload/session end) — flips `connected` first so
+   *  subscribers unload before the socket dies under them. */
   close(): void {
     this.state.update((s) => ({ ...s, connected: false }));
     if (this.port) post(this.port, closeMessage());
   }
+
+  /** The session group all plugin groups target (loud before connect —
+   *  a send without it would target group 0). */
   get sessionGroupId() {
     if (this.groupId === null) throw new Error("OscClient.sessionGroupId: not connected");
     return this.groupId;
   }
+
+  /** Claim one scope slot from the session's span — recycled slots first,
+   *  loud when the span is exhausted (8 per session) or not connected. */
   allocScopeIndex() {
     if (this.scopeCount === 0) throw new Error("OscClient.allocScopeIndex: not connected");
     const recycled = this.freeScopeSlots.pop();
@@ -141,10 +188,18 @@ export class OscClientProxy {
       );
     return this.scopeBase + this.scopeUsed++;
   }
+  /** Return a slot to the free list. Silently ignores out-of-span indices —
+   *  a stale free after a reconnect (new span) must not poison the list. */
   freeScopeIndex(index: number) {
     if (index < this.scopeBase || index >= this.scopeBase + this.scopeCount) return;
     if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);
   }
+
+  // ── the scsynth command surface (the elements' whole OSC vocabulary) ────
+  // Awaited creations return the worker-allocated node id; the writes and
+  // frees are fire-and-forget (silently dropped by the worker on a dead
+  // socket — teardown during a disconnect relies on that).
+
   createGroup(targetId: number): Promise<number> {
     return this.rpc(createGroupMessage(targetId)) as Promise<number>;
   }
@@ -187,6 +242,9 @@ export class OscClientProxy {
   sendDirt(event: Record<string, string | number>, timetag: number) {
     post(this.ensurePort(), sendDirtMessage(event, timetag));
   }
+  /** Register a scope-slot stream: mints the subId the bridge echoes on
+   *  every chunk, wires the callback, and returns the `off()` disposer the
+   *  element holds through its unload. */
   subscribeScope(
     scope: number,
     channels: number,
@@ -204,6 +262,8 @@ export class OscClientProxy {
       },
     };
   }
+  // Connection-lifecycle listeners (the SessionManager observes close/error
+  // to flip the UI status) — id-keyed so callers can detach exactly theirs.
   on(event: EventName, cb: (value?: unknown) => void) {
     const id = this.nextListenerId++;
     let map = this.listeners.get(event);

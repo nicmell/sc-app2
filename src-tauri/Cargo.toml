@@ -1,3 +1,9 @@
+# Workspace: the app crate plus the vendored SuperCollider crates
+# (imported from https://github.com/nicmell/sc-crates), shared by the
+# backend as path dependencies and built to wasm for the frontend later.
+[workspace]
+members = ["crates/scserver-commands", "crates/scsynthdef-compiler"]
+
 [package]
 name = "sc-app2"
 version = "0.1.0"
@@ -52,6 +58,12 @@ regex = "1"
 rosc = "0.11"
 # Ergonomic error propagation for peer connection.
 anyhow = "1"
+
+# Typed scsynth command encoders/parsers + SynthDef (SCgf v2) compiler,
+# vendored from nicmell/sc-crates (crates/): the OSC vocabulary the bridge
+# and the frontend will share.
+scserver-commands = { path = "crates/scserver-commands" }
+scsynthdef-compiler = { path = "crates/scsynthdef-compiler" }
 # mmap scsynth's shared-memory scope buffers (SHM scope reader).
 libc = "0.2"
 

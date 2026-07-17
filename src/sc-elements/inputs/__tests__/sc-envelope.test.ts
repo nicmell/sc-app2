@@ -8,13 +8,17 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { OSC } from "@sc-app/server-commands";
 import { registerScElements, type ScControl } from "@/sc-elements";
 import { insertPoint, removePoint, type ScEnvelope } from "@/sc-elements/inputs/sc-envelope";
 import type { EnvBreakpoints } from "@/lib/synthdef/envValue";
-import { installScsynthMock, mountPlugin, wrapXml } from "@/lib/utils/test/test-utils";
+import {
+  installScsynthMock,
+  mountPlugin,
+  wrapXml,
+  type SentMessage,
+} from "@/lib/utils/test/test-utils";
 
-let sent: OSC.Message[];
+let sent: SentMessage[];
 
 const ENV = "0, 2, 1, -99, 1, 0.01, 5, -4, 0, 0.3, 5, -4";
 
@@ -88,7 +92,6 @@ describe("sc-envelope", () => {
       ),
     ).resolves.toBeTruthy(); // a LOCKED structure parses clean
   });
-
 });
 
 describe("breakpoint edit helpers", () => {

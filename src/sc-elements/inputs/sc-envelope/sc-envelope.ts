@@ -324,7 +324,9 @@ export class ScEnvelope extends ScInput {
       if (this.value.segments.length >= budget) return;
       const max = this._maxBreakpoints;
       if (max !== undefined && count >= max) return; // structure locked at max
-      this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))));
+      this.applyEdit((v) =>
+        insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))),
+      );
     }
   };
 
@@ -485,9 +487,7 @@ export class ScEnvelope extends ScInput {
       if (this.drag.kind === "point") {
         const i = this.drag.index;
         label =
-          i === 0
-            ? levels[0].toFixed(2)
-            : `${levels[i].toFixed(2)} @ ${times[i].toFixed(3)}s`;
+          i === 0 ? levels[0].toFixed(2) : `${levels[i].toFixed(2)} @ ${times[i].toFixed(3)}s`;
         px = this.toX(times[i]);
         py = this.toY(levels[i]);
       } else {
@@ -547,7 +547,12 @@ export function removePoint(value: EnvBreakpoints, index: number): EnvBreakpoint
 /** Split segment `index` at time `t` (absolute) with the new point at
  *  `level`: the first half is a new lin-ish segment, the second keeps the
  *  original's target/curve/flags. */
-export function insertPoint(value: EnvBreakpoints, index: number, t: number, level: number): EnvBreakpoints {
+export function insertPoint(
+  value: EnvBreakpoints,
+  index: number,
+  t: number,
+  level: number,
+): EnvBreakpoints {
   const starts: number[] = [0];
   for (const s of value.segments) starts.push(starts[starts.length - 1] + s.time);
   const original = value.segments[index];

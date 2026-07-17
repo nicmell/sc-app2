@@ -1,97 +1,58 @@
 # @sc-app/server-commands
 
-Typed OSC messaging layer for [`scsynth`](https://doc.sccode.org/Reference/Server-Command-Reference.html),
-wrapping [`osc-js`](https://github.com/adzialocha/osc-js). Provides
-per-address command constructors, binary encode/decode, bundle +
-timetag helpers, and positional accessors for common replies.
+The app's typed OSC vocabulary for
+[`scsynth`](https://doc.sccode.org/Reference/Server-Command-Reference.html) — an
+abstraction/utility layer over the **wasm component** transpiled from the
+vendored `scserver-commands` Rust crate
+(`src-tauri/crates/scserver-commands`). One protocol implementation shared by
+the Rust backend (native rlib) and the frontend (this package).
 
-## Install
+## Layout
 
-Workspace-local — referenced from the host app via `"@sc-app/server-commands":
-"workspace:*"`.
+- `pkg/` — the jco-transpiled component (ESM + `scserver.core.wasm` + typed
+  `.d.ts`). **Generated and committed** — regenerate with
+  `yarn generate:server-commands` whenever the crate or its WIT changes
+  (prereqs: `rustup target add wasm32-unknown-unknown`,
+  `cargo install cargo-component`). Importing the package instantiates the
+  wasm via top-level await (node loads it through fs — vitest included;
+  browsers fetch-compile the Vite-emitted asset).
+- `src/component.ts` — the binary boundary: `encode(msg)`,
+  `encodeBundle(time, msgs)`, `decodeReply(bytes)`, `decodeReplyPacket(bytes)`
+  (bundle-aware), `atUnixMs(ms)` (wall-clock → NTP `OscTime`). All throw on
+  malformed input.
+- `src/builders.ts` — `ServerMessage` builders for the commands the app
+  speaks (`sNew`, `nSet`, `nSetn`, `dRecv`, `scopeSubscribe`, `dirtPlay`,
+  `raw` escape hatch, …) plus the add-action constants. Values are the WIT
+  variant encoding: `{ tag, val }` plain JSON.
+- `src/scope.ts` — `DecodedScopeChunk` + `toScopeChunk` (the widget shape;
+  the big-endian blob codec lives in the crate).
+- `src/describe.ts` — console-log formatting: `flattenEncoded(bytes)` (wire
+  truth for outbound logging/assertions), `describeReply(reply)`,
+  `formatOscArg`.
 
 ## Usage
 
 ```ts
-import OSC, {
-  encode,
-  decode,
-  sNew,
-  nRun,
-  status,
-  inFuture,
-  AddToHead,
-  Tr,
-} from "@sc-app/server-commands";
+import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
 
-// Construct a message.
-const msg = sNew("sine", 1001, AddToHead, 100, { freq: 440, amp: 0.5 });
+const bytes = encode(sNew("sine", 1001, AddToHead, 100, [["freq", 440]]));
+// …send bytes over the WS transport…
 
-// Schedule it ~200 ms in the future (sclang's `s.latency` idiom).
-const bundle = new OSC.Bundle([msg], inFuture(200));
-const bytes = encode(bundle);
-// …send `bytes` over your WS/UDP transport…
-
-// Decode inbound bytes.
-const reply = decode(incomingBytes);
-if (!(reply instanceof OSC.Bundle) && reply.address === "/tr") {
-  const trigId = Tr.triggerId(reply);
-  const value = Tr.value(reply);
-  // …
-}
+const reply = decodeReply(incoming); // { tag: "n-go", val: { nodeId, … } }
+if (reply.tag === "synced") console.log(reply.val.syncId);
 ```
 
-## What it provides
+Everything inbound classifies into the typed `ServerReply` union (the crate's
+parser): `n-go`, `synced`, `fail`, `status-reply`, `scope-chunk`
+(`samples` lifts as a transferable `Float32Array`), … with `other` as the
+raw fallback.
 
-- **Command constructors** — one function per OSC address, each
-  returning an `OSC.Message`. Grouped under `commands/`:
-  - `commands/node.ts` — `sNew` / `sNewPairs` / `sGet` / `nRun` /
-    `nRunOne` / `nFree` / `nSet` / `nMap*` / `nOrder` / …
-  - `commands/group.ts` — `gNew` / `gNewOne` / `gFreeAll` /
-    `gDeepFree` / `gHead` / `gTail` / `queryTree` / `dumpTree` / `pNew`
-  - `commands/synthdef.ts` — `dRecv` / `dLoad` / `dLoadDir` / `dFree`
-  - `commands/buffer.ts` — `bAlloc` / `bAllocRead` / `bFree` /
-    `bQuery` / `bSet` / `bSetn` / `bGetn` / `bWrite` / `bGen` / …
-  - `commands/control.ts` — `cSet` / `cSetn` / `cFill` / `cGet` / `cGetn`
-  - `commands/misc.ts` — `status` / `version` / `quit` / `sync` /
-    `notify` / `dumpOsc` / `errorMode` / `clearSched` / `cmd` /
-    `uCmd` / `raw` (escape hatch)
-- **`encode(packet)` / `decode(bytes)`** — thin wrappers over `osc-js`
-  that convert between `OSC.Message | OSC.Bundle` and binary.
-- **Timetag helpers** (`timetag.ts`):
-  - `immediate()` — fire ASAP.
-  - `atDate(ms)` — absolute JS timestamp.
-  - `inFuture(ms)` — `Date.now() + ms`, the common "latency budget"
-    pattern.
-  - `fromTick(tick0Ms, tickIndex, tickRate)` — given an anchor
-    captured at tick 0, returns the JS ms timestamp of any future
-    tick index. Aliased as `tickToTimetag`.
-- **Reply accessors** (`replies.ts`) — constant `ADDR_*` strings and
-  typed positional readers for the common replies: `Tr`, `Synced`,
-  `Done`, `Fail`, `StatusReply`, `NodeEvent`, `BSetnReply`.
+## Notes
 
-## Design notes
-
-**No parallel discriminated union.** Every message is structurally an
-`OSC.Message` — `{ address, args, types }`. We keep that type at the
-API boundary rather than re-wrapping it; reply filtering matches on
-`msg.address` directly and arg access goes through the typed reader
-helpers or direct positional indexing.
-
-**Main/worker interchange.** On the send path, callers construct
-`OSC.Message` / `OSC.Bundle` on the main thread and pass them into a
-worker after `encode(packet)` to bytes. On the receive path, the
-worker decodes bytes and posts plain `{ address, args }` POJOs over
-`postMessage` (structured-clone strips the `OSC.Message` prototype).
-Consumers read `.address` / `.args` directly, which matches the
-osc-js field layout.
-
-**Scheduling.** scsynth honors NTP timetags on OSC bundles,
-queueing them internally and firing at the exact audio frame.
-Combine `fromTick(clock.tick0Ms, targetTick, tickRate)` with
-`new OSC.Bundle([msg], timetag)` to schedule a command at a
-sample-accurate server-side tick.
-
-## Dependencies
-
-- `osc-js` — runtime OSC encode/decode and bundle semantics.
+- Floats ride the wire as OSC float32 — non-dyadic values (0.2, 0.9) come
+  back with float32 precision; tests compare via `Math.fround`.
+- The scope protocol (`/scope/subscribe|unsubscribe|chunk`) is an sc-app
+  bridge extension defined in the crate, spoken with the Rust bridge — never
+  routed to scsynth.
+- Tests (`yarn workspace @sc-app/server-commands test`) run the REAL wasm in
+  node — the encode/decode goldens are the cross-language contract gate.

@@ -4,12 +4,25 @@
 // the scripted-scsynth auto-responder feeding the real handleReply so the
 // `once()` waiters gate exactly as against a live server.
 //
+// Outbound assertions read the WIRE: every recorded send is encoded through
+// the real wasm component and flattened back (`{address, args}`), so the
+// suites pin what scsynth would actually receive. Inbound fixtures are
+// hand-built typed ServerReply values (compile-checked against the
+// component's union) fed straight to handleReply.
+//
 // The Strudel editor mock (vi.mock of @strudel/codemirror / @strudel/transpiler
 // / @/lib/strudel/prebake) stays inline in each suite: vi.mock is hoisted above
 // imports, so its factory can't reference a shared helper here.
 
 import { vi, type MockInstance } from "vitest";
-import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
+import {
+  encode,
+  flattenEncoded,
+  type FlatMessage,
+  type OscTime,
+  type ServerMessage,
+  type ServerReply,
+} from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClientProxy";
 import { workerOscClient } from "./osc-endpoint";
 import { adoptEntry } from "@/lib/plugins/PluginManager";
@@ -19,6 +32,12 @@ import type { ScElement, ScPlugin } from "@/sc-elements";
 export const SESSION_GROUP = 1;
 /** The first node id handed out by the mocked worker client allocator. */
 export const FIRST_NODE_ID = 2000;
+
+/** One recorded outbound command: the flattened wire view (what the suites
+ *  assert on) plus the typed message that produced it. */
+export interface SentMessage extends FlatMessage {
+  msg: ServerMessage;
+}
 
 /** Wrap a fragment in a minimal XHTML plugin entry (entries use
  *  self-closing tags — they must be parsed as text/xml, not HTML). */
@@ -52,47 +71,67 @@ export async function mountPlugin(xml: string): Promise<{ host: ScPlugin; nodes:
   return parsed;
 }
 
+/** A typed `/n_go` reply — what scsynth acks node creation with. */
+export function nGoReply(nodeId: number): ServerReply {
+  return { tag: "n-go", val: { nodeId, parentId: 1, prevId: -1, nextId: -1, isGroup: 0 } };
+}
+
+/** Flatten one typed message to its single wire view (assertion helper for
+ *  suites that re-mock `send` themselves). */
+export function flat(msg: ServerMessage): SentMessage {
+  return { ...flattenEncoded(encode(msg))[0], msg };
+}
+
 /** Script the scsynth side of the sequenced commands. Replies go through the
  *  real handleReply, so the load pass only advances when its `once()` waiter
  *  is satisfied — the sequencing itself is under test:
  *  /g_new → /n_go, /d_recv → its embedded /sync completion → /synced,
  *  /s_new → /n_go. */
-export function autoRespond(msg: OSC.Message): void {
-  const nGo = (nodeId: number) =>
-    workerOscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
-  switch (msg.address) {
+export function autoRespond(sent: SentMessage): void {
+  const nGo = (nodeId: number) => workerOscClient.handleReply(nGoReply(nodeId));
+  switch (sent.address) {
     case "/g_new":
     case "/s_new": {
-      nGo(msg.address === "/g_new" ? (msg.args[0] as number) : (msg.args[1] as number));
+      nGo((sent.address === "/g_new" ? sent.args[0] : sent.args[1]) as number);
       break;
     }
     case "/d_recv": {
-      const completion = decode(msg.args[1] as unknown as Uint8Array);
-      if (isMessage(completion) && completion.address === "/sync") {
-        workerOscClient.handleReply(new OSC.Message("/synced", completion.args[0]));
+      // The completion blob is a real encoded message — decode it through
+      // the component to find the embedded /sync id.
+      const completion = flattenEncoded(sent.args[1] as Uint8Array)[0];
+      if (completion?.address === "/sync") {
+        workerOscClient.handleReply({
+          tag: "synced",
+          val: { syncId: completion.args[0] as number },
+        });
       }
       break;
     }
   }
 }
 
-/** Install the scsynth-facing spies for a load-pass test: worker-side send into
- *  a recording auto-responder, plus deterministic node ids and session group.
- *  Returns the recorded sends and the `send` spy (re-mock it to script a
- *  stalled or partial server). Spies auto-restore between tests via the
- *  config's `restoreMocks: true`. */
+/** Install the scsynth-facing spies for a load-pass test: worker-side send
+ *  (and sendBundle — dirt events) into a recording auto-responder, plus
+ *  deterministic node ids and session group. Returns the recorded sends and
+ *  the spies (re-mock `send` to script a stalled or partial server). Spies
+ *  auto-restore between tests via the config's `restoreMocks: true`. */
 export function installScsynthMock(): {
-  sent: OSC.Message[];
-  send: MockInstance<(packet: OscPacket) => void>;
+  sent: SentMessage[];
+  send: MockInstance<(msg: ServerMessage) => void>;
+  sendBundle: MockInstance<(time: OscTime, msgs: ServerMessage[]) => void>;
 } {
-  const sent: OSC.Message[] = [];
-  const send = vi.spyOn(workerOscClient, "send").mockImplementation((packet) => {
-    const msg = packet as OSC.Message;
-    sent.push(msg);
-    autoRespond(msg);
-  });
+  const sent: SentMessage[] = [];
+  const record = (msg: ServerMessage) => {
+    const entry = flat(msg);
+    sent.push(entry);
+    autoRespond(entry);
+  };
+  const send = vi.spyOn(workerOscClient, "send").mockImplementation(record);
+  const sendBundle = vi
+    .spyOn(workerOscClient, "sendBundle")
+    .mockImplementation((_time, msgs) => msgs.forEach(record));
   let nextId = FIRST_NODE_ID;
   vi.spyOn(workerOscClient, "nextNodeId").mockImplementation(() => nextId++);
   vi.spyOn(oscClient, "sessionGroupId", "get").mockReturnValue(SESSION_GROUP);
-  return { sent, send };
+  return { sent, send, sendBundle };
 }

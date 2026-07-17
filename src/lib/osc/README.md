@@ -27,10 +27,13 @@ group and scope allocator and publishes `connected`.
 
 ## Responsibility boundary
 
-The worker client owns packet encoding/decoding, flattened tx/rx logging, FIFO `once` waiters,
-node-id allocation, sequenced acknowledgements, scope parsing, and the status watchdog. It never
-imports `appStore`; instead it emits raw log, banner, status, close, and scope events. Logs are
-batched once per microtask burst.
+The worker client owns packet encoding/decoding — through `@sc-app/server-commands`' wasm
+component: typed `ServerMessage` values out (`send`/`sendBundle`), typed `ServerReply` values in
+(`decodeReplyPacket` splits bundles) — plus flattened tx/rx logging, FIFO `once(tag, match)`
+waiters keyed by reply tag, node-id allocation, sequenced acknowledgements, and the status
+watchdog. Scope chunks arrive pre-decoded (`scope-chunk` replies; the BE-float blob codec lives
+in the crate). It never imports `appStore`; instead it emits raw log, banner, status, close, and
+scope events. Logs are batched once per microtask burst.
 
 The proxy owns the OSC store slice, bounded log/error collections, banner coalescing, connection
 bookkeeping, scope-slot allocation, and scope callbacks. Worker creation is lazy on the first

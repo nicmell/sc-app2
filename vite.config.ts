@@ -50,6 +50,10 @@ export default defineConfig(() => ({
   // …and again for the dependency pre-bundle, which esbuild optimizes separately
   // from app source.
   optimizeDeps: {
+    // Keep the linked package out of esbuild pre-bundling: its jco-transpiled
+    // component loads the wasm via `new URL(..., import.meta.url)`, which the
+    // pre-bundle would break — Vite's asset pipeline must see it.
+    exclude: ["@sc-app/server-commands"],
     esbuildOptions: {
       define: {
         "process.env": "false",
@@ -68,6 +72,18 @@ export default defineConfig(() => ({
   build: {
     // Emit a manifest mapping source files to their hashed build outputs.
     manifest: "manifest.json",
+    // The jco-transpiled OSC component self-instantiates with top-level
+    // await; Vite's default "modules" baseline (Safari 14) rejects TLA.
+    // The real runtimes (Tauri WKWebView / WebView2, current browsers) are
+    // all ≥ es2022.
+    target: "es2022",
+  },
+
+  // The OSC worker chunk (worker.ts → OscClient → the wasm component)
+  // carries that TLA module too; the default iife worker format can't
+  // represent it.
+  worker: {
+    format: "es" as const,
   },
 
   // Unit tests (`yarn test`): the example plugins through the sc-elements
@@ -83,6 +99,15 @@ export default defineConfig(() => ({
     environment: "happy-dom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["src/lib/utils/test/test-setup.ts"],
+    // Load the jco-transpiled component natively in node (vitest would
+    // inline the linked package and rewrite import.meta.url off the file
+    // scheme, breaking its fs wasm load). Everything else in the package
+    // is TS and stays inlined.
+    server: {
+      deps: {
+        external: [/packages\/server-commands\/pkg\//],
+      },
+    },
     // Restore every spy/mock to its original before each test, so suites don't
     // need a manual `vi.restoreAllMocks()` in afterEach (runs before the
     // beforeEach hooks, so freshly-installed spies survive into the test).

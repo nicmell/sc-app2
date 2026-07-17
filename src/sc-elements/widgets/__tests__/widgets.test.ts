@@ -8,7 +8,6 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { flattenPacket, OSC } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClientProxy";
 import { workerOscClient } from "@/lib/utils/test/osc-endpoint";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
@@ -17,11 +16,13 @@ import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
 import {
   autoRespond,
+  flat,
   installScsynthMock,
   mountPlugin,
   parsePlugin,
   wrapXml,
   SESSION_GROUP,
+  type SentMessage,
 } from "@/lib/utils/test/test-utils";
 // @strudel/codemirror is aliased to this recording stub globally
 // (vite.config.ts test.alias); strudelMirrors holds the editors sc-strudel
@@ -32,7 +33,7 @@ import strudelStyles from "@/sc-elements/widgets/sc-strudel/sc-strudel.module.sc
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
 
-let sent: OSC.Message[];
+let sent: SentMessage[];
 let send: ReturnType<typeof installScsynthMock>["send"];
 
 /** Arm the private scope-slot allocator (normally done by connect()). */
@@ -58,15 +59,13 @@ function disarmScopeAllocator(): void {
 const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
   (await mountPlugin(wrapXml(bodyXml))).host;
 
-/** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
- *  channel — the SHM slot's own layout). osc-js types message blob args as
- *  `Blob` though the runtime uses Uint8Array, so return it cast (as the
- *  package's own command constructors do). */
-function beBlob(floats: number[]): Blob {
-  const bytes = new Uint8Array(floats.length * 4);
-  const dv = new DataView(bytes.buffer);
-  floats.forEach((f, i) => dv.setFloat32(i * 4, f, false));
-  return bytes as unknown as Blob;
+/** A typed /scope/chunk reply — the blob byte-swap lives in the component,
+ *  so the fixture carries the decoded planar samples directly. */
+function scopeChunk(subId: number, floats: number[], channels = 2) {
+  return {
+    tag: "scope-chunk",
+    val: { subId, tickIndex: 1, isGap: false, channels, samples: Float32Array.from(floats) },
+  } as const;
 }
 
 beforeAll(() => {
@@ -100,12 +99,12 @@ describe("sc-scope", () => {
   });
 
   it("releases a late tap and its scope slot when load was invalidated", async () => {
-    let pendingTap: OSC.Message | undefined;
-    send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
-      sent.push(msg);
-      if (msg.address === "/s_new") pendingTap = msg;
-      else autoRespond(msg);
+    let pendingTap: SentMessage | undefined;
+    send.mockImplementation((msg) => {
+      const entry = flat(msg);
+      sent.push(entry);
+      if (entry.address === "/s_new") pendingTap = entry;
+      else autoRespond(entry);
     });
 
     const { host } = parsePlugin(wrapXml("<sc-scope/>"));
@@ -157,14 +156,10 @@ describe("sc-scope", () => {
     const scope = host.querySelector("sc-scope") as ScScope;
     const subId = sent[3].args[0] as number;
 
-    workerOscClient.handleReply(
-      new OSC.Message("/scope/chunk", subId + 99, 1, 0, 2, beBlob([0.5, -0.5])),
-    );
+    workerOscClient.handleReply(scopeChunk(subId + 99, [0.5, -0.5]));
     expect(scope.chunkRef.current).toBeNull(); // foreign subId ignored
 
-    workerOscClient.handleReply(
-      new OSC.Message("/scope/chunk", subId, 1, 0, 2, beBlob([0.5, -0.5])),
-    );
+    workerOscClient.handleReply(scopeChunk(subId, [0.5, -0.5]));
     expect(scope.chunkRef.current).toMatchObject({ subId, channels: 2, frameCount: 1 });
     expect(scope.chunkRef.current!.data[0]).toBeCloseTo(0.5);
   });
@@ -342,10 +337,10 @@ describe("sc-strudel", () => {
     sent.length = 0;
     out({ value: { s: "bd" } }, 0, 0, 1, 0);
     out({ value: { s: "sd", orbit: 5 } }, 0, 0, 1, 0);
-    const plays = sent.map((p) => flattenPacket(p)[0]).filter((m) => m.address === "/dirt/play");
+    const plays = sent.filter((m) => m.address === "/dirt/play");
     expect(plays).toHaveLength(2);
-    expect(plays[0].args).toEqual(["s", "bd", "orbit", "2"]);
-    expect(plays[1].args).toEqual(["s", "sd", "orbit", "5"]); // pattern's own orbit wins
+    expect(plays[0].args).toEqual(["s", "bd", "orbit", 2]);
+    expect(plays[1].args).toEqual(["s", "sd", "orbit", 5]); // pattern's own orbit wins
   });
 
   it("stops playback on unload (connection loss)", async () => {
@@ -459,12 +454,12 @@ describe("sc-keyboard", () => {
     const kbd = host.querySelector("sc-keyboard") as ScKeyboard;
 
     // Withhold the /s_new reply so the voice stays pending.
-    let pending: OSC.Message | undefined;
-    send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
-      sent.push(msg);
-      if (msg.address === "/s_new") pending = msg;
-      else autoRespond(msg);
+    let pending: SentMessage | undefined;
+    send.mockImplementation((msg) => {
+      const entry = flat(msg);
+      sent.push(entry);
+      if (entry.address === "/s_new") pending = entry;
+      else autoRespond(entry);
     });
 
     sent.length = 0;

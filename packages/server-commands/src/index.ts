@@ -1,39 +1,51 @@
 /**
- * @sc-app/server-commands — scsynth OSC messaging layer for the app.
+ * @sc-app/server-commands — the app's scsynth OSC vocabulary.
  *
- * Wraps `osc-js`. Callers work with `OSC.Message` and `OSC.Bundle`
- * directly; these helpers provide the per-address constructors,
- * typed reply accessors, and timetag helpers for sample-accurate
- * scheduling.
+ * An abstraction/utility layer over the wasm component transpiled from the
+ * scserver-commands Rust crate (`pkg/`, regenerated via
+ * `yarn generate:server-commands`): typed `ServerMessage` builders for the
+ * commands the app speaks, the encode/decode boundary, typed `ServerReply`
+ * classification for everything inbound, and display formatting for the
+ * OSC console.
  *
  * ```ts
- * import OSC from 'osc-js';
- * import { sNew, AddToHead, encode, inFuture } from '@sc-app/server-commands';
+ * import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
  *
- * const msg = sNew('myDef', 1001, AddToHead, 100);
- * const bundle = new OSC.Bundle([msg], inFuture(200));  // fire in 200 ms
- * const bytes = encode(bundle);
+ * const bytes = encode(sNew("myDef", 1001, AddToHead, 100, [["freq", 440]]));
+ * const reply = decodeReply(inbound); // e.g. { tag: "n-go", val: {...} }
  * ```
  */
 
-// Re-export osc-js as the default "OSC" symbol for ergonomic imports.
-export { default as OSC } from "osc-js";
+// The binary boundary (throws on malformed input) + the NTP conversion.
+export { encode, encodeBundle, decodeReply, decodeReplyPacket, atUnixMs } from "./component";
 
-// Binary <-> osc-js.
-export { encode, decode, isBundle, isMessage, type OscPacket } from "./encode";
+// Typed command builders + add-action constants.
+export * from "./builders";
 
-// Flatten a packet/bundle into per-message (address, args) entries.
-export { flattenPacket, formatOscArg, type FlatOsc } from "./flatten";
+// Scope-chunk adaptation to the widget shape.
+export { toScopeChunk, type DecodedScopeChunk } from "./scope";
 
-// Timetag helpers.
-export * as timetag from "./timetag";
-export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } from "./timetag";
+// Console-log display helpers.
+export { flattenEncoded, formatOscArg, describeReply, type FlatMessage } from "./describe";
 
-// Type primitives.
-export type { OscArg, ControlKey, ControlValue } from "./types";
+// Timetags.
+export { IMMEDIATE_TIME } from "./time";
 
-// Command constructors.
-export * from "./commands";
-
-// Typed reply accessors.
-export * from "./replies";
+// The component's own types, re-exported under the package root.
+export type {
+  ServerMessage,
+  ControlId,
+  ControlValue,
+  NumericValue,
+} from "../pkg/interfaces/scserver-commands-commands.js";
+export type {
+  ServerReply,
+  NodeInfo,
+  StatusReplyInfo,
+  FailInfo,
+  DoneInfo,
+  SyncedReply,
+  ScopeChunkReply,
+  ReplyBundle,
+} from "../pkg/interfaces/scserver-commands-replies.js";
+export type { OscArg, OscTime } from "../pkg/interfaces/scserver-commands-core.js";

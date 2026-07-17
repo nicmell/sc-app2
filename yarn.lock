@@ -2358,8 +2358,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sc-app/server-commands@workspace:packages/server-commands"
   dependencies:
-    osc-js: "npm:^2.4.1"
     typescript: "npm:~5.6.2"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -5579,15 +5579,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"osc-js@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "osc-js@npm:2.4.1"
-  dependencies:
-    ws: "npm:^8.16.0"
-  checksum: 10c0/751132a87d772bb660846b8d0920329dd8484d3b6304b6d89889a1ccd4f7fd214c7503f838c9d0967a6ae8054dd0c33a5a057001fe6ef3de76645a1ac36e201d
-  languageName: node
-  linkType: hard
-
 "oxc-minify@npm:^0.136.0":
   version: 0.136.0
   resolution: "oxc-minify@npm:0.136.0"
@@ -6255,7 +6246,6 @@ __metadata:
     globals: "npm:^17.6.0"
     happy-dom: "npm:^20.10.2"
     lit: "npm:^3.3.3"
-    osc-js: "npm:^2.4.1"
     prettier: "npm:^3.8.4"
     react: "npm:^19"
     react-dom: "npm:^19"
@@ -7188,7 +7178,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.16.0, ws@npm:^8.21.0":
+"ws@npm:^8.21.0":
   version: 8.21.0
   resolution: "ws@npm:8.21.0"
   peerDependencies:

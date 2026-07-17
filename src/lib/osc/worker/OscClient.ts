@@ -1,44 +1,46 @@
 /** Worker-resident OSC engine: all packet work, sequencing, allocation and watchdog state live here. */
 import {
-  ADDR_N_GO,
-  ADDR_SYNCED,
   AddToTail,
-  atDate,
+  atUnixMs,
+  decodeReplyPacket,
+  describeReply,
   dFree,
+  dirtPlay,
   dRecv,
-  decode,
   encode,
-  flattenPacket,
+  encodeBundle,
+  flattenEncoded,
   formatOscArg,
   gFreeAll,
-  gNewOne,
-  isBundle,
-  isMessage,
+  gNew,
   nFree,
-  NodeEvent,
-  nRunOne,
+  nRun,
   nSet,
   nSetn,
-  parseScopeChunkArgs,
-  SCOPE_CHUNK_ADDRESS,
   scopeSubscribe,
   scopeUnsubscribe,
-  sNewPairs,
+  sNew,
   sync,
-  Synced,
-  OSC,
-  type OscArg,
-  type OscPacket,
+  toScopeChunk,
+  type DecodedScopeChunk,
+  type OscTime,
+  type ServerMessage,
+  type ServerReply,
 } from "@sc-app/server-commands";
-import { OSC_REPLIES, REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import type { OscLogEntryPayload, OscSession } from "@/types/osc";
 import type { ScsynthStatus } from "@/types/stores";
 import { TRANSPORT_STATUS, createWsTransport, type WorkerTransport } from "./transport";
 
+type ReplyTag = ServerReply["tag"];
+type ReplyVal<T extends ReplyTag> = Extract<ServerReply, { tag: T }>["val"];
+
+/** A pending `once()` — matched in `handleReply` by reply tag + payload
+ *  predicate. Stored type-erased; `once()` is the typed constructor. */
 interface ReplyWaiter {
-  address: string;
-  match: (msg: OSC.Message) => boolean;
-  resolve: (msg: OSC.Message) => void;
+  tag: ReplyTag;
+  match: (val: unknown) => boolean;
+  resolve: (val: unknown) => void;
   reject: (err: Error) => void;
   timer: ReturnType<typeof setTimeout>;
 }
@@ -48,7 +50,7 @@ export interface OscClientEvents {
   log(entries: OscLogEntryPayload[]): void;
   banner(address: string, message: string, variant: "error" | "warn"): void;
   status(status: ScsynthStatus): void;
-  scopeChunk(subId: number, chunk: ReturnType<typeof parseScopeChunkArgs>): void;
+  scopeChunk(subId: number, chunk: DecodedScopeChunk): void;
 }
 const noopEvents: OscClientEvents = {
   open() {},
@@ -78,22 +80,18 @@ export class OscClient {
         this.openResolve?.();
         this.openResolve = this.openReject = null;
       } else if (event.type === "message") {
+        // One typed reply per contained message (bundles split in the
+        // component); a malformed packet is a transport-level failure.
         try {
-          this.handlePacket(decode(new Uint8Array(event.data)));
+          for (const reply of decodeReplyPacket(new Uint8Array(event.data))) {
+            this.handleReply(reply);
+          }
         } catch (err) {
           this.transportError(err);
         }
       } else if (event.type === "error") this.transportError(new Error(event.message));
       else this.closed(event.code, event.reason);
     });
-  }
-  /** Recurse decoded bundles without formatting their typed arguments. */
-  private handlePacket(packet: OscPacket): void {
-    if (isBundle(packet)) {
-      for (const element of packet.bundleElements) this.handlePacket(element as OscPacket);
-    } else if (isMessage(packet)) {
-      this.handleReply(packet);
-    }
   }
   async connect(url: string, session: OscSession): Promise<void> {
     await new Promise<void>((resolve, reject) => {
@@ -103,7 +101,7 @@ export class OscClient {
     });
     this.nextId = session.nodeIdBase;
     this.endId = session.nodeIdBase + session.nodeIdCount;
-    this.send(gNewOne(session.sessionGroupId, AddToTail, 0));
+    this.send(gNew(session.sessionGroupId, AddToTail, 0));
     this.armWatchdog();
   }
   nextNodeId(): number {
@@ -127,25 +125,34 @@ export class OscClient {
     this.transport.close();
     if (wasLive) this.events.closed();
   }
-  send(packet: OscPacket): void {
+  send(msg: ServerMessage): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    for (const msg of flattenPacket(packet)) this.append("tx", msg.address, msg.args);
-    this.transport.send(encode(packet));
+    const bytes = encode(msg);
+    this.appendTx(bytes);
+    this.transport.send(bytes);
   }
-  once(
-    address: string,
-    match: (msg: OSC.Message) => boolean = () => true,
+  /** Send several commands as one timetagged bundle — scsynth applies them
+   *  atomically at the tag. */
+  sendBundle(time: OscTime, msgs: ServerMessage[]): void {
+    if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
+    const bytes = encodeBundle(time, msgs);
+    this.appendTx(bytes);
+    this.transport.send(bytes);
+  }
+  once<T extends ReplyTag>(
+    tag: T,
+    match: (val: ReplyVal<T>) => boolean = () => true,
     timeoutMs = REPLY_TIMEOUT_MS,
-  ): Promise<OSC.Message> {
+  ): Promise<ReplyVal<T>> {
     return new Promise((resolve, reject) => {
       const waiter: ReplyWaiter = {
-        address,
-        match,
-        resolve,
+        tag,
+        match: match as (val: unknown) => boolean,
+        resolve: resolve as (val: unknown) => void,
         reject,
         timer: setTimeout(() => {
           this.waiters = this.waiters.filter((w) => w !== waiter);
-          reject(new Error(`OscClient.once: timed out waiting for ${address}`));
+          reject(new Error(`OscClient.once: timed out waiting for ${tag}`));
         }, timeoutMs),
       };
       this.waiters.push(waiter);
@@ -161,8 +168,8 @@ export class OscClient {
   }
   async createGroup(targetId: number): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === id);
-    this.send(gNewOne(id, AddToTail, targetId));
+    const reply = this.once("n-go", (n) => n.nodeId === id);
+    this.send(gNew(id, AddToTail, targetId));
     await reply;
     return id;
   }
@@ -173,11 +180,11 @@ export class OscClient {
     arrayControls: ReadonlyArray<{ index: number; values: readonly number[] }> = [],
   ): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === id);
+    const reply = this.once("n-go", (n) => n.nodeId === id);
     const pairs: Array<[string | number, number]> = Object.entries(controls);
     for (const item of arrayControls)
       item.values.forEach((value, i) => pairs.push([item.index + i, value]));
-    this.send(sNewPairs(defName, id, AddToTail, targetId, pairs));
+    this.send(sNew(defName, id, AddToTail, targetId, pairs));
     try {
       await reply;
     } catch (err) {
@@ -188,7 +195,7 @@ export class OscClient {
   }
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const id = this.nextNodeId();
-    const reply = this.once(ADDR_SYNCED, (m) => Synced.syncId(m) === id);
+    const reply = this.once("synced", (s) => s.syncId === id);
     this.send(dRecv(bytes, encode(sync(id))));
     await reply;
   }
@@ -196,10 +203,10 @@ export class OscClient {
     this.send(nSet(id, { [name]: value }));
   }
   setControln(id: number, name: string, values: readonly number[]) {
-    this.send(nSetn(id, [name, values.length, ...values]));
+    this.send(nSetn(id, name, values));
   }
   setNodeRun(id: number, flag: 0 | 1) {
-    this.send(nRunOne(id, flag));
+    this.send(nRun(id, flag));
   }
   freeSynth(id: number) {
     this.send(nFree(id));
@@ -218,50 +225,55 @@ export class OscClient {
     this.send(scopeUnsubscribe(subId));
   }
   sendDirt(event: Record<string, string | number>, timetag: number) {
-    const args: Array<string | number> = [];
-    for (const [k, v] of Object.entries(event)) args.push(k, v);
-    this.send(new OSC.Bundle([new OSC.Message("/dirt/play", ...args)], atDate(timetag)));
+    this.sendBundle(atUnixMs(timetag), [dirtPlay(event)]);
   }
-  handleReply(reply: OSC.Message): void {
-    const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));
+  handleReply(reply: ServerReply): void {
+    const val: unknown = reply.val;
+    const waiter = this.waiters.find((w) => w.tag === reply.tag && w.match(val));
     if (waiter) {
       this.waiters = this.waiters.filter((w) => w !== waiter);
       clearTimeout(waiter.timer);
-      waiter.resolve(reply);
+      waiter.resolve(val);
     }
-    if (reply.address === SCOPE_CHUNK_ADDRESS) {
+    if (reply.tag === "scope-chunk") {
       try {
-        const chunk = parseScopeChunkArgs(reply.args);
-        this.events.scopeChunk(chunk.subId, chunk);
+        this.events.scopeChunk(reply.val.subId, toScopeChunk(reply.val));
       } catch (err) {
         console.error("[osc] bad /scope/chunk:", err);
       }
       return;
     }
-    if (reply.address === OSC_REPLIES.STATUS) {
-      const a = reply.args as ReadonlyArray<OscArg>;
+    if (reply.tag === "status-reply") {
+      const s = reply.val;
       this.events.status({
-        avgCpu: Number(a[5]) || 0,
-        peakCpu: Number(a[6]) || 0,
-        sampleRate: Number(a[8]) || 0,
-        numUgens: Number(a[1]) || 0,
-        numSynths: Number(a[2]) || 0,
-        numGroups: Number(a[3]) || 0,
+        avgCpu: s.avgCpu,
+        peakCpu: s.peakCpu,
+        sampleRate: s.actualSampleRate,
+        numUgens: s.numUgens,
+        numSynths: s.numSynths,
+        numGroups: s.numGroups,
       });
       if (this.statusTimer !== null) this.armWatchdog();
       return;
     }
-    if (reply.address === OSC_REPLIES.FAIL)
-      this.events.banner(
-        formatOscArg(reply.args[0] ?? "?"),
-        formatOscArg(reply.args[1] ?? "(no message)"),
-        "error",
-      );
-    else if (reply.address === OSC_REPLIES.LATE) {
-      const seconds = Number(reply.args[0]) || 0;
+    if (reply.tag === "fail") {
+      this.events.banner(reply.val.address, reply.val.error || "(no message)", "error");
+    } else if (reply.tag === "late") {
+      // Two NTP timetags (scheduled, executed) — the lateness is their
+      // difference in seconds.
+      const l = reply.val;
+      const seconds = l.lateSecs - l.seconds + (l.lateFracs - l.fractions) / 2 ** 32;
       this.events.banner("/late", `bundle ran ${seconds.toFixed(3)}s late`, "warn");
     }
-    this.append("rx", reply.address, reply.args.map(formatOscArg));
+    const d = describeReply(reply);
+    this.append("rx", d.address, d.args);
+  }
+  /** Log outbound bytes as sent — decoded back to per-message wire truth
+   *  (a bundle logs each contained message). */
+  private appendTx(bytes: Uint8Array) {
+    for (const m of flattenEncoded(bytes)) {
+      this.append("tx", m.address, m.args.map(formatOscArg));
+    }
   }
   private append(dir: "tx" | "rx", address: string, args: string[]) {
     this.logQueue.push({ ts: Date.now(), dir, address, args });
@@ -278,8 +290,8 @@ export class OscClient {
     this.disarmWatchdog();
     this.statusTimer = setTimeout(() => {
       this.statusTimer = null;
-      const message = `no ${OSC_REPLIES.STATUS} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
-      this.events.banner(OSC_REPLIES.STATUS, message, "error");
+      const message = `no /status.reply for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
+      this.events.banner("/status.reply", message, "error");
       this.close();
     }, STATUS_REPLY_TIMEOUT_MS);
   }

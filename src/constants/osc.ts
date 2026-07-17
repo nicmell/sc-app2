@@ -1,10 +1,5 @@
-// scsynth reply addresses the app routes on. Command addresses live with their
-// constructors in @sc-app/server-commands — not duplicated here.
-export const OSC_REPLIES = {
-  STATUS: "/status.reply",
-  FAIL: "/fail",
-  LATE: "/late",
-} as const;
+// Reply routing is by @sc-app/server-commands' typed ServerReply tags —
+// no address constants needed here.
 
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;

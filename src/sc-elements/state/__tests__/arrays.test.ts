@@ -8,11 +8,16 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { OSC } from "@sc-app/server-commands";
 import { registerScElements, type ScControl, type ScVar } from "@/sc-elements";
-import { installScsynthMock, mountPlugin, parsePlugin, wrapXml } from "@/lib/utils/test/test-utils";
+import {
+  installScsynthMock,
+  mountPlugin,
+  parsePlugin,
+  wrapXml,
+  type SentMessage,
+} from "@/lib/utils/test/test-utils";
 
-let sent: OSC.Message[];
+let sent: SentMessage[];
 
 const PLUGIN = wrapXml(`<sc-synthdef name="voice">
     <sc-control name="freq" value="440"/>
@@ -175,7 +180,7 @@ describe("voice array latching", () => {
     // env base index 2 (freq, gate, env); the edited time sits at slot 5 →
     // index 7. Baked INTO the /s_new — the voice never sounds the default.
     const pairs = sNew.args.slice(4);
-    expect(pairs[pairs.indexOf(7) + 1]).toBe(0.77);
+    expect(pairs[pairs.indexOf(7) + 1]).toBe(Math.fround(0.77)); // wire float32
     expect(sent.filter((m) => m.address === "/n_setn")).toHaveLength(0);
   });
 
@@ -245,5 +250,3 @@ describe("voice array latching", () => {
     expect(sent.filter((m) => m.address === "/n_setn")).toHaveLength(0);
   });
 });
-
-

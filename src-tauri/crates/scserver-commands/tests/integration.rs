@@ -5,9 +5,11 @@
 //! update syntax (`{ field: Some(v), ..Foo::new(required) }`).
 
 use scserver_commands::commands::{
-    BAlloc, GNew, NFree, SNew, ScopeSubscribe, ScopeUnsubscribe, Status,
+    BAlloc, GNew, KnownMessage, NFree, OtherMsg, SNew, ScopeSubscribe, ScopeUnsubscribe, Status,
 };
-use scserver_commands::{ControlId, ControlValue, OscMessage, OscType, ServerMessage, ServerReply};
+use scserver_commands::{
+    ControlId, ControlValue, KnownReply, OscArg, OscMessage, OscType, ServerMessage, ServerReply,
+};
 
 #[test]
 fn status_builds_and_decodes() {
@@ -141,7 +143,7 @@ fn status_matches_osc_wire_format() {
 #[test]
 fn server_message_variant_matches_per_struct_encode() {
     let status_direct = Status::new().encode().unwrap();
-    let status_via_enum = ServerMessage::Status.encode().unwrap();
+    let status_via_enum = ServerMessage::from(KnownMessage::Status).encode().unwrap();
     assert_eq!(status_direct, status_via_enum);
 
     let b_alloc_direct = BAlloc::new(0, 8192).encode().unwrap();
@@ -153,10 +155,10 @@ fn server_message_variant_matches_per_struct_encode() {
 /// catalogue — carries a raw address + arg list.
 #[test]
 fn server_message_other_round_trips() {
-    let bytes = ServerMessage::Other {
+    let bytes = ServerMessage::Other(OtherMsg {
         address: "/my-plugin-cmd".into(),
-        args: vec![OscType::Int(1), OscType::String("hello".into())],
-    }
+        args: vec![OscArg::Int32(1), OscArg::String("hello".into())],
+    })
     .encode()
     .unwrap();
     let msg = OscMessage::decode(&bytes).unwrap();
@@ -179,7 +181,7 @@ fn status_reply_round_trip_via_wire() {
         .encode()
         .unwrap();
     match ServerReply::decode(&raw).unwrap() {
-        ServerReply::StatusReply(s) => {
+        ServerReply::Known(KnownReply::StatusReply(s)) => {
             assert_eq!(s.num_ugens, 42);
             assert_eq!(s.num_synths, 3);
             assert_eq!(s.actual_sample_rate, 44100.0);

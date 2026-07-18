@@ -15,11 +15,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use scserver_commands::commands::{GFreeAll, NFree, Notify, Status};
-use scserver_commands::ServerReply;
+use scserver_commands::{KnownReply, ServerReply};
 use tokio::sync::{broadcast, watch};
 
 use super::bridge::Bridge;
-use super::osc;
 
 /// Consecutive missed `/status.reply`s before scsynth is considered down.
 const MAX_STATUS_MISSES: u32 = 3;
@@ -91,33 +90,33 @@ fn classify_reply(bytes: &[u8]) -> Reply {
         return Reply::Other;
     };
     match reply {
-        ServerReply::Done { address, extras } if address == "/notify" => {
+        ServerReply::Known(KnownReply::Done { command, extras }) if command == "/notify" => {
             // `/done /notify <clientId> [maxLogins]` — the id is the first extra.
             extras
                 .first()
-                .and_then(osc::int_arg)
+                .and_then(|a| a.as_int())
                 .map_or(Reply::Other, Reply::DoneNotify)
         }
-        ServerReply::StatusReply(_) => Reply::Status,
-        ServerReply::Fail {
-            address,
+        ServerReply::Known(KnownReply::StatusReply(_)) => Reply::Status,
+        ServerReply::Known(KnownReply::Fail {
+            command,
             error,
             extras,
-        } => Reply::Fail {
-            command: address,
+        }) => Reply::Fail {
+            command,
             message: if error.is_empty() {
                 "(no message)".into()
             } else {
                 error
             },
-            extras: extras.iter().filter_map(osc::int_arg).collect(),
+            extras: extras.iter().filter_map(|a| a.as_int()).collect(),
         },
-        ServerReply::Late {
+        ServerReply::Known(KnownReply::Late {
             seconds,
             fractions,
             late_secs,
             late_fracs,
-        } => {
+        }) => {
             // Two NTP-style timetags (scheduled, executed), each seconds +
             // 1/2^32 fractions; the lateness is their difference.
             let frac = |f: i32| f as u32 as f64 / (u64::from(u32::MAX) + 1) as f64;
@@ -332,6 +331,7 @@ impl Scsynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::osc;
     use crate::core::osc::OscType;
 
     fn message_of(bytes: &[u8]) -> osc::OscMessage {

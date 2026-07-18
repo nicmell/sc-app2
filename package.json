@@ -51,7 +51,6 @@
     "react-router": "^8.2.0"
   },
   "devDependencies": {
-    "@bytecodealliance/jco": "^1.25.2",
     "@eslint/js": "^10.0.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^22",

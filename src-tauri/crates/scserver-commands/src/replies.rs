@@ -4,76 +4,105 @@
 //! Usage:
 //!
 //! ```no_run
-//! use scserver_commands::ServerReply;
+//! use scserver_commands::{KnownReply, ServerReply};
 //! let bytes = [/* … from UDP socket … */];
 //! match ServerReply::decode(&bytes).unwrap() {
-//!     ServerReply::Done { address, .. } => println!("done: {address}"),
-//!     ServerReply::Fail { address, error, .. } => eprintln!("fail {address}: {error}"),
-//!     ServerReply::NGo(n) => println!("node {} started in group {}", n.node_id, n.parent_id),
+//!     ServerReply::Known(KnownReply::Done { command, .. }) => println!("done: {command}"),
+//!     ServerReply::Known(KnownReply::NGo(n)) => println!("node {} started", n.node_id),
 //!     _ => {}
 //! }
 //! ```
 
 use rosc::OscType;
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
+use tsify::Tsify;
 
+use crate::args::{osc_args, OscArg};
+use crate::commands::OtherMsg;
 use crate::{CommandError, OscMessage};
 
-/// Typed representation of every server-to-client reply.
-#[derive(Debug, Clone, PartialEq)]
-pub enum ServerReply {
+/// Every catalogued server-to-client reply, one variant per address. Like
+/// [`crate::commands::KnownMessage`], the serde representation is internally
+/// tagged BY THE OSC ADDRESS — a decoded reply crosses the wasm boundary as
+/// a flat `{ "address": "/n_go", …fields }` object, so the address itself is
+/// the TypeScript discriminant.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(tag = "address", rename_all_fields = "camelCase")]
+pub enum KnownReply {
+    /// Acknowledges an async command. (`command` is the first wire arg —
+    /// the address of the ACKNOWLEDGED command; the reply's own address,
+    /// `/done`, is the serde tag, hence the field rename.)
+    #[serde(rename = "/done")]
     Done {
-        /// Address of the command being acknowledged.
-        address: String,
-        /// Remaining args (e.g. `/b_alloc`'s bufnum echo) as raw OSC.
-        extras: Vec<OscType>,
+        /// Address of the command being acknowledged (e.g. `/notify`).
+        command: String,
+        /// Any additional args (e.g. the clientID a `/notify` ack echoes).
+        extras: Vec<OscArg>,
     },
+    #[serde(rename = "/fail")]
     Fail {
-        address: String,
+        /// Address of the command that failed.
+        command: String,
         error: String,
-        extras: Vec<OscType>,
+        extras: Vec<OscArg>,
     },
+    #[serde(rename = "/late")]
     Late {
         seconds: i32,
         fractions: i32,
         late_secs: i32,
         late_fracs: i32,
     },
+    #[serde(rename = "/n_go")]
     NGo(NodeInfo),
+    #[serde(rename = "/n_end")]
     NEnd(NodeInfo),
+    #[serde(rename = "/n_on")]
     NOn(NodeInfo),
+    #[serde(rename = "/n_off")]
     NOff(NodeInfo),
+    #[serde(rename = "/n_move")]
     NMove(NodeInfo),
+    #[serde(rename = "/n_info")]
     NInfo(NodeInfo),
+    #[serde(rename = "/status.reply")]
     StatusReply(StatusReply),
+    #[serde(rename = "/tr")]
     Tr {
         node_id: i32,
         trigger_id: i32,
         value: f32,
     },
-    /// Samples read from a buffer in response to `/b_getn`. The payload
-    /// is extracted as a typed `Vec<f32>` so the component boundary can
-    /// lift it as a `Float32Array` without per-element boxing.
+    /// Samples read from a buffer in response to `/b_getn`.
+    #[serde(rename = "/b_setn")]
     BSetn(BSetnReply),
     /// Response to a `/sync` command — carries the sync id supplied by
     /// the client so callers can correlate request ↔ reply.
-    Synced {
-        sync_id: i32,
-    },
+    #[serde(rename = "/synced")]
+    Synced { sync_id: i32 },
     /// sc-app bridge extension: one streamed scope chunk (`/scope/chunk`,
     /// emitted by the bridge in response to a `ScopeSubscribe`).
+    #[serde(rename = "/scope/chunk")]
     ScopeChunk(ScopeChunkReply),
-    /// Any OSC message whose address doesn't match a known reply shape.
-    /// Mirrors the `other-reply` WIT record: raw address + args.
-    Other {
-        address: String,
-        args: Vec<OscType>,
-    },
+}
+
+/// A reply in transit: catalogued, or the raw fallback for any address the
+/// parser doesn't know (shares [`OtherMsg`] with the command side). Plain
+/// enum — the wasm boundary serializes each arm itself, so no serde here.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ServerReply {
+    Known(KnownReply),
+    Other(OtherMsg),
 }
 
 /// Shared arg layout for `/n_go`, `/n_end`, `/n_on`, `/n_off`, `/n_move`,
 /// `/n_info`. The last two fields are only present when the node is a
 /// group.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NodeInfo {
     pub node_id: i32,
     pub parent_id: i32,
@@ -81,11 +110,17 @@ pub struct NodeInfo {
     pub next_node: i32,
     /// 1 if the node is a group, 0 if a synth.
     pub is_group: i32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(optional))]
     pub head_node: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(optional))]
     pub tail_node: Option<i32>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct StatusReply {
     pub unused: i32,
     pub num_ugens: i32,
@@ -101,9 +136,9 @@ pub struct StatusReply {
 /// Payload of a `/b_setn` reply — samples read from a buffer.
 ///
 /// The SC wire format is: `/b_setn bufnum startIndex N sample0 sample1 … sampleN-1`.
-/// Exposing `samples` as a typed `Vec<f32>` means the WIT surface lifts
-/// as `Float32Array` (one memcpy) rather than a boxed per-element list.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BSetnReply {
     pub bufnum: i32,
     pub start: i32,
@@ -117,11 +152,14 @@ pub struct BSetnReply {
 /// blob is `frames × channels` IEEE-754 float32 in **big-endian**, planar
 /// (one frame run per channel — the SHM slot's own layout). The crate owns
 /// the byte swap in both directions: `samples` is the decoded host-endian
-/// `Vec<f32>` (lifts as `Float32Array` at the component boundary), and
+/// `Vec<f32>` (crossing the wasm boundary as a `Float32Array` — the binding
+/// layer builds that arm manually, see `wasm.rs`), and
 /// [`ScopeChunkReply::encode`] writes it back big-endian. Unlike the
 /// scsynth replies above, the bridge is the EMITTER of this one — hence
 /// the encode half.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct ScopeChunkReply {
     /// The subscription id the chunk belongs to.
     pub sub_id: i32,
@@ -131,6 +169,7 @@ pub struct ScopeChunkReply {
     pub is_gap: bool,
     pub channels: i32,
     /// Planar samples, `frames × channels` floats.
+    #[cfg_attr(feature = "wasm", tsify(type = "Float32Array"))]
     pub samples: Vec<f32>,
 }
 
@@ -210,29 +249,30 @@ impl ServerReply {
     /// Dispatch an already-decoded message into the typed variant whose
     /// OSC address it matches. Unknown addresses become `Other(..)`.
     pub fn from_message(msg: OscMessage) -> Result<Self, CommandError> {
+        let known = |k: KnownReply| Ok(Self::Known(k));
         match msg.address.as_str() {
-            "/done" => Ok(Self::Done {
-                address: take_string(&msg, 0, "/done")?,
-                extras: msg.args[1..].to_vec(),
+            "/done" => known(KnownReply::Done {
+                command: take_string(&msg, 0, "/done")?,
+                extras: osc_args(&msg.args[1..]),
             }),
-            "/fail" => Ok(Self::Fail {
-                address: take_string(&msg, 0, "/fail")?,
+            "/fail" => known(KnownReply::Fail {
+                command: take_string(&msg, 0, "/fail")?,
                 error: take_string(&msg, 1, "/fail").unwrap_or_default(),
-                extras: msg.args.get(2..).map(|s| s.to_vec()).unwrap_or_default(),
+                extras: msg.args.get(2..).map(osc_args).unwrap_or_default(),
             }),
-            "/late" => Ok(Self::Late {
+            "/late" => known(KnownReply::Late {
                 seconds: take_int(&msg, 0, "/late")?,
                 fractions: take_int(&msg, 1, "/late")?,
                 late_secs: take_int(&msg, 2, "/late")?,
                 late_fracs: take_int(&msg, 3, "/late")?,
             }),
-            "/n_go" => Ok(Self::NGo(parse_node_info(&msg)?)),
-            "/n_end" => Ok(Self::NEnd(parse_node_info(&msg)?)),
-            "/n_on" => Ok(Self::NOn(parse_node_info(&msg)?)),
-            "/n_off" => Ok(Self::NOff(parse_node_info(&msg)?)),
-            "/n_move" => Ok(Self::NMove(parse_node_info(&msg)?)),
-            "/n_info" => Ok(Self::NInfo(parse_node_info(&msg)?)),
-            "/status.reply" => Ok(Self::StatusReply(StatusReply {
+            "/n_go" => known(KnownReply::NGo(parse_node_info(&msg)?)),
+            "/n_end" => known(KnownReply::NEnd(parse_node_info(&msg)?)),
+            "/n_on" => known(KnownReply::NOn(parse_node_info(&msg)?)),
+            "/n_off" => known(KnownReply::NOff(parse_node_info(&msg)?)),
+            "/n_move" => known(KnownReply::NMove(parse_node_info(&msg)?)),
+            "/n_info" => known(KnownReply::NInfo(parse_node_info(&msg)?)),
+            "/status.reply" => known(KnownReply::StatusReply(StatusReply {
                 unused: take_int(&msg, 0, "/status.reply")?,
                 num_ugens: take_int(&msg, 1, "/status.reply")?,
                 num_synths: take_int(&msg, 2, "/status.reply")?,
@@ -243,15 +283,13 @@ impl ServerReply {
                 nominal_sample_rate: take_double(&msg, 7, "/status.reply")?,
                 actual_sample_rate: take_double(&msg, 8, "/status.reply")?,
             })),
-            "/tr" => Ok(Self::Tr {
+            "/tr" => known(KnownReply::Tr {
                 node_id: take_int(&msg, 0, "/tr")?,
                 trigger_id: take_int(&msg, 1, "/tr")?,
                 value: take_float(&msg, 2, "/tr")?,
             }),
             "/b_setn" => {
                 // /b_setn bufnum startIndex N sample0 sample1 … sampleN-1
-                // When emitted as a reply by the server (in response to
-                // /b_getn), the count + samples trail the header.
                 let bufnum = take_int(&msg, 0, "/b_setn")?;
                 let start = take_int(&msg, 1, "/b_setn")?;
                 let count = take_int(&msg, 2, "/b_setn")? as usize;
@@ -259,13 +297,13 @@ impl ServerReply {
                 for i in 0..count {
                     samples.push(take_float(&msg, 3 + i, "/b_setn")?);
                 }
-                Ok(Self::BSetn(BSetnReply {
+                known(KnownReply::BSetn(BSetnReply {
                     bufnum,
                     start,
                     samples,
                 }))
             }
-            "/synced" => Ok(Self::Synced {
+            "/synced" => known(KnownReply::Synced {
                 sync_id: take_int(&msg, 0, "/synced")?,
             }),
             SCOPE_CHUNK_ADDRESS => {
@@ -282,7 +320,7 @@ impl ServerReply {
                     .chunks_exact(4)
                     .map(|c| f32::from_be_bytes(c.try_into().expect("chunks_exact(4)")))
                     .collect();
-                Ok(Self::ScopeChunk(ScopeChunkReply {
+                known(KnownReply::ScopeChunk(ScopeChunkReply {
                     sub_id: take_int(&msg, 0, SCOPE_CHUNK_ADDRESS)?,
                     tick_index: take_int(&msg, 1, SCOPE_CHUNK_ADDRESS)?,
                     is_gap: take_int(&msg, 2, SCOPE_CHUNK_ADDRESS)? != 0,
@@ -290,10 +328,10 @@ impl ServerReply {
                     samples,
                 }))
             }
-            _ => Ok(Self::Other {
+            _ => Ok(Self::Other(OtherMsg {
                 address: msg.address,
-                args: msg.args,
-            }),
+                args: osc_args(&msg.args),
+            })),
         }
     }
 }
@@ -399,13 +437,6 @@ fn as_int(v: &OscType) -> Option<i32> {
     }
 }
 
-fn as_blob(v: &OscType) -> Option<&[u8]> {
-    match v {
-        OscType::Blob(b) => Some(b.as_slice()),
-        _ => None,
-    }
-}
-
 fn as_float(v: &OscType) -> Option<f32> {
     match v {
         OscType::Float(f) => Some(*f),
@@ -427,6 +458,13 @@ fn as_string(v: &OscType) -> Option<&str> {
     }
 }
 
+fn as_blob(v: &OscType) -> Option<&[u8]> {
+    match v {
+        OscType::Blob(b) => Some(b.as_slice()),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -435,8 +473,8 @@ mod tests {
     fn done_reply_roundtrip() {
         let m = OscMessage::new("/done").arg("/notify").arg(0i32);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::Done { address, extras } => {
-                assert_eq!(address, "/notify");
+            ServerReply::Known(KnownReply::Done { command, extras }) => {
+                assert_eq!(command, "/notify");
                 assert_eq!(extras.len(), 1);
             }
             other => panic!("expected Done, got {:?}", other),
@@ -456,7 +494,7 @@ mod tests {
             .arg(44100.0f64)
             .arg(44100.0f64);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::StatusReply(s) => {
+            ServerReply::Known(KnownReply::StatusReply(s)) => {
                 assert_eq!(s.num_ugens, 10);
                 assert_eq!(s.num_synths, 2);
                 assert_eq!(s.nominal_sample_rate, 44100.0);
@@ -474,7 +512,7 @@ mod tests {
             .arg(-1i32) // next
             .arg(0i32); // not a group
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::NGo(info) => {
+            ServerReply::Known(KnownReply::NGo(info)) => {
                 assert_eq!(info.node_id, 1001);
                 assert_eq!(info.parent_id, 0);
                 assert_eq!(info.is_group, 0);
@@ -503,7 +541,7 @@ mod tests {
             .arg(0.3f32)
             .arg(0.4f32);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::BSetn(b) => {
+            ServerReply::Known(KnownReply::BSetn(b)) => {
                 assert_eq!(b.bufnum, 7);
                 assert_eq!(b.start, 16);
                 assert_eq!(b.samples, vec![0.1, 0.2, 0.3, 0.4]);
@@ -516,9 +554,34 @@ mod tests {
     fn synced_reply_carries_id() {
         let m = OscMessage::new("/synced").arg(42i32);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::Synced { sync_id } => assert_eq!(sync_id, 42),
+            ServerReply::Known(KnownReply::Synced { sync_id }) => assert_eq!(sync_id, 42),
             other => panic!("expected Synced, got {:?}", other),
         }
+    }
+
+    /// The serde shape IS the wasm-boundary contract: the OSC address is the
+    /// discriminant, payload fields flatten next to it in camelCase.
+    #[test]
+    fn known_reply_serializes_with_the_address_as_the_tag() {
+        let r = KnownReply::NGo(NodeInfo {
+            node_id: 1001,
+            parent_id: 1,
+            prev_node: -1,
+            next_node: -1,
+            is_group: 0,
+            head_node: None,
+            tail_node: None,
+        });
+        let j = serde_json::to_value(&r).unwrap();
+        assert_eq!(j["address"], "/n_go");
+        assert_eq!(j["nodeId"], 1001);
+        assert!(j.get("headNode").is_none()); // absent options are omitted
+        assert_eq!(serde_json::from_value::<KnownReply>(j).unwrap(), r);
+
+        let r = KnownReply::Synced { sync_id: 7 };
+        let j = serde_json::to_value(&r).unwrap();
+        assert_eq!(j["address"], "/synced");
+        assert_eq!(j["syncId"], 7);
     }
 
     /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args
@@ -543,7 +606,7 @@ mod tests {
         assert_eq!(&blob[0..4], &[0x3F, 0x80, 0x00, 0x00]); // 1.0 BE
         assert_eq!(&blob[4..8], &[0xBF, 0x80, 0x00, 0x00]); // -1.0 BE
         match ServerReply::decode(&chunk.clone().encode().unwrap()).unwrap() {
-            ServerReply::ScopeChunk(back) => assert_eq!(back, chunk),
+            ServerReply::Known(KnownReply::ScopeChunk(back)) => assert_eq!(back, chunk),
             other => panic!("expected ScopeChunk, got {:?}", other),
         }
     }
@@ -588,7 +651,7 @@ mod tests {
             .arg(1i32)
             .arg(Vec::<u8>::new());
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::ScopeChunk(c) => assert!(c.is_gap),
+            ServerReply::Known(KnownReply::ScopeChunk(c)) => assert!(c.is_gap),
             other => panic!("expected ScopeChunk, got {:?}", other),
         }
     }

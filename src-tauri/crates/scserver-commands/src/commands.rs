@@ -6,14 +6,20 @@
 
 #![allow(non_snake_case, unused_mut)]
 
+use crate::args::OscArg;
 use crate::OscMessage;
 use rosc::OscType;
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
+use tsify::Tsify;
 
 // ── Polymorphic arg types ───────────────────────────────────────────────
 
 /// Identifier used to address a synth control: either its index in the
 /// control list, or its declared name.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub enum ControlId {
     Index(i32),
     Name(String),
@@ -49,7 +55,9 @@ impl From<ControlId> for OscType {
 /// A numeric value that the server accepts as either `int` or `float`.
 /// Used by `/c_set`, `/c_setn`, `/c_fill`, `/n_set`, `/n_setn`, `/n_fill`,
 /// `/b_set`, `/b_setn`, `/b_fill`, etc.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub enum NumericValue {
     Float(f32),
     Int(i32),
@@ -79,7 +87,9 @@ impl From<NumericValue> for OscType {
 /// The `/s_new` control-value alternative: a float, an int, or a bus
 /// reference string (e.g. `"c10"` for control bus 10, `"a0"` for audio
 /// bus 0).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub enum ControlValue {
     Float(f32),
     Int(i32),
@@ -126,7 +136,9 @@ impl From<ControlValue> for OscType {
 
 /// Allocate buffer space.
 /// OSC address: `/b_alloc`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BAlloc {
     /// buffer number
     pub bufnum: i32,
@@ -135,6 +147,8 @@ pub struct BAlloc {
     /// number of channels (optional. default = 1 channel)
     pub num_channels: Option<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
     /// the required sample rate (optional. default (or 0) = the server's sample
     /// rate)
@@ -180,7 +194,9 @@ impl BAlloc {
 
 /// Allocate buffer space and read a sound file.
 /// OSC address: `/b_allocRead`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BAllocRead {
     /// buffer number
     pub bufnum: i32,
@@ -191,6 +207,8 @@ pub struct BAllocRead {
     /// number of frames to read (optional. default = 0, see below)
     pub number_of_frames: Option<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -233,7 +251,9 @@ impl BAllocRead {
 
 /// Allocate buffer space and read channels from a sound file.
 /// OSC address: `/b_allocReadChannel`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BAllocReadChannel {
     /// buffer number
     pub bufnum: i32,
@@ -246,6 +266,8 @@ pub struct BAllocReadChannel {
     /// source file channel indices (one or more) to read
     pub channels: Vec<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -294,11 +316,15 @@ impl BAllocReadChannel {
 
 /// Close soundfile.
 /// OSC address: `/b_close`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BClose {
     /// buffer number
     pub bufnum: i32,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -331,7 +357,9 @@ impl BClose {
 
 /// Fill ranges of sample value(s).
 /// OSC address: `/b_fill`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BFill {
     /// buffer number
     pub bufnum: i32,
@@ -367,11 +395,15 @@ impl BFill {
 
 /// Free buffer data.
 /// OSC address: `/b_free`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BFree {
     /// buffer number
     pub bufnum: i32,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -404,7 +436,9 @@ impl BFree {
 
 /// Call a command to fill a buffer.
 /// OSC address: `/b_gen`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BGen {
     /// buffer number
     pub bufnum: i32,
@@ -412,11 +446,11 @@ pub struct BGen {
     pub cmd: String,
     /// command arguments — variadic trailing OSC args (types depend on the
     /// specific `/b_gen` command being invoked, e.g. `sine1`, `cheby`).
-    pub command_arguments: Vec<OscType>,
+    pub command_arguments: Vec<OscArg>,
 }
 
 impl BGen {
-    pub fn new(bufnum: i32, cmd: String, command_arguments: Vec<OscType>) -> Self {
+    pub fn new(bufnum: i32, cmd: String, command_arguments: Vec<OscArg>) -> Self {
         Self {
             bufnum,
             cmd,
@@ -429,7 +463,7 @@ impl BGen {
         let mut args: Vec<OscType> = Vec::new();
         args.push(OscType::Int(self.bufnum));
         args.push(OscType::String(self.cmd));
-        args.extend(self.command_arguments);
+        args.extend(self.command_arguments.into_iter().map(OscType::from));
         OscMessage::with_args(r"/b_gen", args)
     }
 
@@ -441,7 +475,9 @@ impl BGen {
 
 /// Get sample value(s).
 /// OSC address: `/b_get`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BGet {
     /// buffer number
     pub bufnum: i32,
@@ -476,7 +512,9 @@ impl BGet {
 
 /// Get ranges of sample value(s).
 /// OSC address: `/b_getn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BGetn {
     /// buffer number
     pub bufnum: i32,
@@ -511,7 +549,9 @@ impl BGetn {
 
 /// Get buffer info.
 /// OSC address: `/b_query`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BQuery {
     /// buffer numbers to query
     pub bufnums: Vec<i32>,
@@ -539,7 +579,9 @@ impl BQuery {
 
 /// Read sound file data into an existing buffer.
 /// OSC address: `/b_read`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BRead {
     /// buffer number
     pub bufnum: i32,
@@ -554,6 +596,8 @@ pub struct BRead {
     /// leave file open (optional. default = 0)
     pub leave_file_open: Option<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -604,7 +648,9 @@ impl BRead {
 
 /// Read sound file channel data into an existing buffer.
 /// OSC address: `/b_readChannel`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BReadChannel {
     /// buffer number
     pub bufnum: i32,
@@ -621,6 +667,8 @@ pub struct BReadChannel {
     /// source file channel indices (one or more) to read
     pub channels: Vec<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -674,7 +722,9 @@ impl BReadChannel {
 
 /// Set sample value(s).
 /// OSC address: `/b_set`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BSet {
     /// buffer number
     pub bufnum: i32,
@@ -709,7 +759,9 @@ impl BSet {
 
 /// Set ranges of sample value(s).
 /// OSC address: `/b_setn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BSetn {
     /// buffer number
     pub bufnum: i32,
@@ -746,7 +798,9 @@ impl BSetn {
 
 /// Set the sampling rate of the buffer.
 /// OSC address: `/b_setSampleRate`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BSetSampleRate {
     /// buffer number
     pub bufnum: i32,
@@ -782,7 +836,9 @@ impl BSetSampleRate {
 
 /// Write sound file data.
 /// OSC address: `/b_write`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BWrite {
     /// buffer number
     pub bufnum: i32,
@@ -799,6 +855,8 @@ pub struct BWrite {
     /// leave file open (optional. default = 0)
     pub leave_file_open: Option<i32>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -849,11 +907,15 @@ impl BWrite {
 
 /// Zero sample data.
 /// OSC address: `/b_zero`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct BZero {
     /// buffer number
     pub bufnum: i32,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -888,7 +950,9 @@ impl BZero {
 
 /// Fill ranges of bus value(s).
 /// OSC address: `/c_fill`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct CFill {
     /// Repeated tuples (starting_bus_index: starting bus index; number_of_buses: number of buses to fill (M); value: value).
     pub tail: Vec<(i32, i32, NumericValue)>,
@@ -921,7 +985,9 @@ impl CFill {
 
 /// Get bus value(s).
 /// OSC address: `/c_get`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct CGet {
     /// bus indices (one or more)
     pub bus_indices: Vec<i32>,
@@ -949,7 +1015,9 @@ impl CGet {
 
 /// Get ranges of bus value(s).
 /// OSC address: `/c_getn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct CGetn {
     /// Repeated tuples (starting_bus_index: starting bus index; number_of_sequential: number of sequential buses to get (M)).
     pub tail: Vec<(i32, i32)>,
@@ -981,7 +1049,9 @@ impl CGetn {
 
 /// Set bus value(s).
 /// OSC address: `/c_set`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct CSet {
     /// Repeated tuples (a_bus_index: a bus index; value: a control value).
     pub tail: Vec<(i32, NumericValue)>,
@@ -1013,7 +1083,9 @@ impl CSet {
 
 /// Set ranges of bus value(s).
 /// OSC address: `/c_setn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct CSetn {
     /// Repeated ranges — each `(start_bus, values[])` writes `values.len()`
     /// consecutive buses starting at `start_bus`. The count is encoded from
@@ -1049,7 +1121,9 @@ impl CSetn {
 
 /// Free all synths in this group and all its sub-groups.
 /// OSC address: `/g_deepFree`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GDeepFree {
     /// group IDs (one or more)
     pub group_ids: Vec<i32>,
@@ -1077,7 +1151,9 @@ impl GDeepFree {
 
 /// Post a representation of this group's node subtree.
 /// OSC address: `/g_dumpTree`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GDumpTree {
     /// Repeated tuples (group_id: group ID; flag_if_not: flag; if not 0 the current control (arg) values for synths will be posted).
     pub tail: Vec<(i32, i32)>,
@@ -1109,7 +1185,9 @@ impl GDumpTree {
 
 /// Delete all nodes in a group.
 /// OSC address: `/g_freeAll`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GFreeAll {
     /// group IDs (one or more)
     pub group_ids: Vec<i32>,
@@ -1137,7 +1215,9 @@ impl GFreeAll {
 
 /// Add node to head of group.
 /// OSC address: `/g_head`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GHead {
     /// Repeated tuples (group_id: group ID; node_id: node ID).
     pub tail: Vec<(i32, i32)>,
@@ -1169,7 +1249,9 @@ impl GHead {
 
 /// Create a new group.
 /// OSC address: `/g_new`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GNew {
     /// Repeated tuples (new_group_id: new group ID; add_action: add action (0,1,2, 3 or 4 see below); target_id: add target ID).
     pub tail: Vec<(i32, i32, i32)>,
@@ -1202,7 +1284,9 @@ impl GNew {
 
 /// Get a representation of this group's node subtree.
 /// OSC address: `/g_queryTree`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GQueryTree {
     /// Repeated tuples (group_id: group ID; flag_if_not: flag: if not 0 the current control (arg) values for synths will be included).
     pub tail: Vec<(i32, i32)>,
@@ -1234,7 +1318,9 @@ impl GQueryTree {
 
 /// Add node to tail of group.
 /// OSC address: `/g_tail`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct GTail {
     /// Repeated tuples (group_id: group ID; node_id: node ID).
     pub tail: Vec<(i32, i32)>,
@@ -1266,7 +1352,9 @@ impl GTail {
 
 /// Create a new parallel group.
 /// OSC address: `/p_new`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct PNew {
     /// Repeated tuples (new_group_id: new group ID; add_action: add action (0,1,2, 3 or 4 see below); target_id: add target ID).
     pub tail: Vec<(i32, i32, i32)>,
@@ -1301,7 +1389,9 @@ impl PNew {
 
 /// Clear all scheduled bundles. Removes all bundles from the scheduling queue.
 /// OSC address: `/clearSched`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct ClearSched {}
 
 impl ClearSched {
@@ -1326,17 +1416,19 @@ impl ClearSched {
 
 /// Plug-in defined command.
 /// OSC address: `/cmd`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Cmd {
     /// command name
     pub cmd: String,
     /// variadic trailing OSC args — types depend on the specific
     /// plug-in-defined command being invoked.
-    pub any_arguments: Vec<OscType>,
+    pub any_arguments: Vec<OscArg>,
 }
 
 impl Cmd {
-    pub fn new(cmd: String, any_arguments: Vec<OscType>) -> Self {
+    pub fn new(cmd: String, any_arguments: Vec<OscArg>) -> Self {
         Self { cmd, any_arguments }
     }
 
@@ -1344,7 +1436,7 @@ impl Cmd {
     pub fn to_message(self) -> OscMessage {
         let mut args: Vec<OscType> = Vec::new();
         args.push(OscType::String(self.cmd));
-        args.extend(self.any_arguments);
+        args.extend(self.any_arguments.into_iter().map(OscType::from));
         OscMessage::with_args(r"/cmd", args)
     }
 
@@ -1356,7 +1448,9 @@ impl Cmd {
 
 /// Display incoming OSC messages.
 /// OSC address: `/dumpOSC`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct DumpOSC {
     /// code
     pub code: i32,
@@ -1385,7 +1479,9 @@ impl DumpOSC {
 
 /// Enable/disable error message posting.
 /// OSC address: `/error`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Error {
     /// mode
     pub mode: i32,
@@ -1414,7 +1510,9 @@ impl Error {
 
 /// Register to receive notifications from server
 /// OSC address: `/notify`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Notify {
     /// 1 to receive notifications, 0 to stop receiving them.
     pub enable: i32,
@@ -1451,7 +1549,9 @@ impl Notify {
 
 /// Quit program. Exits the synthesis server.
 /// OSC address: `/quit`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Quit {}
 
 impl Quit {
@@ -1476,7 +1576,9 @@ impl Quit {
 
 /// Queries the amount of currently free real-time memory (in bytes).
 /// OSC address: `/rtMemoryStatus`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct RtMemoryStatus {}
 
 impl RtMemoryStatus {
@@ -1501,7 +1603,9 @@ impl RtMemoryStatus {
 
 /// Query the status. Replies to sender with the following message:
 /// OSC address: `/status`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Status {}
 
 impl Status {
@@ -1526,7 +1630,9 @@ impl Status {
 
 /// Notify when async commands have completed.
 /// OSC address: `/sync`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Sync {
     /// a unique number identifying this command.
     pub a_unique_number: i32,
@@ -1556,7 +1662,9 @@ impl Sync {
 /// Query the SuperCollider version. Replies to sender with the following
 /// message:
 /// OSC address: `/version`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct Version {}
 
 impl Version {
@@ -1583,7 +1691,9 @@ impl Version {
 
 /// Place a node after another.
 /// OSC address: `/n_after`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NAfter {
     /// Repeated tuples (the_id_of: the ID of the node to place (A); the_id_of: the ID of the node after which the above is placed (B)).
     pub tail: Vec<(i32, i32)>,
@@ -1615,7 +1725,9 @@ impl NAfter {
 
 /// Place a node before another.
 /// OSC address: `/n_before`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NBefore {
     /// Repeated tuples (the_id_of: the ID of the node to place (A); the_id_of: the ID of the node before which the above is placed (B)).
     pub tail: Vec<(i32, i32)>,
@@ -1647,7 +1759,9 @@ impl NBefore {
 
 /// Fill ranges of a node's control value(s).
 /// OSC address: `/n_fill`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NFill {
     /// node ID
     pub node_id: i32,
@@ -1683,7 +1797,9 @@ impl NFill {
 
 /// Delete a node.
 /// OSC address: `/n_free`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NFree {
     /// node IDs (one or more)
     pub node_ids: Vec<i32>,
@@ -1711,7 +1827,9 @@ impl NFree {
 
 /// Map a node's controls to read from a bus.
 /// OSC address: `/n_map`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NMap {
     /// node ID
     pub node_id: i32,
@@ -1746,7 +1864,9 @@ impl NMap {
 
 /// Map a node's controls to read from an audio bus.
 /// OSC address: `/n_mapa`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NMapa {
     /// node ID
     pub node_id: i32,
@@ -1781,7 +1901,9 @@ impl NMapa {
 
 /// Map a node's controls to read from audio buses.
 /// OSC address: `/n_mapan`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NMapan {
     /// node ID
     pub node_id: i32,
@@ -1817,7 +1939,9 @@ impl NMapan {
 
 /// Map a node's controls to read from buses.
 /// OSC address: `/n_mapn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NMapn {
     /// node ID
     pub node_id: i32,
@@ -1853,7 +1977,9 @@ impl NMapn {
 
 /// Move and order a list of nodes.
 /// OSC address: `/n_order`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NOrder {
     /// add action (0,1,2 or 3 see below)
     pub add_action: i32,
@@ -1891,7 +2017,9 @@ impl NOrder {
 
 /// Get info about a node.
 /// OSC address: `/n_query`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NQuery {
     /// node IDs (one or more) to query
     pub node_ids: Vec<i32>,
@@ -1919,7 +2047,9 @@ impl NQuery {
 
 /// Turn node on or off.
 /// OSC address: `/n_run`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NRun {
     /// Repeated tuples (node_id: node ID; run_flag: run flag).
     pub tail: Vec<(i32, i32)>,
@@ -1951,7 +2081,9 @@ impl NRun {
 
 /// Set a node's control value(s).
 /// OSC address: `/n_set`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NSet {
     /// node ID
     pub node_id: i32,
@@ -1986,7 +2118,9 @@ impl NSet {
 
 /// Set ranges of a node's control value(s).
 /// OSC address: `/n_setn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NSetn {
     /// node ID
     pub node_id: i32,
@@ -2023,7 +2157,9 @@ impl NSetn {
 
 /// Trace a node.
 /// OSC address: `/n_trace`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NTrace {
     /// node IDs (one or more) to trace
     pub node_ids: Vec<i32>,
@@ -2056,7 +2192,9 @@ impl NTrace {
 /// the ending time of the file. This command will end non real time mode and
 /// close the sound file. Replies to sender with /done when complete.
 /// OSC address: `/nrt_end`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct NrtEnd {}
 
 impl NrtEnd {
@@ -2083,7 +2221,9 @@ impl NrtEnd {
 
 /// Get control value(s).
 /// OSC address: `/s_get`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct SGet {
     /// synth ID
     pub node_id: i32,
@@ -2114,7 +2254,9 @@ impl SGet {
 
 /// Get ranges of control value(s).
 /// OSC address: `/s_getn`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct SGetn {
     /// synth ID
     pub node_id: i32,
@@ -2149,7 +2291,9 @@ impl SGetn {
 
 /// Create a new synth.
 /// OSC address: `/s_new`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct SNew {
     /// synth definition name
     pub def_name: String,
@@ -2205,7 +2349,9 @@ impl SNew {
 
 /// Auto-reassign synth's ID to a reserved value.
 /// OSC address: `/s_noid`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct SNoid {
     /// synth IDs (one or more) to reassign
     pub synth_ids: Vec<i32>,
@@ -2235,7 +2381,9 @@ impl SNoid {
 
 /// Delete synth definition.
 /// OSC address: `/d_free`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct DFree {
     /// synthdef names (one or more) to delete
     pub synth_def_names: Vec<String>,
@@ -2263,11 +2411,15 @@ impl DFree {
 
 /// Load synth definition.
 /// OSC address: `/d_load`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct DLoad {
     /// pathname of file. Can be a pattern like "synthdefs/perc-*"
     pub pathname_of_file: String,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -2300,11 +2452,15 @@ impl DLoad {
 
 /// Load a directory of synth definitions.
 /// OSC address: `/d_loadDir`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct DLoadDir {
     /// pathname of directory.
     pub pathname_of_directory: String,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -2337,11 +2493,17 @@ impl DLoadDir {
 
 /// Receive a synth definition file.
 /// OSC address: `/d_recv`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct DRecv {
     /// buffer of data.
+    #[serde(with = "serde_bytes")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array"))]
     pub buffer_of_data: Vec<u8>,
     /// an OSC message to execute upon completion. (optional)
+    #[serde(with = "serde_bytes", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array", optional))]
     pub completion_msg: Option<Vec<u8>>,
 }
 
@@ -2376,7 +2538,9 @@ impl DRecv {
 
 /// Send a command to a unit generator.
 /// OSC address: `/u_cmd`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct UCmd {
     /// node ID
     pub node_id: i32,
@@ -2386,7 +2550,7 @@ pub struct UCmd {
     pub cmd: String,
     /// variadic trailing OSC args — types depend on the UGen command
     /// being invoked.
-    pub any_arguments: Vec<OscType>,
+    pub any_arguments: Vec<OscArg>,
 }
 
 impl UCmd {
@@ -2394,7 +2558,7 @@ impl UCmd {
         node_id: i32,
         unit_generator_index: i32,
         cmd: String,
-        any_arguments: Vec<OscType>,
+        any_arguments: Vec<OscArg>,
     ) -> Self {
         Self {
             node_id,
@@ -2410,7 +2574,7 @@ impl UCmd {
         args.push(OscType::Int(self.node_id));
         args.push(OscType::Int(self.unit_generator_index));
         args.push(OscType::String(self.cmd));
-        args.extend(self.any_arguments);
+        args.extend(self.any_arguments.into_iter().map(OscType::from));
         OscMessage::with_args(r"/u_cmd", args)
     }
 
@@ -2436,7 +2600,9 @@ pub const SCOPE_UNSUBSCRIBE_ADDRESS: &str = "/scope/unsubscribe";
 
 /// sc-app bridge extension: register a scope-slot stream with the bridge.
 /// OSC address: `/scope/subscribe`
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct ScopeSubscribe {
     /// Client-minted subscription id, echoed on every chunk.
     pub sub_id: i32,
@@ -2495,7 +2661,9 @@ impl ScopeSubscribe {
 
 /// sc-app bridge extension: drop a scope-slot stream.
 /// OSC address: `/scope/unsubscribe`
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
 pub struct ScopeUnsubscribe {
     /// The subscription id to drop.
     pub sub_id: i32,
@@ -2531,93 +2699,171 @@ impl ScopeUnsubscribe {
 
 // ── ServerMessage: typed dispatch over every command ────────────────────
 
-/// Typed dispatch over every documented SC server command. One variant
-/// per address — the payload cases carry their per-command arg struct,
-/// 6 argless commands are pure unit cases, `ScopeSubscribe`/`ScopeUnsubscribe`
-/// are the sc-app bridge extensions, and `Other` is an escape hatch for
-/// addresses outside the catalogue (extensions / plug-in commands).
-///
-/// Construct via `From<…>` (`let msg: ServerMessage = BAlloc::new(0, 8192).into();`)
-/// or directly (`ServerMessage::ClearSched`), then call [`encode`] to
-/// produce OSC wire bytes.
-#[derive(Debug, Clone)]
-pub enum ServerMessage {
+/// Every documented SC server command plus the sc-app bridge extensions,
+/// one variant per address. The serde representation is internally tagged
+/// BY THE OSC ADDRESS — a serialized command is a flat
+/// `{ "address": "/s_new", …fields }` object, which is exactly the shape
+/// the wasm boundary hands TypeScript (the address doubles as the TS
+/// discriminant; no separate tag↔address mapping exists anywhere).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(tag = "address")]
+pub enum KnownMessage {
+    #[serde(rename = "/b_alloc")]
     BAlloc(BAlloc),
+    #[serde(rename = "/b_allocRead")]
     BAllocRead(BAllocRead),
+    #[serde(rename = "/b_allocReadChannel")]
     BAllocReadChannel(BAllocReadChannel),
+    #[serde(rename = "/b_close")]
     BClose(BClose),
+    #[serde(rename = "/b_fill")]
     BFill(BFill),
+    #[serde(rename = "/b_free")]
     BFree(BFree),
+    #[serde(rename = "/b_gen")]
     BGen(BGen),
+    #[serde(rename = "/b_get")]
     BGet(BGet),
+    #[serde(rename = "/b_getn")]
     BGetn(BGetn),
+    #[serde(rename = "/b_query")]
     BQuery(BQuery),
+    #[serde(rename = "/b_read")]
     BRead(BRead),
+    #[serde(rename = "/b_readChannel")]
     BReadChannel(BReadChannel),
+    #[serde(rename = "/b_set")]
     BSet(BSet),
+    #[serde(rename = "/b_setSampleRate")]
     BSetSampleRate(BSetSampleRate),
+    #[serde(rename = "/b_setn")]
     BSetn(BSetn),
+    #[serde(rename = "/b_write")]
     BWrite(BWrite),
+    #[serde(rename = "/b_zero")]
     BZero(BZero),
+    #[serde(rename = "/c_fill")]
     CFill(CFill),
+    #[serde(rename = "/c_get")]
     CGet(CGet),
+    #[serde(rename = "/c_getn")]
     CGetn(CGetn),
+    #[serde(rename = "/c_set")]
     CSet(CSet),
+    #[serde(rename = "/c_setn")]
     CSetn(CSetn),
+    #[serde(rename = "/clearSched")]
     ClearSched,
+    #[serde(rename = "/cmd")]
     Cmd(Cmd),
+    #[serde(rename = "/d_free")]
     DFree(DFree),
+    #[serde(rename = "/d_load")]
     DLoad(DLoad),
+    #[serde(rename = "/d_loadDir")]
     DLoadDir(DLoadDir),
+    #[serde(rename = "/d_recv")]
     DRecv(DRecv),
+    #[serde(rename = "/dumpOSC")]
     DumpOSC(DumpOSC),
+    #[serde(rename = "/error")]
     Error(Error),
+    #[serde(rename = "/g_deepFree")]
     GDeepFree(GDeepFree),
+    #[serde(rename = "/g_dumpTree")]
     GDumpTree(GDumpTree),
+    #[serde(rename = "/g_freeAll")]
     GFreeAll(GFreeAll),
+    #[serde(rename = "/g_head")]
     GHead(GHead),
+    #[serde(rename = "/g_new")]
     GNew(GNew),
+    #[serde(rename = "/g_queryTree")]
     GQueryTree(GQueryTree),
+    #[serde(rename = "/g_tail")]
     GTail(GTail),
+    #[serde(rename = "/n_after")]
     NAfter(NAfter),
+    #[serde(rename = "/n_before")]
     NBefore(NBefore),
+    #[serde(rename = "/n_fill")]
     NFill(NFill),
+    #[serde(rename = "/n_free")]
     NFree(NFree),
+    #[serde(rename = "/n_map")]
     NMap(NMap),
+    #[serde(rename = "/n_mapa")]
     NMapa(NMapa),
+    #[serde(rename = "/n_mapan")]
     NMapan(NMapan),
+    #[serde(rename = "/n_mapn")]
     NMapn(NMapn),
+    #[serde(rename = "/n_order")]
     NOrder(NOrder),
+    #[serde(rename = "/n_query")]
     NQuery(NQuery),
+    #[serde(rename = "/n_run")]
     NRun(NRun),
+    #[serde(rename = "/n_set")]
     NSet(NSet),
+    #[serde(rename = "/n_setn")]
     NSetn(NSetn),
+    #[serde(rename = "/n_trace")]
     NTrace(NTrace),
+    #[serde(rename = "/notify")]
     Notify(Notify),
+    #[serde(rename = "/nrt_end")]
     NrtEnd,
+    #[serde(rename = "/p_new")]
     PNew(PNew),
+    #[serde(rename = "/quit")]
     Quit,
+    #[serde(rename = "/rtMemoryStatus")]
     RtMemoryStatus,
+    #[serde(rename = "/s_get")]
     SGet(SGet),
+    #[serde(rename = "/s_getn")]
     SGetn(SGetn),
+    #[serde(rename = "/s_new")]
     SNew(SNew),
+    #[serde(rename = "/s_noid")]
     SNoid(SNoid),
+    #[serde(rename = "/scope/subscribe")]
     ScopeSubscribe(ScopeSubscribe),
+    #[serde(rename = "/scope/unsubscribe")]
     ScopeUnsubscribe(ScopeUnsubscribe),
+    #[serde(rename = "/status")]
     Status,
+    #[serde(rename = "/sync")]
     Sync(Sync),
+    #[serde(rename = "/u_cmd")]
     UCmd(UCmd),
+    #[serde(rename = "/version")]
     Version,
-    /// Escape hatch for addresses outside the catalogue. The `ServerMessage`
-    /// enum covers every documented command; use this for SC extensions or
-    /// plug-in commands the catalogue doesn't know about.
-    Other {
-        address: String,
-        args: Vec<OscType>,
-    },
 }
 
-impl ServerMessage {
+/// Escape hatch for addresses outside the catalogue (SC extensions,
+/// plug-in commands, `/dirt/play`): a raw address + arg list.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
+pub struct OtherMsg {
+    pub address: String,
+    pub args: Vec<OscArg>,
+}
+
+/// A command in transit: catalogued, or the raw escape hatch. Construct via
+/// `From<…>` (`let msg: ServerMessage = BAlloc::new(0, 8192).into();`) and
+/// call [`ServerMessage::encode`] for OSC wire bytes. (Plain enum — the wasm
+/// boundary discriminates known-vs-other itself, so no serde here.)
+#[derive(Debug, Clone)]
+pub enum ServerMessage {
+    Known(KnownMessage),
+    Other(OtherMsg),
+}
+
+impl KnownMessage {
     /// Lower to the underlying `OscMessage` (raw address + arg list).
     pub fn to_osc_message(self) -> OscMessage {
         match self {
@@ -2687,7 +2933,6 @@ impl ServerMessage {
             Self::Sync(c) => c.to_message(),
             Self::UCmd(c) => c.to_message(),
             Self::Version => Version::new().to_message(),
-            Self::Other { address, args } => OscMessage::with_args(address, args),
         }
     }
 
@@ -2697,11 +2942,43 @@ impl ServerMessage {
     }
 }
 
+impl ServerMessage {
+    /// Lower to the underlying `OscMessage` (raw address + arg list).
+    pub fn to_osc_message(self) -> OscMessage {
+        match self {
+            Self::Known(k) => k.to_osc_message(),
+            Self::Other(o) => {
+                OscMessage::with_args(o.address, o.args.into_iter().map(OscType::from).collect())
+            }
+        }
+    }
+
+    /// Serialise the command to OSC wire bytes.
+    pub fn encode(self) -> Result<Vec<u8>, crate::CommandError> {
+        self.to_osc_message().encode()
+    }
+}
+
+impl From<KnownMessage> for ServerMessage {
+    fn from(k: KnownMessage) -> Self {
+        ServerMessage::Known(k)
+    }
+}
+
+impl From<OtherMsg> for ServerMessage {
+    fn from(o: OtherMsg) -> Self {
+        ServerMessage::Other(o)
+    }
+}
+
 macro_rules! impl_from_cmd {
     ($($ty:ident),* $(,)?) => {
         $(
+            impl From<$ty> for KnownMessage {
+                fn from(c: $ty) -> Self { KnownMessage::$ty(c) }
+            }
             impl From<$ty> for ServerMessage {
-                fn from(c: $ty) -> Self { ServerMessage::$ty(c) }
+                fn from(c: $ty) -> Self { ServerMessage::Known(KnownMessage::$ty(c)) }
             }
         )*
     };

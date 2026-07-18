@@ -6,23 +6,26 @@
 // clippy -D warnings gate would fail on stylistic lints here.
 #![allow(clippy::all)]
 
+pub mod args;
 pub mod commands;
-#[cfg(feature = "component")]
-mod component;
 mod error;
 mod nrt;
 mod osc;
 mod replies;
+#[cfg(feature = "wasm")]
+mod wasm;
 
+pub use args::{OscArg, OscTimetag};
 pub use commands::{
-    ControlId, ControlValue, NumericValue, ScopeSubscribe, ScopeUnsubscribe, ServerMessage,
-    SCOPE_SUBSCRIBE_ADDRESS, SCOPE_UNSUBSCRIBE_ADDRESS,
+    ControlId, ControlValue, KnownMessage, NumericValue, OtherMsg, ScopeSubscribe,
+    ScopeUnsubscribe, ServerMessage, SCOPE_SUBSCRIBE_ADDRESS, SCOPE_UNSUBSCRIBE_ADDRESS,
 };
 pub use error::CommandError;
 pub use nrt::NrtScore;
 pub use osc::{ntp_from_unix_ms, OscMessage};
 pub use replies::{
-    BSetnReply, NodeInfo, ScopeChunkReply, ServerReply, StatusReply, SCOPE_CHUNK_ADDRESS,
+    BSetnReply, KnownReply, NodeInfo, ScopeChunkReply, ServerReply, StatusReply,
+    SCOPE_CHUNK_ADDRESS,
 };
 
 pub use rosc::OscType;

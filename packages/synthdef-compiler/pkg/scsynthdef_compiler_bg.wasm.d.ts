@@ -553,7 +553,6 @@ export const __wbg_synthdef_free: (a: number, b: number) => void;
 export const binaryOpIndex: (a: number, b: number) => number;
 export const buildEnvRun: (a: number, b: number, c: any, d: any, e: number, f: number) => [number, number, number];
 export const encodeEnvRun: (a: number, b: number, c: number, d: number, e: any, f: number, g: number) => [number, number, number];
-export const envShapesJson: () => [number, number, number, number];
 export const parseScgf: (a: number, b: number) => [number, number, number];
 export const synthdef_addControl: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const synthdef_addControlArray: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];

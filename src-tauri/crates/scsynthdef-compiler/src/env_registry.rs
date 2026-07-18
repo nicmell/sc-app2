@@ -81,108 +81,12 @@ pub struct EnvShapeEntry {
     pub loop_node: Option<i32>,
 }
 
-pub static ENV_SHAPES: [EnvShapeEntry; 12] = [
-    EnvShapeEntry {
-        name: "adsr",
-        release_node: Some(2),
-        loop_node: None,
-        args: &[
-            marg("attack", 0.01),
-            marg("decay", 0.3),
-            arg("sustain", 0.5),
-            marg("release", 1.0),
-            arg("peak", 1.0),
-            arg("bias", 0.0),
-        ],
-    },
-    EnvShapeEntry {
-        name: "dadsr",
-        release_node: Some(3),
-        loop_node: None,
-        args: &[
-            marg("delay", 0.1),
-            marg("attack", 0.01),
-            marg("decay", 0.3),
-            arg("sustain", 0.5),
-            marg("release", 1.0),
-            arg("peak", 1.0),
-            arg("bias", 0.0),
-        ],
-    },
-    EnvShapeEntry {
-        name: "asr",
-        release_node: Some(1),
-        loop_node: None,
-        args: &[
-            marg("attack", 0.01),
-            marg("sustain", 1.0),
-            marg("release", 1.0),
-        ],
-    },
-    EnvShapeEntry {
-        name: "cutoff",
-        release_node: Some(0),
-        loop_node: None,
-        args: &[marg("release", 0.1), marg("level", 1.0)],
-    },
-    EnvShapeEntry {
-        name: "perc",
-        release_node: None,
-        loop_node: None,
-        args: &[
-            marg("attack", 0.01),
-            marg("release", 1.0),
-            marg("level", 1.0),
-        ],
-    },
-    EnvShapeEntry {
-        name: "linen",
-        release_node: None,
-        loop_node: None,
-        args: &[
-            marg("attack", 0.01),
-            marg("sustainTime", 1.0),
-            marg("release", 1.0),
-            marg("level", 1.0),
-        ],
-    },
-    EnvShapeEntry {
-        name: "triangle",
-        release_node: None,
-        loop_node: None,
-        args: &[arg("dur", 1.0), marg("level", 1.0)],
-    },
-    EnvShapeEntry {
-        name: "sine",
-        release_node: None,
-        loop_node: None,
-        args: &[arg("dur", 1.0), marg("level", 1.0)],
-    },
-    EnvShapeEntry {
-        name: "new",
-        release_node: None,
-        loop_node: None,
-        args: &[aarg("levels", true), aarg("times", true)],
-    },
-    EnvShapeEntry {
-        name: "step",
-        release_node: None,
-        loop_node: None,
-        args: &[aarg("levels", true), aarg("times", true)],
-    },
-    EnvShapeEntry {
-        name: "pairs",
-        release_node: None,
-        loop_node: None,
-        args: &[aarg("pairs", false)],
-    },
-    EnvShapeEntry {
-        name: "xyc",
-        release_node: None,
-        loop_node: None,
-        args: &[aarg("xyc", false)],
-    },
-];
+// The shape table is emitted by build.rs from assets/specs/envs.json
+// (repo root) — edit the spec, never the expansion. The `build_env` match
+// below stays hand-written: each arm carries the sclang constructor's
+// semantics (sustain-node placement, curve handling) the spec cannot
+// express.
+include!(concat!(env!("OUT_DIR"), "/env_shapes.rs"));
 
 /// Look up an envelope shape by its `type` name.
 pub fn lookup_env(name: &str) -> Option<&'static EnvShapeEntry> {

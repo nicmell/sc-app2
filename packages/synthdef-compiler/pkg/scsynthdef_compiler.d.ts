@@ -621,12 +621,6 @@ export function buildEnvRun(shape: string, args: any, curve: any, release_node?:
 export function encodeEnvRun(levels: (UGenInput | number)[], times: (UGenInput | number)[], curves: any, release_node?: number | null, loop_node?: number | null): UGenInput[];
 
 /**
- * The envelope-shape registry metadata (names, ordered args with
- * defaults/array/modulatable flags, release/loop nodes).
- */
-export function envShapesJson(): string;
-
-/**
  * Parse SCgf v2 bytes into the structured JSON form.
  */
 export function parseScgf(bytes: Uint8Array): any;
@@ -1192,7 +1186,6 @@ export interface InitOutput {
     readonly binaryOpIndex: (a: number, b: number) => number;
     readonly buildEnvRun: (a: number, b: number, c: any, d: any, e: number, f: number) => [number, number, number];
     readonly encodeEnvRun: (a: number, b: number, c: number, d: number, e: any, f: number, g: number) => [number, number, number];
-    readonly envShapesJson: () => [number, number, number, number];
     readonly parseScgf: (a: number, b: number) => [number, number, number];
     readonly synthdef_addControl: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly synthdef_addControlArray: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];

@@ -1,12 +1,14 @@
 /**
- * Envelope-shape registry — metadata served by the wasm build
- * (`envShapesJson()`, cached at module load), with each entry's `buildRun`
+ * Envelope-shape registry — metadata read straight from the committed
+ * spec at `assets/specs/envs.json` (repo root; the SAME file the crate's
+ * build.rs compiles ENV_SHAPES from), with each entry's `buildRun`
  * delegating to the crate's build+encode (`buildEnvRun`). Params that feed
  * arithmetic are constant-only — the crate throws the pinned
  * `<shape>: "<name>" is not modulatable` errors.
  */
 
-import { buildEnvRun, envShapesJson } from "./component.js";
+import envsSpec from "../../../assets/specs/envs.json";
+import { buildEnvRun } from "./component.js";
 import type { UGenInput, UGenInputLike } from "../pkg/scsynthdef_compiler.js";
 
 /** A resolved env argument: a scalar (const or ref) or an array of them. */
@@ -38,13 +40,20 @@ export interface EnvShapeEntry {
 
 interface RawShape {
   name: string;
-  args: EnvArg[];
-  releaseNode: number | null;
-  loopNode: number | null;
+  args: (EnvArg & { doc?: string })[];
+  releaseNode?: number | null;
+  loopNode?: number | null;
+  doc?: string;
 }
 
-const ENTRIES: EnvShapeEntry[] = (JSON.parse(envShapesJson()) as RawShape[]).map((raw) => ({
-  ...raw,
+const ENTRIES: EnvShapeEntry[] = (envsSpec as { shapes: RawShape[] }).shapes.map((raw) => ({
+  name: raw.name,
+  args: raw.args.map(({ name, default: d, array, modulatable }) => ({
+    name,
+    default: d,
+    ...(array ? { array } : {}),
+    ...(modulatable ? { modulatable } : {}),
+  })),
   releaseNode: raw.releaseNode ?? null,
   loopNode: raw.loopNode ?? null,
   buildRun: (args, opts = {}) =>

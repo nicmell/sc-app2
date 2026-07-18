@@ -169,14 +169,11 @@ pub fn unary_op_index(op: &str) -> Option<i16> {
     crate::unary_op_index(op)
 }
 
-/// The envelope-shape registry metadata (names, ordered args with
-/// defaults/array/modulatable flags, release/loop nodes).
-#[wasm_bindgen(js_name = envShapesJson)]
-pub fn env_shapes_json() -> Result<String, JsError> {
-    serde_json::to_string(&crate::ENV_SHAPES).map_err(err)
-}
-
 // ── envelopes ────────────────────────────────────────────────────────────
+//
+// NOTE: the envelope-shape metadata is no longer served from the wasm —
+// the TS package imports `assets/specs/envs.json` (the same file this
+// crate's build.rs compiles ENV_SHAPES from) directly.
 
 fn env_arg_from_js(v: &JsValue) -> Result<EnvArgValue, JsError> {
     if js_sys::Array::is_array(v) {

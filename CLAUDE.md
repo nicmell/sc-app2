@@ -152,8 +152,8 @@ lib/                     non-React infrastructure
   plugins/PluginManager  plugin CRUD + entry-HTML loading over /api/plugins
   synthdef/              compileSynthDef(name, params, specs): the markup-spec →
                          SCgf compiler over @sc-app/synthdef-compiler's
-                         wasm-backed primitives (SynthDef class, registry,
-                         operators). No topo
+                         wasm-backed compiler primitives (SynthDef class,
+                         operators) + directly imported spec registry. No topo
                          sort: the bind-order constraint makes DOM order a valid
                          build order. Called by sc-synthdef at /d_recv time in
                          the load pass (the parse only collects params + specs)
@@ -281,17 +281,24 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   decode (`/scope/chunk` samples lift as a transferable Float32Array),
   `atUnixMs` NTP timetags, console formatting. No osc-js — the crate is the
   single protocol source for backend and frontend; the scope protocol lives
-  there as sc-app bridge extensions.
+  there as sc-app bridge extensions. Its standard command catalogue derives
+  from `assets/specs/server-commands.json`; the three bridge commands stay
+  hand-maintained in-crate.
 - `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation, a thin layer over
   the `scsynthdef-compiler` crate's wasm-bindgen build (`pkg/`, committed;
   regenerate with `yarn generate:synthdef-compiler` — needs wasm-pack): the
-  `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry
-  (served from the wasm, cached at init — the data lives once, in the crate's
-  specs, kept aligned by scripts/scdoc/reconcile-ugens-rust.mjs), the 12-shape
-  env registry (`buildRun` with pinned modulatable-slot errors), and 548
-  generated typed builder fns (`import … from "@sc-app/synthdef-compiler/builders"`).
+  `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry and
+  12-shape env registry imported directly from `assets/specs/*.json`
+  (`buildRun` has pinned modulatable-slot errors), and 548 typed builder fns
+  emitted by the crate's `build.rs` (`import … from
+  "@sc-app/synthdef-compiler/builders"`). Reconcile future crawls by editing
+  the UGen spec against `yarn scdoc:diff`.
   UGenInput crosses as `{ constant } | { ugen } | { ugenOutput }`; env runs
   carry wire (float32) precision.
+- `assets/specs/` + `sc-spec-types` — committed UGen, server-command, and env
+  JSON plus their strict serde schema/lint. Pipeline: spec JSON → crate
+  `build.rs` → `OUT_DIR` macro invocations/data → in-crate macros; nothing
+  generated there is committed, and bridge commands remain hand-maintained.
 - `@sc-app/ui-components` — base styles/custom-element foundation.
 
 ## How the element architecture settled (the design decisions)

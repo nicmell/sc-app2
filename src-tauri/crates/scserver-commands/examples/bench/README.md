@@ -1,14 +1,16 @@
 # scserver-commands vs osc-js — browser benchmark
 
-Measures OSC **encode** (command → wire bytes) and **decode**
-(wire bytes → reply) throughput in the browser, comparing the
-jco-transpiled `scserver-commands` WASM component against
-[`osc-js`](https://github.com/adzialocha/osc-js) (pure JS).
+Historical browser harness for comparing `scserver-commands` OSC
+**encode** (command → wire bytes) and **decode** (wire bytes → reply)
+throughput against [`osc-js`](https://github.com/adzialocha/osc-js)
+(pure JS). Its source and package scripts still target the retired binding
+surface and must be migrated before it can run against the current
+wasm-bindgen package.
 
-Coverage: **every** SC server command (all 65 `server-message`
-variants, including the 6 arg-less commands and the `other` escape
-hatch) for encode, and every documented reply for decode, plus an
-NRT-score assembly section.
+The intended current coverage is every known server command (all 67
+address-tagged variants, including the 6 arg-less commands and 3 bridge
+extensions) plus the `other` escape hatch for encode, and every documented
+reply for decode.
 
 Three modes:
 
@@ -20,17 +22,6 @@ Three modes:
 - Headless runners: `npm run bench:node` (single message), `bench:batch`
   (length-framed batch, all-in-one), `bench:bundle` (one OSC bundle per
   message) — Node/V8, for a number when no browser is handy.
-
-## Run
-
-```bash
-npm install
-npm run build:wasm   # cargo component build + jco transpile → ./pkg
-npm run dev          # open the printed localhost URL, click "Run benchmark"
-```
-
-`npm run build` produces a static bundle in `dist/` (self-contained,
-WASM shipped as hashed assets).
 
 ## How the comparison is kept fair
 

@@ -11,7 +11,10 @@ at [doc.sccode.org](https://doc.sccode.org), used to seed / cross-check the
 | `extract-ugens.mjs` | `yarn scdoc:ugens` | `out/ugens-doc.json` — one entry per standard UGen with an `ar`/`kr`/`ir` constructor (name, rates, defaults, argDocs) |
 | `extract-server-commands.mjs` | `yarn scdoc:server` | `out/server-commands-doc.json` — every scsynth command/reply (address, arg table, prose) from the Server Command Reference, grouped by section |
 | `diff-ugens.ts` | `yarn scdoc:diff` | `out/ugens-diff.md` — the crawl vs the committed registry |
-| `reconcile-ugens.mjs` | `node scripts/scdoc/reconcile-ugens.mjs` | edits the specs + builders in place to the doc's rates + genuine defaults (idempotent) |
+
+Reconciliation is now a JSON-level hand edit of
+`assets/specs/ugens.json`, guided by `yarn scdoc:diff` and its
+`out/ugens-diff.md` report.
 
 The UGen class list + categories come from the site's `docmap.js` (the
 machine-readable index behind `Browse.html#UGens`); each class page supplies the
@@ -19,21 +22,23 @@ method signatures. `lib.mjs` holds the shared HTML/docmap parsing.
 
 ## Generated output vs the committed registry
 
-The extracted `out/*.json` come from **SCDoc HTML**; the committed registries
-are the compiler's source of truth (UGens from an **Overtone** dump, envelopes
-hand-authored). They are aligned where it matters but **not identical** — the
-remaining differences below are intentional, not bugs.
+The extracted `out/*.json` come from **SCDoc HTML**; the committed source of
+truth is `assets/specs/*.json`. Rust registries and builders are emitted from
+those specs by each crate's `build.rs`, while the TypeScript registries import
+the same JSON directly. The crawl and specs are aligned where it matters but
+**not identical** — the remaining differences below are intentional, not bugs.
 
-### UGens — `out/ugens-doc.json` vs `packages/synthdef-compiler/src/specs`
+### UGens — `out/ugens-doc.json` vs `assets/specs/ugens.json`
 
 Full classification in `out/ugens-diff.md` (regenerate with `yarn scdoc:diff`).
 Current state: **302** in common, **48** only in doc, **65** only in registry,
 **0** rate mismatches, **77** arg-name diffs, **106** default-value diffs.
 
-Reconciled by `reconcile-ugens.mjs` (specs + builders): the **rate lists** (45
-mismatches → 0) and the **8 genuine default bugs** (`Convolution2/2L/3` +
-`StereoConvolution2L` framesize 512→2048, `Spring.spring` 0→1, `GrainBuf.pos`
-1→0, `Warp1.windowSize` 0.1→0.2, `PSinGrain.amp` 1→0.1).
+The historical reconciliation is already baked into the spec: the **rate
+lists** (45 mismatches → 0) and the **8 genuine default bugs**
+(`Convolution2/2L/3` + `StereoConvolution2L` framesize 512→2048,
+`Spring.spring` 0→1, `GrainBuf.pos` 1→0, `Warp1.windowSize` 0.1→0.2,
+`PSinGrain.amp` 1→0.1).
 
 Deliberately NOT reconciled:
 
@@ -54,10 +59,11 @@ Deliberately NOT reconciled:
   `0.800000011920929`) or `null`-vs-`0` where one source omitted a default. No
   genuine value bugs remain.
 
-### Env — `out/env-doc.json` vs `packages/synthdef-compiler/src/env-registry.ts`
+### Env — `out/env-doc.json` vs `assets/specs/envs.json`
 
-The doc extracts **13** constructors; the registry implements **12**. The
-registry is deliberately a reshaped, markup-oriented view of the doc:
+The doc extracts **13** constructors; the spec defines **12**. `build.rs`
+emits the Rust registry from it, and the TypeScript package imports it
+directly as a deliberately reshaped, markup-oriented view of the doc:
 
 - **`circle` not implemented** — the doc has it; the registry omits it (its
   loop/wrap semantics don't fit the resolve-then-build pipeline cleanly). The
@@ -81,16 +87,18 @@ Note: the release/loop node INDICES are set inside each `Env` constructor's
 _body_, not its signature, so `extract-env.mjs` cannot recover them — the
 registry supplies them from the SC semantics.
 
-### Server commands — `out/server-commands-doc.json` vs `packages/server-commands`
+### Server commands — `out/server-commands-doc.json` vs `assets/specs/server-commands.json`
 
 The doc is grouped into sections, each with an `intro` (shared prose + a shared
 arg table, e.g. the common node-notification format) and `commands` (one per
 anchored `/address`, with a structured `args` table — repeating groups modelled
 as `{ repeat, group }` — plus `description` and full `notes`).
 
-Coverage: **82 of the 84** addresses the package encodes appear verbatim in the
-parsed doc (command constructors + reply accessors). The two exceptions are not
-script bugs:
+Coverage: **82 of the 84** addresses represented by the spec-driven command
+catalogue plus the hand-written reply accessors appear verbatim in the parsed
+doc. The exceptions below are not script bugs; the bridge-only typed commands
+`/dirt/play`, `/scope/subscribe`, and `/scope/unsubscribe` are intentionally
+outside both the SC spec and SCDoc comparison:
 
 - **`/rt_memoryStatus`** — the package has it, but it is not documented on the
   reference page at all (a genuine doc gap; can't extract what isn't there).

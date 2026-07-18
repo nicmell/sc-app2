@@ -9,7 +9,7 @@ Compiles `.scsyndef` bytes that scsynth accepts, and parses them back.
 - **`SynthDef`** — the builder / reader. `to_bytes` / `from_bytes` /
   `to_json` / `from_json` cover the four round-trip entry points.
 - **`builders::*`** — a typed struct per bundled UGen (~365 total),
-  generated from `src/assets/ugens/*.json` (the curated catalogue). Each
+  emitted by `build.rs` from `assets/specs/ugens.json`. Each
   struct exposes `ar()` / `kr()` / `ir()` constructors (only those rates
   the UGen supports), setter methods per arg (with rustdoc from the
   source catalogue), and `build(&mut SynthDef) -> UGenInput`.
@@ -56,7 +56,7 @@ let json = def.to_json()?;          // for diffs / debugging
 let back = SynthDef::from_json(&json)?;
 ```
 
-Introspect the bundled UGen catalogue (365 UGens shipped):
+Introspect the bundled UGen catalogue (367 UGens shipped):
 
 ```rust
 use scsynthdef_compiler::registry::{lookup_ugen, ugens_by_category};
@@ -70,22 +70,21 @@ for (category, ugens) in ugens_by_category() {
 }
 ```
 
-### From TypeScript (WASM component)
+### From TypeScript (wasm-bindgen)
 
-The WIT `core` interface exports a `SynthDef` resource mirroring the
-Rust builder, plus stringly-typed `addUgen` / `addControl` methods
-(the typed `ugens` interface is declared but not exported — see
-"WIT surface" below).
+The wasm-bindgen build exports the same `SynthDef` graph builder, plus
+stringly-typed `addUgen` / `addControl` methods and one generated typed
+function per buildable UGen and supported rate.
 
 ```ts
-import { core } from './pkg/scsynthdef_compiler.js';
-import type { UgenInput } from './pkg/interfaces/scsynthdef-compiler-core.js';
+import { SynthDef, parseScgf, sinOscAr } from './pkg/scsynthdef_compiler.js';
+import type { UGenInput } from './pkg/scsynthdef_compiler.js';
 
 // Helpers to build UgenInput variants for addUgen's inputs array.
-const k = (v: number): UgenInput => ({ tag: 'constant', val: v });
-const u = (i: number): UgenInput => ({ tag: 'ugen',     val: i });
+const k = (v: number): UGenInput => ({ constant: v });
+const u = (i: number): UGenInput => ({ ugen: i });
 
-const def = new core.SynthDef('sine');
+const def = new SynthDef('sine');
 
 // addControl returns a UgenInput handle you can feed to addUgen.
 const freq = def.addControl('freq', 440, 'control');
@@ -99,8 +98,10 @@ const bytes = def.toBytes();
 
 // Inspect / diff.
 const json = def.toJson();
-const parsed = core.parseScgf(bytes);           // JSON from bytes
-const registry = JSON.parse(core.registryJson()); // catalogue for UI
+const parsed = parseScgf(bytes);
+
+// The typed surface delegates to the same Rust builders.
+const typedOsc = sinOscAr(def, { freq });
 ```
 
 See `examples/node/sclang_parity.ts` for the full three-fixture
@@ -120,67 +121,32 @@ cargo run   -p scsynthdef-compiler --example sclang_parity
 `sc_test_recorder`, `global_clock_phase`) via the typed `builders::*`
 API and byte-diffs the output against `sclang`'s compiler.
 
-### WebAssembly Component + TypeScript bindings
+### WebAssembly + TypeScript bindings
 
-The component path is the canonical way to use the crate from JS/TS.
-`wit/scsynthdef.wit` is the source of truth for the interface.
-
-Toolchain: `cargo install cargo-component` + `npm install -D
-@bytecodealliance/jco`. Then:
+The wasm-bindgen build is generated with wasm-pack:
 
 ```bash
-cd crates/scsynthdef-compiler
-cargo component build --release --features component --target wasm32-wasip1
-jco transpile target/wasm32-wasip1/release/scsynthdef_compiler.wasm -o pkg
+yarn generate:synthdef-compiler
 ```
 
-The `component` feature pulls in `wit-bindgen-rt`; `src/component.rs`
-implements the WIT `core` interface — the `synth-def` resource
-(constructor + `name` / `add-control` / `add-ugen` / `to-bytes` /
-`to-json`), `parse-scgf`, and `registry-json`. `jco transpile`
-produces a self-contained ESM package with TypeScript declarations.
-
-Two examples consume the component:
-
-- **`examples/frontend/`** — browser docs page (Vite + jco). Imports
-  `core.registryJson()` and renders every bundled UGen.
-  `npm run build:wasm` drives the full `cargo component build` + `jco
-  transpile` pipeline; `npm run dev` serves the page.
-
-- **`examples/node/`** — Node `sclang_parity.ts`. Mirrors the Rust
-  harness: builds the same three fixtures via the `core.SynthDef`
-  resource's `addControl` / `addUgen` methods, runs sclang on each
-  fixture's `.scd`, byte-diffs the output. `npm run build:component`
-  compiles + transpiles; `npm run parity` runs the harness.
-
-### WIT surface (current)
-
-- `interface core` — exported. `rate` enum, `ugen-input` variant,
-  `synth-def` resource, `parse-scgf`, `registry-json`.
-- `interface ugens` — defined as a reference surface but **not
-  exported** from the `scsynthdef` world. It lists one typed `func` per
-  bundled UGen (`sin-osc`, `out`, `in`, `buf-wr`, …) — wiring the
-  Guest-side impls up to the existing `builders::*` structs is
-  tracked as follow-up work. The stringly-typed `core.synth-def`
-  methods cover the same byte output today and are what both examples
-  use.
+`src/wasm.rs` exports the core class and helpers. `src/builders_wasm.rs`
+includes `OUT_DIR/ugen_builders_wasm.rs`, which contains the generated
+wasm-bindgen functions and TypeScript custom section. The package registries
+do not cross the wasm boundary: `packages/synthdef-compiler/src/registry.ts`
+and `env-registry.ts` import the committed specs directly.
 
 ## Regeneration
 
+Edit `assets/specs/ugens.json` or `assets/specs/envs.json`, then build the
+crate. `build.rs` deserializes the specs and re-emits registry data and macro
+invocations into `OUT_DIR`; Cargo's `rerun-if-changed` tracks the JSON files.
+
 ```bash
-# 1. Refresh the catalogue from Overtone (rare, network fetch):
-node scripts/generate_ugen_db.mjs
-
-# 2. Regenerate the Rust registry + typed builders:
-node scripts/generate_ugens_rust.mjs
-
-# 3. Regenerate the WIT interface:
-node scripts/generate_wit.mjs
+cargo build -p scsynthdef-compiler
+yarn generate:synthdef-compiler
 ```
 
-`src/specs/*.rs` (registry data), `src/builders/*.rs` (typed
-builders), and `wit/scsynthdef.wit` are all generated artifacts —
-edit the JSON catalogue, then re-run steps 2 and 3.
-
-`src/bindings.rs` is emitted on demand by `cargo component bindings`
-/ `cargo component build` and is gitignored.
+The second command runs wasm-pack and commits its package output. Nothing
+emitted into `OUT_DIR` is committed. `src/specs.rs`, `src/builders.rs`, and
+`src/builders_wasm.rs` only include those emitted files; the builder structs
+and rate factories expand through the macros in `src/ugens_macro.rs`.

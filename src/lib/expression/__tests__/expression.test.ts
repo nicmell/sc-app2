@@ -167,9 +167,10 @@ describe("function calls (grammar)", () => {
   });
 
   it("evaluates a call over live state and NaN-guards failures to undefined", () => {
-    expect(evaluate("adsr(a, 0.1, 0.7, r)", { a: 0.01, r: 0.3 })).toEqual([
-      0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4,
-    ]);
+    expect(evaluate("adsr(a, 0.1, 0.7, r)", { a: 0.01, r: 0.3 })).toEqual(
+      // Wire (float32) precision — the wasm compiler's env runs.
+      [0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4].map(Math.fround),
+    );
     // A string arg fails the call — the WHOLE expression yields undefined.
     expect(evaluate("adsr(a)", { a: "loud" })).toBeUndefined();
     expect(evaluate("pad(adsr(a), 36) ? 1 : 2", { a: "loud" })).toBeUndefined();

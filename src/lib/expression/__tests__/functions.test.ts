@@ -9,11 +9,15 @@ import { lookupFunction, tryEvalCallLiteral } from "@/lib/expression";
 const call = (name: string, args: (number | string | number[])[]) =>
   lookupFunction(name)!.evalConst(args);
 
+/** Wire (float32) precision — what the wasm compiler's env runs carry. */
+const F32 = (xs: number[]) => xs.map(Math.fround);
+
 describe("envelope constructors", () => {
   it("adsr(0.01, 0.1, 0.7, 0.3) === Env.adsr(...).asArray (registry parity)", () => {
-    expect(call("adsr", [0.01, 0.1, 0.7, 0.3])).toEqual([
-      0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4,
-    ]);
+    // Env constants carry wire (float32) precision since the wasm compiler.
+    expect(call("adsr", [0.01, 0.1, 0.7, 0.3])).toEqual(
+      F32([0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4]),
+    );
   });
 
   it("missing args take the registry defaults (adsr() is the default ADSR)", () => {
@@ -59,7 +63,9 @@ describe("tryEvalCallLiteral (static value attributes)", () => {
     const a = tryEvalCallLiteral("pad(adsr(0.02, 0.15, 0.6, 0.3), 36)")!;
     const b = tryEvalCallLiteral("pad(adsr(0.02, 0.15, 0.6, 0.3), 36)")!;
     expect(a).toHaveLength(36);
-    expect(a.slice(0, 16)).toEqual([0, 3, 2, -99, 1, 0.02, 5, -4, 0.6, 0.15, 5, -4, 0, 0.3, 5, -4]);
+    expect(a.slice(0, 16)).toEqual(
+      F32([0, 3, 2, -99, 1, 0.02, 5, -4, 0.6, 0.15, 5, -4, 0, 0.3, 5, -4]),
+    );
     expect(a).toEqual(b);
     expect(a).not.toBe(b); // memoized VALUE, fresh identity
   });

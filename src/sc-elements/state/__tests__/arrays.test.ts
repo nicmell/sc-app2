@@ -128,7 +128,7 @@ describe("array slot lenses (numeric-tail binds)", () => {
     const env = host.querySelector('sc-var[name="env"]') as ScVar;
     const sustain = host.querySelector('sc-var[name="sustain"]') as ScVar;
     expect(env._state).toHaveLength(36); // the static call literal evaluated
-    expect(sustain._state).toBe(0.7); // slot 8 = the adsr sustain level
+    expect(sustain._state).toBe(Math.fround(0.7)); // slot 8 (wire f32)
 
     // The WRITE half: a click commits 0.42 through the env.9 lens — one
     // fresh array, one statechange, the other lens recomputes.
@@ -137,7 +137,7 @@ describe("array slot lenses (numeric-tail binds)", () => {
     const after = env._state as number[];
     expect(after[9]).toBe(0.42);
     expect(after).not.toBe(before); // immutable-by-identity
-    expect(after[8]).toBe(0.7); // untouched slots survive
+    expect(after[8]).toBe(Math.fround(0.7)); // untouched slots survive (wire f32)
 
     // The READ half stays live: an editor-style whole-array write moves the
     // lens value.

@@ -9,7 +9,7 @@
 // model). Decoding is garbage-tolerant: numSegments clamps to what the
 // array actually holds, unknown curve types fall back to lin.
 
-import { encodeEnv } from "@sc-app/synthdef-compiler";
+import { encodeEnvRun } from "@sc-app/synthdef-compiler";
 
 /** The editor's structured model of one segment: ramp TO a level over TIME
  *  along a CURVE; `release`/`loop` flag the releaseNode/loopNode segment. */
@@ -78,15 +78,15 @@ export function encodeEnvArray(value: EnvBreakpoints, width: number): number[] {
   }
   const releaseNode = value.segments.findIndex((s) => s.release);
   const loopNode = value.segments.findIndex((s) => s.loop);
-  const run = encodeEnv({
-    levels: [value.start, ...value.segments.map((s) => s.to)],
-    times: value.segments.map((s) => s.time),
-    curves: value.segments.map((s) => s.curve ?? "lin"),
-    releaseNode: releaseNode >= 0 ? releaseNode : null,
-    loopNode: loopNode >= 0 ? loopNode : null,
-  }).map((input) => {
-    if (input.tag !== "constant") throw new Error("encodeEnvArray: non-constant envelope slot");
-    return input.val;
+  const run = encodeEnvRun(
+    [value.start, ...value.segments.map((s) => s.to)],
+    value.segments.map((s) => s.time),
+    value.segments.map((s) => s.curve ?? "lin"),
+    releaseNode >= 0 ? releaseNode : undefined,
+    loopNode >= 0 ? loopNode : undefined,
+  ).map((input) => {
+    if (!("constant" in input)) throw new Error("encodeEnvArray: non-constant envelope slot");
+    return input.constant;
   });
   return [...run, ...new Array<number>(width - run.length).fill(0)];
 }

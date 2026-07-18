@@ -1,31 +1,48 @@
-export { CompileError } from "./error.js";
-export type { Rate } from "./rate.js";
+/**
+ * @sc-app/synthdef-compiler — SynthDef → SCgf v2 compilation over the
+ * wasm-bindgen build of the scsynthdef-compiler Rust crate (`pkg/`,
+ * regenerated via `yarn generate:synthdef-compiler`). One compiler
+ * implementation for the Rust backend (native rlib) and the frontend:
+ * the `SynthDef` graph-builder class, the SCDoc-reconciled UGen registry
+ * (served from the wasm, cached at init), operator tables, the envelope
+ * registry (12 `Env.*` shapes with modulatable-slot rules), and the typed
+ * per-UGen builder surface (`import * as builders`).
+ */
+
+// The compiler core (wasm-backed; throws on invalid graphs).
 export {
-  RATE_SCALAR_I8,
-  RATE_CONTROL_I8,
-  RATE_AUDIO_I8,
-  rateToI8,
-  rateFromI8,
-  parseRate,
-} from "./rate.js";
-export type { UGenInput, UGenInputLike } from "./ugen-input.js";
+  SynthDef,
+  parseScgf,
+  binaryOpIndex,
+  unaryOpIndex,
+  buildEnvRun,
+  encodeEnvRun,
+} from "./component.js";
+export type { UGenInput, UGenInputLike } from "./component.js";
+
+// UGenInput constructors/readers over the serde shape.
 export { k, u, uo, toUGenInput, ugenIndex, outputIndex } from "./ugen-input.js";
-export { binaryOpIndex, unaryOpIndex } from "./operators.js";
-export { SynthDef, parseScgf } from "./synthdef.js";
-export type {
-  SynthDefJson,
-  UGenJson,
-  InputSpec,
-  OutputSpec,
-  Parameters,
-  ParamNameEntry,
-} from "./synthdef.js";
-export { lookupUgen, ugensByCategory } from "./registry.js";
-export type { UGenRegistryEntry, UGenRegistryDefault } from "./registry.js";
-export { encodeEnv } from "./env.js";
-export type { EnvSpec, Curve } from "./env.js";
-export { lookupEnv, ENV_SHAPES } from "./env-registry.js";
-export type { EnvShapeEntry, EnvArg, EnvArgValue, BuildOpts } from "./env-registry.js";
-export * as builders from "./builders/index.js";
-export { synthdef, ar, kr, ir } from "./sugar/index.js";
-export type { Graph, GraphUGens, GraphOperators, ControlWrapper } from "./sugar/index.js";
+
+// Rates.
+export { parseRate, type Rate } from "./rate.js";
+
+// The UGen registry (wasm-served, cached).
+export {
+  lookupUgen,
+  ugensByCategory,
+  type UGenRegistryDefault,
+  type UGenRegistryEntry,
+} from "./registry.js";
+
+// The structured SCgf JSON shapes.
+export type { InputSpec, OutputSpec, ParamName, SynthDefJson, UGenJson } from "./scgf-json.js";
+
+// The envelope-shape registry.
+export {
+  ENV_SHAPES,
+  lookupEnv,
+  type BuildOpts,
+  type EnvArg,
+  type EnvArgValue,
+  type EnvShapeEntry,
+} from "./env-registry.js";

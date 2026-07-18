@@ -1,57 +1,39 @@
 /**
- * Input to a UGen: a constant, the default output of another UGen, or a
- * specific output of a multi-output UGen.
- *
- * UGen indices refer to positions in the `SynthDef`'s node list, returned by
- * `SynthDef.addUgen` / `SynthDef.addControl`.
+ * `UGenInput` helpers over the crate's serde shape:
+ * `{ constant: n } | { ugen: i } | { ugenOutput: [i, o] }`.
+ * UGen indices refer to positions in the `SynthDef`'s node list, returned
+ * by `SynthDef.addUgen` / `addControl`.
  */
-export type UGenInput =
-  | { readonly tag: "constant"; readonly val: number }
-  | { readonly tag: "ugen"; readonly val: number }
-  | { readonly tag: "ugenOutput"; readonly ugenIdx: number; readonly outputIdx: number };
+
+import type { UGenInput, UGenInputLike } from "../pkg/scsynthdef_compiler.js";
 
 /** Build a constant input. Convenience constructor. */
 export function k(v: number): UGenInput {
-  return { tag: "constant", val: v };
+  return { constant: v };
 }
 
 /** Build a UGen output-0 reference. Convenience constructor. */
 export function u(idx: number): UGenInput {
-  return { tag: "ugen", val: idx };
+  return { ugen: idx };
 }
 
 /** Build a specific UGen output reference. Convenience constructor. */
 export function uo(ugenIdx: number, outputIdx: number): UGenInput {
-  return { tag: "ugenOutput", ugenIdx, outputIdx };
+  return { ugenOutput: [ugenIdx, outputIdx] };
 }
-
-/**
- * Accept a number or a `UGenInput`. Numbers become `constant` inputs.
- * Used as the setter-method signature on every typed builder.
- */
-export type UGenInputLike = number | UGenInput;
 
 export function toUGenInput(v: UGenInputLike): UGenInput {
-  return typeof v === "number" ? { tag: "constant", val: v } : v;
+  return typeof v === "number" ? { constant: v } : v;
 }
 
+/** The node index an input references — `null` for constants. */
 export function ugenIndex(input: UGenInput): number | null {
-  switch (input.tag) {
-    case "constant":
-      return null;
-    case "ugen":
-      return input.val;
-    case "ugenOutput":
-      return input.ugenIdx;
-  }
+  if ("ugen" in input) return input.ugen;
+  if ("ugenOutput" in input) return input.ugenOutput[0];
+  return null;
 }
 
+/** The referenced output slot (0 for constants and whole-UGen refs). */
 export function outputIndex(input: UGenInput): number {
-  switch (input.tag) {
-    case "constant":
-    case "ugen":
-      return 0;
-    case "ugenOutput":
-      return input.outputIdx;
-  }
+  return "ugenOutput" in input ? input.ugenOutput[1] : 0;
 }

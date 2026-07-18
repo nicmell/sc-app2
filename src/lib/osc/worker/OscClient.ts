@@ -164,7 +164,7 @@ export class OscClient {
     return new Promise((resolve, reject) => {
       const waiter: ReplyWaiter = {
         address,
-        match: match as (reply: never) => boolean,
+        match: match,
         resolve: resolve as (reply: unknown) => void,
         reject,
         timer: setTimeout(() => {

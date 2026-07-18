@@ -18,7 +18,8 @@
  * slot) and the scope would look frozen.
  */
 
-import { synthdef, ugenIndex, uo, type UGenInput } from "@sc-app/synthdef-compiler";
+import { SynthDef, ugenIndex, uo, type UGenInput } from "@sc-app/synthdef-compiler";
+import { inAr, scopeOut2Ar } from "@sc-app/synthdef-compiler/builders";
 
 export function scopeTapSynthDefName(channels: number, chunkSize: number): string {
   return `scopeTap${channels}ch_${chunkSize}`;
@@ -41,23 +42,29 @@ export function compileScopeTapSynthDef(channels: number, chunkSize: number): Ui
   const cached = cache.get(name);
   if (cached) return cached;
 
-  const def = synthdef(name, (g, { inBus = 0, scopeNum = 0 }) => {
-    // `In.ar(bus, channels)` registers an N-output UGen but the sugar returns a
-    // single UGenInput at output 0; fan its outputs into an array so ScopeOut2
-    // writes every channel into its planar lane (else every lane but 0 reads
-    // flat).
-    const inUgen = g.In.ar(inBus, channels);
-    const inIdx = ugenIndex(inUgen);
-    if (inIdx === null) {
-      throw new Error("compileScopeTapSynthDef: In.ar did not return a UGen ref");
-    }
-    const sigs: UGenInput[] = [];
-    for (let c = 0; c < channels; c++) {
-      sigs.push(uo(inIdx, c));
-    }
-    // ScopeOut2(inputArray, scopeNum, maxFrames, scopeFrames). The side effect
-    // (writing the SHM scope_buffer) is the work; the output isn't bound.
-    g.ScopeOut2.ar(sigs, scopeNum, chunkSize, chunkSize);
+  const def = new SynthDef(name);
+  const inBus = def.addControl("inBus", 0, "control");
+  const scopeNum = def.addControl("scopeNum", 0, "control");
+  // `In.ar(bus, channels)` registers an N-output UGen but the builder returns
+  // a single UGenInput at output 0; fan its outputs into an array so ScopeOut2
+  // writes every channel into its planar lane (else every lane but 0 reads
+  // flat).
+  const inRef = inAr(def, { bus: inBus, numChannels: channels });
+  const inIdx = ugenIndex(inRef);
+  if (inIdx === null) {
+    throw new Error("compileScopeTapSynthDef: In.ar did not return a UGen ref");
+  }
+  const sigs: UGenInput[] = [];
+  for (let c = 0; c < channels; c++) {
+    sigs.push(uo(inIdx, c));
+  }
+  // ScopeOut2(inputArray, scopeNum, maxFrames, scopeFrames). The side effect
+  // (writing the SHM scope_buffer) is the work; the output isn't bound.
+  scopeOut2Ar(def, {
+    inputArray: sigs,
+    scopeNum,
+    maxFrames: chunkSize,
+    scopeFrames: chunkSize,
   });
 
   const bytes = def.toBytes();

@@ -1,72 +1,58 @@
-import { Rate } from "./rate.js";
-import { ALL_SLICES } from "./specs/index.js";
+/**
+ * The UGen registry — served by the wasm build (one `registryJson()` call
+ * at module load, cached here) and normalized to the shapes the app has
+ * always consumed (lowercase long rate names, `{name, default}` records).
+ * The data itself lives once, in the crate's reconciled specs.
+ */
+
+import { registryJson } from "./component.js";
+import type { Rate } from "./rate.js";
 
 export interface UGenRegistryDefault {
   name: string;
-  /** Declared default value; `null` if SC's source didn't specify one. */
   default: number | null;
 }
 
-export interface UGenRegistryArgDoc {
-  name: string;
-  doc: string;
-}
-
-/**
- * One UGen's registry entry. Mirrors the Rust `UGenRegistryEntry` — every
- * field preserved verbatim from the curated JSON specs.
- */
 export interface UGenRegistryEntry {
   name: string;
   rates: Rate[];
-  /**
-   * Declared parameter order `(name, optional default)`. Matches SC's wire
-   * order with the usual caveat that `channelsArray` / `inputArray` are
-   * reordered to the end of the input list at compile time.
-   */
+  /** Declared param order (variadic tails reordered at compile time). */
   defaults: UGenRegistryDefault[];
-  /** Output count. `null` means the source didn't specify it; scsynth treats that as 1. */
   numOutputs: number | null;
-  /** Parent UGen name when this entry inherits args/rates via Overtone's `:extends`. */
   extends: string | null;
   summary: string | null;
   doc: string | null;
   signalRange: string | null;
-  /** Per-argument documentation, sorted by argument name. */
-  argDocs: UGenRegistryArgDoc[];
+  argDocs: [string, string][];
 }
 
-/**
- * Look up a UGen by its class name (e.g. `"SinOsc"`). Returns `null` if
- * the UGen isn't in the bundled registry.
- */
+interface RawEntry extends Omit<UGenRegistryEntry, "rates" | "defaults"> {
+  rates: string[];
+  defaults: [string, number | null][];
+}
+
+const CATEGORIES: [string, UGenRegistryEntry[]][] = (
+  JSON.parse(registryJson()) as [string, RawEntry[]][]
+).map(([category, entries]) => [
+  category,
+  entries.map((e) => ({
+    ...e,
+    rates: e.rates.map((r) => r.toLowerCase() as Rate),
+    defaults: e.defaults.map(([name, d]) => ({ name, default: d })),
+  })),
+]);
+
+const BY_NAME = new Map<string, UGenRegistryEntry>();
+for (const [, entries] of CATEGORIES) {
+  for (const e of entries) BY_NAME.set(e.name, e);
+}
+
+/** Look up a UGen by its canonical class name. `null` if unknown. */
 export function lookupUgen(name: string): UGenRegistryEntry | null {
-  // Each per-category slice is independently sorted, so binary-search each
-  // until one yields a hit.
-  for (const [, slice] of ALL_SLICES) {
-    const hit = binarySearch(slice, name);
-    if (hit !== null) return hit;
-  }
-  return null;
+  return BY_NAME.get(name) ?? null;
 }
 
-/**
- * Return the full registry grouped by category (the JSON source file each
- * UGen came from). Each inner slice is sorted by UGen name.
- */
-export function ugensByCategory(): readonly (readonly [string, readonly UGenRegistryEntry[]])[] {
-  return ALL_SLICES;
-}
-
-function binarySearch(slice: readonly UGenRegistryEntry[], name: string): UGenRegistryEntry | null {
-  let lo = 0;
-  let hi = slice.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >>> 1;
-    const cmp = slice[mid].name < name ? -1 : slice[mid].name > name ? 1 : 0;
-    if (cmp === 0) return slice[mid];
-    if (cmp < 0) lo = mid + 1;
-    else hi = mid;
-  }
-  return null;
+/** The full registry, grouped by source category. */
+export function ugensByCategory(): readonly [string, UGenRegistryEntry[]][] {
+  return CATEGORIES;
 }

@@ -29,6 +29,7 @@ import {
   lookupUgen,
   parseRate,
   u,
+  ugenIndex,
   unaryOpIndex,
   uo,
   type Rate,
@@ -53,7 +54,7 @@ export interface UgenSpec {
  *  Arrays never nest — comma-lists and array-yielding refs flatten. */
 type Signal = UGenInput | UGenInput[];
 
-const OP_TABLES: Record<string, (op: string) => number | null> = {
+const OP_TABLES: Record<string, (op: string) => number | undefined> = {
   BinaryOpUGen: binaryOpIndex,
   UnaryOpUGen: unaryOpIndex,
 };
@@ -80,7 +81,7 @@ class UGenGraphBuilder {
       this.controlInputs.set(
         name,
         Array.isArray(value)
-          ? def.addControlArray(name, value, "control")
+          ? def.addControlArray(name, Float32Array.from(value), "control")
           : def.addControl(name, value, "control"),
       );
     }
@@ -235,8 +236,9 @@ class UGenGraphBuilder {
   /** The calc rate of an already-built input: a constant is scalar, a ref is
    *  the rate of the node it points at. */
   private rateOf(input: UGenInput): Rate {
-    if (input.tag === "constant") return "scalar";
-    return this.def.getNodeRate(input.tag === "ugen" ? input.val : input.ugenIdx);
+    const idx = ugenIndex(input);
+    if (idx === null) return "scalar"; // constants
+    return this.def.nodeRate(idx) as Rate;
   }
 
   /** A synthesized op node's rate = the highest of its operands
@@ -301,7 +303,8 @@ class UGenGraphBuilder {
       }
       case "binary": {
         const special = binaryOpIndex(expr.op);
-        if (special === null) throw new Error(`unsupported operator "${expr.op}" in expression`);
+        if (special === undefined)
+          throw new Error(`unsupported operator "${expr.op}" in expression`);
         const left = this.lowerExpr(expr.left);
         const right = this.lowerExpr(expr.right);
         if (!Array.isArray(left) && !Array.isArray(right)) {
@@ -325,7 +328,7 @@ class UGenGraphBuilder {
         const args: LoweredArg[] = expr.args.map((argExpr) => {
           const signal = this.lowerExpr(argExpr);
           const one = (input: UGenInput): number | UGenInput =>
-            input.tag === "constant" ? input.val : input;
+            "constant" in input ? input.constant : input;
           return Array.isArray(signal) ? signal.map(one) : one(signal);
         });
         return lookupFunction(expr.name)!.lower(args);
@@ -366,7 +369,9 @@ function resolveSpecialIndex(spec: UgenSpec): number {
   if (!opIndex) return 0;
   if (!spec.op) throw new Error(`${spec.type} "${spec.name}" requires an "op" attribute`);
   const idx = opIndex(spec.op);
-  if (idx === null) throw new Error(`${spec.type} "${spec.name}": unknown operator "${spec.op}"`);
+  if (idx === undefined) {
+    throw new Error(`${spec.type} "${spec.name}": unknown operator "${spec.op}"`);
+  }
   return idx;
 }
 

@@ -14,7 +14,6 @@
 
 import {
   ENV_SHAPES,
-  encodeEnv,
   k,
   type EnvArgValue,
   type EnvShapeEntry,
@@ -48,8 +47,8 @@ export interface ExprFunction {
 /** encodeEnv output → plain numbers (all-constant runs only). */
 const constRun = (fn: string, run: UGenInput[]): number[] =>
   run.map((input) => {
-    if (input.tag !== "constant") throw new Error(`${fn}(): non-constant envelope slot`);
-    return input.val;
+    if (!("constant" in input)) throw new Error(`${fn}(): non-constant envelope slot`);
+    return input.constant;
   });
 
 /** An env shape's flat-run length: header 4 + 4 per segment. */
@@ -89,8 +88,8 @@ function scalarShape(entry: EnvShapeEntry): ExprFunction {
     minArgs: 0, // every registry arg has a default
     maxArgs: entry.args.length,
     staticLength: () => envRunLength(SEGMENTS[entry.name]),
-    evalConst: (args) => constRun(entry.name, encodeEnv(entry.build(mapArgs(args)))),
-    lower: (args) => encodeEnv(entry.build(mapArgs(args))),
+    evalConst: (args) => constRun(entry.name, entry.buildRun(mapArgs(args))),
+    lower: (args) => entry.buildRun(mapArgs(args)),
   };
 }
 
@@ -112,8 +111,8 @@ function restShape(entry: EnvShapeEntry, tuple: number): ExprFunction {
     maxArgs: Infinity,
     // N points → N-1 segments (the registry sorts + differences the times).
     staticLength: (argCount) => envRunLength(argCount / tuple - 1),
-    evalConst: (args) => constRun(entry.name, encodeEnv(entry.build(mapArgs(args)))),
-    lower: (args) => encodeEnv(entry.build(mapArgs(args))),
+    evalConst: (args) => constRun(entry.name, entry.buildRun(mapArgs(args))),
+    lower: (args) => entry.buildRun(mapArgs(args)),
   };
 }
 

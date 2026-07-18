@@ -6,14 +6,15 @@
 import { describe, expect, it } from "vitest";
 import { decodeEnvArray, encodeEnvArray, type EnvBreakpoints } from "@/lib/synthdef/envValue";
 
-const ADSR_FLAT = [0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4];
+// Wire (float32) precision — what the wasm compiler's encode emits.
+const ADSR_FLAT = [0, 3, 2, -99, 1, 0.01, 5, -4, 0.7, 0.1, 5, -4, 0, 0.3, 5, -4].map(Math.fround);
 
 describe("envelope codec", () => {
   it("decodes header + tuples into breakpoints (flags from the node indices)", () => {
     const bp = decodeEnvArray(ADSR_FLAT);
     expect(bp.start).toBe(0);
     expect(bp.segments).toHaveLength(3);
-    expect(bp.segments[0]).toMatchObject({ to: 1, time: 0.01, curve: -4 });
+    expect(bp.segments[0]).toMatchObject({ to: 1, time: Math.fround(0.01), curve: -4 });
     expect(bp.segments[2].release).toBe(true);
     expect(bp.segments[0].release).toBeUndefined();
   });

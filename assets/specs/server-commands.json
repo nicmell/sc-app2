@@ -1,0 +1,1374 @@
+{
+  "commands": [
+    {
+      "address": "/b_alloc",
+      "struct": "BAlloc",
+      "doc": "Allocate buffer space.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "num_frames",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "number of frames"
+        },
+        {
+          "name": "num_channels",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "number of channels (optional. default = 1 channel)"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        },
+        {
+          "name": "sample_rate",
+          "form": {
+            "optionScalar": "f32"
+          },
+          "doc": "the required sample rate (optional. default (or 0) = the server's sample rate)"
+        }
+      ]
+    },
+    {
+      "address": "/b_allocRead",
+      "struct": "BAllocRead",
+      "doc": "Allocate buffer space and read a sound file.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "path",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "path name of a sound file."
+        },
+        {
+          "name": "start_frame",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "starting frame in file (optional. default = 0)"
+        },
+        {
+          "name": "number_of_frames",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "number of frames to read (optional. default = 0, see below)"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_allocReadChannel",
+      "struct": "BAllocReadChannel",
+      "doc": "Allocate buffer space and read channels from a sound file.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "path",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "path name of a sound file"
+        },
+        {
+          "name": "start_frame",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "starting frame in file"
+        },
+        {
+          "name": "number_of_frames",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "number of frames to read"
+        },
+        {
+          "name": "channels",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "source file channel indices (one or more) to read"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_close",
+      "struct": "BClose",
+      "doc": "Close soundfile.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_fill",
+      "struct": "BFill",
+      "doc": "Fill ranges of sample value(s).",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32",
+              "f32"
+            ]
+          },
+          "doc": "Repeated tuples: sample starting index; number of samples to fill (M); value."
+        }
+      ]
+    },
+    {
+      "address": "/b_free",
+      "struct": "BFree",
+      "doc": "Free buffer data.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_gen",
+      "struct": "BGen",
+      "doc": "Call a command to fill a buffer.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "cmd",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "command name"
+        },
+        {
+          "name": "command_arguments",
+          "form": "variadic",
+          "doc": "command arguments — variadic trailing OSC args (types depend on the specific `/b_gen` command being invoked, e.g. `sine1`, `cheby`)."
+        }
+      ]
+    },
+    {
+      "address": "/b_get",
+      "struct": "BGet",
+      "doc": "Get sample value(s).",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "sample_indices",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "sample indices (one or more) — the server replies with the value at each index."
+        }
+      ]
+    },
+    {
+      "address": "/b_getn",
+      "struct": "BGetn",
+      "doc": "Get ranges of sample value(s).",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: starting sample index; number of sequential samples to get (M)."
+        }
+      ]
+    },
+    {
+      "address": "/b_query",
+      "struct": "BQuery",
+      "doc": "Get buffer info.",
+      "fields": [
+        {
+          "name": "bufnums",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "buffer numbers to query"
+        }
+      ]
+    },
+    {
+      "address": "/b_read",
+      "struct": "BRead",
+      "doc": "Read sound file data into an existing buffer.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "path",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "path name of a sound file."
+        },
+        {
+          "name": "start_frame",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "starting frame in file (optional. default = 0)"
+        },
+        {
+          "name": "number_of_frames",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "number of frames to read (optional. default = -1, see below)"
+        },
+        {
+          "name": "starting_frame",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "starting frame in buffer (optional. default = 0)"
+        },
+        {
+          "name": "leave_file_open",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "leave file open (optional. default = 0)"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_readChannel",
+      "struct": "BReadChannel",
+      "doc": "Read sound file channel data into an existing buffer.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "path",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "path name of a sound file"
+        },
+        {
+          "name": "start_frame",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "starting frame in file"
+        },
+        {
+          "name": "number_of_frames",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "number of frames to read"
+        },
+        {
+          "name": "starting_frame",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "starting frame in buffer"
+        },
+        {
+          "name": "leave_file_open",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "leave file open"
+        },
+        {
+          "name": "channels",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "source file channel indices (one or more) to read"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_set",
+      "struct": "BSet",
+      "doc": "Set sample value(s).",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "f32"
+            ]
+          },
+          "doc": "Repeated tuples: a sample index; a sample value."
+        }
+      ]
+    },
+    {
+      "address": "/b_setn",
+      "struct": "BSetn",
+      "doc": "Set ranges of sample value(s).",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "setnTail": {
+              "head": "i32",
+              "values": "f32"
+            }
+          },
+          "doc": "Repeated ranges — each `(start_index, samples[])` range writes `samples.len()` consecutive samples starting at `start_index`. The count is computed from the vector length, not passed separately."
+        }
+      ]
+    },
+    {
+      "address": "/b_setSampleRate",
+      "struct": "BSetSampleRate",
+      "doc": "Set the sampling rate of the buffer.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "the_desired_sampling",
+          "form": {
+            "scalar": "f32"
+          },
+          "doc": "the desired sampling rate. 0 or nil will set to the Server's sample rate."
+        }
+      ]
+    },
+    {
+      "address": "/b_write",
+      "struct": "BWrite",
+      "doc": "Write sound file data.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "path",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "path name of a sound file."
+        },
+        {
+          "name": "header_format",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "header format."
+        },
+        {
+          "name": "sample_format",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "sample format."
+        },
+        {
+          "name": "number_of_frames",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "number of frames to write (optional. default = -1, see below)"
+        },
+        {
+          "name": "starting_frame",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "starting frame in buffer (optional. default = 0)"
+        },
+        {
+          "name": "leave_file_open",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "leave file open (optional. default = 0)"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/b_zero",
+      "struct": "BZero",
+      "doc": "Zero sample data.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "buffer number"
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/c_fill",
+      "struct": "CFill",
+      "doc": "Fill ranges of bus value(s).",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32",
+              "numericValue"
+            ]
+          },
+          "doc": "Repeated tuples: starting bus index; number of buses to fill (M); value."
+        }
+      ]
+    },
+    {
+      "address": "/c_get",
+      "struct": "CGet",
+      "doc": "Get bus value(s).",
+      "fields": [
+        {
+          "name": "bus_indices",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "bus indices (one or more)"
+        }
+      ]
+    },
+    {
+      "address": "/c_getn",
+      "struct": "CGetn",
+      "doc": "Get ranges of bus value(s).",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: starting bus index; number of sequential buses to get (M)."
+        }
+      ]
+    },
+    {
+      "address": "/c_set",
+      "struct": "CSet",
+      "doc": "Set bus value(s).",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "numericValue"
+            ]
+          },
+          "doc": "Repeated tuples: a bus index; a control value."
+        }
+      ]
+    },
+    {
+      "address": "/c_setn",
+      "struct": "CSetn",
+      "doc": "Set ranges of bus value(s).",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "setnTail": {
+              "head": "i32",
+              "values": "numericValue"
+            }
+          },
+          "doc": "Repeated ranges — each `(start_bus, values[])` writes `values.len()` consecutive buses starting at `start_bus`. The count is encoded from the vector length."
+        }
+      ]
+    },
+    {
+      "address": "/g_deepFree",
+      "struct": "GDeepFree",
+      "doc": "Free all synths in this group and all its sub-groups.",
+      "fields": [
+        {
+          "name": "group_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "group IDs (one or more)"
+        }
+      ]
+    },
+    {
+      "address": "/g_dumpTree",
+      "struct": "GDumpTree",
+      "doc": "Post a representation of this group's node subtree.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: group ID; flag; if not 0 the current control (arg) values for synths will be posted."
+        }
+      ]
+    },
+    {
+      "address": "/g_freeAll",
+      "struct": "GFreeAll",
+      "doc": "Delete all nodes in a group.",
+      "fields": [
+        {
+          "name": "group_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "group IDs (one or more)"
+        }
+      ]
+    },
+    {
+      "address": "/g_head",
+      "struct": "GHead",
+      "doc": "Add node to head of group.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: group ID; node ID."
+        }
+      ]
+    },
+    {
+      "address": "/g_new",
+      "struct": "GNew",
+      "doc": "Create a new group.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: new group ID; add action (0,1,2, 3 or 4 see below); add target ID."
+        }
+      ]
+    },
+    {
+      "address": "/g_queryTree",
+      "struct": "GQueryTree",
+      "doc": "Get a representation of this group's node subtree.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: group ID; flag: if not 0 the current control (arg) values for synths will be included."
+        }
+      ]
+    },
+    {
+      "address": "/g_tail",
+      "struct": "GTail",
+      "doc": "Add node to tail of group.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: group ID; node ID."
+        }
+      ]
+    },
+    {
+      "address": "/p_new",
+      "struct": "PNew",
+      "doc": "Create a new parallel group.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: new group ID; add action (0,1,2, 3 or 4 see below); add target ID."
+        }
+      ]
+    },
+    {
+      "address": "/clearSched",
+      "struct": "ClearSched",
+      "doc": "Clear all scheduled bundles. Removes all bundles from the scheduling queue.",
+      "fields": []
+    },
+    {
+      "address": "/cmd",
+      "struct": "Cmd",
+      "doc": "Plug-in defined command.",
+      "fields": [
+        {
+          "name": "cmd",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "command name"
+        },
+        {
+          "name": "any_arguments",
+          "form": "variadic",
+          "doc": "variadic trailing OSC args — types depend on the specific plug-in-defined command being invoked."
+        }
+      ]
+    },
+    {
+      "address": "/dumpOSC",
+      "struct": "DumpOSC",
+      "doc": "Display incoming OSC messages.",
+      "fields": [
+        {
+          "name": "code",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "code"
+        }
+      ]
+    },
+    {
+      "address": "/error",
+      "struct": "Error",
+      "doc": "Enable/disable error message posting.",
+      "fields": [
+        {
+          "name": "mode",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "mode"
+        }
+      ]
+    },
+    {
+      "address": "/notify",
+      "struct": "Notify",
+      "doc": "Register to receive notifications from server",
+      "fields": [
+        {
+          "name": "enable",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 to receive notifications, 0 to stop receiving them."
+        },
+        {
+          "name": "client_id",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "client ID (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/quit",
+      "struct": "Quit",
+      "doc": "Quit program. Exits the synthesis server.",
+      "fields": []
+    },
+    {
+      "address": "/rtMemoryStatus",
+      "struct": "RtMemoryStatus",
+      "doc": "Queries the amount of currently free real-time memory (in bytes).",
+      "fields": []
+    },
+    {
+      "address": "/status",
+      "struct": "Status",
+      "doc": "Query the status. Replies to sender with the following message:",
+      "fields": []
+    },
+    {
+      "address": "/sync",
+      "struct": "Sync",
+      "doc": "Notify when async commands have completed.",
+      "fields": [
+        {
+          "name": "a_unique_number",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "a unique number identifying this command."
+        }
+      ]
+    },
+    {
+      "address": "/version",
+      "struct": "Version",
+      "doc": "Query the SuperCollider version. Replies to sender with the following message:",
+      "fields": []
+    },
+    {
+      "address": "/n_after",
+      "struct": "NAfter",
+      "doc": "Place a node after another.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: the ID of the node to place (A); the ID of the node after which the above is placed (B)."
+        }
+      ]
+    },
+    {
+      "address": "/n_before",
+      "struct": "NBefore",
+      "doc": "Place a node before another.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: the ID of the node to place (A); the ID of the node before which the above is placed (B)."
+        }
+      ]
+    },
+    {
+      "address": "/n_fill",
+      "struct": "NFill",
+      "doc": "Fill ranges of a node's control value(s).",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32",
+              "numericValue"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; number of values to fill (M); value."
+        }
+      ]
+    },
+    {
+      "address": "/n_free",
+      "struct": "NFree",
+      "doc": "Delete a node.",
+      "fields": [
+        {
+          "name": "node_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "node IDs (one or more)"
+        }
+      ]
+    },
+    {
+      "address": "/n_map",
+      "struct": "NMap",
+      "doc": "Map a node's controls to read from a bus.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; control bus index."
+        }
+      ]
+    },
+    {
+      "address": "/n_mapa",
+      "struct": "NMapa",
+      "doc": "Map a node's controls to read from an audio bus.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; audio bus index."
+        }
+      ]
+    },
+    {
+      "address": "/n_mapan",
+      "struct": "NMapan",
+      "doc": "Map a node's controls to read from audio buses.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; audio bus index; number of controls to map."
+        }
+      ]
+    },
+    {
+      "address": "/n_mapn",
+      "struct": "NMapn",
+      "doc": "Map a node's controls to read from buses.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; control bus index; number of controls to map."
+        }
+      ]
+    },
+    {
+      "address": "/n_order",
+      "struct": "NOrder",
+      "doc": "Move and order a list of nodes.",
+      "fields": [
+        {
+          "name": "add_action",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "add action (0,1,2 or 3 see below)"
+        },
+        {
+          "name": "target_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "add target ID"
+        },
+        {
+          "name": "node_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "node IDs (one or more) to reorder relative to the target"
+        }
+      ]
+    },
+    {
+      "address": "/n_query",
+      "struct": "NQuery",
+      "doc": "Get info about a node.",
+      "fields": [
+        {
+          "name": "node_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "node IDs (one or more) to query"
+        }
+      ]
+    },
+    {
+      "address": "/n_run",
+      "struct": "NRun",
+      "doc": "Turn node on or off.",
+      "fields": [
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "i32",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: node ID; run flag."
+        }
+      ]
+    },
+    {
+      "address": "/n_set",
+      "struct": "NSet",
+      "doc": "Set a node's control value(s).",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "numericValue"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; a control value."
+        }
+      ]
+    },
+    {
+      "address": "/n_setn",
+      "struct": "NSetn",
+      "doc": "Set ranges of a node's control value(s).",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "setnTail": {
+              "head": "controlId",
+              "values": "numericValue"
+            }
+          },
+          "doc": "Repeated ranges — each `(control, values[])` writes `values.len()` consecutive controls starting at `control`. The count is encoded from the vector length."
+        }
+      ]
+    },
+    {
+      "address": "/n_trace",
+      "struct": "NTrace",
+      "doc": "Trace a node.",
+      "fields": [
+        {
+          "name": "node_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "node IDs (one or more) to trace"
+        }
+      ]
+    },
+    {
+      "address": "/nrt_end",
+      "struct": "NrtEnd",
+      "doc": "End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete.",
+      "fields": []
+    },
+    {
+      "address": "/s_get",
+      "struct": "SGet",
+      "doc": "Get control value(s).",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "synth ID"
+        },
+        {
+          "name": "controls",
+          "form": {
+            "list": "controlId"
+          },
+          "doc": "controls (one or more) — each by index or name"
+        }
+      ]
+    },
+    {
+      "address": "/s_getn",
+      "struct": "SGetn",
+      "doc": "Get ranges of control value(s).",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "synth ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "i32"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; number of sequential controls to get (M)."
+        }
+      ]
+    },
+    {
+      "address": "/s_new",
+      "struct": "SNew",
+      "doc": "Create a new synth.",
+      "fields": [
+        {
+          "name": "def_name",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "synth definition name"
+        },
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "synth ID"
+        },
+        {
+          "name": "add_action",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "add action (0,1,2, 3 or 4 see below)"
+        },
+        {
+          "name": "target_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "add target ID"
+        },
+        {
+          "name": "tail",
+          "form": {
+            "tail": [
+              "controlId",
+              "controlValue"
+            ]
+          },
+          "doc": "Repeated tuples: a control index or name; floating point and integer arguments are interpreted as control value. a symbol argument consisting of the letter 'c' or 'a' (for control or audio) followed by the bus's index.."
+        }
+      ]
+    },
+    {
+      "address": "/s_noid",
+      "struct": "SNoid",
+      "doc": "Auto-reassign synth's ID to a reserved value.",
+      "fields": [
+        {
+          "name": "synth_ids",
+          "form": {
+            "list": "i32"
+          },
+          "doc": "synth IDs (one or more) to reassign"
+        }
+      ]
+    },
+    {
+      "address": "/d_free",
+      "struct": "DFree",
+      "doc": "Delete synth definition.",
+      "fields": [
+        {
+          "name": "synth_def_names",
+          "form": {
+            "list": "string"
+          },
+          "doc": "synthdef names (one or more) to delete"
+        }
+      ]
+    },
+    {
+      "address": "/d_load",
+      "struct": "DLoad",
+      "doc": "Load synth definition.",
+      "fields": [
+        {
+          "name": "pathname_of_file",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "pathname of file. Can be a pattern like \"synthdefs/perc-*\""
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/d_loadDir",
+      "struct": "DLoadDir",
+      "doc": "Load a directory of synth definitions.",
+      "fields": [
+        {
+          "name": "pathname_of_directory",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "pathname of directory."
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/d_recv",
+      "struct": "DRecv",
+      "doc": "Receive a synth definition file.",
+      "fields": [
+        {
+          "name": "buffer_of_data",
+          "form": "blob",
+          "doc": "buffer of data."
+        },
+        {
+          "name": "completion_msg",
+          "form": "completion",
+          "doc": "an OSC message to execute upon completion. (optional)"
+        }
+      ]
+    },
+    {
+      "address": "/u_cmd",
+      "struct": "UCmd",
+      "doc": "Send a command to a unit generator.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "node ID"
+        },
+        {
+          "name": "unit_generator_index",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "unit generator index"
+        },
+        {
+          "name": "cmd",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "command name"
+        },
+        {
+          "name": "any_arguments",
+          "form": "variadic",
+          "doc": "variadic trailing OSC args — types depend on the UGen command being invoked."
+        }
+      ]
+    }
+  ]
+}

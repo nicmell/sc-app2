@@ -2,7 +2,11 @@
 # (imported from https://github.com/nicmell/sc-crates), shared by the
 # backend as path dependencies and built to wasm for the frontend later.
 [workspace]
-members = ["crates/scserver-commands", "crates/scsynthdef-compiler"]
+members = [
+    "crates/sc-spec-types",
+    "crates/scserver-commands",
+    "crates/scsynthdef-compiler",
+]
 
 [package]
 name = "sc-app2"

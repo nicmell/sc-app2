@@ -3266,6 +3266,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-spec-types"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "schemars"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3328,6 +3336,7 @@ version = "0.0.1"
 dependencies = [
  "js-sys",
  "rosc",
+ "sc-spec-types",
  "serde",
  "serde-wasm-bindgen",
  "serde_bytes",

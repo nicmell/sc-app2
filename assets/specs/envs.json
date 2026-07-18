@@ -1,0 +1,299 @@
+{
+  "shapes": [
+    {
+      "name": "adsr",
+      "releaseNode": 2,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which is shaped like traditional analog attack-decay-sustain-release (adsr) envelopes.",
+      "args": [
+        {
+          "name": "attack",
+          "default": 0.01,
+          "modulatable": true,
+          "doc": "the duration of the attack portion."
+        },
+        {
+          "name": "decay",
+          "default": 0.3,
+          "modulatable": true,
+          "doc": "the duration of the decay portion."
+        },
+        {
+          "name": "sustain",
+          "default": 0.5,
+          "doc": "the level of the sustain portion as a ratio of the peak level."
+        },
+        {
+          "name": "release",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the duration of the release portion."
+        },
+        {
+          "name": "peak",
+          "default": 1,
+          "doc": "the peak level of the envelope."
+        },
+        {
+          "name": "bias",
+          "default": 0,
+          "doc": "offset"
+        }
+      ]
+    },
+    {
+      "name": "dadsr",
+      "releaseNode": 3,
+      "loopNode": null,
+      "doc": "As *adsr above, but with its onset delayed by delayTime in seconds. The default delay is 0.1.",
+      "args": [
+        {
+          "name": "delay",
+          "default": 0.1,
+          "modulatable": true
+        },
+        {
+          "name": "attack",
+          "default": 0.01,
+          "modulatable": true
+        },
+        {
+          "name": "decay",
+          "default": 0.3,
+          "modulatable": true
+        },
+        {
+          "name": "sustain",
+          "default": 0.5
+        },
+        {
+          "name": "release",
+          "default": 1,
+          "modulatable": true
+        },
+        {
+          "name": "peak",
+          "default": 1
+        },
+        {
+          "name": "bias",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "asr",
+      "releaseNode": 1,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which is shaped like traditional analog attack-sustain-release (asr) envelopes.",
+      "args": [
+        {
+          "name": "attack",
+          "default": 0.01,
+          "modulatable": true,
+          "doc": "the duration of the attack portion."
+        },
+        {
+          "name": "sustain",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the level of the sustain portion as a ratio of the peak level."
+        },
+        {
+          "name": "release",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the duration of the release portion."
+        }
+      ]
+    },
+    {
+      "name": "cutoff",
+      "releaseNode": 0,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which has no attack segment. It simply sustains at the peak level until released. Useful if you only need a fadeout, and more versatile than Line .",
+      "args": [
+        {
+          "name": "release",
+          "default": 0.1,
+          "modulatable": true,
+          "doc": "the duration of the release portion."
+        },
+        {
+          "name": "level",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the peak level of the envelope."
+        }
+      ]
+    },
+    {
+      "name": "perc",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which (usually) has a percussive shape.",
+      "args": [
+        {
+          "name": "attack",
+          "default": 0.01,
+          "modulatable": true,
+          "doc": "the duration of the attack portion."
+        },
+        {
+          "name": "release",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the duration of the release portion."
+        },
+        {
+          "name": "level",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the peak level of the envelope."
+        }
+      ]
+    },
+    {
+      "name": "linen",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which has a trapezoidal shape.",
+      "args": [
+        {
+          "name": "attack",
+          "default": 0.01,
+          "modulatable": true,
+          "doc": "the duration of the attack portion."
+        },
+        {
+          "name": "sustainTime",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the duration of the sustain portion."
+        },
+        {
+          "name": "release",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the duration of the release portion."
+        },
+        {
+          "name": "level",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the level of the sustain portion."
+        }
+      ]
+    },
+    {
+      "name": "triangle",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which has a triangle shape.",
+      "args": [
+        {
+          "name": "dur",
+          "default": 1,
+          "doc": "the duration of the envelope."
+        },
+        {
+          "name": "level",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the peak level of the envelope."
+        }
+      ]
+    },
+    {
+      "name": "sine",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification which has a hanning window shape.",
+      "args": [
+        {
+          "name": "dur",
+          "default": 1,
+          "doc": "the duration of the envelope."
+        },
+        {
+          "name": "level",
+          "default": 1,
+          "modulatable": true,
+          "doc": "the peak level of the envelope."
+        }
+      ]
+    },
+    {
+      "name": "new",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Create a new envelope specification.",
+      "args": [
+        {
+          "name": "levels",
+          "default": 0,
+          "array": true,
+          "modulatable": true,
+          "doc": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion )."
+        },
+        {
+          "name": "times",
+          "default": 0,
+          "array": true,
+          "modulatable": true,
+          "doc": "an array of durations of segments in seconds. There should be one fewer duration than there are levels, but if shorter, the array is extended by wrapping around the given values."
+        }
+      ]
+    },
+    {
+      "name": "step",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification where all the segments are horizontal lines. Given n values of times only n levels need to be provided, corresponding to the fixed value of each segment.",
+      "args": [
+        {
+          "name": "levels",
+          "default": 0,
+          "array": true,
+          "modulatable": true,
+          "doc": "an array of levels. The first value is the initial level of the envelope and, when used with EnvGen , is held until the gate opens. If a level is a UGen, it's value is updated only when the envelope reaches that node. When a level is itself an array, the envelope returns a multichannel output (for a discussion, see Multichannel expansion )."
+        },
+        {
+          "name": "times",
+          "default": 0,
+          "array": true,
+          "modulatable": true,
+          "doc": "an array of durations of segments in seconds. It should be the same size as the levels array."
+        }
+      ]
+    },
+    {
+      "name": "pairs",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification from coordinates / control points",
+      "args": [
+        {
+          "name": "pairs",
+          "default": 0,
+          "array": true,
+          "doc": "an array of pairs [[time, level], ...] if possible, pairs are sorted regarding their point in time"
+        }
+      ]
+    },
+    {
+      "name": "xyc",
+      "releaseNode": null,
+      "loopNode": null,
+      "doc": "Creates a new envelope specification from coordinates / control points with curvature.",
+      "args": [
+        {
+          "name": "xyc",
+          "default": 0,
+          "array": true,
+          "doc": "an array of triplets [[time, level, curve], ...] if possible, pairs are sorted regarding their point in time"
+        }
+      ]
+    }
+  ]
+}

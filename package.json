@@ -16,6 +16,7 @@
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",
     "scdoc:diff": "tsx scripts/scdoc/diff-ugens.ts",
+    "scdoc:parity": "tsx scripts/scdoc/registry-parity.ts",
     "scdoc:server": "node scripts/scdoc/extract-server-commands.mjs",
     "lint": "eslint src packages",
     "format": "prettier --write src packages",

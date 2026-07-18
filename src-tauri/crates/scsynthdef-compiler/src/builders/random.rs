@@ -28,11 +28,10 @@ impl CoinGate {
             trig: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             prob: UGenInput::Constant(0.0),
             trig: UGenInput::Constant(0.0),
         }
@@ -352,6 +351,14 @@ impl RandSeed {
     pub fn kr() -> Self {
         Self {
             _rate: Rate::Control,
+            trig: UGenInput::Constant(0.0),
+            seed: UGenInput::Constant(56789.0),
+        }
+    }
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
+        Self {
+            _rate: Rate::Audio,
             trig: UGenInput::Constant(0.0),
             seed: UGenInput::Constant(56789.0),
         }

@@ -7,7 +7,7 @@ use crate::Rate;
 pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"CoinGate",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"prob", None), (r"trig", None)],
         num_outputs: None,
         extends: None,
@@ -108,7 +108,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"RandID",
-        rates: &[Rate::Scalar, Rate::Control],
+        rates: &[Rate::Control, Rate::Scalar],
         defaults: &[(r"seed", Some(0.0))],
         num_outputs: Some(1),
         extends: None,
@@ -121,7 +121,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"RandSeed",
-        rates: &[Rate::Scalar, Rate::Control],
+        rates: &[Rate::Audio, Rate::Control, Rate::Scalar],
         defaults: &[(r"trig", Some(0.0)), (r"seed", Some(56789.0))],
         num_outputs: Some(1),
         extends: None,
@@ -155,7 +155,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"TIRand",
-        rates: &[Rate::Control, Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"lo", Some(0.0)),
             (r"hi", Some(127.0)),
@@ -176,7 +176,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"TRand",
-        rates: &[Rate::Control, Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"lo", Some(0.0)), (r"hi", Some(1.0)), (r"trig", Some(0.0))],
         num_outputs: None,
         extends: None,

@@ -31,6 +31,16 @@ impl Ball {
             friction: UGenInput::Constant(0.01),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            r#in: UGenInput::Constant(0.0),
+            g: UGenInput::Constant(1.0),
+            damp: UGenInput::Constant(0.0),
+            friction: UGenInput::Constant(0.01),
+        }
+    }
 
     /// modulated surface level
     pub fn r#in(mut self, v: impl Into<UGenInput>) -> Self {
@@ -1162,7 +1172,16 @@ impl Spring {
         Self {
             _rate: Rate::Audio,
             r#in: UGenInput::Constant(0.0),
-            spring: UGenInput::Constant(0.0),
+            spring: UGenInput::Constant(1.0),
+            damp: UGenInput::Constant(0.0),
+        }
+    }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            r#in: UGenInput::Constant(0.0),
+            spring: UGenInput::Constant(1.0),
             damp: UGenInput::Constant(0.0),
         }
     }
@@ -1213,6 +1232,16 @@ impl TBall {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
+            r#in: UGenInput::Constant(0.0),
+            g: UGenInput::Constant(10.0),
+            damp: UGenInput::Constant(0.0),
+            friction: UGenInput::Constant(0.01),
+        }
+    }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
             r#in: UGenInput::Constant(0.0),
             g: UGenInput::Constant(10.0),
             damp: UGenInput::Constant(0.0),

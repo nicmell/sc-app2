@@ -194,7 +194,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"ScopeOut",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"inputArray", None), (r"bufnum", Some(0.0))],
         num_outputs: Some(1),
         extends: None,

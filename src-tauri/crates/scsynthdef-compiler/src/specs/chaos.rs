@@ -7,7 +7,7 @@ use crate::Rate;
 pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"CuspL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -30,7 +30,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"CuspN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -53,7 +53,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"FBSineC",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"im", Some(1.0)),
@@ -82,7 +82,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"FBSineL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"im", Some(1.0)),
@@ -111,7 +111,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"FBSineN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"im", Some(1.0)),
@@ -140,7 +140,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"GbmanL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"xi", Some(1.2)),
@@ -161,7 +161,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"GbmanN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"xi", Some(1.2)),
@@ -182,7 +182,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"HenonC",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.4)),
@@ -207,7 +207,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"HenonL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.4)),
@@ -232,7 +232,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"HenonN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.4)),
@@ -257,7 +257,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LatoocarfianC",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -286,7 +286,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LatoocarfianL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -315,7 +315,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LatoocarfianN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -344,7 +344,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LinCongC",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.1)),
@@ -369,7 +369,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LinCongL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.1)),
@@ -394,7 +394,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LinCongN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.1)),
@@ -419,7 +419,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"LorenzL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"s", Some(10.0)),
@@ -450,7 +450,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"QuadC",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -475,7 +475,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"QuadL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -500,7 +500,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"QuadN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"a", Some(1.0)),
@@ -525,7 +525,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"StandardL",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"k", Some(1.0)),
@@ -548,7 +548,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"StandardN",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio],
         defaults: &[
             (r"freq", Some(22050.0)),
             (r"k", Some(1.0)),

@@ -272,11 +272,10 @@ impl CheckBadValues {
             post: UGenInput::Constant(2.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             r#in: UGenInput::Constant(0.0),
             id: UGenInput::Constant(0.0),
             post: UGenInput::Constant(2.0),

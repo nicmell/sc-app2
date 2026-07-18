@@ -7,7 +7,7 @@ use crate::Rate;
 pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"Ball",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"in", Some(0.0)),
             (r"g", Some(1.0)),
@@ -471,10 +471,10 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Spring",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"in", Some(0.0)),
-            (r"spring", Some(0.0)),
+            (r"spring", Some(1.0)),
             (r"damp", Some(0.0)),
         ],
         num_outputs: None,
@@ -490,7 +490,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"TBall",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"in", Some(0.0)),
             (r"g", Some(10.0)),

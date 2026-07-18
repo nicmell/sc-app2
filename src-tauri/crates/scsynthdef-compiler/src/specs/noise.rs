@@ -20,7 +20,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"ClipNoise",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[],
         num_outputs: None,
         extends: None,
@@ -71,7 +71,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"GrayNoise",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[],
         num_outputs: None,
         extends: None,
@@ -84,7 +84,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Hasher",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"in", Some(0.0))],
         num_outputs: None,
         extends: None,
@@ -213,7 +213,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Logistic",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"chaosParam", Some(3.0)),
             (r"freq", Some(1000.0)),
@@ -240,7 +240,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"MantissaMask",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"in", Some(0.0)), (r"bits", Some(3.0))],
         num_outputs: None,
         extends: None,

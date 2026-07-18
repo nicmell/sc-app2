@@ -84,7 +84,7 @@ impl Convolution2 {
             r#in: UGenInput::Constant(0.0),
             kernel: UGenInput::Constant(0.0),
             trigger: UGenInput::Constant(0.0),
-            framesize: UGenInput::Constant(512.0),
+            framesize: UGenInput::Constant(2048.0),
         }
     }
 
@@ -151,7 +151,7 @@ impl Convolution2L {
             r#in: UGenInput::Constant(0.0),
             kernel: UGenInput::Constant(0.0),
             trigger: UGenInput::Constant(0.0),
-            framesize: UGenInput::Constant(512.0),
+            framesize: UGenInput::Constant(2048.0),
             crossfade: UGenInput::Constant(1.0),
         }
     }
@@ -226,7 +226,7 @@ impl Convolution3 {
             r#in: UGenInput::Constant(0.0),
             kernel: UGenInput::Constant(0.0),
             trigger: UGenInput::Constant(0.0),
-            framesize: UGenInput::Constant(512.0),
+            framesize: UGenInput::Constant(2048.0),
         }
     }
 
@@ -237,7 +237,7 @@ impl Convolution3 {
             r#in: UGenInput::Constant(0.0),
             kernel: UGenInput::Constant(0.0),
             trigger: UGenInput::Constant(0.0),
-            framesize: UGenInput::Constant(512.0),
+            framesize: UGenInput::Constant(2048.0),
         }
     }
 
@@ -582,7 +582,7 @@ impl StereoConvolution2L {
             kernel_l: UGenInput::Constant(0.0),
             kernel_r: UGenInput::Constant(0.0),
             trigger: UGenInput::Constant(0.0),
-            framesize: UGenInput::Constant(512.0),
+            framesize: UGenInput::Constant(2048.0),
             crossfade: UGenInput::Constant(1.0),
         }
     }

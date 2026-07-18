@@ -161,7 +161,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"OffsetOut",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bus", None), (r"channelsArray", None)],
         num_outputs: Some(0),
         extends: Some(r"Out"),

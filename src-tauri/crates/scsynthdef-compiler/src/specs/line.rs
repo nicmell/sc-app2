@@ -18,7 +18,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"AmpComp",
-        rates: &[Rate::Scalar, Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio, Rate::Control, Rate::Scalar],
         defaults: &[
             (r"freq", Some(261.6256)),
             (r"root", Some(261.6256)),
@@ -50,7 +50,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"AmpCompA",
-        rates: &[Rate::Scalar, Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio, Rate::Control, Rate::Scalar],
         defaults: &[
             (r"freq", Some(1000.0)),
             (r"root", Some(0.0)),

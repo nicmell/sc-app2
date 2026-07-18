@@ -150,11 +150,10 @@ impl DetectIndex {
             r#in: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             bufnum: UGenInput::Constant(0.0),
             r#in: UGenInput::Constant(0.0),
         }
@@ -304,11 +303,10 @@ impl Index {
             r#in: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             bufnum: UGenInput::Constant(0.0),
             r#in: UGenInput::Constant(0.0),
         }
@@ -353,11 +351,10 @@ impl IndexInBetween {
             r#in: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             bufnum: UGenInput::Constant(0.0),
             r#in: UGenInput::Constant(0.0),
         }
@@ -878,11 +875,10 @@ impl Shaper {
             r#in: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             bufnum: UGenInput::Constant(0.0),
             r#in: UGenInput::Constant(0.0),
         }
@@ -1433,11 +1429,10 @@ impl WrapIndex {
             r#in: UGenInput::Constant(0.0),
         }
     }
-
-    /// Build at ir rate (Rate::Scalar).
-    pub fn ir() -> Self {
+    /// Build at ar rate (Rate::Audio).
+    pub fn ar() -> Self {
         Self {
-            _rate: Rate::Scalar,
+            _rate: Rate::Audio,
             bufnum: UGenInput::Constant(0.0),
             r#in: UGenInput::Constant(0.0),
         }

@@ -35,6 +35,16 @@ impl Balance2 {
             level: UGenInput::Constant(1.0),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            left: UGenInput::Constant(0.0),
+            right: UGenInput::Constant(0.0),
+            pos: UGenInput::Constant(0.0),
+            level: UGenInput::Constant(1.0),
+        }
+    }
 
     /// channel 1 of input stereo signal
     pub fn left(mut self, v: impl Into<UGenInput>) -> Self {

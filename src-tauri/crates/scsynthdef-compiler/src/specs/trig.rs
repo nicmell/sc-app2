@@ -61,7 +61,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"InRange",
-        rates: &[Rate::Audio, Rate::Control],
+        rates: &[Rate::Audio, Rate::Control, Rate::Scalar],
         defaults: &[(r"in", Some(0.0)), (r"lo", Some(0.0)), (r"hi", Some(1.0))],
         num_outputs: None,
         extends: None,

@@ -455,6 +455,14 @@ impl OffsetOut {
             channels_array: Vec::new(),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            bus: UGenInput::Constant(0.0),
+            channels_array: Vec::new(),
+        }
+    }
 
     /// the index of the buss to write to. The lowest index numbers are written to the
     /// audio hardware.

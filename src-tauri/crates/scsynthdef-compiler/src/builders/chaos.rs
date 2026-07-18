@@ -33,17 +33,6 @@ impl CuspL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(1.9),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -97,17 +86,6 @@ impl CuspN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(1.9),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.0),
             b: UGenInput::Constant(1.9),
@@ -173,20 +151,6 @@ impl FBSineC {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            im: UGenInput::Constant(1.0),
-            fb: UGenInput::Constant(0.1),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.1),
-            yi: UGenInput::Constant(0.1),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             im: UGenInput::Constant(1.0),
             fb: UGenInput::Constant(0.1),
@@ -286,20 +250,6 @@ impl FBSineL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            im: UGenInput::Constant(1.0),
-            fb: UGenInput::Constant(0.1),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.1),
-            yi: UGenInput::Constant(0.1),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -378,20 +328,6 @@ impl FBSineN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            im: UGenInput::Constant(1.0),
-            fb: UGenInput::Constant(0.1),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.1),
-            yi: UGenInput::Constant(0.1),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             im: UGenInput::Constant(1.0),
             fb: UGenInput::Constant(0.1),
@@ -481,16 +417,6 @@ impl GbmanL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            xi: UGenInput::Constant(1.2),
-            yi: UGenInput::Constant(2.1),
-        }
-    }
-
     /// iteration frequency in Hz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -536,16 +462,6 @@ impl GbmanN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            xi: UGenInput::Constant(1.2),
-            yi: UGenInput::Constant(2.1),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             xi: UGenInput::Constant(1.2),
             yi: UGenInput::Constant(2.1),
@@ -601,18 +517,6 @@ impl HenonC {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.4),
-            b: UGenInput::Constant(0.3),
-            x0: UGenInput::Constant(0.0),
-            x1: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.4),
             b: UGenInput::Constant(0.3),
@@ -692,18 +596,6 @@ impl HenonL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.4),
-            b: UGenInput::Constant(0.3),
-            x0: UGenInput::Constant(0.0),
-            x1: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -767,18 +659,6 @@ impl HenonN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.4),
-            b: UGenInput::Constant(0.3),
-            x0: UGenInput::Constant(0.0),
-            x1: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.4),
             b: UGenInput::Constant(0.3),
@@ -853,20 +733,6 @@ impl LatoocarfianC {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(3.0),
-            c: UGenInput::Constant(0.5),
-            d: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.5),
-            yi: UGenInput::Constant(0.5),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.0),
             b: UGenInput::Constant(3.0),
@@ -967,20 +833,6 @@ impl LatoocarfianL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(3.0),
-            c: UGenInput::Constant(0.5),
-            d: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.5),
-            yi: UGenInput::Constant(0.5),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1061,20 +913,6 @@ impl LatoocarfianN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(3.0),
-            c: UGenInput::Constant(0.5),
-            d: UGenInput::Constant(0.5),
-            xi: UGenInput::Constant(0.5),
-            yi: UGenInput::Constant(0.5),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.0),
             b: UGenInput::Constant(3.0),
@@ -1168,18 +1006,6 @@ impl LinCongC {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.13),
-            m: UGenInput::Constant(1.0),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz.
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1241,18 +1067,6 @@ impl LinCongL {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.13),
-            m: UGenInput::Constant(1.0),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.1),
             c: UGenInput::Constant(0.13),
@@ -1330,18 +1144,6 @@ impl LinCongN {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.1),
-            c: UGenInput::Constant(0.13),
-            m: UGenInput::Constant(1.0),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz.
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1409,21 +1211,6 @@ impl LorenzL {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            s: UGenInput::Constant(10.0),
-            r: UGenInput::Constant(28.0),
-            b: UGenInput::Constant(2.667),
-            h: UGenInput::Constant(0.05),
-            xi: UGenInput::Constant(0.1),
-            yi: UGenInput::Constant(0.0),
-            zi: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             s: UGenInput::Constant(10.0),
             r: UGenInput::Constant(28.0),
@@ -1525,18 +1312,6 @@ impl QuadC {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(-1.0),
-            c: UGenInput::Constant(-0.75),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1598,18 +1373,6 @@ impl QuadL {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(-1.0),
-            c: UGenInput::Constant(-0.75),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             a: UGenInput::Constant(1.0),
             b: UGenInput::Constant(-1.0),
@@ -1687,18 +1450,6 @@ impl QuadN {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            a: UGenInput::Constant(1.0),
-            b: UGenInput::Constant(-1.0),
-            c: UGenInput::Constant(-0.75),
-            xi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1767,17 +1518,6 @@ impl StandardL {
         }
     }
 
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
-            freq: UGenInput::Constant(22050.0),
-            k: UGenInput::Constant(1.0),
-            xi: UGenInput::Constant(0.5),
-            yi: UGenInput::Constant(0.0),
-        }
-    }
-
     /// iteration frequency in Hertz
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
         self.freq = v.into();
@@ -1831,17 +1571,6 @@ impl StandardN {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
-            freq: UGenInput::Constant(22050.0),
-            k: UGenInput::Constant(1.0),
-            xi: UGenInput::Constant(0.5),
-            yi: UGenInput::Constant(0.0),
-        }
-    }
-
-    /// Build at kr rate (Rate::Control).
-    pub fn kr() -> Self {
-        Self {
-            _rate: Rate::Control,
             freq: UGenInput::Constant(22050.0),
             k: UGenInput::Constant(1.0),
             xi: UGenInput::Constant(0.5),

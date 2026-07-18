@@ -524,6 +524,14 @@ impl ScopeOut {
             input_array: Vec::new(),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            bufnum: UGenInput::Constant(0.0),
+            input_array: Vec::new(),
+        }
+    }
 
     pub fn bufnum(mut self, v: impl Into<UGenInput>) -> Self {
         self.bufnum = v.into();

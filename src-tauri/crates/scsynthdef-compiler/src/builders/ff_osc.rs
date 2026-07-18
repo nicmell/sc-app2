@@ -35,6 +35,14 @@ impl Blip {
             numharm: UGenInput::Constant(200.0),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            freq: UGenInput::Constant(440.0),
+            numharm: UGenInput::Constant(200.0),
+        }
+    }
 
     /// Frequency in Hertz (control rate)
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
@@ -263,7 +271,7 @@ impl PSinGrain {
             _rate: Rate::Audio,
             freq: UGenInput::Constant(440.0),
             dur: UGenInput::Constant(0.2),
-            amp: UGenInput::Constant(1.0),
+            amp: UGenInput::Constant(0.1),
         }
     }
 
@@ -321,6 +329,14 @@ impl Pulse {
             width: UGenInput::Constant(0.5),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            freq: UGenInput::Constant(440.0),
+            width: UGenInput::Constant(0.5),
+        }
+    }
 
     /// Frequency in Hertz (control rate)
     pub fn freq(mut self, v: impl Into<UGenInput>) -> Self {
@@ -363,6 +379,13 @@ impl Saw {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
+            freq: UGenInput::Constant(440.0),
+        }
+    }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
             freq: UGenInput::Constant(440.0),
         }
     }

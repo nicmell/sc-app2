@@ -75,7 +75,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"CheckBadValues",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"in", None), (r"id", Some(0.0)), (r"post", Some(2.0))],
         num_outputs: None,
         extends: None,
@@ -176,7 +176,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"NumRunningSynths",
-        rates: &[Rate::Scalar, Rate::Control],
+        rates: &[Rate::Control, Rate::Scalar],
         defaults: &[],
         num_outputs: None,
         extends: None,

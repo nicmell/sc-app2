@@ -7,7 +7,7 @@ use crate::Rate;
 pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"Blip",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"freq", Some(440.0)), (r"numharm", Some(200.0))],
         num_outputs: None,
         extends: None,
@@ -116,7 +116,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
         defaults: &[
             (r"freq", Some(440.0)),
             (r"dur", Some(0.2)),
-            (r"amp", Some(1.0)),
+            (r"amp", Some(0.1)),
         ],
         num_outputs: None,
         extends: None,
@@ -133,7 +133,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Pulse",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"freq", Some(440.0)), (r"width", Some(0.5))],
         num_outputs: None,
         extends: None,
@@ -152,7 +152,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Saw",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"freq", Some(440.0))],
         num_outputs: None,
         extends: None,

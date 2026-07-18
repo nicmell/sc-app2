@@ -221,6 +221,15 @@ impl InRange {
             hi: UGenInput::Constant(1.0),
         }
     }
+    /// Build at ir rate (Rate::Scalar).
+    pub fn ir() -> Self {
+        Self {
+            _rate: Rate::Scalar,
+            r#in: UGenInput::Constant(0.0),
+            lo: UGenInput::Constant(0.0),
+            hi: UGenInput::Constant(1.0),
+        }
+    }
 
     /// input signal
     pub fn r#in(mut self, v: impl Into<UGenInput>) -> Self {

@@ -58,6 +58,10 @@ impl ClipNoise {
     pub fn ar() -> Self {
         Self { _rate: Rate::Audio }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self { _rate: Rate::Audio }
+    }
 
     /// Materialise this UGen into `def`'s node list.
     /// Returns a handle usable as input to other UGens.
@@ -213,6 +217,10 @@ impl GrayNoise {
     pub fn ar() -> Self {
         Self { _rate: Rate::Audio }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self { _rate: Rate::Audio }
+    }
 
     /// Materialise this UGen into `def`'s node list.
     /// Returns a handle usable as input to other UGens.
@@ -237,6 +245,13 @@ impl Hasher {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
+            r#in: UGenInput::Constant(0.0),
+        }
+    }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
             r#in: UGenInput::Constant(0.0),
         }
     }
@@ -632,6 +647,15 @@ impl Logistic {
             init: UGenInput::Constant(0.5),
         }
     }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
+            chaos_param: UGenInput::Constant(3.0),
+            freq: UGenInput::Constant(1000.0),
+            init: UGenInput::Constant(0.5),
+        }
+    }
 
     /// a parameter of the chaotic function with useful values from 0.0 to 4.0. Chaos
     /// occurs from 3.57 up. Don't use values outside this range if you don't want the
@@ -681,6 +705,14 @@ impl MantissaMask {
     pub fn ar() -> Self {
         Self {
             _rate: Rate::Audio,
+            r#in: UGenInput::Constant(0.0),
+            bits: UGenInput::Constant(3.0),
+        }
+    }
+    /// Build at kr rate (Rate::Control).
+    pub fn kr() -> Self {
+        Self {
+            _rate: Rate::Control,
             r#in: UGenInput::Constant(0.0),
             bits: UGenInput::Constant(3.0),
         }

@@ -7,7 +7,7 @@ use crate::Rate;
 pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     UGenRegistryEntry {
         name: r"Balance2",
-        rates: &[Rate::Audio],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[
             (r"left", None),
             (r"right", None),

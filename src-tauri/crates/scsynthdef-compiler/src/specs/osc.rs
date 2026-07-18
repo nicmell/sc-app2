@@ -58,7 +58,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"DetectIndex",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bufnum", None), (r"in", Some(0.0))],
         num_outputs: None,
         extends: Some(r"Index"),
@@ -112,7 +112,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Index",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bufnum", None), (r"in", Some(0.0))],
         num_outputs: None,
         extends: None,
@@ -125,7 +125,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"IndexInBetween",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bufnum", None), (r"in", Some(0.0))],
         num_outputs: None,
         extends: Some(r"Index"),
@@ -303,7 +303,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"Shaper",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bufnum", None), (r"in", Some(0.0))],
         num_outputs: None,
         extends: Some(r"Index"),
@@ -492,7 +492,7 @@ pub(crate) const UGENS: &[UGenRegistryEntry] = &[
     },
     UGenRegistryEntry {
         name: r"WrapIndex",
-        rates: &[Rate::Control, Rate::Scalar],
+        rates: &[Rate::Audio, Rate::Control],
         defaults: &[(r"bufnum", None), (r"in", Some(0.0))],
         num_outputs: None,
         extends: Some(r"Index"),

@@ -8,6 +8,14 @@ pub enum CompileError {
     #[error("Duplicate control name: \"{0}\"")]
     DuplicateParam(String),
 
+    #[error("Array control \"{0}\" must have at least one value")]
+    EmptyArrayControl(String),
+
+    /// Envelope build/encode failures — carries the exact message the TS
+    /// package threw (the app pins some of these verbatim).
+    #[error("{0}")]
+    Env(String),
+
     #[error("Forward reference: {from_class}[{from_idx}] references {to_class}[{to_idx}]")]
     ForwardReference {
         from_class: String,

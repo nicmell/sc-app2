@@ -318,3 +318,49 @@ fn synthdef_json_serializes_and_parses() {
     assert_eq!(parsed.name, "json_string");
     assert_eq!(parsed.parameters.values, vec![220.0]);
 }
+
+/// Array controls (sclang's `\name.kr(#[…])`): consecutive value slots, ONE
+/// name entry at the base index, outputs on the shared Control UGen —
+/// mirrors packages/synthdef-compiler/tests/control-array.test.ts.
+#[test]
+fn array_controls_name_only_the_base_slot() {
+    let mut def = SynthDef::new("envArr");
+    def.add_control("freq", 440.0, Rate::Control).unwrap();
+    let slots = def
+        .add_control_array("env", &[0.0, 2.0, -99.0, 1.0, 0.5, 1.0], Rate::Control)
+        .unwrap();
+    assert_eq!(slots.len(), 6);
+
+    let j = def.to_json().unwrap();
+    assert_eq!(
+        j.parameters.values,
+        vec![440.0, 0.0, 2.0, -99.0, 1.0, 0.5, 1.0]
+    );
+    let names: Vec<(String, u32)> = j
+        .parameters
+        .names
+        .iter()
+        .map(|n| (n.name.clone(), n.index))
+        .collect();
+    assert_eq!(names, vec![("freq".to_string(), 0), ("env".to_string(), 1)]);
+    // One shared Control UGen with an output per slot.
+    let control = j.ugens.iter().find(|u| u.class_name == "Control").unwrap();
+    assert_eq!(control.outputs.len(), 7);
+
+    // Bytes round-trip preserves the sparse name table.
+    let bytes = def.to_bytes().unwrap();
+    let back = SynthDef::from_bytes(&bytes).unwrap();
+    assert_eq!(back.to_bytes().unwrap(), bytes);
+}
+
+#[test]
+fn array_control_errors() {
+    let mut def = SynthDef::new("bad");
+    assert!(matches!(
+        def.add_control_array("env", &[], Rate::Control),
+        Err(scsynthdef_compiler::CompileError::EmptyArrayControl(_))
+    ));
+    def.add_control_array("env", &[0.0, 1.0], Rate::Control)
+        .unwrap();
+    assert!(def.add_control("env", 0.0, Rate::Control).is_err()); // dup name
+}

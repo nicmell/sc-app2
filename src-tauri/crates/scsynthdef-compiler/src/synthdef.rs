@@ -72,6 +72,11 @@ pub(crate) struct Node {
 struct ParamInfo {
     name: String,
     default_value: f32,
+    /// Whether this slot carries a name entry in the SCgf names table. An
+    /// ARRAY control names only its FIRST slot (sclang's array-control
+    /// encoding — `/n_setn "name"` writes the whole run); the tail slots
+    /// are unnamed value slots.
+    named: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -136,13 +141,56 @@ impl SynthDef {
         rate: Rate,
     ) -> Result<UGenInput, CompileError> {
         let name = name.into();
-        if self.params.iter().any(|p| p.name == name) {
-            return Err(CompileError::DuplicateParam(name));
-        }
+        self.check_control(&name, rate)?;
 
-        // Contiguity guard: once we've moved on to a different rate, we can't
-        // append to the earlier rate's group without splitting the params
-        // table.
+        let param_index = self.params.len() as u32;
+        self.params.push(ParamInfo {
+            name,
+            default_value,
+            named: true,
+        });
+        self.last_param_rate = Some(rate);
+        self.grow_rate_group(rate, param_index)
+    }
+
+    /// Add a named ARRAY control (sclang's `\name.kr(defaults)` with an
+    /// array): `defaults.len()` consecutive value slots, ONE name entry at
+    /// the base index (`/n_setn "name"` then writes the whole run), and as
+    /// many outputs on the rate's shared control UGen. Returns the per-slot
+    /// inputs.
+    pub fn add_control_array(
+        &mut self,
+        name: impl Into<String>,
+        defaults: &[f32],
+        rate: Rate,
+    ) -> Result<Vec<UGenInput>, CompileError> {
+        let name = name.into();
+        if defaults.is_empty() {
+            return Err(CompileError::EmptyArrayControl(name));
+        }
+        self.check_control(&name, rate)?;
+
+        let mut outputs = Vec::with_capacity(defaults.len());
+        for (i, default_value) in defaults.iter().enumerate() {
+            let param_index = self.params.len() as u32;
+            self.params.push(ParamInfo {
+                name: name.clone(),
+                default_value: *default_value,
+                named: i == 0,
+            });
+            outputs.push(self.grow_rate_group(rate, param_index)?);
+        }
+        self.last_param_rate = Some(rate);
+        Ok(outputs)
+    }
+
+    /// The shared add-control guards: unique NAMES (the named slots) and no
+    /// rate interleaving (params of a rate must stay contiguous so
+    /// `special_index + output_slot` maps back to a valid params index).
+    fn check_control(&self, name: &str, rate: Rate) -> Result<(), CompileError> {
+        if self.params.iter().any(|p| p.named && p.name == name) {
+            return Err(CompileError::DuplicateParam(name.to_string()));
+        }
         let is_audio = rate == Rate::Audio;
         let already_has_this_rate = if is_audio {
             self.audio_control_group.is_some()
@@ -158,16 +206,12 @@ impl SynthDef {
                 "{name}: rate-interleaved controls are not supported — group all kr params, then all ar params"
             )));
         }
+        Ok(())
+    }
 
-        let param_index = self.params.len() as u32;
-        self.params.push(ParamInfo {
-            name,
-            default_value,
-        });
-        self.last_param_rate = Some(rate);
-
-        // Pick the matching group; create on first call, otherwise grow.
-        if is_audio {
+    /// Grow (or create) the shared control UGen for `rate` by one output.
+    fn grow_rate_group(&mut self, rate: Rate, param_index: u32) -> Result<UGenInput, CompileError> {
+        if rate == Rate::Audio {
             Self::grow_group(
                 &mut self.nodes,
                 &mut self.audio_control_group,
@@ -184,6 +228,12 @@ impl SynthDef {
                 param_index,
             )
         }
+    }
+
+    /// The calculation rate of an already-added node (compile-time rate
+    /// propagation reads this).
+    pub fn node_rate(&self, index: u32) -> Option<Rate> {
+        self.nodes.get(index as usize).map(|n| n.rate)
     }
 
     fn grow_group(
@@ -263,15 +313,22 @@ impl SynthDef {
             w.f32(*c);
         }
 
-        // Parameter defaults
+        // Parameter defaults (every slot, named or not)
         w.i32(self.params.len() as i32);
         for p in &self.params {
             w.f32(p.default_value);
         }
 
-        // Parameter names
-        w.i32(self.params.len() as i32);
-        for (idx, p) in self.params.iter().enumerate() {
+        // Parameter names — named slots only (an array control names its
+        // base slot; the run's tail slots are anonymous values).
+        let named: Vec<(usize, &ParamInfo)> = self
+            .params
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.named)
+            .collect();
+        w.i32(named.len() as i32);
+        for (idx, p) in named {
             w.pstring(&p.name)?;
             w.i32(idx as i32);
         }
@@ -346,6 +403,7 @@ impl SynthDef {
                     .params
                     .iter()
                     .enumerate()
+                    .filter(|(_, p)| p.named)
                     .map(|(i, p)| ParamName {
                         name: p.name.clone(),
                         index: i as u32,
@@ -376,17 +434,21 @@ impl SynthDef {
         // their exact positions, so we don't use `add_control` (which would
         // push another Control node). We rebuild `params` separately and
         // append every ugen — Control and otherwise — directly.
+        // Rebuild EVERY value slot; the (possibly sparse) names table marks
+        // which slots are named — an array control names only its base.
+        let mut name_at: std::collections::HashMap<u32, &str> = std::collections::HashMap::new();
         for name in &j.parameters.names {
-            let idx = name.index as usize;
-            let default = j
-                .parameters
-                .values
-                .get(idx)
-                .copied()
-                .ok_or_else(|| CompileError::UnknownUGenId(name.name.clone()))?;
+            if name.index as usize >= j.parameters.values.len() {
+                return Err(CompileError::UnknownUGenId(name.name.clone()));
+            }
+            name_at.insert(name.index, &name.name);
+        }
+        for (idx, value) in j.parameters.values.iter().enumerate() {
+            let named = name_at.get(&(idx as u32));
             def.params.push(ParamInfo {
-                name: name.name.clone(),
-                default_value: default,
+                name: named.map(|n| n.to_string()).unwrap_or_default(),
+                default_value: *value,
+                named: named.is_some(),
             });
         }
 

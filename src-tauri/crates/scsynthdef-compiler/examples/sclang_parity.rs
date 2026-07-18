@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use scsynthdef_compiler::builders::{BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc, A2K};
-use scsynthdef_compiler::{Rate, SynthDef};
+use scsynthdef_compiler::{Rate, SynthDef, UGenInput};
 
 // ── Fixture definitions ──────────────────────────────────────────────────
 //
@@ -98,12 +98,58 @@ fn fixture_global_clock_phase() -> Fixture {
     }
 }
 
-fn fixtures() -> [Fixture; 3] {
+fn fixtures() -> [Fixture; 4] {
     [
         fixture_global_clock_phase(),
         fixture_sc_test_recorder(),
         fixture_sine(),
+        fixture_env_arr(),
     ]
+}
+
+/// Array control + EnvGen with the env run spliced from the control slots —
+/// pins the sparse name table AND the Env.asArray splice against sclang.
+fn fixture_env_arr() -> Fixture {
+    Fixture {
+        name: "env_arr",
+        build: || {
+            let mut def = SynthDef::new("env_arr");
+            let freq = def.add_control("freq", 440.0, Rate::Control)?;
+            let gate = def.add_control("gate", 1.0, Rate::Control)?;
+            let env = def.add_control_array(
+                "env",
+                &[
+                    0.0, 2.0, -99.0, -99.0, 1.0, 0.5, 5.0, -4.0, 0.0, 0.5, 5.0, -4.0,
+                ],
+                Rate::Control,
+            )?;
+            let osc = SinOsc::ar().freq(freq).phase(0.0).build(&mut def);
+            // EnvGen.kr(env, gate, 1, 0, 1, 0): gate/levelScale/levelBias/
+            // timeScale/doneAction, then the envelope run at the tail.
+            let mut inputs: Vec<UGenInput> = vec![
+                gate,
+                UGenInput::Constant(1.0),
+                UGenInput::Constant(0.0),
+                UGenInput::Constant(1.0),
+                UGenInput::Constant(0.0),
+            ];
+            inputs.extend(env);
+            let envgen = def.add_ugen("EnvGen", Rate::Control, inputs, 1, 0);
+            // SinOsc * EnvGen → BinaryOpUGen '*' (special index 2).
+            let amp = def.add_ugen(
+                "BinaryOpUGen",
+                Rate::Audio,
+                vec![osc, UGenInput::UGen(envgen)],
+                1,
+                2,
+            );
+            Out::ar()
+                .bus(0.0)
+                .channels_array([UGenInput::UGen(amp)])
+                .build(&mut def);
+            Ok(def.to_bytes()?)
+        },
+    }
 }
 
 // ── sclang invocation ────────────────────────────────────────────────────

@@ -89,6 +89,8 @@ function messageArgs(msg: ServerMessage): unknown[] {
       return [msg.subId, msg.scope, msg.channels, msg.chunkSize];
     case "/scope/unsubscribe":
       return [msg.subId];
+    case "/dirt/play":
+      return msg.pairs.flatMap(([key, value]) => [key, val(value)]);
     default:
       return [];
   }

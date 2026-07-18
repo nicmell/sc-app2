@@ -147,8 +147,12 @@ export function raw(address: string, ...args: Array<number | string | Uint8Array
   return { address, args: args.map(toOscArg) };
 }
 
-/** `/dirt/play` — one Strudel/SuperDirt event as flattened key/value
- *  pairs (sent inside a timetagged bundle, see `encodeBundle`). */
+/** `/dirt/play` — one Strudel/SuperDirt event as key/value pairs,
+ *  flattened to SuperDirt's alternating arg list on the wire (sent inside
+ *  a timetagged bundle, see `encodeBundle`). */
 export function dirtPlay(event: Record<string, string | number>): ServerMessage {
-  return raw("/dirt/play", ...Object.entries(event).flat());
+  return {
+    address: "/dirt/play",
+    pairs: Object.entries(event).map(([key, value]): [string, OscArg] => [key, toOscArg(value)]),
+  };
 }

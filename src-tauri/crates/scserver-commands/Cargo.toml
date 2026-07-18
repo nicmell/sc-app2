@@ -23,6 +23,9 @@ js-sys = { version = "0.3", optional = true }
 serde-wasm-bindgen = { version = "0.6", optional = true }
 tsify = { version = "0.5", default-features = false, features = ["js"], optional = true }
 
+[build-dependencies]
+sc-spec-types = { path = "../sc-spec-types" }
+
 [features]
 default = []
 wasm = ["dep:wasm-bindgen", "dep:js-sys", "dep:serde-wasm-bindgen", "dep:tsify"]

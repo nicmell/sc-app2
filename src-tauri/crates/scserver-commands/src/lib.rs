@@ -7,6 +7,8 @@
 #![allow(clippy::all)]
 
 pub mod args;
+#[macro_use]
+mod commands_macro;
 pub mod commands;
 mod error;
 mod nrt;
@@ -17,8 +19,9 @@ mod wasm;
 
 pub use args::{OscArg, OscTimetag};
 pub use commands::{
-    ControlId, ControlValue, KnownMessage, NumericValue, OtherMsg, ScopeSubscribe,
-    ScopeUnsubscribe, ServerMessage, SCOPE_SUBSCRIBE_ADDRESS, SCOPE_UNSUBSCRIBE_ADDRESS,
+    ControlId, ControlValue, DirtPlay, KnownMessage, NumericValue, OtherMsg, ScopeSubscribe,
+    ScopeUnsubscribe, ServerMessage, DIRT_PLAY_ADDRESS, SCOPE_SUBSCRIBE_ADDRESS,
+    SCOPE_UNSUBSCRIBE_ADDRESS,
 };
 pub use error::CommandError;
 pub use nrt::NrtScore;

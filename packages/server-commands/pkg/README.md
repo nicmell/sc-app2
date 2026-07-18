@@ -94,7 +94,7 @@ let bytes = BAlloc {
 
 ### From TypeScript (WASM component)
 
-Same three flows, via the jco-transpiled bindings:
+Same three flows, via the wasm-bindgen/tsify bindings:
 
 ```ts
 import { commands, nrt, replies } from './pkg/scserver_commands.js';
@@ -170,11 +170,10 @@ scsynthdef-compiler):
 
 ```bash
 cd crates/scserver-commands
-cargo component build --release --features component --target wasm32-wasip1
-jco transpile ../../target/wasm32-wasip1/release/scserver_commands.wasm -o pkg
+wasm-pack build --release --target web -- --features wasm
 ```
 
-## WIT surface
+## Wasm surface
 
 Four interfaces, mirroring the Rust modules:
 

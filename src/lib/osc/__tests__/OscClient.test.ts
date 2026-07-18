@@ -22,7 +22,7 @@ import { SliceName } from "@/constants/store";
 
 const oscSlice = appStore.slice(SliceName.OSC);
 
-const syncedReply = (syncId: number): ServerReply => ({ tag: "synced", val: { syncId } });
+const syncedReply = (syncId: number): ServerReply => ({ address: "/synced", syncId });
 
 beforeEach(() => {
   oscSlice.update((s) => ({ ...s, log: [], errors: [], scsynthStatus: null }));
@@ -54,18 +54,16 @@ describe("OscClient.handleReply", () => {
 
   it("routes status-reply into scsynthStatus and keeps it out of the log", () => {
     workerOscClient.handleReply({
-      tag: "status-reply",
-      val: {
-        unused: 1,
-        numUgens: 0,
-        numSynths: 0,
-        numGroups: 0,
-        numSynthDefs: 0,
-        avgCpu: 12.5,
-        peakCpu: 20.25,
-        nominalSampleRate: 48000,
-        actualSampleRate: 48000.0,
-      },
+      address: "/status.reply",
+      unused: 1,
+      numUgens: 0,
+      numSynths: 0,
+      numGroups: 0,
+      numSynthDefs: 0,
+      avgCpu: 12.5,
+      peakCpu: 20.25,
+      nominalSampleRate: 48000,
+      actualSampleRate: 48000.0,
     });
     expect(oscClient.scsynthStatus.get()).toEqual({
       avgCpu: 12.5,
@@ -80,8 +78,10 @@ describe("OscClient.handleReply", () => {
 
   it("coalesces identical fail banners and still logs them; dismissError drops one", async () => {
     const fail = (): ServerReply => ({
-      tag: "fail",
-      val: { address: "/s_new", error: "SynthDef not found", extras: [] },
+      address: "/fail",
+      command: "/s_new",
+      error: "SynthDef not found",
+      extras: [],
     });
     workerOscClient.handleReply(fail());
     workerOscClient.handleReply(fail());
@@ -102,8 +102,12 @@ describe("OscClient.handleReply", () => {
 
   it("skips scope chunks in the console log", () => {
     workerOscClient.handleReply({
-      tag: "scope-chunk",
-      val: { subId: 1, tickIndex: 0, isGap: false, channels: 1, samples: Float32Array.of(0) },
+      address: "/scope/chunk",
+      subId: 1,
+      tickIndex: 0,
+      isGap: false,
+      channels: 1,
+      samples: Float32Array.of(0),
     });
     expect(oscClient.log.get()).toHaveLength(0);
   });
@@ -115,7 +119,7 @@ describe("OscClient.once", () => {
   });
 
   it("resolves on the first matching reply, which still reaches the console log", async () => {
-    const reply = workerOscClient.once("synced", (s) => s.syncId === 7);
+    const reply = workerOscClient.once("/synced", (s) => s.syncId === 7);
     workerOscClient.handleReply(syncedReply(7));
     const val = await reply;
     expect(val.syncId).toBe(7);
@@ -123,8 +127,8 @@ describe("OscClient.once", () => {
   });
 
   it("ignores non-matching replies and is one-shot FIFO per match", async () => {
-    const first = workerOscClient.once("n-go", (n) => n.nodeId === 100);
-    const second = workerOscClient.once("n-go", (n) => n.nodeId === 100);
+    const first = workerOscClient.once("/n_go", (n) => n.nodeId === 100);
+    const second = workerOscClient.once("/n_go", (n) => n.nodeId === 100);
     workerOscClient.handleReply(nGoReply(99));
     workerOscClient.handleReply(nGoReply(100));
     await expect(first).resolves.toMatchObject({ nodeId: 100 });
@@ -135,9 +139,9 @@ describe("OscClient.once", () => {
 
   it("rejects after the reply timeout", async () => {
     vi.useFakeTimers();
-    const reply = workerOscClient.once("synced", (s) => s.syncId === 8);
+    const reply = workerOscClient.once("/synced", (s) => s.syncId === 8);
     const expectation = expect(reply).rejects.toThrow(
-      "OscClient.once: timed out waiting for synced",
+      "OscClient.once: timed out waiting for /synced",
     );
     vi.advanceTimersByTime(REPLY_TIMEOUT_MS);
     await expectation;
@@ -146,7 +150,7 @@ describe("OscClient.once", () => {
   });
 
   it("rejects pending waiters when the connection closes", async () => {
-    const reply = workerOscClient.once("synced");
+    const reply = workerOscClient.once("/synced");
     const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
     workerOscClient.close();
     await expectation;

@@ -29,15 +29,6 @@ pub fn decode_message(bytes: &[u8]) -> Option<OscMessage> {
     }
 }
 
-/// An OSC int argument as `i32` (accepts both `Int` and `Long`).
-pub fn int_arg(arg: &OscType) -> Option<i32> {
-    match arg {
-        OscType::Int(v) => Some(*v),
-        OscType::Long(v) => Some(*v as i32),
-        _ => None,
-    }
-}
-
 /// Read the OSC address from a packet without fully decoding it.
 ///
 /// A bare message starts with its NUL-terminated address string. A bundle
@@ -85,19 +76,12 @@ mod tests {
         );
         let msg = decode_message(&bytes).expect("decode");
         assert_eq!(msg.addr, "/dirt/play");
-        assert_eq!(int_arg(&msg.args[0]), Some(7));
+        assert!(matches!(msg.args[0], OscType::Int(7)));
     }
 
     #[test]
     fn decode_rejects_garbage() {
         assert!(decode_message(b"garbage").is_none());
-    }
-
-    #[test]
-    fn int_arg_accepts_int_and_long() {
-        assert_eq!(int_arg(&OscType::Int(3)), Some(3));
-        assert_eq!(int_arg(&OscType::Long(9)), Some(9));
-        assert_eq!(int_arg(&OscType::Float(1.0)), None);
     }
 
     #[test]

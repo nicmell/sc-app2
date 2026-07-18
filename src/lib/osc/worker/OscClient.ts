@@ -3,7 +3,7 @@
 // the main thread's background-tab timer throttling. Encode/decode is the
 // wasm component (@sc-app/server-commands): typed ServerMessage values go
 // out, typed ServerReply values come in, and everything downstream — the
-// `once(tag, match)` waiters, telemetry arms, log rendering — consumes the
+// `once(address, match)` waiters, telemetry arms, log rendering — consume the
 // single decode. State/UI live across the port in OscClientProxy; this
 // class only emits `OscClientEvents`. See lib/osc/README.md for the split.
 
@@ -28,7 +28,7 @@ import {
   scopeUnsubscribe,
   sNew,
   sync,
-  type OscTime,
+  type OscTimetag,
   type ScopeChunkReply,
   type ServerMessage,
   type ServerReply,
@@ -38,15 +38,16 @@ import type { OscSession } from "@/types/osc";
 import type { OscLogEntry, ScsynthStatus } from "@/types/stores";
 import { TRANSPORT_STATUS, createWsTransport, type WorkerTransport } from "./transport";
 
-type ReplyTag = ServerReply["tag"];
-type ReplyVal<T extends ReplyTag> = Extract<ServerReply, { tag: T }>["val"];
+type ReplyAddress = ServerReply["address"];
+type ReplyOf<A extends ReplyAddress> = Extract<ServerReply, { address: A }>;
 
-/** A pending `once()` — matched in `handleReply` by reply tag + payload
- *  predicate. Stored type-erased; `once()` is the typed constructor. */
+/** A pending `once()` — matched in `handleReply` by the reply's wire
+ *  ADDRESS (the serde tag) + a payload predicate. Stored type-erased;
+ *  `once()` is the typed constructor. */
 interface ReplyWaiter {
-  tag: ReplyTag;
-  match: (val: unknown) => boolean;
-  resolve: (val: unknown) => void;
+  address: string;
+  match: (reply: never) => boolean;
+  resolve: (reply: unknown) => void;
   reject: (err: Error) => void;
   timer: ReturnType<typeof setTimeout>;
 }
@@ -146,7 +147,7 @@ export class OscClient {
   }
   /** Send several commands as one timetagged bundle — scsynth applies them
    *  atomically at the tag. Logged per contained message. */
-  sendBundle(time: OscTime, msgs: ServerMessage[]): void {
+  sendBundle(time: OscTimetag, msgs: ServerMessage[]): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
     for (const msg of msgs) this.appendTx(msg);
     this.transport.send(encodeBundle(time, msgs));
@@ -155,20 +156,20 @@ export class OscClient {
    *  registered BEFORE the triggering send (the sequenced-command
    *  invariant), one-shot FIFO per match, rejecting on timeout or close so
    *  a load pass fails loudly instead of wedging. */
-  once<T extends ReplyTag>(
-    tag: T,
-    match: (val: ReplyVal<T>) => boolean = () => true,
+  once<A extends ReplyAddress>(
+    address: A,
+    match: (reply: ReplyOf<A>) => boolean = () => true,
     timeoutMs = REPLY_TIMEOUT_MS,
-  ): Promise<ReplyVal<T>> {
+  ): Promise<ReplyOf<A>> {
     return new Promise((resolve, reject) => {
       const waiter: ReplyWaiter = {
-        tag,
-        match: match as (val: unknown) => boolean,
-        resolve: resolve as (val: unknown) => void,
+        address,
+        match: match as (reply: never) => boolean,
+        resolve: resolve as (reply: unknown) => void,
         reject,
         timer: setTimeout(() => {
           this.waiters = this.waiters.filter((w) => w !== waiter);
-          reject(new Error(`OscClient.once: timed out waiting for ${tag}`));
+          reject(new Error(`OscClient.once: timed out waiting for ${address}`));
         }, timeoutMs),
       };
       this.waiters.push(waiter);
@@ -189,7 +190,7 @@ export class OscClient {
   /** `/g_new` gated on the `/n_go` ack. */
   async createGroup(targetId: number): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once("n-go", (n) => n.nodeId === id);
+    const reply = this.once("/n_go", (n) => n.nodeId === id);
     this.send(gNew(id, AddToTail, targetId));
     await reply;
     return id;
@@ -205,7 +206,7 @@ export class OscClient {
     arrayControls: ReadonlyArray<{ index: number; values: readonly number[] }> = [],
   ): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once("n-go", (n) => n.nodeId === id);
+    const reply = this.once("/n_go", (n) => n.nodeId === id);
     const pairs: Array<[string | number, number]> = Object.entries(controls);
     for (const item of arrayControls)
       item.values.forEach((value, i) => pairs.push([item.index + i, value]));
@@ -224,7 +225,7 @@ export class OscClient {
    *  follow immediately. (The sync id spends a node id; harmless, unique.) */
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const id = this.nextNodeId();
-    const reply = this.once("synced", (s) => s.syncId === id);
+    const reply = this.once("/synced", (s) => s.syncId === id);
     this.send(dRecv(bytes, encode(sync(id))));
     await reply;
   }
@@ -267,42 +268,47 @@ export class OscClient {
    *  (they stream continuously), everything else lands as an rx entry.
    *  Public on purpose: the unit suites feed replies here directly. */
   handleReply(reply: ServerReply): void {
-    const val: unknown = reply.val;
-    const waiter = this.waiters.find((w) => w.tag === reply.tag && w.match(val));
+    const waiter = this.waiters.find(
+      (w) => w.address === reply.address && (w.match as (r: ServerReply) => boolean)(reply),
+    );
     if (waiter) {
       this.waiters = this.waiters.filter((w) => w !== waiter);
       clearTimeout(waiter.timer);
-      waiter.resolve(val);
+      waiter.resolve(reply);
     }
-    if (reply.tag === "scope-chunk") {
-      const c = reply.val;
-      if (c.channels > 0 && c.samples.length % c.channels === 0) {
-        this.events.scopeChunk(c.subId, c);
+    if ("args" in reply) {
+      // Unknown-address fallback: log-only (nothing routes on it).
+      const d = describeReply(reply);
+      this.append("rx", d.address, d.args);
+      return;
+    }
+    if (reply.address === "/scope/chunk") {
+      if (reply.channels > 0 && reply.samples.length % reply.channels === 0) {
+        this.events.scopeChunk(reply.subId, reply);
       } else {
-        console.error("[osc] bad /scope/chunk:", c.channels, "channels,", c.samples.length);
+        console.error("[osc] bad /scope/chunk:", reply.channels, "channels,", reply.samples.length);
       }
       return;
     }
-    if (reply.tag === "status-reply") {
-      const s = reply.val;
+    if (reply.address === "/status.reply") {
       this.events.status({
-        avgCpu: s.avgCpu,
-        peakCpu: s.peakCpu,
-        sampleRate: s.actualSampleRate,
-        numUgens: s.numUgens,
-        numSynths: s.numSynths,
-        numGroups: s.numGroups,
+        avgCpu: reply.avgCpu,
+        peakCpu: reply.peakCpu,
+        sampleRate: reply.actualSampleRate,
+        numUgens: reply.numUgens,
+        numSynths: reply.numSynths,
+        numGroups: reply.numGroups,
       });
       if (this.statusTimer !== null) this.armWatchdog();
       return;
     }
-    if (reply.tag === "fail") {
-      this.events.banner(reply.val.address, reply.val.error || "(no message)", "error");
-    } else if (reply.tag === "late") {
+    if (reply.address === "/fail") {
+      this.events.banner(reply.command, reply.error || "(no message)", "error");
+    } else if (reply.address === "/late") {
       // Two NTP timetags (scheduled, executed) — the lateness is their
       // difference in seconds.
-      const l = reply.val;
-      const seconds = l.lateSecs - l.seconds + (l.lateFracs - l.fractions) / 2 ** 32;
+      const seconds =
+        reply.lateSecs - reply.seconds + (reply.lateFracs - reply.fractions) / 2 ** 32;
       this.events.banner("/late", `bundle ran ${seconds.toFixed(3)}s late`, "warn");
     }
     const d = describeReply(reply);

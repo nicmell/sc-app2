@@ -189,6 +189,10 @@ function __wbg_get_imports() {
             const ret = arg0[arg1];
             return ret;
         },
+        __wbg_has_73740b27f436fed3: function() { return handleError(function (arg0, arg1) {
+            const ret = Reflect.has(arg0, arg1);
+            return ret;
+        }, arguments); },
         __wbg_instanceof_ArrayBuffer_8f49811467741499: function(arg0) {
             let result;
             try {

@@ -1134,7 +1134,7 @@ export interface StatusReply {
     actualSampleRate: number;
 }
 
-export type OscArg = { int32: number } | { float32: number } | { float64: number } | { string: string } | { blob: number[] };
+export type OscArg = { int32: number } | { float32: number } | { float64: number } | { string: string } | { blob: Uint8Array };
 
 
 /**

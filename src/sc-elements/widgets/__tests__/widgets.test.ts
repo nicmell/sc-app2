@@ -63,8 +63,12 @@ const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
  *  so the fixture carries the decoded planar samples directly. */
 function scopeChunk(subId: number, floats: number[], channels = 2) {
   return {
-    tag: "scope-chunk",
-    val: { subId, tickIndex: 1, isGap: false, channels, samples: Float32Array.from(floats) },
+    address: "/scope/chunk",
+    subId,
+    tickIndex: 1,
+    isGap: false,
+    channels,
+    samples: Float32Array.from(floats),
   } as const;
 }
 

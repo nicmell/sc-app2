@@ -17,7 +17,11 @@ pub enum OscArg {
     Float32(f32),
     Float64(f64),
     String(String),
-    Blob(#[serde(with = "serde_bytes")] Vec<u8>),
+    Blob(
+        #[serde(with = "serde_bytes")]
+        #[cfg_attr(feature = "wasm", tsify(type = "Uint8Array"))]
+        Vec<u8>,
+    ),
 }
 
 impl From<OscArg> for OscType {

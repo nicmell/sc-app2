@@ -1,18 +1,20 @@
 /**
  * @sc-app/server-commands — the app's scsynth OSC vocabulary.
  *
- * An abstraction/utility layer over the wasm component transpiled from the
+ * An abstraction/utility layer over the wasm-bindgen build of the
  * scserver-commands Rust crate (`pkg/`, regenerated via
  * `yarn generate:server-commands`): typed `ServerMessage` builders for the
- * commands the app speaks, the encode/decode boundary, typed `ServerReply`
- * classification for everything inbound, and display formatting for the
- * OSC console.
+ * commands the app speaks, the encode/decode boundary, and typed
+ * `ServerReply` classification for everything inbound. The serde tag IS the
+ * OSC address, so every value is a flat object TypeScript narrows on its
+ * `address` field — no tag↔address mapping exists anywhere.
  *
  * ```ts
  * import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
  *
  * const bytes = encode(sNew("myDef", 1001, AddToHead, 100, [["freq", 440]]));
- * const reply = decodeReply(inbound); // e.g. { tag: "n-go", val: {...} }
+ * const reply = decodeReply(inbound); // e.g. { address: "/n_go", nodeId, … }
+ * if (reply.address === "/synced") console.log(reply.syncId);
  * ```
  */
 
@@ -31,21 +33,19 @@ export {
   type FlatMessage,
 } from "./describe";
 
-// The component's own types, re-exported under the package root.
+// The crate's own generated types, re-exported under the package root.
 export type {
   ServerMessage,
+  ServerReply,
+  KnownMessage,
+  KnownReply,
+  OtherMsg,
   ControlId,
   ControlValue,
   NumericValue,
-} from "../pkg/interfaces/scserver-commands-commands.js";
-export type {
-  ServerReply,
+  OscArg,
+  OscTimetag,
   NodeInfo,
-  StatusReplyInfo,
-  FailInfo,
-  DoneInfo,
-  SyncedReply,
+  StatusReply,
   ScopeChunkReply,
-  ReplyBundle,
-} from "../pkg/interfaces/scserver-commands-replies.js";
-export type { OscArg, OscTime } from "../pkg/interfaces/scserver-commands-core.js";
+} from "../pkg/scserver_commands.js";

@@ -19,7 +19,7 @@ import {
   encode,
   flattenEncoded,
   type FlatMessage,
-  type OscTime,
+  type OscTimetag,
   type ServerMessage,
   type ServerReply,
 } from "@sc-app/server-commands";
@@ -73,7 +73,7 @@ export async function mountPlugin(xml: string): Promise<{ host: ScPlugin; nodes:
 
 /** A typed `/n_go` reply — what scsynth acks node creation with. */
 export function nGoReply(nodeId: number): ServerReply {
-  return { tag: "n-go", val: { nodeId, parentId: 1, prevId: -1, nextId: -1, isGroup: 0 } };
+  return { address: "/n_go", nodeId, parentId: 1, prevNode: -1, nextNode: -1, isGroup: 0 };
 }
 
 /** Flatten one typed message to its single wire view (assertion helper for
@@ -100,10 +100,7 @@ export function autoRespond(sent: SentMessage): void {
       // the component to find the embedded /sync id.
       const completion = flattenEncoded(sent.args[1] as Uint8Array)[0];
       if (completion?.address === "/sync") {
-        workerOscClient.handleReply({
-          tag: "synced",
-          val: { syncId: completion.args[0] as number },
-        });
+        workerOscClient.handleReply({ address: "/synced", syncId: completion.args[0] as number });
       }
       break;
     }
@@ -118,7 +115,7 @@ export function autoRespond(sent: SentMessage): void {
 export function installScsynthMock(): {
   sent: SentMessage[];
   send: MockInstance<(msg: ServerMessage) => void>;
-  sendBundle: MockInstance<(time: OscTime, msgs: ServerMessage[]) => void>;
+  sendBundle: MockInstance<(time: OscTimetag, msgs: ServerMessage[]) => void>;
 } {
   const sent: SentMessage[] = [];
   const record = (msg: ServerMessage) => {

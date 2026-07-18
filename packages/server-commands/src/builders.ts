@@ -1,19 +1,19 @@
 /**
  * Builders for the commands the app actually speaks — each returns a plain
- * tagged `ServerMessage` value (the WIT variant encoding: `{tag, val}`) for
- * `encode`/`encodeBundle`. Argument inference mirrors the OSC typing the old
- * osc-js layer produced: integer numbers become int32, non-integers float32,
- * strings stay strings (a control-value string is a `c`/`a` bus mapping),
- * Uint8Array becomes a blob.
+ * `ServerMessage` value in the crate's serde shape: a flat object whose
+ * `address` field IS the discriminant (`{ address: "/s_new", defName, … }`).
+ * Argument inference mirrors the OSC typing the old osc-js layer produced:
+ * integer numbers become ints, non-integers floats, strings stay strings (a
+ * control-value string is a `c`/`a` bus mapping), Uint8Array becomes a blob.
  */
 
 import type {
   ControlId,
   ControlValue,
   NumericValue,
+  OscArg,
   ServerMessage,
-} from "../pkg/interfaces/scserver-commands-commands.js";
-import type { OscArg } from "../pkg/interfaces/scserver-commands-core.js";
+} from "../pkg/scserver_commands.js";
 
 // scsynth add actions (`/s_new`, `/g_new` addAction arg).
 export const AddToHead = 0;
@@ -23,34 +23,34 @@ export const AddAfter = 3;
 export const AddReplace = 4;
 
 /** THE numeric-typing rule (integer → int, else float — what osc-js
- *  encoded): one place to touch, three tagged-union spellings below. */
+ *  encoded): one place to touch, three tagged-value spellings below. */
 const isInt = (v: number) => Number.isInteger(v);
 
 /** A control referenced by declared name or by index. */
 function toControlId(key: string | number): ControlId {
-  return typeof key === "string" ? { tag: "name", val: key } : { tag: "index", val: key };
+  return typeof key === "string" ? { name: key } : { index: key };
 }
 
 function toNumericValue(v: number): NumericValue {
-  return isInt(v) ? { tag: "int", val: v } : { tag: "float", val: v };
+  return isInt(v) ? { int: v } : { float: v };
 }
 
 /** A control value: number (via the numeric rule) or a `c`/`a`-prefixed
  *  bus-mapping symbol. */
 function toControlValue(v: number | string): ControlValue {
-  return typeof v === "string" ? { tag: "bus", val: v } : toNumericValue(v);
+  return typeof v === "string" ? { bus: v } : toNumericValue(v);
 }
 
 /** One variadic OSC arg for the `other` escape hatch. */
 function toOscArg(v: number | string | Uint8Array): OscArg {
-  if (v instanceof Uint8Array) return { tag: "blob", val: v };
-  if (typeof v === "string") return { tag: "string", val: v };
-  return isInt(v) ? { tag: "int32", val: v } : { tag: "float32", val: v };
+  if (v instanceof Uint8Array) return { blob: v };
+  if (typeof v === "string") return { string: v };
+  return isInt(v) ? { int32: v } : { float32: v };
 }
 
 /** `/g_new` — create one group under `targetId`. */
 export function gNew(groupId: number, addAction: number, targetId: number): ServerMessage {
-  return { tag: "g-new", val: { tail: [[groupId, addAction, targetId]] } };
+  return { address: "/g_new", tail: [[groupId, addAction, targetId]] };
 }
 
 /** `/s_new` — spawn a synth with (control, value) pairs baked in. */
@@ -62,25 +62,21 @@ export function sNew(
   pairs: ReadonlyArray<readonly [string | number, number | string]> = [],
 ): ServerMessage {
   return {
-    tag: "s-new",
-    val: {
-      defName,
-      nodeId,
-      addAction,
-      targetId,
-      tail: pairs.map(([k, v]) => [toControlId(k), toControlValue(v)]),
-    },
+    address: "/s_new",
+    defName,
+    nodeId,
+    addAction,
+    targetId,
+    tail: pairs.map(([k, v]) => [toControlId(k), toControlValue(v)]),
   };
 }
 
 /** `/n_set` — set named/indexed scalar controls on a node. */
 export function nSet(nodeId: number, controls: Record<string | number, number>): ServerMessage {
   return {
-    tag: "n-set",
-    val: {
-      nodeId,
-      tail: Object.entries(controls).map(([k, v]) => [toControlId(k), toNumericValue(v)]),
-    },
+    address: "/n_set",
+    nodeId,
+    tail: Object.entries(controls).map(([k, v]) => [toControlId(k), toNumericValue(v)]),
   };
 }
 
@@ -92,62 +88,63 @@ export function nSetn(
   values: readonly number[],
 ): ServerMessage {
   return {
-    tag: "n-setn",
-    val: { nodeId, tail: [[toControlId(control), values.map(toNumericValue)]] },
+    address: "/n_setn",
+    nodeId,
+    tail: [[toControlId(control), values.map(toNumericValue)]],
   };
 }
 
 /** `/n_run` — pause (0) / resume (1) one node. */
 export function nRun(nodeId: number, flag: 0 | 1): ServerMessage {
-  return { tag: "n-run", val: { tail: [[nodeId, flag]] } };
+  return { address: "/n_run", tail: [[nodeId, flag]] };
 }
 
 /** `/n_free` — free nodes. */
 export function nFree(...nodeIds: number[]): ServerMessage {
-  return { tag: "n-free", val: { nodeIds: new Int32Array(nodeIds) } };
+  return { address: "/n_free", nodeIds };
 }
 
 /** `/g_freeAll` — free every node inside the groups (the groups survive). */
 export function gFreeAll(...groupIds: number[]): ServerMessage {
-  return { tag: "g-free-all", val: { groupIds: new Int32Array(groupIds) } };
+  return { address: "/g_freeAll", groupIds };
 }
 
 /** `/d_recv` — install a compiled SynthDef, with an optional completion
  *  message executed once the def is ready (e.g. an embedded `/sync`). */
 export function dRecv(bytes: Uint8Array, completionMsg?: Uint8Array): ServerMessage {
-  return { tag: "d-recv", val: { bufferOfData: bytes, completionMsg } };
+  return { address: "/d_recv", bufferOfData: bytes, completionMsg };
 }
 
 /** `/d_free` — remove SynthDef definitions by name. */
 export function dFree(...names: string[]): ServerMessage {
-  return { tag: "d-free", val: { synthDefNames: names } };
+  return { address: "/d_free", synthDefNames: names };
 }
 
 /** `/sync` — scsynth echoes `/synced <id>` once preceding async commands
  *  completed. */
 export function sync(id: number): ServerMessage {
-  return { tag: "sync", val: { aUniqueNumber: id } };
+  return { address: "/sync", aUniqueNumber: id };
 }
 
 /** `/scope/subscribe` — sc-app bridge extension: register a scope-slot
- *  stream (answered with `scope-chunk` replies). */
+ *  stream (answered with `/scope/chunk` replies). */
 export function scopeSubscribe(params: {
   subId: number;
   scope: number;
   channels: number;
   chunkSize: number;
 }): ServerMessage {
-  return { tag: "scope-subscribe", val: params };
+  return { address: "/scope/subscribe", ...params };
 }
 
 /** `/scope/unsubscribe` — sc-app bridge extension: drop a scope stream. */
 export function scopeUnsubscribe(subId: number): ServerMessage {
-  return { tag: "scope-unsubscribe", val: { subId } };
+  return { address: "/scope/unsubscribe", subId };
 }
 
 /** Escape hatch: a raw address + args outside the command catalogue. */
 export function raw(address: string, ...args: Array<number | string | Uint8Array>): ServerMessage {
-  return { tag: "other", val: { address, args: args.map(toOscArg) } };
+  return { address, args: args.map(toOscArg) };
 }
 
 /** `/dirt/play` — one Strudel/SuperDirt event as flattened key/value

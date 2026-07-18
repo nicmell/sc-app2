@@ -112,16 +112,19 @@ describe("bundles and timetags", () => {
 describe("typed reply classification", () => {
   it("classifies the replies the worker routes on", () => {
     expect(decodeReply(encode(raw("/n_go", 2001, 1, -1, -1, 0)))).toEqual({
-      tag: "n-go",
-      val: { nodeId: 2001, parentId: 1, prevId: -1, nextId: -1, isGroup: 0 },
+      address: "/n_go",
+      nodeId: 2001,
+      parentId: 1,
+      prevNode: -1,
+      nextNode: -1,
+      isGroup: 0,
     });
-    expect(decodeReply(encode(raw("/synced", 7)))).toEqual({
-      tag: "synced",
-      val: { syncId: 7 },
-    });
+    expect(decodeReply(encode(raw("/synced", 7)))).toEqual({ address: "/synced", syncId: 7 });
     expect(decodeReply(encode(raw("/fail", "/s_new", "SynthDef not found")))).toEqual({
-      tag: "fail",
-      val: { address: "/s_new", error: "SynthDef not found", extras: [] },
+      address: "/fail",
+      command: "/s_new",
+      error: "SynthDef not found",
+      extras: [],
     });
   });
 
@@ -131,15 +134,16 @@ describe("typed reply classification", () => {
     new DataView(blob.buffer).setFloat32(0, 1, false);
     new DataView(blob.buffer).setFloat32(4, -1, false);
     const reply = decodeReply(encode(raw("/scope/chunk", 5, 9, 0, 2, blob)));
-    if (reply.tag !== "scope-chunk") throw new Error(`expected scope-chunk, got ${reply.tag}`);
-    expect(Array.from(reply.val.samples)).toEqual([1, -1]);
-    expect(reply.val).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });
-    expect(reply.val.samples.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
+    if (reply.address !== "/scope/chunk") throw new Error(`expected chunk, got ${reply.address}`);
+    expect(reply.samples).toBeInstanceOf(Float32Array);
+    expect(Array.from(reply.samples)).toEqual([1, -1]);
+    expect(reply).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });
+    expect(reply.samples.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
   });
 
   it("decodeReplyPacket splits bundles and errors loudly on garbage", () => {
     const bundle = encodeBundle(IMMEDIATE_TIME, [raw("/synced", 1), raw("/synced", 2)]);
-    expect(decodeReplyPacket(bundle).map((r) => r.tag)).toEqual(["synced", "synced"]);
+    expect(decodeReplyPacket(bundle).map((r) => r.address)).toEqual(["/synced", "/synced"]);
     expect(() => decodeReply(Uint8Array.from([1, 2, 3]))).toThrow();
   });
 });

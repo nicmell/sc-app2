@@ -3,9 +3,9 @@
 //! (wasm-pack) into `packages/server-commands/pkg`.
 //!
 //! One deliberate asymmetry: the boundary discriminates known-vs-other
-//! ITSELF (try [`KnownMessage`], fall back to [`OtherMsg`]) instead of
-//! leaning on an untagged serde wrapper — and the `/scope/chunk` reply arm
-//! is serialized by hand so its samples cross as ONE `Float32Array` memcpy
+//! ITSELF (on the escape hatch's `args` marker field) instead of leaning on
+//! an untagged serde wrapper — and the `/scope/chunk` reply arm is
+//! serialized by hand so its samples cross as ONE `Float32Array` memcpy
 //! rather than a boxed `number[]` (the ~47 Hz streaming hot path).
 
 use js_sys::{Array, Float32Array, Reflect, Uint8Array};
@@ -17,11 +17,17 @@ use crate::replies::{KnownReply, ScopeChunkReply};
 use crate::{ntp_from_unix_ms, ServerMessage, ServerReply};
 
 fn parse_message(msg: &JsValue) -> Result<ServerMessage, JsError> {
-    if let Ok(known) = serde_wasm_bindgen::from_value::<KnownMessage>(msg.clone()) {
-        return Ok(ServerMessage::Known(known));
+    // `args` is the escape hatch's marker — no catalogued command carries a
+    // field of that name, and dispatching on it (rather than try-known-first)
+    // keeps a raw message with a catalogued address from silently dropping
+    // its args to serde's unknown-field tolerance.
+    if Reflect::has(msg, &JsValue::from_str("args")).unwrap_or(false) {
+        return serde_wasm_bindgen::from_value::<OtherMsg>(msg.clone())
+            .map(ServerMessage::Other)
+            .map_err(|e| JsError::new(&format!("not a valid raw message: {e}")));
     }
-    serde_wasm_bindgen::from_value::<OtherMsg>(msg.clone())
-        .map(ServerMessage::Other)
+    serde_wasm_bindgen::from_value::<KnownMessage>(msg.clone())
+        .map(ServerMessage::Known)
         .map_err(|e| JsError::new(&format!("not a valid server message: {e}")))
 }
 

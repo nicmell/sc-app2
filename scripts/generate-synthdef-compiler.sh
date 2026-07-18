@@ -11,10 +11,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# The typed builder surface is generated from the builder structs first, so
-# the wasm build always matches the (possibly reconciled) registry.
-node src-tauri/crates/scsynthdef-compiler/scripts/generate_ugens_wasm.mjs
-
+# The typed builder surface (native + wasm) is emitted by the crate's
+# build.rs from assets/specs/ugens.json — wasm-pack picks it up directly.
 rm -rf packages/synthdef-compiler/pkg
 wasm-pack build src-tauri/crates/scsynthdef-compiler \
   --release --target web \
@@ -53,7 +51,7 @@ DTSEOF
 
 # The generated surface the package wraps — regenerating with a crate that
 # lost one of these is a build break waiting to happen; fail here instead.
-for sym in "export class SynthDef" "export function parseScgf" "export function registryJson" "export function buildEnvRun"; do
+for sym in "export class SynthDef" "export function parseScgf" "export function sinOscAr" "export function buildEnvRun"; do
   grep -q "$sym" packages/synthdef-compiler/pkg/scsynthdef_compiler.d.ts || {
     echo "ERROR: '$sym' missing from the generated .d.ts" >&2
     exit 1

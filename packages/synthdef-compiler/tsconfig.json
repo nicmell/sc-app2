@@ -1,10 +1,17 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
     "baseUrl": ".",
     "paths": {},
     "types": ["node"]
   },
-  "include": ["src", "tests", "examples", "scripts", "vitest.config.ts", "tsup.config.ts"]
+  "include": [
+    "src",
+    "tests",
+    "examples",
+    "scripts",
+    "vitest.config.ts",
+    "tsup.config.ts",
+    "../../assets/specs/*.json"
+  ]
 }

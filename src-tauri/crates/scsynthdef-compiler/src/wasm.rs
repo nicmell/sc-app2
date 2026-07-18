@@ -151,17 +151,10 @@ pub fn parse_scgf(bytes: &[u8]) -> Result<JsValue, JsError> {
 }
 
 // ── one-shot metadata (the TS package caches these at init) ─────────────
-
-/// The full bundled UGen registry as JSON, grouped by source-file category:
-/// `[[category, [entries, …]], …]`.
-#[wasm_bindgen(js_name = registryJson)]
-pub fn registry_json() -> Result<String, JsError> {
-    let grouped: Vec<(String, Vec<&_>)> = crate::ugens_by_category()
-        .iter()
-        .map(|(cat, slice)| (cat.to_string(), slice.iter().collect()))
-        .collect();
-    serde_json::to_string(&grouped).map_err(err)
-}
+//
+// NOTE: the UGen registry is no longer served from the wasm — the TS
+// package imports `assets/specs/ugens.json` (the same file this crate's
+// build.rs compiles the Rust registry from) directly.
 
 /// `specialIndex` for a binary operator name (`+`, `min`, …); undefined
 /// for unknown operators.

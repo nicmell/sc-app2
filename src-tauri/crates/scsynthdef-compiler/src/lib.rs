@@ -10,6 +10,8 @@
 // clippy -D warnings gate would fail on stylistic lints here.
 #![allow(clippy::all)]
 
+#[macro_use]
+mod ugens_macro;
 pub mod builders;
 mod env;
 mod env_registry;

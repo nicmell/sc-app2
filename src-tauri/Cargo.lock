@@ -3351,6 +3351,7 @@ name = "scsynthdef-compiler"
 version = "0.0.1"
 dependencies = [
  "js-sys",
+ "sc-spec-types",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",

@@ -1,12 +1,41 @@
 /**
- * The UGen registry — served by the wasm build (one `registryJson()` call
- * at module load, cached here) and normalized to the shapes the app has
- * always consumed (lowercase long rate names, `{name, default}` records).
- * The data itself lives once, in the crate's reconciled specs.
+ * The UGen registry — read straight from the committed spec at
+ * `assets/specs/ugens.json` (repo root; the SAME file the crate's build.rs
+ * compiles the Rust registry and typed builders from) and normalized to
+ * the shapes the app has always consumed (lowercase long rate names,
+ * `{name, default}` records).
  */
 
-import { registryJson } from "./component.js";
+import rawSpec from "../../../assets/specs/ugens.json";
 import type { Rate } from "./rate.js";
+
+/** The shape of `assets/specs/ugens.json` (see the sc-spec-types crate —
+ *  the serde schema is the authority; this mirrors what the registry
+ *  consumes). */
+interface UgensSpec {
+  categories: {
+    name: string;
+    ugens: {
+      name: string;
+      rates: ("ar" | "kr" | "ir")[];
+      numOutputs: number | { fromArg: string } | null;
+      summary?: string;
+      doc?: string;
+      signalRange?: string;
+      extends?: string;
+      noBuilder?: boolean;
+      buildOrder?: string[];
+      args: {
+        name: string;
+        kind?: "input" | "inputArray" | "u32";
+        default: number | null;
+        doc?: string;
+      }[];
+    }[];
+  }[];
+}
+
+const spec = rawSpec as UgensSpec;
 
 export interface UGenRegistryDefault {
   name: string;
@@ -26,19 +55,22 @@ export interface UGenRegistryEntry {
   argDocs: [string, string][];
 }
 
-interface RawEntry extends Omit<UGenRegistryEntry, "rates" | "defaults"> {
-  rates: string[];
-  defaults: [string, number | null][];
-}
+const RATE: Record<string, Rate> = { ar: "audio", kr: "control", ir: "scalar" };
 
-const CATEGORIES: [string, UGenRegistryEntry[]][] = (
-  JSON.parse(registryJson()) as [string, RawEntry[]][]
-).map(([category, entries]) => [
-  category,
-  entries.map((e) => ({
-    ...e,
-    rates: e.rates.map((r) => r.toLowerCase() as Rate),
-    defaults: e.defaults.map(([name, d]) => ({ name, default: d })),
+const CATEGORIES: [string, UGenRegistryEntry[]][] = spec.categories.map((category) => [
+  category.name,
+  category.ugens.map((u) => ({
+    name: u.name,
+    rates: u.rates.map((r) => RATE[r]),
+    defaults: u.args.map((a) => ({ name: a.name, default: a.default ?? null })),
+    // A `{ fromArg }` count is runtime builder state — no static count,
+    // like the Rust registry.
+    numOutputs: typeof u.numOutputs === "number" ? u.numOutputs : null,
+    extends: u.extends ?? null,
+    summary: u.summary ?? null,
+    doc: u.doc ?? null,
+    signalRange: u.signalRange ?? null,
+    argDocs: u.args.flatMap((a): [string, string][] => (a.doc ? [[a.name, a.doc]] : [])),
   })),
 ]);
 

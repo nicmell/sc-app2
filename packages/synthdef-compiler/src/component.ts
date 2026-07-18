@@ -19,7 +19,6 @@ export {
   unaryOpIndex,
   buildEnvRun,
   encodeEnvRun,
-  registryJson,
   envShapesJson,
 } from "../pkg/scsynthdef_compiler.js";
 export type { UGenInput, UGenInputLike } from "../pkg/scsynthdef_compiler.js";

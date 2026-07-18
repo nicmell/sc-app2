@@ -151,8 +151,9 @@ lib/                     non-React infrastructure
                          through the load/unload pass
   plugins/PluginManager  plugin CRUD + entry-HTML loading over /api/plugins
   synthdef/              compileSynthDef(name, params, specs): the markup-spec →
-                         SCgf compiler over @sc-app/synthdef-compiler's primitives
-                         (registry, operators, encoder, graph validation). No topo
+                         SCgf compiler over @sc-app/synthdef-compiler's
+                         wasm-backed primitives (SynthDef class, registry,
+                         operators). No topo
                          sort: the bind-order constraint makes DOM order a valid
                          build order. Called by sc-synthdef at /d_recv time in
                          the load pass (the parse only collects params + specs)
@@ -281,8 +282,16 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   `atUnixMs` NTP timetags, console formatting. No osc-js — the crate is the
   single protocol source for backend and frontend; the scope protocol lives
   there as sc-app bridge extensions.
-- `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
-  tap def).
+- `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation, a thin layer over
+  the `scsynthdef-compiler` crate's wasm-bindgen build (`pkg/`, committed;
+  regenerate with `yarn generate:synthdef-compiler` — needs wasm-pack): the
+  `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry
+  (served from the wasm, cached at init — the data lives once, in the crate's
+  specs, kept aligned by scripts/scdoc/reconcile-ugens-rust.mjs), the 12-shape
+  env registry (`buildRun` with pinned modulatable-slot errors), and 548
+  generated typed builder fns (`import … from "@sc-app/synthdef-compiler/builders"`).
+  UGenInput crosses as `{ constant } | { ugen } | { ugenOutput }`; env runs
+  carry wire (float32) precision.
 - `@sc-app/ui-components` — base styles/custom-element foundation.
 
 ## How the element architecture settled (the design decisions)

@@ -123,13 +123,18 @@ fn f32_lit(v: f64) -> String {
 fn render_specs(spec: &sc_spec_types::UgensSpec) -> String {
     let mut out = String::from(HEADER);
     for cat in &spec.categories {
+        // lookup_ugen binary-searches each slice by name — emit sorted
+        // regardless of spec order so a hand-edited insert can't silently
+        // break the lookup.
+        let mut ugens: Vec<_> = cat.ugens.iter().collect();
+        ugens.sort_by(|a, b| a.name.cmp(&b.name));
         writeln!(
             out,
             "const {}: &[UGenRegistryEntry] = &[",
             cat.name.to_uppercase()
         )
         .unwrap();
-        for u in &cat.ugens {
+        for u in ugens {
             out.push_str("    UGenRegistryEntry {\n");
             writeln!(out, "        name: r\"{}\",", u.name).unwrap();
             let rates: Vec<String> = u

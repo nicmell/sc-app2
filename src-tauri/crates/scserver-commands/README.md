@@ -18,8 +18,8 @@ back, and the NRT (non-realtime) score file format.
   escape hatch). Construct via `From<Cmd>` or directly:
   ```rust
   let msg: ServerMessage = BAlloc::new(0, 8192).into();
-  let bytes = msg.encode()?;        // OSC wire bytes
-  ServerMessage::Status.encode()?;  // unit variant
+  let bytes = msg.encode()?;      // OSC wire bytes
+  KnownMessage::Status.encode()?; // unit variant
   ```
 - **`commands::{ControlId, NumericValue, ControlValue}`** — the three
   polymorphic OSC arg shapes the SC protocol uses. Each has ergonomic
@@ -61,12 +61,12 @@ let bytes: Vec<u8> = msg.encode()?;
 
 // 2. Decode an incoming reply — typed variant dispatch.
 match ServerReply::decode(&reply_bytes)? {
-    ServerReply::StatusReply(s) =>
+    ServerReply::Known(KnownReply::StatusReply(s)) =>
         println!("{} ugens, {} synths", s.num_ugens, s.num_synths),
-    ServerReply::NGo(n) =>
+    ServerReply::Known(KnownReply::NGo(n)) =>
         println!("node {} started in group {}", n.node_id, n.parent_id),
-    ServerReply::Fail { address, error, .. } =>
-        eprintln!("fail {address}: {error}"),
+    ServerReply::Known(KnownReply::Fail { command, error, .. }) =>
+        eprintln!("fail {command}: {error}"),
     _ => {}
 }
 

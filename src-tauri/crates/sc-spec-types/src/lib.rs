@@ -261,10 +261,13 @@ pub fn load_envs(path: &Path) -> Result<EnvsSpec, String> {
 }
 
 /// Format an f64 default as a Rust f32 literal (always with a decimal
-/// point or exponent, so the emitted token is unambiguously a float).
+/// point, so the emitted token is unambiguously a float). Non-finite
+/// defaults fail here with a pointed message instead of emitting tokens
+/// the compiler would choke on downstream.
 pub fn f32_literal(v: f64) -> String {
+    assert!(v.is_finite(), "spec default {v} is not a finite number");
     let s = format!("{v}");
-    if s.contains('.') || s.contains('e') || s.contains("inf") || s.contains("NaN") {
+    if s.contains('.') {
         s
     } else {
         format!("{s}.0")

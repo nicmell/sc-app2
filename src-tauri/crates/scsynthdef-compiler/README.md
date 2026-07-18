@@ -8,7 +8,7 @@ Compiles `.scsyndef` bytes that scsynth accepts, and parses them back.
 
 - **`SynthDef`** — the builder / reader. `to_bytes` / `from_bytes` /
   `to_json` / `from_json` cover the four round-trip entry points.
-- **`builders::*`** — a typed struct per bundled UGen (~365 total),
+- **`builders::*`** — a typed struct per bundled UGen (~347 total),
   emitted by `build.rs` from `assets/specs/ugens.json`. Each
   struct exposes `ar()` / `kr()` / `ir()` constructors (only those rates
   the UGen supports), setter methods per arg (with rustdoc from the
@@ -62,8 +62,8 @@ Introspect the bundled UGen catalogue (367 UGens shipped):
 use scsynthdef_compiler::registry::{lookup_ugen, ugens_by_category};
 
 let spec = lookup_ugen("SinOsc").unwrap();
-println!("{}: {} inputs, {} outputs",
-    spec.name, spec.inputs.len(), spec.outputs);
+println!("{}: {} args, {:?} outputs",
+    spec.name, spec.defaults.len(), spec.num_outputs);
 
 for (category, ugens) in ugens_by_category() {
     println!("{category}: {} ugens", ugens.len());

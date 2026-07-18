@@ -270,15 +270,17 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 ## Workspace packages (`packages/`)
 
 - `@sc-app/server-commands` — the frontend's only OSC vocabulary, an
-  abstraction layer over the `scserver-commands` crate's jco-transpiled wasm
-  component (`pkg/`, committed; regenerate with
-  `yarn generate:server-commands`): typed `ServerMessage` builders (`sNew`,
-  `dRecv`, `gNew`, `scopeSubscribe`, `dirtPlay`, …), `encode`/`encodeBundle`,
-  typed `ServerReply` decode (incl. `scope-chunk` with a transferable
-  Float32Array), `atUnixMs` NTP timetags, console formatting
-  (`flattenEncoded`/`describeReply`). No osc-js — the crate is the single
-  protocol source for backend and frontend; the scope protocol lives there
-  as sc-app bridge extensions.
+  abstraction layer over the `scserver-commands` crate's wasm-bindgen build
+  (`pkg/`, committed; regenerate with `yarn generate:server-commands` —
+  needs wasm-pack): the serde tag IS the OSC address, so every message/reply
+  is a flat `{ address: "/s_new", … }` object TS narrows on `address` (no
+  tag↔address maps anywhere; the `raw()` escape hatch is the one shape with
+  an `args` field). Typed builders (`sNew`, `dRecv`, `gNew`,
+  `scopeSubscribe`, `dirtPlay`, …), `encode`/`encodeBundle`, typed reply
+  decode (`/scope/chunk` samples lift as a transferable Float32Array),
+  `atUnixMs` NTP timetags, console formatting. No osc-js — the crate is the
+  single protocol source for backend and frontend; the scope protocol lives
+  there as sc-app bridge extensions.
 - `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
   tap def).
 - `@sc-app/ui-components` — base styles/custom-element foundation.

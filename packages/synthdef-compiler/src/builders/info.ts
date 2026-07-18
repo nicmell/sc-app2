@@ -287,7 +287,6 @@ export class CheckBadValues {
     return b;
   }
 
-
   /** the UGen whose output is to be tested */
   in(v: UGenInputLike): this {
     this._in = toUGenInput(v);

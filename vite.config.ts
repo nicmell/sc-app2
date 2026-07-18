@@ -50,7 +50,7 @@ export default defineConfig(() => ({
   // …and again for the dependency pre-bundle, which esbuild optimizes separately
   // from app source.
   optimizeDeps: {
-    // Keep the linked package out of esbuild pre-bundling: its jco-transpiled
+    // Keep the linked package out of esbuild pre-bundling: its wasm-bindgen
     // component loads the wasm via `new URL(..., import.meta.url)`, which the
     // pre-bundle would break — Vite's asset pipeline must see it.
     exclude: ["@sc-app/server-commands"],
@@ -72,7 +72,7 @@ export default defineConfig(() => ({
   build: {
     // Emit a manifest mapping source files to their hashed build outputs.
     manifest: "manifest.json",
-    // The jco-transpiled OSC component self-instantiates with top-level
+    // The OSC wasm instantiates via top-level
     // await; Vite's default "modules" baseline (Safari 14) rejects TLA.
     // The real runtimes (Tauri WKWebView / WebView2, current browsers) are
     // all ≥ es2022.
@@ -99,7 +99,7 @@ export default defineConfig(() => ({
     environment: "happy-dom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["src/lib/utils/test/test-setup.ts"],
-    // Load the jco-transpiled component natively in node (vitest would
+    // Load the generated pkg/ modules natively in node (vitest would
     // inline the linked package and rewrite import.meta.url off the file
     // scheme, breaking its fs wasm load). Everything else in the package
     // is TS and stays inlined.

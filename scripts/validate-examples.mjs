@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
 const REPO = new URL("..", import.meta.url).pathname;
-const API = "http://127.0.0.1:3000";
+const API = process.env.SC_SERVER_URL || "http://127.0.0.1:3000";
 const EXPECT_UPLOAD_FAIL = new Set([
   "bad-metadata",
   "bad-entry-xhtml",

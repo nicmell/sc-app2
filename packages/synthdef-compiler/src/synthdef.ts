@@ -245,9 +245,7 @@ export class SynthDef {
     for (const p of this.params) w.f32(p.defaultValue);
 
     // Parameter names — named slots only (an array control names its base).
-    const named = this.params
-      .map((p, i) => [p, i] as const)
-      .filter(([p]) => p.named);
+    const named = this.params.map((p, i) => [p, i] as const).filter(([p]) => p.named);
     w.i32(named.length);
     for (const [p, i] of named) {
       w.pstring(p.name);

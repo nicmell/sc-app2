@@ -19,7 +19,7 @@
  */
 
 import { SynthDef, ugenIndex, uo, type UGenInput } from "@sc-app/synthdef-compiler";
-import { inAr, scopeOut2Ar } from "@sc-app/synthdef-compiler/builders";
+import { In, ScopeOut2 } from "@sc-app/synthdef-compiler/builders";
 
 export function scopeTapSynthDefName(channels: number, chunkSize: number): string {
   return `scopeTap${channels}ch_${chunkSize}`;
@@ -49,7 +49,7 @@ export function compileScopeTapSynthDef(channels: number, chunkSize: number): Ui
   // a single UGenInput at output 0; fan its outputs into an array so ScopeOut2
   // writes every channel into its planar lane (else every lane but 0 reads
   // flat).
-  const inRef = inAr(def, { bus: inBus, numChannels: channels });
+  const inRef = In.ar(def, { bus: inBus, numChannels: channels });
   const inIdx = ugenIndex(inRef);
   if (inIdx === null) {
     throw new Error("compileScopeTapSynthDef: In.ar did not return a UGen ref");
@@ -60,7 +60,7 @@ export function compileScopeTapSynthDef(channels: number, chunkSize: number): Ui
   }
   // ScopeOut2(inputArray, scopeNum, maxFrames, scopeFrames). The side effect
   // (writing the SHM scope_buffer) is the work; the output isn't bound.
-  scopeOut2Ar(def, {
+  ScopeOut2.ar(def, {
     inputArray: sigs,
     scopeNum,
     maxFrames: chunkSize,

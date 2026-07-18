@@ -289,8 +289,9 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   regenerate with `yarn generate:synthdef-compiler` — needs wasm-pack): the
   `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry and
   12-shape env registry imported directly from `assets/specs/*.json`
-  (`buildRun` has pinned modulatable-slot errors), and 548 typed builder fns
-  emitted by the crate's `build.rs` (`import … from
+  (`buildRun` has pinned modulatable-slot errors), and a typed builder
+  class per UGen with a static method per rate (`SinOsc.ar(def, { freq })`,
+  mirroring SC) — emitted by the crate's `build.rs` (`import … from
   "@sc-app/synthdef-compiler/builders"`). Reconcile future crawls by editing
   the UGen spec against `yarn scdoc:diff`.
   UGenInput crosses as `{ constant } | { ugen } | { ugenOutput }`; env runs

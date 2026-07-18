@@ -19,7 +19,7 @@ import {
   unaryOpIndex,
   uo,
 } from "../src/index.js";
-import { inAr, sinOscAr, outAr } from "../src/builders.js";
+import { In, Out, SinOsc } from "../src/builders.js";
 
 describe("registry (wasm-served)", () => {
   it("carries the full reconciled catalogue", () => {
@@ -66,15 +66,15 @@ describe("SynthDef class", () => {
 
   it("typed wasm builders compose with the class", () => {
     const def = new SynthDef("tap");
-    const inRef = inAr(def, { bus: def.addControl("inBus", 0, "control"), numChannels: 2 });
+    const inRef = In.ar(def, { bus: def.addControl("inBus", 0, "control"), numChannels: 2 });
     const idx = ugenIndex(inRef)!;
-    outAr(def, { bus: 0, channelsArray: [uo(idx, 0), uo(idx, 1)] });
+    Out.ar(def, { bus: 0, channelsArray: [uo(idx, 0), uo(idx, 1)] });
     const json = parseScgf(def.toBytes());
     expect(json.ugens.map((ug) => ug.className)).toEqual(["Control", "In", "Out"]);
     expect(json.ugens[1].numOutputs).toBe(2);
 
     const def2 = new SynthDef("t2");
-    outAr(def2, { bus: 0, channelsArray: [sinOscAr(def2, { freq: 220 })] });
+    Out.ar(def2, { bus: 0, channelsArray: [SinOsc.ar(def2, { freq: 220 })] });
     expect(parseScgf(def2.toBytes()).constants).toContain(220);
   });
 });

@@ -182,32 +182,48 @@ macro_rules! sc_wasm_set {
     };
     ($b:ident, $args:ident, u32 $f:ident $fjs:literal) => {
         if let Some(v) = opt(&$args, $fjs) {
-            $b = $b.$f(
-                v.as_f64()
-                    .ok_or_else(|| JsError::new(concat!($fjs, ": expected a number")))?
-                    as u32,
-            );
+            $b = $b.$f(v
+                .as_f64()
+                .ok_or_else(|| JsError::new(concat!($fjs, ": expected a number")))?
+                as u32);
         }
     };
 }
 
-/// The wasm builder surface: one exported fn per (ugen × rate).
+/// The wasm builder surface: one exported class per UGen, with a static
+/// method per supported rate — `SinOsc.ar(def, { freq: 440 })`, mirroring
+/// SuperCollider's `SinOsc.ar(...)`. The methods are static (no captured
+/// `def`), so nothing crosses the wasm boundary holding a borrow. TS types
+/// come from the build.rs-emitted custom section (the marker struct is
+/// `skip_typescript`).
 #[cfg(feature = "wasm")]
 macro_rules! sc_ugens_wasm {
     (
         $(
-            fn $fname:ident $js:literal $builder:ident :: $rf:ident {
-                $( $kind:ident $f:ident $fjs:literal ),* $(,)?
+            class $name:ident $js:literal :: $builder:ident {
+                $(
+                    $rf:ident {
+                        $( $kind:ident $f:ident $fjs:literal ),* $(,)?
+                    }
+                )*
             }
         )*
     ) => {
         $(
             #[wasm_bindgen(js_name = $js, skip_typescript)]
-            pub fn $fname(def: &mut WasmSynthDef, args: JsValue) -> Result<JsValue, JsError> {
-                let mut b = builders::$builder::$rf();
-                let _ = &args;
-                $( sc_wasm_set!(b, args, $kind $f $fjs); )*
-                input_to_js(&b.build(&mut def.inner))
+            pub struct $name;
+
+            #[wasm_bindgen(js_class = $js)]
+            impl $name {
+                $(
+                    #[wasm_bindgen(js_name = $rf)]
+                    pub fn $rf(def: &mut WasmSynthDef, args: JsValue) -> Result<JsValue, JsError> {
+                        let mut b = builders::$builder::$rf();
+                        let _ = &args;
+                        $( sc_wasm_set!(b, args, $kind $f $fjs); )*
+                        input_to_js(&b.build(&mut def.inner))
+                    }
+                )*
             }
         )*
     };

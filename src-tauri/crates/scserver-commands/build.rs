@@ -8,9 +8,7 @@
 use std::fmt::Write as _;
 use std::path::Path;
 
-use sc_spec_types::{
-    CommandSpec, FieldForm, ListTy, OptionScalarTy, ScalarTy, TupleTy,
-};
+use sc_spec_types::{CommandSpec, FieldForm, ListTy, OptionScalarTy, ScalarTy, TupleTy};
 
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").unwrap();
@@ -38,12 +36,22 @@ fn main() {
     out.push_str("            payload {\n");
     out.push_str("                $($extra)*\n");
     for cmd in spec.commands.iter().filter(|c| !c.fields.is_empty()) {
-        writeln!(out, "                {} \"{}\",", cmd.struct_name, cmd.address).unwrap();
+        writeln!(
+            out,
+            "                {} \"{}\",",
+            cmd.struct_name, cmd.address
+        )
+        .unwrap();
     }
     out.push_str("            }\n");
     out.push_str("            unit {\n");
     for cmd in spec.commands.iter().filter(|c| c.fields.is_empty()) {
-        writeln!(out, "                {} \"{}\",", cmd.struct_name, cmd.address).unwrap();
+        writeln!(
+            out,
+            "                {} \"{}\",",
+            cmd.struct_name, cmd.address
+        )
+        .unwrap();
     }
     out.push_str("            }\n");
     out.push_str("        }\n");
@@ -86,7 +94,12 @@ fn render_command(out: &mut String, cmd: &CommandSpec) {
 
 fn push_doc(out: &mut String, indent: &str, doc: &str) {
     for line in doc.lines() {
-        writeln!(out, "{indent}#[doc = \"{}\"]", line.replace('\\', "\\\\").replace('"', "\\\"")).unwrap();
+        writeln!(
+            out,
+            "{indent}#[doc = \"{}\"]",
+            line.replace('\\', "\\\\").replace('"', "\\\"")
+        )
+        .unwrap();
     }
 }
 

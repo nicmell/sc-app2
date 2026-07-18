@@ -12,8 +12,7 @@ use std::path::Path;
 use serde::Deserialize;
 
 fn load<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T, String> {
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| format!("{}: {e}", path.display()))?;
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
     serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))
 }
 

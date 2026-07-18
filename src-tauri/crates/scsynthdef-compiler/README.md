@@ -74,10 +74,11 @@ for (category, ugens) in ugens_by_category() {
 
 The wasm-bindgen build exports the same `SynthDef` graph builder, plus
 stringly-typed `addUgen` / `addControl` methods and one generated typed
-function per buildable UGen and supported rate.
+class per buildable UGen, with a static method per supported rate
+(`SinOsc.ar(def, { freq })`, mirroring SuperCollider's `SinOsc.ar(...)`).
 
 ```ts
-import { SynthDef, parseScgf, sinOscAr } from './pkg/scsynthdef_compiler.js';
+import { SynthDef, parseScgf, SinOsc } from './pkg/scsynthdef_compiler.js';
 import type { UGenInput } from './pkg/scsynthdef_compiler.js';
 
 // Helpers to build UgenInput variants for addUgen's inputs array.
@@ -101,7 +102,7 @@ const json = def.toJson();
 const parsed = parseScgf(bytes);
 
 // The typed surface delegates to the same Rust builders.
-const typedOsc = sinOscAr(def, { freq });
+const typedOsc = SinOsc.ar(def, { freq });
 ```
 
 See `examples/node/sclang_parity.ts` for the full three-fixture

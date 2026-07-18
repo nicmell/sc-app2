@@ -51,7 +51,7 @@ DTSEOF
 
 # The generated surface the package wraps — regenerating with a crate that
 # lost one of these is a build break waiting to happen; fail here instead.
-for sym in "export class SynthDef" "export function parseScgf" "export function sinOscAr" "export function buildEnvRun"; do
+for sym in "export class SynthDef" "export function parseScgf" "export class SinOsc" "export function buildEnvRun"; do
   grep -q "$sym" packages/synthdef-compiler/pkg/scsynthdef_compiler.d.ts || {
     echo "ERROR: '$sym' missing from the generated .d.ts" >&2
     exit 1

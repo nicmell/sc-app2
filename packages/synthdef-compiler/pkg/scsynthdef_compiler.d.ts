@@ -13,554 +13,1595 @@ export type UGenInputLike = UGenInput | number;
  */
 export type UGenInput = { constant: number } | { ugen: number } | { ugenOutput: [number, number] };
 
-export function mulAddIr(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
-export function mulAddAr(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
-export function mulAddKr(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
-export function bAllPassAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function bBandPassAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bw?: UGenInputLike }): UGenInput;
-export function bBandStopAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bw?: UGenInputLike }): UGenInput;
-export function bHiPassAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function bHiShelfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rs?: UGenInputLike; db?: UGenInputLike }): UGenInput;
-export function bLowPassAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function bLowShelfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rs?: UGenInputLike; db?: UGenInputLike }): UGenInput;
-export function bPeakEqAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
-export function bufRdAr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike; interpolation?: UGenInputLike }): UGenInput;
-export function bufRdKr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike; interpolation?: UGenInputLike }): UGenInput;
-export function bufWrAr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
-export function bufWrKr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
-export function clearBufIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function localBufIr(def: SynthDef, args?: { numChannels?: number; numFrames?: UGenInputLike }): UGenInput;
-export function maxLocalBufsIr(def: SynthDef, args?: { numLocalBufs?: UGenInputLike }): UGenInput;
-export function playBufAr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; trigger?: UGenInputLike; startPos?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function playBufKr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; trigger?: UGenInputLike; startPos?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function recordBufAr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; offset?: UGenInputLike; recLevel?: UGenInputLike; preLevel?: UGenInputLike; run?: UGenInputLike; loop?: UGenInputLike; trigger?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function recordBufKr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; offset?: UGenInputLike; recLevel?: UGenInputLike; preLevel?: UGenInputLike; run?: UGenInputLike; loop?: UGenInputLike; trigger?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function scopeOutAr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike }): UGenInput;
-export function scopeOutKr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike }): UGenInput;
-export function scopeOut2Ar(def: SynthDef, args?: { inputArray?: UGenInputLike[]; scopeNum?: UGenInputLike; maxFrames?: UGenInputLike; scopeFrames?: UGenInputLike }): UGenInput;
-export function scopeOut2Kr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; scopeNum?: UGenInputLike; maxFrames?: UGenInputLike; scopeFrames?: UGenInputLike }): UGenInput;
-export function setBufAr(def: SynthDef, args?: { buf?: UGenInputLike; values?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
-export function setBufKr(def: SynthDef, args?: { buf?: UGenInputLike; values?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
-export function tGrainsAr(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; bufnum?: UGenInputLike; rate?: UGenInputLike; centerPos?: UGenInputLike; dur?: UGenInputLike; pan?: UGenInputLike; amp?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
-export function cuspLAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function cuspNAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function fbSineCAr(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function fbSineLAr(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function fbSineNAr(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function gbmanLAr(def: SynthDef, args?: { freq?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function gbmanNAr(def: SynthDef, args?: { freq?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function henonCAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
-export function henonLAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
-export function henonNAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
-export function latoocarfianCAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function latoocarfianLAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function latoocarfianNAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function linCongCAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function linCongLAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function linCongNAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function lorenzLAr(def: SynthDef, args?: { freq?: UGenInputLike; s?: UGenInputLike; r?: UGenInputLike; b?: UGenInputLike; h?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike; zi?: UGenInputLike }): UGenInput;
-export function quadCAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function quadLAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function quadNAr(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
-export function standardLAr(def: SynthDef, args?: { freq?: UGenInputLike; k?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function standardNAr(def: SynthDef, args?: { freq?: UGenInputLike; k?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
-export function amplitudeAr(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; releaseTime?: UGenInputLike }): UGenInput;
-export function amplitudeKr(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; releaseTime?: UGenInputLike }): UGenInput;
-export function companderAr(def: SynthDef, args?: { in?: UGenInputLike; control?: UGenInputLike; thresh?: UGenInputLike; slopeBelow?: UGenInputLike; slopeAbove?: UGenInputLike; clampTime?: UGenInputLike; relaxTime?: UGenInputLike }): UGenInput;
-export function limiterAr(def: SynthDef, args?: { in?: UGenInputLike; level?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function normalizerAr(def: SynthDef, args?: { in?: UGenInputLike; level?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function allpassCAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function allpassCKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function allpassLAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function allpassLKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function allpassNAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function allpassNKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufAllpassCAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufAllpassLAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufAllpassNAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufCombCAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufCombLAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufCombNAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function bufDelayCAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function bufDelayCKr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function bufDelayLAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function bufDelayLKr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function bufDelayNAr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function bufDelayNKr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function combCAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function combCKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function combLAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function combLKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function combNAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function combNKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function delTapRdAr(def: SynthDef, args?: { buffer?: UGenInputLike; phase?: UGenInputLike; delay?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
-export function delTapRdKr(def: SynthDef, args?: { buffer?: UGenInputLike; phase?: UGenInputLike; delay?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
-export function delTapWrAr(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function delTapWrKr(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function delay1Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function delay1Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function delay2Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function delay2Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function delayCAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function delayCKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function delayLAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function delayLKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function delayNAr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function delayNKr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
-export function demandAr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; demandUgens?: UGenInputLike }): UGenInput;
-export function demandKr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; demandUgens?: UGenInputLike }): UGenInput;
-export function demandEnvGenAr(def: SynthDef, args?: { level?: UGenInputLike; dur?: UGenInputLike; shape?: UGenInputLike; curve?: UGenInputLike; gate?: UGenInputLike; reset?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function demandEnvGenKr(def: SynthDef, args?: { level?: UGenInputLike; dur?: UGenInputLike; shape?: UGenInputLike; curve?: UGenInputLike; gate?: UGenInputLike; reset?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function dutyAr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function dutyKr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function tDutyAr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike; gapFirst?: UGenInputLike }): UGenInput;
-export function tDutyKr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike; gapFirst?: UGenInputLike }): UGenInput;
-export function doneKr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
-export function envGenAr(def: SynthDef, args?: { envelope?: UGenInputLike; gate?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function envGenKr(def: SynthDef, args?: { envelope?: UGenInputLike; gate?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function freeKr(def: SynthDef, args?: { trig?: UGenInputLike; id?: UGenInputLike }): UGenInput;
-export function freeSelfKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function freeSelfWhenDoneKr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
-export function iEnvGenAr(def: SynthDef, args?: { ienvelope?: UGenInputLike; index?: UGenInputLike }): UGenInput;
-export function iEnvGenKr(def: SynthDef, args?: { ienvelope?: UGenInputLike; index?: UGenInputLike }): UGenInput;
-export function linenKr(def: SynthDef, args?: { gate?: UGenInputLike; attackTime?: UGenInputLike; susLevel?: UGenInputLike; releaseTime?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function pauseKr(def: SynthDef, args?: { gate?: UGenInputLike; id?: UGenInputLike }): UGenInput;
-export function pauseSelfKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function pauseSelfWhenDoneKr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
-export function blipAr(def: SynthDef, args?: { freq?: UGenInputLike; numharm?: UGenInputLike }): UGenInput;
-export function blipKr(def: SynthDef, args?: { freq?: UGenInputLike; numharm?: UGenInputLike }): UGenInput;
-export function fSinOscAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function fSinOscKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function klangAr(def: SynthDef, args?: { specs?: UGenInputLike; freqscale?: UGenInputLike; freqoffset?: UGenInputLike }): UGenInput;
-export function klankAr(def: SynthDef, args?: { specs?: UGenInputLike; input?: UGenInputLike; freqscale?: UGenInputLike; freqoffset?: UGenInputLike; decayscale?: UGenInputLike }): UGenInput;
-export function pSinGrainAr(def: SynthDef, args?: { freq?: UGenInputLike; dur?: UGenInputLike; amp?: UGenInputLike }): UGenInput;
-export function pulseAr(def: SynthDef, args?: { freq?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function pulseKr(def: SynthDef, args?: { freq?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function sawAr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function sawKr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function fftKr(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike; hop?: UGenInputLike; wintype?: UGenInputLike; active?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
-export function fftTriggerKr(def: SynthDef, args?: { buffer?: UGenInputLike; hop?: UGenInputLike; polar?: UGenInputLike }): UGenInput;
-export function ifftAr(def: SynthDef, args?: { chain?: UGenInputLike; wintype?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
-export function ifftKr(def: SynthDef, args?: { chain?: UGenInputLike; wintype?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
-export function pvAddKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvBinScrambleKr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike; width?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function pvBinShiftKr(def: SynthDef, args?: { buffer?: UGenInputLike; stretch?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
-export function pvBinWipeKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; wipe?: UGenInputLike }): UGenInput;
-export function pvBrickWallKr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike }): UGenInput;
-export function pvConjKr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
-export function pvCopyKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvCopyPhaseKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvDiffuserKr(def: SynthDef, args?: { buffer?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function pvDivKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvLocalMaxKr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
-export function pvMagAboveKr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
-export function pvMagBelowKr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
-export function pvMagClipKr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
-export function pvMagDivKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; zeroed?: UGenInputLike }): UGenInput;
-export function pvMagFreezeKr(def: SynthDef, args?: { buffer?: UGenInputLike; freeze?: UGenInputLike }): UGenInput;
-export function pvMagMulKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvMagNoiseKr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
-export function pvMagShiftKr(def: SynthDef, args?: { buffer?: UGenInputLike; stretch?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
-export function pvMagSmearKr(def: SynthDef, args?: { buffer?: UGenInputLike; bins?: UGenInputLike }): UGenInput;
-export function pvMagSquaredKr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
-export function pvMaxKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvMinKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvMulKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
-export function pvPhaseShiftKr(def: SynthDef, args?: { buffer?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
-export function pvPhaseShift270Kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
-export function pvPhaseShift90Kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
-export function pvRandCombKr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function pvRandWipeKr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; wipe?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function pvRectCombKr(def: SynthDef, args?: { buffer?: UGenInputLike; numTeeth?: UGenInputLike; phase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function pvRectComb2Kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; numTeeth?: UGenInputLike; phase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function convolutionAr(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
-export function convolution2Ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
-export function convolution2LAr(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike; crossfade?: UGenInputLike }): UGenInput;
-export function convolution3Ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
-export function convolution3Kr(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
-export function pvConformalMapKr(def: SynthDef, args?: { buffer?: UGenInputLike; areal?: UGenInputLike; aimag?: UGenInputLike }): UGenInput;
-export function pvHainsworthFooteAr(def: SynthDef, args?: { buffer?: UGenInputLike; proph?: UGenInputLike; propf?: UGenInputLike; threshold?: UGenInputLike; waitTime?: UGenInputLike }): UGenInput;
-export function pvJensenAndersenAr(def: SynthDef, args?: { buffer?: UGenInputLike; propsc?: UGenInputLike; prophfe?: UGenInputLike; prophfc?: UGenInputLike; propsf?: UGenInputLike; threshold?: UGenInputLike; waitTime?: UGenInputLike }): UGenInput;
-export function runningSumAr(def: SynthDef, args?: { in?: UGenInputLike; numsamp?: UGenInputLike }): UGenInput;
-export function runningSumKr(def: SynthDef, args?: { in?: UGenInputLike; numsamp?: UGenInputLike }): UGenInput;
-export function stereoConvolution2LAr(def: SynthDef, args?: { in?: UGenInputLike; kernelL?: UGenInputLike; kernelR?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike; crossfade?: UGenInputLike }): UGenInput;
-export function apfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function apfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function bpfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function bpfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function bpz2Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function bpz2Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function brfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function brfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function brz2Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function brz2Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function decayAr(def: SynthDef, args?: { in?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function decayKr(def: SynthDef, args?: { in?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function decay2Ar(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function decay2Kr(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function detectSilenceAr(def: SynthDef, args?: { in?: UGenInputLike; amp?: UGenInputLike; time?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function detectSilenceKr(def: SynthDef, args?: { in?: UGenInputLike; amp?: UGenInputLike; time?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function fosAr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; b1?: UGenInputLike }): UGenInput;
-export function fosKr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; b1?: UGenInputLike }): UGenInput;
-export function formletAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function formletKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function hpfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
-export function hpfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
-export function hpz1Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function hpz1Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function hpz2Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function hpz2Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function integratorAr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function integratorKr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function lpfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
-export function lpfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
-export function lpz1Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function lpz1Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function lpz2Ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function lpz2Kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function lagAr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lagKr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lag2Ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lag2Kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lag2UdAr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function lag2UdKr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function lag3Ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lag3Kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function lag3UdAr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function lag3UdKr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function lagUdAr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function lagUdKr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
-export function leakDcAr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function leakDcKr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function medianAr(def: SynthDef, args?: { length?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function medianKr(def: SynthDef, args?: { length?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function midEqAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
-export function midEqKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
-export function onePoleAr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function onePoleKr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function oneZeroAr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function oneZeroKr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function rhpfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function rhpfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function rlpfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function rlpfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
-export function rampAr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function rampKr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
-export function resonzAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bwr?: UGenInputLike }): UGenInput;
-export function resonzKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bwr?: UGenInputLike }): UGenInput;
-export function ringzAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function ringzKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
-export function sosAr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; a2?: UGenInputLike; b1?: UGenInputLike; b2?: UGenInputLike }): UGenInput;
-export function sosKr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; a2?: UGenInputLike; b1?: UGenInputLike; b2?: UGenInputLike }): UGenInput;
-export function slewAr(def: SynthDef, args?: { in?: UGenInputLike; up?: UGenInputLike; dn?: UGenInputLike }): UGenInput;
-export function slewKr(def: SynthDef, args?: { in?: UGenInputLike; up?: UGenInputLike; dn?: UGenInputLike }): UGenInput;
-export function slopeAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function slopeKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function twoPoleAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function twoPoleKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function twoZeroAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function twoZeroKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
-export function grainBufAr(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; sndbuf?: UGenInputLike; rate?: UGenInputLike; pos?: UGenInputLike; interp?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
-export function grainFmAr(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; carFreq?: UGenInputLike; modFreq?: UGenInputLike; index?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
-export function grainInAr(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; in?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
-export function grainSinAr(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; freq?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
-export function warp1Ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; pointer?: UGenInputLike; freqScale?: UGenInputLike; windowSize?: UGenInputLike; envbufnum?: UGenInputLike; overlaps?: UGenInputLike; windowRandRatio?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
-export function bufChannelsKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufChannelsIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufDurKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufDurIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufFramesKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufFramesIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufRateScaleKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufRateScaleIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufSampleRateKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufSampleRateIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufSamplesKr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function bufSamplesIr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
-export function checkBadValuesAr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; post?: UGenInputLike }): UGenInput;
-export function checkBadValuesKr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; post?: UGenInputLike }): UGenInput;
-export function controlDurIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function controlRateIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numAudioBusesIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numBuffersIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numControlBusesIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numInputBusesIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numOutputBusesIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numRunningSynthsKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function numRunningSynthsIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function pollAr(def: SynthDef, args?: { trig?: UGenInputLike; in?: UGenInputLike; label?: UGenInputLike; trigId?: UGenInputLike }): UGenInput;
-export function pollKr(def: SynthDef, args?: { trig?: UGenInputLike; in?: UGenInputLike; label?: UGenInputLike; trigId?: UGenInputLike }): UGenInput;
-export function radiansPerSampleIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function sampleDurIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function sampleRateIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function subsampleOffsetIr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function keyStateKr(def: SynthDef, args?: { keycode?: UGenInputLike; minval?: UGenInputLike; maxval?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
-export function mouseButtonKr(def: SynthDef, args?: { up?: UGenInputLike; down?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
-export function mouseXKr(def: SynthDef, args?: { min?: UGenInputLike; max?: UGenInputLike; warp?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
-export function mouseYKr(def: SynthDef, args?: { min?: UGenInputLike; max?: UGenInputLike; warp?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
-export function diskInAr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
-export function diskOutAr(def: SynthDef, args?: { bufnum?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function inAr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
-export function inKr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
-export function inFeedbackAr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
-export function inTrigKr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
-export function lagInKr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number; lag?: UGenInputLike }): UGenInput;
-export function localInAr(def: SynthDef, args?: { numChannels?: number }): UGenInput;
-export function localInKr(def: SynthDef, args?: { numChannels?: number }): UGenInput;
-export function localOutAr(def: SynthDef, args?: { channelsArray?: UGenInputLike[] }): UGenInput;
-export function localOutKr(def: SynthDef, args?: { channelsArray?: UGenInputLike[] }): UGenInput;
-export function offsetOutAr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function offsetOutKr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function outAr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function outKr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function replaceOutAr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function replaceOutKr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function sharedInKr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
-export function sharedOutKr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function vDiskInAr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; loop?: UGenInputLike; sendId?: UGenInputLike }): UGenInput;
-export function xOutAr(def: SynthDef, args?: { bus?: UGenInputLike; xfade?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function xOutKr(def: SynthDef, args?: { bus?: UGenInputLike; xfade?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function a2KKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function ampCompAr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
-export function ampCompKr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
-export function ampCompIr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
-export function ampCompAAr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
-export function ampCompAKr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
-export function ampCompAIr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
-export function dcAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function dcKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function k2AAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function linExpAr(def: SynthDef, args?: { in?: UGenInputLike; srclo?: UGenInputLike; srchi?: UGenInputLike; dstlo?: UGenInputLike; dsthi?: UGenInputLike }): UGenInput;
-export function linExpKr(def: SynthDef, args?: { in?: UGenInputLike; srclo?: UGenInputLike; srchi?: UGenInputLike; dstlo?: UGenInputLike; dsthi?: UGenInputLike }): UGenInput;
-export function lineAr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function lineKr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function silentAr(def: SynthDef, args?: { numChannels?: number }): UGenInput;
-export function t2AAr(def: SynthDef, args?: { in?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
-export function t2KKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function xLineAr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function xLineKr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function beatTrackKr(def: SynthDef, args?: { chain?: UGenInputLike; lock?: UGenInputLike }): UGenInput;
-export function beatTrack2Kr(def: SynthDef, args?: { busindex?: UGenInputLike; numfeatures?: UGenInputLike; windowsize?: UGenInputLike; phaseaccuracy?: UGenInputLike; lock?: UGenInputLike; weightingscheme?: UGenInputLike }): UGenInput;
-export function keyTrackKr(def: SynthDef, args?: { chain?: UGenInputLike; keydecay?: UGenInputLike; chromaleak?: UGenInputLike }): UGenInput;
-export function loudnessKr(def: SynthDef, args?: { chain?: UGenInputLike; smask?: UGenInputLike; tmask?: UGenInputLike }): UGenInput;
-export function mfccKr(def: SynthDef, args?: { chain?: UGenInputLike; numcoeff?: UGenInputLike }): UGenInput;
-export function onsetsKr(def: SynthDef, args?: { chain?: UGenInputLike; threshold?: UGenInputLike; odftype?: UGenInputLike; relaxtime?: UGenInputLike; floor?: UGenInputLike; mingap?: UGenInputLike; medianspan?: UGenInputLike; whtype?: UGenInputLike; rawodf?: UGenInputLike }): UGenInput;
-export function specCentroidKr(def: SynthDef, args?: { chain?: UGenInputLike }): UGenInput;
-export function specFlatnessKr(def: SynthDef, args?: { chain?: UGenInputLike }): UGenInput;
-export function specPcileKr(def: SynthDef, args?: { chain?: UGenInputLike; fraction?: UGenInputLike; interpolate?: UGenInputLike }): UGenInput;
-export function ballAr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
-export function ballKr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
-export function freeVerbAr(def: SynthDef, args?: { in?: UGenInputLike; mix?: UGenInputLike; room?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
-export function freeVerb2Ar(def: SynthDef, args?: { in?: UGenInputLike; in2?: UGenInputLike; mix?: UGenInputLike; room?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
-export function freqShiftAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function gVerbAr(def: SynthDef, args?: { in?: UGenInputLike; roomsize?: UGenInputLike; revtime?: UGenInputLike; damping?: UGenInputLike; inputbw?: UGenInputLike; spread?: UGenInputLike; drylevel?: UGenInputLike; earlyreflevel?: UGenInputLike; taillevel?: UGenInputLike; maxroomsize?: UGenInputLike }): UGenInput;
-export function gendy1Ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
-export function gendy1Kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
-export function gendy2Ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike }): UGenInput;
-export function gendy2Kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike }): UGenInput;
-export function gendy3Ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; freq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
-export function gendy3Kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; freq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
-export function hilbertAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function moogFfAr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; gain?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function moogFfKr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; gain?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function partConvAr(def: SynthDef, args?: { in?: UGenInputLike; fftsize?: UGenInputLike; irbufnum?: UGenInputLike }): UGenInput;
-export function pitchShiftAr(def: SynthDef, args?: { in?: UGenInputLike; windowSize?: UGenInputLike; pitchRatio?: UGenInputLike; pitchDispersion?: UGenInputLike; timeDispersion?: UGenInputLike }): UGenInput;
-export function pluckAr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike; maxdelaytime?: UGenInputLike; delaytime?: UGenInputLike; decaytime?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
-export function springAr(def: SynthDef, args?: { in?: UGenInputLike; spring?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
-export function springKr(def: SynthDef, args?: { in?: UGenInputLike; spring?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
-export function tBallAr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
-export function tBallKr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
-export function brownNoiseAr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function brownNoiseKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function clipNoiseAr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function clipNoiseKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function crackleAr(def: SynthDef, args?: { chaosParam?: UGenInputLike }): UGenInput;
-export function crackleKr(def: SynthDef, args?: { chaosParam?: UGenInputLike }): UGenInput;
-export function dustAr(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
-export function dustKr(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
-export function dust2Ar(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
-export function dust2Kr(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
-export function grayNoiseAr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function grayNoiseKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function hasherAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function hasherKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function lfClipNoiseAr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfClipNoiseKr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdClipNoiseAr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdClipNoiseKr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise0Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise0Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise1Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise1Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise3Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfdNoise3Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise0Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise0Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise1Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise1Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise2Ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function lfNoise2Kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
-export function logisticAr(def: SynthDef, args?: { chaosParam?: UGenInputLike; freq?: UGenInputLike; init?: UGenInputLike }): UGenInput;
-export function logisticKr(def: SynthDef, args?: { chaosParam?: UGenInputLike; freq?: UGenInputLike; init?: UGenInputLike }): UGenInput;
-export function mantissaMaskAr(def: SynthDef, args?: { in?: UGenInputLike; bits?: UGenInputLike }): UGenInput;
-export function mantissaMaskKr(def: SynthDef, args?: { in?: UGenInputLike; bits?: UGenInputLike }): UGenInput;
-export function pinkNoiseAr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function pinkNoiseKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function whiteNoiseAr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function whiteNoiseKr(def: SynthDef, args?: Record<string, never>): UGenInput;
-export function cOscAr(def: SynthDef, args?: { bufnum?: UGenInputLike; freq?: UGenInputLike; beats?: UGenInputLike }): UGenInput;
-export function cOscKr(def: SynthDef, args?: { bufnum?: UGenInputLike; freq?: UGenInputLike; beats?: UGenInputLike }): UGenInput;
-export function degreeToKeyAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike; octave?: UGenInputLike }): UGenInput;
-export function degreeToKeyKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike; octave?: UGenInputLike }): UGenInput;
-export function detectIndexAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function detectIndexKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function formantAr(def: SynthDef, args?: { fundfreq?: UGenInputLike; formfreq?: UGenInputLike; bwfreq?: UGenInputLike }): UGenInput;
-export function impulseAr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function impulseKr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function indexAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function indexKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function indexInBetweenAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function indexInBetweenKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function lfCubAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfCubKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfGaussAr(def: SynthDef, args?: { duration?: UGenInputLike; width?: UGenInputLike; iphase?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function lfGaussKr(def: SynthDef, args?: { duration?: UGenInputLike; width?: UGenInputLike; iphase?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
-export function lfParAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfParKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfPulseAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function lfPulseKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function lfSawAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfSawKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfTriAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function lfTriKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function oscAr(def: SynthDef, args?: { buffer?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function oscKr(def: SynthDef, args?: { buffer?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function selectAr(def: SynthDef, args?: { which?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function selectKr(def: SynthDef, args?: { which?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
-export function shaperAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function shaperKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function sinOscAr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function sinOscKr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function sinOscFbAr(def: SynthDef, args?: { freq?: UGenInputLike; feedback?: UGenInputLike }): UGenInput;
-export function sinOscFbKr(def: SynthDef, args?: { freq?: UGenInputLike; feedback?: UGenInputLike }): UGenInput;
-export function syncSawAr(def: SynthDef, args?: { syncFreq?: UGenInputLike; sawFreq?: UGenInputLike }): UGenInput;
-export function syncSawKr(def: SynthDef, args?: { syncFreq?: UGenInputLike; sawFreq?: UGenInputLike }): UGenInput;
-export function vOscAr(def: SynthDef, args?: { bufpos?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function vOscKr(def: SynthDef, args?: { bufpos?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
-export function vOsc3Ar(def: SynthDef, args?: { bufpos?: UGenInputLike; freq1?: UGenInputLike; freq2?: UGenInputLike; freq3?: UGenInputLike }): UGenInput;
-export function vOsc3Kr(def: SynthDef, args?: { bufpos?: UGenInputLike; freq1?: UGenInputLike; freq2?: UGenInputLike; freq3?: UGenInputLike }): UGenInput;
-export function varSawAr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function varSawKr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
-export function vibratoAr(def: SynthDef, args?: { freq?: UGenInputLike; rate?: UGenInputLike; depth?: UGenInputLike; delay?: UGenInputLike; onset?: UGenInputLike; rateVariation?: UGenInputLike; depthVariation?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function vibratoKr(def: SynthDef, args?: { freq?: UGenInputLike; rate?: UGenInputLike; depth?: UGenInputLike; delay?: UGenInputLike; onset?: UGenInputLike; rateVariation?: UGenInputLike; depthVariation?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
-export function wrapIndexAr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function wrapIndexKr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
-export function balance2Ar(def: SynthDef, args?: { left?: UGenInputLike; right?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function balance2Kr(def: SynthDef, args?: { left?: UGenInputLike; right?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function biPanB2Ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function biPanB2Kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function decodeB2Ar(def: SynthDef, args?: { numChannels?: number; w?: UGenInputLike; x?: UGenInputLike; y?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
-export function decodeB2Kr(def: SynthDef, args?: { numChannels?: number; w?: UGenInputLike; x?: UGenInputLike; y?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
-export function linPan2Ar(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function linPan2Kr(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function linXFade2Ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function linXFade2Kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function pan2Ar(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function pan2Kr(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function pan4Ar(def: SynthDef, args?: { in?: UGenInputLike; xpos?: UGenInputLike; ypos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function pan4Kr(def: SynthDef, args?: { in?: UGenInputLike; xpos?: UGenInputLike; ypos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function panAzAr(def: SynthDef, args?: { numChannels?: number; in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike; width?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
-export function panAzKr(def: SynthDef, args?: { numChannels?: number; in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike; width?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
-export function panBAr(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; elevation?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function panBKr(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; elevation?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function panB2Ar(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function panB2Kr(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
-export function rotate2Ar(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; pos?: UGenInputLike }): UGenInput;
-export function rotate2Kr(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; pos?: UGenInputLike }): UGenInput;
-export function xFade2Ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function xFade2Kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
-export function coinGateAr(def: SynthDef, args?: { prob?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function coinGateKr(def: SynthDef, args?: { prob?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function expRandIr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function iRandIr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function linRandIr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; minmax?: UGenInputLike }): UGenInput;
-export function nRandIr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; n?: UGenInputLike }): UGenInput;
-export function randIr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function randIdKr(def: SynthDef, args?: { seed?: UGenInputLike }): UGenInput;
-export function randIdIr(def: SynthDef, args?: { seed?: UGenInputLike }): UGenInput;
-export function randSeedAr(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
-export function randSeedKr(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
-export function randSeedIr(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
-export function tExpRandAr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function tExpRandKr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function tiRandAr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function tiRandKr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function tRandAr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function tRandKr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function clipAr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function clipKr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function foldAr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function foldKr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function gateAr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function gateKr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function inRangeAr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function inRangeKr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function inRangeIr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function inRectAr(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; left?: UGenInputLike; top?: UGenInputLike; right?: UGenInputLike; bottom?: UGenInputLike }): UGenInput;
-export function inRectKr(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; left?: UGenInputLike; top?: UGenInputLike; right?: UGenInputLike; bottom?: UGenInputLike }): UGenInput;
-export function lastValueAr(def: SynthDef, args?: { in?: UGenInputLike; diff?: UGenInputLike }): UGenInput;
-export function lastValueKr(def: SynthDef, args?: { in?: UGenInputLike; diff?: UGenInputLike }): UGenInput;
-export function latchAr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function latchKr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function leastChangeAr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
-export function leastChangeKr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
-export function mostChangeAr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
-export function mostChangeKr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
-export function peakAr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function peakKr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function peakFollowerAr(def: SynthDef, args?: { in?: UGenInputLike; decay?: UGenInputLike }): UGenInput;
-export function peakFollowerKr(def: SynthDef, args?: { in?: UGenInputLike; decay?: UGenInputLike }): UGenInput;
-export function phasorAr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike; start?: UGenInputLike; end?: UGenInputLike; resetPos?: UGenInputLike }): UGenInput;
-export function phasorKr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike; start?: UGenInputLike; end?: UGenInputLike; resetPos?: UGenInputLike }): UGenInput;
-export function pitchKr(def: SynthDef, args?: { in?: UGenInputLike; initFreq?: UGenInputLike; minFreq?: UGenInputLike; maxFreq?: UGenInputLike; execFreq?: UGenInputLike; maxBinsPerOctave?: UGenInputLike; median?: UGenInputLike; ampThreshold?: UGenInputLike; peakThreshold?: UGenInputLike; downSample?: UGenInputLike; clar?: UGenInputLike }): UGenInput;
-export function pulseCountAr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function pulseCountKr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function pulseDividerAr(def: SynthDef, args?: { trig?: UGenInputLike; div?: UGenInputLike; startVal?: UGenInputLike }): UGenInput;
-export function pulseDividerKr(def: SynthDef, args?: { trig?: UGenInputLike; div?: UGenInputLike; startVal?: UGenInputLike }): UGenInput;
-export function runningMaxAr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function runningMaxKr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function runningMinAr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function runningMinKr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
-export function schmidtAr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function schmidtKr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function sendReplyAr(def: SynthDef, args?: { trig?: UGenInputLike; cmdName?: UGenInputLike; values?: UGenInputLike; replyId?: UGenInputLike }): UGenInput;
-export function sendReplyKr(def: SynthDef, args?: { trig?: UGenInputLike; cmdName?: UGenInputLike; values?: UGenInputLike; replyId?: UGenInputLike }): UGenInput;
-export function sendTrigAr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; value?: UGenInputLike }): UGenInput;
-export function sendTrigKr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; value?: UGenInputLike }): UGenInput;
-export function setResetFfAr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function setResetFfKr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
-export function stepperAr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; min?: UGenInputLike; max?: UGenInputLike; step?: UGenInputLike; resetval?: UGenInputLike }): UGenInput;
-export function stepperKr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; min?: UGenInputLike; max?: UGenInputLike; step?: UGenInputLike; resetval?: UGenInputLike }): UGenInput;
-export function sweepAr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike }): UGenInput;
-export function sweepKr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike }): UGenInput;
-export function tDelayAr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function tDelayKr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function tWindexAr(def: SynthDef, args?: { trig?: UGenInputLike; channelsArray?: UGenInputLike[]; normalize?: UGenInputLike }): UGenInput;
-export function tWindexKr(def: SynthDef, args?: { trig?: UGenInputLike; channelsArray?: UGenInputLike[]; normalize?: UGenInputLike }): UGenInput;
-export function timerAr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
-export function timerKr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
-export function toggleFfAr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
-export function toggleFfKr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
-export function trapezoidAr(def: SynthDef, args?: { in?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike }): UGenInput;
-export function trapezoidKr(def: SynthDef, args?: { in?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike }): UGenInput;
-export function trigAr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function trigKr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function trig1Ar(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function trig1Kr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
-export function wrapAr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function wrapKr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
-export function zeroCrossingAr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
-export function zeroCrossingKr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+export class MulAdd {
+    private constructor();
+    static ir(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; mul?: UGenInputLike; add?: UGenInputLike }): UGenInput;
+}
+export class BAllPass {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class BBandPass {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bw?: UGenInputLike }): UGenInput;
+}
+export class BBandStop {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bw?: UGenInputLike }): UGenInput;
+}
+export class BHiPass {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class BHiShelf {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rs?: UGenInputLike; db?: UGenInputLike }): UGenInput;
+}
+export class BLowPass {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class BLowShelf {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rs?: UGenInputLike; db?: UGenInputLike }): UGenInput;
+}
+export class BPeakEQ {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
+}
+export class BufRd {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike; interpolation?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike; interpolation?: UGenInputLike }): UGenInput;
+}
+export class BufWr {
+    private constructor();
+    static ar(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; phase?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
+}
+export class ClearBuf {
+    private constructor();
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class LocalBuf {
+    private constructor();
+    static ir(def: SynthDef, args?: { numChannels?: number; numFrames?: UGenInputLike }): UGenInput;
+}
+export class MaxLocalBufs {
+    private constructor();
+    static ir(def: SynthDef, args?: { numLocalBufs?: UGenInputLike }): UGenInput;
+}
+export class PlayBuf {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; trigger?: UGenInputLike; startPos?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; trigger?: UGenInputLike; startPos?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class RecordBuf {
+    private constructor();
+    static ar(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; offset?: UGenInputLike; recLevel?: UGenInputLike; preLevel?: UGenInputLike; run?: UGenInputLike; loop?: UGenInputLike; trigger?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike; offset?: UGenInputLike; recLevel?: UGenInputLike; preLevel?: UGenInputLike; run?: UGenInputLike; loop?: UGenInputLike; trigger?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class ScopeOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; bufnum?: UGenInputLike }): UGenInput;
+}
+export class ScopeOut2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { inputArray?: UGenInputLike[]; scopeNum?: UGenInputLike; maxFrames?: UGenInputLike; scopeFrames?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inputArray?: UGenInputLike[]; scopeNum?: UGenInputLike; maxFrames?: UGenInputLike; scopeFrames?: UGenInputLike }): UGenInput;
+}
+export class SetBuf {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; values?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike; values?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
+}
+export class TGrains {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; bufnum?: UGenInputLike; rate?: UGenInputLike; centerPos?: UGenInputLike; dur?: UGenInputLike; pan?: UGenInputLike; amp?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
+}
+export class CuspL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class CuspN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class FBSineC {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class FBSineL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class FBSineN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; im?: UGenInputLike; fb?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class GbmanL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class GbmanN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class HenonC {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
+}
+export class HenonL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
+}
+export class HenonN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; x0?: UGenInputLike; x1?: UGenInputLike }): UGenInput;
+}
+export class LatoocarfianC {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class LatoocarfianL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class LatoocarfianN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class LinCongC {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class LinCongL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class LinCongN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike; m?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class LorenzL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; s?: UGenInputLike; r?: UGenInputLike; b?: UGenInputLike; h?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike; zi?: UGenInputLike }): UGenInput;
+}
+export class QuadC {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class QuadL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class QuadN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; xi?: UGenInputLike }): UGenInput;
+}
+export class StandardL {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; k?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class StandardN {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; k?: UGenInputLike; xi?: UGenInputLike; yi?: UGenInputLike }): UGenInput;
+}
+export class Amplitude {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; releaseTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; releaseTime?: UGenInputLike }): UGenInput;
+}
+export class Compander {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; control?: UGenInputLike; thresh?: UGenInputLike; slopeBelow?: UGenInputLike; slopeAbove?: UGenInputLike; clampTime?: UGenInputLike; relaxTime?: UGenInputLike }): UGenInput;
+}
+export class Limiter {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; level?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+}
+export class Normalizer {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; level?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+}
+export class AllpassC {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class AllpassL {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class AllpassN {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufAllpassC {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufAllpassL {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufAllpassN {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufCombC {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufCombL {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufCombN {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class BufDelayC {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class BufDelayL {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class BufDelayN {
+    private constructor();
+    static ar(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike; in?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class CombC {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class CombL {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class CombN {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class DelTapRd {
+    private constructor();
+    static ar(def: SynthDef, args?: { buffer?: UGenInputLike; phase?: UGenInputLike; delay?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; phase?: UGenInputLike; delay?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
+}
+export class DelTapWr {
+    private constructor();
+    static ar(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class Delay1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class Delay2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class DelayC {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class DelayL {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class DelayN {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; maxDelayTime?: UGenInputLike; delayTime?: UGenInputLike }): UGenInput;
+}
+export class Demand {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; demandUgens?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; demandUgens?: UGenInputLike }): UGenInput;
+}
+export class DemandEnvGen {
+    private constructor();
+    static ar(def: SynthDef, args?: { level?: UGenInputLike; dur?: UGenInputLike; shape?: UGenInputLike; curve?: UGenInputLike; gate?: UGenInputLike; reset?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { level?: UGenInputLike; dur?: UGenInputLike; shape?: UGenInputLike; curve?: UGenInputLike; gate?: UGenInputLike; reset?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class Duty {
+    private constructor();
+    static ar(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class TDuty {
+    private constructor();
+    static ar(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike; gapFirst?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { dur?: UGenInputLike; reset?: UGenInputLike; action?: UGenInputLike; level?: UGenInputLike; gapFirst?: UGenInputLike }): UGenInput;
+}
+export class Done {
+    private constructor();
+    static kr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
+}
+export class EnvGen {
+    private constructor();
+    static ar(def: SynthDef, args?: { envelope?: UGenInputLike; gate?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { envelope?: UGenInputLike; gate?: UGenInputLike; levelScale?: UGenInputLike; levelBias?: UGenInputLike; timeScale?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class Free {
+    private constructor();
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; id?: UGenInputLike }): UGenInput;
+}
+export class FreeSelf {
+    private constructor();
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class FreeSelfWhenDone {
+    private constructor();
+    static kr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
+}
+export class IEnvGen {
+    private constructor();
+    static ar(def: SynthDef, args?: { ienvelope?: UGenInputLike; index?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { ienvelope?: UGenInputLike; index?: UGenInputLike }): UGenInput;
+}
+export class Linen {
+    private constructor();
+    static kr(def: SynthDef, args?: { gate?: UGenInputLike; attackTime?: UGenInputLike; susLevel?: UGenInputLike; releaseTime?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class Pause {
+    private constructor();
+    static kr(def: SynthDef, args?: { gate?: UGenInputLike; id?: UGenInputLike }): UGenInput;
+}
+export class PauseSelf {
+    private constructor();
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class PauseSelfWhenDone {
+    private constructor();
+    static kr(def: SynthDef, args?: { src?: UGenInputLike }): UGenInput;
+}
+export class Blip {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; numharm?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; numharm?: UGenInputLike }): UGenInput;
+}
+export class FSinOsc {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class Klang {
+    private constructor();
+    static ar(def: SynthDef, args?: { specs?: UGenInputLike; freqscale?: UGenInputLike; freqoffset?: UGenInputLike }): UGenInput;
+}
+export class Klank {
+    private constructor();
+    static ar(def: SynthDef, args?: { specs?: UGenInputLike; input?: UGenInputLike; freqscale?: UGenInputLike; freqoffset?: UGenInputLike; decayscale?: UGenInputLike }): UGenInput;
+}
+export class PSinGrain {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; dur?: UGenInputLike; amp?: UGenInputLike }): UGenInput;
+}
+export class Pulse {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+}
+export class Saw {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class FFT {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; in?: UGenInputLike; hop?: UGenInputLike; wintype?: UGenInputLike; active?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
+}
+export class FFTTrigger {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; hop?: UGenInputLike; polar?: UGenInputLike }): UGenInput;
+}
+export class IFFT {
+    private constructor();
+    static ar(def: SynthDef, args?: { chain?: UGenInputLike; wintype?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; wintype?: UGenInputLike; winsize?: UGenInputLike }): UGenInput;
+}
+export class PV_Add {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_BinScramble {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike; width?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class PV_BinShift {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; stretch?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
+}
+export class PV_BinWipe {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; wipe?: UGenInputLike }): UGenInput;
+}
+export class PV_BrickWall {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike }): UGenInput;
+}
+export class PV_Conj {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
+}
+export class PV_Copy {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_CopyPhase {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_Diffuser {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class PV_Div {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_LocalMax {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
+}
+export class PV_MagAbove {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
+}
+export class PV_MagBelow {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
+}
+export class PV_MagClip {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; threshold?: UGenInputLike }): UGenInput;
+}
+export class PV_MagDiv {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; zeroed?: UGenInputLike }): UGenInput;
+}
+export class PV_MagFreeze {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; freeze?: UGenInputLike }): UGenInput;
+}
+export class PV_MagMul {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_MagNoise {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
+}
+export class PV_MagShift {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; stretch?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
+}
+export class PV_MagSmear {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; bins?: UGenInputLike }): UGenInput;
+}
+export class PV_MagSquared {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
+}
+export class PV_Max {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_Min {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_Mul {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike }): UGenInput;
+}
+export class PV_PhaseShift {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; shift?: UGenInputLike }): UGenInput;
+}
+export class PV_PhaseShift270 {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
+}
+export class PV_PhaseShift90 {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike }): UGenInput;
+}
+export class PV_RandComb {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; wipe?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class PV_RandWipe {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; wipe?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class PV_RectComb {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; numTeeth?: UGenInputLike; phase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+}
+export class PV_RectComb2 {
+    private constructor();
+    static kr(def: SynthDef, args?: { bufferA?: UGenInputLike; bufferB?: UGenInputLike; numTeeth?: UGenInputLike; phase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+}
+export class Convolution {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
+}
+export class Convolution2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
+}
+export class Convolution2L {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike; crossfade?: UGenInputLike }): UGenInput;
+}
+export class Convolution3 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; kernel?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike }): UGenInput;
+}
+export class PV_ConformalMap {
+    private constructor();
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; areal?: UGenInputLike; aimag?: UGenInputLike }): UGenInput;
+}
+export class PV_HainsworthFoote {
+    private constructor();
+    static ar(def: SynthDef, args?: { buffer?: UGenInputLike; proph?: UGenInputLike; propf?: UGenInputLike; threshold?: UGenInputLike; waitTime?: UGenInputLike }): UGenInput;
+}
+export class PV_JensenAndersen {
+    private constructor();
+    static ar(def: SynthDef, args?: { buffer?: UGenInputLike; propsc?: UGenInputLike; prophfe?: UGenInputLike; prophfc?: UGenInputLike; propsf?: UGenInputLike; threshold?: UGenInputLike; waitTime?: UGenInputLike }): UGenInput;
+}
+export class RunningSum {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; numsamp?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; numsamp?: UGenInputLike }): UGenInput;
+}
+export class StereoConvolution2L {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; kernelL?: UGenInputLike; kernelR?: UGenInputLike; trigger?: UGenInputLike; framesize?: UGenInputLike; crossfade?: UGenInputLike }): UGenInput;
+}
+export class APF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+}
+export class BPF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class BPZ2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class BRF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class BRZ2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class Decay {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class Decay2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class DetectSilence {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; amp?: UGenInputLike; time?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; amp?: UGenInputLike; time?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class FOS {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; b1?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; b1?: UGenInputLike }): UGenInput;
+}
+export class Formlet {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; attackTime?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class HPF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
+}
+export class HPZ1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class HPZ2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class Integrator {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+}
+export class LPF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike }): UGenInput;
+}
+export class LPZ1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class LPZ2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class Lag {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+}
+export class Lag2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+}
+export class Lag2UD {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+}
+export class Lag3 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+}
+export class Lag3UD {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+}
+export class LagUD {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTimeUp?: UGenInputLike; lagTimeDown?: UGenInputLike }): UGenInput;
+}
+export class LeakDC {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+}
+export class Median {
+    private constructor();
+    static ar(def: SynthDef, args?: { length?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { length?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class MidEQ {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike; db?: UGenInputLike }): UGenInput;
+}
+export class OnePole {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+}
+export class OneZero {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+}
+export class RHPF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class RLPF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; rq?: UGenInputLike }): UGenInput;
+}
+export class Ramp {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lagTime?: UGenInputLike }): UGenInput;
+}
+export class Resonz {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bwr?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; bwr?: UGenInputLike }): UGenInput;
+}
+export class Ringz {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; decayTime?: UGenInputLike }): UGenInput;
+}
+export class SOS {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; a2?: UGenInputLike; b1?: UGenInputLike; b2?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; a0?: UGenInputLike; a1?: UGenInputLike; a2?: UGenInputLike; b1?: UGenInputLike; b2?: UGenInputLike }): UGenInput;
+}
+export class Slew {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; up?: UGenInputLike; dn?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; up?: UGenInputLike; dn?: UGenInputLike }): UGenInput;
+}
+export class Slope {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class TwoPole {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+}
+export class TwoZero {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; radius?: UGenInputLike }): UGenInput;
+}
+export class GrainBuf {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; sndbuf?: UGenInputLike; rate?: UGenInputLike; pos?: UGenInputLike; interp?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
+}
+export class GrainFM {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; carFreq?: UGenInputLike; modFreq?: UGenInputLike; index?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
+}
+export class GrainIn {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; in?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
+}
+export class GrainSin {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; trigger?: UGenInputLike; dur?: UGenInputLike; freq?: UGenInputLike; pan?: UGenInputLike; envbufnum?: UGenInputLike; maxGrains?: UGenInputLike }): UGenInput;
+}
+export class Warp1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; pointer?: UGenInputLike; freqScale?: UGenInputLike; windowSize?: UGenInputLike; envbufnum?: UGenInputLike; overlaps?: UGenInputLike; windowRandRatio?: UGenInputLike; interp?: UGenInputLike }): UGenInput;
+}
+export class BufChannels {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class BufDur {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class BufFrames {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class BufRateScale {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class BufSampleRate {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class BufSamples {
+    private constructor();
+    static kr(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { buf?: UGenInputLike }): UGenInput;
+}
+export class CheckBadValues {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; post?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; post?: UGenInputLike }): UGenInput;
+}
+export class ControlDur {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class ControlRate {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumAudioBuses {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumBuffers {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumControlBuses {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumInputBuses {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumOutputBuses {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class NumRunningSynths {
+    private constructor();
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class Poll {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; in?: UGenInputLike; label?: UGenInputLike; trigId?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; in?: UGenInputLike; label?: UGenInputLike; trigId?: UGenInputLike }): UGenInput;
+}
+export class RadiansPerSample {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class SampleDur {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class SampleRate {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class SubsampleOffset {
+    private constructor();
+    static ir(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class KeyState {
+    private constructor();
+    static kr(def: SynthDef, args?: { keycode?: UGenInputLike; minval?: UGenInputLike; maxval?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
+}
+export class MouseButton {
+    private constructor();
+    static kr(def: SynthDef, args?: { up?: UGenInputLike; down?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
+}
+export class MouseX {
+    private constructor();
+    static kr(def: SynthDef, args?: { min?: UGenInputLike; max?: UGenInputLike; warp?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
+}
+export class MouseY {
+    private constructor();
+    static kr(def: SynthDef, args?: { min?: UGenInputLike; max?: UGenInputLike; warp?: UGenInputLike; lag?: UGenInputLike }): UGenInput;
+}
+export class DiskIn {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; loop?: UGenInputLike }): UGenInput;
+}
+export class DiskOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class In {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
+}
+export class InFeedback {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
+}
+export class InTrig {
+    private constructor();
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
+}
+export class LagIn {
+    private constructor();
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number; lag?: UGenInputLike }): UGenInput;
+}
+export class LocalIn {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number }): UGenInput;
+    static kr(def: SynthDef, args?: { numChannels?: number }): UGenInput;
+}
+export class LocalOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class OffsetOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class Out {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class ReplaceOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class SharedIn {
+    private constructor();
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; numChannels?: number }): UGenInput;
+}
+export class SharedOut {
+    private constructor();
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class VDiskIn {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; bufnum?: UGenInputLike; rate?: UGenInputLike; loop?: UGenInputLike; sendId?: UGenInputLike }): UGenInput;
+}
+export class XOut {
+    private constructor();
+    static ar(def: SynthDef, args?: { bus?: UGenInputLike; xfade?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { bus?: UGenInputLike; xfade?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class A2K {
+    private constructor();
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class AmpComp {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; exp?: UGenInputLike }): UGenInput;
+}
+export class AmpCompA {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { freq?: UGenInputLike; root?: UGenInputLike; minAmp?: UGenInputLike; rootAmp?: UGenInputLike }): UGenInput;
+}
+export class DC {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class K2A {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class LinExp {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; srclo?: UGenInputLike; srchi?: UGenInputLike; dstlo?: UGenInputLike; dsthi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; srclo?: UGenInputLike; srchi?: UGenInputLike; dstlo?: UGenInputLike; dsthi?: UGenInputLike }): UGenInput;
+}
+export class Line {
+    private constructor();
+    static ar(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class Silent {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number }): UGenInput;
+}
+export class T2A {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; offset?: UGenInputLike }): UGenInput;
+}
+export class T2K {
+    private constructor();
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class XLine {
+    private constructor();
+    static ar(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { start?: UGenInputLike; end?: UGenInputLike; dur?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class BeatTrack {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; lock?: UGenInputLike }): UGenInput;
+}
+export class BeatTrack2 {
+    private constructor();
+    static kr(def: SynthDef, args?: { busindex?: UGenInputLike; numfeatures?: UGenInputLike; windowsize?: UGenInputLike; phaseaccuracy?: UGenInputLike; lock?: UGenInputLike; weightingscheme?: UGenInputLike }): UGenInput;
+}
+export class KeyTrack {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; keydecay?: UGenInputLike; chromaleak?: UGenInputLike }): UGenInput;
+}
+export class Loudness {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; smask?: UGenInputLike; tmask?: UGenInputLike }): UGenInput;
+}
+export class MFCC {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; numcoeff?: UGenInputLike }): UGenInput;
+}
+export class Onsets {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; threshold?: UGenInputLike; odftype?: UGenInputLike; relaxtime?: UGenInputLike; floor?: UGenInputLike; mingap?: UGenInputLike; medianspan?: UGenInputLike; whtype?: UGenInputLike; rawodf?: UGenInputLike }): UGenInput;
+}
+export class SpecCentroid {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike }): UGenInput;
+}
+export class SpecFlatness {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike }): UGenInput;
+}
+export class SpecPcile {
+    private constructor();
+    static kr(def: SynthDef, args?: { chain?: UGenInputLike; fraction?: UGenInputLike; interpolate?: UGenInputLike }): UGenInput;
+}
+export class Ball {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
+}
+export class FreeVerb {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; mix?: UGenInputLike; room?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
+}
+export class FreeVerb2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; in2?: UGenInputLike; mix?: UGenInputLike; room?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
+}
+export class FreqShift {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+}
+export class GVerb {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; roomsize?: UGenInputLike; revtime?: UGenInputLike; damping?: UGenInputLike; inputbw?: UGenInputLike; spread?: UGenInputLike; drylevel?: UGenInputLike; earlyreflevel?: UGenInputLike; taillevel?: UGenInputLike; maxroomsize?: UGenInputLike }): UGenInput;
+}
+export class Gendy1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
+}
+export class Gendy2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; minfreq?: UGenInputLike; maxfreq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike; a?: UGenInputLike; c?: UGenInputLike }): UGenInput;
+}
+export class Gendy3 {
+    private constructor();
+    static ar(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; freq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { ampdist?: UGenInputLike; durdist?: UGenInputLike; adparam?: UGenInputLike; ddparam?: UGenInputLike; freq?: UGenInputLike; ampscale?: UGenInputLike; durscale?: UGenInputLike; initCps?: UGenInputLike; knum?: UGenInputLike }): UGenInput;
+}
+export class Hilbert {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class MoogFF {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; gain?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; freq?: UGenInputLike; gain?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+}
+export class PartConv {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; fftsize?: UGenInputLike; irbufnum?: UGenInputLike }): UGenInput;
+}
+export class PitchShift {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; windowSize?: UGenInputLike; pitchRatio?: UGenInputLike; pitchDispersion?: UGenInputLike; timeDispersion?: UGenInputLike }): UGenInput;
+}
+export class Pluck {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike; maxdelaytime?: UGenInputLike; delaytime?: UGenInputLike; decaytime?: UGenInputLike; coef?: UGenInputLike }): UGenInput;
+}
+export class Spring {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; spring?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; spring?: UGenInputLike; damp?: UGenInputLike }): UGenInput;
+}
+export class TBall {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; g?: UGenInputLike; damp?: UGenInputLike; friction?: UGenInputLike }): UGenInput;
+}
+export class BrownNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class ClipNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class Crackle {
+    private constructor();
+    static ar(def: SynthDef, args?: { chaosParam?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { chaosParam?: UGenInputLike }): UGenInput;
+}
+export class Dust {
+    private constructor();
+    static ar(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
+}
+export class Dust2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { density?: UGenInputLike }): UGenInput;
+}
+export class GrayNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class Hasher {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
+export class LFClipNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFDClipNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFDNoise0 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFDNoise1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFDNoise3 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFNoise0 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFNoise1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class LFNoise2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike }): UGenInput;
+}
+export class Logistic {
+    private constructor();
+    static ar(def: SynthDef, args?: { chaosParam?: UGenInputLike; freq?: UGenInputLike; init?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { chaosParam?: UGenInputLike; freq?: UGenInputLike; init?: UGenInputLike }): UGenInput;
+}
+export class MantissaMask {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; bits?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; bits?: UGenInputLike }): UGenInput;
+}
+export class PinkNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class WhiteNoise {
+    private constructor();
+    static ar(def: SynthDef, args?: Record<string, never>): UGenInput;
+    static kr(def: SynthDef, args?: Record<string, never>): UGenInput;
+}
+export class COsc {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; freq?: UGenInputLike; beats?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; freq?: UGenInputLike; beats?: UGenInputLike }): UGenInput;
+}
+export class DegreeToKey {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike; octave?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike; octave?: UGenInputLike }): UGenInput;
+}
+export class DetectIndex {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class Formant {
+    private constructor();
+    static ar(def: SynthDef, args?: { fundfreq?: UGenInputLike; formfreq?: UGenInputLike; bwfreq?: UGenInputLike }): UGenInput;
+}
+export class Impulse {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+}
+export class Index {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class IndexInBetween {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class LFCub {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class LFGauss {
+    private constructor();
+    static ar(def: SynthDef, args?: { duration?: UGenInputLike; width?: UGenInputLike; iphase?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { duration?: UGenInputLike; width?: UGenInputLike; iphase?: UGenInputLike; loop?: UGenInputLike; action?: UGenInputLike }): UGenInput;
+}
+export class LFPar {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class LFPulse {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+}
+export class LFSaw {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class LFTri {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class Osc {
+    private constructor();
+    static ar(def: SynthDef, args?: { buffer?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { buffer?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+}
+export class Select {
+    private constructor();
+    static ar(def: SynthDef, args?: { which?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+    static kr(def: SynthDef, args?: { which?: UGenInputLike; channelsArray?: UGenInputLike[] }): UGenInput;
+}
+export class Shaper {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class SinOsc {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+}
+export class SinOscFB {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; feedback?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; feedback?: UGenInputLike }): UGenInput;
+}
+export class SyncSaw {
+    private constructor();
+    static ar(def: SynthDef, args?: { syncFreq?: UGenInputLike; sawFreq?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { syncFreq?: UGenInputLike; sawFreq?: UGenInputLike }): UGenInput;
+}
+export class VOsc {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufpos?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufpos?: UGenInputLike; freq?: UGenInputLike; phase?: UGenInputLike }): UGenInput;
+}
+export class VOsc3 {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufpos?: UGenInputLike; freq1?: UGenInputLike; freq2?: UGenInputLike; freq3?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufpos?: UGenInputLike; freq1?: UGenInputLike; freq2?: UGenInputLike; freq3?: UGenInputLike }): UGenInput;
+}
+export class VarSaw {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; iphase?: UGenInputLike; width?: UGenInputLike }): UGenInput;
+}
+export class Vibrato {
+    private constructor();
+    static ar(def: SynthDef, args?: { freq?: UGenInputLike; rate?: UGenInputLike; depth?: UGenInputLike; delay?: UGenInputLike; onset?: UGenInputLike; rateVariation?: UGenInputLike; depthVariation?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { freq?: UGenInputLike; rate?: UGenInputLike; depth?: UGenInputLike; delay?: UGenInputLike; onset?: UGenInputLike; rateVariation?: UGenInputLike; depthVariation?: UGenInputLike; iphase?: UGenInputLike }): UGenInput;
+}
+export class WrapIndex {
+    private constructor();
+    static ar(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { bufnum?: UGenInputLike; in?: UGenInputLike }): UGenInput;
+}
+export class Balance2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { left?: UGenInputLike; right?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { left?: UGenInputLike; right?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class BiPanB2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+}
+export class DecodeB2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; w?: UGenInputLike; x?: UGenInputLike; y?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { numChannels?: number; w?: UGenInputLike; x?: UGenInputLike; y?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
+}
+export class LinPan2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class LinXFade2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class Pan2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class Pan4 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; xpos?: UGenInputLike; ypos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; xpos?: UGenInputLike; ypos?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class PanAz {
+    private constructor();
+    static ar(def: SynthDef, args?: { numChannels?: number; in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike; width?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { numChannels?: number; in?: UGenInputLike; pos?: UGenInputLike; level?: UGenInputLike; width?: UGenInputLike; orientation?: UGenInputLike }): UGenInput;
+}
+export class PanB {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; elevation?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; elevation?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+}
+export class PanB2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; azimuth?: UGenInputLike; gain?: UGenInputLike }): UGenInput;
+}
+export class Rotate2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; pos?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; pos?: UGenInputLike }): UGenInput;
+}
+export class XFade2 {
+    private constructor();
+    static ar(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { inA?: UGenInputLike; inB?: UGenInputLike; pan?: UGenInputLike; level?: UGenInputLike }): UGenInput;
+}
+export class CoinGate {
+    private constructor();
+    static ar(def: SynthDef, args?: { prob?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { prob?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class ExpRand {
+    private constructor();
+    static ir(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class IRand {
+    private constructor();
+    static ir(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class LinRand {
+    private constructor();
+    static ir(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; minmax?: UGenInputLike }): UGenInput;
+}
+export class NRand {
+    private constructor();
+    static ir(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; n?: UGenInputLike }): UGenInput;
+}
+export class Rand {
+    private constructor();
+    static ir(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class RandID {
+    private constructor();
+    static kr(def: SynthDef, args?: { seed?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { seed?: UGenInputLike }): UGenInput;
+}
+export class RandSeed {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { trig?: UGenInputLike; seed?: UGenInputLike }): UGenInput;
+}
+export class TExpRand {
+    private constructor();
+    static ar(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class TIRand {
+    private constructor();
+    static ar(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class TRand {
+    private constructor();
+    static ar(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { lo?: UGenInputLike; hi?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class Clip {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class Fold {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class Gate {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class InRange {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static ir(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class InRect {
+    private constructor();
+    static ar(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; left?: UGenInputLike; top?: UGenInputLike; right?: UGenInputLike; bottom?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { x?: UGenInputLike; y?: UGenInputLike; left?: UGenInputLike; top?: UGenInputLike; right?: UGenInputLike; bottom?: UGenInputLike }): UGenInput;
+}
+export class LastValue {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; diff?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; diff?: UGenInputLike }): UGenInput;
+}
+export class Latch {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class LeastChange {
+    private constructor();
+    static ar(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
+}
+export class MostChange {
+    private constructor();
+    static ar(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { a?: UGenInputLike; b?: UGenInputLike }): UGenInput;
+}
+export class Peak {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+}
+export class PeakFollower {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; decay?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; decay?: UGenInputLike }): UGenInput;
+}
+export class Phasor {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike; start?: UGenInputLike; end?: UGenInputLike; resetPos?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike; start?: UGenInputLike; end?: UGenInputLike; resetPos?: UGenInputLike }): UGenInput;
+}
+export class Pitch {
+    private constructor();
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; initFreq?: UGenInputLike; minFreq?: UGenInputLike; maxFreq?: UGenInputLike; execFreq?: UGenInputLike; maxBinsPerOctave?: UGenInputLike; median?: UGenInputLike; ampThreshold?: UGenInputLike; peakThreshold?: UGenInputLike; downSample?: UGenInputLike; clar?: UGenInputLike }): UGenInput;
+}
+export class PulseCount {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+}
+export class PulseDivider {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; div?: UGenInputLike; startVal?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; div?: UGenInputLike; startVal?: UGenInputLike }): UGenInput;
+}
+export class RunningMax {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class RunningMin {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; trig?: UGenInputLike }): UGenInput;
+}
+export class Schmidt {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class SendReply {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; cmdName?: UGenInputLike; values?: UGenInputLike; replyId?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; cmdName?: UGenInputLike; values?: UGenInputLike; replyId?: UGenInputLike }): UGenInput;
+}
+export class SendTrig {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; value?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; id?: UGenInputLike; value?: UGenInputLike }): UGenInput;
+}
+export class SetResetFF {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike }): UGenInput;
+}
+export class Stepper {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; min?: UGenInputLike; max?: UGenInputLike; step?: UGenInputLike; resetval?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; reset?: UGenInputLike; min?: UGenInputLike; max?: UGenInputLike; step?: UGenInputLike; resetval?: UGenInputLike }): UGenInput;
+}
+export class Sweep {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; rate?: UGenInputLike }): UGenInput;
+}
+export class TDelay {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+}
+export class TWindex {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; channelsArray?: UGenInputLike[]; normalize?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; channelsArray?: UGenInputLike[]; normalize?: UGenInputLike }): UGenInput;
+}
+export class Timer {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
+}
+export class ToggleFF {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike }): UGenInput;
+}
+export class Trapezoid {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; a?: UGenInputLike; b?: UGenInputLike; c?: UGenInputLike; d?: UGenInputLike }): UGenInput;
+}
+export class Trig {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+}
+export class Trig1 {
+    private constructor();
+    static ar(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { trig?: UGenInputLike; dur?: UGenInputLike }): UGenInput;
+}
+export class Wrap {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike; lo?: UGenInputLike; hi?: UGenInputLike }): UGenInput;
+}
+export class ZeroCrossing {
+    private constructor();
+    static ar(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+    static kr(def: SynthDef, args?: { in?: UGenInputLike }): UGenInput;
+}
 
 
 
@@ -634,554 +1675,901 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly a2KKr: (a: number, b: any) => [number, number, number];
-    readonly allpassCAr: (a: number, b: any) => [number, number, number];
-    readonly allpassCKr: (a: number, b: any) => [number, number, number];
-    readonly allpassLAr: (a: number, b: any) => [number, number, number];
-    readonly allpassLKr: (a: number, b: any) => [number, number, number];
-    readonly allpassNAr: (a: number, b: any) => [number, number, number];
-    readonly allpassNKr: (a: number, b: any) => [number, number, number];
-    readonly ampCompAAr: (a: number, b: any) => [number, number, number];
-    readonly ampCompAIr: (a: number, b: any) => [number, number, number];
-    readonly ampCompAKr: (a: number, b: any) => [number, number, number];
-    readonly ampCompAr: (a: number, b: any) => [number, number, number];
-    readonly ampCompIr: (a: number, b: any) => [number, number, number];
-    readonly ampCompKr: (a: number, b: any) => [number, number, number];
-    readonly amplitudeAr: (a: number, b: any) => [number, number, number];
-    readonly amplitudeKr: (a: number, b: any) => [number, number, number];
-    readonly apfAr: (a: number, b: any) => [number, number, number];
-    readonly apfKr: (a: number, b: any) => [number, number, number];
-    readonly bAllPassAr: (a: number, b: any) => [number, number, number];
-    readonly bBandPassAr: (a: number, b: any) => [number, number, number];
-    readonly bBandStopAr: (a: number, b: any) => [number, number, number];
-    readonly bHiPassAr: (a: number, b: any) => [number, number, number];
-    readonly bHiShelfAr: (a: number, b: any) => [number, number, number];
-    readonly bLowPassAr: (a: number, b: any) => [number, number, number];
-    readonly bLowShelfAr: (a: number, b: any) => [number, number, number];
-    readonly bPeakEqAr: (a: number, b: any) => [number, number, number];
-    readonly balance2Ar: (a: number, b: any) => [number, number, number];
-    readonly balance2Kr: (a: number, b: any) => [number, number, number];
-    readonly ballAr: (a: number, b: any) => [number, number, number];
-    readonly ballKr: (a: number, b: any) => [number, number, number];
-    readonly beatTrack2Kr: (a: number, b: any) => [number, number, number];
-    readonly beatTrackKr: (a: number, b: any) => [number, number, number];
-    readonly biPanB2Ar: (a: number, b: any) => [number, number, number];
-    readonly biPanB2Kr: (a: number, b: any) => [number, number, number];
-    readonly blipAr: (a: number, b: any) => [number, number, number];
-    readonly blipKr: (a: number, b: any) => [number, number, number];
-    readonly bpfAr: (a: number, b: any) => [number, number, number];
-    readonly bpfKr: (a: number, b: any) => [number, number, number];
-    readonly bpz2Ar: (a: number, b: any) => [number, number, number];
-    readonly bpz2Kr: (a: number, b: any) => [number, number, number];
-    readonly brfAr: (a: number, b: any) => [number, number, number];
-    readonly brfKr: (a: number, b: any) => [number, number, number];
-    readonly brownNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly brownNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly brz2Ar: (a: number, b: any) => [number, number, number];
-    readonly brz2Kr: (a: number, b: any) => [number, number, number];
-    readonly bufAllpassCAr: (a: number, b: any) => [number, number, number];
-    readonly bufAllpassLAr: (a: number, b: any) => [number, number, number];
-    readonly bufAllpassNAr: (a: number, b: any) => [number, number, number];
-    readonly bufChannelsIr: (a: number, b: any) => [number, number, number];
-    readonly bufChannelsKr: (a: number, b: any) => [number, number, number];
-    readonly bufCombCAr: (a: number, b: any) => [number, number, number];
-    readonly bufCombLAr: (a: number, b: any) => [number, number, number];
-    readonly bufCombNAr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayCAr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayCKr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayLAr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayLKr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayNAr: (a: number, b: any) => [number, number, number];
-    readonly bufDelayNKr: (a: number, b: any) => [number, number, number];
-    readonly bufDurIr: (a: number, b: any) => [number, number, number];
-    readonly bufDurKr: (a: number, b: any) => [number, number, number];
-    readonly bufFramesIr: (a: number, b: any) => [number, number, number];
-    readonly bufFramesKr: (a: number, b: any) => [number, number, number];
-    readonly bufRateScaleIr: (a: number, b: any) => [number, number, number];
-    readonly bufRateScaleKr: (a: number, b: any) => [number, number, number];
-    readonly bufRdAr: (a: number, b: any) => [number, number, number];
-    readonly bufRdKr: (a: number, b: any) => [number, number, number];
-    readonly bufSampleRateIr: (a: number, b: any) => [number, number, number];
-    readonly bufSampleRateKr: (a: number, b: any) => [number, number, number];
-    readonly bufSamplesIr: (a: number, b: any) => [number, number, number];
-    readonly bufSamplesKr: (a: number, b: any) => [number, number, number];
-    readonly bufWrAr: (a: number, b: any) => [number, number, number];
-    readonly bufWrKr: (a: number, b: any) => [number, number, number];
-    readonly cOscAr: (a: number, b: any) => [number, number, number];
-    readonly cOscKr: (a: number, b: any) => [number, number, number];
-    readonly checkBadValuesAr: (a: number, b: any) => [number, number, number];
-    readonly checkBadValuesKr: (a: number, b: any) => [number, number, number];
-    readonly clearBufIr: (a: number, b: any) => [number, number, number];
-    readonly clipAr: (a: number, b: any) => [number, number, number];
-    readonly clipKr: (a: number, b: any) => [number, number, number];
-    readonly clipNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly clipNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly coinGateAr: (a: number, b: any) => [number, number, number];
-    readonly coinGateKr: (a: number, b: any) => [number, number, number];
-    readonly combCAr: (a: number, b: any) => [number, number, number];
-    readonly combCKr: (a: number, b: any) => [number, number, number];
-    readonly combLAr: (a: number, b: any) => [number, number, number];
-    readonly combLKr: (a: number, b: any) => [number, number, number];
-    readonly combNAr: (a: number, b: any) => [number, number, number];
-    readonly combNKr: (a: number, b: any) => [number, number, number];
-    readonly companderAr: (a: number, b: any) => [number, number, number];
-    readonly controlDurIr: (a: number, b: any) => [number, number, number];
-    readonly controlRateIr: (a: number, b: any) => [number, number, number];
-    readonly convolution2Ar: (a: number, b: any) => [number, number, number];
-    readonly convolution2LAr: (a: number, b: any) => [number, number, number];
-    readonly convolution3Ar: (a: number, b: any) => [number, number, number];
-    readonly convolution3Kr: (a: number, b: any) => [number, number, number];
-    readonly convolutionAr: (a: number, b: any) => [number, number, number];
-    readonly crackleAr: (a: number, b: any) => [number, number, number];
-    readonly crackleKr: (a: number, b: any) => [number, number, number];
-    readonly cuspLAr: (a: number, b: any) => [number, number, number];
-    readonly cuspNAr: (a: number, b: any) => [number, number, number];
-    readonly dcAr: (a: number, b: any) => [number, number, number];
-    readonly dcKr: (a: number, b: any) => [number, number, number];
-    readonly decay2Ar: (a: number, b: any) => [number, number, number];
-    readonly decay2Kr: (a: number, b: any) => [number, number, number];
-    readonly decayAr: (a: number, b: any) => [number, number, number];
-    readonly decayKr: (a: number, b: any) => [number, number, number];
-    readonly decodeB2Ar: (a: number, b: any) => [number, number, number];
-    readonly decodeB2Kr: (a: number, b: any) => [number, number, number];
-    readonly degreeToKeyAr: (a: number, b: any) => [number, number, number];
-    readonly degreeToKeyKr: (a: number, b: any) => [number, number, number];
-    readonly delTapRdAr: (a: number, b: any) => [number, number, number];
-    readonly delTapRdKr: (a: number, b: any) => [number, number, number];
-    readonly delTapWrAr: (a: number, b: any) => [number, number, number];
-    readonly delTapWrKr: (a: number, b: any) => [number, number, number];
-    readonly delay1Ar: (a: number, b: any) => [number, number, number];
-    readonly delay1Kr: (a: number, b: any) => [number, number, number];
-    readonly delay2Ar: (a: number, b: any) => [number, number, number];
-    readonly delay2Kr: (a: number, b: any) => [number, number, number];
-    readonly delayCAr: (a: number, b: any) => [number, number, number];
-    readonly delayCKr: (a: number, b: any) => [number, number, number];
-    readonly delayLAr: (a: number, b: any) => [number, number, number];
-    readonly delayLKr: (a: number, b: any) => [number, number, number];
-    readonly delayNAr: (a: number, b: any) => [number, number, number];
-    readonly delayNKr: (a: number, b: any) => [number, number, number];
-    readonly demandAr: (a: number, b: any) => [number, number, number];
-    readonly demandEnvGenAr: (a: number, b: any) => [number, number, number];
-    readonly demandEnvGenKr: (a: number, b: any) => [number, number, number];
-    readonly demandKr: (a: number, b: any) => [number, number, number];
-    readonly detectIndexAr: (a: number, b: any) => [number, number, number];
-    readonly detectIndexKr: (a: number, b: any) => [number, number, number];
-    readonly detectSilenceAr: (a: number, b: any) => [number, number, number];
-    readonly detectSilenceKr: (a: number, b: any) => [number, number, number];
-    readonly diskInAr: (a: number, b: any) => [number, number, number];
-    readonly diskOutAr: (a: number, b: any) => [number, number, number];
-    readonly doneKr: (a: number, b: any) => [number, number, number];
-    readonly dust2Ar: (a: number, b: any) => [number, number, number];
-    readonly dust2Kr: (a: number, b: any) => [number, number, number];
-    readonly dustAr: (a: number, b: any) => [number, number, number];
-    readonly dustKr: (a: number, b: any) => [number, number, number];
-    readonly dutyAr: (a: number, b: any) => [number, number, number];
-    readonly dutyKr: (a: number, b: any) => [number, number, number];
-    readonly envGenAr: (a: number, b: any) => [number, number, number];
-    readonly envGenKr: (a: number, b: any) => [number, number, number];
-    readonly expRandIr: (a: number, b: any) => [number, number, number];
-    readonly fSinOscAr: (a: number, b: any) => [number, number, number];
-    readonly fSinOscKr: (a: number, b: any) => [number, number, number];
-    readonly fbSineCAr: (a: number, b: any) => [number, number, number];
-    readonly fbSineLAr: (a: number, b: any) => [number, number, number];
-    readonly fbSineNAr: (a: number, b: any) => [number, number, number];
-    readonly fftKr: (a: number, b: any) => [number, number, number];
-    readonly fftTriggerKr: (a: number, b: any) => [number, number, number];
-    readonly foldAr: (a: number, b: any) => [number, number, number];
-    readonly foldKr: (a: number, b: any) => [number, number, number];
-    readonly formantAr: (a: number, b: any) => [number, number, number];
-    readonly formletAr: (a: number, b: any) => [number, number, number];
-    readonly formletKr: (a: number, b: any) => [number, number, number];
-    readonly fosAr: (a: number, b: any) => [number, number, number];
-    readonly fosKr: (a: number, b: any) => [number, number, number];
-    readonly freeKr: (a: number, b: any) => [number, number, number];
-    readonly freeSelfKr: (a: number, b: any) => [number, number, number];
-    readonly freeSelfWhenDoneKr: (a: number, b: any) => [number, number, number];
-    readonly freeVerb2Ar: (a: number, b: any) => [number, number, number];
-    readonly freeVerbAr: (a: number, b: any) => [number, number, number];
-    readonly freqShiftAr: (a: number, b: any) => [number, number, number];
-    readonly gVerbAr: (a: number, b: any) => [number, number, number];
-    readonly gateAr: (a: number, b: any) => [number, number, number];
-    readonly gateKr: (a: number, b: any) => [number, number, number];
-    readonly gbmanLAr: (a: number, b: any) => [number, number, number];
-    readonly gbmanNAr: (a: number, b: any) => [number, number, number];
-    readonly gendy1Ar: (a: number, b: any) => [number, number, number];
-    readonly gendy1Kr: (a: number, b: any) => [number, number, number];
-    readonly gendy2Ar: (a: number, b: any) => [number, number, number];
-    readonly gendy2Kr: (a: number, b: any) => [number, number, number];
-    readonly gendy3Ar: (a: number, b: any) => [number, number, number];
-    readonly gendy3Kr: (a: number, b: any) => [number, number, number];
-    readonly grainBufAr: (a: number, b: any) => [number, number, number];
-    readonly grainFmAr: (a: number, b: any) => [number, number, number];
-    readonly grainInAr: (a: number, b: any) => [number, number, number];
-    readonly grainSinAr: (a: number, b: any) => [number, number, number];
-    readonly grayNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly grayNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly hasherAr: (a: number, b: any) => [number, number, number];
-    readonly hasherKr: (a: number, b: any) => [number, number, number];
-    readonly henonCAr: (a: number, b: any) => [number, number, number];
-    readonly henonLAr: (a: number, b: any) => [number, number, number];
-    readonly henonNAr: (a: number, b: any) => [number, number, number];
-    readonly hilbertAr: (a: number, b: any) => [number, number, number];
-    readonly hpfAr: (a: number, b: any) => [number, number, number];
-    readonly hpfKr: (a: number, b: any) => [number, number, number];
-    readonly hpz1Ar: (a: number, b: any) => [number, number, number];
-    readonly hpz1Kr: (a: number, b: any) => [number, number, number];
-    readonly hpz2Ar: (a: number, b: any) => [number, number, number];
-    readonly hpz2Kr: (a: number, b: any) => [number, number, number];
-    readonly iEnvGenAr: (a: number, b: any) => [number, number, number];
-    readonly iEnvGenKr: (a: number, b: any) => [number, number, number];
-    readonly iRandIr: (a: number, b: any) => [number, number, number];
-    readonly ifftAr: (a: number, b: any) => [number, number, number];
-    readonly ifftKr: (a: number, b: any) => [number, number, number];
-    readonly impulseAr: (a: number, b: any) => [number, number, number];
-    readonly impulseKr: (a: number, b: any) => [number, number, number];
-    readonly inAr: (a: number, b: any) => [number, number, number];
-    readonly inFeedbackAr: (a: number, b: any) => [number, number, number];
-    readonly inKr: (a: number, b: any) => [number, number, number];
-    readonly inRangeAr: (a: number, b: any) => [number, number, number];
-    readonly inRangeIr: (a: number, b: any) => [number, number, number];
-    readonly inRangeKr: (a: number, b: any) => [number, number, number];
-    readonly inRectAr: (a: number, b: any) => [number, number, number];
-    readonly inRectKr: (a: number, b: any) => [number, number, number];
-    readonly inTrigKr: (a: number, b: any) => [number, number, number];
-    readonly indexAr: (a: number, b: any) => [number, number, number];
-    readonly indexInBetweenAr: (a: number, b: any) => [number, number, number];
-    readonly indexInBetweenKr: (a: number, b: any) => [number, number, number];
-    readonly indexKr: (a: number, b: any) => [number, number, number];
-    readonly integratorAr: (a: number, b: any) => [number, number, number];
-    readonly integratorKr: (a: number, b: any) => [number, number, number];
-    readonly k2AAr: (a: number, b: any) => [number, number, number];
-    readonly keyStateKr: (a: number, b: any) => [number, number, number];
-    readonly keyTrackKr: (a: number, b: any) => [number, number, number];
-    readonly klangAr: (a: number, b: any) => [number, number, number];
-    readonly klankAr: (a: number, b: any) => [number, number, number];
-    readonly lag2Ar: (a: number, b: any) => [number, number, number];
-    readonly lag2Kr: (a: number, b: any) => [number, number, number];
-    readonly lag2UdAr: (a: number, b: any) => [number, number, number];
-    readonly lag2UdKr: (a: number, b: any) => [number, number, number];
-    readonly lag3Ar: (a: number, b: any) => [number, number, number];
-    readonly lag3Kr: (a: number, b: any) => [number, number, number];
-    readonly lag3UdAr: (a: number, b: any) => [number, number, number];
-    readonly lag3UdKr: (a: number, b: any) => [number, number, number];
-    readonly lagAr: (a: number, b: any) => [number, number, number];
-    readonly lagInKr: (a: number, b: any) => [number, number, number];
-    readonly lagKr: (a: number, b: any) => [number, number, number];
-    readonly lagUdAr: (a: number, b: any) => [number, number, number];
-    readonly lagUdKr: (a: number, b: any) => [number, number, number];
-    readonly lastValueAr: (a: number, b: any) => [number, number, number];
-    readonly lastValueKr: (a: number, b: any) => [number, number, number];
-    readonly latchAr: (a: number, b: any) => [number, number, number];
-    readonly latchKr: (a: number, b: any) => [number, number, number];
-    readonly latoocarfianCAr: (a: number, b: any) => [number, number, number];
-    readonly latoocarfianLAr: (a: number, b: any) => [number, number, number];
-    readonly latoocarfianNAr: (a: number, b: any) => [number, number, number];
-    readonly leakDcAr: (a: number, b: any) => [number, number, number];
-    readonly leakDcKr: (a: number, b: any) => [number, number, number];
-    readonly leastChangeAr: (a: number, b: any) => [number, number, number];
-    readonly leastChangeKr: (a: number, b: any) => [number, number, number];
-    readonly lfClipNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly lfClipNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly lfCubAr: (a: number, b: any) => [number, number, number];
-    readonly lfCubKr: (a: number, b: any) => [number, number, number];
-    readonly lfGaussAr: (a: number, b: any) => [number, number, number];
-    readonly lfGaussKr: (a: number, b: any) => [number, number, number];
-    readonly lfNoise0Ar: (a: number, b: any) => [number, number, number];
-    readonly lfNoise0Kr: (a: number, b: any) => [number, number, number];
-    readonly lfNoise1Ar: (a: number, b: any) => [number, number, number];
-    readonly lfNoise1Kr: (a: number, b: any) => [number, number, number];
-    readonly lfNoise2Ar: (a: number, b: any) => [number, number, number];
-    readonly lfNoise2Kr: (a: number, b: any) => [number, number, number];
-    readonly lfParAr: (a: number, b: any) => [number, number, number];
-    readonly lfParKr: (a: number, b: any) => [number, number, number];
-    readonly lfPulseAr: (a: number, b: any) => [number, number, number];
-    readonly lfPulseKr: (a: number, b: any) => [number, number, number];
-    readonly lfSawAr: (a: number, b: any) => [number, number, number];
-    readonly lfSawKr: (a: number, b: any) => [number, number, number];
-    readonly lfTriAr: (a: number, b: any) => [number, number, number];
-    readonly lfTriKr: (a: number, b: any) => [number, number, number];
-    readonly lfdClipNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly lfdClipNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise0Ar: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise0Kr: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise1Ar: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise1Kr: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise3Ar: (a: number, b: any) => [number, number, number];
-    readonly lfdNoise3Kr: (a: number, b: any) => [number, number, number];
-    readonly limiterAr: (a: number, b: any) => [number, number, number];
-    readonly linCongCAr: (a: number, b: any) => [number, number, number];
-    readonly linCongLAr: (a: number, b: any) => [number, number, number];
-    readonly linCongNAr: (a: number, b: any) => [number, number, number];
-    readonly linExpAr: (a: number, b: any) => [number, number, number];
-    readonly linExpKr: (a: number, b: any) => [number, number, number];
-    readonly linPan2Ar: (a: number, b: any) => [number, number, number];
-    readonly linPan2Kr: (a: number, b: any) => [number, number, number];
-    readonly linRandIr: (a: number, b: any) => [number, number, number];
-    readonly linXFade2Ar: (a: number, b: any) => [number, number, number];
-    readonly linXFade2Kr: (a: number, b: any) => [number, number, number];
-    readonly lineAr: (a: number, b: any) => [number, number, number];
-    readonly lineKr: (a: number, b: any) => [number, number, number];
-    readonly linenKr: (a: number, b: any) => [number, number, number];
-    readonly localBufIr: (a: number, b: any) => [number, number, number];
-    readonly localInAr: (a: number, b: any) => [number, number, number];
-    readonly localInKr: (a: number, b: any) => [number, number, number];
-    readonly localOutAr: (a: number, b: any) => [number, number, number];
-    readonly localOutKr: (a: number, b: any) => [number, number, number];
-    readonly logisticAr: (a: number, b: any) => [number, number, number];
-    readonly logisticKr: (a: number, b: any) => [number, number, number];
-    readonly lorenzLAr: (a: number, b: any) => [number, number, number];
-    readonly loudnessKr: (a: number, b: any) => [number, number, number];
-    readonly lpfAr: (a: number, b: any) => [number, number, number];
-    readonly lpfKr: (a: number, b: any) => [number, number, number];
-    readonly lpz1Ar: (a: number, b: any) => [number, number, number];
-    readonly lpz1Kr: (a: number, b: any) => [number, number, number];
-    readonly lpz2Ar: (a: number, b: any) => [number, number, number];
-    readonly lpz2Kr: (a: number, b: any) => [number, number, number];
-    readonly mantissaMaskAr: (a: number, b: any) => [number, number, number];
-    readonly mantissaMaskKr: (a: number, b: any) => [number, number, number];
-    readonly maxLocalBufsIr: (a: number, b: any) => [number, number, number];
-    readonly medianAr: (a: number, b: any) => [number, number, number];
-    readonly medianKr: (a: number, b: any) => [number, number, number];
-    readonly mfccKr: (a: number, b: any) => [number, number, number];
-    readonly midEqAr: (a: number, b: any) => [number, number, number];
-    readonly midEqKr: (a: number, b: any) => [number, number, number];
-    readonly moogFfAr: (a: number, b: any) => [number, number, number];
-    readonly moogFfKr: (a: number, b: any) => [number, number, number];
-    readonly mostChangeAr: (a: number, b: any) => [number, number, number];
-    readonly mostChangeKr: (a: number, b: any) => [number, number, number];
-    readonly mouseButtonKr: (a: number, b: any) => [number, number, number];
-    readonly mouseXKr: (a: number, b: any) => [number, number, number];
-    readonly mouseYKr: (a: number, b: any) => [number, number, number];
-    readonly mulAddAr: (a: number, b: any) => [number, number, number];
-    readonly mulAddIr: (a: number, b: any) => [number, number, number];
-    readonly mulAddKr: (a: number, b: any) => [number, number, number];
-    readonly nRandIr: (a: number, b: any) => [number, number, number];
-    readonly normalizerAr: (a: number, b: any) => [number, number, number];
-    readonly numAudioBusesIr: (a: number, b: any) => [number, number, number];
-    readonly numBuffersIr: (a: number, b: any) => [number, number, number];
-    readonly numControlBusesIr: (a: number, b: any) => [number, number, number];
-    readonly numInputBusesIr: (a: number, b: any) => [number, number, number];
-    readonly numOutputBusesIr: (a: number, b: any) => [number, number, number];
-    readonly numRunningSynthsIr: (a: number, b: any) => [number, number, number];
-    readonly numRunningSynthsKr: (a: number, b: any) => [number, number, number];
-    readonly offsetOutAr: (a: number, b: any) => [number, number, number];
-    readonly offsetOutKr: (a: number, b: any) => [number, number, number];
-    readonly onePoleAr: (a: number, b: any) => [number, number, number];
-    readonly onePoleKr: (a: number, b: any) => [number, number, number];
-    readonly oneZeroAr: (a: number, b: any) => [number, number, number];
-    readonly oneZeroKr: (a: number, b: any) => [number, number, number];
-    readonly onsetsKr: (a: number, b: any) => [number, number, number];
-    readonly oscAr: (a: number, b: any) => [number, number, number];
-    readonly oscKr: (a: number, b: any) => [number, number, number];
-    readonly outAr: (a: number, b: any) => [number, number, number];
-    readonly outKr: (a: number, b: any) => [number, number, number];
-    readonly pSinGrainAr: (a: number, b: any) => [number, number, number];
-    readonly pan2Ar: (a: number, b: any) => [number, number, number];
-    readonly pan2Kr: (a: number, b: any) => [number, number, number];
-    readonly pan4Ar: (a: number, b: any) => [number, number, number];
-    readonly pan4Kr: (a: number, b: any) => [number, number, number];
-    readonly panAzAr: (a: number, b: any) => [number, number, number];
-    readonly panAzKr: (a: number, b: any) => [number, number, number];
-    readonly panB2Ar: (a: number, b: any) => [number, number, number];
-    readonly panB2Kr: (a: number, b: any) => [number, number, number];
-    readonly panBAr: (a: number, b: any) => [number, number, number];
-    readonly panBKr: (a: number, b: any) => [number, number, number];
-    readonly partConvAr: (a: number, b: any) => [number, number, number];
-    readonly pauseKr: (a: number, b: any) => [number, number, number];
-    readonly pauseSelfKr: (a: number, b: any) => [number, number, number];
-    readonly pauseSelfWhenDoneKr: (a: number, b: any) => [number, number, number];
-    readonly peakAr: (a: number, b: any) => [number, number, number];
-    readonly peakFollowerAr: (a: number, b: any) => [number, number, number];
-    readonly peakFollowerKr: (a: number, b: any) => [number, number, number];
-    readonly peakKr: (a: number, b: any) => [number, number, number];
-    readonly phasorAr: (a: number, b: any) => [number, number, number];
-    readonly phasorKr: (a: number, b: any) => [number, number, number];
-    readonly pinkNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly pinkNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly pitchKr: (a: number, b: any) => [number, number, number];
-    readonly pitchShiftAr: (a: number, b: any) => [number, number, number];
-    readonly playBufAr: (a: number, b: any) => [number, number, number];
-    readonly playBufKr: (a: number, b: any) => [number, number, number];
-    readonly pluckAr: (a: number, b: any) => [number, number, number];
-    readonly pollAr: (a: number, b: any) => [number, number, number];
-    readonly pollKr: (a: number, b: any) => [number, number, number];
-    readonly pulseAr: (a: number, b: any) => [number, number, number];
-    readonly pulseCountAr: (a: number, b: any) => [number, number, number];
-    readonly pulseCountKr: (a: number, b: any) => [number, number, number];
-    readonly pulseDividerAr: (a: number, b: any) => [number, number, number];
-    readonly pulseDividerKr: (a: number, b: any) => [number, number, number];
-    readonly pulseKr: (a: number, b: any) => [number, number, number];
-    readonly pvAddKr: (a: number, b: any) => [number, number, number];
-    readonly pvBinScrambleKr: (a: number, b: any) => [number, number, number];
-    readonly pvBinShiftKr: (a: number, b: any) => [number, number, number];
-    readonly pvBinWipeKr: (a: number, b: any) => [number, number, number];
-    readonly pvBrickWallKr: (a: number, b: any) => [number, number, number];
-    readonly pvConformalMapKr: (a: number, b: any) => [number, number, number];
-    readonly pvConjKr: (a: number, b: any) => [number, number, number];
-    readonly pvCopyKr: (a: number, b: any) => [number, number, number];
-    readonly pvCopyPhaseKr: (a: number, b: any) => [number, number, number];
-    readonly pvDiffuserKr: (a: number, b: any) => [number, number, number];
-    readonly pvDivKr: (a: number, b: any) => [number, number, number];
-    readonly pvHainsworthFooteAr: (a: number, b: any) => [number, number, number];
-    readonly pvJensenAndersenAr: (a: number, b: any) => [number, number, number];
-    readonly pvLocalMaxKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagAboveKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagBelowKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagClipKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagDivKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagFreezeKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagMulKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagShiftKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagSmearKr: (a: number, b: any) => [number, number, number];
-    readonly pvMagSquaredKr: (a: number, b: any) => [number, number, number];
-    readonly pvMaxKr: (a: number, b: any) => [number, number, number];
-    readonly pvMinKr: (a: number, b: any) => [number, number, number];
-    readonly pvMulKr: (a: number, b: any) => [number, number, number];
-    readonly pvPhaseShift270Kr: (a: number, b: any) => [number, number, number];
-    readonly pvPhaseShift90Kr: (a: number, b: any) => [number, number, number];
-    readonly pvPhaseShiftKr: (a: number, b: any) => [number, number, number];
-    readonly pvRandCombKr: (a: number, b: any) => [number, number, number];
-    readonly pvRandWipeKr: (a: number, b: any) => [number, number, number];
-    readonly pvRectComb2Kr: (a: number, b: any) => [number, number, number];
-    readonly pvRectCombKr: (a: number, b: any) => [number, number, number];
-    readonly quadCAr: (a: number, b: any) => [number, number, number];
-    readonly quadLAr: (a: number, b: any) => [number, number, number];
-    readonly quadNAr: (a: number, b: any) => [number, number, number];
-    readonly radiansPerSampleIr: (a: number, b: any) => [number, number, number];
-    readonly rampAr: (a: number, b: any) => [number, number, number];
-    readonly rampKr: (a: number, b: any) => [number, number, number];
-    readonly randIdIr: (a: number, b: any) => [number, number, number];
-    readonly randIdKr: (a: number, b: any) => [number, number, number];
-    readonly randIr: (a: number, b: any) => [number, number, number];
-    readonly randSeedAr: (a: number, b: any) => [number, number, number];
-    readonly randSeedIr: (a: number, b: any) => [number, number, number];
-    readonly randSeedKr: (a: number, b: any) => [number, number, number];
-    readonly recordBufAr: (a: number, b: any) => [number, number, number];
-    readonly recordBufKr: (a: number, b: any) => [number, number, number];
-    readonly replaceOutAr: (a: number, b: any) => [number, number, number];
-    readonly replaceOutKr: (a: number, b: any) => [number, number, number];
-    readonly resonzAr: (a: number, b: any) => [number, number, number];
-    readonly resonzKr: (a: number, b: any) => [number, number, number];
-    readonly rhpfAr: (a: number, b: any) => [number, number, number];
-    readonly rhpfKr: (a: number, b: any) => [number, number, number];
-    readonly ringzAr: (a: number, b: any) => [number, number, number];
-    readonly ringzKr: (a: number, b: any) => [number, number, number];
-    readonly rlpfAr: (a: number, b: any) => [number, number, number];
-    readonly rlpfKr: (a: number, b: any) => [number, number, number];
-    readonly rotate2Ar: (a: number, b: any) => [number, number, number];
-    readonly rotate2Kr: (a: number, b: any) => [number, number, number];
-    readonly runningMaxAr: (a: number, b: any) => [number, number, number];
-    readonly runningMaxKr: (a: number, b: any) => [number, number, number];
-    readonly runningMinAr: (a: number, b: any) => [number, number, number];
-    readonly runningMinKr: (a: number, b: any) => [number, number, number];
-    readonly runningSumAr: (a: number, b: any) => [number, number, number];
-    readonly runningSumKr: (a: number, b: any) => [number, number, number];
-    readonly sampleDurIr: (a: number, b: any) => [number, number, number];
-    readonly sampleRateIr: (a: number, b: any) => [number, number, number];
-    readonly sawAr: (a: number, b: any) => [number, number, number];
-    readonly sawKr: (a: number, b: any) => [number, number, number];
-    readonly schmidtAr: (a: number, b: any) => [number, number, number];
-    readonly schmidtKr: (a: number, b: any) => [number, number, number];
-    readonly scopeOut2Ar: (a: number, b: any) => [number, number, number];
-    readonly scopeOut2Kr: (a: number, b: any) => [number, number, number];
-    readonly scopeOutAr: (a: number, b: any) => [number, number, number];
-    readonly scopeOutKr: (a: number, b: any) => [number, number, number];
-    readonly selectAr: (a: number, b: any) => [number, number, number];
-    readonly selectKr: (a: number, b: any) => [number, number, number];
-    readonly sendReplyAr: (a: number, b: any) => [number, number, number];
-    readonly sendReplyKr: (a: number, b: any) => [number, number, number];
-    readonly sendTrigAr: (a: number, b: any) => [number, number, number];
-    readonly sendTrigKr: (a: number, b: any) => [number, number, number];
-    readonly setBufAr: (a: number, b: any) => [number, number, number];
-    readonly setBufKr: (a: number, b: any) => [number, number, number];
-    readonly setResetFfAr: (a: number, b: any) => [number, number, number];
-    readonly setResetFfKr: (a: number, b: any) => [number, number, number];
-    readonly shaperAr: (a: number, b: any) => [number, number, number];
-    readonly shaperKr: (a: number, b: any) => [number, number, number];
-    readonly sharedInKr: (a: number, b: any) => [number, number, number];
-    readonly sharedOutKr: (a: number, b: any) => [number, number, number];
-    readonly silentAr: (a: number, b: any) => [number, number, number];
-    readonly sinOscAr: (a: number, b: any) => [number, number, number];
-    readonly sinOscFbAr: (a: number, b: any) => [number, number, number];
-    readonly sinOscFbKr: (a: number, b: any) => [number, number, number];
-    readonly sinOscKr: (a: number, b: any) => [number, number, number];
-    readonly slewAr: (a: number, b: any) => [number, number, number];
-    readonly slewKr: (a: number, b: any) => [number, number, number];
-    readonly slopeAr: (a: number, b: any) => [number, number, number];
-    readonly slopeKr: (a: number, b: any) => [number, number, number];
-    readonly sosAr: (a: number, b: any) => [number, number, number];
-    readonly sosKr: (a: number, b: any) => [number, number, number];
-    readonly specCentroidKr: (a: number, b: any) => [number, number, number];
-    readonly specFlatnessKr: (a: number, b: any) => [number, number, number];
-    readonly specPcileKr: (a: number, b: any) => [number, number, number];
-    readonly springAr: (a: number, b: any) => [number, number, number];
-    readonly springKr: (a: number, b: any) => [number, number, number];
-    readonly standardLAr: (a: number, b: any) => [number, number, number];
-    readonly standardNAr: (a: number, b: any) => [number, number, number];
-    readonly stepperAr: (a: number, b: any) => [number, number, number];
-    readonly stepperKr: (a: number, b: any) => [number, number, number];
-    readonly stereoConvolution2LAr: (a: number, b: any) => [number, number, number];
-    readonly subsampleOffsetIr: (a: number, b: any) => [number, number, number];
-    readonly sweepAr: (a: number, b: any) => [number, number, number];
-    readonly sweepKr: (a: number, b: any) => [number, number, number];
-    readonly syncSawAr: (a: number, b: any) => [number, number, number];
-    readonly syncSawKr: (a: number, b: any) => [number, number, number];
-    readonly t2AAr: (a: number, b: any) => [number, number, number];
-    readonly t2KKr: (a: number, b: any) => [number, number, number];
-    readonly tBallAr: (a: number, b: any) => [number, number, number];
-    readonly tBallKr: (a: number, b: any) => [number, number, number];
-    readonly tDelayAr: (a: number, b: any) => [number, number, number];
-    readonly tDelayKr: (a: number, b: any) => [number, number, number];
-    readonly tDutyAr: (a: number, b: any) => [number, number, number];
-    readonly tDutyKr: (a: number, b: any) => [number, number, number];
-    readonly tExpRandAr: (a: number, b: any) => [number, number, number];
-    readonly tExpRandKr: (a: number, b: any) => [number, number, number];
-    readonly tGrainsAr: (a: number, b: any) => [number, number, number];
-    readonly tRandAr: (a: number, b: any) => [number, number, number];
-    readonly tRandKr: (a: number, b: any) => [number, number, number];
-    readonly tWindexAr: (a: number, b: any) => [number, number, number];
-    readonly tWindexKr: (a: number, b: any) => [number, number, number];
-    readonly tiRandAr: (a: number, b: any) => [number, number, number];
-    readonly tiRandKr: (a: number, b: any) => [number, number, number];
-    readonly timerAr: (a: number, b: any) => [number, number, number];
-    readonly timerKr: (a: number, b: any) => [number, number, number];
-    readonly toggleFfAr: (a: number, b: any) => [number, number, number];
-    readonly toggleFfKr: (a: number, b: any) => [number, number, number];
-    readonly trapezoidAr: (a: number, b: any) => [number, number, number];
-    readonly trapezoidKr: (a: number, b: any) => [number, number, number];
-    readonly trig1Ar: (a: number, b: any) => [number, number, number];
-    readonly trig1Kr: (a: number, b: any) => [number, number, number];
-    readonly trigAr: (a: number, b: any) => [number, number, number];
-    readonly trigKr: (a: number, b: any) => [number, number, number];
-    readonly twoPoleAr: (a: number, b: any) => [number, number, number];
-    readonly twoPoleKr: (a: number, b: any) => [number, number, number];
-    readonly twoZeroAr: (a: number, b: any) => [number, number, number];
-    readonly twoZeroKr: (a: number, b: any) => [number, number, number];
-    readonly vDiskInAr: (a: number, b: any) => [number, number, number];
-    readonly vOsc3Ar: (a: number, b: any) => [number, number, number];
-    readonly vOsc3Kr: (a: number, b: any) => [number, number, number];
-    readonly vOscAr: (a: number, b: any) => [number, number, number];
-    readonly vOscKr: (a: number, b: any) => [number, number, number];
-    readonly varSawAr: (a: number, b: any) => [number, number, number];
-    readonly varSawKr: (a: number, b: any) => [number, number, number];
-    readonly vibratoAr: (a: number, b: any) => [number, number, number];
-    readonly vibratoKr: (a: number, b: any) => [number, number, number];
-    readonly warp1Ar: (a: number, b: any) => [number, number, number];
-    readonly whiteNoiseAr: (a: number, b: any) => [number, number, number];
-    readonly whiteNoiseKr: (a: number, b: any) => [number, number, number];
-    readonly wrapAr: (a: number, b: any) => [number, number, number];
-    readonly wrapIndexAr: (a: number, b: any) => [number, number, number];
-    readonly wrapIndexKr: (a: number, b: any) => [number, number, number];
-    readonly wrapKr: (a: number, b: any) => [number, number, number];
-    readonly xFade2Ar: (a: number, b: any) => [number, number, number];
-    readonly xFade2Kr: (a: number, b: any) => [number, number, number];
-    readonly xLineAr: (a: number, b: any) => [number, number, number];
-    readonly xLineKr: (a: number, b: any) => [number, number, number];
-    readonly xOutAr: (a: number, b: any) => [number, number, number];
-    readonly xOutKr: (a: number, b: any) => [number, number, number];
-    readonly zeroCrossingAr: (a: number, b: any) => [number, number, number];
-    readonly zeroCrossingKr: (a: number, b: any) => [number, number, number];
+    readonly __wbg_a2k_free: (a: number, b: number) => void;
+    readonly __wbg_allpassc_free: (a: number, b: number) => void;
+    readonly __wbg_allpassl_free: (a: number, b: number) => void;
+    readonly __wbg_allpassn_free: (a: number, b: number) => void;
+    readonly __wbg_ampcomp_free: (a: number, b: number) => void;
+    readonly __wbg_ampcompa_free: (a: number, b: number) => void;
+    readonly __wbg_amplitude_free: (a: number, b: number) => void;
+    readonly __wbg_apf_free: (a: number, b: number) => void;
+    readonly __wbg_balance2_free: (a: number, b: number) => void;
+    readonly __wbg_ball_free: (a: number, b: number) => void;
+    readonly __wbg_ballpass_free: (a: number, b: number) => void;
+    readonly __wbg_bbandpass_free: (a: number, b: number) => void;
+    readonly __wbg_bbandstop_free: (a: number, b: number) => void;
+    readonly __wbg_beattrack2_free: (a: number, b: number) => void;
+    readonly __wbg_beattrack_free: (a: number, b: number) => void;
+    readonly __wbg_bhipass_free: (a: number, b: number) => void;
+    readonly __wbg_bhishelf_free: (a: number, b: number) => void;
+    readonly __wbg_bipanb2_free: (a: number, b: number) => void;
+    readonly __wbg_blip_free: (a: number, b: number) => void;
+    readonly __wbg_blowpass_free: (a: number, b: number) => void;
+    readonly __wbg_blowshelf_free: (a: number, b: number) => void;
+    readonly __wbg_bpeakeq_free: (a: number, b: number) => void;
+    readonly __wbg_bpf_free: (a: number, b: number) => void;
+    readonly __wbg_bpz2_free: (a: number, b: number) => void;
+    readonly __wbg_brf_free: (a: number, b: number) => void;
+    readonly __wbg_brownnoise_free: (a: number, b: number) => void;
+    readonly __wbg_brz2_free: (a: number, b: number) => void;
+    readonly __wbg_bufallpassc_free: (a: number, b: number) => void;
+    readonly __wbg_bufallpassl_free: (a: number, b: number) => void;
+    readonly __wbg_bufallpassn_free: (a: number, b: number) => void;
+    readonly __wbg_bufchannels_free: (a: number, b: number) => void;
+    readonly __wbg_bufcombc_free: (a: number, b: number) => void;
+    readonly __wbg_bufcombl_free: (a: number, b: number) => void;
+    readonly __wbg_bufcombn_free: (a: number, b: number) => void;
+    readonly __wbg_bufdelayc_free: (a: number, b: number) => void;
+    readonly __wbg_bufdelayl_free: (a: number, b: number) => void;
+    readonly __wbg_bufdelayn_free: (a: number, b: number) => void;
+    readonly __wbg_bufdur_free: (a: number, b: number) => void;
+    readonly __wbg_bufframes_free: (a: number, b: number) => void;
+    readonly __wbg_bufratescale_free: (a: number, b: number) => void;
+    readonly __wbg_bufrd_free: (a: number, b: number) => void;
+    readonly __wbg_bufsamplerate_free: (a: number, b: number) => void;
+    readonly __wbg_bufsamples_free: (a: number, b: number) => void;
+    readonly __wbg_bufwr_free: (a: number, b: number) => void;
+    readonly __wbg_checkbadvalues_free: (a: number, b: number) => void;
+    readonly __wbg_clearbuf_free: (a: number, b: number) => void;
+    readonly __wbg_clip_free: (a: number, b: number) => void;
+    readonly __wbg_clipnoise_free: (a: number, b: number) => void;
+    readonly __wbg_coingate_free: (a: number, b: number) => void;
+    readonly __wbg_combc_free: (a: number, b: number) => void;
+    readonly __wbg_combl_free: (a: number, b: number) => void;
+    readonly __wbg_combn_free: (a: number, b: number) => void;
+    readonly __wbg_compander_free: (a: number, b: number) => void;
+    readonly __wbg_controldur_free: (a: number, b: number) => void;
+    readonly __wbg_controlrate_free: (a: number, b: number) => void;
+    readonly __wbg_convolution2_free: (a: number, b: number) => void;
+    readonly __wbg_convolution2l_free: (a: number, b: number) => void;
+    readonly __wbg_convolution3_free: (a: number, b: number) => void;
+    readonly __wbg_convolution_free: (a: number, b: number) => void;
+    readonly __wbg_cosc_free: (a: number, b: number) => void;
+    readonly __wbg_crackle_free: (a: number, b: number) => void;
+    readonly __wbg_cuspl_free: (a: number, b: number) => void;
+    readonly __wbg_cuspn_free: (a: number, b: number) => void;
+    readonly __wbg_dc_free: (a: number, b: number) => void;
+    readonly __wbg_decay2_free: (a: number, b: number) => void;
+    readonly __wbg_decay_free: (a: number, b: number) => void;
+    readonly __wbg_decodeb2_free: (a: number, b: number) => void;
+    readonly __wbg_degreetokey_free: (a: number, b: number) => void;
+    readonly __wbg_delay1_free: (a: number, b: number) => void;
+    readonly __wbg_delay2_free: (a: number, b: number) => void;
+    readonly __wbg_delayc_free: (a: number, b: number) => void;
+    readonly __wbg_delayl_free: (a: number, b: number) => void;
+    readonly __wbg_delayn_free: (a: number, b: number) => void;
+    readonly __wbg_deltaprd_free: (a: number, b: number) => void;
+    readonly __wbg_deltapwr_free: (a: number, b: number) => void;
+    readonly __wbg_demand_free: (a: number, b: number) => void;
+    readonly __wbg_demandenvgen_free: (a: number, b: number) => void;
+    readonly __wbg_detectindex_free: (a: number, b: number) => void;
+    readonly __wbg_detectsilence_free: (a: number, b: number) => void;
+    readonly __wbg_diskin_free: (a: number, b: number) => void;
+    readonly __wbg_diskout_free: (a: number, b: number) => void;
+    readonly __wbg_done_free: (a: number, b: number) => void;
+    readonly __wbg_dust2_free: (a: number, b: number) => void;
+    readonly __wbg_dust_free: (a: number, b: number) => void;
+    readonly __wbg_duty_free: (a: number, b: number) => void;
+    readonly __wbg_envgen_free: (a: number, b: number) => void;
+    readonly __wbg_exprand_free: (a: number, b: number) => void;
+    readonly __wbg_fbsinec_free: (a: number, b: number) => void;
+    readonly __wbg_fbsinel_free: (a: number, b: number) => void;
+    readonly __wbg_fbsinen_free: (a: number, b: number) => void;
+    readonly __wbg_fft_free: (a: number, b: number) => void;
+    readonly __wbg_ffttrigger_free: (a: number, b: number) => void;
+    readonly __wbg_fold_free: (a: number, b: number) => void;
+    readonly __wbg_formant_free: (a: number, b: number) => void;
+    readonly __wbg_formlet_free: (a: number, b: number) => void;
+    readonly __wbg_fos_free: (a: number, b: number) => void;
+    readonly __wbg_free_free: (a: number, b: number) => void;
+    readonly __wbg_freeself_free: (a: number, b: number) => void;
+    readonly __wbg_freeselfwhendone_free: (a: number, b: number) => void;
+    readonly __wbg_freeverb2_free: (a: number, b: number) => void;
+    readonly __wbg_freeverb_free: (a: number, b: number) => void;
+    readonly __wbg_freqshift_free: (a: number, b: number) => void;
+    readonly __wbg_fsinosc_free: (a: number, b: number) => void;
+    readonly __wbg_gate_free: (a: number, b: number) => void;
+    readonly __wbg_gbmanl_free: (a: number, b: number) => void;
+    readonly __wbg_gbmann_free: (a: number, b: number) => void;
+    readonly __wbg_gendy1_free: (a: number, b: number) => void;
+    readonly __wbg_gendy2_free: (a: number, b: number) => void;
+    readonly __wbg_gendy3_free: (a: number, b: number) => void;
+    readonly __wbg_grainbuf_free: (a: number, b: number) => void;
+    readonly __wbg_grainfm_free: (a: number, b: number) => void;
+    readonly __wbg_grainin_free: (a: number, b: number) => void;
+    readonly __wbg_grainsin_free: (a: number, b: number) => void;
+    readonly __wbg_graynoise_free: (a: number, b: number) => void;
+    readonly __wbg_gverb_free: (a: number, b: number) => void;
+    readonly __wbg_hasher_free: (a: number, b: number) => void;
+    readonly __wbg_henonc_free: (a: number, b: number) => void;
+    readonly __wbg_henonl_free: (a: number, b: number) => void;
+    readonly __wbg_henonn_free: (a: number, b: number) => void;
+    readonly __wbg_hilbert_free: (a: number, b: number) => void;
+    readonly __wbg_hpf_free: (a: number, b: number) => void;
+    readonly __wbg_hpz1_free: (a: number, b: number) => void;
+    readonly __wbg_hpz2_free: (a: number, b: number) => void;
+    readonly __wbg_ienvgen_free: (a: number, b: number) => void;
+    readonly __wbg_ifft_free: (a: number, b: number) => void;
+    readonly __wbg_impulse_free: (a: number, b: number) => void;
+    readonly __wbg_in_free: (a: number, b: number) => void;
+    readonly __wbg_index_free: (a: number, b: number) => void;
+    readonly __wbg_indexinbetween_free: (a: number, b: number) => void;
+    readonly __wbg_infeedback_free: (a: number, b: number) => void;
+    readonly __wbg_inrange_free: (a: number, b: number) => void;
+    readonly __wbg_inrect_free: (a: number, b: number) => void;
+    readonly __wbg_integrator_free: (a: number, b: number) => void;
+    readonly __wbg_intrig_free: (a: number, b: number) => void;
+    readonly __wbg_irand_free: (a: number, b: number) => void;
+    readonly __wbg_k2a_free: (a: number, b: number) => void;
+    readonly __wbg_keystate_free: (a: number, b: number) => void;
+    readonly __wbg_keytrack_free: (a: number, b: number) => void;
+    readonly __wbg_klang_free: (a: number, b: number) => void;
+    readonly __wbg_klank_free: (a: number, b: number) => void;
+    readonly __wbg_lag2_free: (a: number, b: number) => void;
+    readonly __wbg_lag2ud_free: (a: number, b: number) => void;
+    readonly __wbg_lag3_free: (a: number, b: number) => void;
+    readonly __wbg_lag3ud_free: (a: number, b: number) => void;
+    readonly __wbg_lag_free: (a: number, b: number) => void;
+    readonly __wbg_lagin_free: (a: number, b: number) => void;
+    readonly __wbg_lagud_free: (a: number, b: number) => void;
+    readonly __wbg_lastvalue_free: (a: number, b: number) => void;
+    readonly __wbg_latch_free: (a: number, b: number) => void;
+    readonly __wbg_latoocarfianc_free: (a: number, b: number) => void;
+    readonly __wbg_latoocarfianl_free: (a: number, b: number) => void;
+    readonly __wbg_latoocarfiann_free: (a: number, b: number) => void;
+    readonly __wbg_leakdc_free: (a: number, b: number) => void;
+    readonly __wbg_leastchange_free: (a: number, b: number) => void;
+    readonly __wbg_lfclipnoise_free: (a: number, b: number) => void;
+    readonly __wbg_lfcub_free: (a: number, b: number) => void;
+    readonly __wbg_lfdclipnoise_free: (a: number, b: number) => void;
+    readonly __wbg_lfdnoise0_free: (a: number, b: number) => void;
+    readonly __wbg_lfdnoise1_free: (a: number, b: number) => void;
+    readonly __wbg_lfdnoise3_free: (a: number, b: number) => void;
+    readonly __wbg_lfgauss_free: (a: number, b: number) => void;
+    readonly __wbg_lfnoise0_free: (a: number, b: number) => void;
+    readonly __wbg_lfnoise1_free: (a: number, b: number) => void;
+    readonly __wbg_lfnoise2_free: (a: number, b: number) => void;
+    readonly __wbg_lfpar_free: (a: number, b: number) => void;
+    readonly __wbg_lfpulse_free: (a: number, b: number) => void;
+    readonly __wbg_lfsaw_free: (a: number, b: number) => void;
+    readonly __wbg_lftri_free: (a: number, b: number) => void;
+    readonly __wbg_limiter_free: (a: number, b: number) => void;
+    readonly __wbg_lincongc_free: (a: number, b: number) => void;
+    readonly __wbg_lincongl_free: (a: number, b: number) => void;
+    readonly __wbg_lincongn_free: (a: number, b: number) => void;
+    readonly __wbg_line_free: (a: number, b: number) => void;
+    readonly __wbg_linen_free: (a: number, b: number) => void;
+    readonly __wbg_linexp_free: (a: number, b: number) => void;
+    readonly __wbg_linpan2_free: (a: number, b: number) => void;
+    readonly __wbg_linrand_free: (a: number, b: number) => void;
+    readonly __wbg_linxfade2_free: (a: number, b: number) => void;
+    readonly __wbg_localbuf_free: (a: number, b: number) => void;
+    readonly __wbg_localin_free: (a: number, b: number) => void;
+    readonly __wbg_localout_free: (a: number, b: number) => void;
+    readonly __wbg_logistic_free: (a: number, b: number) => void;
+    readonly __wbg_lorenzl_free: (a: number, b: number) => void;
+    readonly __wbg_loudness_free: (a: number, b: number) => void;
+    readonly __wbg_lpf_free: (a: number, b: number) => void;
+    readonly __wbg_lpz1_free: (a: number, b: number) => void;
+    readonly __wbg_lpz2_free: (a: number, b: number) => void;
+    readonly __wbg_mantissamask_free: (a: number, b: number) => void;
+    readonly __wbg_maxlocalbufs_free: (a: number, b: number) => void;
+    readonly __wbg_median_free: (a: number, b: number) => void;
+    readonly __wbg_mfcc_free: (a: number, b: number) => void;
+    readonly __wbg_mideq_free: (a: number, b: number) => void;
+    readonly __wbg_moogff_free: (a: number, b: number) => void;
+    readonly __wbg_mostchange_free: (a: number, b: number) => void;
+    readonly __wbg_mousebutton_free: (a: number, b: number) => void;
+    readonly __wbg_mousex_free: (a: number, b: number) => void;
+    readonly __wbg_mousey_free: (a: number, b: number) => void;
+    readonly __wbg_muladd_free: (a: number, b: number) => void;
+    readonly __wbg_normalizer_free: (a: number, b: number) => void;
+    readonly __wbg_nrand_free: (a: number, b: number) => void;
+    readonly __wbg_numaudiobuses_free: (a: number, b: number) => void;
+    readonly __wbg_numbuffers_free: (a: number, b: number) => void;
+    readonly __wbg_numcontrolbuses_free: (a: number, b: number) => void;
+    readonly __wbg_numinputbuses_free: (a: number, b: number) => void;
+    readonly __wbg_numoutputbuses_free: (a: number, b: number) => void;
+    readonly __wbg_numrunningsynths_free: (a: number, b: number) => void;
+    readonly __wbg_offsetout_free: (a: number, b: number) => void;
+    readonly __wbg_onepole_free: (a: number, b: number) => void;
+    readonly __wbg_onezero_free: (a: number, b: number) => void;
+    readonly __wbg_onsets_free: (a: number, b: number) => void;
+    readonly __wbg_osc_free: (a: number, b: number) => void;
+    readonly __wbg_out_free: (a: number, b: number) => void;
+    readonly __wbg_pan2_free: (a: number, b: number) => void;
+    readonly __wbg_pan4_free: (a: number, b: number) => void;
+    readonly __wbg_panaz_free: (a: number, b: number) => void;
+    readonly __wbg_panb2_free: (a: number, b: number) => void;
+    readonly __wbg_panb_free: (a: number, b: number) => void;
+    readonly __wbg_partconv_free: (a: number, b: number) => void;
+    readonly __wbg_pause_free: (a: number, b: number) => void;
+    readonly __wbg_pauseself_free: (a: number, b: number) => void;
+    readonly __wbg_pauseselfwhendone_free: (a: number, b: number) => void;
+    readonly __wbg_peak_free: (a: number, b: number) => void;
+    readonly __wbg_peakfollower_free: (a: number, b: number) => void;
+    readonly __wbg_phasor_free: (a: number, b: number) => void;
+    readonly __wbg_pinknoise_free: (a: number, b: number) => void;
+    readonly __wbg_pitch_free: (a: number, b: number) => void;
+    readonly __wbg_pitchshift_free: (a: number, b: number) => void;
+    readonly __wbg_playbuf_free: (a: number, b: number) => void;
+    readonly __wbg_pluck_free: (a: number, b: number) => void;
+    readonly __wbg_poll_free: (a: number, b: number) => void;
+    readonly __wbg_psingrain_free: (a: number, b: number) => void;
+    readonly __wbg_pulse_free: (a: number, b: number) => void;
+    readonly __wbg_pulsecount_free: (a: number, b: number) => void;
+    readonly __wbg_pulsedivider_free: (a: number, b: number) => void;
+    readonly __wbg_pv_add_free: (a: number, b: number) => void;
+    readonly __wbg_pv_binscramble_free: (a: number, b: number) => void;
+    readonly __wbg_pv_binshift_free: (a: number, b: number) => void;
+    readonly __wbg_pv_binwipe_free: (a: number, b: number) => void;
+    readonly __wbg_pv_brickwall_free: (a: number, b: number) => void;
+    readonly __wbg_pv_conformalmap_free: (a: number, b: number) => void;
+    readonly __wbg_pv_conj_free: (a: number, b: number) => void;
+    readonly __wbg_pv_copy_free: (a: number, b: number) => void;
+    readonly __wbg_pv_copyphase_free: (a: number, b: number) => void;
+    readonly __wbg_pv_diffuser_free: (a: number, b: number) => void;
+    readonly __wbg_pv_div_free: (a: number, b: number) => void;
+    readonly __wbg_pv_hainsworthfoote_free: (a: number, b: number) => void;
+    readonly __wbg_pv_jensenandersen_free: (a: number, b: number) => void;
+    readonly __wbg_pv_localmax_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magabove_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magbelow_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magclip_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magdiv_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magfreeze_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magmul_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magnoise_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magshift_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magsmear_free: (a: number, b: number) => void;
+    readonly __wbg_pv_magsquared_free: (a: number, b: number) => void;
+    readonly __wbg_pv_max_free: (a: number, b: number) => void;
+    readonly __wbg_pv_min_free: (a: number, b: number) => void;
+    readonly __wbg_pv_mul_free: (a: number, b: number) => void;
+    readonly __wbg_pv_phaseshift270_free: (a: number, b: number) => void;
+    readonly __wbg_pv_phaseshift90_free: (a: number, b: number) => void;
+    readonly __wbg_pv_phaseshift_free: (a: number, b: number) => void;
+    readonly __wbg_pv_randcomb_free: (a: number, b: number) => void;
+    readonly __wbg_pv_randwipe_free: (a: number, b: number) => void;
+    readonly __wbg_pv_rectcomb2_free: (a: number, b: number) => void;
+    readonly __wbg_pv_rectcomb_free: (a: number, b: number) => void;
+    readonly __wbg_quadc_free: (a: number, b: number) => void;
+    readonly __wbg_quadl_free: (a: number, b: number) => void;
+    readonly __wbg_quadn_free: (a: number, b: number) => void;
+    readonly __wbg_radianspersample_free: (a: number, b: number) => void;
+    readonly __wbg_ramp_free: (a: number, b: number) => void;
+    readonly __wbg_rand_free: (a: number, b: number) => void;
+    readonly __wbg_randid_free: (a: number, b: number) => void;
+    readonly __wbg_randseed_free: (a: number, b: number) => void;
+    readonly __wbg_recordbuf_free: (a: number, b: number) => void;
+    readonly __wbg_replaceout_free: (a: number, b: number) => void;
+    readonly __wbg_resonz_free: (a: number, b: number) => void;
+    readonly __wbg_rhpf_free: (a: number, b: number) => void;
+    readonly __wbg_ringz_free: (a: number, b: number) => void;
+    readonly __wbg_rlpf_free: (a: number, b: number) => void;
+    readonly __wbg_rotate2_free: (a: number, b: number) => void;
+    readonly __wbg_runningmax_free: (a: number, b: number) => void;
+    readonly __wbg_runningmin_free: (a: number, b: number) => void;
+    readonly __wbg_runningsum_free: (a: number, b: number) => void;
+    readonly __wbg_sampledur_free: (a: number, b: number) => void;
+    readonly __wbg_samplerate_free: (a: number, b: number) => void;
+    readonly __wbg_saw_free: (a: number, b: number) => void;
+    readonly __wbg_schmidt_free: (a: number, b: number) => void;
+    readonly __wbg_scopeout2_free: (a: number, b: number) => void;
+    readonly __wbg_scopeout_free: (a: number, b: number) => void;
+    readonly __wbg_select_free: (a: number, b: number) => void;
+    readonly __wbg_sendreply_free: (a: number, b: number) => void;
+    readonly __wbg_sendtrig_free: (a: number, b: number) => void;
+    readonly __wbg_setbuf_free: (a: number, b: number) => void;
+    readonly __wbg_setresetff_free: (a: number, b: number) => void;
+    readonly __wbg_shaper_free: (a: number, b: number) => void;
+    readonly __wbg_sharedin_free: (a: number, b: number) => void;
+    readonly __wbg_sharedout_free: (a: number, b: number) => void;
+    readonly __wbg_silent_free: (a: number, b: number) => void;
+    readonly __wbg_sinosc_free: (a: number, b: number) => void;
+    readonly __wbg_sinoscfb_free: (a: number, b: number) => void;
+    readonly __wbg_slew_free: (a: number, b: number) => void;
+    readonly __wbg_slope_free: (a: number, b: number) => void;
+    readonly __wbg_sos_free: (a: number, b: number) => void;
+    readonly __wbg_speccentroid_free: (a: number, b: number) => void;
+    readonly __wbg_specflatness_free: (a: number, b: number) => void;
+    readonly __wbg_specpcile_free: (a: number, b: number) => void;
+    readonly __wbg_spring_free: (a: number, b: number) => void;
+    readonly __wbg_standardl_free: (a: number, b: number) => void;
+    readonly __wbg_standardn_free: (a: number, b: number) => void;
+    readonly __wbg_stepper_free: (a: number, b: number) => void;
+    readonly __wbg_stereoconvolution2l_free: (a: number, b: number) => void;
+    readonly __wbg_subsampleoffset_free: (a: number, b: number) => void;
+    readonly __wbg_sweep_free: (a: number, b: number) => void;
+    readonly __wbg_syncsaw_free: (a: number, b: number) => void;
+    readonly __wbg_t2a_free: (a: number, b: number) => void;
+    readonly __wbg_t2k_free: (a: number, b: number) => void;
+    readonly __wbg_tball_free: (a: number, b: number) => void;
+    readonly __wbg_tdelay_free: (a: number, b: number) => void;
+    readonly __wbg_tduty_free: (a: number, b: number) => void;
+    readonly __wbg_texprand_free: (a: number, b: number) => void;
+    readonly __wbg_tgrains_free: (a: number, b: number) => void;
+    readonly __wbg_timer_free: (a: number, b: number) => void;
+    readonly __wbg_tirand_free: (a: number, b: number) => void;
+    readonly __wbg_toggleff_free: (a: number, b: number) => void;
+    readonly __wbg_trand_free: (a: number, b: number) => void;
+    readonly __wbg_trapezoid_free: (a: number, b: number) => void;
+    readonly __wbg_trig1_free: (a: number, b: number) => void;
+    readonly __wbg_trig_free: (a: number, b: number) => void;
+    readonly __wbg_twindex_free: (a: number, b: number) => void;
+    readonly __wbg_twopole_free: (a: number, b: number) => void;
+    readonly __wbg_twozero_free: (a: number, b: number) => void;
+    readonly __wbg_varsaw_free: (a: number, b: number) => void;
+    readonly __wbg_vdiskin_free: (a: number, b: number) => void;
+    readonly __wbg_vibrato_free: (a: number, b: number) => void;
+    readonly __wbg_vosc3_free: (a: number, b: number) => void;
+    readonly __wbg_vosc_free: (a: number, b: number) => void;
+    readonly __wbg_warp1_free: (a: number, b: number) => void;
+    readonly __wbg_whitenoise_free: (a: number, b: number) => void;
+    readonly __wbg_wrap_free: (a: number, b: number) => void;
+    readonly __wbg_wrapindex_free: (a: number, b: number) => void;
+    readonly __wbg_xfade2_free: (a: number, b: number) => void;
+    readonly __wbg_xline_free: (a: number, b: number) => void;
+    readonly __wbg_xout_free: (a: number, b: number) => void;
+    readonly __wbg_zerocrossing_free: (a: number, b: number) => void;
+    readonly a2k_kr: (a: number, b: any) => [number, number, number];
+    readonly allpassc_ar: (a: number, b: any) => [number, number, number];
+    readonly allpassc_kr: (a: number, b: any) => [number, number, number];
+    readonly allpassl_ar: (a: number, b: any) => [number, number, number];
+    readonly allpassl_kr: (a: number, b: any) => [number, number, number];
+    readonly allpassn_ar: (a: number, b: any) => [number, number, number];
+    readonly allpassn_kr: (a: number, b: any) => [number, number, number];
+    readonly ampcomp_ar: (a: number, b: any) => [number, number, number];
+    readonly ampcomp_ir: (a: number, b: any) => [number, number, number];
+    readonly ampcomp_kr: (a: number, b: any) => [number, number, number];
+    readonly ampcompa_ar: (a: number, b: any) => [number, number, number];
+    readonly ampcompa_ir: (a: number, b: any) => [number, number, number];
+    readonly ampcompa_kr: (a: number, b: any) => [number, number, number];
+    readonly amplitude_ar: (a: number, b: any) => [number, number, number];
+    readonly amplitude_kr: (a: number, b: any) => [number, number, number];
+    readonly apf_ar: (a: number, b: any) => [number, number, number];
+    readonly apf_kr: (a: number, b: any) => [number, number, number];
+    readonly balance2_ar: (a: number, b: any) => [number, number, number];
+    readonly balance2_kr: (a: number, b: any) => [number, number, number];
+    readonly ball_ar: (a: number, b: any) => [number, number, number];
+    readonly ball_kr: (a: number, b: any) => [number, number, number];
+    readonly ballpass_ar: (a: number, b: any) => [number, number, number];
+    readonly bbandpass_ar: (a: number, b: any) => [number, number, number];
+    readonly bbandstop_ar: (a: number, b: any) => [number, number, number];
+    readonly beattrack2_kr: (a: number, b: any) => [number, number, number];
+    readonly beattrack_kr: (a: number, b: any) => [number, number, number];
+    readonly bhipass_ar: (a: number, b: any) => [number, number, number];
+    readonly bhishelf_ar: (a: number, b: any) => [number, number, number];
+    readonly bipanb2_ar: (a: number, b: any) => [number, number, number];
+    readonly bipanb2_kr: (a: number, b: any) => [number, number, number];
+    readonly blip_ar: (a: number, b: any) => [number, number, number];
+    readonly blip_kr: (a: number, b: any) => [number, number, number];
+    readonly blowpass_ar: (a: number, b: any) => [number, number, number];
+    readonly blowshelf_ar: (a: number, b: any) => [number, number, number];
+    readonly bpeakeq_ar: (a: number, b: any) => [number, number, number];
+    readonly bpf_ar: (a: number, b: any) => [number, number, number];
+    readonly bpf_kr: (a: number, b: any) => [number, number, number];
+    readonly bpz2_ar: (a: number, b: any) => [number, number, number];
+    readonly bpz2_kr: (a: number, b: any) => [number, number, number];
+    readonly brf_ar: (a: number, b: any) => [number, number, number];
+    readonly brf_kr: (a: number, b: any) => [number, number, number];
+    readonly brownnoise_ar: (a: number, b: any) => [number, number, number];
+    readonly brownnoise_kr: (a: number, b: any) => [number, number, number];
+    readonly brz2_ar: (a: number, b: any) => [number, number, number];
+    readonly brz2_kr: (a: number, b: any) => [number, number, number];
+    readonly bufallpassc_ar: (a: number, b: any) => [number, number, number];
+    readonly bufallpassl_ar: (a: number, b: any) => [number, number, number];
+    readonly bufallpassn_ar: (a: number, b: any) => [number, number, number];
+    readonly bufchannels_ir: (a: number, b: any) => [number, number, number];
+    readonly bufchannels_kr: (a: number, b: any) => [number, number, number];
+    readonly bufcombc_ar: (a: number, b: any) => [number, number, number];
+    readonly bufcombl_ar: (a: number, b: any) => [number, number, number];
+    readonly bufcombn_ar: (a: number, b: any) => [number, number, number];
+    readonly bufdelayc_ar: (a: number, b: any) => [number, number, number];
+    readonly bufdelayc_kr: (a: number, b: any) => [number, number, number];
+    readonly bufdelayl_ar: (a: number, b: any) => [number, number, number];
+    readonly bufdelayl_kr: (a: number, b: any) => [number, number, number];
+    readonly bufdelayn_ar: (a: number, b: any) => [number, number, number];
+    readonly bufdelayn_kr: (a: number, b: any) => [number, number, number];
+    readonly bufdur_ir: (a: number, b: any) => [number, number, number];
+    readonly bufdur_kr: (a: number, b: any) => [number, number, number];
+    readonly bufframes_ir: (a: number, b: any) => [number, number, number];
+    readonly bufframes_kr: (a: number, b: any) => [number, number, number];
+    readonly bufratescale_ir: (a: number, b: any) => [number, number, number];
+    readonly bufratescale_kr: (a: number, b: any) => [number, number, number];
+    readonly bufrd_ar: (a: number, b: any) => [number, number, number];
+    readonly bufrd_kr: (a: number, b: any) => [number, number, number];
+    readonly bufsamplerate_ir: (a: number, b: any) => [number, number, number];
+    readonly bufsamplerate_kr: (a: number, b: any) => [number, number, number];
+    readonly bufsamples_ir: (a: number, b: any) => [number, number, number];
+    readonly bufsamples_kr: (a: number, b: any) => [number, number, number];
+    readonly bufwr_ar: (a: number, b: any) => [number, number, number];
+    readonly bufwr_kr: (a: number, b: any) => [number, number, number];
+    readonly checkbadvalues_ar: (a: number, b: any) => [number, number, number];
+    readonly checkbadvalues_kr: (a: number, b: any) => [number, number, number];
+    readonly clearbuf_ir: (a: number, b: any) => [number, number, number];
+    readonly clip_ar: (a: number, b: any) => [number, number, number];
+    readonly clip_kr: (a: number, b: any) => [number, number, number];
+    readonly clipnoise_ar: (a: number, b: any) => [number, number, number];
+    readonly clipnoise_kr: (a: number, b: any) => [number, number, number];
+    readonly coingate_ar: (a: number, b: any) => [number, number, number];
+    readonly coingate_kr: (a: number, b: any) => [number, number, number];
+    readonly combc_ar: (a: number, b: any) => [number, number, number];
+    readonly combc_kr: (a: number, b: any) => [number, number, number];
+    readonly combl_ar: (a: number, b: any) => [number, number, number];
+    readonly combl_kr: (a: number, b: any) => [number, number, number];
+    readonly combn_ar: (a: number, b: any) => [number, number, number];
+    readonly combn_kr: (a: number, b: any) => [number, number, number];
+    readonly compander_ar: (a: number, b: any) => [number, number, number];
+    readonly controldur_ir: (a: number, b: any) => [number, number, number];
+    readonly controlrate_ir: (a: number, b: any) => [number, number, number];
+    readonly convolution2_ar: (a: number, b: any) => [number, number, number];
+    readonly convolution2l_ar: (a: number, b: any) => [number, number, number];
+    readonly convolution3_ar: (a: number, b: any) => [number, number, number];
+    readonly convolution3_kr: (a: number, b: any) => [number, number, number];
+    readonly convolution_ar: (a: number, b: any) => [number, number, number];
+    readonly cosc_ar: (a: number, b: any) => [number, number, number];
+    readonly cosc_kr: (a: number, b: any) => [number, number, number];
+    readonly crackle_ar: (a: number, b: any) => [number, number, number];
+    readonly crackle_kr: (a: number, b: any) => [number, number, number];
+    readonly cuspl_ar: (a: number, b: any) => [number, number, number];
+    readonly cuspn_ar: (a: number, b: any) => [number, number, number];
+    readonly dc_ar: (a: number, b: any) => [number, number, number];
+    readonly dc_kr: (a: number, b: any) => [number, number, number];
+    readonly decay2_ar: (a: number, b: any) => [number, number, number];
+    readonly decay2_kr: (a: number, b: any) => [number, number, number];
+    readonly decay_ar: (a: number, b: any) => [number, number, number];
+    readonly decay_kr: (a: number, b: any) => [number, number, number];
+    readonly decodeb2_ar: (a: number, b: any) => [number, number, number];
+    readonly decodeb2_kr: (a: number, b: any) => [number, number, number];
+    readonly degreetokey_ar: (a: number, b: any) => [number, number, number];
+    readonly degreetokey_kr: (a: number, b: any) => [number, number, number];
+    readonly delay1_ar: (a: number, b: any) => [number, number, number];
+    readonly delay1_kr: (a: number, b: any) => [number, number, number];
+    readonly delay2_ar: (a: number, b: any) => [number, number, number];
+    readonly delay2_kr: (a: number, b: any) => [number, number, number];
+    readonly delayc_ar: (a: number, b: any) => [number, number, number];
+    readonly delayc_kr: (a: number, b: any) => [number, number, number];
+    readonly delayl_ar: (a: number, b: any) => [number, number, number];
+    readonly delayl_kr: (a: number, b: any) => [number, number, number];
+    readonly delayn_ar: (a: number, b: any) => [number, number, number];
+    readonly delayn_kr: (a: number, b: any) => [number, number, number];
+    readonly deltaprd_ar: (a: number, b: any) => [number, number, number];
+    readonly deltaprd_kr: (a: number, b: any) => [number, number, number];
+    readonly deltapwr_ar: (a: number, b: any) => [number, number, number];
+    readonly deltapwr_kr: (a: number, b: any) => [number, number, number];
+    readonly demand_ar: (a: number, b: any) => [number, number, number];
+    readonly demand_kr: (a: number, b: any) => [number, number, number];
+    readonly demandenvgen_ar: (a: number, b: any) => [number, number, number];
+    readonly demandenvgen_kr: (a: number, b: any) => [number, number, number];
+    readonly detectindex_ar: (a: number, b: any) => [number, number, number];
+    readonly detectindex_kr: (a: number, b: any) => [number, number, number];
+    readonly detectsilence_ar: (a: number, b: any) => [number, number, number];
+    readonly detectsilence_kr: (a: number, b: any) => [number, number, number];
+    readonly diskin_ar: (a: number, b: any) => [number, number, number];
+    readonly diskout_ar: (a: number, b: any) => [number, number, number];
+    readonly done_kr: (a: number, b: any) => [number, number, number];
+    readonly dust2_ar: (a: number, b: any) => [number, number, number];
+    readonly dust2_kr: (a: number, b: any) => [number, number, number];
+    readonly dust_ar: (a: number, b: any) => [number, number, number];
+    readonly dust_kr: (a: number, b: any) => [number, number, number];
+    readonly duty_ar: (a: number, b: any) => [number, number, number];
+    readonly duty_kr: (a: number, b: any) => [number, number, number];
+    readonly envgen_ar: (a: number, b: any) => [number, number, number];
+    readonly envgen_kr: (a: number, b: any) => [number, number, number];
+    readonly exprand_ir: (a: number, b: any) => [number, number, number];
+    readonly fbsinec_ar: (a: number, b: any) => [number, number, number];
+    readonly fbsinel_ar: (a: number, b: any) => [number, number, number];
+    readonly fbsinen_ar: (a: number, b: any) => [number, number, number];
+    readonly fft_kr: (a: number, b: any) => [number, number, number];
+    readonly ffttrigger_kr: (a: number, b: any) => [number, number, number];
+    readonly fold_ar: (a: number, b: any) => [number, number, number];
+    readonly fold_kr: (a: number, b: any) => [number, number, number];
+    readonly formant_ar: (a: number, b: any) => [number, number, number];
+    readonly formlet_ar: (a: number, b: any) => [number, number, number];
+    readonly formlet_kr: (a: number, b: any) => [number, number, number];
+    readonly fos_ar: (a: number, b: any) => [number, number, number];
+    readonly fos_kr: (a: number, b: any) => [number, number, number];
+    readonly free_kr: (a: number, b: any) => [number, number, number];
+    readonly freeself_kr: (a: number, b: any) => [number, number, number];
+    readonly freeselfwhendone_kr: (a: number, b: any) => [number, number, number];
+    readonly freeverb2_ar: (a: number, b: any) => [number, number, number];
+    readonly freeverb_ar: (a: number, b: any) => [number, number, number];
+    readonly freqshift_ar: (a: number, b: any) => [number, number, number];
+    readonly fsinosc_ar: (a: number, b: any) => [number, number, number];
+    readonly fsinosc_kr: (a: number, b: any) => [number, number, number];
+    readonly gate_ar: (a: number, b: any) => [number, number, number];
+    readonly gate_kr: (a: number, b: any) => [number, number, number];
+    readonly gbmanl_ar: (a: number, b: any) => [number, number, number];
+    readonly gbmann_ar: (a: number, b: any) => [number, number, number];
+    readonly gendy1_ar: (a: number, b: any) => [number, number, number];
+    readonly gendy1_kr: (a: number, b: any) => [number, number, number];
+    readonly gendy2_ar: (a: number, b: any) => [number, number, number];
+    readonly gendy2_kr: (a: number, b: any) => [number, number, number];
+    readonly gendy3_ar: (a: number, b: any) => [number, number, number];
+    readonly gendy3_kr: (a: number, b: any) => [number, number, number];
+    readonly grainbuf_ar: (a: number, b: any) => [number, number, number];
+    readonly grainfm_ar: (a: number, b: any) => [number, number, number];
+    readonly grainin_ar: (a: number, b: any) => [number, number, number];
+    readonly grainsin_ar: (a: number, b: any) => [number, number, number];
+    readonly graynoise_ar: (a: number, b: any) => [number, number, number];
+    readonly graynoise_kr: (a: number, b: any) => [number, number, number];
+    readonly gverb_ar: (a: number, b: any) => [number, number, number];
+    readonly hasher_ar: (a: number, b: any) => [number, number, number];
+    readonly hasher_kr: (a: number, b: any) => [number, number, number];
+    readonly henonc_ar: (a: number, b: any) => [number, number, number];
+    readonly henonl_ar: (a: number, b: any) => [number, number, number];
+    readonly henonn_ar: (a: number, b: any) => [number, number, number];
+    readonly hilbert_ar: (a: number, b: any) => [number, number, number];
+    readonly hpf_ar: (a: number, b: any) => [number, number, number];
+    readonly hpf_kr: (a: number, b: any) => [number, number, number];
+    readonly hpz1_ar: (a: number, b: any) => [number, number, number];
+    readonly hpz1_kr: (a: number, b: any) => [number, number, number];
+    readonly hpz2_ar: (a: number, b: any) => [number, number, number];
+    readonly hpz2_kr: (a: number, b: any) => [number, number, number];
+    readonly ienvgen_ar: (a: number, b: any) => [number, number, number];
+    readonly ienvgen_kr: (a: number, b: any) => [number, number, number];
+    readonly ifft_ar: (a: number, b: any) => [number, number, number];
+    readonly ifft_kr: (a: number, b: any) => [number, number, number];
+    readonly impulse_ar: (a: number, b: any) => [number, number, number];
+    readonly impulse_kr: (a: number, b: any) => [number, number, number];
+    readonly in_ar: (a: number, b: any) => [number, number, number];
+    readonly in_kr: (a: number, b: any) => [number, number, number];
+    readonly index_ar: (a: number, b: any) => [number, number, number];
+    readonly index_kr: (a: number, b: any) => [number, number, number];
+    readonly indexinbetween_ar: (a: number, b: any) => [number, number, number];
+    readonly indexinbetween_kr: (a: number, b: any) => [number, number, number];
+    readonly infeedback_ar: (a: number, b: any) => [number, number, number];
+    readonly inrange_ar: (a: number, b: any) => [number, number, number];
+    readonly inrange_ir: (a: number, b: any) => [number, number, number];
+    readonly inrange_kr: (a: number, b: any) => [number, number, number];
+    readonly inrect_ar: (a: number, b: any) => [number, number, number];
+    readonly inrect_kr: (a: number, b: any) => [number, number, number];
+    readonly integrator_ar: (a: number, b: any) => [number, number, number];
+    readonly integrator_kr: (a: number, b: any) => [number, number, number];
+    readonly intrig_kr: (a: number, b: any) => [number, number, number];
+    readonly irand_ir: (a: number, b: any) => [number, number, number];
+    readonly k2a_ar: (a: number, b: any) => [number, number, number];
+    readonly keystate_kr: (a: number, b: any) => [number, number, number];
+    readonly keytrack_kr: (a: number, b: any) => [number, number, number];
+    readonly klang_ar: (a: number, b: any) => [number, number, number];
+    readonly klank_ar: (a: number, b: any) => [number, number, number];
+    readonly lag2_ar: (a: number, b: any) => [number, number, number];
+    readonly lag2_kr: (a: number, b: any) => [number, number, number];
+    readonly lag2ud_ar: (a: number, b: any) => [number, number, number];
+    readonly lag2ud_kr: (a: number, b: any) => [number, number, number];
+    readonly lag3_ar: (a: number, b: any) => [number, number, number];
+    readonly lag3_kr: (a: number, b: any) => [number, number, number];
+    readonly lag3ud_ar: (a: number, b: any) => [number, number, number];
+    readonly lag3ud_kr: (a: number, b: any) => [number, number, number];
+    readonly lag_ar: (a: number, b: any) => [number, number, number];
+    readonly lag_kr: (a: number, b: any) => [number, number, number];
+    readonly lagin_kr: (a: number, b: any) => [number, number, number];
+    readonly lagud_ar: (a: number, b: any) => [number, number, number];
+    readonly lagud_kr: (a: number, b: any) => [number, number, number];
+    readonly lastvalue_ar: (a: number, b: any) => [number, number, number];
+    readonly lastvalue_kr: (a: number, b: any) => [number, number, number];
+    readonly latch_ar: (a: number, b: any) => [number, number, number];
+    readonly latch_kr: (a: number, b: any) => [number, number, number];
+    readonly latoocarfianc_ar: (a: number, b: any) => [number, number, number];
+    readonly latoocarfianl_ar: (a: number, b: any) => [number, number, number];
+    readonly latoocarfiann_ar: (a: number, b: any) => [number, number, number];
+    readonly leakdc_ar: (a: number, b: any) => [number, number, number];
+    readonly leakdc_kr: (a: number, b: any) => [number, number, number];
+    readonly leastchange_ar: (a: number, b: any) => [number, number, number];
+    readonly leastchange_kr: (a: number, b: any) => [number, number, number];
+    readonly lfclipnoise_ar: (a: number, b: any) => [number, number, number];
+    readonly lfclipnoise_kr: (a: number, b: any) => [number, number, number];
+    readonly lfcub_ar: (a: number, b: any) => [number, number, number];
+    readonly lfcub_kr: (a: number, b: any) => [number, number, number];
+    readonly lfdclipnoise_ar: (a: number, b: any) => [number, number, number];
+    readonly lfdclipnoise_kr: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise0_ar: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise0_kr: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise1_ar: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise1_kr: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise3_ar: (a: number, b: any) => [number, number, number];
+    readonly lfdnoise3_kr: (a: number, b: any) => [number, number, number];
+    readonly lfgauss_ar: (a: number, b: any) => [number, number, number];
+    readonly lfgauss_kr: (a: number, b: any) => [number, number, number];
+    readonly lfnoise0_ar: (a: number, b: any) => [number, number, number];
+    readonly lfnoise0_kr: (a: number, b: any) => [number, number, number];
+    readonly lfnoise1_ar: (a: number, b: any) => [number, number, number];
+    readonly lfnoise1_kr: (a: number, b: any) => [number, number, number];
+    readonly lfnoise2_ar: (a: number, b: any) => [number, number, number];
+    readonly lfnoise2_kr: (a: number, b: any) => [number, number, number];
+    readonly lfpar_ar: (a: number, b: any) => [number, number, number];
+    readonly lfpar_kr: (a: number, b: any) => [number, number, number];
+    readonly lfpulse_ar: (a: number, b: any) => [number, number, number];
+    readonly lfpulse_kr: (a: number, b: any) => [number, number, number];
+    readonly lfsaw_ar: (a: number, b: any) => [number, number, number];
+    readonly lfsaw_kr: (a: number, b: any) => [number, number, number];
+    readonly lftri_ar: (a: number, b: any) => [number, number, number];
+    readonly lftri_kr: (a: number, b: any) => [number, number, number];
+    readonly limiter_ar: (a: number, b: any) => [number, number, number];
+    readonly lincongc_ar: (a: number, b: any) => [number, number, number];
+    readonly lincongl_ar: (a: number, b: any) => [number, number, number];
+    readonly lincongn_ar: (a: number, b: any) => [number, number, number];
+    readonly line_ar: (a: number, b: any) => [number, number, number];
+    readonly line_kr: (a: number, b: any) => [number, number, number];
+    readonly linen_kr: (a: number, b: any) => [number, number, number];
+    readonly linexp_ar: (a: number, b: any) => [number, number, number];
+    readonly linexp_kr: (a: number, b: any) => [number, number, number];
+    readonly linpan2_ar: (a: number, b: any) => [number, number, number];
+    readonly linpan2_kr: (a: number, b: any) => [number, number, number];
+    readonly linrand_ir: (a: number, b: any) => [number, number, number];
+    readonly linxfade2_ar: (a: number, b: any) => [number, number, number];
+    readonly linxfade2_kr: (a: number, b: any) => [number, number, number];
+    readonly localbuf_ir: (a: number, b: any) => [number, number, number];
+    readonly localin_ar: (a: number, b: any) => [number, number, number];
+    readonly localin_kr: (a: number, b: any) => [number, number, number];
+    readonly localout_ar: (a: number, b: any) => [number, number, number];
+    readonly localout_kr: (a: number, b: any) => [number, number, number];
+    readonly logistic_ar: (a: number, b: any) => [number, number, number];
+    readonly logistic_kr: (a: number, b: any) => [number, number, number];
+    readonly lorenzl_ar: (a: number, b: any) => [number, number, number];
+    readonly loudness_kr: (a: number, b: any) => [number, number, number];
+    readonly lpf_ar: (a: number, b: any) => [number, number, number];
+    readonly lpf_kr: (a: number, b: any) => [number, number, number];
+    readonly lpz1_ar: (a: number, b: any) => [number, number, number];
+    readonly lpz1_kr: (a: number, b: any) => [number, number, number];
+    readonly lpz2_ar: (a: number, b: any) => [number, number, number];
+    readonly lpz2_kr: (a: number, b: any) => [number, number, number];
+    readonly mantissamask_ar: (a: number, b: any) => [number, number, number];
+    readonly mantissamask_kr: (a: number, b: any) => [number, number, number];
+    readonly maxlocalbufs_ir: (a: number, b: any) => [number, number, number];
+    readonly median_ar: (a: number, b: any) => [number, number, number];
+    readonly median_kr: (a: number, b: any) => [number, number, number];
+    readonly mfcc_kr: (a: number, b: any) => [number, number, number];
+    readonly mideq_ar: (a: number, b: any) => [number, number, number];
+    readonly mideq_kr: (a: number, b: any) => [number, number, number];
+    readonly moogff_ar: (a: number, b: any) => [number, number, number];
+    readonly moogff_kr: (a: number, b: any) => [number, number, number];
+    readonly mostchange_ar: (a: number, b: any) => [number, number, number];
+    readonly mostchange_kr: (a: number, b: any) => [number, number, number];
+    readonly mousebutton_kr: (a: number, b: any) => [number, number, number];
+    readonly mousex_kr: (a: number, b: any) => [number, number, number];
+    readonly mousey_kr: (a: number, b: any) => [number, number, number];
+    readonly muladd_ar: (a: number, b: any) => [number, number, number];
+    readonly muladd_ir: (a: number, b: any) => [number, number, number];
+    readonly muladd_kr: (a: number, b: any) => [number, number, number];
+    readonly normalizer_ar: (a: number, b: any) => [number, number, number];
+    readonly nrand_ir: (a: number, b: any) => [number, number, number];
+    readonly numaudiobuses_ir: (a: number, b: any) => [number, number, number];
+    readonly numbuffers_ir: (a: number, b: any) => [number, number, number];
+    readonly numcontrolbuses_ir: (a: number, b: any) => [number, number, number];
+    readonly numinputbuses_ir: (a: number, b: any) => [number, number, number];
+    readonly numoutputbuses_ir: (a: number, b: any) => [number, number, number];
+    readonly numrunningsynths_ir: (a: number, b: any) => [number, number, number];
+    readonly numrunningsynths_kr: (a: number, b: any) => [number, number, number];
+    readonly offsetout_ar: (a: number, b: any) => [number, number, number];
+    readonly offsetout_kr: (a: number, b: any) => [number, number, number];
+    readonly onepole_ar: (a: number, b: any) => [number, number, number];
+    readonly onepole_kr: (a: number, b: any) => [number, number, number];
+    readonly onezero_ar: (a: number, b: any) => [number, number, number];
+    readonly onezero_kr: (a: number, b: any) => [number, number, number];
+    readonly onsets_kr: (a: number, b: any) => [number, number, number];
+    readonly osc_ar: (a: number, b: any) => [number, number, number];
+    readonly osc_kr: (a: number, b: any) => [number, number, number];
+    readonly out_ar: (a: number, b: any) => [number, number, number];
+    readonly out_kr: (a: number, b: any) => [number, number, number];
+    readonly pan2_ar: (a: number, b: any) => [number, number, number];
+    readonly pan2_kr: (a: number, b: any) => [number, number, number];
+    readonly pan4_ar: (a: number, b: any) => [number, number, number];
+    readonly pan4_kr: (a: number, b: any) => [number, number, number];
+    readonly panaz_ar: (a: number, b: any) => [number, number, number];
+    readonly panaz_kr: (a: number, b: any) => [number, number, number];
+    readonly panb2_ar: (a: number, b: any) => [number, number, number];
+    readonly panb2_kr: (a: number, b: any) => [number, number, number];
+    readonly panb_ar: (a: number, b: any) => [number, number, number];
+    readonly panb_kr: (a: number, b: any) => [number, number, number];
+    readonly partconv_ar: (a: number, b: any) => [number, number, number];
+    readonly pause_kr: (a: number, b: any) => [number, number, number];
+    readonly pauseself_kr: (a: number, b: any) => [number, number, number];
+    readonly pauseselfwhendone_kr: (a: number, b: any) => [number, number, number];
+    readonly peak_ar: (a: number, b: any) => [number, number, number];
+    readonly peak_kr: (a: number, b: any) => [number, number, number];
+    readonly peakfollower_ar: (a: number, b: any) => [number, number, number];
+    readonly peakfollower_kr: (a: number, b: any) => [number, number, number];
+    readonly phasor_ar: (a: number, b: any) => [number, number, number];
+    readonly phasor_kr: (a: number, b: any) => [number, number, number];
+    readonly pinknoise_ar: (a: number, b: any) => [number, number, number];
+    readonly pinknoise_kr: (a: number, b: any) => [number, number, number];
+    readonly pitch_kr: (a: number, b: any) => [number, number, number];
+    readonly pitchshift_ar: (a: number, b: any) => [number, number, number];
+    readonly playbuf_ar: (a: number, b: any) => [number, number, number];
+    readonly playbuf_kr: (a: number, b: any) => [number, number, number];
+    readonly pluck_ar: (a: number, b: any) => [number, number, number];
+    readonly poll_ar: (a: number, b: any) => [number, number, number];
+    readonly poll_kr: (a: number, b: any) => [number, number, number];
+    readonly psingrain_ar: (a: number, b: any) => [number, number, number];
+    readonly pulse_ar: (a: number, b: any) => [number, number, number];
+    readonly pulse_kr: (a: number, b: any) => [number, number, number];
+    readonly pulsecount_ar: (a: number, b: any) => [number, number, number];
+    readonly pulsecount_kr: (a: number, b: any) => [number, number, number];
+    readonly pulsedivider_ar: (a: number, b: any) => [number, number, number];
+    readonly pulsedivider_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_add_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_binscramble_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_binshift_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_binwipe_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_brickwall_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_conformalmap_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_conj_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_copy_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_copyphase_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_diffuser_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_div_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_hainsworthfoote_ar: (a: number, b: any) => [number, number, number];
+    readonly pv_jensenandersen_ar: (a: number, b: any) => [number, number, number];
+    readonly pv_localmax_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magabove_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magbelow_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magclip_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magdiv_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magfreeze_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magmul_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magnoise_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magshift_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magsmear_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_magsquared_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_max_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_min_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_mul_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_phaseshift270_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_phaseshift90_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_phaseshift_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_randcomb_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_randwipe_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_rectcomb2_kr: (a: number, b: any) => [number, number, number];
+    readonly pv_rectcomb_kr: (a: number, b: any) => [number, number, number];
+    readonly quadc_ar: (a: number, b: any) => [number, number, number];
+    readonly quadl_ar: (a: number, b: any) => [number, number, number];
+    readonly quadn_ar: (a: number, b: any) => [number, number, number];
+    readonly radianspersample_ir: (a: number, b: any) => [number, number, number];
+    readonly ramp_ar: (a: number, b: any) => [number, number, number];
+    readonly ramp_kr: (a: number, b: any) => [number, number, number];
+    readonly rand_ir: (a: number, b: any) => [number, number, number];
+    readonly randid_ir: (a: number, b: any) => [number, number, number];
+    readonly randid_kr: (a: number, b: any) => [number, number, number];
+    readonly randseed_ar: (a: number, b: any) => [number, number, number];
+    readonly randseed_ir: (a: number, b: any) => [number, number, number];
+    readonly randseed_kr: (a: number, b: any) => [number, number, number];
+    readonly recordbuf_ar: (a: number, b: any) => [number, number, number];
+    readonly recordbuf_kr: (a: number, b: any) => [number, number, number];
+    readonly replaceout_ar: (a: number, b: any) => [number, number, number];
+    readonly replaceout_kr: (a: number, b: any) => [number, number, number];
+    readonly resonz_ar: (a: number, b: any) => [number, number, number];
+    readonly resonz_kr: (a: number, b: any) => [number, number, number];
+    readonly rhpf_ar: (a: number, b: any) => [number, number, number];
+    readonly rhpf_kr: (a: number, b: any) => [number, number, number];
+    readonly ringz_ar: (a: number, b: any) => [number, number, number];
+    readonly ringz_kr: (a: number, b: any) => [number, number, number];
+    readonly rlpf_ar: (a: number, b: any) => [number, number, number];
+    readonly rlpf_kr: (a: number, b: any) => [number, number, number];
+    readonly rotate2_ar: (a: number, b: any) => [number, number, number];
+    readonly rotate2_kr: (a: number, b: any) => [number, number, number];
+    readonly runningmax_ar: (a: number, b: any) => [number, number, number];
+    readonly runningmax_kr: (a: number, b: any) => [number, number, number];
+    readonly runningmin_ar: (a: number, b: any) => [number, number, number];
+    readonly runningmin_kr: (a: number, b: any) => [number, number, number];
+    readonly runningsum_ar: (a: number, b: any) => [number, number, number];
+    readonly runningsum_kr: (a: number, b: any) => [number, number, number];
+    readonly sampledur_ir: (a: number, b: any) => [number, number, number];
+    readonly samplerate_ir: (a: number, b: any) => [number, number, number];
+    readonly saw_ar: (a: number, b: any) => [number, number, number];
+    readonly saw_kr: (a: number, b: any) => [number, number, number];
+    readonly schmidt_ar: (a: number, b: any) => [number, number, number];
+    readonly schmidt_kr: (a: number, b: any) => [number, number, number];
+    readonly scopeout2_ar: (a: number, b: any) => [number, number, number];
+    readonly scopeout2_kr: (a: number, b: any) => [number, number, number];
+    readonly scopeout_ar: (a: number, b: any) => [number, number, number];
+    readonly scopeout_kr: (a: number, b: any) => [number, number, number];
+    readonly select_ar: (a: number, b: any) => [number, number, number];
+    readonly select_kr: (a: number, b: any) => [number, number, number];
+    readonly sendreply_ar: (a: number, b: any) => [number, number, number];
+    readonly sendreply_kr: (a: number, b: any) => [number, number, number];
+    readonly sendtrig_ar: (a: number, b: any) => [number, number, number];
+    readonly sendtrig_kr: (a: number, b: any) => [number, number, number];
+    readonly setbuf_ar: (a: number, b: any) => [number, number, number];
+    readonly setbuf_kr: (a: number, b: any) => [number, number, number];
+    readonly setresetff_ar: (a: number, b: any) => [number, number, number];
+    readonly setresetff_kr: (a: number, b: any) => [number, number, number];
+    readonly shaper_ar: (a: number, b: any) => [number, number, number];
+    readonly shaper_kr: (a: number, b: any) => [number, number, number];
+    readonly sharedin_kr: (a: number, b: any) => [number, number, number];
+    readonly sharedout_kr: (a: number, b: any) => [number, number, number];
+    readonly silent_ar: (a: number, b: any) => [number, number, number];
+    readonly sinosc_ar: (a: number, b: any) => [number, number, number];
+    readonly sinosc_kr: (a: number, b: any) => [number, number, number];
+    readonly sinoscfb_ar: (a: number, b: any) => [number, number, number];
+    readonly sinoscfb_kr: (a: number, b: any) => [number, number, number];
+    readonly slew_ar: (a: number, b: any) => [number, number, number];
+    readonly slew_kr: (a: number, b: any) => [number, number, number];
+    readonly slope_ar: (a: number, b: any) => [number, number, number];
+    readonly slope_kr: (a: number, b: any) => [number, number, number];
+    readonly sos_ar: (a: number, b: any) => [number, number, number];
+    readonly sos_kr: (a: number, b: any) => [number, number, number];
+    readonly speccentroid_kr: (a: number, b: any) => [number, number, number];
+    readonly specflatness_kr: (a: number, b: any) => [number, number, number];
+    readonly specpcile_kr: (a: number, b: any) => [number, number, number];
+    readonly spring_ar: (a: number, b: any) => [number, number, number];
+    readonly spring_kr: (a: number, b: any) => [number, number, number];
+    readonly standardl_ar: (a: number, b: any) => [number, number, number];
+    readonly standardn_ar: (a: number, b: any) => [number, number, number];
+    readonly stepper_ar: (a: number, b: any) => [number, number, number];
+    readonly stepper_kr: (a: number, b: any) => [number, number, number];
+    readonly stereoconvolution2l_ar: (a: number, b: any) => [number, number, number];
+    readonly subsampleoffset_ir: (a: number, b: any) => [number, number, number];
+    readonly sweep_ar: (a: number, b: any) => [number, number, number];
+    readonly sweep_kr: (a: number, b: any) => [number, number, number];
+    readonly syncsaw_ar: (a: number, b: any) => [number, number, number];
+    readonly syncsaw_kr: (a: number, b: any) => [number, number, number];
+    readonly t2a_ar: (a: number, b: any) => [number, number, number];
+    readonly t2k_kr: (a: number, b: any) => [number, number, number];
+    readonly tball_ar: (a: number, b: any) => [number, number, number];
+    readonly tball_kr: (a: number, b: any) => [number, number, number];
+    readonly tdelay_ar: (a: number, b: any) => [number, number, number];
+    readonly tdelay_kr: (a: number, b: any) => [number, number, number];
+    readonly tduty_ar: (a: number, b: any) => [number, number, number];
+    readonly tduty_kr: (a: number, b: any) => [number, number, number];
+    readonly texprand_ar: (a: number, b: any) => [number, number, number];
+    readonly texprand_kr: (a: number, b: any) => [number, number, number];
+    readonly tgrains_ar: (a: number, b: any) => [number, number, number];
+    readonly timer_ar: (a: number, b: any) => [number, number, number];
+    readonly timer_kr: (a: number, b: any) => [number, number, number];
+    readonly tirand_ar: (a: number, b: any) => [number, number, number];
+    readonly tirand_kr: (a: number, b: any) => [number, number, number];
+    readonly toggleff_ar: (a: number, b: any) => [number, number, number];
+    readonly toggleff_kr: (a: number, b: any) => [number, number, number];
+    readonly trand_ar: (a: number, b: any) => [number, number, number];
+    readonly trand_kr: (a: number, b: any) => [number, number, number];
+    readonly trapezoid_ar: (a: number, b: any) => [number, number, number];
+    readonly trapezoid_kr: (a: number, b: any) => [number, number, number];
+    readonly trig1_ar: (a: number, b: any) => [number, number, number];
+    readonly trig1_kr: (a: number, b: any) => [number, number, number];
+    readonly trig_ar: (a: number, b: any) => [number, number, number];
+    readonly trig_kr: (a: number, b: any) => [number, number, number];
+    readonly twindex_ar: (a: number, b: any) => [number, number, number];
+    readonly twindex_kr: (a: number, b: any) => [number, number, number];
+    readonly twopole_ar: (a: number, b: any) => [number, number, number];
+    readonly twopole_kr: (a: number, b: any) => [number, number, number];
+    readonly twozero_ar: (a: number, b: any) => [number, number, number];
+    readonly twozero_kr: (a: number, b: any) => [number, number, number];
+    readonly varsaw_ar: (a: number, b: any) => [number, number, number];
+    readonly varsaw_kr: (a: number, b: any) => [number, number, number];
+    readonly vdiskin_ar: (a: number, b: any) => [number, number, number];
+    readonly vibrato_ar: (a: number, b: any) => [number, number, number];
+    readonly vibrato_kr: (a: number, b: any) => [number, number, number];
+    readonly vosc3_ar: (a: number, b: any) => [number, number, number];
+    readonly vosc3_kr: (a: number, b: any) => [number, number, number];
+    readonly vosc_ar: (a: number, b: any) => [number, number, number];
+    readonly vosc_kr: (a: number, b: any) => [number, number, number];
+    readonly warp1_ar: (a: number, b: any) => [number, number, number];
+    readonly whitenoise_ar: (a: number, b: any) => [number, number, number];
+    readonly whitenoise_kr: (a: number, b: any) => [number, number, number];
+    readonly wrap_ar: (a: number, b: any) => [number, number, number];
+    readonly wrap_kr: (a: number, b: any) => [number, number, number];
+    readonly wrapindex_ar: (a: number, b: any) => [number, number, number];
+    readonly wrapindex_kr: (a: number, b: any) => [number, number, number];
+    readonly xfade2_ar: (a: number, b: any) => [number, number, number];
+    readonly xfade2_kr: (a: number, b: any) => [number, number, number];
+    readonly xline_ar: (a: number, b: any) => [number, number, number];
+    readonly xline_kr: (a: number, b: any) => [number, number, number];
+    readonly xout_ar: (a: number, b: any) => [number, number, number];
+    readonly xout_kr: (a: number, b: any) => [number, number, number];
+    readonly zerocrossing_ar: (a: number, b: any) => [number, number, number];
+    readonly zerocrossing_kr: (a: number, b: any) => [number, number, number];
     readonly __wbg_synthdef_free: (a: number, b: number) => void;
     readonly binaryOpIndex: (a: number, b: number) => number;
     readonly buildEnvRun: (a: number, b: number, c: any, d: any, e: number, f: number) => [number, number, number];

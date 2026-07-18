@@ -26,8 +26,14 @@ const RUST_KEYWORDS: &[&str] = &[
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let specs_dir = Path::new(&manifest).join("../../../assets/specs");
-    println!("cargo:rerun-if-changed={}", specs_dir.join("ugens.json").display());
-    println!("cargo:rerun-if-changed={}", specs_dir.join("envs.json").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        specs_dir.join("ugens.json").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        specs_dir.join("envs.json").display()
+    );
 
     let spec = sc_spec_types::load_ugens(&specs_dir.join("ugens.json"))
         .unwrap_or_else(|e| panic!("invalid ugens spec: {e}"));
@@ -110,7 +116,12 @@ fn js_key(name: &str) -> String {
 
 fn doc_attrs(out: &mut String, indent: &str, text: &str) {
     for line in text.lines() {
-        writeln!(out, "{indent}#[doc = \"{}\"]", line.replace('\\', "\\\\").replace('"', "\\\"")).unwrap();
+        writeln!(
+            out,
+            "{indent}#[doc = \"{}\"]",
+            line.replace('\\', "\\\\").replace('"', "\\\"")
+        )
+        .unwrap();
     }
 }
 
@@ -352,16 +363,29 @@ fn render_envs(envs: &sc_spec_types::EnvsSpec) -> String {
     for shape in &envs.shapes {
         out.push_str("    EnvShapeEntry {\n");
         writeln!(out, "        name: \"{}\",", shape.name).unwrap();
-        writeln!(out, "        release_node: {},", opt_i32(shape.release_node)).unwrap();
+        writeln!(
+            out,
+            "        release_node: {},",
+            opt_i32(shape.release_node)
+        )
+        .unwrap();
         writeln!(out, "        loop_node: {},", opt_i32(shape.loop_node)).unwrap();
         out.push_str("        args: &[\n");
         for a in &shape.args {
             let call = if a.array {
                 format!("aarg(\"{}\", {})", a.name, a.modulatable)
             } else if a.modulatable {
-                format!("marg(\"{}\", {})", a.name, sc_spec_types::f32_literal(a.default))
+                format!(
+                    "marg(\"{}\", {})",
+                    a.name,
+                    sc_spec_types::f32_literal(a.default)
+                )
             } else {
-                format!("arg(\"{}\", {})", a.name, sc_spec_types::f32_literal(a.default))
+                format!(
+                    "arg(\"{}\", {})",
+                    a.name,
+                    sc_spec_types::f32_literal(a.default)
+                )
             };
             writeln!(out, "            {call},").unwrap();
         }
@@ -387,37 +411,52 @@ fn render_wasm(spec: &sc_spec_types::UgensSpec) -> String {
     for cat in &spec.categories {
         for u in cat.ugens.iter().filter(|u| has_builder(u)) {
             let fields = builder_fields(u);
+            writeln!(out, "    class {} \"{}\" :: {} {{", u.name, u.name, u.name).unwrap();
             for rate in &u.rates {
-                let fn_snake = format!("{}_{}", camel_to_snake(&u.name), rate.suffix());
-                let js_name = snake_to_camel(&fn_snake);
-                writeln!(out, "    fn {fn_snake} \"{js_name}\" {} :: {} {{", u.name, rate.suffix())
-                    .unwrap();
+                writeln!(out, "        {} {{", rate.suffix()).unwrap();
                 for f in &fields {
-                    writeln!(out, "        {} {} \"{}\",", kind_kw(f.kind), f.ident, f.js).unwrap();
+                    writeln!(
+                        out,
+                        "            {} {} \"{}\",",
+                        kind_kw(f.kind),
+                        f.ident,
+                        f.js
+                    )
+                    .unwrap();
                 }
-                out.push_str("    }\n");
-                let ts_args = if fields.is_empty() {
-                    "args?: Record<string, never>".to_string()
-                } else {
-                    let keys: Vec<String> = fields
-                        .iter()
-                        .map(|f| {
-                            let ty = match f.kind {
-                                UgenArgKind::Input => "UGenInputLike",
-                                UgenArgKind::InputArray => "UGenInputLike[]",
-                                UgenArgKind::U32 => "number",
-                            };
-                            format!("{}?: {}", f.js, ty)
-                        })
-                        .collect();
-                    format!("args?: {{ {} }}", keys.join("; "))
-                };
+                out.push_str("        }\n");
+            }
+            out.push_str("    }\n");
+
+            // TS: one class per UGen with a static method per rate —
+            // `SinOsc.ar(def, { freq })`, matching SuperCollider.
+            let args_ty = if fields.is_empty() {
+                "args?: Record<string, never>".to_string()
+            } else {
+                let keys: Vec<String> = fields
+                    .iter()
+                    .map(|f| {
+                        let ty = match f.kind {
+                            UgenArgKind::Input => "UGenInputLike",
+                            UgenArgKind::InputArray => "UGenInputLike[]",
+                            UgenArgKind::U32 => "number",
+                        };
+                        format!("{}?: {}", f.js, ty)
+                    })
+                    .collect();
+                format!("args?: {{ {} }}", keys.join("; "))
+            };
+            writeln!(ts, "export class {} {{", u.name).unwrap();
+            writeln!(ts, "  private constructor();").unwrap();
+            for rate in &u.rates {
                 writeln!(
                     ts,
-                    "export function {js_name}(def: SynthDef, {ts_args}): UGenInput;"
+                    "  static {}(def: SynthDef, {args_ty}): UGenInput;",
+                    rate.suffix()
                 )
                 .unwrap();
             }
+            ts.push_str("}\n");
         }
     }
     out.push_str("}\n\n");

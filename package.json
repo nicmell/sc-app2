@@ -13,6 +13,7 @@
     "build": "tsc && vite build",
     "generate:xsd": "tsx scripts/generate-xsd.ts",
     "generate:server-commands": "./scripts/generate-server-commands.sh",
+    "generate:synthdef-compiler": "./scripts/generate-synthdef-compiler.sh",
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",
     "scdoc:diff": "tsx scripts/scdoc/diff-ugens.ts",

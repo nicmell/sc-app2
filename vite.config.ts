@@ -53,7 +53,7 @@ export default defineConfig(() => ({
     // Keep the linked package out of esbuild pre-bundling: its wasm-bindgen
     // component loads the wasm via `new URL(..., import.meta.url)`, which the
     // pre-bundle would break — Vite's asset pipeline must see it.
-    exclude: ["@sc-app/server-commands"],
+    exclude: ["@sc-app/server-commands", "@sc-app/synthdef-compiler"],
     esbuildOptions: {
       define: {
         "process.env": "false",
@@ -105,7 +105,7 @@ export default defineConfig(() => ({
     // is TS and stays inlined.
     server: {
       deps: {
-        external: [/packages\/server-commands\/pkg\//],
+        external: [/packages\/(server-commands|synthdef-compiler)\/pkg\//],
       },
     },
     // Restore every spy/mock to its original before each test, so suites don't

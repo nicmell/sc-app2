@@ -21,10 +21,9 @@ mod specs;
 mod synthdef;
 
 #[cfg(feature = "wasm")]
+mod builders_wasm;
+#[cfg(feature = "wasm")]
 mod wasm;
-
-#[cfg(feature = "component")]
-mod component;
 
 pub use env::{curve_type, curve_value, encode_env, Curve, Curves, EnvSpec};
 pub use env_registry::{

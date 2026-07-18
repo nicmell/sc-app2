@@ -9,7 +9,7 @@ export default tseslint.config(
   // `yarn lint` targets `src packages` (see package.json), so only build output
   // under those needs ignoring — node_modules is ignored by default. The pkg
   // dir is the committed wasm-bindgen build (generate:server-commands).
-  { ignores: ["**/dist", "packages/server-commands/pkg"] },
+  { ignores: ["**/dist", "packages/server-commands/pkg", "packages/synthdef-compiler/pkg"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

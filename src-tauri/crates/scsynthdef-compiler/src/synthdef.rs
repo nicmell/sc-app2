@@ -7,10 +7,14 @@ use crate::{CompileError, Rate};
 ///
 /// UGen indices refer to positions in the `SynthDef`'s node list, returned by
 /// [`SynthDef::add_ugen`] and [`SynthDef::add_control`].
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub enum UGenInput {
+    #[serde(rename = "constant")]
     Constant(f32),
+    #[serde(rename = "ugen")]
     UGen(u32),
+    #[serde(rename = "ugenOutput")]
     UGenOutput(u32, u32),
 }
 

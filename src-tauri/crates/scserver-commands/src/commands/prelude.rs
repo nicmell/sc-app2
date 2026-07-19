@@ -1,14 +1,9 @@
-//! Typed encoders for every SuperCollider server command, plus the
-//! polymorphic arg enums some commands use.
-//!
-//! The standard SC catalog is spec-driven: `build.rs` deserializes
-//! `assets/specs/server-commands.json` (repo root) and emits the
-//! `sc_commands!` invocation included below — edit the SPEC, never this
-//! catalog. The sc-app bridge extensions (`/dirt/play`, `/scope/*`) are
-//! hand-maintained invocations of the same macro at the bottom of this
-//! file.
-
-#![allow(non_snake_case, unused_mut)]
+//! The hand-written half of the command catalog: the polymorphic arg
+//! enums, the bridge address constants, and the `OtherMsg`/`ServerMessage`
+//! unions. The catalog itself (one module per spec category + the
+//! `KnownMessage` enum) is generated into the sibling files by
+//! `packages/server-commands/scripts/generate-rust.ts` — edit the SPEC,
+//! never those files.
 
 use crate::args::OscArg;
 use crate::OscMessage;
@@ -136,86 +131,12 @@ impl From<ControlValue> for OscType {
     }
 }
 
-// ── The spec-driven command catalog ─────────────────────────────────────
-
-include!(concat!(env!("OUT_DIR"), "/commands_registry.rs"));
-
-// ── sc-app bridge extensions (not in the SC command reference) ──────────
-//
-// The `/scope/*` protocol is spoken between the sc-app frontend and its
-// Rust OSC bridge (never routed to scsynth): a client registers a
-// scope-slot stream and the bridge answers with `/scope/chunk` replies
-// (see `ScopeChunkReply` in `replies`). Unlike the scsynth commands
-// above, the bridge is the CONSUMER of these — so they also carry
-// `from_message`/`decode` parsers. `/dirt/play` is a SuperDirt event the
-// bridge routes to the strudel peer.
-
 /// OSC address a client sends to register a scope-slot stream.
 pub const SCOPE_SUBSCRIBE_ADDRESS: &str = "/scope/subscribe";
 /// OSC address a client sends to drop a scope-slot stream.
 pub const SCOPE_UNSUBSCRIBE_ADDRESS: &str = "/scope/unsubscribe";
 /// OSC address of a SuperDirt/Strudel event.
 pub const DIRT_PLAY_ADDRESS: &str = "/dirt/play";
-
-sc_commands! {
-    /// sc-app bridge extension: register a scope-slot stream with the bridge.
-    "/scope/subscribe" ScopeSubscribe {
-        /// Client-minted subscription id, echoed on every chunk.
-        scalar sub_id: i32,
-        /// scsynth SHM scope-buffer index to stream.
-        scalar scope: i32,
-        /// Channel count (informational — the SHM header carries the truth).
-        scalar channels: i32,
-        /// Requested frames per chunk (informational, as above).
-        scalar chunk_size: i32,
-    }
-    /// sc-app bridge extension: drop a scope-slot stream.
-    "/scope/unsubscribe" ScopeUnsubscribe {
-        /// The subscription id to drop.
-        scalar sub_id: i32,
-    }
-    /// sc-app bridge extension: a SuperDirt/Strudel event, routed by the
-    /// bridge to the strudel peer. The wire format is SuperDirt's
-    /// alternating key/value arg list.
-    "/dirt/play" DirtPlay {
-        /// Repeated tuples: parameter name; parameter value.
-        tail pairs: (String, OscArg),
-    }
-}
-
-impl ScopeSubscribe {
-    /// Parse a decoded `/scope/subscribe` message (Int32 args only).
-    pub fn from_message(msg: &OscMessage) -> Result<Self, crate::CommandError> {
-        let addr = SCOPE_SUBSCRIBE_ADDRESS;
-        Ok(Self {
-            sub_id: crate::replies::take_int(msg, 0, addr)?,
-            scope: crate::replies::take_int(msg, 1, addr)?,
-            channels: crate::replies::take_int(msg, 2, addr)?,
-            chunk_size: crate::replies::take_int(msg, 3, addr)?,
-        })
-    }
-
-    /// Decode raw OSC bytes into the typed command.
-    pub fn decode(bytes: &[u8]) -> Result<Self, crate::CommandError> {
-        Self::from_message(&OscMessage::decode(bytes)?)
-    }
-}
-
-impl ScopeUnsubscribe {
-    /// Parse a decoded `/scope/unsubscribe` message (Int32 arg only).
-    pub fn from_message(msg: &OscMessage) -> Result<Self, crate::CommandError> {
-        Ok(Self {
-            sub_id: crate::replies::take_int(msg, 0, SCOPE_UNSUBSCRIBE_ADDRESS)?,
-        })
-    }
-
-    /// Decode raw OSC bytes into the typed command.
-    pub fn decode(bytes: &[u8]) -> Result<Self, crate::CommandError> {
-        Self::from_message(&OscMessage::decode(bytes)?)
-    }
-}
-
-// ── ServerMessage: typed dispatch over every command ────────────────────
 
 /// Escape hatch for addresses outside the catalogue (SC extensions,
 /// plug-in commands): a raw address + arg list.
@@ -233,15 +154,9 @@ pub struct OtherMsg {
 /// boundary discriminates known-vs-other itself, so no serde here.)
 #[derive(Debug, Clone)]
 pub enum ServerMessage {
-    Known(KnownMessage),
+    Known(super::KnownMessage),
     Other(OtherMsg),
 }
-
-for_each_command!(define_known_message {
-    DirtPlay "/dirt/play",
-    ScopeSubscribe "/scope/subscribe",
-    ScopeUnsubscribe "/scope/unsubscribe",
-});
 
 impl ServerMessage {
     /// Lower to the underlying `OscMessage` (raw address + arg list).
@@ -260,8 +175,8 @@ impl ServerMessage {
     }
 }
 
-impl From<KnownMessage> for ServerMessage {
-    fn from(k: KnownMessage) -> Self {
+impl From<super::KnownMessage> for ServerMessage {
+    fn from(k: super::KnownMessage) -> Self {
         ServerMessage::Known(k)
     }
 }

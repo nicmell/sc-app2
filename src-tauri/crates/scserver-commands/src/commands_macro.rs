@@ -1,12 +1,8 @@
 //! The macro layer behind the command catalog.
 //!
-//! `build.rs` deserializes `assets/specs/server-commands.json` (via the
-//! `sc-spec-types` crate) and emits `OUT_DIR/commands_registry.rs`: one
-//! `sc_commands!` invocation holding every standard SC command as a flat,
-//! data-shaped block, plus a `for_each_command!` callback macro carrying the
-//! full arm list for [`define_known_message!`]. The bridge commands
-//! (`/dirt/play`, `/scope/*`) are hand-maintained `sc_commands!` invocations
-//! in `commands.rs` — same macro, never in the spec.
+//! `packages/server-commands/scripts/generate-rust.ts` emits one committed
+//! `sc_commands!` module per spec category and a direct
+//! [`define_known_message!`] invocation in `commands/mod.rs`.
 //!
 //! Field grammar (one line per field, doc attributes allowed above each):
 //!
@@ -257,9 +253,25 @@ macro_rules! sc_command_one {
     };
 }
 
-/// The command-catalog macro: each block is one command struct.
+/// The command-catalog macro: each block is one command struct. A
+/// `decode` marker after the struct name (spec `"decode": true` — the
+/// bridge CONSUMES the command) additionally emits `from_message`/`decode`
+/// parsers; it only matches all-`scalar i32` field lists.
 macro_rules! sc_commands {
     () => {};
+    (
+        $(#[$smeta:meta])*
+        $addr:literal $name:ident decode { $($fields:tt)* }
+        $($rest:tt)*
+    ) => {
+        sc_command_one! {
+            @meta [$(#[$smeta])*] @addr $addr @name $name @a args @s cmd
+            @fields [ $($fields)* ]
+            @sf [] @np [] @ni [] @push []
+        }
+        sc_command_decode! { $addr $name [ $($fields)* ] }
+        sc_commands! { $($rest)* }
+    };
     (
         $(#[$smeta:meta])*
         $addr:literal $name:ident { $($fields:tt)* }
@@ -274,15 +286,42 @@ macro_rules! sc_commands {
     };
 }
 
-/// The `KnownMessage` enum + conversions, expanded through the
-/// build.rs-emitted `for_each_command!` callback so the hand-maintained
-/// bridge arms and the spec arms land in ONE enum:
+/// The `decode` half of a bridge-consumed command: positional Int32
+/// parsing via the replies module's typed accessor.
+macro_rules! sc_command_decode {
+    ( $addr:literal $name:ident [ $( $(#[$fm:meta])* scalar $f:ident: i32 ),* $(,)? ] ) => {
+        impl $name {
+            #[doc = concat!("Parse a decoded `", $addr, "` message (Int32 args only) —")]
+            /// the bridge is the CONSUMER of this command.
+            pub fn from_message(msg: &OscMessage) -> Result<Self, crate::CommandError> {
+                let mut i = 0usize;
+                $(
+                    let $f = {
+                        let j = i;
+                        i += 1;
+                        crate::replies::take_int(msg, j, $addr)?
+                    };
+                )*
+                let _ = i;
+                Ok(Self { $( $f, )* })
+            }
+
+            /// Decode raw OSC bytes into the typed command.
+            pub fn decode(bytes: &[u8]) -> Result<Self, crate::CommandError> {
+                Self::from_message(&OscMessage::decode(bytes)?)
+            }
+        }
+    };
+}
+
+/// The `KnownMessage` enum + conversions. The generated `commands/mod.rs`
+/// invokes this directly with every command from the spec:
 ///
 /// ```ignore
-/// for_each_command!(define_known_message {
-///     DirtPlay "/dirt/play",
-///     // ... more hand-maintained payload arms
-/// });
+/// define_known_message! {
+///     payload { DirtPlay "/dirt/play", }
+///     unit { ClearSched "/clearSched", }
+/// }
 /// ```
 macro_rules! define_known_message {
     (

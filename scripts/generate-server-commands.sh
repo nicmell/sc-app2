@@ -11,6 +11,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Regenerate the committed Rust command modules before building their wasm wrapper.
+yarn tsx packages/server-commands/scripts/generate-rust.ts
+
 rm -rf packages/server-commands/pkg
 wasm-pack build src-tauri/crates/scserver-commands \
   --release --target web \

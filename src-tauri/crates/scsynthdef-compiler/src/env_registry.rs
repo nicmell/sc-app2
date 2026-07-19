@@ -81,12 +81,10 @@ pub struct EnvShapeEntry {
     pub loop_node: Option<i32>,
 }
 
-// The shape table is emitted by build.rs from assets/specs/envs.json
-// (repo root) — edit the spec, never the expansion. The `build_env` match
-// below stays hand-written: each arm carries the sclang constructor's
-// semantics (sustain-node placement, curve handling) the spec cannot
-// express.
-include!(concat!(env!("OUT_DIR"), "/env_shapes.rs"));
+// The shape table is generated from specs/envs.json and committed. The
+// `build_env` match below stays hand-written: each arm carries the sclang
+// constructor semantics the spec cannot express.
+include!("env_shapes.rs");
 
 /// Look up an envelope shape by its `type` name.
 pub fn lookup_env(name: &str) -> Option<&'static EnvShapeEntry> {

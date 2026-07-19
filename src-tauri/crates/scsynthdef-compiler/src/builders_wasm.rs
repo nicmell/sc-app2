@@ -1,9 +1,7 @@
-// The typed UGen builder surface over wasm: one function per builder ×
-// rate, delegating to the crate's typed builders (registry defaults come
-// from the builders' factory seeds) — emitted by build.rs from
-// assets/specs/ugens.json through the `sc_ugens_wasm!` macro. Signatures
-// are declared precisely in the generated typescript_custom_section
-// (every function here is skip_typescript).
+// The typed UGen builder surface over wasm: one function per builder × rate,
+// delegating to the crate's typed builders. The generated macro invocation is
+// committed in `builders_wasm_gen.rs`; this file keeps the hand-written JS
+// conversion helpers.
 
 #![allow(warnings)]
 
@@ -31,4 +29,4 @@ fn inputs_from_js(v: &JsValue) -> Result<Vec<crate::UGenInput>, JsError> {
         .collect()
 }
 
-include!(concat!(env!("OUT_DIR"), "/ugen_builders_wasm.rs"));
+include!("builders_wasm_gen.rs");

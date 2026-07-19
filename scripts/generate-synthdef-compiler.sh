@@ -11,8 +11,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# The typed builder surface (native + wasm) is emitted by the crate's
-# build.rs from assets/specs/ugens.json — wasm-pack picks it up directly.
+# Refresh the committed Rust registries before building their wasm surface.
+yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts
+
 rm -rf packages/synthdef-compiler/pkg
 wasm-pack build src-tauri/crates/scsynthdef-compiler \
   --release --target web \

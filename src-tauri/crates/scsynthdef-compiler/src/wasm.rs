@@ -11,11 +11,38 @@
 //! (`{ constant: n } | { ugen: i } | { ugenOutput: [i, o] }`); plain JS
 //! numbers coerce to constants everywhere one is accepted.
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use wasm_bindgen::prelude::*;
 
 use crate::env::{Curve, Curves, EnvSpec};
 use crate::env_registry::{build_env, BuildOpts, EnvArgValue};
 use crate::{encode_env, Rate, SynthDef, UGenInput};
+
+thread_local! {
+    /// The SynthDefs currently under construction — a stack, so nested
+    /// `new SynthDef(...)` builds are legal. The typed builder statics
+    /// (`SinOsc.ar({ freq })`) attach to the top; wasm is single-threaded
+    /// per JS realm, so `thread_local` + `RefCell` is the whole story
+    /// (and `Rc` is `!Send`, so cross-thread sharing wouldn't compile).
+    static BUILD_STACK: RefCell<Vec<Rc<RefCell<SynthDef>>>> = RefCell::new(Vec::new());
+}
+
+/// Run `f` against the SynthDef currently under construction; pointed
+/// error when no build is active. Used by the generated builder statics.
+pub(crate) fn with_current_def<T>(
+    call: &str,
+    f: impl FnOnce(&mut SynthDef) -> Result<T, JsError>,
+) -> Result<T, JsError> {
+    let top = BUILD_STACK.with(|s| s.borrow().last().cloned());
+    match top {
+        Some(def) => f(&mut def.borrow_mut()),
+        None => Err(JsError::new(&format!(
+            "{call}: no SynthDef under construction — call it inside new SynthDef(name, () => ...)"
+        ))),
+    }
+}
 
 pub(crate) fn err(e: impl std::fmt::Display) -> JsError {
     JsError::new(&e.to_string())
@@ -48,18 +75,82 @@ fn parse_rate(rate: &str) -> Result<Rate, JsError> {
 }
 
 /// The SynthDef graph builder — mirrors the native [`SynthDef`] one-to-one.
-#[wasm_bindgen(js_name = SynthDef)]
+/// The inner graph is shared (`Rc<RefCell<…>>`) so the graph callback's
+/// def handle and the constructed object alias the same build safely.
+///
+/// `skip_typescript`: wasm-bindgen drops the optionality marker on an
+/// `Option<Function>` param when its type is overridden, so the class is
+/// declared by hand in the custom section below.
+#[wasm_bindgen(js_name = SynthDef, skip_typescript)]
 pub struct WasmSynthDef {
-    pub(crate) inner: SynthDef,
+    pub(crate) inner: Rc<RefCell<SynthDef>>,
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const TS_SYNTHDEF: &'static str = r#"
+export class SynthDef {
+  /**
+   * Construct a def, optionally building its graph SC-style: the callback
+   * runs synchronously with this def as the ambient build target, so the
+   * typed builders need no def argument. The callback also receives the
+   * def handle (for addControl / addUgen). Must be synchronous — the
+   * ambient scope ends when the constructor returns.
+   */
+  constructor(name: string, graph?: (def: SynthDef) => void);
+  free(): void;
+  /** Add a named scalar control; returns its UGenInput handle. */
+  addControl(name: string, defaultValue: number, rate: string): UGenInput;
+  /** Add a named ARRAY control (consecutive slots, one name at the base index). */
+  addControlArray(name: string, defaults: Float32Array | number[], rate: string): UGenInput[];
+  /** Append a UGen node (registry-driven); returns the node index. */
+  addUgen(className: string, rate: string, inputs: (UGenInput | number)[], numOutputs: number, specialIndex: number): number;
+  /** The calculation rate of an already-added node, or undefined. */
+  nodeRate(index: number): string | undefined;
+  /** Encode to SCgf v2 bytes. */
+  toBytes(): Uint8Array;
+  /** The structured JSON form (what parseScgf also returns). */
+  toJson(): any;
+}
+"#;
 
 #[wasm_bindgen(js_class = SynthDef)]
 impl WasmSynthDef {
+    /// Construct a def, optionally building its graph SC-style: the
+    /// callback runs synchronously with this def as the ambient build
+    /// target, so the typed builders need no def argument —
+    /// `new SynthDef("sine", (def) => { Out.ar({ bus: 0, channelsArray:
+    /// [SinOsc.ar({ freq: def.addControl("freq", 440, "control") })] }) })`.
+    /// The callback also receives the def handle (for `addControl` /
+    /// `addUgen`). An async callback is rejected — the ambient scope ends
+    /// when the constructor returns.
     #[wasm_bindgen(constructor)]
-    pub fn new(name: String) -> WasmSynthDef {
-        WasmSynthDef {
-            inner: SynthDef::new(name),
+    pub fn new(
+        name: String,
+        #[wasm_bindgen(unchecked_param_type = "(def: SynthDef) => void")] graph: Option<
+            js_sys::Function,
+        >,
+    ) -> Result<WasmSynthDef, JsValue> {
+        let inner = Rc::new(RefCell::new(SynthDef::new(name)));
+        if let Some(f) = graph {
+            BUILD_STACK.with(|s| s.borrow_mut().push(inner.clone()));
+            let handle = JsValue::from(WasmSynthDef {
+                inner: inner.clone(),
+            });
+            let result = f.call1(&JsValue::NULL, &handle);
+            BUILD_STACK.with(|s| {
+                s.borrow_mut().pop();
+            });
+            // Propagate the callback's own exception untouched.
+            let returned = result?;
+            if returned.is_instance_of::<js_sys::Promise>() {
+                return Err(JsError::new(
+                    "SynthDef graph callback must be synchronous — it returned a \
+                     Promise (drop async/await from the body)",
+                )
+                .into());
+            }
         }
+        Ok(WasmSynthDef { inner })
     }
 
     /// Add a named scalar control; returns its `UGenInput` handle.
@@ -72,6 +163,7 @@ impl WasmSynthDef {
     ) -> Result<JsValue, JsError> {
         let input = self
             .inner
+            .borrow_mut()
             .add_control(name, default_value, parse_rate(&rate)?)
             .map_err(err)?;
         input_to_js(&input)
@@ -88,6 +180,7 @@ impl WasmSynthDef {
     ) -> Result<JsValue, JsError> {
         let inputs = self
             .inner
+            .borrow_mut()
             .add_control_array(name, &defaults, parse_rate(&rate)?)
             .map_err(err)?;
         serde_wasm_bindgen::to_value(&inputs).map_err(err)
@@ -108,7 +201,7 @@ impl WasmSynthDef {
             .iter()
             .map(input_from_js)
             .collect::<Result<Vec<_>, _>>()?;
-        Ok(self.inner.add_ugen(
+        Ok(self.inner.borrow_mut().add_ugen(
             class_name,
             parse_rate(&rate)?,
             inputs,
@@ -121,7 +214,7 @@ impl WasmSynthDef {
     /// | "audio"), or undefined for an out-of-range index.
     #[wasm_bindgen(js_name = nodeRate)]
     pub fn node_rate(&self, index: u32) -> Option<String> {
-        self.inner.node_rate(index).map(|r| {
+        self.inner.borrow().node_rate(index).map(|r| {
             match r {
                 Rate::Scalar => "scalar",
                 Rate::Control => "control",
@@ -134,13 +227,13 @@ impl WasmSynthDef {
     /// Encode to SCgf v2 bytes.
     #[wasm_bindgen(js_name = toBytes)]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsError> {
-        self.inner.to_bytes().map_err(err)
+        self.inner.borrow().to_bytes().map_err(err)
     }
 
     /// The structured JSON form (what `parseScgf` also returns).
     #[wasm_bindgen(js_name = toJson)]
     pub fn to_json(&self) -> Result<JsValue, JsError> {
-        serde_wasm_bindgen::to_value(&self.inner.to_json().map_err(err)?).map_err(err)
+        serde_wasm_bindgen::to_value(&self.inner.borrow().to_json().map_err(err)?).map_err(err)
     }
 }
 

@@ -191,10 +191,12 @@ macro_rules! sc_wasm_set {
 }
 
 /// The wasm builder surface: one exported class per UGen, with a static
-/// method per supported rate — `SinOsc.ar(def, { freq: 440 })`, mirroring
-/// SuperCollider's `SinOsc.ar(...)`. The methods are static (no captured
-/// `def`), so nothing crosses the wasm boundary holding a borrow. TS types
-/// come from the build.rs-emitted custom section (the marker struct is
+/// method per supported rate — `SinOsc.ar({ freq: 440 })`, mirroring
+/// SuperCollider's `SinOsc.ar(...)`. The methods attach to the SynthDef
+/// currently under construction (the ambient build stack a
+/// `new SynthDef(name, () => …)` callback runs inside — see
+/// `wasm::with_current_def`), so no def crosses the call. TS types come
+/// from the build.rs-emitted custom section (the marker struct is
 /// `skip_typescript`).
 #[cfg(feature = "wasm")]
 macro_rules! sc_ugens_wasm {
@@ -217,11 +219,16 @@ macro_rules! sc_ugens_wasm {
             impl $name {
                 $(
                     #[wasm_bindgen(js_name = $rf)]
-                    pub fn $rf(def: &mut WasmSynthDef, args: JsValue) -> Result<JsValue, JsError> {
-                        let mut b = builders::$builder::$rf();
-                        let _ = &args;
-                        $( sc_wasm_set!(b, args, $kind $f $fjs); )*
-                        input_to_js(&b.build(&mut def.inner))
+                    pub fn $rf(args: JsValue) -> Result<JsValue, JsError> {
+                        crate::wasm::with_current_def(
+                            concat!($js, ".", stringify!($rf)),
+                            |def| {
+                                let mut b = builders::$builder::$rf();
+                                let _ = &args;
+                                $( sc_wasm_set!(b, args, $kind $f $fjs); )*
+                                input_to_js(&b.build(def))
+                            },
+                        )
                     }
                 )*
             }

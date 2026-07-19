@@ -290,9 +290,13 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry and
   12-shape env registry imported directly from `assets/specs/*.json`
   (`buildRun` has pinned modulatable-slot errors), and a typed builder
-  class per UGen with a static method per rate (`SinOsc.ar(def, { freq })`,
+  class per UGen with a static method per rate (`SinOsc.ar({ freq })`,
   mirroring SC) — emitted by the crate's `build.rs` (`import … from
-  "@sc-app/synthdef-compiler/builders"`). Reconcile future crawls by editing
+  "@sc-app/synthdef-compiler/builders"`). The builders attach to the
+  AMBIENT build: the `new SynthDef(name, (def) => …)` graph callback
+  (synchronous — a returned Promise throws; nested builds stack; outside
+  a build they fail with a pointed error; controls stay explicit via the
+  callback's def handle). Reconcile future crawls by editing
   the UGen spec against `yarn scdoc:diff`.
   UGenInput crosses as `{ constant } | { ugen } | { ugenOutput }`; env runs
   carry wire (float32) precision.

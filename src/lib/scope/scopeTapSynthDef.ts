@@ -42,29 +42,31 @@ export function compileScopeTapSynthDef(channels: number, chunkSize: number): Ui
   const cached = cache.get(name);
   if (cached) return cached;
 
-  const def = new SynthDef(name);
-  const inBus = def.addControl("inBus", 0, "control");
-  const scopeNum = def.addControl("scopeNum", 0, "control");
-  // `In.ar(bus, channels)` registers an N-output UGen but the builder returns
-  // a single UGenInput at output 0; fan its outputs into an array so ScopeOut2
-  // writes every channel into its planar lane (else every lane but 0 reads
-  // flat).
-  const inRef = In.ar(def, { bus: inBus, numChannels: channels });
-  const inIdx = ugenIndex(inRef);
-  if (inIdx === null) {
-    throw new Error("compileScopeTapSynthDef: In.ar did not return a UGen ref");
-  }
-  const sigs: UGenInput[] = [];
-  for (let c = 0; c < channels; c++) {
-    sigs.push(uo(inIdx, c));
-  }
-  // ScopeOut2(inputArray, scopeNum, maxFrames, scopeFrames). The side effect
-  // (writing the SHM scope_buffer) is the work; the output isn't bound.
-  ScopeOut2.ar(def, {
-    inputArray: sigs,
-    scopeNum,
-    maxFrames: chunkSize,
-    scopeFrames: chunkSize,
+  const def = new SynthDef(name, (def) => {
+    const inBus = def.addControl("inBus", 0, "control");
+    const scopeNum = def.addControl("scopeNum", 0, "control");
+    // `In.ar(bus, channels)` registers an N-output UGen but the builder
+    // returns a single UGenInput at output 0; fan its outputs into an array
+    // so ScopeOut2 writes every channel into its planar lane (else every
+    // lane but 0 reads flat).
+    const inRef = In.ar({ bus: inBus, numChannels: channels });
+    const inIdx = ugenIndex(inRef);
+    if (inIdx === null) {
+      throw new Error("compileScopeTapSynthDef: In.ar did not return a UGen ref");
+    }
+    const sigs: UGenInput[] = [];
+    for (let c = 0; c < channels; c++) {
+      sigs.push(uo(inIdx, c));
+    }
+    // ScopeOut2(inputArray, scopeNum, maxFrames, scopeFrames). The side
+    // effect (writing the SHM scope_buffer) is the work; the output isn't
+    // bound.
+    ScopeOut2.ar({
+      inputArray: sigs,
+      scopeNum,
+      maxFrames: chunkSize,
+      scopeFrames: chunkSize,
+    });
   });
 
   const bytes = def.toBytes();

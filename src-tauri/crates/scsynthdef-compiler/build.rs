@@ -429,7 +429,8 @@ fn render_wasm(spec: &sc_spec_types::UgensSpec) -> String {
             out.push_str("    }\n");
 
             // TS: one class per UGen with a static method per rate —
-            // `SinOsc.ar(def, { freq })`, matching SuperCollider.
+            // `SinOsc.ar({ freq })`, matching SuperCollider; the def is
+            // ambient (the enclosing `new SynthDef(name, () => …)` build).
             let args_ty = if fields.is_empty() {
                 "args?: Record<string, never>".to_string()
             } else {
@@ -449,12 +450,7 @@ fn render_wasm(spec: &sc_spec_types::UgensSpec) -> String {
             writeln!(ts, "export class {} {{", u.name).unwrap();
             writeln!(ts, "  private constructor();").unwrap();
             for rate in &u.rates {
-                writeln!(
-                    ts,
-                    "  static {}(def: SynthDef, {args_ty}): UGenInput;",
-                    rate.suffix()
-                )
-                .unwrap();
+                writeln!(ts, "  static {}({args_ty}): UGenInput;", rate.suffix()).unwrap();
             }
             ts.push_str("}\n");
         }

@@ -64,18 +64,36 @@ describe("SynthDef class", () => {
     ]);
   });
 
-  it("typed wasm builders compose with the class", () => {
-    const def = new SynthDef("tap");
-    const inRef = In.ar(def, { bus: def.addControl("inBus", 0, "control"), numChannels: 2 });
-    const idx = ugenIndex(inRef)!;
-    Out.ar(def, { bus: 0, channelsArray: [uo(idx, 0), uo(idx, 1)] });
+  it("typed wasm builders compose inside the graph callback", () => {
+    const def = new SynthDef("tap", (def) => {
+      const inRef = In.ar({ bus: def.addControl("inBus", 0, "control"), numChannels: 2 });
+      const idx = ugenIndex(inRef)!;
+      Out.ar({ bus: 0, channelsArray: [uo(idx, 0), uo(idx, 1)] });
+    });
     const json = parseScgf(def.toBytes());
     expect(json.ugens.map((ug) => ug.className)).toEqual(["Control", "In", "Out"]);
     expect(json.ugens[1].numOutputs).toBe(2);
 
-    const def2 = new SynthDef("t2");
-    Out.ar(def2, { bus: 0, channelsArray: [SinOsc.ar(def2, { freq: 220 })] });
+    // Nested builds are legal — the ambient stack restores the outer def.
+    const def2 = new SynthDef("t2", () => {
+      const inner = new SynthDef("inner", () => {
+        Out.ar({ bus: 0, channelsArray: [SinOsc.ar({ freq: 330 })] });
+      });
+      expect(parseScgf(inner.toBytes()).constants).toContain(330);
+      Out.ar({ bus: 0, channelsArray: [SinOsc.ar({ freq: 220 })] });
+    });
     expect(parseScgf(def2.toBytes()).constants).toContain(220);
+  });
+
+  it("builders outside a graph callback fail with a pointed error", () => {
+    expect(() => SinOsc.ar({ freq: 440 })).toThrowError(
+      /SinOsc\.ar: no SynthDef under construction/,
+    );
+  });
+
+  it("an async graph callback is rejected", () => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- the misuse under test
+    expect(() => new SynthDef("nope", async () => {})).toThrowError(/must be synchronous/);
   });
 });
 

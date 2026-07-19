@@ -12,13 +12,11 @@ export class A2K {
         wasm.__wbg_a2k_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.a2k_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.a2k_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -39,26 +37,22 @@ export class APF {
         wasm.__wbg_apf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.apf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.apf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.apf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.apf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -79,26 +73,22 @@ export class AllpassC {
         wasm.__wbg_allpassc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.allpassc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.allpassc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -119,26 +109,22 @@ export class AllpassL {
         wasm.__wbg_allpassl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.allpassl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassl_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.allpassl_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -159,26 +145,22 @@ export class AllpassN {
         wasm.__wbg_allpassn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.allpassn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.allpassn_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.allpassn_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -199,39 +181,33 @@ export class AmpComp {
         wasm.__wbg_ampcomp_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcomp_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ampcomp_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcomp_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.ampcomp_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcomp_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ampcomp_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -252,39 +228,33 @@ export class AmpCompA {
         wasm.__wbg_ampcompa_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcompa_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ampcompa_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcompa_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.ampcompa_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ampcompa_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ampcompa_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -305,26 +275,22 @@ export class Amplitude {
         wasm.__wbg_amplitude_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.amplitude_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.amplitude_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.amplitude_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.amplitude_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -345,13 +311,11 @@ export class BAllPass {
         wasm.__wbg_ballpass_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ballpass_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ballpass_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -372,13 +336,11 @@ export class BBandPass {
         wasm.__wbg_bbandpass_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bbandpass_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bbandpass_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -399,13 +361,11 @@ export class BBandStop {
         wasm.__wbg_bbandstop_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bbandstop_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bbandstop_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -426,13 +386,11 @@ export class BHiPass {
         wasm.__wbg_bhipass_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bhipass_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bhipass_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -453,13 +411,11 @@ export class BHiShelf {
         wasm.__wbg_bhishelf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bhishelf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bhishelf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -480,13 +436,11 @@ export class BLowPass {
         wasm.__wbg_blowpass_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.blowpass_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.blowpass_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -507,13 +461,11 @@ export class BLowShelf {
         wasm.__wbg_blowshelf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.blowshelf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.blowshelf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -534,26 +486,22 @@ export class BPF {
         wasm.__wbg_bpf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bpf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bpf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bpf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bpf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -574,26 +522,22 @@ export class BPZ2 {
         wasm.__wbg_bpz2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bpz2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bpz2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bpz2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bpz2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -614,13 +558,11 @@ export class BPeakEQ {
         wasm.__wbg_bpeakeq_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bpeakeq_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bpeakeq_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -641,26 +583,22 @@ export class BRF {
         wasm.__wbg_brf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.brf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.brf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -681,26 +619,22 @@ export class BRZ2 {
         wasm.__wbg_brz2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brz2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.brz2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brz2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.brz2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -721,26 +655,22 @@ export class Balance2 {
         wasm.__wbg_balance2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.balance2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.balance2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.balance2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.balance2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -761,26 +691,22 @@ export class Ball {
         wasm.__wbg_ball_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ball_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ball_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ball_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ball_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -801,13 +727,11 @@ export class BeatTrack {
         wasm.__wbg_beattrack_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.beattrack_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.beattrack_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -828,13 +752,11 @@ export class BeatTrack2 {
         wasm.__wbg_beattrack2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.beattrack2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.beattrack2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -855,26 +777,22 @@ export class BiPanB2 {
         wasm.__wbg_bipanb2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bipanb2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bipanb2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bipanb2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bipanb2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -895,26 +813,22 @@ export class Blip {
         wasm.__wbg_blip_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.blip_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.blip_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.blip_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.blip_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -935,26 +849,22 @@ export class BrownNoise {
         wasm.__wbg_brownnoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brownnoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.brownnoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.brownnoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.brownnoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -975,13 +885,11 @@ export class BufAllpassC {
         wasm.__wbg_bufallpassc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufallpassc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufallpassc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1002,13 +910,11 @@ export class BufAllpassL {
         wasm.__wbg_bufallpassl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufallpassl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufallpassl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1029,13 +935,11 @@ export class BufAllpassN {
         wasm.__wbg_bufallpassn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufallpassn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufallpassn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1056,26 +960,22 @@ export class BufChannels {
         wasm.__wbg_bufchannels_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufchannels_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufchannels_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufchannels_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufchannels_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1096,13 +996,11 @@ export class BufCombC {
         wasm.__wbg_bufcombc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufcombc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufcombc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1123,13 +1021,11 @@ export class BufCombL {
         wasm.__wbg_bufcombl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufcombl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufcombl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1150,13 +1046,11 @@ export class BufCombN {
         wasm.__wbg_bufcombn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufcombn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufcombn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1177,26 +1071,22 @@ export class BufDelayC {
         wasm.__wbg_bufdelayc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufdelayc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufdelayc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1217,26 +1107,22 @@ export class BufDelayL {
         wasm.__wbg_bufdelayl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufdelayl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayl_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufdelayl_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1257,26 +1143,22 @@ export class BufDelayN {
         wasm.__wbg_bufdelayn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufdelayn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdelayn_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufdelayn_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1297,26 +1179,22 @@ export class BufDur {
         wasm.__wbg_bufdur_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdur_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufdur_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufdur_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufdur_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1337,26 +1215,22 @@ export class BufFrames {
         wasm.__wbg_bufframes_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufframes_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufframes_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufframes_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufframes_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1377,26 +1251,22 @@ export class BufRateScale {
         wasm.__wbg_bufratescale_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufratescale_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufratescale_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufratescale_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufratescale_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1417,26 +1287,22 @@ export class BufRd {
         wasm.__wbg_bufrd_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufrd_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufrd_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufrd_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufrd_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1457,26 +1323,22 @@ export class BufSampleRate {
         wasm.__wbg_bufsamplerate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufsamplerate_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufsamplerate_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufsamplerate_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufsamplerate_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1497,26 +1359,22 @@ export class BufSamples {
         wasm.__wbg_bufsamples_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufsamples_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.bufsamples_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufsamples_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufsamples_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1537,26 +1395,22 @@ export class BufWr {
         wasm.__wbg_bufwr_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufwr_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.bufwr_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.bufwr_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.bufwr_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1577,26 +1431,22 @@ export class COsc {
         wasm.__wbg_cosc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.cosc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.cosc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.cosc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.cosc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1617,26 +1467,22 @@ export class CheckBadValues {
         wasm.__wbg_checkbadvalues_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.checkbadvalues_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.checkbadvalues_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.checkbadvalues_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.checkbadvalues_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1657,13 +1503,11 @@ export class ClearBuf {
         wasm.__wbg_clearbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.clearbuf_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.clearbuf_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1684,26 +1528,22 @@ export class Clip {
         wasm.__wbg_clip_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.clip_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.clip_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.clip_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.clip_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1724,26 +1564,22 @@ export class ClipNoise {
         wasm.__wbg_clipnoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.clipnoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.clipnoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.clipnoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.clipnoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1764,26 +1600,22 @@ export class CoinGate {
         wasm.__wbg_coingate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.coingate_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.coingate_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.coingate_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.coingate_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1804,26 +1636,22 @@ export class CombC {
         wasm.__wbg_combc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.combc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.combc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1844,26 +1672,22 @@ export class CombL {
         wasm.__wbg_combl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.combl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combl_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.combl_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1884,26 +1708,22 @@ export class CombN {
         wasm.__wbg_combn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.combn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.combn_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.combn_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1924,13 +1744,11 @@ export class Compander {
         wasm.__wbg_compander_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.compander_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.compander_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1951,13 +1769,11 @@ export class ControlDur {
         wasm.__wbg_controldur_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.controldur_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.controldur_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -1978,13 +1794,11 @@ export class ControlRate {
         wasm.__wbg_controlrate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.controlrate_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.controlrate_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2005,13 +1819,11 @@ export class Convolution {
         wasm.__wbg_convolution_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.convolution_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.convolution_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2032,13 +1844,11 @@ export class Convolution2 {
         wasm.__wbg_convolution2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.convolution2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.convolution2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2059,13 +1869,11 @@ export class Convolution2L {
         wasm.__wbg_convolution2l_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.convolution2l_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.convolution2l_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2086,26 +1894,22 @@ export class Convolution3 {
         wasm.__wbg_convolution3_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.convolution3_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.convolution3_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.convolution3_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.convolution3_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2126,26 +1930,22 @@ export class Crackle {
         wasm.__wbg_crackle_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.crackle_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.crackle_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.crackle_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.crackle_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2166,13 +1966,11 @@ export class CuspL {
         wasm.__wbg_cuspl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.cuspl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.cuspl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2193,13 +1991,11 @@ export class CuspN {
         wasm.__wbg_cuspn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.cuspn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.cuspn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2220,26 +2016,22 @@ export class DC {
         wasm.__wbg_dc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.dc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.dc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2260,26 +2052,22 @@ export class Decay {
         wasm.__wbg_decay_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decay_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.decay_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decay_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.decay_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2300,26 +2088,22 @@ export class Decay2 {
         wasm.__wbg_decay2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decay2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.decay2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decay2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.decay2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2340,26 +2124,22 @@ export class DecodeB2 {
         wasm.__wbg_decodeb2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decodeb2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.decodeb2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.decodeb2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.decodeb2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2380,26 +2160,22 @@ export class DegreeToKey {
         wasm.__wbg_degreetokey_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.degreetokey_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.degreetokey_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.degreetokey_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.degreetokey_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2420,26 +2196,22 @@ export class DelTapRd {
         wasm.__wbg_deltaprd_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.deltaprd_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.deltaprd_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.deltaprd_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.deltaprd_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2460,26 +2232,22 @@ export class DelTapWr {
         wasm.__wbg_deltapwr_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.deltapwr_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.deltapwr_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.deltapwr_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.deltapwr_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2500,26 +2268,22 @@ export class Delay1 {
         wasm.__wbg_delay1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delay1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.delay1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delay1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.delay1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2540,26 +2304,22 @@ export class Delay2 {
         wasm.__wbg_delay2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delay2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.delay2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delay2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.delay2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2580,26 +2340,22 @@ export class DelayC {
         wasm.__wbg_delayc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.delayc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.delayc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2620,26 +2376,22 @@ export class DelayL {
         wasm.__wbg_delayl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.delayl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayl_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.delayl_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2660,26 +2412,22 @@ export class DelayN {
         wasm.__wbg_delayn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.delayn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.delayn_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.delayn_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2700,26 +2448,22 @@ export class Demand {
         wasm.__wbg_demand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.demand_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.demand_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.demand_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.demand_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2740,26 +2484,22 @@ export class DemandEnvGen {
         wasm.__wbg_demandenvgen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.demandenvgen_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.demandenvgen_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.demandenvgen_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.demandenvgen_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2780,26 +2520,22 @@ export class DetectIndex {
         wasm.__wbg_detectindex_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.detectindex_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.detectindex_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.detectindex_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.detectindex_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2820,26 +2556,22 @@ export class DetectSilence {
         wasm.__wbg_detectsilence_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.detectsilence_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.detectsilence_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.detectsilence_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.detectsilence_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2860,13 +2592,11 @@ export class DiskIn {
         wasm.__wbg_diskin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.diskin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.diskin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2887,13 +2617,11 @@ export class DiskOut {
         wasm.__wbg_diskout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.diskout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.diskout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2914,13 +2642,11 @@ export class Done {
         wasm.__wbg_done_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.done_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.done_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2941,26 +2667,22 @@ export class Dust {
         wasm.__wbg_dust_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dust_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.dust_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dust_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.dust_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -2981,26 +2703,22 @@ export class Dust2 {
         wasm.__wbg_dust2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dust2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.dust2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.dust2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.dust2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3021,26 +2739,22 @@ export class Duty {
         wasm.__wbg_duty_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.duty_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.duty_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.duty_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.duty_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3061,26 +2775,22 @@ export class EnvGen {
         wasm.__wbg_envgen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.envgen_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.envgen_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.envgen_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.envgen_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3101,13 +2811,11 @@ export class ExpRand {
         wasm.__wbg_exprand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.exprand_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.exprand_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3128,13 +2836,11 @@ export class FBSineC {
         wasm.__wbg_fbsinec_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fbsinec_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fbsinec_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3155,13 +2861,11 @@ export class FBSineL {
         wasm.__wbg_fbsinel_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fbsinel_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fbsinel_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3182,13 +2886,11 @@ export class FBSineN {
         wasm.__wbg_fbsinen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fbsinen_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fbsinen_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3209,13 +2911,11 @@ export class FFT {
         wasm.__wbg_fft_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fft_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.fft_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3236,13 +2936,11 @@ export class FFTTrigger {
         wasm.__wbg_ffttrigger_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ffttrigger_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ffttrigger_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3263,26 +2961,22 @@ export class FOS {
         wasm.__wbg_fos_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fos_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fos_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fos_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.fos_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3303,26 +2997,22 @@ export class FSinOsc {
         wasm.__wbg_fsinosc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fsinosc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fsinosc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fsinosc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.fsinosc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3343,26 +3033,22 @@ export class Fold {
         wasm.__wbg_fold_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fold_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.fold_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.fold_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.fold_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3383,13 +3069,11 @@ export class Formant {
         wasm.__wbg_formant_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.formant_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.formant_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3410,26 +3094,22 @@ export class Formlet {
         wasm.__wbg_formlet_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.formlet_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.formlet_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.formlet_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.formlet_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3450,13 +3130,11 @@ export class Free {
         wasm.__wbg_free_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.free_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.free_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3477,13 +3155,11 @@ export class FreeSelf {
         wasm.__wbg_freeself_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.freeself_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.freeself_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3504,13 +3180,11 @@ export class FreeSelfWhenDone {
         wasm.__wbg_freeselfwhendone_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.freeselfwhendone_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.freeselfwhendone_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3531,13 +3205,11 @@ export class FreeVerb {
         wasm.__wbg_freeverb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.freeverb_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.freeverb_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3558,13 +3230,11 @@ export class FreeVerb2 {
         wasm.__wbg_freeverb2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.freeverb2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.freeverb2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3585,13 +3255,11 @@ export class FreqShift {
         wasm.__wbg_freqshift_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.freqshift_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.freqshift_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3612,13 +3280,11 @@ export class GVerb {
         wasm.__wbg_gverb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gverb_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gverb_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3639,26 +3305,22 @@ export class Gate {
         wasm.__wbg_gate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gate_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gate_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gate_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.gate_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3679,13 +3341,11 @@ export class GbmanL {
         wasm.__wbg_gbmanl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gbmanl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gbmanl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3706,13 +3366,11 @@ export class GbmanN {
         wasm.__wbg_gbmann_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gbmann_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gbmann_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3733,26 +3391,22 @@ export class Gendy1 {
         wasm.__wbg_gendy1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gendy1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.gendy1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3773,26 +3427,22 @@ export class Gendy2 {
         wasm.__wbg_gendy2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gendy2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.gendy2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3813,26 +3463,22 @@ export class Gendy3 {
         wasm.__wbg_gendy3_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy3_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.gendy3_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.gendy3_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.gendy3_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3853,13 +3499,11 @@ export class GrainBuf {
         wasm.__wbg_grainbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.grainbuf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.grainbuf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3880,13 +3524,11 @@ export class GrainFM {
         wasm.__wbg_grainfm_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.grainfm_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.grainfm_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3907,13 +3549,11 @@ export class GrainIn {
         wasm.__wbg_grainin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.grainin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.grainin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3934,13 +3574,11 @@ export class GrainSin {
         wasm.__wbg_grainsin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.grainsin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.grainsin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -3961,26 +3599,22 @@ export class GrayNoise {
         wasm.__wbg_graynoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.graynoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.graynoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.graynoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.graynoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4001,26 +3635,22 @@ export class HPF {
         wasm.__wbg_hpf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.hpf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.hpf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4041,26 +3671,22 @@ export class HPZ1 {
         wasm.__wbg_hpz1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpz1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.hpz1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpz1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.hpz1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4081,26 +3707,22 @@ export class HPZ2 {
         wasm.__wbg_hpz2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpz2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.hpz2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hpz2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.hpz2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4121,26 +3743,22 @@ export class Hasher {
         wasm.__wbg_hasher_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hasher_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.hasher_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hasher_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.hasher_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4161,13 +3779,11 @@ export class HenonC {
         wasm.__wbg_henonc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.henonc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.henonc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4188,13 +3804,11 @@ export class HenonL {
         wasm.__wbg_henonl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.henonl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.henonl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4215,13 +3829,11 @@ export class HenonN {
         wasm.__wbg_henonn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.henonn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.henonn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4242,13 +3854,11 @@ export class Hilbert {
         wasm.__wbg_hilbert_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.hilbert_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.hilbert_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4269,26 +3879,22 @@ export class IEnvGen {
         wasm.__wbg_ienvgen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ienvgen_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ienvgen_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ienvgen_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ienvgen_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4309,26 +3915,22 @@ export class IFFT {
         wasm.__wbg_ifft_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ifft_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ifft_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ifft_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ifft_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4349,13 +3951,11 @@ export class IRand {
         wasm.__wbg_irand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.irand_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.irand_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4376,26 +3976,22 @@ export class Impulse {
         wasm.__wbg_impulse_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.impulse_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.impulse_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.impulse_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.impulse_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4416,26 +4012,22 @@ export class In {
         wasm.__wbg_in_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.in_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.in_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.in_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.in_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4456,13 +4048,11 @@ export class InFeedback {
         wasm.__wbg_infeedback_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.infeedback_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.infeedback_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4483,39 +4073,33 @@ export class InRange {
         wasm.__wbg_inrange_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.inrange_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.inrange_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.inrange_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.inrange_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.inrange_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.inrange_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4536,26 +4120,22 @@ export class InRect {
         wasm.__wbg_inrect_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.inrect_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.inrect_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.inrect_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.inrect_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4576,13 +4156,11 @@ export class InTrig {
         wasm.__wbg_intrig_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.intrig_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.intrig_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4603,26 +4181,22 @@ export class Index {
         wasm.__wbg_index_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.index_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.index_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.index_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.index_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4643,26 +4217,22 @@ export class IndexInBetween {
         wasm.__wbg_indexinbetween_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.indexinbetween_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.indexinbetween_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.indexinbetween_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.indexinbetween_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4683,26 +4253,22 @@ export class Integrator {
         wasm.__wbg_integrator_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.integrator_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.integrator_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.integrator_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.integrator_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4723,13 +4289,11 @@ export class K2A {
         wasm.__wbg_k2a_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.k2a_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.k2a_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4750,13 +4314,11 @@ export class KeyState {
         wasm.__wbg_keystate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.keystate_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.keystate_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4777,13 +4339,11 @@ export class KeyTrack {
         wasm.__wbg_keytrack_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.keytrack_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.keytrack_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4804,13 +4364,11 @@ export class Klang {
         wasm.__wbg_klang_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.klang_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.klang_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4831,13 +4389,11 @@ export class Klank {
         wasm.__wbg_klank_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.klank_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.klank_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4858,26 +4414,22 @@ export class LFClipNoise {
         wasm.__wbg_lfclipnoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfclipnoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfclipnoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfclipnoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfclipnoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4898,26 +4450,22 @@ export class LFCub {
         wasm.__wbg_lfcub_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfcub_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfcub_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfcub_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfcub_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4938,26 +4486,22 @@ export class LFDClipNoise {
         wasm.__wbg_lfdclipnoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdclipnoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfdclipnoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdclipnoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfdclipnoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -4978,26 +4522,22 @@ export class LFDNoise0 {
         wasm.__wbg_lfdnoise0_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise0_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfdnoise0_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise0_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfdnoise0_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5018,26 +4558,22 @@ export class LFDNoise1 {
         wasm.__wbg_lfdnoise1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfdnoise1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfdnoise1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5058,26 +4594,22 @@ export class LFDNoise3 {
         wasm.__wbg_lfdnoise3_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise3_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfdnoise3_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfdnoise3_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfdnoise3_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5098,26 +4630,22 @@ export class LFGauss {
         wasm.__wbg_lfgauss_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfgauss_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfgauss_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfgauss_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfgauss_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5138,26 +4666,22 @@ export class LFNoise0 {
         wasm.__wbg_lfnoise0_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise0_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfnoise0_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise0_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfnoise0_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5178,26 +4702,22 @@ export class LFNoise1 {
         wasm.__wbg_lfnoise1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfnoise1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfnoise1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5218,26 +4738,22 @@ export class LFNoise2 {
         wasm.__wbg_lfnoise2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfnoise2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfnoise2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfnoise2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5258,26 +4774,22 @@ export class LFPar {
         wasm.__wbg_lfpar_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfpar_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfpar_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfpar_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfpar_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5298,26 +4810,22 @@ export class LFPulse {
         wasm.__wbg_lfpulse_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfpulse_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfpulse_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfpulse_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfpulse_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5338,26 +4846,22 @@ export class LFSaw {
         wasm.__wbg_lfsaw_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfsaw_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lfsaw_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lfsaw_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lfsaw_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5378,26 +4882,22 @@ export class LFTri {
         wasm.__wbg_lftri_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lftri_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lftri_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lftri_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lftri_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5418,26 +4918,22 @@ export class LPF {
         wasm.__wbg_lpf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lpf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lpf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5458,26 +4954,22 @@ export class LPZ1 {
         wasm.__wbg_lpz1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpz1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lpz1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpz1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lpz1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5498,26 +4990,22 @@ export class LPZ2 {
         wasm.__wbg_lpz2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpz2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lpz2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lpz2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lpz2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5538,26 +5026,22 @@ export class Lag {
         wasm.__wbg_lag_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lag_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lag_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5578,26 +5062,22 @@ export class Lag2 {
         wasm.__wbg_lag2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lag2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lag2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5618,26 +5098,22 @@ export class Lag2UD {
         wasm.__wbg_lag2ud_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag2ud_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lag2ud_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag2ud_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lag2ud_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5658,26 +5134,22 @@ export class Lag3 {
         wasm.__wbg_lag3_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag3_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lag3_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag3_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lag3_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5698,26 +5170,22 @@ export class Lag3UD {
         wasm.__wbg_lag3ud_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag3ud_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lag3ud_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lag3ud_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lag3ud_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5738,13 +5206,11 @@ export class LagIn {
         wasm.__wbg_lagin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lagin_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lagin_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5765,26 +5231,22 @@ export class LagUD {
         wasm.__wbg_lagud_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lagud_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lagud_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lagud_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lagud_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5805,26 +5267,22 @@ export class LastValue {
         wasm.__wbg_lastvalue_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lastvalue_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lastvalue_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lastvalue_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.lastvalue_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5845,26 +5303,22 @@ export class Latch {
         wasm.__wbg_latch_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.latch_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.latch_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.latch_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.latch_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5885,13 +5339,11 @@ export class LatoocarfianC {
         wasm.__wbg_latoocarfianc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.latoocarfianc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.latoocarfianc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5912,13 +5364,11 @@ export class LatoocarfianL {
         wasm.__wbg_latoocarfianl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.latoocarfianl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.latoocarfianl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5939,13 +5389,11 @@ export class LatoocarfianN {
         wasm.__wbg_latoocarfiann_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.latoocarfiann_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.latoocarfiann_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -5966,26 +5414,22 @@ export class LeakDC {
         wasm.__wbg_leakdc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.leakdc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.leakdc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.leakdc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.leakdc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6006,26 +5450,22 @@ export class LeastChange {
         wasm.__wbg_leastchange_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.leastchange_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.leastchange_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.leastchange_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.leastchange_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6046,13 +5486,11 @@ export class Limiter {
         wasm.__wbg_limiter_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.limiter_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.limiter_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6073,13 +5511,11 @@ export class LinCongC {
         wasm.__wbg_lincongc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lincongc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lincongc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6100,13 +5536,11 @@ export class LinCongL {
         wasm.__wbg_lincongl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lincongl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lincongl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6127,13 +5561,11 @@ export class LinCongN {
         wasm.__wbg_lincongn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lincongn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lincongn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6154,26 +5586,22 @@ export class LinExp {
         wasm.__wbg_linexp_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linexp_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.linexp_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linexp_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.linexp_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6194,26 +5622,22 @@ export class LinPan2 {
         wasm.__wbg_linpan2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linpan2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.linpan2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linpan2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.linpan2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6234,13 +5658,11 @@ export class LinRand {
         wasm.__wbg_linrand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linrand_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.linrand_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6261,26 +5683,22 @@ export class LinXFade2 {
         wasm.__wbg_linxfade2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linxfade2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.linxfade2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linxfade2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.linxfade2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6301,26 +5719,22 @@ export class Line {
         wasm.__wbg_line_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.line_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.line_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.line_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.line_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6341,13 +5755,11 @@ export class Linen {
         wasm.__wbg_linen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.linen_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.linen_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6368,13 +5780,11 @@ export class LocalBuf {
         wasm.__wbg_localbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.localbuf_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.localbuf_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6395,26 +5805,22 @@ export class LocalIn {
         wasm.__wbg_localin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.localin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.localin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.localin_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.localin_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6435,26 +5841,22 @@ export class LocalOut {
         wasm.__wbg_localout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.localout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.localout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.localout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.localout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6475,26 +5877,22 @@ export class Logistic {
         wasm.__wbg_logistic_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.logistic_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.logistic_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.logistic_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.logistic_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6515,13 +5913,11 @@ export class LorenzL {
         wasm.__wbg_lorenzl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.lorenzl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.lorenzl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6542,13 +5938,11 @@ export class Loudness {
         wasm.__wbg_loudness_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.loudness_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.loudness_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6569,13 +5963,11 @@ export class MFCC {
         wasm.__wbg_mfcc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mfcc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mfcc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6596,26 +5988,22 @@ export class MantissaMask {
         wasm.__wbg_mantissamask_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mantissamask_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.mantissamask_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mantissamask_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mantissamask_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6636,13 +6024,11 @@ export class MaxLocalBufs {
         wasm.__wbg_maxlocalbufs_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.maxlocalbufs_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.maxlocalbufs_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6663,26 +6049,22 @@ export class Median {
         wasm.__wbg_median_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.median_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.median_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.median_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.median_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6703,26 +6085,22 @@ export class MidEQ {
         wasm.__wbg_mideq_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mideq_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.mideq_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mideq_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mideq_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6743,26 +6121,22 @@ export class MoogFF {
         wasm.__wbg_moogff_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.moogff_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.moogff_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.moogff_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.moogff_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6783,26 +6157,22 @@ export class MostChange {
         wasm.__wbg_mostchange_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mostchange_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.mostchange_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mostchange_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mostchange_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6823,13 +6193,11 @@ export class MouseButton {
         wasm.__wbg_mousebutton_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mousebutton_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mousebutton_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6850,13 +6218,11 @@ export class MouseX {
         wasm.__wbg_mousex_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mousex_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mousex_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6877,13 +6243,11 @@ export class MouseY {
         wasm.__wbg_mousey_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.mousey_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.mousey_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6904,39 +6268,33 @@ export class MulAdd {
         wasm.__wbg_muladd_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.muladd_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.muladd_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.muladd_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.muladd_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.muladd_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.muladd_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6957,13 +6315,11 @@ export class NRand {
         wasm.__wbg_nrand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.nrand_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.nrand_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -6984,13 +6340,11 @@ export class Normalizer {
         wasm.__wbg_normalizer_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.normalizer_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.normalizer_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7011,13 +6365,11 @@ export class NumAudioBuses {
         wasm.__wbg_numaudiobuses_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numaudiobuses_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numaudiobuses_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7038,13 +6390,11 @@ export class NumBuffers {
         wasm.__wbg_numbuffers_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numbuffers_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numbuffers_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7065,13 +6415,11 @@ export class NumControlBuses {
         wasm.__wbg_numcontrolbuses_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numcontrolbuses_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numcontrolbuses_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7092,13 +6440,11 @@ export class NumInputBuses {
         wasm.__wbg_numinputbuses_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numinputbuses_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numinputbuses_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7119,13 +6465,11 @@ export class NumOutputBuses {
         wasm.__wbg_numoutputbuses_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numoutputbuses_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numoutputbuses_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7146,26 +6490,22 @@ export class NumRunningSynths {
         wasm.__wbg_numrunningsynths_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numrunningsynths_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.numrunningsynths_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.numrunningsynths_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.numrunningsynths_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7186,26 +6526,22 @@ export class OffsetOut {
         wasm.__wbg_offsetout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.offsetout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.offsetout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.offsetout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.offsetout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7226,26 +6562,22 @@ export class OnePole {
         wasm.__wbg_onepole_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.onepole_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.onepole_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.onepole_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.onepole_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7266,26 +6598,22 @@ export class OneZero {
         wasm.__wbg_onezero_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.onezero_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.onezero_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.onezero_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.onezero_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7306,13 +6634,11 @@ export class Onsets {
         wasm.__wbg_onsets_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.onsets_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.onsets_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7333,26 +6659,22 @@ export class Osc {
         wasm.__wbg_osc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.osc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.osc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.osc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.osc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7373,26 +6695,22 @@ export class Out {
         wasm.__wbg_out_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.out_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.out_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.out_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.out_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7413,13 +6731,11 @@ export class PSinGrain {
         wasm.__wbg_psingrain_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.psingrain_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.psingrain_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7440,13 +6756,11 @@ export class PV_Add {
         wasm.__wbg_pv_add_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_add_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_add_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7467,13 +6781,11 @@ export class PV_BinScramble {
         wasm.__wbg_pv_binscramble_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_binscramble_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_binscramble_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7494,13 +6806,11 @@ export class PV_BinShift {
         wasm.__wbg_pv_binshift_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_binshift_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_binshift_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7521,13 +6831,11 @@ export class PV_BinWipe {
         wasm.__wbg_pv_binwipe_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_binwipe_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_binwipe_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7548,13 +6856,11 @@ export class PV_BrickWall {
         wasm.__wbg_pv_brickwall_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_brickwall_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_brickwall_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7575,13 +6881,11 @@ export class PV_ConformalMap {
         wasm.__wbg_pv_conformalmap_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_conformalmap_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_conformalmap_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7602,13 +6906,11 @@ export class PV_Conj {
         wasm.__wbg_pv_conj_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_conj_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_conj_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7629,13 +6931,11 @@ export class PV_Copy {
         wasm.__wbg_pv_copy_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_copy_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_copy_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7656,13 +6956,11 @@ export class PV_CopyPhase {
         wasm.__wbg_pv_copyphase_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_copyphase_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_copyphase_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7683,13 +6981,11 @@ export class PV_Diffuser {
         wasm.__wbg_pv_diffuser_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_diffuser_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_diffuser_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7710,13 +7006,11 @@ export class PV_Div {
         wasm.__wbg_pv_div_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_div_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_div_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7737,13 +7031,11 @@ export class PV_HainsworthFoote {
         wasm.__wbg_pv_hainsworthfoote_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_hainsworthfoote_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pv_hainsworthfoote_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7764,13 +7056,11 @@ export class PV_JensenAndersen {
         wasm.__wbg_pv_jensenandersen_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_jensenandersen_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pv_jensenandersen_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7791,13 +7081,11 @@ export class PV_LocalMax {
         wasm.__wbg_pv_localmax_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_localmax_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_localmax_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7818,13 +7106,11 @@ export class PV_MagAbove {
         wasm.__wbg_pv_magabove_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magabove_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magabove_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7845,13 +7131,11 @@ export class PV_MagBelow {
         wasm.__wbg_pv_magbelow_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magbelow_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magbelow_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7872,13 +7156,11 @@ export class PV_MagClip {
         wasm.__wbg_pv_magclip_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magclip_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magclip_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7899,13 +7181,11 @@ export class PV_MagDiv {
         wasm.__wbg_pv_magdiv_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magdiv_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magdiv_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7926,13 +7206,11 @@ export class PV_MagFreeze {
         wasm.__wbg_pv_magfreeze_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magfreeze_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magfreeze_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7953,13 +7231,11 @@ export class PV_MagMul {
         wasm.__wbg_pv_magmul_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magmul_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magmul_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -7980,13 +7256,11 @@ export class PV_MagNoise {
         wasm.__wbg_pv_magnoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magnoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magnoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8007,13 +7281,11 @@ export class PV_MagShift {
         wasm.__wbg_pv_magshift_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magshift_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magshift_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8034,13 +7306,11 @@ export class PV_MagSmear {
         wasm.__wbg_pv_magsmear_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magsmear_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magsmear_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8061,13 +7331,11 @@ export class PV_MagSquared {
         wasm.__wbg_pv_magsquared_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_magsquared_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_magsquared_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8088,13 +7356,11 @@ export class PV_Max {
         wasm.__wbg_pv_max_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_max_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_max_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8115,13 +7381,11 @@ export class PV_Min {
         wasm.__wbg_pv_min_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_min_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_min_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8142,13 +7406,11 @@ export class PV_Mul {
         wasm.__wbg_pv_mul_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_mul_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_mul_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8169,13 +7431,11 @@ export class PV_PhaseShift {
         wasm.__wbg_pv_phaseshift_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_phaseshift_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_phaseshift_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8196,13 +7456,11 @@ export class PV_PhaseShift270 {
         wasm.__wbg_pv_phaseshift270_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_phaseshift270_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_phaseshift270_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8223,13 +7481,11 @@ export class PV_PhaseShift90 {
         wasm.__wbg_pv_phaseshift90_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_phaseshift90_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_phaseshift90_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8250,13 +7506,11 @@ export class PV_RandComb {
         wasm.__wbg_pv_randcomb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_randcomb_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_randcomb_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8277,13 +7531,11 @@ export class PV_RandWipe {
         wasm.__wbg_pv_randwipe_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_randwipe_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_randwipe_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8304,13 +7556,11 @@ export class PV_RectComb {
         wasm.__wbg_pv_rectcomb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_rectcomb_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_rectcomb_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8331,13 +7581,11 @@ export class PV_RectComb2 {
         wasm.__wbg_pv_rectcomb2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pv_rectcomb2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pv_rectcomb2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8358,26 +7606,22 @@ export class Pan2 {
         wasm.__wbg_pan2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pan2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pan2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pan2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pan2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8398,26 +7642,22 @@ export class Pan4 {
         wasm.__wbg_pan4_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pan4_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pan4_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pan4_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pan4_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8438,26 +7678,22 @@ export class PanAz {
         wasm.__wbg_panaz_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panaz_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.panaz_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panaz_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.panaz_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8478,26 +7714,22 @@ export class PanB {
         wasm.__wbg_panb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panb_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.panb_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panb_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.panb_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8518,26 +7750,22 @@ export class PanB2 {
         wasm.__wbg_panb2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panb2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.panb2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.panb2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.panb2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8558,13 +7786,11 @@ export class PartConv {
         wasm.__wbg_partconv_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.partconv_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.partconv_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8585,13 +7811,11 @@ export class Pause {
         wasm.__wbg_pause_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pause_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pause_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8612,13 +7836,11 @@ export class PauseSelf {
         wasm.__wbg_pauseself_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pauseself_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pauseself_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8639,13 +7861,11 @@ export class PauseSelfWhenDone {
         wasm.__wbg_pauseselfwhendone_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pauseselfwhendone_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pauseselfwhendone_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8666,26 +7886,22 @@ export class Peak {
         wasm.__wbg_peak_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.peak_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.peak_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.peak_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.peak_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8706,26 +7922,22 @@ export class PeakFollower {
         wasm.__wbg_peakfollower_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.peakfollower_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.peakfollower_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.peakfollower_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.peakfollower_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8746,26 +7958,22 @@ export class Phasor {
         wasm.__wbg_phasor_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.phasor_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.phasor_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.phasor_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.phasor_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8786,26 +7994,22 @@ export class PinkNoise {
         wasm.__wbg_pinknoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pinknoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pinknoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pinknoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pinknoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8826,13 +8030,11 @@ export class Pitch {
         wasm.__wbg_pitch_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pitch_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pitch_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8853,13 +8055,11 @@ export class PitchShift {
         wasm.__wbg_pitchshift_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pitchshift_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pitchshift_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8880,26 +8080,22 @@ export class PlayBuf {
         wasm.__wbg_playbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.playbuf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.playbuf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.playbuf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.playbuf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8920,13 +8116,11 @@ export class Pluck {
         wasm.__wbg_pluck_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pluck_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pluck_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8947,26 +8141,22 @@ export class Poll {
         wasm.__wbg_poll_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.poll_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.poll_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.poll_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.poll_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -8987,26 +8177,22 @@ export class Pulse {
         wasm.__wbg_pulse_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulse_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pulse_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulse_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pulse_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9027,26 +8213,22 @@ export class PulseCount {
         wasm.__wbg_pulsecount_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulsecount_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pulsecount_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulsecount_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pulsecount_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9067,26 +8249,22 @@ export class PulseDivider {
         wasm.__wbg_pulsedivider_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulsedivider_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.pulsedivider_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.pulsedivider_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.pulsedivider_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9107,13 +8285,11 @@ export class QuadC {
         wasm.__wbg_quadc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.quadc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.quadc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9134,13 +8310,11 @@ export class QuadL {
         wasm.__wbg_quadl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.quadl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.quadl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9161,13 +8335,11 @@ export class QuadN {
         wasm.__wbg_quadn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.quadn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.quadn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9188,26 +8360,22 @@ export class RHPF {
         wasm.__wbg_rhpf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rhpf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.rhpf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rhpf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.rhpf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9228,26 +8396,22 @@ export class RLPF {
         wasm.__wbg_rlpf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rlpf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.rlpf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rlpf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.rlpf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9268,13 +8432,11 @@ export class RadiansPerSample {
         wasm.__wbg_radianspersample_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.radianspersample_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.radianspersample_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9295,26 +8457,22 @@ export class Ramp {
         wasm.__wbg_ramp_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ramp_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ramp_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ramp_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ramp_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9335,13 +8493,11 @@ export class Rand {
         wasm.__wbg_rand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rand_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.rand_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9362,26 +8518,22 @@ export class RandID {
         wasm.__wbg_randid_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.randid_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.randid_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.randid_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.randid_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9402,39 +8554,33 @@ export class RandSeed {
         wasm.__wbg_randseed_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.randseed_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.randseed_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.randseed_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.randseed_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.randseed_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.randseed_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9455,26 +8601,22 @@ export class RecordBuf {
         wasm.__wbg_recordbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.recordbuf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.recordbuf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.recordbuf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.recordbuf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9495,26 +8637,22 @@ export class ReplaceOut {
         wasm.__wbg_replaceout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.replaceout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.replaceout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.replaceout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.replaceout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9535,26 +8673,22 @@ export class Resonz {
         wasm.__wbg_resonz_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.resonz_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.resonz_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.resonz_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.resonz_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9575,26 +8709,22 @@ export class Ringz {
         wasm.__wbg_ringz_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ringz_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.ringz_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.ringz_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.ringz_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9615,26 +8745,22 @@ export class Rotate2 {
         wasm.__wbg_rotate2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rotate2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.rotate2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.rotate2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.rotate2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9655,26 +8781,22 @@ export class RunningMax {
         wasm.__wbg_runningmax_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningmax_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.runningmax_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningmax_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.runningmax_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9695,26 +8817,22 @@ export class RunningMin {
         wasm.__wbg_runningmin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningmin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.runningmin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningmin_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.runningmin_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9735,26 +8853,22 @@ export class RunningSum {
         wasm.__wbg_runningsum_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningsum_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.runningsum_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.runningsum_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.runningsum_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9775,26 +8889,22 @@ export class SOS {
         wasm.__wbg_sos_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sos_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sos_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sos_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sos_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9815,13 +8925,11 @@ export class SampleDur {
         wasm.__wbg_sampledur_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sampledur_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.sampledur_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9842,13 +8950,11 @@ export class SampleRate {
         wasm.__wbg_samplerate_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.samplerate_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.samplerate_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9869,26 +8975,22 @@ export class Saw {
         wasm.__wbg_saw_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.saw_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.saw_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.saw_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.saw_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9909,26 +9011,22 @@ export class Schmidt {
         wasm.__wbg_schmidt_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.schmidt_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.schmidt_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.schmidt_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.schmidt_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9949,26 +9047,22 @@ export class ScopeOut {
         wasm.__wbg_scopeout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.scopeout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.scopeout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.scopeout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.scopeout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -9989,26 +9083,22 @@ export class ScopeOut2 {
         wasm.__wbg_scopeout2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.scopeout2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.scopeout2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.scopeout2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.scopeout2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10029,26 +9119,22 @@ export class Select {
         wasm.__wbg_select_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.select_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.select_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.select_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.select_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10069,26 +9155,22 @@ export class SendReply {
         wasm.__wbg_sendreply_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sendreply_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sendreply_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sendreply_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sendreply_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10109,26 +9191,22 @@ export class SendTrig {
         wasm.__wbg_sendtrig_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sendtrig_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sendtrig_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sendtrig_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sendtrig_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10149,26 +9227,22 @@ export class SetBuf {
         wasm.__wbg_setbuf_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.setbuf_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.setbuf_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.setbuf_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.setbuf_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10189,26 +9263,22 @@ export class SetResetFF {
         wasm.__wbg_setresetff_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.setresetff_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.setresetff_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.setresetff_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.setresetff_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10229,26 +9299,22 @@ export class Shaper {
         wasm.__wbg_shaper_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.shaper_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.shaper_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.shaper_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.shaper_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10269,13 +9335,11 @@ export class SharedIn {
         wasm.__wbg_sharedin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sharedin_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sharedin_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10296,13 +9360,11 @@ export class SharedOut {
         wasm.__wbg_sharedout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sharedout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sharedout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10323,13 +9385,11 @@ export class Silent {
         wasm.__wbg_silent_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.silent_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.silent_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10350,26 +9410,22 @@ export class SinOsc {
         wasm.__wbg_sinosc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sinosc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sinosc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sinosc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sinosc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10390,26 +9446,22 @@ export class SinOscFB {
         wasm.__wbg_sinoscfb_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sinoscfb_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sinoscfb_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sinoscfb_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sinoscfb_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10430,26 +9482,22 @@ export class Slew {
         wasm.__wbg_slew_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.slew_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.slew_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.slew_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.slew_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10470,26 +9518,22 @@ export class Slope {
         wasm.__wbg_slope_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.slope_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.slope_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.slope_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.slope_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10510,13 +9554,11 @@ export class SpecCentroid {
         wasm.__wbg_speccentroid_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.speccentroid_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.speccentroid_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10537,13 +9579,11 @@ export class SpecFlatness {
         wasm.__wbg_specflatness_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.specflatness_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.specflatness_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10564,13 +9604,11 @@ export class SpecPcile {
         wasm.__wbg_specpcile_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.specpcile_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.specpcile_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10591,26 +9629,22 @@ export class Spring {
         wasm.__wbg_spring_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.spring_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.spring_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.spring_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.spring_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10631,13 +9665,11 @@ export class StandardL {
         wasm.__wbg_standardl_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.standardl_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.standardl_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10658,13 +9690,11 @@ export class StandardN {
         wasm.__wbg_standardn_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.standardn_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.standardn_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10685,26 +9715,22 @@ export class Stepper {
         wasm.__wbg_stepper_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.stepper_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.stepper_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.stepper_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.stepper_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10725,13 +9751,11 @@ export class StereoConvolution2L {
         wasm.__wbg_stereoconvolution2l_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.stereoconvolution2l_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.stereoconvolution2l_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10752,13 +9776,11 @@ export class SubsampleOffset {
         wasm.__wbg_subsampleoffset_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ir(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.subsampleoffset_ir(def.__wbg_ptr, args);
+    static ir(args) {
+        const ret = wasm.subsampleoffset_ir(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10779,26 +9801,22 @@ export class Sweep {
         wasm.__wbg_sweep_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sweep_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.sweep_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.sweep_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.sweep_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10819,26 +9837,22 @@ export class SyncSaw {
         wasm.__wbg_syncsaw_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.syncsaw_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.syncsaw_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.syncsaw_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.syncsaw_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -10849,8 +9863,20 @@ if (Symbol.dispose) SyncSaw.prototype[Symbol.dispose] = SyncSaw.prototype.free;
 
 /**
  * The SynthDef graph builder — mirrors the native [`SynthDef`] one-to-one.
+ * The inner graph is shared (`Rc<RefCell<…>>`) so the graph callback's
+ * def handle and the constructed object alias the same build safely.
+ *
+ * `skip_typescript`: wasm-bindgen drops the optionality marker on an
+ * `Option<Function>` param when its type is overridden, so the class is
+ * declared by hand in the custom section below.
  */
 export class SynthDef {
+    static __wrap(ptr) {
+        const obj = Object.create(SynthDef.prototype);
+        obj.__wbg_ptr = ptr;
+        SynthDefFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -10924,13 +9950,25 @@ export class SynthDef {
         return ret[0] >>> 0;
     }
     /**
+     * Construct a def, optionally building its graph SC-style: the
+     * callback runs synchronously with this def as the ambient build
+     * target, so the typed builders need no def argument —
+     * `new SynthDef("sine", (def) => { Out.ar({ bus: 0, channelsArray:
+     * [SinOsc.ar({ freq: def.addControl("freq", 440, "control") })] }) })`.
+     * The callback also receives the def handle (for `addControl` /
+     * `addUgen`). An async callback is rejected — the ambient scope ends
+     * when the constructor returns.
      * @param {string} name
+     * @param {(def: SynthDef) => void} graph
      */
-    constructor(name) {
+    constructor(name, graph) {
         const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.synthdef_new(ptr0, len0);
-        this.__wbg_ptr = ret;
+        const ret = wasm.synthdef_new(ptr0, len0, isLikeNone(graph) ? 0 : addToExternrefTable0(graph));
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        this.__wbg_ptr = ret[0];
         SynthDefFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
@@ -10988,13 +10026,11 @@ export class T2A {
         wasm.__wbg_t2a_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.t2a_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.t2a_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11015,13 +10051,11 @@ export class T2K {
         wasm.__wbg_t2k_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.t2k_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.t2k_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11042,26 +10076,22 @@ export class TBall {
         wasm.__wbg_tball_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tball_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.tball_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tball_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.tball_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11082,26 +10112,22 @@ export class TDelay {
         wasm.__wbg_tdelay_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tdelay_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.tdelay_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tdelay_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.tdelay_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11122,26 +10148,22 @@ export class TDuty {
         wasm.__wbg_tduty_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tduty_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.tduty_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tduty_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.tduty_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11162,26 +10184,22 @@ export class TExpRand {
         wasm.__wbg_texprand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.texprand_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.texprand_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.texprand_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.texprand_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11202,13 +10220,11 @@ export class TGrains {
         wasm.__wbg_tgrains_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tgrains_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.tgrains_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11229,26 +10245,22 @@ export class TIRand {
         wasm.__wbg_tirand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tirand_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.tirand_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.tirand_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.tirand_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11269,26 +10281,22 @@ export class TRand {
         wasm.__wbg_trand_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trand_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.trand_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trand_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.trand_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11309,26 +10317,22 @@ export class TWindex {
         wasm.__wbg_twindex_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twindex_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.twindex_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twindex_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.twindex_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11349,26 +10353,22 @@ export class Timer {
         wasm.__wbg_timer_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.timer_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.timer_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.timer_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.timer_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11389,26 +10389,22 @@ export class ToggleFF {
         wasm.__wbg_toggleff_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.toggleff_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.toggleff_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.toggleff_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.toggleff_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11429,26 +10425,22 @@ export class Trapezoid {
         wasm.__wbg_trapezoid_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trapezoid_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.trapezoid_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trapezoid_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.trapezoid_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11469,26 +10461,22 @@ export class Trig {
         wasm.__wbg_trig_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trig_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.trig_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trig_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.trig_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11509,26 +10497,22 @@ export class Trig1 {
         wasm.__wbg_trig1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trig1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.trig1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.trig1_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.trig1_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11549,26 +10533,22 @@ export class TwoPole {
         wasm.__wbg_twopole_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twopole_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.twopole_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twopole_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.twopole_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11589,26 +10569,22 @@ export class TwoZero {
         wasm.__wbg_twozero_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twozero_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.twozero_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.twozero_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.twozero_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11629,13 +10605,11 @@ export class VDiskIn {
         wasm.__wbg_vdiskin_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vdiskin_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.vdiskin_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11656,26 +10630,22 @@ export class VOsc {
         wasm.__wbg_vosc_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vosc_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.vosc_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vosc_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.vosc_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11696,26 +10666,22 @@ export class VOsc3 {
         wasm.__wbg_vosc3_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vosc3_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.vosc3_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vosc3_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.vosc3_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11736,26 +10702,22 @@ export class VarSaw {
         wasm.__wbg_varsaw_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.varsaw_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.varsaw_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.varsaw_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.varsaw_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11776,26 +10738,22 @@ export class Vibrato {
         wasm.__wbg_vibrato_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vibrato_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.vibrato_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.vibrato_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.vibrato_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11816,13 +10774,11 @@ export class Warp1 {
         wasm.__wbg_warp1_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.warp1_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.warp1_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11843,26 +10799,22 @@ export class WhiteNoise {
         wasm.__wbg_whitenoise_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.whitenoise_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.whitenoise_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.whitenoise_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.whitenoise_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11883,26 +10835,22 @@ export class Wrap {
         wasm.__wbg_wrap_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.wrap_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.wrap_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.wrap_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.wrap_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11923,26 +10871,22 @@ export class WrapIndex {
         wasm.__wbg_wrapindex_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.wrapindex_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.wrapindex_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.wrapindex_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.wrapindex_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -11963,26 +10907,22 @@ export class XFade2 {
         wasm.__wbg_xfade2_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xfade2_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.xfade2_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xfade2_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.xfade2_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -12003,26 +10943,22 @@ export class XLine {
         wasm.__wbg_xline_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xline_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.xline_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xline_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.xline_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -12043,26 +10979,22 @@ export class XOut {
         wasm.__wbg_xout_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xout_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.xout_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.xout_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.xout_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -12083,26 +11015,22 @@ export class ZeroCrossing {
         wasm.__wbg_zerocrossing_free(ptr, 0);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static ar(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.zerocrossing_ar(def.__wbg_ptr, args);
+    static ar(args) {
+        const ret = wasm.zerocrossing_ar(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {SynthDef} def
      * @param {any} args
      * @returns {any}
      */
-    static kr(def, args) {
-        _assertClass(def, SynthDef);
-        const ret = wasm.zerocrossing_kr(def.__wbg_ptr, args);
+    static kr(args) {
+        const ret = wasm.zerocrossing_kr(args);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -12270,6 +11198,10 @@ function __wbg_get_imports() {
             const ret = arg0.call(arg1);
             return ret;
         }, arguments); },
+        __wbg_call_9c758de292015997: function() { return handleError(function (arg0, arg1, arg2) {
+            const ret = arg0.call(arg1, arg2);
+            return ret;
+        }, arguments); },
         __wbg_done_60cf307fcc680536: function(arg0) {
             const ret = arg0.done;
             return ret;
@@ -12302,6 +11234,16 @@ function __wbg_get_imports() {
             let result;
             try {
                 result = arg0 instanceof ArrayBuffer;
+            } catch (_) {
+                result = false;
+            }
+            const ret = result;
+            return ret;
+        },
+        __wbg_instanceof_Promise_d0db99486956c8e8: function(arg0) {
+            let result;
+            try {
+                result = arg0 instanceof Promise;
             } catch (_) {
                 result = false;
             }
@@ -12374,6 +11316,10 @@ function __wbg_get_imports() {
         },
         __wbg_set_dca99999bba88a9a: function(arg0, arg1, arg2) {
             arg0[arg1 >>> 0] = arg2;
+        },
+        __wbg_synthdef_new: function(arg0) {
+            const ret = SynthDef.__wrap(arg0);
+            return ret;
         },
         __wbg_value_f3625092ee4b37f4: function(arg0) {
             const ret = arg0.value;
@@ -13464,12 +12410,6 @@ function addToExternrefTable0(obj) {
     const idx = wasm.__externref_table_alloc();
     wasm.__wbindgen_externrefs.set(idx, obj);
     return idx;
-}
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
 }
 
 function debugString(val) {

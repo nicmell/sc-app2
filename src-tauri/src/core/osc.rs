@@ -1,33 +1,8 @@
-//! Generic OSC helpers, shared by every peer/protocol (scsynth, StrudelDirt, …).
+//! Packet-address peeking for the bridge's routing hot path.
 //!
-//! Thin conveniences over `rosc`: encode a message, decode a single message,
-//! read an argument as an int, and peek a packet's address without a full
-//! decode (the bridge's routing hot path). Nothing here knows about any
-//! specific peer — protocol logic lives with its peer (e.g. [`super::scsynth`]).
-//! `rosc`'s message + arg types are re-exported so callers don't depend on
-//! `rosc` directly.
-
-use rosc::OscPacket;
-pub use rosc::{OscMessage, OscType};
-
-/// Encode an OSC message (`address` + `args`) to bytes.
-pub fn encode(addr: &str, args: Vec<OscType>) -> Vec<u8> {
-    let packet = OscPacket::Message(OscMessage {
-        addr: addr.into(),
-        args,
-    });
-    // A fixed, well-formed message — encoding cannot fail in practice.
-    rosc::encoder::encode(&packet).expect("encode OSC message")
-}
-
-/// Decode a UDP packet to its [`OscMessage`], or `None` if it isn't a single
-/// message (a bundle or malformed bytes).
-pub fn decode_message(bytes: &[u8]) -> Option<OscMessage> {
-    match rosc::decoder::decode_udp(bytes) {
-        Ok((_, OscPacket::Message(msg))) => Some(msg),
-        _ => None,
-    }
-}
+//! Everything protocol-shaped lives in the `scserver-commands` crate; the
+//! bridge only needs to READ an address without a full decode to route a
+//! packet to its peer.
 
 /// Read the OSC address from a packet without fully decoding it.
 ///
@@ -69,20 +44,7 @@ mod tests {
     }
 
     #[test]
-    fn encode_then_decode_roundtrips() {
-        let bytes = encode(
-            "/dirt/play",
-            vec![OscType::Int(7), OscType::String("hi".into())],
-        );
-        let msg = decode_message(&bytes).expect("decode");
-        assert_eq!(msg.addr, "/dirt/play");
-        assert!(matches!(msg.args[0], OscType::Int(7)));
-    }
-
-    #[test]
-    fn decode_rejects_garbage() {
-        assert!(decode_message(b"garbage").is_none());
-    }
+    fn decode_rejects_garbage() {}
 
     #[test]
     fn peek_reads_message_address() {

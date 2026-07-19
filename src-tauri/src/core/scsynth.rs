@@ -331,11 +331,14 @@ impl Scsynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::osc;
-    use crate::core::osc::OscType;
+    use scserver_commands::{OscMessage, OscType};
 
-    fn message_of(bytes: &[u8]) -> osc::OscMessage {
-        osc::decode_message(bytes).expect("expected a message")
+    fn message_of(bytes: &[u8]) -> OscMessage {
+        OscMessage::decode(bytes).expect("expected a message")
+    }
+
+    fn encode(addr: &str, args: Vec<OscType>) -> Vec<u8> {
+        OscMessage::with_args(addr, args).encode().expect("encode")
     }
 
     #[test]
@@ -345,24 +348,24 @@ mod tests {
             message_of(&notify_packet(false)).args,
             vec![OscType::Int(0)]
         );
-        assert_eq!(message_of(&status_packet()).addr, "/status");
+        assert_eq!(message_of(&status_packet()).address, "/status");
     }
 
     #[test]
     fn classifies_done_notify() {
-        let ok = osc::encode(
+        let ok = encode(
             "/done",
             vec![OscType::String("/notify".into()), OscType::Int(7)],
         );
         assert!(matches!(classify_reply(&ok), Reply::DoneNotify(7)));
-        let other = osc::encode("/done", vec![OscType::String("/quit".into())]);
+        let other = encode("/done", vec![OscType::String("/quit".into())]);
         assert!(matches!(classify_reply(&other), Reply::Other));
     }
 
     #[test]
     fn classifies_status_and_other() {
         // The full 9-arg reply shape — the typed parser rejects less.
-        let status = osc::encode(
+        let status = encode(
             "/status.reply",
             vec![
                 OscType::Int(1),     // unused
@@ -378,7 +381,7 @@ mod tests {
         );
         assert!(matches!(classify_reply(&status), Reply::Status));
         assert!(matches!(
-            classify_reply(&osc::encode("/n_go", vec![])),
+            classify_reply(&encode("/n_go", vec![])),
             Reply::Other
         ));
         assert!(matches!(classify_reply(b"garbage"), Reply::Other));
@@ -387,7 +390,7 @@ mod tests {
     #[test]
     fn classifies_fail() {
         // /fail <command> <error> — the common 2-arg form.
-        let bytes = osc::encode(
+        let bytes = encode(
             "/fail",
             vec![
                 OscType::String("/s_new".into()),
@@ -407,7 +410,7 @@ mod tests {
             _ => panic!("expected Fail"),
         }
         // 3-arg form: a trailing buffer index is captured as an extra.
-        let with_extra = osc::encode(
+        let with_extra = encode(
             "/fail",
             vec![
                 OscType::String("/b_read".into()),
@@ -429,7 +432,7 @@ mod tests {
     #[test]
     fn classifies_late() {
         // /late <scheduled: secs, fracs> <executed: secs, fracs> — two timetags.
-        let bytes = osc::encode(
+        let bytes = encode(
             "/late",
             vec![
                 OscType::Int(100),

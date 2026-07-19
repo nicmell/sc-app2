@@ -29,8 +29,9 @@ use axum::{Json, Router};
 use serde_json::{json, Value};
 use tokio::time::timeout;
 
-use crate::core::osc::{self, OscType};
 use crate::core::server::Server;
+use scserver_commands::commands::{GDumpTree, GQueryTree};
+use scserver_commands::{OscMessage, OscType};
 
 /// The `/api/diag/*` routes.
 pub fn routes() -> Router<Server> {
@@ -45,18 +46,20 @@ async fn nodetree(State(server): State<Server>) -> Response {
     let mut rx = server.bridge().subscribe();
     server
         .bridge()
-        .dispatch_command(&osc::encode(
-            "/g_queryTree",
-            vec![OscType::Int(0), OscType::Int(1)], // group 0, with controls
-        ))
+        // group 0, with controls
+        .dispatch_command(
+            &GQueryTree::new(vec![(0, 1)])
+                .encode()
+                .expect("encode /g_queryTree"),
+        )
         .await;
 
     let reply = timeout(Duration::from_secs(2), async {
         loop {
             match rx.recv().await {
                 Ok(bytes) => {
-                    if let Some(msg) = osc::decode_message(&bytes) {
-                        if msg.addr == "/g_queryTree.reply" {
+                    if let Ok(msg) = OscMessage::decode(&bytes) {
+                        if msg.address == "/g_queryTree.reply" {
                             return Some(msg.args);
                         }
                     }
@@ -83,10 +86,11 @@ async fn nodetree(State(server): State<Server>) -> Response {
 async fn dumptree(State(server): State<Server>) -> Response {
     server
         .bridge()
-        .dispatch_command(&osc::encode(
-            "/g_dumpTree",
-            vec![OscType::Int(0), OscType::Int(1)],
-        ))
+        .dispatch_command(
+            &GDumpTree::new(vec![(0, 1)])
+                .encode()
+                .expect("encode /g_dumpTree"),
+        )
         .await;
     (
         StatusCode::ACCEPTED,

@@ -166,11 +166,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32",
-              "f32"
-            ]
+            "tail": ["i32", "i32", "f32"]
           },
           "doc": "Repeated tuples: sample starting index; number of samples to fill (M); value."
         }
@@ -261,10 +257,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: starting sample index; number of sequential samples to get (M)."
         }
@@ -418,10 +411,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "f32"
-            ]
+            "tail": ["i32", "f32"]
           },
           "doc": "Repeated tuples: a sample index; a sample value."
         }
@@ -565,11 +555,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32",
-              "numericValue"
-            ]
+            "tail": ["i32", "i32", "numericValue"]
           },
           "doc": "Repeated tuples: starting bus index; number of buses to fill (M); value."
         }
@@ -599,10 +585,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: starting bus index; number of sequential buses to get (M)."
         }
@@ -617,10 +600,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "numericValue"
-            ]
+            "tail": ["i32", "numericValue"]
           },
           "doc": "Repeated tuples: a bus index; a control value."
         }
@@ -668,10 +648,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: group ID; flag; if not 0 the current control (arg) values for synths will be posted."
         }
@@ -701,10 +678,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: group ID; node ID."
         }
@@ -719,11 +693,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32", "i32"]
           },
           "doc": "Repeated tuples: new group ID; add action (0,1,2, 3 or 4 see below); add target ID."
         }
@@ -738,10 +708,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: group ID; flag: if not 0 the current control (arg) values for synths will be included."
         }
@@ -756,10 +723,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: group ID; node ID."
         }
@@ -774,11 +738,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32", "i32"]
           },
           "doc": "Repeated tuples: new group ID; add action (0,1,2, 3 or 4 see below); add target ID."
         }
@@ -915,10 +875,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: the ID of the node to place (A); the ID of the node after which the above is placed (B)."
         }
@@ -933,10 +890,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: the ID of the node to place (A); the ID of the node before which the above is placed (B)."
         }
@@ -958,11 +912,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32",
-              "numericValue"
-            ]
+            "tail": ["controlId", "i32", "numericValue"]
           },
           "doc": "Repeated tuples: a control index or name; number of values to fill (M); value."
         }
@@ -999,10 +949,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32"
-            ]
+            "tail": ["controlId", "i32"]
           },
           "doc": "Repeated tuples: a control index or name; control bus index."
         }
@@ -1024,10 +971,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32"
-            ]
+            "tail": ["controlId", "i32"]
           },
           "doc": "Repeated tuples: a control index or name; audio bus index."
         }
@@ -1049,11 +993,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32",
-              "i32"
-            ]
+            "tail": ["controlId", "i32", "i32"]
           },
           "doc": "Repeated tuples: a control index or name; audio bus index; number of controls to map."
         }
@@ -1075,11 +1015,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32",
-              "i32"
-            ]
+            "tail": ["controlId", "i32", "i32"]
           },
           "doc": "Repeated tuples: a control index or name; control bus index; number of controls to map."
         }
@@ -1138,10 +1074,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "i32",
-              "i32"
-            ]
+            "tail": ["i32", "i32"]
           },
           "doc": "Repeated tuples: node ID; run flag."
         }
@@ -1163,10 +1096,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "numericValue"
-            ]
+            "tail": ["controlId", "numericValue"]
           },
           "doc": "Repeated tuples: a control index or name; a control value."
         }
@@ -1257,10 +1187,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "i32"
-            ]
+            "tail": ["controlId", "i32"]
           },
           "doc": "Repeated tuples: a control index or name; number of sequential controls to get (M)."
         }
@@ -1303,10 +1230,7 @@
         {
           "name": "tail",
           "form": {
-            "tail": [
-              "controlId",
-              "controlValue"
-            ]
+            "tail": ["controlId", "controlValue"]
           },
           "doc": "Repeated tuples: a control index or name; floating point and integer arguments are interpreted as control value. a symbol argument consisting of the letter 'c' or 'a' (for control or audio) followed by the bus's index.."
         }
@@ -1496,10 +1420,7 @@
         {
           "name": "pairs",
           "form": {
-            "tail": [
-              "string",
-              "oscArg"
-            ]
+            "tail": ["string", "oscArg"]
           },
           "doc": "Repeated tuples: parameter name; parameter value."
         }

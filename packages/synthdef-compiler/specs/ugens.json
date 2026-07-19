@@ -5,11 +5,7 @@
       "ugens": [
         {
           "name": "BinaryOpUGen",
-          "rates": [
-            "ir",
-            "ar",
-            "kr"
-          ],
+          "rates": ["ir", "ar", "kr"],
           "numOutputs": null,
           "doc": "Multi-function binary ugen representing many operations (e.g. +, *, <, min, max, etc...)",
           "noBuilder": true,
@@ -28,11 +24,7 @@
         },
         {
           "name": "MulAdd",
-          "rates": [
-            "ir",
-            "ar",
-            "kr"
-          ],
+          "rates": ["ir", "ar", "kr"],
           "numOutputs": null,
           "doc": "Multiply the input source by mul then add the add value. Equivalent to, but more efficient than, (+ add (* mul in))",
           "args": [
@@ -55,11 +47,7 @@
         },
         {
           "name": "UnaryOpUGen",
-          "rates": [
-            "ir",
-            "ar",
-            "kr"
-          ],
+          "rates": ["ir", "ar", "kr"],
           "numOutputs": null,
           "doc": "Multi-function unary ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)",
           "noBuilder": true,
@@ -78,9 +66,7 @@
       "ugens": [
         {
           "name": "BAllPass",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "All pass filter based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -103,9 +89,7 @@
         },
         {
           "name": "BBandPass",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Band pass filter based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -128,9 +112,7 @@
         },
         {
           "name": "BBandStop",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Band reject filter based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -153,9 +135,7 @@
         },
         {
           "name": "BHiPass",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "12db/oct rolloff - 2nd order resonant Hi Pass Filter based on the Second Order Section (SOS) biquad UGen.",
           "args": [
@@ -178,9 +158,7 @@
         },
         {
           "name": "BHiShelf",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Hi shelfbased on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -208,9 +186,7 @@
         },
         {
           "name": "BLowPass",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "12db/oct rolloff - 2nd order resonant Low Pass Filter based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -233,9 +209,7 @@
         },
         {
           "name": "BLowShelf",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Low shelf based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -263,9 +237,7 @@
         },
         {
           "name": "BPeakEQ",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Parametric equalizer based on the Second Order Section (SOS) biquad UGen",
           "args": [
@@ -298,10 +270,7 @@
       "ugens": [
         {
           "name": "BufRd",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -338,18 +307,10 @@
         },
         {
           "name": "BufWr",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 1,
           "doc": "writes to a buffer at a given index. Note, buf-wr (in difference to buf-rd) does not do multichannel expansion, because input is an array.",
-          "buildOrder": [
-            "bufnum",
-            "phase",
-            "loop",
-            "inputArray"
-          ],
+          "buildOrder": ["bufnum", "phase", "loop", "inputArray"],
           "args": [
             {
               "name": "inputArray",
@@ -376,9 +337,7 @@
         },
         {
           "name": "ClearBuf",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": 0,
           "args": [
             {
@@ -389,9 +348,7 @@
         },
         {
           "name": "LocalBuf",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -409,9 +366,7 @@
         },
         {
           "name": "MaxLocalBufs",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "args": [
             {
@@ -422,10 +377,7 @@
         },
         {
           "name": "PlayBuf",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -471,10 +423,7 @@
         },
         {
           "name": "RecordBuf",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 1,
           "doc": "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the defsynth, it cannot vary depending on which buffer you use.",
           "buildOrder": [
@@ -539,15 +488,9 @@
         },
         {
           "name": "ScopeOut",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 1,
-          "buildOrder": [
-            "bufnum",
-            "inputArray"
-          ],
+          "buildOrder": ["bufnum", "inputArray"],
           "args": [
             {
               "name": "inputArray",
@@ -562,17 +505,9 @@
         },
         {
           "name": "ScopeOut2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 1,
-          "buildOrder": [
-            "scopeNum",
-            "maxFrames",
-            "scopeFrames",
-            "inputArray"
-          ],
+          "buildOrder": ["scopeNum", "maxFrames", "scopeFrames", "inputArray"],
           "args": [
             {
               "name": "inputArray",
@@ -595,10 +530,7 @@
         },
         {
           "name": "SetBuf",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "args": [
             {
@@ -617,9 +549,7 @@
         },
         {
           "name": "TGrains",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -680,9 +610,7 @@
       "ugens": [
         {
           "name": "CuspL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating (cusp map chaotic) sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)",
           "extends": "CuspN",
@@ -711,9 +639,7 @@
         },
         {
           "name": "CuspN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating (cusp map chaotic) sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)",
           "args": [
@@ -741,9 +667,7 @@
         },
         {
           "name": "FBSineC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a cubic-interpolating feedback sine with chaotic phase indexing sound generator. This uses a linear congruential function to drive the phase indexing of a sine wave. For im = 1, fb = 0, and a = 1 a normal sinewave results.",
           "extends": "FBSineN",
@@ -787,9 +711,7 @@
         },
         {
           "name": "FBSineL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating feedback sine with chaotic phase indexing sound generator. This uses a linear congruential function to drive the phase indexing of a sine wave. For im = 1, fb = 0, and a = 1 a normal sinewave results.",
           "extends": "FBSineN",
@@ -833,9 +755,7 @@
         },
         {
           "name": "FBSineN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating feedback sine with chaotic phase indexing sound generator. This uses a linear congruential function to drive the phase indexing of a sine wave. For im = 1, fb = 0, and a = 1 a normal sinewave results.",
           "args": [
@@ -878,9 +798,7 @@
         },
         {
           "name": "GbmanL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "A linear-interpolating (gingerbreadman map chaotic) sound generator based on the difference equations: xn+1 = 1 - yn + |xn| yn+1 = xn",
           "extends": "GbmanN",
@@ -904,9 +822,7 @@
         },
         {
           "name": "GbmanN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "A non-interpolating (gingerbreadman map chaotic) sound generator based on the difference equations: xn+1 = 1 - yn + |xn| yn+1 = xn",
           "args": [
@@ -929,9 +845,7 @@
         },
         {
           "name": "HenonC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a cubic-interpolating (henon map chaotic) sound generator based on the difference equation: x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]. This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.",
           "extends": "HenonN",
@@ -965,9 +879,7 @@
         },
         {
           "name": "HenonL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating (henon map chaotic) sound generator based on the difference equation: x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]. This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.",
           "extends": "HenonN",
@@ -1001,9 +913,7 @@
         },
         {
           "name": "HenonN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating (henon map chaotic) sound generator based on the difference equation: x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]. This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.",
           "args": [
@@ -1036,9 +946,7 @@
         },
         {
           "name": "LatoocarfianC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a cubic-interpolating (latoocarfian chaotic) sound generator. Parameters a and b should be in the range from -3 to +3, and parameters c and d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).",
           "extends": "LatoocarfianN",
@@ -1082,9 +990,7 @@
         },
         {
           "name": "LatoocarfianL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating (latoocarfian chaotic) sound generator. Parameters a and b should be in the range from -3 to +3, and parameters c and d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).",
           "extends": "LatoocarfianN",
@@ -1128,9 +1034,7 @@
         },
         {
           "name": "LatoocarfianN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating (latoocarfian chaotic) sound generator. Parameters a and b should be in the range from -3 to +3, and parameters c and d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).",
           "args": [
@@ -1173,9 +1077,7 @@
         },
         {
           "name": "LinCongC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a cubic-interpolating (linear congruential chaotic) sound generator. The output signal is automatically scaled to a range of [-1, 1].",
           "extends": "LinCongN",
@@ -1209,9 +1111,7 @@
         },
         {
           "name": "LinCongL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating (linear congruential chaotic) sound generator. The output signal is automatically scaled to a range of [-1, 1].",
           "extends": "LinCongN",
@@ -1245,9 +1145,7 @@
         },
         {
           "name": "LinCongN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating (linear congruential chaotic) sound generator. The output signal is automatically scaled to a range of [-1, 1].",
           "args": [
@@ -1280,9 +1178,7 @@
         },
         {
           "name": "LorenzL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "lorenz chaotic generator. A strange attractor discovered by Edward N. Lorenz while studying mathematical models of the atmosphere. The time step amount h determines the rate at which the ODE is evaluated. Higher values will increase the rate, but cause more instability. A safe choice is the default amount of 0.05.",
           "args": [
@@ -1330,9 +1226,7 @@
         },
         {
           "name": "QuadC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a cubic-interpolating (general quadratic map chaotic) sound generator based on the difference equation: xn+1 = axn2 + bxn + c",
           "extends": "QuadN",
@@ -1366,9 +1260,7 @@
         },
         {
           "name": "QuadL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a linear-interpolating (general quadratic map chaotic) sound generator based on the difference equation: xn+1 = axn2 + bxn + c",
           "extends": "QuadN",
@@ -1402,9 +1294,7 @@
         },
         {
           "name": "QuadN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "a non-interpolating (general quadratic map chaotic) sound generator based on the difference equation: xn+1 = axn2 + bxn + c",
           "args": [
@@ -1437,9 +1327,7 @@
         },
         {
           "name": "StandardL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "linear-interpolating standard map chaotic generator. The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.",
           "extends": "StandardN",
@@ -1468,9 +1356,7 @@
         },
         {
           "name": "StandardN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "standard map chaotic generator. The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.",
           "args": [
@@ -1503,10 +1389,7 @@
       "ugens": [
         {
           "name": "Amplitude",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Amplitude follower",
           "doc": "Tracks the peak amplitude of a signal.",
@@ -1530,9 +1413,7 @@
         },
         {
           "name": "Compander",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "summary": "General purpose hard-knee dynamic range processor.",
           "doc": "The compander will modify the amplitude of the in signal based on an analysis of the control signal. Typically the in and control signals are the same. The amplitude of the control signal is calcuated using RMS (Root Mean Square) and the final amplitude of the in signal is calculated as a function of the amplitude threshold, and slopes either side (below and above) with some temporal modifications in terms of attack and release phases. It is a hard-knee processor which means that the response curve is a sharp angle rather than a rounded edge. If the control amplitude is less than the threshold, the slope below is used to calculate the amplitude modification. If this is steep (greater than 1) this will reduce the amplitude of quiet signals (the quieter the control amplitude the greater the reduction affect). Values < 1.0 are possible, but it means that a very low-level control signal will cause the input signal to be amplified, which would raise the noise floor. If the control amplitude is greater than the threshold, the slope above is used to calculate the amplitude modification. If this is steep (greater than 1) this will create expansion - loud signals will be made louder). Less than 1 will achieve compressions (louder signals are attenuated). The clamp and relax times modify when the amplitude modification takes place and ends. May be used to define: compressers, expanders, limiters, gates and duckers. For more information see: http://en.wikipedia.org/wiki/Audio_level_compression",
@@ -1576,9 +1457,7 @@
         },
         {
           "name": "Limiter",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Limits the input amplitude to the given level. Limiter will not overshoot like Compander will, but it needs to look ahead in the audio. Thus there is a delay equal to twice the lookAheadTime. Limiter, unlike Compander, is completely transparent for an in range signal.",
           "extends": "Normalizer",
@@ -1602,9 +1481,7 @@
         },
         {
           "name": "Normalizer",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "flattens dynamics. Normalizes the input amplitude to the given level. Normalize will not overshoot like Compander will, but it needs to look ahead in the audio. Thus there is a delay equal to twice the lookAheadTime.",
           "args": [
@@ -1632,10 +1509,7 @@
       "ugens": [
         {
           "name": "AllpassC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "all pass delay line, cubic interpolation",
           "extends": "CombN",
@@ -1664,10 +1538,7 @@
         },
         {
           "name": "AllpassL",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "all pass delay line, linear interpolation",
           "extends": "CombN",
@@ -1696,10 +1567,7 @@
         },
         {
           "name": "AllpassN",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "all pass delay line, no interpolation. See also AllpassC which uses cubic interpolation, and AllpassL which uses linear interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "extends": "CombN",
@@ -1728,9 +1596,7 @@
         },
         {
           "name": "BufAllpassC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based all pass delay line with cubic interpolation",
           "extends": "BufCombN",
@@ -1759,9 +1625,7 @@
         },
         {
           "name": "BufAllpassL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based all pass delay line with linear interpolation",
           "extends": "BufCombN",
@@ -1790,9 +1654,7 @@
         },
         {
           "name": "BufAllpassN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based all pass delay line with no interpolation. See also BufAllpassC which uses cubic interpolation, and BufAllpassL which uses linear interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "extends": "BufCombN",
@@ -1821,9 +1683,7 @@
         },
         {
           "name": "BufCombC",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based comb delay line with cubic interpolation",
           "extends": "BufCombN",
@@ -1852,9 +1712,7 @@
         },
         {
           "name": "BufCombL",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based comb delay line with linear interpolation",
           "extends": "BufCombN",
@@ -1883,9 +1741,7 @@
         },
         {
           "name": "BufCombN",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "buffer based comb delay line with no interpolation. See also [BufCombL] which uses linear interpolation, and BufCombC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "args": [
@@ -1913,10 +1769,7 @@
         },
         {
           "name": "BufDelayC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "buffer based simple delay line with cubic interpolation",
           "extends": "BufDelayN",
@@ -1940,10 +1793,7 @@
         },
         {
           "name": "BufDelayL",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "buffer based simple delay line with linear interpolation",
           "extends": "BufDelayN",
@@ -1967,10 +1817,7 @@
         },
         {
           "name": "BufDelayN",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "buffer based simple delay line with no interpolation. See also BufDelayL which uses linear interpolation, and BufDelayC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "args": [
@@ -1993,10 +1840,7 @@
         },
         {
           "name": "CombC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "comb delay line, cubic interpolation",
           "extends": "CombN",
@@ -2025,10 +1869,7 @@
         },
         {
           "name": "CombL",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "comb delay line, linear interpolation",
           "extends": "CombN",
@@ -2057,10 +1898,7 @@
         },
         {
           "name": "CombN",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "comb delay line, no interpolation. See also CombL which uses linear interpolation, and CombC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "args": [
@@ -2088,10 +1926,7 @@
         },
         {
           "name": "DelTapRd",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Tap a delay line from a del-tap-wr UGen",
           "args": [
@@ -2119,10 +1954,7 @@
         },
         {
           "name": "DelTapWr",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Tap a delay line from a del-tap-wr UGen",
           "args": [
@@ -2140,10 +1972,7 @@
         },
         {
           "name": "Delay1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "delay input signal by one frame of samples. Note: for audio-rate signals the delay is 1 audio frame, and for control-rate signals the delay is 1 control period.",
           "args": [
@@ -2156,10 +1985,7 @@
         },
         {
           "name": "Delay2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "delay input signal by two frames of samples",
           "extends": "Delay1",
@@ -2173,10 +1999,7 @@
         },
         {
           "name": "DelayC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "simple delay line, cubic interpolation.",
           "extends": "DelayN",
@@ -2200,10 +2023,7 @@
         },
         {
           "name": "DelayL",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "simple delay line, linear interpolation.",
           "extends": "DelayN",
@@ -2227,10 +2047,7 @@
         },
         {
           "name": "DelayN",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "simple delay line, no interpolation. See also DelayL which uses linear interpolation, and DelayC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate.",
           "args": [
@@ -2330,10 +2147,7 @@
         },
         {
           "name": "Demand",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "On every trigger it demands the next value from each of the demand ugens passed as args. Used to pull values from the other demand rate ugens. By design, a reset trigger only resets the demand ugens; it does not reset the value at Demand's output. Demand continues to hold its value until the next value is demanded, at which point its output value will be the first expected item in the list.",
           "args": [
@@ -2356,10 +2170,7 @@
         },
         {
           "name": "DemandEnvGen",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Plays back break point envelope contours (levels, times, shapes) given by demand ugens. The next values are called when the next node is reached.",
           "args": [
@@ -2675,10 +2486,7 @@
         },
         {
           "name": "Duty",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "This ugen has been internalised for scserver compatibility. Please use the duty cgen instead.",
           "args": [
@@ -2743,10 +2551,7 @@
         },
         {
           "name": "TDuty",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "This ugen has been internalised for scserver compatibility. Please use the tduty cgen instead.",
           "extends": "Duty",
@@ -2781,9 +2586,7 @@
       "ugens": [
         {
           "name": "Done",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Outputs a one when the src ugen (typically an envelope) has finished",
           "args": [
@@ -2796,10 +2599,7 @@
         },
         {
           "name": "EnvGen",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "envelope generator, interpolates across a path of control points over time, see the overtone.sc.envelope functions to generate the control points array Note: The actual minimum duration of a segment is not zero, but one sample step for audio rate and one block for control rate. This may result in asynchronicity when in two envelopes of different number of levels, the envelope times add up to the same total duration. Similarly, when modulating times, the new time is only updated at the end of the current segment - this may lead to asynchronicity of two envelopes with modulated times.",
           "args": [
@@ -2837,9 +2637,7 @@
         },
         {
           "name": "Free",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Free the specified node when triggered",
           "args": [
@@ -2857,9 +2655,7 @@
         },
         {
           "name": "FreeSelf",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Free the enclosing synth when triggered",
           "args": [
@@ -2872,9 +2668,7 @@
         },
         {
           "name": "FreeSelfWhenDone",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Free the enclosing synth when the src ugen finishes (e.g. env-gen, play-buf, linen...)",
           "args": [
@@ -2887,10 +2681,7 @@
         },
         {
           "name": "IEnvGen",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "args": [
             {
@@ -2907,9 +2698,7 @@
         },
         {
           "name": "Linen",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "A linear envelope generator, rises to sus-level over attack-time seconds and after the gate goes non-positive falls over release-time to finally perform the (optional) action",
           "args": [
@@ -2942,9 +2731,7 @@
         },
         {
           "name": "Pause",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Pause a specified node when triggered",
           "args": [
@@ -2962,9 +2749,7 @@
         },
         {
           "name": "PauseSelf",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Pause the enclosing synth when triggered",
           "args": [
@@ -2977,9 +2762,7 @@
         },
         {
           "name": "PauseSelfWhenDone",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 1,
           "doc": "Pause the enclosing synth when the src ugen finishes (e.g. env-gen, play-buf, linen...)",
           "args": [
@@ -2997,10 +2780,7 @@
       "ugens": [
         {
           "name": "Blip",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Band Limited Impulse generator. All harmonics have equal amplitude. This is the equivalent of buzz in MusicN languages. WARNING: This waveform in its raw form could be damaging to your ears at high amplitudes or for long periods. It is improved from other implementations in that it will crossfade in a control period when the number of harmonics changes, so that there are no audible pops. It also eliminates the divide in the formula by using a 1/sin table (with special precautions taken for 1/0). The lookup tables are linearly interpolated for better quality. Synth-O-Matic (1990) had an impulse generator called blip, hence that name here rather than 'buzz'.",
           "args": [
@@ -3018,10 +2798,7 @@
         },
         {
           "name": "FSinOsc",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Very fast sine wave generator (2 PowerPC instructions per output sample!) implemented using a ringing filter. This generates a much cleaner sine wave than a table lookup oscillator and is a lot faster. However, the amplitude of the wave will vary with frequency. Generally the amplitude will go down as you raise the frequency and go up as you lower the frequency. WARNING: In the current implementation, the amplitude can blow up if the frequency is modulated by certain alternating signals.",
           "args": [
@@ -3039,9 +2816,7 @@
         },
         {
           "name": "Klang",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Klang is a bank of fixed frequency sine oscillators. Klang is more efficient than creating individual oscillators but offers less flexibility. The specs can't be changed after it has been started. For a modulatable but less efficient version, see dyn-klang.",
           "args": [
@@ -3064,9 +2839,7 @@
         },
         {
           "name": "Klank",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Klank is a bank of fixed frequency resonators which can be used to simulate the resonant modes of an object. Each mode is given a ring time, which is the time for the mode to decay by 60 dB. The specs can't be changed after it has been started. For a modulatable but less efficient version, see dyn-klank.",
           "args": [
@@ -3099,9 +2872,7 @@
         },
         {
           "name": "PSinGrain",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Fixed frequency sine oscillator this ugen uses a very fast algorithm for generating a sine wave at a fixed frequency",
           "args": [
@@ -3124,10 +2895,7 @@
         },
         {
           "name": "Pulse",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "band limited pulse wave generator with pulse width modulation.",
           "doc": "Pulse waves are a general form of square wave that allow for the width of the pulses to be varied. A square wave is therefore a pulse with a width of 0.5 i.e. the width of the high and low states is identical. Adjusting the ratio of the pulse width will vary the harmonic content of the sound. For example, reductions in the width allow you to produce thin reed-like timbres along with the wide, hollow sounds created by a square wave.",
@@ -3146,10 +2914,7 @@
         },
         {
           "name": "Saw",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "band limited sawtooth wave generator",
           "doc": "The sawtooth wave produces even and odd harmonics in series and therefore produces a bright sound that is an excellent starting point for brassy, raspy sounds. It's also suitable for creating the gritty, bright sounds needed for leads and raspy basses. Due to its harmonic richness it's extremely suitable for use with sounds that will be filter swept.",
@@ -3168,9 +2933,7 @@
       "ugens": [
         {
           "name": "FFT",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands) Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand.",
           "args": [
@@ -3208,9 +2971,7 @@
         },
         {
           "name": "FFTTrigger",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Outputs the necessary signal for FFT chains, without doing an FFT on a signal",
           "args": [
@@ -3233,10 +2994,7 @@
         },
         {
           "name": "IFFT",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "inverse fast fourier transform, converts buffer data from frequency domain to time domain The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and overlap-adds the result to produce a continuous signal at its output.",
           "args": [
@@ -3259,9 +3017,7 @@
         },
         {
           "name": "PV_Add",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "complex addition: RealA + RealB, ImagA + ImagB",
           "extends": "PV_MagMul",
@@ -3280,9 +3036,7 @@
         },
         {
           "name": "PV_BinScramble",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "randomizes the order of the bins. The trigger will select a new random ordering.",
           "args": [
@@ -3310,9 +3064,7 @@
         },
         {
           "name": "PV_BinShift",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "shift and scale the positions of the bins. Can be used as a very crude frequency shifter/scaler.",
           "args": [
@@ -3335,9 +3087,7 @@
         },
         {
           "name": "PV_BinWipe",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "copies low bins from one input and the high bins of the other",
           "args": [
@@ -3360,9 +3110,7 @@
         },
         {
           "name": "PV_BrickWall",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "clears bins above or below a cutoff point",
           "args": [
@@ -3380,9 +3128,7 @@
         },
         {
           "name": "PV_Conj",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "converts the FFT frames to their complex conjugate (i.e. reverses the sign of their imaginary part). This is not usually a useful audio effect in itself, but may be a component of other analysis or transformation processes...",
           "extends": "PV_MagSquared",
@@ -3396,9 +3142,7 @@
         },
         {
           "name": "PV_Copy",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "copies the spectral frame in bufferA to bufferB at that point in the chain of PV UGens. This allows for parallel processing of spectral data without the need for multiple FFT UGens, and to copy out data at that point in the chain for other purposes. bufferA and bufferB must be the same size.",
           "extends": "PV_MagMul",
@@ -3417,9 +3161,7 @@
         },
         {
           "name": "PV_CopyPhase",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "combines magnitudes of first input and phases of the second input",
           "extends": "PV_MagMul",
@@ -3438,9 +3180,7 @@
         },
         {
           "name": "PV_Diffuser",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "adds a different constant random phase shift to each bin. The trigger will select a new set of random phases.",
           "args": [
@@ -3458,9 +3198,7 @@
         },
         {
           "name": "PV_Div",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "complex division",
           "extends": "PV_MagMul",
@@ -3479,9 +3217,7 @@
         },
         {
           "name": "PV_LocalMax",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "passes only bins whose magnitude is above a threshold and above their nearest neighbors",
           "extends": "PV_MagAbove",
@@ -3500,9 +3236,7 @@
         },
         {
           "name": "PV_MagAbove",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "passes only bins whose magnitude is above a threshold",
           "args": [
@@ -3520,9 +3254,7 @@
         },
         {
           "name": "PV_MagBelow",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "passes only bins whose magnitude is below a threshold",
           "extends": "PV_MagAbove",
@@ -3541,9 +3273,7 @@
         },
         {
           "name": "PV_MagClip",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "clips bin magnitudes to a maximum threshold",
           "extends": "PV_MagAbove",
@@ -3562,9 +3292,7 @@
         },
         {
           "name": "PV_MagDiv",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "divides magnitudes of two inputs and keeps the phases of the first input",
           "args": [
@@ -3587,9 +3315,7 @@
         },
         {
           "name": "PV_MagFreeze",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "freezes magnitudes at current levels when freeze > 0",
           "args": [
@@ -3607,9 +3333,7 @@
         },
         {
           "name": "PV_MagMul",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "multiplies magnitudes of two inputs and keeps the phases of the first input",
           "args": [
@@ -3627,9 +3351,7 @@
         },
         {
           "name": "PV_MagNoise",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "magnitudes are multiplied with noise",
           "extends": "PV_MagSquared",
@@ -3643,9 +3365,7 @@
         },
         {
           "name": "PV_MagShift",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "shift and stretch the positions of only the magnitude of the bins. Can be used as a very crude frequency shifter/scaler.",
           "extends": "PV_BinShift",
@@ -3669,9 +3389,7 @@
         },
         {
           "name": "PV_MagSmear",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "average a bin's magnitude with its neighbors",
           "args": [
@@ -3689,9 +3407,7 @@
         },
         {
           "name": "PV_MagSquared",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "squares the magnitudes and renormalizes to previous peak. This makes weak bins weaker.",
           "args": [
@@ -3704,9 +3420,7 @@
         },
         {
           "name": "PV_Max",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "output copies bins with the maximum magnitude of the two inputs",
           "extends": "PV_MagMul",
@@ -3725,9 +3439,7 @@
         },
         {
           "name": "PV_Min",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "output copies bins with the minimum magnitude of the two inputs",
           "extends": "PV_MagMul",
@@ -3746,9 +3458,7 @@
         },
         {
           "name": "PV_Mul",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "complex multiplication: (RealA * RealB) - (ImagA * ImagB) (ImagA * RealB) + (RealA * ImagB)",
           "extends": "PV_MagMul",
@@ -3767,9 +3477,7 @@
         },
         {
           "name": "PV_PhaseShift",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "shift phase of all bins",
           "args": [
@@ -3787,9 +3495,7 @@
         },
         {
           "name": "PV_PhaseShift270",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "shift phase of all bins by 270 degrees",
           "extends": "PV_MagSquared",
@@ -3803,9 +3509,7 @@
         },
         {
           "name": "PV_PhaseShift90",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "shift phase of all bins by 90 degrees",
           "extends": "PV_MagSquared",
@@ -3819,9 +3523,7 @@
         },
         {
           "name": "PV_RandComb",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "randomly clear bins",
           "args": [
@@ -3844,9 +3546,7 @@
         },
         {
           "name": "PV_RandWipe",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "cross fades between two sounds by copying bins in a random order",
           "args": [
@@ -3874,9 +3574,7 @@
         },
         {
           "name": "PV_RectComb",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "makes a series of gaps in a spectrum",
           "args": [
@@ -3904,9 +3602,7 @@
         },
         {
           "name": "PV_RectComb2",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "alternates blocks of bins between the two inputs",
           "args": [
@@ -3944,9 +3640,7 @@
       "ugens": [
         {
           "name": "Convolution",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Strict convolution of two continuously changing inputs. Also see convolution2 for a cheaper CPU cost alternative for the case of a fixed kernel which can be changed with a trigger message. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http:// www.dspguide.com/ch18.htm",
           "args": [
@@ -3969,9 +3663,7 @@
         },
         {
           "name": "Convolution2",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Strict convolution with fixed kernel which can be updated using a trigger signal. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http:// www.dspguide.com/ch18.htm",
           "args": [
@@ -3999,9 +3691,7 @@
         },
         {
           "name": "Convolution2L",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http://www.dspguide.com/ch18.htm",
           "args": [
@@ -4034,10 +3724,7 @@
         },
         {
           "name": "Convolution3",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Strict convolution with fixed kernel which can be updated using a trigger signal. The convolution is performed in the time domain, which is highly inefficient, and probably only useful for either very short kernel sizes, or for control rate signals.",
           "args": [
@@ -4065,9 +3752,7 @@
         },
         {
           "name": "PV_ConformalMap",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Applies the conformal mapping z -> (z-a)/(1-za*) to the phase vocoder bins z with a given by the real and imag inputs to the UGen. i.e., makes a transformation of the complex plane so the output is full of phase vocoder artifacts but may be musically fun. Usually keep |a|<1 but you can of course try bigger values to make it really noisy. a=0 should give back the input mostly unperturbed. See http://mathworld.wolfram.com/ConformalMapping.html",
           "args": [
@@ -4090,9 +3775,7 @@
         },
         {
           "name": "PV_HainsworthFoote",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "FFT onset detector based on work described in: Hainsworth, S. (2003) Techniques for the Automated Analysis of Musical Audio. PhD, University of Cambridge engineering dept. See especially p128. The Hainsworth metric is a modification of the Kullback Liebler distance. The onset detector has general ability to spot spectral change, so may have some ability to track chord changes aside from obvious transient jolts, but there's no guarantee it won't be confused by frequency modulation artifacts. Hainsworth metric on it's own gives good results but Foote might be useful in some situations: experimental.",
           "args": [
@@ -4125,9 +3808,7 @@
         },
         {
           "name": "PV_JensenAndersen",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "FFT feature detector for onset detection based on work described in: Jensen,K. & Andersen, T. H. (2003). Real-time Beat Estimation Using Feature Extraction. In Proceedings of the Computer Music Modeling and Retrieval Symposium, Lecture Notes in Computer Science. Springer Verlag. First order derivatives of the features are taken. Threshold may need to be set low to pick up on changes.",
           "args": [
@@ -4170,10 +3851,7 @@
         },
         {
           "name": "RunningSum",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A running sum over a user specified number of samples, useful for running RMS power windowing.",
           "args": [
@@ -4191,9 +3869,7 @@
         },
         {
           "name": "StereoConvolution2L",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": 2,
           "doc": "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change. Like convolution2L, but convolves with two buffers and outputs a stereo signal. This saves one FFT transformation per period, as compared to using two copies of convolution2L. Useful applications could include stereo reverberation or HRTF convolution. See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http://www.dspguide.com/ch18.htm",
           "args": [
@@ -4236,10 +3912,7 @@
       "ugens": [
         {
           "name": "APF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "args": [
             {
@@ -4258,10 +3931,7 @@
         },
         {
           "name": "BPF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "second order Butterworth bandpass filter",
           "doc": "A band pass filter permits the frequencies around a specified centre frequency to pass unaltered through the filter while the frequencies either side are attenuated. The frequencies that pass through are known as the bandwidth or the band pass of the filter. Used to create timbres consisting of fizzy harmonics, lo-fi qualities or very thin sounds that may form the basis of sound effects.",
@@ -4285,10 +3955,7 @@
         },
         {
           "name": "BPZ2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two zero fixed midpass which cuts out 0 Hz and the Nyquist frequency. Implements the formula: out(i) = 0.5 * (in(i) - in(i-2))",
           "args": [
@@ -4300,10 +3967,7 @@
         },
         {
           "name": "BRF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "second order Butterworth band reject filter",
           "doc": "Band reject filters, also known as notch filters, attenuate a selected range of frequencies effectively creating a notch in the sound. This type of filter is handy for scooping out frequencies, thinning out a sound while leaving the fundamental intact, making them useful for creating timbres that contain a discernable pitch but do not have a high level of harmonic content.",
@@ -4327,10 +3991,7 @@
         },
         {
           "name": "BRZ2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two zero fixed midcut which cuts out frequencies around 1/2 of the Nyquist frequency. Implements the formula: out(i) = 0.5 * (in(i) + in(i-2))",
           "args": [
@@ -4342,10 +4003,7 @@
         },
         {
           "name": "Decay",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "triggered exponential decay.",
           "doc": "This is essentially the same as integrator except that instead of supplying the coefficient directly, it is calculated from a 60 dB decay time. This is the time required for the integrator to lose 99.9 % of its value or -60dB. This is useful for exponential decaying envelopes triggered by impulses.",
@@ -4364,10 +4022,7 @@
         },
         {
           "name": "Decay2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "triggered exponential attack and exponential decay. Decay has a very sharp attack and can produce clicks. Decay2 rounds off the attack by subtracting one Decay from another. (decay in attack-time decay-time) equivalent to: (- (decay in attack-time decay-time) (decay in attack-time decay-time))",
           "args": [
@@ -4390,10 +4045,7 @@
         },
         {
           "name": "DetectSilence",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "If the signal input starts with silence at the beginning of the synth's duration, then DetectSilence will wait indefinitely until the first sound before starting to monitor for silence. This UGen outputs 1 if silence is detected, otherwise 0.",
           "args": [
@@ -4421,10 +4073,7 @@
         },
         {
           "name": "FOS",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "first order filter section. Formula is equivalent to: out(i) = (a0 * in(i)) + (a1 * in(i-1)) + (b1 * out(i-1))",
           "args": [
@@ -4452,10 +4101,7 @@
         },
         {
           "name": "Formlet",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "a resonant filter whose impulse response is like that of a sine wave with a Decay2 envelope over it. The great advantage to this filter over FOF is that there is no limit to the number of overlapping grains since the grain is just the impulse response of the filter. Note that if attacktime == decaytime then the signal cancels out and if attacktime > decaytime then the impulse response is inverted.",
           "args": [
@@ -4483,10 +4129,7 @@
         },
         {
           "name": "HPF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "second order high pass filter",
           "doc": "A high pass filter lets through the frequencies above the cutoff point and successfully dampens the frequencies below the cutoff point. This effectively removes the fundamental frequency of the sound, leaving only the fizz harmonic overtones. High pass filters are rarely used in the creation of instruments and are predominantly used to create effervexcent sound effects of bright timbres that can be laid over the top of another low pass sound to increase the harmonic content.",
@@ -4505,10 +4148,7 @@
         },
         {
           "name": "HPZ1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two point difference filter. Implements the formula: out(i) = 0.5 * (in(i) - in(i-1))",
           "args": [
@@ -4520,10 +4160,7 @@
         },
         {
           "name": "HPZ2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two zero fixed highpass. Implements the formula: out(i) = 0.25 * (in(i) - (2*in(i-1)) + in(i-2))",
           "args": [
@@ -4535,10 +4172,7 @@
         },
         {
           "name": "Integrator",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "leaky integrator. Integrates an input signal with a leak. The formula implemented is: out(0) = in(0) + (coef * out(-1))",
           "args": [
@@ -4556,10 +4190,7 @@
         },
         {
           "name": "LPF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "second order Butterworth low pass filter",
           "doc": "A low pass filter is a standard subtractive synthesis tool which removes frequencies above a defined cut-off point. This typically has the effect of making bright sounds duller. Using a low pass filter allows you to have fine-grained control of the level of brightness/dullness to tune your timbre in addition to allowing you to modulate the effect in real time thus creating movement in the sound.",
@@ -4578,10 +4209,7 @@
         },
         {
           "name": "LPZ1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two point average filter. Implements the formula: out(i) = 0.5 * (in(i) + in(i-1))",
           "args": [
@@ -4593,10 +4221,7 @@
         },
         {
           "name": "LPZ2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "two zero fixed lowpass. Implements the formula: out(i) = 0.25 * (in(i) + (2*in(i-1)) + in(i-2))",
           "args": [
@@ -4608,10 +4233,7 @@
         },
         {
           "name": "Lag",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "exponential lag, useful for smoothing out control signals. This is essentially the same as OnePole except that instead of supplying the coefficient directly, it is calculated from a 60 dB lag time. This is the time required for the filter to converge to within 0.01 % of a value.",
           "args": [
@@ -4629,10 +4251,7 @@
         },
         {
           "name": "Lag2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "equivalent to (lag (lag in time) time), resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of twice. See lag for more details.",
           "args": [
@@ -4650,10 +4269,7 @@
         },
         {
           "name": "Lag2UD",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "equivalent to (lag-ud (lag-ud in up-t down-t) up-t down-t) thus resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of twice. See Lag for more details.",
           "args": [
@@ -4676,10 +4292,7 @@
         },
         {
           "name": "Lag3",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "lag3 is equivalent to (lag (lag (lag in time) time) time), thus resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of three times. See Lag for more details.",
           "args": [
@@ -4697,10 +4310,7 @@
         },
         {
           "name": "Lag3UD",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "equivalent to (lag-ud (lag-ud (lag-ud (in up-t down-t) up-t down-t) up-t, down-t) thus resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of three times.",
           "args": [
@@ -4723,10 +4333,7 @@
         },
         {
           "name": "LagUD",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "the same as Lag except that you can supply a different 60 dB time for when the signal goes up, from when the signal goes down",
           "args": [
@@ -4749,10 +4356,7 @@
         },
         {
           "name": "LeakDC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "removes a DC offset from signal. For example, a square wave contains prolonged sections of the cycle which are at +1 and -1 (the top and bottom of the square sections). If you were to pass this wave through leak-dc, then these top parts would taper back towards 0 with a greater slope as you move coef from 1 to 0.. Good starting point coef values are to 0.995 for audio rate and 0.9 for control rate",
           "args": [
@@ -4770,10 +4374,7 @@
         },
         {
           "name": "Median",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "returns the median of the last length input points. This non linear filter is good at reducing impulse noise from a signal.",
           "args": [
@@ -4791,10 +4392,7 @@
         },
         {
           "name": "MidEQ",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "attenuates or boosts a frequency band",
           "args": [
@@ -4822,10 +4420,7 @@
         },
         {
           "name": "OnePole",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A one pole filter. Implements the formula: out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1))",
           "args": [
@@ -4843,10 +4438,7 @@
         },
         {
           "name": "OneZero",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A one zero filter. Implements the formula : out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))",
           "args": [
@@ -4864,10 +4456,7 @@
         },
         {
           "name": "RHPF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "resonant high pass filter",
           "doc": "A resonant high pass filter lets through the frequencies above the cutoff point and successfully dampens the frequencies below the cutoff point. This effectively removes the fundamental frequency of the sound, leaving only the fizz harmonic overtones. However, in addition to this behaviour, the resonant high pass filter also emphasises/resonates the frequencies around the cutoff point. The amount of emphasis is controlled by the rq param with a lower rq resulting in greater resonance. High amounts of resonance (rq ~0) can create a whistling sound around the cutoff frequency. High pass filters are rarely used in the creation of instruments and are predominantly used to create effervescent sound effects of bright timbres that can be laid over the top of another low pass sound to increase the harmonic content.",
@@ -4891,10 +4480,7 @@
         },
         {
           "name": "RLPF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "resonant low pass filter",
           "doc": "A resonant low pass filter is a standard subtractive synthesis tool which removes frequencies above a defined cut-off point. This typically has the effect of making bright sounds duller. However, in addition to this behaviour, the resonant low pass filter also emphasises/resonates the frequencies around the cutoff point. The amount of emphasis is controlled by the rq param with a lower rq resulting in greater resonance. High amounts of resonance (rq ~0) can create a whistling sound around the cutoff frequency. Using a low pass filter allows you to have fine-grained control of the level of brightness/dullness to tune your timbre in addition to allowing you to modulate the effect in real time thus creating movement in the sound.",
@@ -4918,10 +4504,7 @@
         },
         {
           "name": "Ramp",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "similar to lag but with a linear rather than exponential lag, useful for smoothing out control signals",
           "args": [
@@ -4939,10 +4522,7 @@
         },
         {
           "name": "Resonz",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A Note on Constant-Gain Digital Resonators,\\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.\\\" Computer Music Journal, vol 18, no. 4, pp. 8-10, Winter 1994.",
           "args": [
@@ -4965,10 +4545,7 @@
         },
         {
           "name": "Ringz",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Ringz is the same as Resonz, except that instead of a resonance parameter, the bandwidth is specified in a 60dB ring decay time. One Ringz is equivalent to one component of the klank ugen",
           "args": [
@@ -4991,10 +4568,7 @@
         },
         {
           "name": "SOS",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "second order filter section (biquad). Formula is equivalent to: out(i) = (a0 * in(i)) + (a1 * in(i-1)) + (a2 * in(i-2)) + (b1 * out(i-1)) + (b2 * out(i-2))",
           "args": [
@@ -5032,10 +4606,7 @@
         },
         {
           "name": "Slew",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Smooth the curve by limiting the slope of the input signal to up and dn",
           "args": [
@@ -5058,10 +4629,7 @@
         },
         {
           "name": "Slope",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Measures the rate of change per second of a signal. Formula implemented is: out[i] = (in[i] - in[i-1]) * sampling_rate",
           "args": [
@@ -5074,10 +4642,7 @@
         },
         {
           "name": "TwoPole",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "a two pole filter. This provides lower level access to setting of pole location. For general purposes Resonz is better.",
           "args": [
@@ -5100,10 +4665,7 @@
         },
         {
           "name": "TwoZero",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "a two zero filter",
           "args": [
@@ -5131,9 +4693,7 @@
       "ugens": [
         {
           "name": "GrainBuf",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5194,9 +4754,7 @@
         },
         {
           "name": "GrainFM",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5252,9 +4810,7 @@
         },
         {
           "name": "GrainIn",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5300,9 +4856,7 @@
         },
         {
           "name": "GrainSin",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5348,9 +4902,7 @@
         },
         {
           "name": "Warp1",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5411,10 +4963,7 @@
       "ugens": [
         {
           "name": "BufChannels",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "current number of channels of soundfile in buffer",
           "args": [
@@ -5427,10 +4976,7 @@
         },
         {
           "name": "BufDur",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "returns the current duration of a buffer in seconds.",
           "args": [
@@ -5443,10 +4989,7 @@
         },
         {
           "name": "BufFrames",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "returns the current number of allocated frames i.e. the size of the buffer. This is the equivalent of Clojure's count on a seq.",
           "args": [
@@ -5459,10 +5002,7 @@
         },
         {
           "name": "BufRateScale",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "returns a ratio by which the playback of a buffer is to be scaled",
           "args": [
@@ -5475,10 +5015,7 @@
         },
         {
           "name": "BufSampleRate",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "returns the buffers current sample rate",
           "args": [
@@ -5491,10 +5028,7 @@
         },
         {
           "name": "BufSamples",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "current number of samples allocated in the buffer",
           "args": [
@@ -5507,10 +5041,7 @@
         },
         {
           "name": "CheckBadValues",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "test for infinity, not-a-number, and denormals. If one of these is found, it posts a warning. Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal.",
           "args": [
@@ -5533,83 +5064,63 @@
         },
         {
           "name": "ControlDur",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the current control rate block duration of the server in seconds",
           "args": []
         },
         {
           "name": "ControlRate",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the current control rate of the server",
           "args": []
         },
         {
           "name": "NumAudioBuses",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the number of audio buses allocated on the server.",
           "args": []
         },
         {
           "name": "NumBuffers",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the number of buffers allocated on the server",
           "args": []
         },
         {
           "name": "NumControlBuses",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the number of control buses allocated on the server",
           "args": []
         },
         {
           "name": "NumInputBuses",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the number of input buses allocated on the server. This is the number of hardware inputs provided by the host machine such as a mic.",
           "args": []
         },
         {
           "name": "NumOutputBuses",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the number of output buses allocated on the server. This is the number of hardware outputs provided by the host machine such as left and right speakers.",
           "args": []
         },
         {
           "name": "NumRunningSynths",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": null,
           "doc": "returns the number of currently running synths",
           "args": []
         },
         {
           "name": "Poll",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "This ugen has been internalised for scserver compatibility. Please use the poll cgen instead.",
           "args": [
@@ -5637,35 +5148,27 @@
         },
         {
           "name": "RadiansPerSample",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "args": []
         },
         {
           "name": "SampleDur",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the current sample duration of the server in seconds",
           "args": []
         },
         {
           "name": "SampleRate",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "returns the current sample rate",
           "args": []
         },
         {
           "name": "SubsampleOffset",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "offset from synth start within one sample",
           "args": []
@@ -5677,9 +5180,7 @@
       "ugens": [
         {
           "name": "KeyState",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Toggles between two values when a key on the keyboard is up or down. Note that this ugen does not prevent normal typing.",
           "args": [
@@ -5707,9 +5208,7 @@
         },
         {
           "name": "MouseButton",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "toggles between two values when the left mouse button is up or down",
           "args": [
@@ -5732,9 +5231,7 @@
         },
         {
           "name": "MouseX",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "maps the current mouse X coordinate to a value between min and max",
           "args": [
@@ -5762,9 +5259,7 @@
         },
         {
           "name": "MouseY",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "maps the current mouse Y coordinate to a value between min and max",
           "args": [
@@ -5797,9 +5292,7 @@
       "ugens": [
         {
           "name": "DiskIn",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5826,9 +5319,7 @@
         },
         {
           "name": "DiskOut",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": 1,
           "summary": "stream audio out to disk file",
           "doc": "The output of DiskOut is the number of frames written to disk. Note that the number of channels in the buffer and the channelsArray must be the same, otherwise DiskOut will fail silently (and not write anything to your file).",
@@ -5848,10 +5339,7 @@
         },
         {
           "name": "In",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5873,9 +5361,7 @@
         },
         {
           "name": "InFeedback",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5897,9 +5383,7 @@
         },
         {
           "name": "InTrig",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5921,9 +5405,7 @@
         },
         {
           "name": "LagIn",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5950,10 +5432,7 @@
         },
         {
           "name": "LocalIn",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -5969,10 +5448,7 @@
         },
         {
           "name": "LocalOut",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "write to buses local to a synth",
           "doc": "local-out writes to buses that are local to the enclosing synth. The buses should have been defined by a local-in ugen. The channelsArray must be the same number of channels as were declared in the LocalIn. These are like the global buses, but are more convenient if you want to implement a self contained effect that uses a feedback processing loop.",
@@ -5987,10 +5463,7 @@
         },
         {
           "name": "OffsetOut",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "write signal to a bus with sample accurate timing",
           "doc": "Output signal to a bus, the sample offset within the bus is kept exactly; i.e. if the synth is scheduled to be started part way through a control cycle, offset-out will maintain the correct offset by buffering the output and delaying it until the exact time that the synth was scheduled for. This ugen is used where sample accurate output is needed.",
@@ -6011,10 +5484,7 @@
         },
         {
           "name": "Out",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "write a signal to a bus, adding to previous contents.",
           "doc": "write a signal to a bus, adding to any existing contents N.B. Out is subject to control rate jitter. Where sample accurate output is needed, use OffsetOut. When using an array of bus indexes, the channel array will just be copied to each bus index in the array. So (out:ar [bus1 bus2] channels-array) will be the same as (+ (out:ar bus1 channelsArray) (out:ar bus2 channelsArray)).",
@@ -6034,10 +5504,7 @@
         },
         {
           "name": "ReplaceOut",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "Send signal to a bus, overwriting previous contents.",
           "doc": "Out adds its output to a given bus, making it available to all nodes later in the node tree (See Synth and Order-of-execution for more information). ReplaceOut overwrites those contents. This can make it useful for processing.",
@@ -6058,9 +5525,7 @@
         },
         {
           "name": "SharedIn",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -6082,9 +5547,7 @@
         },
         {
           "name": "SharedOut",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 0,
           "doc": "Reads from a control bus shared between the internal server and the SC client. Control rate only. Reading from a shared control bus on the client is synchronous.",
           "args": [
@@ -6103,9 +5566,7 @@
         },
         {
           "name": "VDiskIn",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -6142,10 +5603,7 @@
         },
         {
           "name": "XOut",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "write signal to a bus, crossfading with the existing content",
           "doc": "xfade is a level for the crossfade between what is on the bus and what you are sending. The algorithm is equivalent to this: bus_signal = (input_signal * xfade) + (bus_signal * (1 - xfade));",
@@ -6175,9 +5633,7 @@
       "ugens": [
         {
           "name": "A2K",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "audio rate to control rate converter via linear interpolation",
           "args": [
@@ -6190,11 +5646,7 @@
         },
         {
           "name": "AmpComp",
-          "rates": [
-            "ar",
-            "kr",
-            "ir"
-          ],
+          "rates": ["ar", "kr", "ir"],
           "numOutputs": null,
           "summary": "Basic psychoacoustic amplitude compensation.\" , :rates #{:ir :ar :kr} :check (when-ar (first-input-ar \"freq must be audio rate\")) :doc \"amplitude compensation: because higher frequencies are normally perceived as louder. Note that for frequencies very much smaller than root the amplitudes can become very high. In this case limit the freqor use amp-comp-a Implements the (optimized) formula: compensationFactor = (root / freq) ** exp",
           "doc": "amplitude compensation: because higher frequencies are normally perceived as louder. Note that for frequencies very much smaller than root the amplitudes can become very high. In this case limit the freqor use amp-comp-a Implements the (optimized) formula: compensationFactor = (root / freq) ** exp",
@@ -6218,11 +5670,7 @@
         },
         {
           "name": "AmpCompA",
-          "rates": [
-            "ar",
-            "kr",
-            "ir"
-          ],
+          "rates": ["ar", "kr", "ir"],
           "numOutputs": null,
           "summary": "Basic psychoacoustic amplitude compensation (ANSI A-weighting curve).",
           "doc": "Higher frequencies are normally perceived as louder, which amp-comp-a compensates. Following the measurings by Fletcher and Munson, the ANSI standard describes a function for loudness vs. frequency. Note that this curve is only valid for standardized amplitude. 1 For a simpler but more flexible curve, see amp-comp",
@@ -6252,10 +5700,7 @@
         },
         {
           "name": "DC",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "outputs the initial value you give it.",
           "args": [
@@ -6268,9 +5713,7 @@
         },
         {
           "name": "K2A",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "control rate to audio rate converter via linear interpolation.",
           "args": [
@@ -6283,10 +5726,7 @@
         },
         {
           "name": "LinExp",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Map a linear range to an exponential range",
           "doc": "Convert from a linear range to an exponential range. The dstlo and dsthi arguments must be nonzero and have the same sign.",
@@ -6320,10 +5760,7 @@
         },
         {
           "name": "Line",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Line generator.",
           "doc": "Generates a line from the start value to the end value.",
@@ -6352,9 +5789,7 @@
         },
         {
           "name": "Silent",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -6370,9 +5805,7 @@
         },
         {
           "name": "T2A",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "control rate trigger to audio rate trigger converter (maximally one per control period).",
           "args": [
@@ -6390,9 +5823,7 @@
         },
         {
           "name": "T2K",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "audio rate trigger to control rate trigger converter. Uses the maxiumum trigger in the input during each control period.",
           "extends": "A2K",
@@ -6406,10 +5837,7 @@
         },
         {
           "name": "XLine",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Exponential line generator.",
           "doc": "Generates an exponential curve from the start value to the end value. Both the start and end values must be non-zero and have the same sign.",
@@ -6443,9 +5871,7 @@
       "ugens": [
         {
           "name": "BeatTrack",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 4,
           "summary": "Autocorrelation based beat tracker\" , :rates #{:kr} :num-outs 4 :doc \"The underlying model assumes 4/4, but it should work on any isochronous beat structure, though there are biases to 100-120 bpm; a fast 7/8 may not be tracked in that sense. There are four k-rate outputs, being ticks at quarter, eighth and sixteenth level from the determined beat, and the current detected tempo. Note that the sixteenth note output won't necessarily make much sense if the music being tracked has swing; it is provided just as a convenience. This beat tracker determines the beat, biased to the midtempo range by weighting functions. It does not determine the measure level, only a tactus. It is also slow reacting, using a 6 second temporal window for its autocorrelation maneouvres. Don't expect human musician level predictive tracking. On the other hand, it is tireless, relatively general (though obviously best at transient 4/4 heavy material without much expressive tempo variation), and can form the basis of computer processing that is decidedly faster than human.",
           "doc": "The underlying model assumes 4/4, but it should work on any isochronous beat structure, though there are biases to 100-120 bpm; a fast 7/8 may not be tracked in that sense. There are four k-rate outputs, being ticks at quarter, eighth and sixteenth level from the determined beat, and the current detected tempo. Note that the sixteenth note output won't necessarily make much sense if the music being tracked has swing; it is provided just as a convenience. This beat tracker determines the beat, biased to the midtempo range by weighting functions. It does not determine the measure level, only a tactus. It is also slow reacting, using a 6 second temporal window for its autocorrelation maneouvres. Don't expect human musician level predictive tracking. On the other hand, it is tireless, relatively general (though obviously best at transient 4/4 heavy material without much expressive tempo variation), and can form the basis of computer processing that is decidedly faster than human.",
@@ -6464,9 +5890,7 @@
         },
         {
           "name": "BeatTrack2",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 6,
           "doc": "Template matching beat tracker. This beat tracker is based on exhaustively testing particular template patterns against feature streams; the testing takes place every 0.5 seconds. The two basic templates are a straight (groove=0) and a swung triplet (groove=1) pattern of 16th notes; this pattern is tried out at scalings corresponding to the tempi from 60 to 180 bpm. This is the cross-corellation method of beat tracking. A majority vote is taken on the best tempo detected, but this must be confirmed by a consistency check after a phase estimate. Such a consistency check helps to avoid wild fluctuating estimates, but is at the expense of an additional half second delay. The latency of the beat tracker with default settings is thus at least 2.5 seconds; because of block-based amortisation of calculation, it is actually around 2.8 seconds latency for a 2.0 second temporal window. This beat tracker is designed to be flexible for user needs; you can try out different window sizes, tempo weights and combinations of features. However, there are no guarantees on stability and effectiveness, and you will need to explore such parameters for a particular situation.",
           "args": [
@@ -6504,9 +5928,7 @@
         },
         {
           "name": "KeyTrack",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "A (12TET major/minor) key tracker based on a pitch class profile of energy across FFT bins and matching this to templates for major and minor scales in all transpositions. It assumes a 440 Hz concert A reference. Output is 0-11 C major to B major, 12-23 C minor to B minor",
           "args": [
@@ -6529,9 +5951,7 @@
         },
         {
           "name": "Loudness",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "A perceptual loudness function which outputs loudness in sones; this is a variant of an MP3 perceptual model, summing excitation in ERB bands. It models simple spectral and temporal masking, with equal loudness contour correction in ERB bands to obtain phons (relative dB), then a phon to sone transform. The final output is typically in the range of 0 to 64 sones, though higher values can occur with specific synthesised stimuli.",
           "args": [
@@ -6554,9 +5974,7 @@
         },
         {
           "name": "MFCC",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "args": [
             {
@@ -6573,9 +5991,7 @@
         },
         {
           "name": "Onsets",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "An onset detector for musical audio signals - detects the beginning of notes/drumbeats/etc. Outputs a control-rate trigger signal which is 1 when an onset is detected, and 0 otherwise. For the FFT chain, you should typically use a frame size of 512 or 1024 (at 44.1 kHz sampling rate) and 50% hop size (which is the default setting in SC). For different sampling rates choose an FFT size to cover a similar time-span (around 10 to 20 ms). The onset detection should work well for a general range of monophonic and polyphonic audio signals. The onset detection is purely based on signal analysis and does not make use of any top-down inferences such as tempo.",
           "args": [
@@ -6626,9 +6042,7 @@
         },
         {
           "name": "SpecCentroid",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Given an FFT chain, this measures the spectral centroid, which is the weighted mean frequency, or the centre of mass of the spectrum. (DC is ignored.) This can be a useful indicator of the perceptual brightness of a signal.",
           "args": [
@@ -6641,9 +6055,7 @@
         },
         {
           "name": "SpecFlatness",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "doc": "Given an FFT chain this calculates the Spectral Flatness measure, defined as a power spectrum's geometric mean divided by its arithmetic mean. This gives a measure which ranges from approx 0 for a pure sinusoid, to approx 1 for white noise. The measure is calculated linearly. For some applications you may wish to convert the value to a decibel scale - an example of such conversion is shown below.",
           "args": [
@@ -6656,9 +6068,7 @@
         },
         {
           "name": "SpecPcile",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": null,
           "summary": "Find a percentile of FFT magnitude spectrum\" , :rates #{:kr} :doc \"Given an FFT chain this calculates the cumulative distribution of the frequency spectrum, and outputs the frequency value which corresponds to the desired percentile. For example, to find the frequency at which 90% of the spectral energy lies below that frequency, you want the 90-percentile, which means the value of fraction should be 0.9. The 90-percentile or 95-percentile is often used as a measure of spectral roll-off. The optional third argument interpolate specifies whether interpolation should be used to try and make the percentile frequency estimate more accurate, at the cost of a little higher CPU usage. Set it to 1 to enable this.",
           "doc": "Given an FFT chain this calculates the cumulative distribution of the frequency spectrum, and outputs the frequency value which corresponds to the desired percentile. For example, to find the frequency at which 90% of the spectral energy lies below that frequency, you want the 90-percentile, which means the value of fraction should be 0.9. The 90-percentile or 95-percentile is often used as a measure of spectral roll-off. The optional third argument interpolate specifies whether interpolation should be used to try and make the percentile frequency estimate more accurate, at the cost of a little higher CPU usage. Set it to 1 to enable this.",
@@ -6687,10 +6097,7 @@
       "ugens": [
         {
           "name": "Ball",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "models the path of a bouncing object that is reflected by a vibrating surface",
           "args": [
@@ -6718,9 +6125,7 @@
         },
         {
           "name": "FreeVerb",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "A reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen.",
           "args": [
@@ -6748,9 +6153,7 @@
         },
         {
           "name": "FreeVerb2",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": 2,
           "doc": "A two-channel reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen.",
           "args": [
@@ -6783,9 +6186,7 @@
         },
         {
           "name": "FreqShift",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "FreqShift implements single sideband amplitude modulation, also known as frequency shifting, but not to be confused with pitch shifting. Frequency shifting moves all the components of a signal by a fixed amount but does not preserve the original harmonic relationships.",
           "args": [
@@ -6808,9 +6209,7 @@
         },
         {
           "name": "GVerb",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": 2,
           "doc": "A two-channel reverb UGen, based on the \\\"GVerb\\\" LADSPA effect by Juhana Sadeharju (kouhia at nic.funet.fi). WARNING - in the current version of the server, there are severe noise issues when you attempt to modify the roomsize or set it to a value greater than 40.",
           "args": [
@@ -6868,10 +6267,7 @@
         },
         {
           "name": "Gendy1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "An implementation of the dynamic stochastic synthesis generator conceived by Iannis Xenakis and described in Formalized Music (1992, Stuyvesant, NY: Pendragon Press) chapter 9 (pp 246-254) and chapters 13 and 14 (pp 289-322). The BASIC program in the book was written by Marie-Helene Serra so I think it helpful to credit her too. The program code has been adapted to avoid infinities in the probability distribution functions. The distributions are hard-coded in C but there is an option to have new amplitude or time breakpoints sampled from a continuous controller input.",
           "args": [
@@ -6929,10 +6325,7 @@
         },
         {
           "name": "Gendy2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "See gendy1 help file for background. This variant of GENDYN is closer to that presented in Hoffmann, Peter. (2000) The New GENDYN Program. Computer Music Journal 24:2, pp 31-38.",
           "args": [
@@ -7000,10 +6393,7 @@
         },
         {
           "name": "Gendy3",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "See Gendy1 help file for background. This variant of GENDYN normalises the durations in each period to force oscillation at the desired pitch. The breakpoints still get perturbed as in Gendy1. There is some glitching in the oscillator caused by the stochastic effects: control points as they vary cause big local jumps of amplitude. Put ampscale and durscale low to minimise this. All parameters can be modulated at control rate except for initCPs which is used only at initialisation.",
           "args": [
@@ -7056,9 +6446,7 @@
         },
         {
           "name": "Hilbert",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": 2,
           "args": [
             {
@@ -7069,10 +6457,7 @@
         },
         {
           "name": "MoogFF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A digital implementation of the Moog VCF (filter).",
           "args": [
@@ -7100,9 +6485,7 @@
         },
         {
           "name": "PartConv",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Partitioned convolution. Various additional buffers must be supplied. Mono impulse response only! If inputting multiple channels, you'll need independent PartConvs, one for each channel. But the charm is: impulse response can be as large as you like (CPU load increases with IR size. Various tradeoffs based on fftsize choice, due to rarer but larger FFTs. This plug-in uses amortisation to spread processing and avoid spikes). Normalisation factors difficult to anticipate; convolution piles up multiple copies of the input on top of itself, so can easily overload.",
           "args": [
@@ -7125,9 +6508,7 @@
         },
         {
           "name": "PitchShift",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "A time domain granular pitch shifter. Grains have a triangular amplitude envelope and an overlap of 4:1.",
           "args": [
@@ -7160,9 +6541,7 @@
         },
         {
           "name": "Pluck",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Implements the Karplus-Strong style of synthesis, where a delay line (normally starting with noise) is filtered and fed back on itself so that over time it becomes periodic.",
           "args": [
@@ -7200,10 +6579,7 @@
         },
         {
           "name": "Spring",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Physical model of resonating spring",
           "args": [
@@ -7226,10 +6602,7 @@
         },
         {
           "name": "TBall",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "models the impacts of a bouncing object that is reflected by a vibrating surface",
           "args": [
@@ -7262,10 +6635,7 @@
       "ugens": [
         {
           "name": "BrownNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Noise whose spectrum falls off in power by 6 dB per octave.",
           "doc": "Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads.",
@@ -7273,10 +6643,7 @@
         },
         {
           "name": "ClipNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Noise whose values are either -1 or 1.",
           "doc": "This produces the maximum energy for the least peak to peak amplitude. Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads.",
@@ -7284,10 +6651,7 @@
         },
         {
           "name": "Crackle",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Chaotic noise generator",
           "doc": "A noise generator based on a chaotic function. Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads.",
@@ -7301,10 +6665,7 @@
         },
         {
           "name": "Dust",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates random impulses from 0 to +1.",
           "args": [
@@ -7317,10 +6678,7 @@
         },
         {
           "name": "Dust2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates random impulses from -1 to +1.",
           "args": [
@@ -7333,10 +6691,7 @@
         },
         {
           "name": "GrayNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Random impulses from -1 to +1 given a density",
           "doc": "Creates a sequence of random impulses from -1 to +1. Generates noise which results from flipping random bits in a word. This type of noise has a high RMS level relative to its peak to peak level. The spectrum is emphasized towards lower frequencies. Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads.",
@@ -7344,10 +6699,7 @@
         },
         {
           "name": "Hasher",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Returns a unique output value from zero to one for each input value according to a hash function. The same input value will always produce the same output value. The input need not be from zero to one.",
           "args": [
@@ -7360,10 +6712,7 @@
         },
         {
           "name": "LFClipNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Randomly generates the values -1 or +1 at a rate given by the nearest integer division of the sample rate by the freq argument. It is probably pretty hard on your speakers!",
           "args": [
@@ -7376,10 +6725,7 @@
         },
         {
           "name": "LFDClipNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Like lf-clip-noise, it generates the values -1 or +1 at a rate given by the freq argument, with two differences: * no time quantization * fast recovery from low freq values. (lf-clip-noise, as well as lf-noise0,1,2 quantize to the nearest integer division of the samplerate, and they poll the freq argument only when scheduled; thus they often seem to hang when freqs get very low). If you don't need very high or very low freqs, or use fixed freqs lf-noise0 is more efficient.",
           "args": [
@@ -7392,10 +6738,7 @@
         },
         {
           "name": "LFDNoise0",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Like lf-noise0, it generates random values between -1 and 1 at a rate given by the freq argument, with two differences: p * no time quantization * fast recovery from low freq values. (lf-noise0,1,2 quantize to the nearest integer division of the samplerate and they poll the freq argument only when scheduled, and thus seem to hang when freqs get very low). If you don't need very high or very low freqs, or use fixed freqs lf-noise0 is more efficient.",
           "args": [
@@ -7408,10 +6751,7 @@
         },
         {
           "name": "LFDNoise1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Like lf-noise1, it generates linearly interpolated random values between -1 and 1 at a rate given by the freq argument, with two differences: * no time quantization * fast recovery from low freq values. (lf-noise0,1,2 quantize to the nearest integer division of the samplerate and they poll the freq argument only when scheduled, and thus seem to hang when freqs get very low). If you don't need very high or very low freqs, or use fixed freqs lf-noise1 is more efficient.",
           "args": [
@@ -7424,10 +6764,7 @@
         },
         {
           "name": "LFDNoise3",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Similar to lf-noise2, it generates polynomially interpolated random values between -1 and 1 at a rate given by the freq argument, with 3 differences: * no time quantization * fast recovery from low freq values * cubic instead of quadratic interpolation (lf-noise0,1,2 quantize to the nearest integer division of the samplerate and they poll the freq argument only when scheduled, and thus seem to hang when freqs get very low). If you don't need very high or very low freqs, or use fixed freqs lf-noise2 is more efficient.",
           "args": [
@@ -7440,10 +6777,7 @@
         },
         {
           "name": "LFNoise0",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates random values between -1 and 1 at a rate (the rate is not guaranteed but approximate)",
           "args": [
@@ -7456,10 +6790,7 @@
         },
         {
           "name": "LFNoise1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates linearly interpolated random values between -1 and 1 at the supplied rate (the rate is not guaranteed but approximate).",
           "args": [
@@ -7472,10 +6803,7 @@
         },
         {
           "name": "LFNoise2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates quadratically interpolated random values between -1 and 1 at the supplied rate (the rate is not guaranteed but approximate). Note: quadratic interpolation means that the noise values can occasionally extend beyond the normal range of +-1, if the freq varies in certain ways. If this is undesirable then you might like to clip2 the values or use a linearly-interpolating unit instead.",
           "args": [
@@ -7488,10 +6816,7 @@
         },
         {
           "name": "Logistic",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A noise generator based on the logistic map: y = chaos-param * y * (1.0 - y) y will stay in the range of 0.0 to 1.0 for normal values of the chaos-param. This leads to a DC offset and may cause a pop when you stop the Synth. For output you might want to combine this UGen with a LeakDC or rescale around 0.0 via mul and add: see example below.",
           "args": [
@@ -7514,10 +6839,7 @@
         },
         {
           "name": "MantissaMask",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Masks off bits in the mantissa of the floating point sample value. This introduces a quantization noise, but is less severe than linearly quantizing the signal.",
           "args": [
@@ -7535,10 +6857,7 @@
         },
         {
           "name": "PinkNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Noise whose spectrum falls off in power by 3 dB per octave.",
           "doc": "Noise that gives equal power over the span of each octave. Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads. This version gives 8 octaves of pink noise.",
@@ -7546,10 +6865,7 @@
         },
         {
           "name": "WhiteNoise",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Noise whose spectrum has equal power at all frequencies.",
           "doc": "Noise that contains equal amounts of energy at every frequency - comparable to radio static. Useful for generating percussive sounds such as snares and hand claps. Also useful for simulating wind or sea effects, for producing breath effects in wind instrument timbres or for producing the typical trance leads.",
@@ -7562,10 +6878,7 @@
       "ugens": [
         {
           "name": "COsc",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Chorusing wavetable lookup oscillator. Produces sum of two signals at (freq +/- (beats / 2)). Due to summing, the peak amplitude is twice that of the wavetable.",
           "args": [
@@ -7588,10 +6901,7 @@
         },
         {
           "name": "DegreeToKey",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values (indices wrap around the table)",
           "args": [
@@ -7614,10 +6924,7 @@
         },
         {
           "name": "DetectIndex",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "search a buffer for a value",
           "extends": "Index",
@@ -7634,9 +6941,7 @@
         },
         {
           "name": "Formant",
-          "rates": [
-            "ar"
-          ],
+          "rates": ["ar"],
           "numOutputs": null,
           "doc": "Generates a set of harmonics around a formant frequency at a given fundamental frequency. The frequency inputs are read at control rate only, so if you use an audio rate UGen as an input, it will only be sampled at the start of each audio synthesis block.",
           "args": [
@@ -7659,10 +6964,7 @@
         },
         {
           "name": "Impulse",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "non band limited impulse oscillator. Outputs a single 1 every freq cycles per second and 0 the rest of the time.",
           "args": [
@@ -7680,10 +6982,7 @@
         },
         {
           "name": "Index",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "the input signal value is truncated to an integer and used as an index into the table",
           "args": [
@@ -7699,10 +6998,7 @@
         },
         {
           "name": "IndexInBetween",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "finds the (lowest) point in the buffer at which the input signal lies in-between the two values, and returns the index",
           "extends": "Index",
@@ -7719,10 +7015,7 @@
         },
         {
           "name": "LFCub",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "an oscillator outputting a sine like shape made of two cubic pieces",
           "extends": "LFSaw",
@@ -7741,10 +7034,7 @@
         },
         {
           "name": "LFGauss",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A non-band-limited gaussian function oscillator. Output ranges from minval to 1. LFGauss implements the formula: f(x) = exp(squared(x - iphase) / (-2.0 * squared(width))) where x is to vary in the range -1 to 1 over the period dur. minval is the initial value at -1",
           "args": [
@@ -7777,10 +7067,7 @@
         },
         {
           "name": "LFPar",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "a non band-limited parabolic oscillator outputing a high of 1 and a low of zero.",
           "extends": "LFSaw",
@@ -7799,10 +7086,7 @@
         },
         {
           "name": "LFPulse",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A non-band-limited pulse oscillator. Outputs a high value of one and a low value of zero.",
           "args": [
@@ -7825,10 +7109,7 @@
         },
         {
           "name": "LFSaw",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "low freq (i.e. not band limited) sawtooth oscillator",
           "args": [
@@ -7846,10 +7127,7 @@
         },
         {
           "name": "LFTri",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "a non-band-limited triangle oscillator",
           "doc": "The triangle wave shape features two linear slopes and is not as harmonically rich as a sawtooth wave since it only contains odd harmonics (partials). Ideally, this type of wave form is mixed with a sine, square or pulse wave to add a sparkling or bright effect to a sound and is often employed on pads to give them a glittery feel.",
@@ -7869,10 +7147,7 @@
         },
         {
           "name": "Osc",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Linear interpolating wavetable lookup oscillator with frequency and phase modulation inputs. This oscillator requires a buffer to be filled with a wavetable format signal. This preprocesses the Signal into a form which can be used efficiently by the Oscillator. The buffer size must be a power of 2. This can be achieved by creating a Buffer object and sending it one of the b_gen messages (sine1, sine2, sine3) with the wavetable flag set to true. This can also be achieved by creating a Signal object and sending it the 'asWavetable' message, saving it to disk, and having the server load it from there.",
           "args": [
@@ -7895,10 +7170,7 @@
         },
         {
           "name": "Select",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "select the output signal from an array of inputs",
           "args": [
@@ -7917,10 +7189,7 @@
         },
         {
           "name": "Shaper",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "performs waveshaping on the input signal by indexing into a table",
           "extends": "Index",
@@ -7937,10 +7206,7 @@
         },
         {
           "name": "SinOsc",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Sine table lookup oscillator",
           "doc": "Outputs a sine wave with values oscillating between -1 and 1 similar to osc except that the table has already been fixed as a sine table of 8192 entries. Sine waves are often used for creating sub-basses or are mixed with other waveforms to add extra body or bottom end to a sound. They contain no harmonics and consist entirely of the fundamental frequency. This means that they're not suitable for subtractive synthesis i.e. passing through filters such as a hpf or lpf. However, they are useful for additive synthesis i.e. adding multiple sine waves together at different frequencies, amplitudes and phase to create new timbres.",
@@ -7959,10 +7225,7 @@
         },
         {
           "name": "SinOscFB",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Sine oscillator with phase modulation feedback",
           "doc": "Different feedback values results in a modulation between a sine wave and a sawtooth like wave. Overmodulation causes chaotic oscillation.",
@@ -7981,10 +7244,7 @@
         },
         {
           "name": "SyncSaw",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "hard sync sawtooth wave oscillator",
           "doc": "A sawtooth wave that is hard synched to a fundamental pitch. This produces an effect similar to moving formants or pulse width modulation. The sawtooth oscillator has its phase reset when the sync oscillator completes a cycle. This is not a band limited waveform, so it may alias.",
@@ -8003,10 +7263,7 @@
         },
         {
           "name": "VOsc",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables. This oscillator requires at least two buffers to be filled with a wavetable format signal. This preprocesses the Signal into a form which can be used efficiently by the Oscillator. The buffer size must be a power of 2.",
           "args": [
@@ -8029,10 +7286,7 @@
         },
         {
           "name": "VOsc3",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Three variable wavetable oscillators. A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables. This unit generator contains three oscillators at different frequencies, mixed together. This oscillator requires at least two buffers to be filled with a wavetable format signal. This preprocesses the Signal into a form which can be used efficiently by the Oscillator. The buffer size must be a power of 2.",
           "args": [
@@ -8060,10 +7314,7 @@
         },
         {
           "name": "VarSaw",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "a variable duty cycle saw wave oscillator",
           "args": [
@@ -8086,10 +7337,7 @@
         },
         {
           "name": "Vibrato",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Models a slow frequency modulation.",
           "doc": "Vibrato is a slow frequency modulation. Consider the systematic deviation in pitch of a singer around a fundamental frequency, or a violinist whose finger wobbles in position on the fingerboard, slightly tightening and loosening the string to add shimmer to the pitch. There is often also a delay before vibrato is established on a note. This UGen models these processes; by setting more extreme settings, you can get back to the timbres of FM synthesis. You can also add in some noise to the vibrato rate and vibrato size (modulation depth) to make for a more realistic motor pattern. The vibrato output is a waveform based on a squared envelope shape with four stages marking out 0.0 to 1.0, 1.0 to 0.0, 0.0 to -1.0, and -1.0 back to 0.0. Vibrato rate determines how quickly you move through these stages.",
@@ -8138,10 +7386,7 @@
         },
         {
           "name": "WrapIndex",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "the input signal value is truncated to an integer value and used as an index into the table (out of range index values are wrapped)",
           "extends": "Index",
@@ -8163,10 +7408,7 @@
       "ugens": [
         {
           "name": "Balance2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 2,
           "doc": "Equal power panning balances two channels; by panning, you are favouring one or other channel in the mix, and the other loses power. The middle pan position (pos=0.0) corresponds to the original stereo mix; full left (pos of -1) is essentially just left channel playing, full right (pos of 1) just the right. The output of Balance2 remains a stereo signal.",
           "args": [
@@ -8194,10 +7436,7 @@
         },
         {
           "name": "BiPanB2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 3,
           "doc": "Encode a two channel signal to two dimensional ambisonic B-format. This puts two channels at opposite poles of a 2D ambisonic field. This is one way to map a stereo sound onto a soundfield. It is equivalent to: PanB2(inA, azimuth, gain) + PanB2(inB, azimuth + 1, gain)",
           "args": [
@@ -8225,10 +7464,7 @@
         },
         {
           "name": "DecodeB2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -8264,10 +7500,7 @@
         },
         {
           "name": "LinPan2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 2,
           "doc": "Two channel (stereo) linear panner. This one sounds more like the Rhodes tremolo than Pan2.",
           "extends": "Pan2",
@@ -8291,10 +7524,7 @@
         },
         {
           "name": "LinXFade2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Two channel linear crossfader.",
           "args": [
@@ -8322,10 +7552,7 @@
         },
         {
           "name": "Pan2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 2,
           "doc": "Two channel (stereo) equal power panner.",
           "args": [
@@ -8348,10 +7575,7 @@
         },
         {
           "name": "Pan4",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 4,
           "doc": "Four channel equal power panner. Outputs are in order LeftFront, RightFront, LeftBack, RightBack.",
           "args": [
@@ -8379,10 +7603,7 @@
         },
         {
           "name": "PanAz",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": {
             "fromArg": "numChannels"
           },
@@ -8423,10 +7644,7 @@
         },
         {
           "name": "PanB",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 4,
           "doc": "Ambisonic B format panner. Output channels are in order W,X,Y,Z.",
           "args": [
@@ -8454,10 +7672,7 @@
         },
         {
           "name": "PanB2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 3,
           "doc": "Encode a mono signal to two dimensional ambisonic B-format.",
           "args": [
@@ -8480,10 +7695,7 @@
         },
         {
           "name": "Rotate2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 2,
           "doc": "Rotate2 can be used for rotating an ambisonic B-format sound field around an axis. Rotate2 does an equal power rotation so it also works well on stereo sounds. It takes two audio inputs (x, y) and an angle control (pos). It outputs two channels (x, y). It computes this: xout = cos(angle) * xin + sin(angle) * yin; yout = cos(angle) * yin - sin(angle) * xin; where angle = pos * pi, so that -1 becomes -pi and +1 becomes +pi. This allows you to use an LFSaw to do continuous rotation around a circle.",
           "args": [
@@ -8506,10 +7718,7 @@
         },
         {
           "name": "XFade2",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Equal power two channel cross fade",
           "args": [
@@ -8542,10 +7751,7 @@
       "ugens": [
         {
           "name": "CoinGate",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "When it receives a trigger, it tosses a coin, and either passes the trigger or doesn't.",
           "args": [
@@ -8563,9 +7769,7 @@
         },
         {
           "name": "ExpRand",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "Generates a single random float value in an exponential distributions from lo to hi.",
           "args": [
@@ -8583,9 +7787,7 @@
         },
         {
           "name": "IRand",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "Generates a single random integer value in uniform distribution from lo to hi",
           "args": [
@@ -8603,9 +7805,7 @@
         },
         {
           "name": "LinRand",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "Generates a single random float value in linear distribution from lo to hi, skewed towards lo if minmax < 0, otherwise skewed towards hi.",
           "args": [
@@ -8628,9 +7828,7 @@
         },
         {
           "name": "NRand",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "doc": "Generates a single random float value in a sum of n uniform distributions from lo to hi. n = 1 : uniform distribution - same as Rand n = 2 : triangular distribution n = 3 : smooth hump As n increases, distribution converges towards gaussian",
           "args": [
@@ -8653,9 +7851,7 @@
         },
         {
           "name": "Rand",
-          "rates": [
-            "ir"
-          ],
+          "rates": ["ir"],
           "numOutputs": null,
           "args": [
             {
@@ -8670,10 +7866,7 @@
         },
         {
           "name": "RandID",
-          "rates": [
-            "kr",
-            "ir"
-          ],
+          "rates": ["kr", "ir"],
           "numOutputs": 1,
           "doc": "Choose which random number generator to use for this synth. All synths that use the same generator reproduce the same sequence of numbers when the same seed is set again.",
           "args": [
@@ -8686,11 +7879,7 @@
         },
         {
           "name": "RandSeed",
-          "rates": [
-            "ar",
-            "kr",
-            "ir"
-          ],
+          "rates": ["ar", "kr", "ir"],
           "numOutputs": 1,
           "doc": "When the trigger signal changes from nonpositive to positive, the synth's random generator seed is reset to the given value. All synths that use the same random number generator reproduce the same sequence of numbers again.",
           "args": [
@@ -8708,10 +7897,7 @@
         },
         {
           "name": "TExpRand",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates a random float value in exponential distribution from lo to hi each time the trig signal changes from nonpositive to positive values lo and hi must both have the same sign and be non-zero.",
           "args": [
@@ -8734,10 +7920,7 @@
         },
         {
           "name": "TIRand",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates a random integer value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values",
           "args": [
@@ -8760,10 +7943,7 @@
         },
         {
           "name": "TRand",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "doc": "Generates a random float value in uniform distribution from lo to hi each time the trig signal changes from nonpositive to positive values",
           "args": [
@@ -8791,10 +7971,7 @@
       "ugens": [
         {
           "name": "Clip",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Clip a signal outside given thresholds.",
           "doc": "Clip a signal outside given thresholds. This differs from the ugen clip2 in that it allows one to set both low and high thresholds.",
@@ -8818,10 +7995,7 @@
         },
         {
           "name": "Fold",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Fold a signal outside given thresholds.",
           "doc": "Folds input wave to within the lo and hi thresholds. This differs from the ugen fold2 in that it allows one to set both low and high thresholds.",
@@ -8846,10 +8020,7 @@
         },
         {
           "name": "Gate",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Gate or hold",
           "doc": "Lets signal flow when trig is positive, otherwise holds last input value",
@@ -8869,11 +8040,7 @@
         },
         {
           "name": "InRange",
-          "rates": [
-            "ar",
-            "kr",
-            "ir"
-          ],
+          "rates": ["ar", "kr", "ir"],
           "numOutputs": null,
           "summary": "Tests if a signal is within a given range",
           "doc": "If in is >= lo and <= hi output 1.0, otherwise output 0.0. Output is initially zero.",
@@ -8897,10 +8064,7 @@
         },
         {
           "name": "InRect",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Test if a point is within a given rectangle.",
           "doc": "Outputs one if the 2d coordinate of x,y input values falls inside a rectangle, else zero",
@@ -8935,10 +8099,7 @@
         },
         {
           "name": "LastValue",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Output the last value before the input changed",
           "doc": "Output the last value before the input changed by a threshold of diff",
@@ -8957,10 +8118,7 @@
         },
         {
           "name": "Latch",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Sample and hold",
           "doc": "Holds input signal value when triggered.",
@@ -8979,10 +8137,7 @@
         },
         {
           "name": "LeastChange",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Output least changed",
           "doc": "output whichever signal changed the least",
@@ -9002,10 +8157,7 @@
         },
         {
           "name": "MostChange",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Output most changed",
           "doc": "output whichever signal changed the most",
@@ -9024,10 +8176,7 @@
         },
         {
           "name": "Peak",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Track peak signal amplitude",
           "doc": "Outputs the peak amplitude of the signal so far, a trigger resets to current value",
@@ -9047,10 +8196,7 @@
         },
         {
           "name": "PeakFollower",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Track peak signal amplitude",
           "doc": "Outputs the peak signal amplitude, falling with decay over time until reaching signal level",
@@ -9069,10 +8215,7 @@
         },
         {
           "name": "Phasor",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Resettable linear ramp between two levels",
           "doc": "Phasor is a linear ramp between start and end values. When its trigger input crosses from non-positive to positive, Phasor's output will jump to its reset position. Upon reaching the end of its ramp Phasor will wrap back to its start. N.B. Since end is defined as the wrap point, its value is never actually output.",
@@ -9106,9 +8249,7 @@
         },
         {
           "name": "Pitch",
-          "rates": [
-            "kr"
-          ],
+          "rates": ["kr"],
           "numOutputs": 2,
           "summary": "Autocorrelation pitch follower",
           "doc": "This is a better pitch follower than zero-crossing, but more costly of CPU. For most purposes the default settings can be used and only in needs to be supplied. Pitch returns two values (via an Array of OutputProxys, a freq which is the pitch estimate and has-freq, which tells whether a pitch was found. Some vowels are still problematic, for instance a wide open mouth sound somewhere between a low pitched short 'a' sound as in 'sat', and long 'i' sound as in 'fire', contains enough overtone energy to confuse the algorithm. None of these settings are time variable.",
@@ -9172,10 +8313,7 @@
         },
         {
           "name": "PulseCount",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Pulse counter",
           "doc": "Each input trigger increments a counter value that is output.",
@@ -9194,10 +8332,7 @@
         },
         {
           "name": "PulseDivider",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Pulse divider",
           "doc": "Outputs a trigger every div input triggers",
@@ -9221,10 +8356,7 @@
         },
         {
           "name": "RunningMax",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Track maximum level",
           "doc": "Outputs the maximum value received at the input. When triggered, the maximum output value is reset to the current value.",
@@ -9244,10 +8376,7 @@
         },
         {
           "name": "RunningMin",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Track minimum level",
           "doc": "Outputs the minimum value received at the input. When triggered, the minimum output value is reset to the current value.",
@@ -9267,10 +8396,7 @@
         },
         {
           "name": "Schmidt",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Schmidt trigger",
           "doc": "Outout one when signal greater than high, and zero when lower than low.",
@@ -9295,10 +8421,7 @@
         },
         {
           "name": "SendReply",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "Send information via OSC to Overtone",
           "doc": "Send an array of values from the server via an message. The OSC message is formed with cmd-name as the path, followed by two compulsary args: node-id (the id of the node that sent the message) and reply-id (the value specified in the params). These args are then followed by the list of values specified in the params. For example, if the ugen is used as follows: (send-reply tr \\\"/foobar\\\" [1 2 3] 42) When the trig tr triggers, Overtone will receive an event that looks like the following (where 32 represents the node-id of the synth that sent the message): {:path \\\"/foobar\\",
@@ -9327,10 +8450,7 @@
         },
         {
           "name": "SendTrig",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": 0,
           "summary": "Send a /tr OSC message to Overtone",
           "doc": "On receiving a trigger sends a :trigger event with id and value. This command is the mechanism that synths can use to trigger events in clients. The trigger message sent back to the client is this: int - node ID int - trigger ID float - trigger value This is then presented as an event on the event-stream which is a map containing the key :path with the string \\\"/tr\\\" and the key :args containing a sequence of the values in the above order. i.e. {:path /tr, :args (34 3 123.0)} See on-trigger, on-latest-trigger and on-sync-trigger for registering handlers for trigger events.",
@@ -9354,10 +8474,7 @@
         },
         {
           "name": "SetResetFF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Set-reset flip flop",
           "doc": "When a trigger is received the output is set to 1.0 Subsequent triggers have no effect When a trigger is received in the reset input, the output is set back to 0.0 One use of this is to have some precipitating event cause something to happen until you reset it.",
@@ -9377,10 +8494,7 @@
         },
         {
           "name": "Stepper",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Pulse counter",
           "doc": "Triggers increment a counter which is output as a signal. The counter loops around from max to min by step increments",
@@ -9419,10 +8533,7 @@
         },
         {
           "name": "Sweep",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Triggered linear ramp",
           "doc": "outputs a linear increasing signal by rate/second when trig input crosses from non-positive to positive",
@@ -9441,10 +8552,7 @@
         },
         {
           "name": "TDelay",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Trigger delay",
           "doc": "Delays an input trigger by dur, ignoring other triggers in the meantime",
@@ -9463,18 +8571,11 @@
         },
         {
           "name": "TWindex",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Triggered window",
           "doc": "When triggered, returns a random index value based on array as a list of probabilities. By default the list of probabilities should sum to 1.0, when the normalize flag is set to 1, the values get normalized by the ugen (less efficient).",
-          "buildOrder": [
-            "trig",
-            "normalize",
-            "channelsArray"
-          ],
+          "buildOrder": ["trig", "normalize", "channelsArray"],
           "args": [
             {
               "name": "trig",
@@ -9496,10 +8597,7 @@
         },
         {
           "name": "Timer",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Trigger timer",
           "doc": "Outputs time since last trigger",
@@ -9513,10 +8611,7 @@
         },
         {
           "name": "ToggleFF",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Toggle flip flop",
           "doc": "Flip-flops between zero and one each trigger",
@@ -9530,10 +8625,7 @@
         },
         {
           "name": "Trapezoid",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "args": [
             {
@@ -9560,10 +8652,7 @@
         },
         {
           "name": "Trig",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Timed trigger",
           "doc": "When a nonpositive to positive transition occurs at the input, Trig outputs the level of the triggering input for the specified duration, otherwise it outputs zero.",
@@ -9583,10 +8672,7 @@
         },
         {
           "name": "Trig1",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Timed trigger",
           "doc": "Outputs one for dur seconds whenever the input goes from negative to positive, otherwise outputs 0.",
@@ -9605,10 +8691,7 @@
         },
         {
           "name": "Wrap",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Wrap a signal outside given thresholds.",
           "doc": "Wraps input wave to the low and high thresholds. This differs from the ugen wrap2 in that it allows one to set both low and high thresholds.",
@@ -9633,10 +8716,7 @@
         },
         {
           "name": "ZeroCrossing",
-          "rates": [
-            "ar",
-            "kr"
-          ],
+          "rates": ["ar", "kr"],
           "numOutputs": null,
           "summary": "Zero crossing frequency follower",
           "doc": "Outputs a frequency based upon the distance between interceptions of the X axis. The X intercepts are determined via linear interpolation so this gives better than just integer wavelength resolution. This is a very crude pitch follower, but can be useful in some situations.",

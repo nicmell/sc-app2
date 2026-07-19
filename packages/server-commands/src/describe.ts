@@ -7,8 +7,9 @@
  * fallback the TESTS use to assert wire truth.
  */
 
-import type { OtherMsg, ServerMessage, ServerReply } from "../pkg/scserver_commands.js";
+import type { ServerMessage, ServerReply } from "../pkg/scserver_commands.js";
 import { decodeReplyPacket } from "./component.js";
+import { COMMANDS, isKnownAddress, type ValueType } from "./spec.js";
 
 /** One wire message flattened for logs/assertions: the address plus its
  *  raw arg values (blobs stay `Uint8Array`; a typed-reply collision may
@@ -30,9 +31,6 @@ export function formatOscArg(arg: unknown): string {
 /** Unwrap one tagged value (`{ int32: 5 }`, `{ name: "freq" }`, …) — every
  *  tagged-union leaf in the serde model is a one-key object. */
 const val = (tagged: object) => Object.values(tagged)[0] as number | string | Uint8Array;
-
-const isOtherMsg = (msg: ServerMessage): msg is OtherMsg =>
-  "args" in msg && Array.isArray(msg.args);
 
 /** Flatten encoded OUTBOUND bytes (message or bundle) into per-message
  *  `{address, args}` entries by decoding what was actually sent — the
@@ -56,48 +54,49 @@ export function describeMessage(msg: ServerMessage): { address: string; args: st
 }
 
 function messageArgs(msg: ServerMessage): unknown[] {
-  // The escape hatch first — its `address: string` would otherwise defeat
-  // the literal narrowing the switch below relies on.
-  if (isOtherMsg(msg)) return msg.args.map(val);
-  switch (msg.address) {
-    case "/g_new":
-    case "/n_run":
-      return msg.args.tail.flat();
-    case "/s_new":
-      return [
-        msg.args.defName,
-        msg.args.nodeId,
-        msg.args.addAction,
-        msg.args.targetId,
-        ...msg.args.tail.flatMap(([k, v]) => [val(k), val(v)]),
-      ];
-    case "/n_set":
-      return [msg.args.nodeId, ...msg.args.tail.flatMap(([k, v]) => [val(k), val(v)])];
-    case "/n_setn":
-      return [
-        msg.args.nodeId,
-        ...msg.args.tail.flatMap(([k, values]) => [val(k), values.length, ...values.map(val)]),
-      ];
-    case "/n_free":
-      return [...msg.args.nodeIds];
-    case "/g_freeAll":
-      return [...msg.args.groupIds];
-    case "/d_recv":
-      return [msg.args.bufferOfData, ...(msg.args.completionMsg !== undefined ? [msg.args.completionMsg] : [])];
-    case "/d_free":
-      return msg.args.synthDefNames;
-    case "/sync":
-      return [msg.args.aUniqueNumber];
-    case "/scope/subscribe":
-      return [msg.args.subId, msg.args.scope, msg.args.channels, msg.args.chunkSize];
-    case "/scope/unsubscribe":
-      return [msg.args.subId];
-    case "/dirt/play":
-      return msg.args.pairs.flatMap(([key, value]) => [key, val(value)]);
-    default:
-      return [];
+  const args = "args" in msg ? msg.args : undefined;
+  if (!isKnownAddress(msg.address)) return Array.isArray(args) ? args.map(val) : [];
+  const command = COMMANDS.get(msg.address);
+  if (!command || args === undefined || Array.isArray(args)) return [];
+  const payload = args as unknown as Record<string, unknown>;
+  const out: unknown[] = [];
+  for (const field of command.fields) {
+    const value = payload[toCamel(field.name)];
+    const form = field.form;
+    if (form === "blob") out.push(value);
+    else if (form === "completion") {
+      if (value !== undefined) out.push(value);
+    } else if (form === "variadic") out.push(...(value as object[]).map(val));
+    else if ("scalar" in form) out.push(value);
+    else if ("optionScalar" in form) {
+      if (value !== undefined) out.push(value);
+    } else if ("list" in form)
+      out.push(...(value as unknown[]).map((item) => typedValue(form.list, item)));
+    else if ("tail" in form) {
+      out.push(
+        ...(value as unknown[][]).flatMap((tuple) =>
+          tuple.map((item, index) => typedValue(form.tail[index], item)),
+        ),
+      );
+    } else {
+      const { head, values } = form.setnTail;
+      out.push(
+        ...(value as [unknown, unknown[]][]).flatMap(([h, vs]) => [
+          typedValue(head, h),
+          vs.length,
+          ...vs.map((item) => typedValue(values, item)),
+        ]),
+      );
+    }
   }
+  return out;
 }
+
+const toCamel = (name: string) => name.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+const typedValue = (type: ValueType, value: unknown): unknown =>
+  type === "controlId" || type === "numericValue" || type === "controlValue" || type === "oscArg"
+    ? val(value as object)
+    : value;
 
 /** Render one INBOUND typed reply for the rx log: its wire address plus its
  *  payload fields in wire order, formatted as display text. */

@@ -22,7 +22,14 @@
 export { encode, encodeBundle, decodeReply, decodeReplyPacket, atUnixMs } from "./component";
 
 // Typed command builders + add-action constants.
-export * from "./builders";
+export * from "./builders/index.js";
+export {
+  COMMANDS,
+  KNOWN_ADDRESSES,
+  isKnownAddress,
+  type CommandSpec,
+  type CommandField,
+} from "./spec.js";
 
 // Console-log display helpers (no wasm crossings for the typed paths).
 export {

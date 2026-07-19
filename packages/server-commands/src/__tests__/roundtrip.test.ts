@@ -131,7 +131,9 @@ describe("typed reply classification", () => {
     new DataView(blob.buffer).setFloat32(0, 1, false);
     new DataView(blob.buffer).setFloat32(4, -1, false);
     const reply = decodeReply(encode(raw("/scope/chunk", 5, 9, 0, 2, blob)));
-    if (reply.address !== "/scope/chunk") throw new Error(`expected chunk, got ${reply.address}`);
+    if (reply.address !== "/scope/chunk" || Array.isArray(reply.args)) {
+      throw new Error(`expected chunk, got ${reply.address}`);
+    }
     expect(reply.args.samples).toBeInstanceOf(Float32Array);
     expect(Array.from(reply.args.samples)).toEqual([1, -1]);
     expect(reply.args).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });

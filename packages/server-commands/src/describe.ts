@@ -7,7 +7,7 @@
  * fallback the TESTS use to assert wire truth.
  */
 
-import type { ServerMessage, ServerReply } from "../pkg/scserver_commands.js";
+import type { OtherMsg, ServerMessage, ServerReply } from "../pkg/scserver_commands.js";
 import { decodeReplyPacket } from "./component.js";
 
 /** One wire message flattened for logs/assertions: the address plus its
@@ -31,6 +31,9 @@ export function formatOscArg(arg: unknown): string {
  *  tagged-union leaf in the serde model is a one-key object. */
 const val = (tagged: object) => Object.values(tagged)[0] as number | string | Uint8Array;
 
+const isOtherMsg = (msg: ServerMessage): msg is OtherMsg =>
+  "args" in msg && Array.isArray(msg.args);
+
 /** Flatten encoded OUTBOUND bytes (message or bundle) into per-message
  *  `{address, args}` entries by decoding what was actually sent — the
  *  test suites' wire-truth view. Command addresses decode as raw
@@ -38,7 +41,7 @@ const val = (tagged: object) => Object.values(tagged)[0] as number | string | Ui
  *  through the typed reply view (lossy for display, never a throw). */
 export function flattenEncoded(bytes: Uint8Array): FlatMessage[] {
   return decodeReplyPacket(bytes).map((reply) =>
-    "args" in reply
+    Array.isArray(reply.args)
       ? { address: reply.address, args: reply.args.map(val) }
       : { address: reply.address, args: replyArgs(reply) as FlatMessage["args"] },
   );
@@ -55,42 +58,42 @@ export function describeMessage(msg: ServerMessage): { address: string; args: st
 function messageArgs(msg: ServerMessage): unknown[] {
   // The escape hatch first — its `address: string` would otherwise defeat
   // the literal narrowing the switch below relies on.
-  if ("args" in msg) return msg.args.map(val);
+  if (isOtherMsg(msg)) return msg.args.map(val);
   switch (msg.address) {
     case "/g_new":
     case "/n_run":
-      return msg.tail.flat();
+      return msg.args.tail.flat();
     case "/s_new":
       return [
-        msg.defName,
-        msg.nodeId,
-        msg.addAction,
-        msg.targetId,
-        ...msg.tail.flatMap(([k, v]) => [val(k), val(v)]),
+        msg.args.defName,
+        msg.args.nodeId,
+        msg.args.addAction,
+        msg.args.targetId,
+        ...msg.args.tail.flatMap(([k, v]) => [val(k), val(v)]),
       ];
     case "/n_set":
-      return [msg.nodeId, ...msg.tail.flatMap(([k, v]) => [val(k), val(v)])];
+      return [msg.args.nodeId, ...msg.args.tail.flatMap(([k, v]) => [val(k), val(v)])];
     case "/n_setn":
       return [
-        msg.nodeId,
-        ...msg.tail.flatMap(([k, values]) => [val(k), values.length, ...values.map(val)]),
+        msg.args.nodeId,
+        ...msg.args.tail.flatMap(([k, values]) => [val(k), values.length, ...values.map(val)]),
       ];
     case "/n_free":
-      return [...msg.nodeIds];
+      return [...msg.args.nodeIds];
     case "/g_freeAll":
-      return [...msg.groupIds];
+      return [...msg.args.groupIds];
     case "/d_recv":
-      return [msg.bufferOfData, ...(msg.completionMsg !== undefined ? [msg.completionMsg] : [])];
+      return [msg.args.bufferOfData, ...(msg.args.completionMsg !== undefined ? [msg.args.completionMsg] : [])];
     case "/d_free":
-      return msg.synthDefNames;
+      return msg.args.synthDefNames;
     case "/sync":
-      return [msg.aUniqueNumber];
+      return [msg.args.aUniqueNumber];
     case "/scope/subscribe":
-      return [msg.subId, msg.scope, msg.channels, msg.chunkSize];
+      return [msg.args.subId, msg.args.scope, msg.args.channels, msg.args.chunkSize];
     case "/scope/unsubscribe":
-      return [msg.subId];
+      return [msg.args.subId];
     case "/dirt/play":
-      return msg.pairs.flatMap(([key, value]) => [key, val(value)]);
+      return msg.args.pairs.flatMap(([key, value]) => [key, val(value)]);
     default:
       return [];
   }
@@ -103,14 +106,14 @@ export function describeReply(reply: ServerReply): { address: string; args: stri
 }
 
 function replyArgs(reply: ServerReply): unknown[] {
-  if ("args" in reply) return reply.args.map(val);
+  if (Array.isArray(reply.args)) return reply.args.map(val);
   switch (reply.address) {
     case "/done":
-      return [reply.command, ...reply.extras.map(val)];
+      return [reply.args.command, ...reply.args.extras.map(val)];
     case "/fail":
-      return [reply.command, reply.error, ...reply.extras.map(val)];
+      return [reply.args.command, reply.args.error, ...reply.args.extras.map(val)];
     case "/late":
-      return [reply.seconds, reply.fractions, reply.lateSecs, reply.lateFracs];
+      return [reply.args.seconds, reply.args.fractions, reply.args.lateSecs, reply.args.lateFracs];
     case "/n_go":
     case "/n_end":
     case "/n_on":
@@ -118,38 +121,39 @@ function replyArgs(reply: ServerReply): unknown[] {
     case "/n_move":
     case "/n_info":
       return [
-        reply.nodeId,
-        reply.parentId,
-        reply.prevNode,
-        reply.nextNode,
-        reply.isGroup,
-        ...(reply.headNode !== undefined ? [reply.headNode, reply.tailNode] : []),
+        reply.args.nodeId,
+        reply.args.parentId,
+        reply.args.prevNode,
+        reply.args.nextNode,
+        reply.args.isGroup,
+        ...(reply.args.headNode !== undefined ? [reply.args.headNode, reply.args.tailNode] : []),
       ];
     case "/status.reply":
       return [
-        reply.unused,
-        reply.numUgens,
-        reply.numSynths,
-        reply.numGroups,
-        reply.numSynthDefs,
-        reply.avgCpu,
-        reply.peakCpu,
-        reply.nominalSampleRate,
-        reply.actualSampleRate,
+        reply.args.unused,
+        reply.args.numUgens,
+        reply.args.numSynths,
+        reply.args.numGroups,
+        reply.args.numSynthDefs,
+        reply.args.avgCpu,
+        reply.args.peakCpu,
+        reply.args.nominalSampleRate,
+        reply.args.actualSampleRate,
       ];
     case "/tr":
-      return [reply.nodeId, reply.triggerId, reply.value];
+      return [reply.args.nodeId, reply.args.triggerId, reply.args.value];
     case "/b_setn":
-      return [reply.bufnum, reply.start, `floats(${reply.samples.length})`];
+      return [reply.args.bufnum, reply.args.start, `floats(${reply.args.samples.length})`];
     case "/synced":
-      return [reply.syncId];
+      return [reply.args.syncId];
     case "/scope/chunk":
       return [
-        reply.subId,
-        reply.tickIndex,
-        reply.isGap ? 1 : 0,
-        reply.channels,
-        `floats(${reply.samples.length})`,
+        reply.args.subId,
+        reply.args.tickIndex,
+        reply.args.isGap ? 1 : 0,
+        reply.args.channels,
+        `floats(${reply.args.samples.length})`,
       ];
   }
+  return [];
 }

@@ -17,11 +17,13 @@ use crate::replies::{KnownReply, ScopeChunkReply};
 use crate::{ntp_from_unix_ms, ServerMessage, ServerReply};
 
 fn parse_message(msg: &JsValue) -> Result<ServerMessage, JsError> {
-    // `args` is the escape hatch's marker — no catalogued command carries a
-    // field of that name, and dispatching on it (rather than try-known-first)
-    // keeps a raw message with a catalogued address from silently dropping
-    // its args to serde's unknown-field tolerance.
-    if Reflect::has(msg, &JsValue::from_str("args")).unwrap_or(false) {
+    // Both shapes carry `args` now — a catalogued command's payload OBJECT
+    // vs the escape hatch's `OscArg[]` ARRAY. Dispatching on Array.isArray
+    // (rather than try-known-first) keeps a raw message with a catalogued
+    // address from silently dropping args to serde's unknown-field
+    // tolerance.
+    let args = Reflect::get(msg, &JsValue::from_str("args")).unwrap_or(JsValue::UNDEFINED);
+    if js_sys::Array::is_array(&args) {
         return serde_wasm_bindgen::from_value::<OtherMsg>(msg.clone())
             .map(ServerMessage::Other)
             .map_err(|e| JsError::new(&format!("not a valid raw message: {e}")));
@@ -44,7 +46,11 @@ fn reply_to_js(reply: ServerReply) -> Result<JsValue, JsError> {
             };
             let obj = serde_wasm_bindgen::to_value(&KnownReply::ScopeChunk(header))
                 .map_err(|e| JsError::new(&e.to_string()))?;
-            Reflect::set(&obj, &JsValue::from_str("samples"), &data)
+            // The payload rides nested under `args` (adjacent tagging) —
+            // inject the Float32Array there, not on the envelope.
+            let args = Reflect::get(&obj, &JsValue::from_str("args"))
+                .map_err(|_| JsError::new("scope chunk: missing args object"))?;
+            Reflect::set(&args, &JsValue::from_str("samples"), &data)
                 .map_err(|_| JsError::new("scope chunk: samples assignment failed"))?;
             to_js(obj)
         }

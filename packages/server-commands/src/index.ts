@@ -6,15 +6,15 @@
  * `yarn generate:server-commands`): typed `ServerMessage` builders for the
  * commands the app speaks, the encode/decode boundary, and typed
  * `ServerReply` classification for everything inbound. The serde tag IS the
- * OSC address, so every value is a flat object TypeScript narrows on its
- * `address` field — no tag↔address mapping exists anywhere.
+ * OSC address, so every value narrows on its `address` field and typed
+ * payloads live under `args` — no tag↔address mapping exists anywhere.
  *
  * ```ts
  * import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
  *
  * const bytes = encode(sNew("myDef", 1001, AddToHead, 100, [["freq", 440]]));
- * const reply = decodeReply(inbound); // e.g. { address: "/n_go", nodeId, … }
- * if (reply.address === "/synced") console.log(reply.syncId);
+ * const reply = decodeReply(inbound); // e.g. { address: "/n_go", args: { nodeId, … } }
+ * if (reply.address === "/synced") console.log(reply.args.syncId);
  * ```
  */
 

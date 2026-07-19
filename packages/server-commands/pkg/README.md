@@ -13,13 +13,13 @@ back, and the NRT (non-realtime) score file format.
   ```rust
   BAlloc { num_channels: Some(2), ..BAlloc::new(0, 8192) }.encode()?;
   ```
-- **`ServerMessage`** — tagged union over every documented command (63
+- **`ServerMessage`** — tagged union over every known command (61
   payload variants + 6 argless unit cases + an `Other { address, args }`
   escape hatch). Construct via `From<Cmd>` or directly:
   ```rust
   let msg: ServerMessage = BAlloc::new(0, 8192).into();
-  let bytes = msg.encode()?;        // OSC wire bytes
-  ServerMessage::Status.encode()?;  // unit variant
+  let bytes = msg.encode()?;      // OSC wire bytes
+  KnownMessage::Status.encode()?; // unit variant
   ```
 - **`commands::{ControlId, NumericValue, ControlValue}`** — the three
   polymorphic OSC arg shapes the SC protocol uses. Each has ergonomic
@@ -61,12 +61,12 @@ let bytes: Vec<u8> = msg.encode()?;
 
 // 2. Decode an incoming reply — typed variant dispatch.
 match ServerReply::decode(&reply_bytes)? {
-    ServerReply::StatusReply(s) =>
+    ServerReply::Known(KnownReply::StatusReply(s)) =>
         println!("{} ugens, {} synths", s.num_ugens, s.num_synths),
-    ServerReply::NGo(n) =>
+    ServerReply::Known(KnownReply::NGo(n)) =>
         println!("node {} started in group {}", n.node_id, n.parent_id),
-    ServerReply::Fail { address, error, .. } =>
-        eprintln!("fail {address}: {error}"),
+    ServerReply::Known(KnownReply::Fail { command, error, .. }) =>
+        eprintln!("fail {command}: {error}"),
     _ => {}
 }
 
@@ -92,69 +92,68 @@ let bytes = BAlloc {
 }.encode()?;
 ```
 
-### From TypeScript (WASM component)
+### From TypeScript (wasm-bindgen)
 
-Same three flows, via the wasm-bindgen/tsify bindings:
+Encode commands and decode replies through the wasm-bindgen/tsify bindings:
 
 ```ts
-import { commands, nrt, replies } from './pkg/scserver_commands.js';
+import {
+  at_unix_ms,
+  decode_reply,
+  encode,
+  encode_bundle,
+} from './pkg/scserver_commands.js';
 
 // 1. Encode a /s_new command.
-const bytes = commands.encode({
-  tag: 's-new',
-  val: {
-    defName: 'sine',
-    nodeId: 1001,
-    addAction: 0,
-    targetId: 1,
-    tail: [
-      [{ tag: 'name', val: 'freq' }, { tag: 'float', val: 440 }],
-      [{ tag: 'name', val: 'amp'  }, { tag: 'float', val: 0.5 }],
-    ],
-  },
-});
-// … send `bytes` to scsynth …
+const message = {
+  address: '/s_new' as const,
+  defName: 'sine',
+  nodeId: 1001,
+  addAction: 0,
+  targetId: 1,
+  tail: [
+    [{ name: 'freq' }, { float: 440 }],
+    [{ name: 'amp' }, { float: 0.5 }],
+  ],
+};
+const bytes = encode(message);
 
-// 2. Decode a reply — discriminated union with full TS narrowing.
-const reply = replies.decode(replyBytes);
-switch (reply.tag) {
-  case 'status-reply':
-    console.log(reply.val.numUgens, reply.val.numSynths);
+// 2. Encode an atomic OSC bundle.
+const bundle = encode_bundle(at_unix_ms(Date.now()), [message]);
+
+// 3. Decode a reply — the address discriminates the union.
+const reply = decode_reply(replyBytes);
+switch (reply.address) {
+  case '/status.reply':
+    console.log(reply.numUgens, reply.numSynths);
     break;
-  case 'n-go':
-    console.log(reply.val.nodeId, reply.val.parentId);
+  case '/n_go':
+    console.log(reply.nodeId, reply.parentId);
     break;
-  case 'fail':
-    console.error(reply.val.address, reply.val.error);
+  case '/fail':
+    console.error(reply.command, reply.error);
     break;
 }
-
-// 3. Build an NRT score.
-const score = new nrt.NrtScore();
-score.at(0.0, { tag: 's-new', val: {
-  defName: 'sine', nodeId: 1001, addAction: 0, targetId: 1, tail: [],
-}});
-score.at(2.0, { tag: 'n-free', val: { nodeIds: [1001] } });
-const nrtBytes = score.encode();
 ```
 
-Addresses outside the catalogue go through the `other` variant:
+Addresses outside the catalogue go through `OtherMsg`:
 
 ```ts
-commands.encode({
-  tag: 'other',
-  val: { address: '/my-plugin-cmd', args: [{ tag: 'int32', val: 1 }] },
+encode({
+  address: '/my-plugin-cmd',
+  args: [{ int32: 1 }],
 });
 ```
-
-See `examples/node/roundtrip.ts` for the full end-to-end exercise.
 
 ## Source of truth
 
-`src/commands.rs` is the single source of truth for the command
-surface — add / remove / tweak commands by editing it directly. When
-you do, also update `wit/commands.wit` so the component bindings stay
-in sync.
+`assets/specs/server-commands.json` is the source of truth for the standard
+SC command surface. `build.rs` emits one `sc_commands!` invocation and the
+`KnownMessage` callback list into `OUT_DIR`; `src/commands_macro.rs` expands
+the structs, encoders, and address-tagged enum. `/dirt/play` is a typed
+`DirtPlay { pairs }`, and it and `/scope/subscribe` and `/scope/unsubscribe`
+remain hand-written `sc_commands!` invocations in `src/commands.rs` because
+they are bridge extensions. Replies remain hand-written in `src/replies.rs`.
 
 ## Build targets
 
@@ -165,8 +164,7 @@ cargo build -p scserver-commands
 cargo test  -p scserver-commands
 ```
 
-WebAssembly Component + TS bindings (same toolchain as
-scsynthdef-compiler):
+WebAssembly + TS bindings:
 
 ```bash
 cd crates/scserver-commands
@@ -175,32 +173,23 @@ wasm-pack build --release --target web -- --features wasm
 
 ## Wasm surface
 
-Four interfaces, mirroring the Rust modules:
-
-- **`core`** — just the `osc-arg` variant (primitive OSC arg shape
-  shared across the other interfaces).
-- **`commands`** — one `x-args` record per command (63 total), plus a
-  `server-message` variant that discriminates across them. A single
-  exported function `encode(msg: server-message) -> list<u8>` produces
-  OSC wire bytes.
-- **`nrt`** — `nrt-score` resource that takes `server-message` values at
-  timestamped positions and serialises to the NRT score format.
-- **`replies`** — `server-reply` variant with 12 cases + typed payload
-  records + `decode`.
+The wasm-bindgen layer exports `encode`, `encode_bundle`, `decode_reply`,
+`decode_reply_packet`, and `at_unix_ms`. tsify emits the address-tagged
+`KnownMessage` and `KnownReply` unions; `OtherMsg` is the raw-message escape
+hatch. NRT score construction remains available through the native Rust API.
 
 The generated TS `.d.ts` exposes `ServerMessage` and `ServerReply` as
 symmetric discriminated unions:
 
 ```ts
-// scserver-commands-commands.d.ts
 export type ServerMessage =
-  | ServerMessageBAlloc       // { tag: 'b-alloc',  val: BAllocArgs }
-  | ServerMessageSNew         // { tag: 's-new',    val: SNewArgs }
-  | ServerMessageStatus       // { tag: 'status' }  (argless)
-  | ServerMessageOther        // { tag: 'other',    val: { address, args } }
+  | BAlloc                    // { address: '/b_alloc', ... }
+  | SNew                      // { address: '/s_new', ... }
+  | Status                    // { address: '/status' }
+  | OtherMsg                  // { address, args }
   | ...;
 export function encode(msg: ServerMessage): Uint8Array;
 ```
 
-`examples/node/roundtrip.ts` exercises this end-to-end — `commands.encode`,
-NRT score assembly, and `replies.decode` round-trips.
+The package wrapper in `packages/server-commands` exposes the generated wasm
+through its typed builders and encode/decode helpers.

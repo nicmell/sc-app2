@@ -1,7 +1,7 @@
 /**
  * Builders for the commands the app actually speaks — each returns a plain
- * `ServerMessage` value in the crate's serde shape: a flat object whose
- * `address` field IS the discriminant (`{ address: "/s_new", defName, … }`).
+ * `ServerMessage` value in the crate's serde shape: `address` is the
+ * discriminant and typed payloads are nested (`{ address: "/s_new", args: { defName, … } }`).
  * Argument inference mirrors the OSC typing the old osc-js layer produced:
  * integer numbers become ints, non-integers floats, strings stay strings (a
  * control-value string is a `c`/`a` bus mapping), Uint8Array becomes a blob.
@@ -50,7 +50,7 @@ function toOscArg(v: number | string | Uint8Array): OscArg {
 
 /** `/g_new` — create one group under `targetId`. */
 export function gNew(groupId: number, addAction: number, targetId: number): ServerMessage {
-  return { address: "/g_new", tail: [[groupId, addAction, targetId]] };
+  return { address: "/g_new", args: { tail: [[groupId, addAction, targetId]] } };
 }
 
 /** `/s_new` — spawn a synth with (control, value) pairs baked in. */
@@ -63,11 +63,13 @@ export function sNew(
 ): ServerMessage {
   return {
     address: "/s_new",
-    defName,
-    nodeId,
-    addAction,
-    targetId,
-    tail: pairs.map(([k, v]) => [toControlId(k), toControlValue(v)]),
+    args: {
+      defName,
+      nodeId,
+      addAction,
+      targetId,
+      tail: pairs.map(([k, v]) => [toControlId(k), toControlValue(v)]),
+    },
   };
 }
 
@@ -75,8 +77,10 @@ export function sNew(
 export function nSet(nodeId: number, controls: Record<string | number, number>): ServerMessage {
   return {
     address: "/n_set",
-    nodeId,
-    tail: Object.entries(controls).map(([k, v]) => [toControlId(k), toNumericValue(v)]),
+    args: {
+      nodeId,
+      tail: Object.entries(controls).map(([k, v]) => [toControlId(k), toNumericValue(v)]),
+    },
   };
 }
 
@@ -89,41 +93,40 @@ export function nSetn(
 ): ServerMessage {
   return {
     address: "/n_setn",
-    nodeId,
-    tail: [[toControlId(control), values.map(toNumericValue)]],
+    args: { nodeId, tail: [[toControlId(control), values.map(toNumericValue)]] },
   };
 }
 
 /** `/n_run` — pause (0) / resume (1) one node. */
 export function nRun(nodeId: number, flag: 0 | 1): ServerMessage {
-  return { address: "/n_run", tail: [[nodeId, flag]] };
+  return { address: "/n_run", args: { tail: [[nodeId, flag]] } };
 }
 
 /** `/n_free` — free nodes. */
 export function nFree(...nodeIds: number[]): ServerMessage {
-  return { address: "/n_free", nodeIds };
+  return { address: "/n_free", args: { nodeIds } };
 }
 
 /** `/g_freeAll` — free every node inside the groups (the groups survive). */
 export function gFreeAll(...groupIds: number[]): ServerMessage {
-  return { address: "/g_freeAll", groupIds };
+  return { address: "/g_freeAll", args: { groupIds } };
 }
 
 /** `/d_recv` — install a compiled SynthDef, with an optional completion
  *  message executed once the def is ready (e.g. an embedded `/sync`). */
 export function dRecv(bytes: Uint8Array, completionMsg?: Uint8Array): ServerMessage {
-  return { address: "/d_recv", bufferOfData: bytes, completionMsg };
+  return { address: "/d_recv", args: { bufferOfData: bytes, completionMsg } };
 }
 
 /** `/d_free` — remove SynthDef definitions by name. */
 export function dFree(...names: string[]): ServerMessage {
-  return { address: "/d_free", synthDefNames: names };
+  return { address: "/d_free", args: { synthDefNames: names } };
 }
 
 /** `/sync` — scsynth echoes `/synced <id>` once preceding async commands
  *  completed. */
 export function sync(id: number): ServerMessage {
-  return { address: "/sync", aUniqueNumber: id };
+  return { address: "/sync", args: { aUniqueNumber: id } };
 }
 
 /** `/scope/subscribe` — sc-app bridge extension: register a scope-slot
@@ -134,12 +137,12 @@ export function scopeSubscribe(params: {
   channels: number;
   chunkSize: number;
 }): ServerMessage {
-  return { address: "/scope/subscribe", ...params };
+  return { address: "/scope/subscribe", args: params };
 }
 
 /** `/scope/unsubscribe` — sc-app bridge extension: drop a scope stream. */
 export function scopeUnsubscribe(subId: number): ServerMessage {
-  return { address: "/scope/unsubscribe", subId };
+  return { address: "/scope/unsubscribe", args: { subId } };
 }
 
 /** Escape hatch: a raw address + args outside the command catalogue. */
@@ -153,6 +156,8 @@ export function raw(address: string, ...args: Array<number | string | Uint8Array
 export function dirtPlay(event: Record<string, string | number>): ServerMessage {
   return {
     address: "/dirt/play",
-    pairs: Object.entries(event).map(([key, value]): [string, OscArg] => [key, toOscArg(value)]),
+    args: {
+      pairs: Object.entries(event).map(([key, value]): [string, OscArg] => [key, toOscArg(value)]),
+    },
   };
 }

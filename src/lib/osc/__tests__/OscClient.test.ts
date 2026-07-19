@@ -22,7 +22,7 @@ import { SliceName } from "@/constants/store";
 
 const oscSlice = appStore.slice(SliceName.OSC);
 
-const syncedReply = (syncId: number): ServerReply => ({ address: "/synced", syncId });
+const syncedReply = (syncId: number): ServerReply => ({ address: "/synced", args: { syncId } });
 
 beforeEach(() => {
   oscSlice.update((s) => ({ ...s, log: [], errors: [], scsynthStatus: null }));
@@ -55,15 +55,17 @@ describe("OscClient.handleReply", () => {
   it("routes status-reply into scsynthStatus and keeps it out of the log", () => {
     workerOscClient.handleReply({
       address: "/status.reply",
-      unused: 1,
-      numUgens: 0,
-      numSynths: 0,
-      numGroups: 0,
-      numSynthDefs: 0,
-      avgCpu: 12.5,
-      peakCpu: 20.25,
-      nominalSampleRate: 48000,
-      actualSampleRate: 48000.0,
+      args: {
+        unused: 1,
+        numUgens: 0,
+        numSynths: 0,
+        numGroups: 0,
+        numSynthDefs: 0,
+        avgCpu: 12.5,
+        peakCpu: 20.25,
+        nominalSampleRate: 48000,
+        actualSampleRate: 48000.0,
+      },
     });
     expect(oscClient.scsynthStatus.get()).toEqual({
       avgCpu: 12.5,
@@ -79,9 +81,7 @@ describe("OscClient.handleReply", () => {
   it("coalesces identical fail banners and still logs them; dismissError drops one", async () => {
     const fail = (): ServerReply => ({
       address: "/fail",
-      command: "/s_new",
-      error: "SynthDef not found",
-      extras: [],
+      args: { command: "/s_new", error: "SynthDef not found", extras: [] },
     });
     workerOscClient.handleReply(fail());
     workerOscClient.handleReply(fail());
@@ -103,11 +103,13 @@ describe("OscClient.handleReply", () => {
   it("skips scope chunks in the console log", () => {
     workerOscClient.handleReply({
       address: "/scope/chunk",
-      subId: 1,
-      tickIndex: 0,
-      isGap: false,
-      channels: 1,
-      samples: Float32Array.of(0),
+      args: {
+        subId: 1,
+        tickIndex: 0,
+        isGap: false,
+        channels: 1,
+        samples: Float32Array.of(0),
+      },
     });
     expect(oscClient.log.get()).toHaveLength(0);
   });
@@ -119,27 +121,27 @@ describe("OscClient.once", () => {
   });
 
   it("resolves on the first matching reply, which still reaches the console log", async () => {
-    const reply = workerOscClient.once("/synced", (s) => s.syncId === 7);
+    const reply = workerOscClient.once("/synced", (s) => s.args.syncId === 7);
     workerOscClient.handleReply(syncedReply(7));
     const val = await reply;
-    expect(val.syncId).toBe(7);
+    expect(val.args.syncId).toBe(7);
     expect(oscClient.log.get()).toHaveLength(1);
   });
 
   it("ignores non-matching replies and is one-shot FIFO per match", async () => {
-    const first = workerOscClient.once("/n_go", (n) => n.nodeId === 100);
-    const second = workerOscClient.once("/n_go", (n) => n.nodeId === 100);
+    const first = workerOscClient.once("/n_go", (n) => n.args.nodeId === 100);
+    const second = workerOscClient.once("/n_go", (n) => n.args.nodeId === 100);
     workerOscClient.handleReply(nGoReply(99));
     workerOscClient.handleReply(nGoReply(100));
-    await expect(first).resolves.toMatchObject({ nodeId: 100 });
+    await expect(first).resolves.toMatchObject({ args: { nodeId: 100 } });
     // The second waiter is still pending — only one waiter consumed the reply.
     workerOscClient.handleReply(nGoReply(100));
-    await expect(second).resolves.toMatchObject({ nodeId: 100 });
+    await expect(second).resolves.toMatchObject({ args: { nodeId: 100 } });
   });
 
   it("rejects after the reply timeout", async () => {
     vi.useFakeTimers();
-    const reply = workerOscClient.once("/synced", (s) => s.syncId === 8);
+    const reply = workerOscClient.once("/synced", (s) => s.args.syncId === 8);
     const expectation = expect(reply).rejects.toThrow(
       "OscClient.once: timed out waiting for /synced",
     );

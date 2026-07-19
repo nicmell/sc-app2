@@ -190,7 +190,7 @@ export class OscClient {
   /** `/g_new` gated on the `/n_go` ack. */
   async createGroup(targetId: number): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once("/n_go", (n) => n.nodeId === id);
+    const reply = this.once("/n_go", (n) => n.args.nodeId === id);
     this.send(gNew(id, AddToTail, targetId));
     await reply;
     return id;
@@ -206,7 +206,7 @@ export class OscClient {
     arrayControls: ReadonlyArray<{ index: number; values: readonly number[] }> = [],
   ): Promise<number> {
     const id = this.nextNodeId();
-    const reply = this.once("/n_go", (n) => n.nodeId === id);
+    const reply = this.once("/n_go", (n) => n.args.nodeId === id);
     const pairs: Array<[string | number, number]> = Object.entries(controls);
     for (const item of arrayControls)
       item.values.forEach((value, i) => pairs.push([item.index + i, value]));
@@ -225,7 +225,7 @@ export class OscClient {
    *  follow immediately. (The sync id spends a node id; harmless, unique.) */
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const id = this.nextNodeId();
-    const reply = this.once("/synced", (s) => s.syncId === id);
+    const reply = this.once("/synced", (s) => s.args.syncId === id);
     this.send(dRecv(bytes, encode(sync(id))));
     await reply;
   }
@@ -276,39 +276,46 @@ export class OscClient {
       clearTimeout(waiter.timer);
       waiter.resolve(reply);
     }
-    if ("args" in reply) {
+    if (Array.isArray(reply.args)) {
       // Unknown-address fallback: log-only (nothing routes on it).
       const d = describeReply(reply);
       this.append("rx", d.address, d.args);
       return;
     }
     if (reply.address === "/scope/chunk") {
-      if (reply.channels > 0 && reply.samples.length % reply.channels === 0) {
-        this.events.scopeChunk(reply.subId, reply);
+      if (reply.args.channels > 0 && reply.args.samples.length % reply.args.channels === 0) {
+        this.events.scopeChunk(reply.args.subId, reply.args);
       } else {
-        console.error("[osc] bad /scope/chunk:", reply.channels, "channels,", reply.samples.length);
+        console.error(
+          "[osc] bad /scope/chunk:",
+          reply.args.channels,
+          "channels,",
+          reply.args.samples.length,
+        );
       }
       return;
     }
     if (reply.address === "/status.reply") {
       this.events.status({
-        avgCpu: reply.avgCpu,
-        peakCpu: reply.peakCpu,
-        sampleRate: reply.actualSampleRate,
-        numUgens: reply.numUgens,
-        numSynths: reply.numSynths,
-        numGroups: reply.numGroups,
+        avgCpu: reply.args.avgCpu,
+        peakCpu: reply.args.peakCpu,
+        sampleRate: reply.args.actualSampleRate,
+        numUgens: reply.args.numUgens,
+        numSynths: reply.args.numSynths,
+        numGroups: reply.args.numGroups,
       });
       if (this.statusTimer !== null) this.armWatchdog();
       return;
     }
     if (reply.address === "/fail") {
-      this.events.banner(reply.command, reply.error || "(no message)", "error");
+      this.events.banner(reply.args.command, reply.args.error || "(no message)", "error");
     } else if (reply.address === "/late") {
       // Two NTP timetags (scheduled, executed) — the lateness is their
       // difference in seconds.
       const seconds =
-        reply.lateSecs - reply.seconds + (reply.lateFracs - reply.fractions) / 2 ** 32;
+        reply.args.lateSecs -
+        reply.args.seconds +
+        (reply.args.lateFracs - reply.args.fractions) / 2 ** 32;
       this.events.banner("/late", `bundle ran ${seconds.toFixed(3)}s late`, "warn");
     }
     const d = describeReply(reply);

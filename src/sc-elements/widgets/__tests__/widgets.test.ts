@@ -64,11 +64,13 @@ const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
 function scopeChunk(subId: number, floats: number[], channels = 2) {
   return {
     address: "/scope/chunk",
-    subId,
-    tickIndex: 1,
-    isGap: false,
-    channels,
-    samples: Float32Array.from(floats),
+    args: {
+      subId,
+      tickIndex: 1,
+      isGap: false,
+      channels,
+      samples: Float32Array.from(floats),
+    },
   } as const;
 }
 

@@ -113,18 +113,15 @@ describe("typed reply classification", () => {
   it("classifies the replies the worker routes on", () => {
     expect(decodeReply(encode(raw("/n_go", 2001, 1, -1, -1, 0)))).toEqual({
       address: "/n_go",
-      nodeId: 2001,
-      parentId: 1,
-      prevNode: -1,
-      nextNode: -1,
-      isGroup: 0,
+      args: { nodeId: 2001, parentId: 1, prevNode: -1, nextNode: -1, isGroup: 0 },
     });
-    expect(decodeReply(encode(raw("/synced", 7)))).toEqual({ address: "/synced", syncId: 7 });
+    expect(decodeReply(encode(raw("/synced", 7)))).toEqual({
+      address: "/synced",
+      args: { syncId: 7 },
+    });
     expect(decodeReply(encode(raw("/fail", "/s_new", "SynthDef not found")))).toEqual({
       address: "/fail",
-      command: "/s_new",
-      error: "SynthDef not found",
-      extras: [],
+      args: { command: "/s_new", error: "SynthDef not found", extras: [] },
     });
   });
 
@@ -135,10 +132,10 @@ describe("typed reply classification", () => {
     new DataView(blob.buffer).setFloat32(4, -1, false);
     const reply = decodeReply(encode(raw("/scope/chunk", 5, 9, 0, 2, blob)));
     if (reply.address !== "/scope/chunk") throw new Error(`expected chunk, got ${reply.address}`);
-    expect(reply.samples).toBeInstanceOf(Float32Array);
-    expect(Array.from(reply.samples)).toEqual([1, -1]);
-    expect(reply).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });
-    expect(reply.samples.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
+    expect(reply.args.samples).toBeInstanceOf(Float32Array);
+    expect(Array.from(reply.args.samples)).toEqual([1, -1]);
+    expect(reply.args).toMatchObject({ subId: 5, tickIndex: 9, isGap: false, channels: 2 });
+    expect(reply.args.samples.buffer.byteLength).toBeGreaterThan(0); // own buffer, transferable
   });
 
   it("decodeReplyPacket splits bundles and errors loudly on garbage", () => {

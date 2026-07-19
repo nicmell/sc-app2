@@ -6,9 +6,9 @@ abstraction/utility layer over the **wasm-bindgen build** of the vendored
 `scserver-commands` Rust crate (`src-tauri/crates/scserver-commands`). One
 protocol implementation shared by the Rust backend (native rlib) and the
 frontend (this package), with tsify-generated TypeScript types whose
-discriminant IS the OSC address: a message is a flat
-`{ address: "/s_new", defName, … }` object, a decoded reply narrows on
-`reply.address` — no tag↔address mapping exists anywhere.
+discriminant IS the OSC address: a typed message is an args-nested
+`{ address: "/s_new", args: { defName, … } }` object, and a decoded reply
+narrows on `reply.address` — no tag↔address mapping exists anywhere.
 
 ## Layout
 
@@ -38,15 +38,15 @@ import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
 const bytes = encode(sNew("sine", 1001, AddToHead, 100, [["freq", 440]]));
 // …send bytes over the WS transport…
 
-const reply = decodeReply(incoming); // { address: "/n_go", nodeId, … }
-if (reply.address === "/synced") console.log(reply.syncId);
+const reply = decodeReply(incoming); // { address: "/n_go", args: { nodeId, … } }
+if (reply.address === "/synced") console.log(reply.args.syncId);
 ```
 
 ## Notes
 
-- The escape hatch (`raw()`) is the only shape with an `args` field — that
-  marker is how both TypeScript narrowing and the wasm boundary tell raw
-  messages from catalogued ones.
+- The escape hatch (`raw()`) keeps an `args: OscArg[]` array; typed payloads
+  use an `args` object, so `Array.isArray(value.args)` distinguishes raw from
+  catalogued values.
 - `/scope/chunk` samples cross the boundary as one transferable
   `Float32Array` memcpy (the binding layer builds that arm manually — serde
   would box them into `number[]` on the ~47 Hz streaming path).

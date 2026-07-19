@@ -39,17 +39,18 @@ export interface OtherMsg {
  * Every catalogued server-to-client reply, one variant per address. Like
  * [`crate::commands::KnownMessage`], the serde representation is internally
  * tagged BY THE OSC ADDRESS — a decoded reply crosses the wasm boundary as
- * a flat `{ \"address\": \"/n_go\", …fields }` object, so the address itself is
- * the TypeScript discriminant.
+ * an adjacently tagged `{ \"address\": \"/n_go\", \"args\": { …fields } }` object,
+ * so the address is the TypeScript discriminant and the payload rides in
+ * `args`.
  */
-export type KnownReply = { address: "/done"; command: string; extras: OscArg[] } | { address: "/fail"; command: string; error: string; extras: OscArg[] } | { address: "/late"; seconds: number; fractions: number; lateSecs: number; lateFracs: number } | ({ address: "/n_go" } & NodeInfo) | ({ address: "/n_end" } & NodeInfo) | ({ address: "/n_on" } & NodeInfo) | ({ address: "/n_off" } & NodeInfo) | ({ address: "/n_move" } & NodeInfo) | ({ address: "/n_info" } & NodeInfo) | ({ address: "/status.reply" } & StatusReply) | { address: "/tr"; nodeId: number; triggerId: number; value: number } | ({ address: "/b_setn" } & BSetnReply) | { address: "/synced"; syncId: number } | ({ address: "/scope/chunk" } & ScopeChunkReply);
+export type KnownReply = { address: "/done"; args: { command: string; extras: OscArg[] } } | { address: "/fail"; args: { command: string; error: string; extras: OscArg[] } } | { address: "/late"; args: { seconds: number; fractions: number; lateSecs: number; lateFracs: number } } | { address: "/n_go"; args: NodeInfo } | { address: "/n_end"; args: NodeInfo } | { address: "/n_on"; args: NodeInfo } | { address: "/n_off"; args: NodeInfo } | { address: "/n_move"; args: NodeInfo } | { address: "/n_info"; args: NodeInfo } | { address: "/status.reply"; args: StatusReply } | { address: "/tr"; args: { nodeId: number; triggerId: number; value: number } } | { address: "/b_setn"; args: BSetnReply } | { address: "/synced"; args: { syncId: number } } | { address: "/scope/chunk"; args: ScopeChunkReply };
 
 /**
- * Every typed command, tagged by its OSC address — the serde tag IS
- * the address, so a serialized command is a flat
- * `{ \"address\": \"/s_new\", ... }` object.
+ * Every typed command, adjacently tagged by its OSC address — a
+ * serialized command is a `{ \"address\": \"/s_new\", \"args\": { … } }`
+ * object (unit commands are just `{ \"address\": \"/quit\" }`).
  */
-export type KnownMessage = ({ address: "/dirt/play" } & DirtPlay) | ({ address: "/scope/subscribe" } & ScopeSubscribe) | ({ address: "/scope/unsubscribe" } & ScopeUnsubscribe) | ({ address: "/b_alloc" } & BAlloc) | ({ address: "/b_allocRead" } & BAllocRead) | ({ address: "/b_allocReadChannel" } & BAllocReadChannel) | ({ address: "/b_close" } & BClose) | ({ address: "/b_fill" } & BFill) | ({ address: "/b_free" } & BFree) | ({ address: "/b_gen" } & BGen) | ({ address: "/b_get" } & BGet) | ({ address: "/b_getn" } & BGetn) | ({ address: "/b_query" } & BQuery) | ({ address: "/b_read" } & BRead) | ({ address: "/b_readChannel" } & BReadChannel) | ({ address: "/b_set" } & BSet) | ({ address: "/b_setn" } & BSetn) | ({ address: "/b_setSampleRate" } & BSetSampleRate) | ({ address: "/b_write" } & BWrite) | ({ address: "/b_zero" } & BZero) | ({ address: "/c_fill" } & CFill) | ({ address: "/c_get" } & CGet) | ({ address: "/c_getn" } & CGetn) | ({ address: "/c_set" } & CSet) | ({ address: "/c_setn" } & CSetn) | ({ address: "/g_deepFree" } & GDeepFree) | ({ address: "/g_dumpTree" } & GDumpTree) | ({ address: "/g_freeAll" } & GFreeAll) | ({ address: "/g_head" } & GHead) | ({ address: "/g_new" } & GNew) | ({ address: "/g_queryTree" } & GQueryTree) | ({ address: "/g_tail" } & GTail) | ({ address: "/p_new" } & PNew) | ({ address: "/cmd" } & Cmd) | ({ address: "/dumpOSC" } & DumpOSC) | ({ address: "/error" } & Error) | ({ address: "/notify" } & Notify) | ({ address: "/sync" } & Sync) | ({ address: "/n_after" } & NAfter) | ({ address: "/n_before" } & NBefore) | ({ address: "/n_fill" } & NFill) | ({ address: "/n_free" } & NFree) | ({ address: "/n_map" } & NMap) | ({ address: "/n_mapa" } & NMapa) | ({ address: "/n_mapan" } & NMapan) | ({ address: "/n_mapn" } & NMapn) | ({ address: "/n_order" } & NOrder) | ({ address: "/n_query" } & NQuery) | ({ address: "/n_run" } & NRun) | ({ address: "/n_set" } & NSet) | ({ address: "/n_setn" } & NSetn) | ({ address: "/n_trace" } & NTrace) | ({ address: "/s_get" } & SGet) | ({ address: "/s_getn" } & SGetn) | ({ address: "/s_new" } & SNew) | ({ address: "/s_noid" } & SNoid) | ({ address: "/d_free" } & DFree) | ({ address: "/d_load" } & DLoad) | ({ address: "/d_loadDir" } & DLoadDir) | ({ address: "/d_recv" } & DRecv) | ({ address: "/u_cmd" } & UCmd) | { address: "/clearSched" } | { address: "/quit" } | { address: "/rtMemoryStatus" } | { address: "/status" } | { address: "/version" } | { address: "/nrt_end" };
+export type KnownMessage = { address: "/b_alloc"; args: BAlloc } | { address: "/b_allocRead"; args: BAllocRead } | { address: "/b_allocReadChannel"; args: BAllocReadChannel } | { address: "/b_close"; args: BClose } | { address: "/b_fill"; args: BFill } | { address: "/b_free"; args: BFree } | { address: "/b_gen"; args: BGen } | { address: "/b_get"; args: BGet } | { address: "/b_getn"; args: BGetn } | { address: "/b_query"; args: BQuery } | { address: "/b_read"; args: BRead } | { address: "/b_readChannel"; args: BReadChannel } | { address: "/b_set"; args: BSet } | { address: "/b_setn"; args: BSetn } | { address: "/b_setSampleRate"; args: BSetSampleRate } | { address: "/b_write"; args: BWrite } | { address: "/b_zero"; args: BZero } | { address: "/c_fill"; args: CFill } | { address: "/c_get"; args: CGet } | { address: "/c_getn"; args: CGetn } | { address: "/c_set"; args: CSet } | { address: "/c_setn"; args: CSetn } | { address: "/g_deepFree"; args: GDeepFree } | { address: "/g_dumpTree"; args: GDumpTree } | { address: "/g_freeAll"; args: GFreeAll } | { address: "/g_head"; args: GHead } | { address: "/g_new"; args: GNew } | { address: "/g_queryTree"; args: GQueryTree } | { address: "/g_tail"; args: GTail } | { address: "/p_new"; args: PNew } | { address: "/cmd"; args: Cmd } | { address: "/dumpOSC"; args: DumpOSC } | { address: "/error"; args: Error } | { address: "/notify"; args: Notify } | { address: "/sync"; args: Sync } | { address: "/n_after"; args: NAfter } | { address: "/n_before"; args: NBefore } | { address: "/n_fill"; args: NFill } | { address: "/n_free"; args: NFree } | { address: "/n_map"; args: NMap } | { address: "/n_mapa"; args: NMapa } | { address: "/n_mapan"; args: NMapan } | { address: "/n_mapn"; args: NMapn } | { address: "/n_order"; args: NOrder } | { address: "/n_query"; args: NQuery } | { address: "/n_run"; args: NRun } | { address: "/n_set"; args: NSet } | { address: "/n_setn"; args: NSetn } | { address: "/n_trace"; args: NTrace } | { address: "/s_get"; args: SGet } | { address: "/s_getn"; args: SGetn } | { address: "/s_new"; args: SNew } | { address: "/s_noid"; args: SNoid } | { address: "/d_free"; args: DFree } | { address: "/d_load"; args: DLoad } | { address: "/d_loadDir"; args: DLoadDir } | { address: "/d_recv"; args: DRecv } | { address: "/u_cmd"; args: UCmd } | { address: "/scope/subscribe"; args: ScopeSubscribe } | { address: "/scope/unsubscribe"; args: ScopeUnsubscribe } | { address: "/dirt/play"; args: DirtPlay } | { address: "/clearSched" } | { address: "/quit" } | { address: "/rtMemoryStatus" } | { address: "/status" } | { address: "/version" } | { address: "/nrt_end" };
 
 /**
  * Identifier used to address a synth control: either its index in the
@@ -1134,51 +1135,49 @@ export interface BZero {
 }
 
 /**
- *r" sc-app bridge extension: a SuperDirt/Strudel event, routed by the
- *r" bridge to the strudel peer. The wire format is SuperDirt's
- *r" alternating key/value arg list.
+ *sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list.
  *
  *
  */
 export interface DirtPlay {
     /**
-     *r" Repeated tuples: parameter name; parameter value.
+     *Repeated tuples: parameter name; parameter value.
      */
     pairs: [string, OscArg][];
 }
 
 /**
- *r" sc-app bridge extension: drop a scope-slot stream.
+ *sc-app bridge extension (not in the SC command reference): drop a scope-slot stream.
  *
  *
  */
 export interface ScopeUnsubscribe {
     /**
-     *r" The subscription id to drop.
+     *The subscription id to drop.
      */
     subId: number;
 }
 
 /**
- *r" sc-app bridge extension: register a scope-slot stream with the bridge.
+ *sc-app bridge extension (not in the SC command reference): register a scope-slot stream with the bridge. The bridge is the consumer, so the struct also carries from_message/decode parsers.
  *
  *
  */
 export interface ScopeSubscribe {
     /**
-     *r" Client-minted subscription id, echoed on every chunk.
+     *Client-minted subscription id, echoed on every chunk.
      */
     subId: number;
     /**
-     *r" scsynth SHM scope-buffer index to stream.
+     *scsynth SHM scope-buffer index to stream.
      */
     scope: number;
     /**
-     *r" Channel count (informational — the SHM header carries the truth).
+     *Channel count (informational — the SHM header carries the truth).
      */
     channels: number;
     /**
-     *r" Requested frames per chunk (informational, as above).
+     *Requested frames per chunk (informational, as above).
      */
     chunkSize: number;
 }

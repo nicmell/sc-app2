@@ -25,11 +25,12 @@ use crate::{CommandError, OscMessage};
 /// Every catalogued server-to-client reply, one variant per address. Like
 /// [`crate::commands::KnownMessage`], the serde representation is internally
 /// tagged BY THE OSC ADDRESS — a decoded reply crosses the wasm boundary as
-/// a flat `{ "address": "/n_go", …fields }` object, so the address itself is
-/// the TypeScript discriminant.
+/// an adjacently tagged `{ "address": "/n_go", "args": { …fields } }` object,
+/// so the address is the TypeScript discriminant and the payload rides in
+/// `args`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "wasm", derive(Tsify))]
-#[serde(tag = "address", rename_all_fields = "camelCase")]
+#[serde(tag = "address", content = "args", rename_all_fields = "camelCase")]
 pub enum KnownReply {
     /// Acknowledges an async command. (`command` is the first wire arg —
     /// the address of the ACKNOWLEDGED command; the reply's own address,
@@ -560,7 +561,7 @@ mod tests {
     }
 
     /// The serde shape IS the wasm-boundary contract: the OSC address is the
-    /// discriminant, payload fields flatten next to it in camelCase.
+    /// discriminant, the camelCase payload rides nested under `args`.
     #[test]
     fn known_reply_serializes_with_the_address_as_the_tag() {
         let r = KnownReply::NGo(NodeInfo {
@@ -574,14 +575,14 @@ mod tests {
         });
         let j = serde_json::to_value(&r).unwrap();
         assert_eq!(j["address"], "/n_go");
-        assert_eq!(j["nodeId"], 1001);
-        assert!(j.get("headNode").is_none()); // absent options are omitted
+        assert_eq!(j["args"]["nodeId"], 1001);
+        assert!(j["args"].get("headNode").is_none()); // absent options are omitted
         assert_eq!(serde_json::from_value::<KnownReply>(j).unwrap(), r);
 
         let r = KnownReply::Synced { sync_id: 7 };
         let j = serde_json::to_value(&r).unwrap();
         assert_eq!(j["address"], "/synced");
-        assert_eq!(j["syncId"], 7);
+        assert_eq!(j["args"]["syncId"], 7);
     }
 
     /// Pin the `/scope/chunk` wire format the TS worker decodes: 5 args

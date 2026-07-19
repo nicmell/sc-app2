@@ -328,12 +328,12 @@ macro_rules! define_known_message {
         payload { $($pn:ident $pa:literal,)* }
         unit { $($un:ident $ua:literal,)* }
     ) => {
-        /// Every typed command, tagged by its OSC address — the serde tag IS
-        /// the address, so a serialized command is a flat
-        /// `{ "address": "/s_new", ... }` object.
+        /// Every typed command, adjacently tagged by its OSC address — a
+        /// serialized command is a `{ "address": "/s_new", "args": { … } }`
+        /// object (unit commands are just `{ "address": "/quit" }`).
         #[derive(Debug, Clone, Serialize, Deserialize)]
         #[cfg_attr(feature = "wasm", derive(Tsify))]
-        #[serde(tag = "address")]
+        #[serde(tag = "address", content = "args")]
         pub enum KnownMessage {
             $( #[serde(rename = $pa)] $pn($pn), )*
             $( #[serde(rename = $ua)] $un, )*

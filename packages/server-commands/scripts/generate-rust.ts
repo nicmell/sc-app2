@@ -311,10 +311,10 @@ function wasmCommand(command: CommandSpec): { rust: string; ts: string } {
   }
   if (command.fields.length) {
     const fieldExprs = command.fields.map((f) => `        ${f.name}: ${fieldExpr(f)},\n`).join("");
-    body += `    msg_to_js(KnownMessage::${command.struct}(${command.struct} {\n${fieldExprs}    }))`;
+    body += `    encode_msg(KnownMessage::${command.struct}(${command.struct} {\n${fieldExprs}    }))`;
   } else {
     // unit variant — no payload struct in the enum arm
-    body += `    msg_to_js(KnownMessage::${command.struct})`;
+    body += `    encode_msg(KnownMessage::${command.struct})`;
   }
 
   function fieldExpr(f: FieldSpec): string {
@@ -389,11 +389,11 @@ function wasmCommand(command: CommandSpec): { rust: string; ts: string } {
   }
 
   const doc = command.doc ? `/// ${command.doc.split("\n").join(" ")}\n` : "";
-  const rust = `${doc}#[wasm_bindgen(js_name = "${js}", skip_typescript)]\npub fn ${fn}(${params.join(", ")}) -> Result<JsValue, JsError> {\n${body}\n}\n`;
+  const rust = `${doc}#[wasm_bindgen(js_name = "${js}", skip_typescript)]\npub fn ${fn}(${params.join(", ")}) -> Result<Uint8Array, JsError> {\n${body}\n}\n`;
   const tsDoc = command.doc
     ? `/** \`${command.address}\` — ${command.doc.split("\n")[0]} */\n`
     : "";
-  const ts = `${tsDoc}export function ${js}(${tsParams.join(", ")}): ServerMessage;\n`;
+  const ts = `${tsDoc}export function ${js}(${tsParams.join(", ")}): Uint8Array;\n`;
   return { rust, ts };
 }
 

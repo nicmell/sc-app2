@@ -17,7 +17,7 @@ export function at_unix_ms(ms) {
  * @param {any} bufnum
  * @param {any} num_frames
  * @param {any} opts
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bAlloc(bufnum, num_frames, opts) {
     const ret = wasm.bAlloc(bufnum, num_frames, opts);
@@ -32,7 +32,7 @@ export function bAlloc(bufnum, num_frames, opts) {
  * @param {any} bufnum
  * @param {any} path
  * @param {any} opts
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bAllocRead(bufnum, path, opts) {
     const ret = wasm.bAllocRead(bufnum, path, opts);
@@ -50,7 +50,7 @@ export function bAllocRead(bufnum, path, opts) {
  * @param {any} number_of_frames
  * @param {any} channels
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bAllocReadChannel(bufnum, path, start_frame, number_of_frames, channels, completion_msg) {
     const ret = wasm.bAllocReadChannel(bufnum, path, start_frame, number_of_frames, channels, completion_msg);
@@ -64,7 +64,7 @@ export function bAllocReadChannel(bufnum, path, start_frame, number_of_frames, c
  * Close soundfile.
  * @param {any} bufnum
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bClose(bufnum, completion_msg) {
     const ret = wasm.bClose(bufnum, completion_msg);
@@ -78,7 +78,7 @@ export function bClose(bufnum, completion_msg) {
  * Fill ranges of sample value(s).
  * @param {any} bufnum
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bFill(bufnum, tail) {
     const ret = wasm.bFill(bufnum, tail);
@@ -92,7 +92,7 @@ export function bFill(bufnum, tail) {
  * Free buffer data.
  * @param {any} bufnum
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bFree(bufnum, completion_msg) {
     const ret = wasm.bFree(bufnum, completion_msg);
@@ -107,7 +107,7 @@ export function bFree(bufnum, completion_msg) {
  * @param {any} bufnum
  * @param {any} cmd
  * @param {any} command_arguments
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bGen(bufnum, cmd, command_arguments) {
     const ret = wasm.bGen(bufnum, cmd, command_arguments);
@@ -121,7 +121,7 @@ export function bGen(bufnum, cmd, command_arguments) {
  * Get sample value(s).
  * @param {any} bufnum
  * @param {any} sample_indices
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bGet(bufnum, sample_indices) {
     const ret = wasm.bGet(bufnum, sample_indices);
@@ -135,7 +135,7 @@ export function bGet(bufnum, sample_indices) {
  * Get ranges of sample value(s).
  * @param {any} bufnum
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bGetn(bufnum, tail) {
     const ret = wasm.bGetn(bufnum, tail);
@@ -148,7 +148,7 @@ export function bGetn(bufnum, tail) {
 /**
  * Get buffer info.
  * @param {any} bufnums
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bQuery(bufnums) {
     const ret = wasm.bQuery(bufnums);
@@ -163,7 +163,7 @@ export function bQuery(bufnums) {
  * @param {any} bufnum
  * @param {any} path
  * @param {any} opts
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bRead(bufnum, path, opts) {
     const ret = wasm.bRead(bufnum, path, opts);
@@ -183,7 +183,7 @@ export function bRead(bufnum, path, opts) {
  * @param {any} leave_file_open
  * @param {any} channels
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bReadChannel(bufnum, path, start_frame, number_of_frames, starting_frame, leave_file_open, channels, completion_msg) {
     const ret = wasm.bReadChannel(bufnum, path, start_frame, number_of_frames, starting_frame, leave_file_open, channels, completion_msg);
@@ -197,7 +197,7 @@ export function bReadChannel(bufnum, path, start_frame, number_of_frames, starti
  * Set sample value(s).
  * @param {any} bufnum
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bSet(bufnum, tail) {
     const ret = wasm.bSet(bufnum, tail);
@@ -211,7 +211,7 @@ export function bSet(bufnum, tail) {
  * Set the sampling rate of the buffer.
  * @param {any} bufnum
  * @param {any} the_desired_sampling
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bSetSampleRate(bufnum, the_desired_sampling) {
     const ret = wasm.bSetSampleRate(bufnum, the_desired_sampling);
@@ -225,7 +225,7 @@ export function bSetSampleRate(bufnum, the_desired_sampling) {
  * Set ranges of sample value(s).
  * @param {any} bufnum
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bSetn(bufnum, tail) {
     const ret = wasm.bSetn(bufnum, tail);
@@ -242,7 +242,7 @@ export function bSetn(bufnum, tail) {
  * @param {any} header_format
  * @param {any} sample_format
  * @param {any} opts
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bWrite(bufnum, path, header_format, sample_format, opts) {
     const ret = wasm.bWrite(bufnum, path, header_format, sample_format, opts);
@@ -256,7 +256,7 @@ export function bWrite(bufnum, path, header_format, sample_format, opts) {
  * Zero sample data.
  * @param {any} bufnum
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function bZero(bufnum, completion_msg) {
     const ret = wasm.bZero(bufnum, completion_msg);
@@ -269,7 +269,7 @@ export function bZero(bufnum, completion_msg) {
 /**
  * Fill ranges of bus value(s).
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cFill(tail) {
     const ret = wasm.cFill(tail);
@@ -282,7 +282,7 @@ export function cFill(tail) {
 /**
  * Get bus value(s).
  * @param {any} bus_indices
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cGet(bus_indices) {
     const ret = wasm.cGet(bus_indices);
@@ -295,7 +295,7 @@ export function cGet(bus_indices) {
 /**
  * Get ranges of bus value(s).
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cGetn(tail) {
     const ret = wasm.cGetn(tail);
@@ -308,7 +308,7 @@ export function cGetn(tail) {
 /**
  * Set bus value(s).
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cSet(tail) {
     const ret = wasm.cSet(tail);
@@ -321,7 +321,7 @@ export function cSet(tail) {
 /**
  * Set ranges of bus value(s).
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cSetn(tail) {
     const ret = wasm.cSetn(tail);
@@ -333,7 +333,7 @@ export function cSetn(tail) {
 
 /**
  * Clear all scheduled bundles. Removes all bundles from the scheduling queue.
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function clearSched() {
     const ret = wasm.clearSched();
@@ -347,7 +347,7 @@ export function clearSched() {
  * Plug-in defined command.
  * @param {any} cmd
  * @param {any} any_arguments
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function cmd(cmd, any_arguments) {
     const ret = wasm.cmd(cmd, any_arguments);
@@ -360,7 +360,7 @@ export function cmd(cmd, any_arguments) {
 /**
  * Delete synth definition.
  * @param {any} synth_def_names
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dFree(synth_def_names) {
     const ret = wasm.dFree(synth_def_names);
@@ -374,7 +374,7 @@ export function dFree(synth_def_names) {
  * Load synth definition.
  * @param {any} pathname_of_file
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dLoad(pathname_of_file, completion_msg) {
     const ret = wasm.dLoad(pathname_of_file, completion_msg);
@@ -388,7 +388,7 @@ export function dLoad(pathname_of_file, completion_msg) {
  * Load a directory of synth definitions.
  * @param {any} pathname_of_directory
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dLoadDir(pathname_of_directory, completion_msg) {
     const ret = wasm.dLoadDir(pathname_of_directory, completion_msg);
@@ -402,7 +402,7 @@ export function dLoadDir(pathname_of_directory, completion_msg) {
  * Receive a synth definition file.
  * @param {any} buffer_of_data
  * @param {any} completion_msg
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dRecv(buffer_of_data, completion_msg) {
     const ret = wasm.dRecv(buffer_of_data, completion_msg);
@@ -464,7 +464,7 @@ export function decode_reply_packet(bytes) {
 /**
  * sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list.
  * @param {any} pairs
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dirtPlay(pairs) {
     const ret = wasm.dirtPlay(pairs);
@@ -477,7 +477,7 @@ export function dirtPlay(pairs) {
 /**
  * Display incoming OSC messages.
  * @param {any} code
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function dumpOSC(code) {
     const ret = wasm.dumpOSC(code);
@@ -488,27 +488,14 @@ export function dumpOSC(code) {
 }
 
 /**
- * Serialise one typed command to OSC wire bytes.
- * @param {any} msg
- * @returns {Uint8Array}
- */
-export function encode(msg) {
-    const ret = wasm.encode(msg);
-    if (ret[2]) {
-        throw takeFromExternrefTable0(ret[1]);
-    }
-    return takeFromExternrefTable0(ret[0]);
-}
-
-/**
  * Serialise many commands into one standard OSC bundle — scsynth applies
  * the whole bundle atomically at the timetag.
  * @param {any} time
- * @param {Array<any>} msgs
+ * @param {Array<any>} elements
  * @returns {Uint8Array}
  */
-export function encode_bundle(time, msgs) {
-    const ret = wasm.encode_bundle(time, msgs);
+export function encode_bundle(time, elements) {
+    const ret = wasm.encode_bundle(time, elements);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -518,7 +505,7 @@ export function encode_bundle(time, msgs) {
 /**
  * Enable/disable error message posting.
  * @param {any} mode
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function error(mode) {
     const ret = wasm.error(mode);
@@ -531,7 +518,7 @@ export function error(mode) {
 /**
  * Free all synths in this group and all its sub-groups.
  * @param {any} group_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gDeepFree(group_ids) {
     const ret = wasm.gDeepFree(group_ids);
@@ -544,7 +531,7 @@ export function gDeepFree(group_ids) {
 /**
  * Post a representation of this group's node subtree.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gDumpTree(tail) {
     const ret = wasm.gDumpTree(tail);
@@ -557,7 +544,7 @@ export function gDumpTree(tail) {
 /**
  * Delete all nodes in a group.
  * @param {any} group_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gFreeAll(group_ids) {
     const ret = wasm.gFreeAll(group_ids);
@@ -570,7 +557,7 @@ export function gFreeAll(group_ids) {
 /**
  * Add node to head of group.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gHead(tail) {
     const ret = wasm.gHead(tail);
@@ -583,7 +570,7 @@ export function gHead(tail) {
 /**
  * Create a new group.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gNew(tail) {
     const ret = wasm.gNew(tail);
@@ -596,7 +583,7 @@ export function gNew(tail) {
 /**
  * Get a representation of this group's node subtree.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gQueryTree(tail) {
     const ret = wasm.gQueryTree(tail);
@@ -609,7 +596,7 @@ export function gQueryTree(tail) {
 /**
  * Add node to tail of group.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function gTail(tail) {
     const ret = wasm.gTail(tail);
@@ -620,24 +607,9 @@ export function gTail(tail) {
 }
 
 /**
- * Lower one typed command to its raw wire view (`{ address, args }` with
- * the args in wire ORDER) via `to_osc_message()` — the console's tx log
- * rendering, definitionally in sync with the encoder.
- * @param {any} msg
- * @returns {any}
- */
-export function message_to_osc(msg) {
-    const ret = wasm.message_to_osc(msg);
-    if (ret[2]) {
-        throw takeFromExternrefTable0(ret[1]);
-    }
-    return takeFromExternrefTable0(ret[0]);
-}
-
-/**
  * Place a node after another.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nAfter(tail) {
     const ret = wasm.nAfter(tail);
@@ -650,7 +622,7 @@ export function nAfter(tail) {
 /**
  * Place a node before another.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nBefore(tail) {
     const ret = wasm.nBefore(tail);
@@ -664,7 +636,7 @@ export function nBefore(tail) {
  * Fill ranges of a node's control value(s).
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nFill(node_id, tail) {
     const ret = wasm.nFill(node_id, tail);
@@ -677,7 +649,7 @@ export function nFill(node_id, tail) {
 /**
  * Delete a node.
  * @param {any} node_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nFree(node_ids) {
     const ret = wasm.nFree(node_ids);
@@ -691,7 +663,7 @@ export function nFree(node_ids) {
  * Map a node's controls to read from a bus.
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nMap(node_id, tail) {
     const ret = wasm.nMap(node_id, tail);
@@ -705,7 +677,7 @@ export function nMap(node_id, tail) {
  * Map a node's controls to read from an audio bus.
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nMapa(node_id, tail) {
     const ret = wasm.nMapa(node_id, tail);
@@ -719,7 +691,7 @@ export function nMapa(node_id, tail) {
  * Map a node's controls to read from audio buses.
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nMapan(node_id, tail) {
     const ret = wasm.nMapan(node_id, tail);
@@ -733,7 +705,7 @@ export function nMapan(node_id, tail) {
  * Map a node's controls to read from buses.
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nMapn(node_id, tail) {
     const ret = wasm.nMapn(node_id, tail);
@@ -748,7 +720,7 @@ export function nMapn(node_id, tail) {
  * @param {any} add_action
  * @param {any} target_id
  * @param {any} node_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nOrder(add_action, target_id, node_ids) {
     const ret = wasm.nOrder(add_action, target_id, node_ids);
@@ -761,7 +733,7 @@ export function nOrder(add_action, target_id, node_ids) {
 /**
  * Get info about a node.
  * @param {any} node_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nQuery(node_ids) {
     const ret = wasm.nQuery(node_ids);
@@ -774,7 +746,7 @@ export function nQuery(node_ids) {
 /**
  * Turn node on or off.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nRun(tail) {
     const ret = wasm.nRun(tail);
@@ -788,7 +760,7 @@ export function nRun(tail) {
  * Set a node's control value(s).
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nSet(node_id, tail) {
     const ret = wasm.nSet(node_id, tail);
@@ -802,7 +774,7 @@ export function nSet(node_id, tail) {
  * Set ranges of a node's control value(s).
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nSetn(node_id, tail) {
     const ret = wasm.nSetn(node_id, tail);
@@ -815,7 +787,7 @@ export function nSetn(node_id, tail) {
 /**
  * Trace a node.
  * @param {any} node_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nTrace(node_ids) {
     const ret = wasm.nTrace(node_ids);
@@ -829,7 +801,7 @@ export function nTrace(node_ids) {
  * Register to receive notifications from server
  * @param {any} enable
  * @param {any} client_id
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function notify(enable, client_id) {
     const ret = wasm.notify(enable, client_id);
@@ -841,7 +813,7 @@ export function notify(enable, client_id) {
 
 /**
  * End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete.
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function nrtEnd() {
     const ret = wasm.nrtEnd();
@@ -854,7 +826,7 @@ export function nrtEnd() {
 /**
  * Create a new parallel group.
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function pNew(tail) {
     const ret = wasm.pNew(tail);
@@ -866,7 +838,7 @@ export function pNew(tail) {
 
 /**
  * Quit program. Exits the synthesis server.
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function quit() {
     const ret = wasm.quit();
@@ -877,16 +849,16 @@ export function quit() {
 }
 
 /**
- * The escape hatch: a raw address + leniently-coerced args, outside the
- * command catalogue.
+ * The escape hatch: a raw address + leniently-coerced args, encoded
+ * straight to wire bytes like every generated builder.
  * @param {string} address
  * @param {Array<any>} args
- * @returns {any}
+ * @returns {Uint8Array}
  */
-export function raw_message(address, args) {
+export function raw_bytes(address, args) {
     const ptr0 = passStringToWasm0(address, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.raw_message(ptr0, len0, args);
+    const ret = wasm.raw_bytes(ptr0, len0, args);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -895,7 +867,7 @@ export function raw_message(address, args) {
 
 /**
  * Queries the amount of currently free real-time memory (in bytes).
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function rtMemoryStatus() {
     const ret = wasm.rtMemoryStatus();
@@ -909,7 +881,7 @@ export function rtMemoryStatus() {
  * Get control value(s).
  * @param {any} node_id
  * @param {any} controls
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function sGet(node_id, controls) {
     const ret = wasm.sGet(node_id, controls);
@@ -923,7 +895,7 @@ export function sGet(node_id, controls) {
  * Get ranges of control value(s).
  * @param {any} node_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function sGetn(node_id, tail) {
     const ret = wasm.sGetn(node_id, tail);
@@ -940,7 +912,7 @@ export function sGetn(node_id, tail) {
  * @param {any} add_action
  * @param {any} target_id
  * @param {any} tail
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function sNew(def_name, node_id, add_action, target_id, tail) {
     const ret = wasm.sNew(def_name, node_id, add_action, target_id, tail);
@@ -953,7 +925,7 @@ export function sNew(def_name, node_id, add_action, target_id, tail) {
 /**
  * Auto-reassign synth's ID to a reserved value.
  * @param {any} synth_ids
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function sNoid(synth_ids) {
     const ret = wasm.sNoid(synth_ids);
@@ -969,7 +941,7 @@ export function sNoid(synth_ids) {
  * @param {any} scope
  * @param {any} channels
  * @param {any} chunk_size
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function scopeSubscribe(sub_id, scope, channels, chunk_size) {
     const ret = wasm.scopeSubscribe(sub_id, scope, channels, chunk_size);
@@ -982,7 +954,7 @@ export function scopeSubscribe(sub_id, scope, channels, chunk_size) {
 /**
  * sc-app bridge extension (not in the SC command reference): drop a scope-slot stream.
  * @param {any} sub_id
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function scopeUnsubscribe(sub_id) {
     const ret = wasm.scopeUnsubscribe(sub_id);
@@ -994,7 +966,7 @@ export function scopeUnsubscribe(sub_id) {
 
 /**
  * Query the status. Replies to sender with the following message:
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function status() {
     const ret = wasm.status();
@@ -1007,7 +979,7 @@ export function status() {
 /**
  * Notify when async commands have completed.
  * @param {any} a_unique_number
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function sync(a_unique_number) {
     const ret = wasm.sync(a_unique_number);
@@ -1023,7 +995,7 @@ export function sync(a_unique_number) {
  * @param {any} unit_generator_index
  * @param {any} cmd
  * @param {any} any_arguments
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function uCmd(node_id, unit_generator_index, cmd, any_arguments) {
     const ret = wasm.uCmd(node_id, unit_generator_index, cmd, any_arguments);
@@ -1035,7 +1007,7 @@ export function uCmd(node_id, unit_generator_index, cmd, any_arguments) {
 
 /**
  * Query the SuperCollider version. Replies to sender with the following message:
- * @returns {any}
+ * @returns {Uint8Array}
  */
 export function version() {
     const ret = wasm.version();
@@ -1062,12 +1034,6 @@ function __wbg_get_imports() {
             getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
             getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
         },
-        __wbg___wbindgen_bigint_get_as_i64_38130e98eecd467d: function(arg0, arg1) {
-            const v = arg1;
-            const ret = typeof(v) === 'bigint' ? v : undefined;
-            getDataViewMemory0().setBigInt64(arg0 + 8 * 1, isLikeNone(ret) ? BigInt(0) : ret, true);
-            getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
-        },
         __wbg___wbindgen_boolean_get_1a45e2c38d4d41b9: function(arg0) {
             const v = arg0;
             const ret = typeof(v) === 'boolean' ? v : undefined;
@@ -1082,14 +1048,6 @@ function __wbg_get_imports() {
         },
         __wbg___wbindgen_in_70a403a56e771704: function(arg0, arg1) {
             const ret = arg0 in arg1;
-            return ret;
-        },
-        __wbg___wbindgen_is_bigint_6ffd6468a9bc44b9: function(arg0) {
-            const ret = typeof(arg0) === 'bigint';
-            return ret;
-        },
-        __wbg___wbindgen_is_function_754e9f305ff6029e: function(arg0) {
-            const ret = typeof(arg0) === 'function';
             return ret;
         },
         __wbg___wbindgen_is_null_87c3bfe968c6a5ad: function(arg0) {
@@ -1107,10 +1065,6 @@ function __wbg_get_imports() {
         },
         __wbg___wbindgen_is_undefined_67b456be8673d3d7: function(arg0) {
             const ret = arg0 === undefined;
-            return ret;
-        },
-        __wbg___wbindgen_jsval_eq_1068e624fa87f6ab: function(arg0, arg1) {
-            const ret = arg0 === arg1;
             return ret;
         },
         __wbg___wbindgen_jsval_loose_eq_2c56564c75129511: function(arg0, arg1) {
@@ -1134,14 +1088,6 @@ function __wbg_get_imports() {
         __wbg___wbindgen_throw_1506f2235d1bdba0: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
-        __wbg_call_8a89609d89f6608a: function() { return handleError(function (arg0, arg1) {
-            const ret = arg0.call(arg1);
-            return ret;
-        }, arguments); },
-        __wbg_done_60cf307fcc680536: function(arg0) {
-            const ret = arg0.done;
-            return ret;
-        },
         __wbg_entries_04b37a02507f1713: function(arg0) {
             const ret = Object.entries(arg0);
             return ret;
@@ -1150,10 +1096,6 @@ function __wbg_get_imports() {
             const ret = Array.from(arg0);
             return ret;
         },
-        __wbg_get_1f8f054ddbaa7db2: function() { return handleError(function (arg0, arg1) {
-            const ret = Reflect.get(arg0, arg1);
-            return ret;
-        }, arguments); },
         __wbg_get_2b48c7d0d006a781: function(arg0, arg1) {
             const ret = arg0[arg1 >>> 0];
             return ret;
@@ -1180,16 +1122,6 @@ function __wbg_get_imports() {
             const ret = result;
             return ret;
         },
-        __wbg_instanceof_Map_9fc06d9a951bcee6: function(arg0) {
-            let result;
-            try {
-                result = arg0 instanceof Map;
-            } catch (_) {
-                result = false;
-            }
-            const ret = result;
-            return ret;
-        },
         __wbg_instanceof_Uint8Array_86f30649f63ef9c2: function(arg0) {
             let result;
             try {
@@ -1206,10 +1138,6 @@ function __wbg_get_imports() {
         },
         __wbg_isSafeInteger_66acec27e09e99a7: function(arg0) {
             const ret = Number.isSafeInteger(arg0);
-            return ret;
-        },
-        __wbg_iterator_8732428d309e270e: function() {
-            const ret = Symbol.iterator;
             return ret;
         },
         __wbg_length_4a591ecaa01354d9: function(arg0) {
@@ -1240,14 +1168,6 @@ function __wbg_get_imports() {
             const ret = new Float32Array(getArrayF32FromWasm0(arg0, arg1));
             return ret;
         },
-        __wbg_next_9e03acdf51c4960d: function(arg0) {
-            const ret = arg0.next;
-            return ret;
-        },
-        __wbg_next_eb8ca7351fa27906: function() { return handleError(function (arg0) {
-            const ret = arg0.next();
-            return ret;
-        }, arguments); },
         __wbg_prototypesetcall_3249fc62a0fafa30: function(arg0, arg1, arg2) {
             Uint8Array.prototype.set.call(getArrayU8FromWasm0(arg0, arg1), arg2);
         },
@@ -1265,33 +1185,19 @@ function __wbg_get_imports() {
         __wbg_set_dca99999bba88a9a: function(arg0, arg1, arg2) {
             arg0[arg1 >>> 0] = arg2;
         },
-        __wbg_value_f3625092ee4b37f4: function(arg0) {
-            const ret = arg0.value;
-            return ret;
-        },
         __wbindgen_cast_0000000000000001: function(arg0) {
             // Cast intrinsic for `F64 -> Externref`.
             const ret = arg0;
             return ret;
         },
-        __wbindgen_cast_0000000000000002: function(arg0) {
-            // Cast intrinsic for `I64 -> Externref`.
-            const ret = arg0;
-            return ret;
-        },
-        __wbindgen_cast_0000000000000003: function(arg0, arg1) {
+        __wbindgen_cast_0000000000000002: function(arg0, arg1) {
             // Cast intrinsic for `Ref(Slice(U8)) -> NamedExternref("Uint8Array")`.
             const ret = getArrayU8FromWasm0(arg0, arg1);
             return ret;
         },
-        __wbindgen_cast_0000000000000004: function(arg0, arg1) {
+        __wbindgen_cast_0000000000000003: function(arg0, arg1) {
             // Cast intrinsic for `Ref(String) -> Externref`.
             const ret = getStringFromWasm0(arg0, arg1);
-            return ret;
-        },
-        __wbindgen_cast_0000000000000005: function(arg0) {
-            // Cast intrinsic for `U64 -> Externref`.
-            const ret = BigInt.asUintN(64, arg0);
             return ret;
         },
         __wbindgen_init_externref_table: function() {

@@ -1,6 +1,7 @@
 // The typed command-builder surface over wasm: one exported function per
-// command, returning the serde `KnownMessage` value the TS side feeds to
-// `encode`/`encodeBundle`. The generated functions are committed in
+// command, returning the WIRE BYTES directly — construction and OSC
+// encoding fused into a single boundary crossing (no intermediate JS
+// value to serialize out and re-parse). The generated functions are committed in
 // `wasm_gen.rs`; this file keeps the hand-written JS coercion helpers —
 // every coercer is LENIENT the way the old TS builders were: plain numbers
 // and strings coerce into the polymorphic OSC arg shapes, and pair tails
@@ -19,8 +20,9 @@ pub(crate) fn cerr(what: &str, expected: &str) -> JsError {
     JsError::new(&format!("{what}: expected {expected}"))
 }
 
-pub(crate) fn msg_to_js(msg: KnownMessage) -> Result<JsValue, JsError> {
-    serde_wasm_bindgen::to_value(&msg).map_err(|e| JsError::new(&e.to_string()))
+pub(crate) fn encode_msg(msg: KnownMessage) -> Result<Uint8Array, JsError> {
+    let bytes = msg.encode().map_err(|e| JsError::new(&e.to_string()))?;
+    Ok(Uint8Array::from(bytes.as_slice()))
 }
 
 // ── primitives ──────────────────────────────────────────────────────────

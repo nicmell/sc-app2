@@ -276,17 +276,18 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   needs wasm-pack): the serde tag IS the OSC address, so typed payloads are
   adjacently tagged `{ address: "/s_new", args: { defName, … } }` objects
   (unit commands are bare `{ address: "/quit" }`) that TS narrows on
-  `address`; `raw()` retains `args: OscArg[]`, so `Array.isArray(msg.args)`
-  distinguishes it. The typed builders for all 67 commands are WASM exports
-  (generated `commands/wasm_gen.rs` over hand coercers in
+  `address`. The typed builders for all 67 commands are WASM exports
+  returning WIRE BYTES directly — construction + OSC encoding fused into
+  one boundary crossing, no message-shaped JS value anywhere on the
+  command side (generated `commands/wasm_gen.rs` over hand coercers in
   `commands/wasm.rs` — lenient args: `string|number` control ids, `Record`
-  sugar for pair tails, trailing-optional server-default fill); the TS
-  src/ is a re-export shell plus `raw()`/add-action consts. Console
-  rendering is wire-true by construction: `messageToOsc` (Rust
-  `to_osc_message`) for tx, `decodeRawPacket` for rx/tests — no TS
-  field-order knowledge anywhere. `encode`/`encodeBundle`, typed reply
-  decode (`/scope/chunk` samples lift as a transferable Float32Array),
-  `atUnixMs` NTP timetags. No osc-js — the crate is the
+  sugar for pair tails, trailing-optional server-default fill from the
+  spec's `default` keys; `raw()` = `raw_bytes`). `encodeBundle` frames
+  pre-encoded elements without decoding. The TS src/ is a re-export shell
+  plus add-action consts. Console rendering is wire-true by construction:
+  both tx and rx render through `decodeRawPacket` on the same bytes that
+  hit the socket. Typed REPLIES still cross as values (`/scope/chunk`
+  samples lift as a transferable Float32Array), `atUnixMs` NTP timetags. No osc-js — the crate is the
   single protocol source for backend and frontend; the scope protocol lives
   there as sc-app bridge extensions. All commands derive from
   `packages/server-commands/specs/server-commands.json`; the three bridge

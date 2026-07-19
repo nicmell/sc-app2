@@ -11,9 +11,9 @@
  * payloads live under `args` — no tag↔address mapping exists anywhere.
  *
  * ```ts
- * import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
+ * import { sNew, AddToHead, decodeReply } from "@sc-app/server-commands";
  *
- * const bytes = encode(sNew("myDef", 1001, AddToHead, 100, [["freq", 440]]));
+ * const bytes = sNew("myDef", 1001, AddToHead, 100, [["freq", 440]]); // wire-ready
  * const reply = decodeReply(inbound); // e.g. { address: "/n_go", args: { nodeId, … } }
  * if (reply.address === "/synced") console.log(reply.args.syncId);
  * ```
@@ -21,11 +21,9 @@
 
 // The binary boundary (throws on malformed input) + the NTP conversion.
 export {
-  encode,
   encodeBundle,
   decodeReply,
   decodeReplyPacket,
-  messageToOsc,
   decodeRawPacket,
   atUnixMs,
 } from "./component";
@@ -34,7 +32,7 @@ export {
 export * from "./builders.js";
 
 // Console-log display helpers (no wasm crossings for the typed paths).
-export { describeMessage, flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
+export { describeEncoded, flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
 
 // The crate's own generated types, re-exported under the package root.
 export type {

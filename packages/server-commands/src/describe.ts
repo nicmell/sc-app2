@@ -1,5 +1,4 @@
-import type { ServerMessage } from "../pkg/scserver_commands.js";
-import { decodeRawPacket, messageToOsc } from "./component.js";
+import { decodeRawPacket } from "./component.js";
 
 export interface FlatMessage {
   address: string;
@@ -17,7 +16,8 @@ export function flattenEncoded(bytes: Uint8Array): FlatMessage[] {
   return decodeRawPacket(bytes).map(({ address, args }) => ({ address, args: args.map(val) }));
 }
 
-export function describeMessage(msg: ServerMessage): { address: string; args: string[] } {
-  const { address, args } = messageToOsc(msg);
-  return { address, args: args.map(val).map(formatOscArg) };
+/** Render already-encoded wire bytes for the tx log — the same raw decode
+ *  the rx side uses, so both console directions are wire-true. */
+export function describeEncoded(bytes: Uint8Array): FlatMessage[] {
+  return flattenEncoded(bytes);
 }

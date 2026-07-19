@@ -3,7 +3,7 @@
 
 /// Allocate buffer space.
 #[wasm_bindgen(js_name = "bAlloc", skip_typescript)]
-pub fn b_alloc(bufnum: JsValue, num_frames: JsValue, opts: JsValue) -> Result<JsValue, JsError> {
+pub fn b_alloc(bufnum: JsValue, num_frames: JsValue, opts: JsValue) -> Result<Uint8Array, JsError> {
     let num_channels = opt_key(&opts, "numChannels");
     let completion_msg = opt_key(&opts, "completionMsg");
     let sample_rate = opt_key(&opts, "sampleRate");
@@ -12,7 +12,7 @@ pub fn b_alloc(bufnum: JsValue, num_frames: JsValue, opts: JsValue) -> Result<Js
             "bAlloc: sampleRate requires completionMsg (it rides later on the wire)",
         ));
     }
-    msg_to_js(KnownMessage::BAlloc(BAlloc {
+    encode_msg(KnownMessage::BAlloc(BAlloc {
         bufnum: js_i32(&bufnum, "bAlloc: bufnum")?,
         num_frames: js_i32(&num_frames, "bAlloc: numFrames")?,
         num_channels: match &num_channels {
@@ -38,11 +38,11 @@ pub fn b_alloc(bufnum: JsValue, num_frames: JsValue, opts: JsValue) -> Result<Js
 
 /// Allocate buffer space and read a sound file.
 #[wasm_bindgen(js_name = "bAllocRead", skip_typescript)]
-pub fn b_alloc_read(bufnum: JsValue, path: JsValue, opts: JsValue) -> Result<JsValue, JsError> {
+pub fn b_alloc_read(bufnum: JsValue, path: JsValue, opts: JsValue) -> Result<Uint8Array, JsError> {
     let start_frame = opt_key(&opts, "startFrame");
     let number_of_frames = opt_key(&opts, "numberOfFrames");
     let completion_msg = opt_key(&opts, "completionMsg");
-    msg_to_js(KnownMessage::BAllocRead(BAllocRead {
+    encode_msg(KnownMessage::BAllocRead(BAllocRead {
         bufnum: js_i32(&bufnum, "bAllocRead: bufnum")?,
         path: js_string(&path, "bAllocRead: path")?,
         start_frame: match &start_frame {
@@ -81,8 +81,8 @@ pub fn b_alloc_read_channel(
     number_of_frames: JsValue,
     channels: JsValue,
     completion_msg: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BAllocReadChannel(BAllocReadChannel {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BAllocReadChannel(BAllocReadChannel {
         bufnum: js_i32(&bufnum, "bAllocReadChannel: bufnum")?,
         path: js_string(&path, "bAllocReadChannel: path")?,
         start_frame: js_i32(&start_frame, "bAllocReadChannel: startFrame")?,
@@ -101,8 +101,8 @@ pub fn b_alloc_read_channel(
 
 /// Close soundfile.
 #[wasm_bindgen(js_name = "bClose", skip_typescript)]
-pub fn b_close(bufnum: JsValue, completion_msg: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BClose(BClose {
+pub fn b_close(bufnum: JsValue, completion_msg: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BClose(BClose {
         bufnum: js_i32(&bufnum, "bClose: bufnum")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -114,8 +114,8 @@ pub fn b_close(bufnum: JsValue, completion_msg: JsValue) -> Result<JsValue, JsEr
 
 /// Fill ranges of sample value(s).
 #[wasm_bindgen(js_name = "bFill", skip_typescript)]
-pub fn b_fill(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BFill(BFill {
+pub fn b_fill(bufnum: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BFill(BFill {
         bufnum: js_i32(&bufnum, "bFill: bufnum")?,
         tail: js_triples(&tail, "bFill: tail", js_i32, js_i32, js_f32)?,
     }))
@@ -123,8 +123,8 @@ pub fn b_fill(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Free buffer data.
 #[wasm_bindgen(js_name = "bFree", skip_typescript)]
-pub fn b_free(bufnum: JsValue, completion_msg: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BFree(BFree {
+pub fn b_free(bufnum: JsValue, completion_msg: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BFree(BFree {
         bufnum: js_i32(&bufnum, "bFree: bufnum")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -140,8 +140,8 @@ pub fn b_gen(
     bufnum: JsValue,
     cmd: JsValue,
     command_arguments: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BGen(BGen {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BGen(BGen {
         bufnum: js_i32(&bufnum, "bGen: bufnum")?,
         cmd: js_string(&cmd, "bGen: cmd")?,
         command_arguments: js_list(&command_arguments, "bGen: commandArguments", js_osc_arg)?,
@@ -150,8 +150,8 @@ pub fn b_gen(
 
 /// Get sample value(s).
 #[wasm_bindgen(js_name = "bGet", skip_typescript)]
-pub fn b_get(bufnum: JsValue, sample_indices: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BGet(BGet {
+pub fn b_get(bufnum: JsValue, sample_indices: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BGet(BGet {
         bufnum: js_i32(&bufnum, "bGet: bufnum")?,
         sample_indices: js_list(&sample_indices, "bGet: sampleIndices", js_i32)?,
     }))
@@ -159,8 +159,8 @@ pub fn b_get(bufnum: JsValue, sample_indices: JsValue) -> Result<JsValue, JsErro
 
 /// Get ranges of sample value(s).
 #[wasm_bindgen(js_name = "bGetn", skip_typescript)]
-pub fn b_getn(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BGetn(BGetn {
+pub fn b_getn(bufnum: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BGetn(BGetn {
         bufnum: js_i32(&bufnum, "bGetn: bufnum")?,
         tail: js_pairs(&tail, "bGetn: tail", js_i32, js_i32)?,
     }))
@@ -168,21 +168,21 @@ pub fn b_getn(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Get buffer info.
 #[wasm_bindgen(js_name = "bQuery", skip_typescript)]
-pub fn b_query(bufnums: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BQuery(BQuery {
+pub fn b_query(bufnums: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BQuery(BQuery {
         bufnums: js_list(&bufnums, "bQuery: bufnums", js_i32)?,
     }))
 }
 
 /// Read sound file data into an existing buffer.
 #[wasm_bindgen(js_name = "bRead", skip_typescript)]
-pub fn b_read(bufnum: JsValue, path: JsValue, opts: JsValue) -> Result<JsValue, JsError> {
+pub fn b_read(bufnum: JsValue, path: JsValue, opts: JsValue) -> Result<Uint8Array, JsError> {
     let start_frame = opt_key(&opts, "startFrame");
     let number_of_frames = opt_key(&opts, "numberOfFrames");
     let starting_frame = opt_key(&opts, "startingFrame");
     let leave_file_open = opt_key(&opts, "leaveFileOpen");
     let completion_msg = opt_key(&opts, "completionMsg");
-    msg_to_js(KnownMessage::BRead(BRead {
+    encode_msg(KnownMessage::BRead(BRead {
         bufnum: js_i32(&bufnum, "bRead: bufnum")?,
         path: js_string(&path, "bRead: path")?,
         start_frame: match &start_frame {
@@ -248,8 +248,8 @@ pub fn b_read_channel(
     leave_file_open: JsValue,
     channels: JsValue,
     completion_msg: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BReadChannel(BReadChannel {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BReadChannel(BReadChannel {
         bufnum: js_i32(&bufnum, "bReadChannel: bufnum")?,
         path: js_string(&path, "bReadChannel: path")?,
         start_frame: js_i32(&start_frame, "bReadChannel: startFrame")?,
@@ -267,8 +267,8 @@ pub fn b_read_channel(
 
 /// Set sample value(s).
 #[wasm_bindgen(js_name = "bSet", skip_typescript)]
-pub fn b_set(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BSet(BSet {
+pub fn b_set(bufnum: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BSet(BSet {
         bufnum: js_i32(&bufnum, "bSet: bufnum")?,
         tail: js_pairs(&tail, "bSet: tail", js_i32, js_f32)?,
     }))
@@ -276,8 +276,8 @@ pub fn b_set(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Set ranges of sample value(s).
 #[wasm_bindgen(js_name = "bSetn", skip_typescript)]
-pub fn b_setn(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BSetn(BSetn {
+pub fn b_setn(bufnum: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BSetn(BSetn {
         bufnum: js_i32(&bufnum, "bSetn: bufnum")?,
         tail: js_setn(&tail, "bSetn: tail", js_i32, js_f32)?,
     }))
@@ -288,8 +288,8 @@ pub fn b_setn(bufnum: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 pub fn b_set_sample_rate(
     bufnum: JsValue,
     the_desired_sampling: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BSetSampleRate(BSetSampleRate {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BSetSampleRate(BSetSampleRate {
         bufnum: js_i32(&bufnum, "bSetSampleRate: bufnum")?,
         the_desired_sampling: js_f32(&the_desired_sampling, "bSetSampleRate: theDesiredSampling")?,
     }))
@@ -303,12 +303,12 @@ pub fn b_write(
     header_format: JsValue,
     sample_format: JsValue,
     opts: JsValue,
-) -> Result<JsValue, JsError> {
+) -> Result<Uint8Array, JsError> {
     let number_of_frames = opt_key(&opts, "numberOfFrames");
     let starting_frame = opt_key(&opts, "startingFrame");
     let leave_file_open = opt_key(&opts, "leaveFileOpen");
     let completion_msg = opt_key(&opts, "completionMsg");
-    msg_to_js(KnownMessage::BWrite(BWrite {
+    encode_msg(KnownMessage::BWrite(BWrite {
         bufnum: js_i32(&bufnum, "bWrite: bufnum")?,
         path: js_string(&path, "bWrite: path")?,
         header_format: js_string(&header_format, "bWrite: headerFormat")?,
@@ -353,8 +353,8 @@ pub fn b_write(
 
 /// Zero sample data.
 #[wasm_bindgen(js_name = "bZero", skip_typescript)]
-pub fn b_zero(bufnum: JsValue, completion_msg: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::BZero(BZero {
+pub fn b_zero(bufnum: JsValue, completion_msg: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::BZero(BZero {
         bufnum: js_i32(&bufnum, "bZero: bufnum")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -366,118 +366,118 @@ pub fn b_zero(bufnum: JsValue, completion_msg: JsValue) -> Result<JsValue, JsErr
 
 /// Fill ranges of bus value(s).
 #[wasm_bindgen(js_name = "cFill", skip_typescript)]
-pub fn c_fill(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::CFill(CFill {
+pub fn c_fill(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::CFill(CFill {
         tail: js_triples(&tail, "cFill: tail", js_i32, js_i32, js_numeric_value)?,
     }))
 }
 
 /// Get bus value(s).
 #[wasm_bindgen(js_name = "cGet", skip_typescript)]
-pub fn c_get(bus_indices: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::CGet(CGet {
+pub fn c_get(bus_indices: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::CGet(CGet {
         bus_indices: js_list(&bus_indices, "cGet: busIndices", js_i32)?,
     }))
 }
 
 /// Get ranges of bus value(s).
 #[wasm_bindgen(js_name = "cGetn", skip_typescript)]
-pub fn c_getn(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::CGetn(CGetn {
+pub fn c_getn(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::CGetn(CGetn {
         tail: js_pairs(&tail, "cGetn: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Set bus value(s).
 #[wasm_bindgen(js_name = "cSet", skip_typescript)]
-pub fn c_set(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::CSet(CSet {
+pub fn c_set(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::CSet(CSet {
         tail: js_pairs(&tail, "cSet: tail", js_i32, js_numeric_value)?,
     }))
 }
 
 /// Set ranges of bus value(s).
 #[wasm_bindgen(js_name = "cSetn", skip_typescript)]
-pub fn c_setn(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::CSetn(CSetn {
+pub fn c_setn(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::CSetn(CSetn {
         tail: js_setn(&tail, "cSetn: tail", js_i32, js_numeric_value)?,
     }))
 }
 
 /// Free all synths in this group and all its sub-groups.
 #[wasm_bindgen(js_name = "gDeepFree", skip_typescript)]
-pub fn g_deep_free(group_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GDeepFree(GDeepFree {
+pub fn g_deep_free(group_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GDeepFree(GDeepFree {
         group_ids: js_list(&group_ids, "gDeepFree: groupIds", js_i32)?,
     }))
 }
 
 /// Post a representation of this group's node subtree.
 #[wasm_bindgen(js_name = "gDumpTree", skip_typescript)]
-pub fn g_dump_tree(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GDumpTree(GDumpTree {
+pub fn g_dump_tree(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GDumpTree(GDumpTree {
         tail: js_pairs(&tail, "gDumpTree: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Delete all nodes in a group.
 #[wasm_bindgen(js_name = "gFreeAll", skip_typescript)]
-pub fn g_free_all(group_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GFreeAll(GFreeAll {
+pub fn g_free_all(group_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GFreeAll(GFreeAll {
         group_ids: js_list(&group_ids, "gFreeAll: groupIds", js_i32)?,
     }))
 }
 
 /// Add node to head of group.
 #[wasm_bindgen(js_name = "gHead", skip_typescript)]
-pub fn g_head(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GHead(GHead {
+pub fn g_head(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GHead(GHead {
         tail: js_pairs(&tail, "gHead: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Create a new group.
 #[wasm_bindgen(js_name = "gNew", skip_typescript)]
-pub fn g_new(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GNew(GNew {
+pub fn g_new(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GNew(GNew {
         tail: js_triples(&tail, "gNew: tail", js_i32, js_i32, js_i32)?,
     }))
 }
 
 /// Get a representation of this group's node subtree.
 #[wasm_bindgen(js_name = "gQueryTree", skip_typescript)]
-pub fn g_query_tree(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GQueryTree(GQueryTree {
+pub fn g_query_tree(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GQueryTree(GQueryTree {
         tail: js_pairs(&tail, "gQueryTree: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Add node to tail of group.
 #[wasm_bindgen(js_name = "gTail", skip_typescript)]
-pub fn g_tail(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::GTail(GTail {
+pub fn g_tail(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::GTail(GTail {
         tail: js_pairs(&tail, "gTail: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Create a new parallel group.
 #[wasm_bindgen(js_name = "pNew", skip_typescript)]
-pub fn p_new(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::PNew(PNew {
+pub fn p_new(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::PNew(PNew {
         tail: js_triples(&tail, "pNew: tail", js_i32, js_i32, js_i32)?,
     }))
 }
 
 /// Clear all scheduled bundles. Removes all bundles from the scheduling queue.
 #[wasm_bindgen(js_name = "clearSched", skip_typescript)]
-pub fn clear_sched() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::ClearSched)
+pub fn clear_sched() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::ClearSched)
 }
 
 /// Plug-in defined command.
 #[wasm_bindgen(js_name = "cmd", skip_typescript)]
-pub fn cmd(cmd: JsValue, any_arguments: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Cmd(Cmd {
+pub fn cmd(cmd: JsValue, any_arguments: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Cmd(Cmd {
         cmd: js_string(&cmd, "cmd: cmd")?,
         any_arguments: js_list(&any_arguments, "cmd: anyArguments", js_osc_arg)?,
     }))
@@ -485,24 +485,24 @@ pub fn cmd(cmd: JsValue, any_arguments: JsValue) -> Result<JsValue, JsError> {
 
 /// Display incoming OSC messages.
 #[wasm_bindgen(js_name = "dumpOSC", skip_typescript)]
-pub fn dump_osc(code: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DumpOSC(DumpOSC {
+pub fn dump_osc(code: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DumpOSC(DumpOSC {
         code: js_i32(&code, "dumpOSC: code")?,
     }))
 }
 
 /// Enable/disable error message posting.
 #[wasm_bindgen(js_name = "error", skip_typescript)]
-pub fn error(mode: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Error(Error {
+pub fn error(mode: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Error(Error {
         mode: js_i32(&mode, "error: mode")?,
     }))
 }
 
 /// Register to receive notifications from server
 #[wasm_bindgen(js_name = "notify", skip_typescript)]
-pub fn notify(enable: JsValue, client_id: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Notify(Notify {
+pub fn notify(enable: JsValue, client_id: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Notify(Notify {
         enable: js_i32(&enable, "notify: enable")?,
         client_id: if client_id.is_undefined() {
             None
@@ -514,56 +514,56 @@ pub fn notify(enable: JsValue, client_id: JsValue) -> Result<JsValue, JsError> {
 
 /// Quit program. Exits the synthesis server.
 #[wasm_bindgen(js_name = "quit", skip_typescript)]
-pub fn quit() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Quit)
+pub fn quit() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Quit)
 }
 
 /// Queries the amount of currently free real-time memory (in bytes).
 #[wasm_bindgen(js_name = "rtMemoryStatus", skip_typescript)]
-pub fn rt_memory_status() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::RtMemoryStatus)
+pub fn rt_memory_status() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::RtMemoryStatus)
 }
 
 /// Query the status. Replies to sender with the following message:
 #[wasm_bindgen(js_name = "status", skip_typescript)]
-pub fn status() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Status)
+pub fn status() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Status)
 }
 
 /// Notify when async commands have completed.
 #[wasm_bindgen(js_name = "sync", skip_typescript)]
-pub fn sync(a_unique_number: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Sync(Sync {
+pub fn sync(a_unique_number: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Sync(Sync {
         a_unique_number: js_i32(&a_unique_number, "sync: aUniqueNumber")?,
     }))
 }
 
 /// Query the SuperCollider version. Replies to sender with the following message:
 #[wasm_bindgen(js_name = "version", skip_typescript)]
-pub fn version() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::Version)
+pub fn version() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::Version)
 }
 
 /// Place a node after another.
 #[wasm_bindgen(js_name = "nAfter", skip_typescript)]
-pub fn n_after(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NAfter(NAfter {
+pub fn n_after(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NAfter(NAfter {
         tail: js_pairs(&tail, "nAfter: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Place a node before another.
 #[wasm_bindgen(js_name = "nBefore", skip_typescript)]
-pub fn n_before(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NBefore(NBefore {
+pub fn n_before(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NBefore(NBefore {
         tail: js_pairs(&tail, "nBefore: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Fill ranges of a node's control value(s).
 #[wasm_bindgen(js_name = "nFill", skip_typescript)]
-pub fn n_fill(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NFill(NFill {
+pub fn n_fill(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NFill(NFill {
         node_id: js_i32(&node_id, "nFill: nodeId")?,
         tail: js_triples(
             &tail,
@@ -577,16 +577,16 @@ pub fn n_fill(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Delete a node.
 #[wasm_bindgen(js_name = "nFree", skip_typescript)]
-pub fn n_free(node_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NFree(NFree {
+pub fn n_free(node_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NFree(NFree {
         node_ids: js_list(&node_ids, "nFree: nodeIds", js_i32)?,
     }))
 }
 
 /// Map a node's controls to read from a bus.
 #[wasm_bindgen(js_name = "nMap", skip_typescript)]
-pub fn n_map(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NMap(NMap {
+pub fn n_map(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NMap(NMap {
         node_id: js_i32(&node_id, "nMap: nodeId")?,
         tail: js_pairs(&tail, "nMap: tail", js_control_id, js_i32)?,
     }))
@@ -594,8 +594,8 @@ pub fn n_map(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Map a node's controls to read from an audio bus.
 #[wasm_bindgen(js_name = "nMapa", skip_typescript)]
-pub fn n_mapa(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NMapa(NMapa {
+pub fn n_mapa(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NMapa(NMapa {
         node_id: js_i32(&node_id, "nMapa: nodeId")?,
         tail: js_pairs(&tail, "nMapa: tail", js_control_id, js_i32)?,
     }))
@@ -603,8 +603,8 @@ pub fn n_mapa(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Map a node's controls to read from audio buses.
 #[wasm_bindgen(js_name = "nMapan", skip_typescript)]
-pub fn n_mapan(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NMapan(NMapan {
+pub fn n_mapan(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NMapan(NMapan {
         node_id: js_i32(&node_id, "nMapan: nodeId")?,
         tail: js_triples(&tail, "nMapan: tail", js_control_id, js_i32, js_i32)?,
     }))
@@ -612,8 +612,8 @@ pub fn n_mapan(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Map a node's controls to read from buses.
 #[wasm_bindgen(js_name = "nMapn", skip_typescript)]
-pub fn n_mapn(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NMapn(NMapn {
+pub fn n_mapn(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NMapn(NMapn {
         node_id: js_i32(&node_id, "nMapn: nodeId")?,
         tail: js_triples(&tail, "nMapn: tail", js_control_id, js_i32, js_i32)?,
     }))
@@ -625,8 +625,8 @@ pub fn n_order(
     add_action: JsValue,
     target_id: JsValue,
     node_ids: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NOrder(NOrder {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NOrder(NOrder {
         add_action: js_i32(&add_action, "nOrder: addAction")?,
         target_id: js_i32(&target_id, "nOrder: targetId")?,
         node_ids: js_list(&node_ids, "nOrder: nodeIds", js_i32)?,
@@ -635,24 +635,24 @@ pub fn n_order(
 
 /// Get info about a node.
 #[wasm_bindgen(js_name = "nQuery", skip_typescript)]
-pub fn n_query(node_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NQuery(NQuery {
+pub fn n_query(node_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NQuery(NQuery {
         node_ids: js_list(&node_ids, "nQuery: nodeIds", js_i32)?,
     }))
 }
 
 /// Turn node on or off.
 #[wasm_bindgen(js_name = "nRun", skip_typescript)]
-pub fn n_run(tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NRun(NRun {
+pub fn n_run(tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NRun(NRun {
         tail: js_pairs(&tail, "nRun: tail", js_i32, js_i32)?,
     }))
 }
 
 /// Set a node's control value(s).
 #[wasm_bindgen(js_name = "nSet", skip_typescript)]
-pub fn n_set(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NSet(NSet {
+pub fn n_set(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NSet(NSet {
         node_id: js_i32(&node_id, "nSet: nodeId")?,
         tail: js_pairs(&tail, "nSet: tail", js_control_id, js_numeric_value)?,
     }))
@@ -660,8 +660,8 @@ pub fn n_set(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Set ranges of a node's control value(s).
 #[wasm_bindgen(js_name = "nSetn", skip_typescript)]
-pub fn n_setn(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NSetn(NSetn {
+pub fn n_setn(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NSetn(NSetn {
         node_id: js_i32(&node_id, "nSetn: nodeId")?,
         tail: js_setn(&tail, "nSetn: tail", js_control_id, js_numeric_value)?,
     }))
@@ -669,22 +669,22 @@ pub fn n_setn(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
 
 /// Trace a node.
 #[wasm_bindgen(js_name = "nTrace", skip_typescript)]
-pub fn n_trace(node_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NTrace(NTrace {
+pub fn n_trace(node_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NTrace(NTrace {
         node_ids: js_list(&node_ids, "nTrace: nodeIds", js_i32)?,
     }))
 }
 
 /// End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete.
 #[wasm_bindgen(js_name = "nrtEnd", skip_typescript)]
-pub fn nrt_end() -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::NrtEnd)
+pub fn nrt_end() -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::NrtEnd)
 }
 
 /// Get control value(s).
 #[wasm_bindgen(js_name = "sGet", skip_typescript)]
-pub fn s_get(node_id: JsValue, controls: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::SGet(SGet {
+pub fn s_get(node_id: JsValue, controls: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::SGet(SGet {
         node_id: js_i32(&node_id, "sGet: nodeId")?,
         controls: js_list(&controls, "sGet: controls", js_control_id)?,
     }))
@@ -692,8 +692,8 @@ pub fn s_get(node_id: JsValue, controls: JsValue) -> Result<JsValue, JsError> {
 
 /// Get ranges of control value(s).
 #[wasm_bindgen(js_name = "sGetn", skip_typescript)]
-pub fn s_getn(node_id: JsValue, tail: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::SGetn(SGetn {
+pub fn s_getn(node_id: JsValue, tail: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::SGetn(SGetn {
         node_id: js_i32(&node_id, "sGetn: nodeId")?,
         tail: js_pairs(&tail, "sGetn: tail", js_control_id, js_i32)?,
     }))
@@ -707,8 +707,8 @@ pub fn s_new(
     add_action: JsValue,
     target_id: JsValue,
     tail: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::SNew(SNew {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::SNew(SNew {
         def_name: js_string(&def_name, "sNew: defName")?,
         node_id: js_i32(&node_id, "sNew: nodeId")?,
         add_action: js_i32(&add_action, "sNew: addAction")?,
@@ -719,24 +719,24 @@ pub fn s_new(
 
 /// Auto-reassign synth's ID to a reserved value.
 #[wasm_bindgen(js_name = "sNoid", skip_typescript)]
-pub fn s_noid(synth_ids: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::SNoid(SNoid {
+pub fn s_noid(synth_ids: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::SNoid(SNoid {
         synth_ids: js_list(&synth_ids, "sNoid: synthIds", js_i32)?,
     }))
 }
 
 /// Delete synth definition.
 #[wasm_bindgen(js_name = "dFree", skip_typescript)]
-pub fn d_free(synth_def_names: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DFree(DFree {
+pub fn d_free(synth_def_names: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DFree(DFree {
         synth_def_names: js_list(&synth_def_names, "dFree: synthDefNames", js_string)?,
     }))
 }
 
 /// Load synth definition.
 #[wasm_bindgen(js_name = "dLoad", skip_typescript)]
-pub fn d_load(pathname_of_file: JsValue, completion_msg: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DLoad(DLoad {
+pub fn d_load(pathname_of_file: JsValue, completion_msg: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DLoad(DLoad {
         pathname_of_file: js_string(&pathname_of_file, "dLoad: pathnameOfFile")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -751,8 +751,8 @@ pub fn d_load(pathname_of_file: JsValue, completion_msg: JsValue) -> Result<JsVa
 pub fn d_load_dir(
     pathname_of_directory: JsValue,
     completion_msg: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DLoadDir(DLoadDir {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DLoadDir(DLoadDir {
         pathname_of_directory: js_string(&pathname_of_directory, "dLoadDir: pathnameOfDirectory")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -764,8 +764,8 @@ pub fn d_load_dir(
 
 /// Receive a synth definition file.
 #[wasm_bindgen(js_name = "dRecv", skip_typescript)]
-pub fn d_recv(buffer_of_data: JsValue, completion_msg: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DRecv(DRecv {
+pub fn d_recv(buffer_of_data: JsValue, completion_msg: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DRecv(DRecv {
         buffer_of_data: js_blob(&buffer_of_data, "dRecv: bufferOfData")?,
         completion_msg: if completion_msg.is_undefined() {
             None
@@ -782,8 +782,8 @@ pub fn u_cmd(
     unit_generator_index: JsValue,
     cmd: JsValue,
     any_arguments: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::UCmd(UCmd {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::UCmd(UCmd {
         node_id: js_i32(&node_id, "uCmd: nodeId")?,
         unit_generator_index: js_i32(&unit_generator_index, "uCmd: unitGeneratorIndex")?,
         cmd: js_string(&cmd, "uCmd: cmd")?,
@@ -798,8 +798,8 @@ pub fn scope_subscribe(
     scope: JsValue,
     channels: JsValue,
     chunk_size: JsValue,
-) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::ScopeSubscribe(ScopeSubscribe {
+) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::ScopeSubscribe(ScopeSubscribe {
         sub_id: js_i32(&sub_id, "scopeSubscribe: subId")?,
         scope: js_i32(&scope, "scopeSubscribe: scope")?,
         channels: js_i32(&channels, "scopeSubscribe: channels")?,
@@ -809,153 +809,153 @@ pub fn scope_subscribe(
 
 /// sc-app bridge extension (not in the SC command reference): drop a scope-slot stream.
 #[wasm_bindgen(js_name = "scopeUnsubscribe", skip_typescript)]
-pub fn scope_unsubscribe(sub_id: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::ScopeUnsubscribe(ScopeUnsubscribe {
+pub fn scope_unsubscribe(sub_id: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::ScopeUnsubscribe(ScopeUnsubscribe {
         sub_id: js_i32(&sub_id, "scopeUnsubscribe: subId")?,
     }))
 }
 
 /// sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list.
 #[wasm_bindgen(js_name = "dirtPlay", skip_typescript)]
-pub fn dirt_play(pairs: JsValue) -> Result<JsValue, JsError> {
-    msg_to_js(KnownMessage::DirtPlay(DirtPlay {
+pub fn dirt_play(pairs: JsValue) -> Result<Uint8Array, JsError> {
+    encode_msg(KnownMessage::DirtPlay(DirtPlay {
         pairs: js_pairs(&pairs, "dirtPlay: pairs", js_string, js_osc_arg)?,
     }))
 }
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_COMMANDS: &'static str = r"/** `/b_alloc` — Allocate buffer space. */
-export function bAlloc(bufnum: number, numFrames: number, opts?: { numChannels?: number; completionMsg?: Uint8Array; sampleRate?: number }): ServerMessage;
+export function bAlloc(bufnum: number, numFrames: number, opts?: { numChannels?: number; completionMsg?: Uint8Array; sampleRate?: number }): Uint8Array;
 /** `/b_allocRead` — Allocate buffer space and read a sound file. */
-export function bAllocRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; completionMsg?: Uint8Array }): ServerMessage;
+export function bAllocRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; completionMsg?: Uint8Array }): Uint8Array;
 /** `/b_allocReadChannel` — Allocate buffer space and read channels from a sound file. */
-export function bAllocReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, channels?: Array<number>, completionMsg?: Uint8Array): ServerMessage;
+export function bAllocReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, channels?: Array<number>, completionMsg?: Uint8Array): Uint8Array;
 /** `/b_close` — Close soundfile. */
-export function bClose(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+export function bClose(bufnum: number, completionMsg?: Uint8Array): Uint8Array;
 /** `/b_fill` — Fill ranges of sample value(s). */
-export function bFill(bufnum: number, tail?: Array<[number, number, number]>): ServerMessage;
+export function bFill(bufnum: number, tail?: Array<[number, number, number]>): Uint8Array;
 /** `/b_free` — Free buffer data. */
-export function bFree(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+export function bFree(bufnum: number, completionMsg?: Uint8Array): Uint8Array;
 /** `/b_gen` — Call a command to fill a buffer. */
-export function bGen(bufnum: number, cmd: string, commandArguments?: Array<number | string | Uint8Array>): ServerMessage;
+export function bGen(bufnum: number, cmd: string, commandArguments?: Array<number | string | Uint8Array>): Uint8Array;
 /** `/b_get` — Get sample value(s). */
-export function bGet(bufnum: number, sampleIndices?: Array<number>): ServerMessage;
+export function bGet(bufnum: number, sampleIndices?: Array<number>): Uint8Array;
 /** `/b_getn` — Get ranges of sample value(s). */
-export function bGetn(bufnum: number, tail?: Array<[number, number]>): ServerMessage;
+export function bGetn(bufnum: number, tail?: Array<[number, number]>): Uint8Array;
 /** `/b_query` — Get buffer info. */
-export function bQuery(bufnums?: Array<number>): ServerMessage;
+export function bQuery(bufnums?: Array<number>): Uint8Array;
 /** `/b_read` — Read sound file data into an existing buffer. */
-export function bRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): ServerMessage;
+export function bRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): Uint8Array;
 /** `/b_readChannel` — Read sound file channel data into an existing buffer. */
-export function bReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, startingFrame: number, leaveFileOpen: number, channels?: Array<number>, completionMsg?: Uint8Array): ServerMessage;
+export function bReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, startingFrame: number, leaveFileOpen: number, channels?: Array<number>, completionMsg?: Uint8Array): Uint8Array;
 /** `/b_set` — Set sample value(s). */
-export function bSet(bufnum: number, tail?: Array<[number, number]>): ServerMessage;
+export function bSet(bufnum: number, tail?: Array<[number, number]>): Uint8Array;
 /** `/b_setn` — Set ranges of sample value(s). */
-export function bSetn(bufnum: number, tail?: Array<[number, Array<number>]>): ServerMessage;
+export function bSetn(bufnum: number, tail?: Array<[number, Array<number>]>): Uint8Array;
 /** `/b_setSampleRate` — Set the sampling rate of the buffer. */
-export function bSetSampleRate(bufnum: number, theDesiredSampling: number): ServerMessage;
+export function bSetSampleRate(bufnum: number, theDesiredSampling: number): Uint8Array;
 /** `/b_write` — Write sound file data. */
-export function bWrite(bufnum: number, path: string, headerFormat: string, sampleFormat: string, opts?: { numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): ServerMessage;
+export function bWrite(bufnum: number, path: string, headerFormat: string, sampleFormat: string, opts?: { numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): Uint8Array;
 /** `/b_zero` — Zero sample data. */
-export function bZero(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+export function bZero(bufnum: number, completionMsg?: Uint8Array): Uint8Array;
 /** `/c_fill` — Fill ranges of bus value(s). */
-export function cFill(tail?: Array<[number, number, number]>): ServerMessage;
+export function cFill(tail?: Array<[number, number, number]>): Uint8Array;
 /** `/c_get` — Get bus value(s). */
-export function cGet(busIndices?: Array<number>): ServerMessage;
+export function cGet(busIndices?: Array<number>): Uint8Array;
 /** `/c_getn` — Get ranges of bus value(s). */
-export function cGetn(tail?: Array<[number, number]>): ServerMessage;
+export function cGetn(tail?: Array<[number, number]>): Uint8Array;
 /** `/c_set` — Set bus value(s). */
-export function cSet(tail?: Array<[number, number]>): ServerMessage;
+export function cSet(tail?: Array<[number, number]>): Uint8Array;
 /** `/c_setn` — Set ranges of bus value(s). */
-export function cSetn(tail?: Array<[number, Array<number>]>): ServerMessage;
+export function cSetn(tail?: Array<[number, Array<number>]>): Uint8Array;
 /** `/g_deepFree` — Free all synths in this group and all its sub-groups. */
-export function gDeepFree(groupIds?: Array<number>): ServerMessage;
+export function gDeepFree(groupIds?: Array<number>): Uint8Array;
 /** `/g_dumpTree` — Post a representation of this group's node subtree. */
-export function gDumpTree(tail?: Array<[number, number]>): ServerMessage;
+export function gDumpTree(tail?: Array<[number, number]>): Uint8Array;
 /** `/g_freeAll` — Delete all nodes in a group. */
-export function gFreeAll(groupIds?: Array<number>): ServerMessage;
+export function gFreeAll(groupIds?: Array<number>): Uint8Array;
 /** `/g_head` — Add node to head of group. */
-export function gHead(tail?: Array<[number, number]>): ServerMessage;
+export function gHead(tail?: Array<[number, number]>): Uint8Array;
 /** `/g_new` — Create a new group. */
-export function gNew(tail?: Array<[number, number, number]>): ServerMessage;
+export function gNew(tail?: Array<[number, number, number]>): Uint8Array;
 /** `/g_queryTree` — Get a representation of this group's node subtree. */
-export function gQueryTree(tail?: Array<[number, number]>): ServerMessage;
+export function gQueryTree(tail?: Array<[number, number]>): Uint8Array;
 /** `/g_tail` — Add node to tail of group. */
-export function gTail(tail?: Array<[number, number]>): ServerMessage;
+export function gTail(tail?: Array<[number, number]>): Uint8Array;
 /** `/p_new` — Create a new parallel group. */
-export function pNew(tail?: Array<[number, number, number]>): ServerMessage;
+export function pNew(tail?: Array<[number, number, number]>): Uint8Array;
 /** `/clearSched` — Clear all scheduled bundles. Removes all bundles from the scheduling queue. */
-export function clearSched(): ServerMessage;
+export function clearSched(): Uint8Array;
 /** `/cmd` — Plug-in defined command. */
-export function cmd(cmd: string, anyArguments?: Array<number | string | Uint8Array>): ServerMessage;
+export function cmd(cmd: string, anyArguments?: Array<number | string | Uint8Array>): Uint8Array;
 /** `/dumpOSC` — Display incoming OSC messages. */
-export function dumpOSC(code: number): ServerMessage;
+export function dumpOSC(code: number): Uint8Array;
 /** `/error` — Enable/disable error message posting. */
-export function error(mode: number): ServerMessage;
+export function error(mode: number): Uint8Array;
 /** `/notify` — Register to receive notifications from server */
-export function notify(enable: number, clientId?: number): ServerMessage;
+export function notify(enable: number, clientId?: number): Uint8Array;
 /** `/quit` — Quit program. Exits the synthesis server. */
-export function quit(): ServerMessage;
+export function quit(): Uint8Array;
 /** `/rtMemoryStatus` — Queries the amount of currently free real-time memory (in bytes). */
-export function rtMemoryStatus(): ServerMessage;
+export function rtMemoryStatus(): Uint8Array;
 /** `/status` — Query the status. Replies to sender with the following message: */
-export function status(): ServerMessage;
+export function status(): Uint8Array;
 /** `/sync` — Notify when async commands have completed. */
-export function sync(aUniqueNumber: number): ServerMessage;
+export function sync(aUniqueNumber: number): Uint8Array;
 /** `/version` — Query the SuperCollider version. Replies to sender with the following message: */
-export function version(): ServerMessage;
+export function version(): Uint8Array;
 /** `/n_after` — Place a node after another. */
-export function nAfter(tail?: Array<[number, number]>): ServerMessage;
+export function nAfter(tail?: Array<[number, number]>): Uint8Array;
 /** `/n_before` — Place a node before another. */
-export function nBefore(tail?: Array<[number, number]>): ServerMessage;
+export function nBefore(tail?: Array<[number, number]>): Uint8Array;
 /** `/n_fill` — Fill ranges of a node's control value(s). */
-export function nFill(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+export function nFill(nodeId: number, tail?: Array<[string | number, number, number]>): Uint8Array;
 /** `/n_free` — Delete a node. */
-export function nFree(nodeIds?: Array<number>): ServerMessage;
+export function nFree(nodeIds?: Array<number>): Uint8Array;
 /** `/n_map` — Map a node's controls to read from a bus. */
-export function nMap(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+export function nMap(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): Uint8Array;
 /** `/n_mapa` — Map a node's controls to read from an audio bus. */
-export function nMapa(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+export function nMapa(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): Uint8Array;
 /** `/n_mapan` — Map a node's controls to read from audio buses. */
-export function nMapan(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+export function nMapan(nodeId: number, tail?: Array<[string | number, number, number]>): Uint8Array;
 /** `/n_mapn` — Map a node's controls to read from buses. */
-export function nMapn(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+export function nMapn(nodeId: number, tail?: Array<[string | number, number, number]>): Uint8Array;
 /** `/n_order` — Move and order a list of nodes. */
-export function nOrder(addAction: number, targetId: number, nodeIds?: Array<number>): ServerMessage;
+export function nOrder(addAction: number, targetId: number, nodeIds?: Array<number>): Uint8Array;
 /** `/n_query` — Get info about a node. */
-export function nQuery(nodeIds?: Array<number>): ServerMessage;
+export function nQuery(nodeIds?: Array<number>): Uint8Array;
 /** `/n_run` — Turn node on or off. */
-export function nRun(tail?: Array<[number, number]>): ServerMessage;
+export function nRun(tail?: Array<[number, number]>): Uint8Array;
 /** `/n_set` — Set a node's control value(s). */
-export function nSet(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+export function nSet(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): Uint8Array;
 /** `/n_setn` — Set ranges of a node's control value(s). */
-export function nSetn(nodeId: number, tail?: Array<[string | number, Array<number>]>): ServerMessage;
+export function nSetn(nodeId: number, tail?: Array<[string | number, Array<number>]>): Uint8Array;
 /** `/n_trace` — Trace a node. */
-export function nTrace(nodeIds?: Array<number>): ServerMessage;
+export function nTrace(nodeIds?: Array<number>): Uint8Array;
 /** `/nrt_end` — End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete. */
-export function nrtEnd(): ServerMessage;
+export function nrtEnd(): Uint8Array;
 /** `/s_get` — Get control value(s). */
-export function sGet(nodeId: number, controls?: Array<string | number>): ServerMessage;
+export function sGet(nodeId: number, controls?: Array<string | number>): Uint8Array;
 /** `/s_getn` — Get ranges of control value(s). */
-export function sGetn(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+export function sGetn(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): Uint8Array;
 /** `/s_new` — Create a new synth. */
-export function sNew(defName: string, nodeId: number, addAction: number, targetId: number, tail?: Array<[string | number, number | string]> | Record<string, number | string>): ServerMessage;
+export function sNew(defName: string, nodeId: number, addAction: number, targetId: number, tail?: Array<[string | number, number | string]> | Record<string, number | string>): Uint8Array;
 /** `/s_noid` — Auto-reassign synth's ID to a reserved value. */
-export function sNoid(synthIds?: Array<number>): ServerMessage;
+export function sNoid(synthIds?: Array<number>): Uint8Array;
 /** `/d_free` — Delete synth definition. */
-export function dFree(synthDefNames?: Array<string>): ServerMessage;
+export function dFree(synthDefNames?: Array<string>): Uint8Array;
 /** `/d_load` — Load synth definition. */
-export function dLoad(pathnameOfFile: string, completionMsg?: Uint8Array): ServerMessage;
+export function dLoad(pathnameOfFile: string, completionMsg?: Uint8Array): Uint8Array;
 /** `/d_loadDir` — Load a directory of synth definitions. */
-export function dLoadDir(pathnameOfDirectory: string, completionMsg?: Uint8Array): ServerMessage;
+export function dLoadDir(pathnameOfDirectory: string, completionMsg?: Uint8Array): Uint8Array;
 /** `/d_recv` — Receive a synth definition file. */
-export function dRecv(bufferOfData: Uint8Array, completionMsg?: Uint8Array): ServerMessage;
+export function dRecv(bufferOfData: Uint8Array, completionMsg?: Uint8Array): Uint8Array;
 /** `/u_cmd` — Send a command to a unit generator. */
-export function uCmd(nodeId: number, unitGeneratorIndex: number, cmd: string, anyArguments?: Array<number | string | Uint8Array>): ServerMessage;
+export function uCmd(nodeId: number, unitGeneratorIndex: number, cmd: string, anyArguments?: Array<number | string | Uint8Array>): Uint8Array;
 /** `/scope/subscribe` — sc-app bridge extension (not in the SC command reference): register a scope-slot stream with the bridge. The bridge is the consumer, so the struct also carries from_message/decode parsers. */
-export function scopeSubscribe(subId: number, scope: number, channels: number, chunkSize: number): ServerMessage;
+export function scopeSubscribe(subId: number, scope: number, channels: number, chunkSize: number): Uint8Array;
 /** `/scope/unsubscribe` — sc-app bridge extension (not in the SC command reference): drop a scope-slot stream. */
-export function scopeUnsubscribe(subId: number): ServerMessage;
+export function scopeUnsubscribe(subId: number): Uint8Array;
 /** `/dirt/play` — sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list. */
-export function dirtPlay(pairs?: Array<[string, number | string | Uint8Array]> | Record<string, number | string | Uint8Array>): ServerMessage;
+export function dirtPlay(pairs?: Array<[string, number | string | Uint8Array]> | Record<string, number | string | Uint8Array>): Uint8Array;
 ";

@@ -195,7 +195,7 @@ describe("OscClient.createSynth", () => {
 
   it("frees the allocated node when the /n_go ack times out (no untracked drones)", async () => {
     const sent: SentMessage[] = [];
-    vi.spyOn(workerOscClient, "send").mockImplementation((msg) => sent.push(flat(msg)));
+    vi.spyOn(workerOscClient, "send").mockImplementation((bytes) => sent.push(flat(bytes)));
     vi.spyOn(workerOscClient, "nextNodeId").mockImplementation(() => 4242);
     vi.useFakeTimers();
     const create = workerOscClient.createSynth("sine", 1, { freq: 440 });
@@ -213,7 +213,7 @@ describe("OscClient.createSynth", () => {
 describe("OscClient.setControln", () => {
   it("sends /n_setn with the named contiguous run", () => {
     const sent: SentMessage[] = [];
-    vi.spyOn(workerOscClient, "send").mockImplementation((msg) => sent.push(flat(msg)));
+    vi.spyOn(workerOscClient, "send").mockImplementation((bytes) => sent.push(flat(bytes)));
     workerOscClient.setControln(2001, "shape", [0, 3, 2, -99, 1, 0.5]);
     expect(sent).toHaveLength(1);
     expect(sent[0].address).toBe("/n_setn");

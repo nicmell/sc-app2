@@ -12,11 +12,10 @@ import {
   atUnixMs,
   decodeReplyPacket,
   decodeRawPacket,
-  describeMessage,
+  describeEncoded,
   dFree,
   dirtPlay,
   dRecv,
-  encode,
   encodeBundle,
   formatOscArg,
   gFreeAll,
@@ -31,7 +30,6 @@ import {
   sync,
   type OscTimetag,
   type ScopeChunkReply,
-  type ServerMessage,
   type ServerReply,
 } from "@sc-app/server-commands";
 import { REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
@@ -147,17 +145,18 @@ export class OscClient {
     this.transport.close();
     if (wasLive) this.events.closed();
   }
-  send(msg: ServerMessage): void {
+  send(bytes: Uint8Array): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    this.appendTx(msg);
-    this.transport.send(encode(msg));
+    this.appendTx(bytes);
+    this.transport.send(bytes);
   }
-  /** Send several commands as one timetagged bundle — scsynth applies them
-   *  atomically at the tag. Logged per contained message. */
-  sendBundle(time: OscTimetag, msgs: ServerMessage[]): void {
+  /** Send several already-encoded commands as one timetagged bundle (pure
+   *  byte framing) — scsynth applies them atomically at the tag. Logged
+   *  per contained message. */
+  sendBundle(time: OscTimetag, elements: Uint8Array[]): void {
     if (this.transport.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    for (const msg of msgs) this.appendTx(msg);
-    this.transport.send(encodeBundle(time, msgs));
+    for (const element of elements) this.appendTx(element);
+    this.transport.send(encodeBundle(time, elements));
   }
   /** Await the next reply of `tag` whose payload satisfies `match` —
    *  registered BEFORE the triggering send (the sequenced-command
@@ -233,7 +232,7 @@ export class OscClient {
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const id = this.nextNodeId();
     const reply = this.once("/synced", (s) => s.args.syncId === id);
-    this.send(dRecv(bytes, encode(sync(id))));
+    this.send(dRecv(bytes, sync(id)));
     await reply;
   }
   // ── fire-and-forget commands ────────────────────────────────────────────
@@ -332,11 +331,12 @@ export class OscClient {
     const values = raw?.args.map((arg) => Object.values(arg)[0]) ?? [];
     this.append("rx", raw?.address ?? reply.address, values.map(formatOscArg));
   }
-  /** Log one outbound command, rendered straight from the typed message —
-   *  no second wasm crossing per send just for the console. */
-  private appendTx(msg: ServerMessage) {
-    const d = describeMessage(msg);
-    this.append("tx", d.address, d.args);
+  /** Log one outbound command from its wire bytes — the same raw decode
+   *  the rx side renders with, so the tx log is wire-true by construction. */
+  private appendTx(bytes: Uint8Array) {
+    for (const d of describeEncoded(bytes)) {
+      this.append("tx", d.address, d.args.map(formatOscArg));
+    }
   }
   /** Queue one log entry, flushing the batch once per microtask burst —
    *  one `log` event per burst instead of one postMessage per message. */

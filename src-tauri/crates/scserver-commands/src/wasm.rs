@@ -2,36 +2,19 @@
 //! address-tagged serde model, built by `yarn generate:server-commands`
 //! (wasm-pack) into `packages/server-commands/pkg`.
 //!
-//! One deliberate asymmetry: the boundary discriminates known-vs-other
-//! ITSELF (on the escape hatch's `args` marker field) instead of leaning on
-//! an untagged serde wrapper — and the `/scope/chunk` reply arm is
-//! serialized by hand so its samples cross as ONE `Float32Array` memcpy
-//! rather than a boxed `number[]` (the ~47 Hz streaming hot path).
+//! Commands never cross as JS values: the generated builders (see
+//! `commands/wasm_gen.rs`) return wire BYTES directly, and `encode_bundle`
+//! frames pre-encoded elements without decoding. Only replies cross as
+//! typed values — with the `/scope/chunk` arm serialized by hand so its
+//! samples land as ONE `Float32Array` memcpy (the ~47 Hz streaming path).
 
 use js_sys::{Array, Float32Array, Reflect, Uint8Array};
 use wasm_bindgen::prelude::*;
 
 use crate::args::OscTimetag;
-use crate::commands::{KnownMessage, OtherMsg};
+use crate::commands::OtherMsg;
 use crate::replies::{KnownReply, ScopeChunkReply};
 use crate::{ntp_from_unix_ms, ServerMessage, ServerReply};
-
-fn parse_message(msg: &JsValue) -> Result<ServerMessage, JsError> {
-    // Both shapes carry `args` now — a catalogued command's payload OBJECT
-    // vs the escape hatch's `OscArg[]` ARRAY. Dispatching on Array.isArray
-    // (rather than try-known-first) keeps a raw message with a catalogued
-    // address from silently dropping args to serde's unknown-field
-    // tolerance.
-    let args = Reflect::get(msg, &JsValue::from_str("args")).unwrap_or(JsValue::UNDEFINED);
-    if js_sys::Array::is_array(&args) {
-        return serde_wasm_bindgen::from_value::<OtherMsg>(msg.clone())
-            .map(ServerMessage::Other)
-            .map_err(|e| JsError::new(&format!("not a valid raw message: {e}")));
-    }
-    serde_wasm_bindgen::from_value::<KnownMessage>(msg.clone())
-        .map(ServerMessage::Known)
-        .map_err(|e| JsError::new(&format!("not a valid server message: {e}")))
-}
 
 fn reply_to_js(reply: ServerReply) -> Result<JsValue, JsError> {
     let to_js = |v: JsValue| Ok(v);
@@ -71,13 +54,11 @@ const TS_APPEND: &'static str = r#"
 export type ServerMessage = KnownMessage | OtherMsg;
 export type ServerReply = KnownReply | OtherMsg;
 
-export function encode(msg: ServerMessage): Uint8Array;
-export function encode_bundle(time: OscTimetag, msgs: ServerMessage[]): Uint8Array;
+export function encode_bundle(time: OscTimetag, elements: Uint8Array[]): Uint8Array;
 export function decode_reply(bytes: Uint8Array): ServerReply;
 export function decode_reply_packet(bytes: Uint8Array): ServerReply[];
-export function message_to_osc(msg: ServerMessage): OtherMsg;
 export function decode_raw_packet(bytes: Uint8Array): OtherMsg[];
-export function raw_message(address: string, args: Array<number | string | Uint8Array>): OtherMsg;
+export function raw_bytes(address: string, args: Array<number | string | Uint8Array>): Uint8Array;
 "#;
 
 fn osc_to_flat(msg: crate::OscMessage) -> Result<JsValue, JsError> {
@@ -86,14 +67,6 @@ fn osc_to_flat(msg: crate::OscMessage) -> Result<JsValue, JsError> {
         args: crate::args::osc_args(&msg.args),
     };
     serde_wasm_bindgen::to_value(&flat).map_err(|e| JsError::new(&e.to_string()))
-}
-
-/// Lower one typed command to its raw wire view (`{ address, args }` with
-/// the args in wire ORDER) via `to_osc_message()` — the console's tx log
-/// rendering, definitionally in sync with the encoder.
-#[wasm_bindgen(skip_typescript)]
-pub fn message_to_osc(msg: JsValue) -> Result<JsValue, JsError> {
-    osc_to_flat(parse_message(&msg)?.to_osc_message())
 }
 
 /// Decode an inbound packet — a bare message or a `#bundle` — into raw
@@ -133,22 +106,16 @@ pub fn decode_raw_packet(bytes: &[u8]) -> Result<Array, JsError> {
     Ok(out)
 }
 
-/// The escape hatch: a raw address + leniently-coerced args, outside the
-/// command catalogue.
+/// The escape hatch: a raw address + leniently-coerced args, encoded
+/// straight to wire bytes like every generated builder.
 #[wasm_bindgen(skip_typescript)]
-pub fn raw_message(address: String, args: Array) -> Result<JsValue, JsError> {
+pub fn raw_bytes(address: String, args: Array) -> Result<Uint8Array, JsError> {
     let args = args
         .iter()
         .map(|v| crate::commands::wasm::js_osc_arg(&v, "raw"))
         .collect::<Result<Vec<_>, _>>()?;
     let msg = OtherMsg { address, args };
-    serde_wasm_bindgen::to_value(&msg).map_err(|e| JsError::new(&e.to_string()))
-}
-
-/// Serialise one typed command to OSC wire bytes.
-#[wasm_bindgen(skip_typescript)]
-pub fn encode(msg: JsValue) -> Result<Uint8Array, JsError> {
-    let bytes = parse_message(&msg)?
+    let bytes = ServerMessage::Other(msg)
         .encode()
         .map_err(|e| JsError::new(&e.to_string()))?;
     Ok(Uint8Array::from(bytes.as_slice()))
@@ -157,20 +124,28 @@ pub fn encode(msg: JsValue) -> Result<Uint8Array, JsError> {
 /// Serialise many commands into one standard OSC bundle — scsynth applies
 /// the whole bundle atomically at the timetag.
 #[wasm_bindgen(skip_typescript)]
-pub fn encode_bundle(time: JsValue, msgs: Array) -> Result<Uint8Array, JsError> {
+pub fn encode_bundle(time: JsValue, elements: Array) -> Result<Uint8Array, JsError> {
     let time: OscTimetag =
         serde_wasm_bindgen::from_value(time).map_err(|e| JsError::new(&e.to_string()))?;
-    let content = msgs
-        .iter()
-        .map(|m| parse_message(&m).map(|msg| rosc::OscPacket::Message(msg.to_osc_message().into())))
-        .collect::<Result<Vec<_>, _>>()?;
-    let bundle = rosc::OscBundle {
-        timetag: time.into(),
-        content,
-    };
-    let bytes = rosc::encoder::encode(&rosc::OscPacket::Bundle(bundle))
-        .map_err(|e| JsError::new(&format!("{e:?}")))?;
-    Ok(Uint8Array::from(bytes.as_slice()))
+    let rosc::OscTime {
+        seconds,
+        fractional,
+    } = time.into();
+    // Pure framing: "#bundle\0" + NTP timetag + per element (i32 BE size +
+    // the element's already-encoded bytes). No decode, no re-encode.
+    let mut out: Vec<u8> = Vec::with_capacity(16);
+    out.extend_from_slice(b"#bundle\0");
+    out.extend_from_slice(&seconds.to_be_bytes());
+    out.extend_from_slice(&fractional.to_be_bytes());
+    for element in elements.iter() {
+        if !element.is_instance_of::<Uint8Array>() {
+            return Err(JsError::new("encode_bundle: elements must be Uint8Array"));
+        }
+        let bytes = Uint8Array::from(element).to_vec();
+        out.extend_from_slice(&(bytes.len() as i32).to_be_bytes());
+        out.extend_from_slice(&bytes);
+    }
+    Ok(Uint8Array::from(out.as_slice()))
 }
 
 /// Classify one OSC reply message into its typed variant.

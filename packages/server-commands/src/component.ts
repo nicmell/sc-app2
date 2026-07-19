@@ -12,11 +12,8 @@ import {
   decode_reply,
   decode_reply_packet,
   decode_raw_packet,
-  encode as encodeMessage,
   encode_bundle,
-  message_to_osc,
   type OscTimetag,
-  type ServerMessage,
   type ServerReply,
 } from "../pkg/scserver_commands.js";
 import { initWasm } from "../pkg/init.js";
@@ -26,15 +23,12 @@ import { initWasm } from "../pkg/init.js";
 // asset in browsers. Everything below is synchronous afterwards.
 await initWasm();
 
-/** Serialise one typed command to OSC wire bytes. */
-export function encode(msg: ServerMessage): Uint8Array {
-  return encodeMessage(msg);
-}
-
-/** Serialise many commands into one standard OSC bundle — scsynth applies
- *  the whole bundle atomically at the timetag. */
-export function encodeBundle(time: OscTimetag, msgs: ServerMessage[]): Uint8Array {
-  return encode_bundle(time, msgs);
+/** Frame already-encoded messages into one standard OSC bundle — pure
+ *  byte framing, no decode; scsynth applies the whole bundle atomically
+ *  at the timetag. (The builders return wire bytes, so there is nothing
+ *  message-shaped left to serialize here.) */
+export function encodeBundle(time: OscTimetag, elements: Uint8Array[]): Uint8Array {
+  return encode_bundle(time, elements);
 }
 
 /** Classify one OSC reply message into its typed variant. */
@@ -48,7 +42,6 @@ export function decodeReplyPacket(bytes: Uint8Array): ServerReply[] {
   return decode_reply_packet(bytes);
 }
 
-export const messageToOsc = message_to_osc;
 export const decodeRawPacket = decode_raw_packet;
 
 /** NTP timetag from a wall-clock Unix ms timestamp (`Date.now()` style);

@@ -16,11 +16,9 @@
 
 import { vi, type MockInstance } from "vitest";
 import {
-  encode,
   flattenEncoded,
   type FlatMessage,
   type OscTimetag,
-  type ServerMessage,
   type ServerReply,
 } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClientProxy";
@@ -36,7 +34,8 @@ export const FIRST_NODE_ID = 2000;
 /** One recorded outbound command: the flattened wire view (what the suites
  *  assert on) plus the typed message that produced it. */
 export interface SentMessage extends FlatMessage {
-  msg: ServerMessage;
+  /** The wire bytes as sent (builders return them directly). */
+  msg: Uint8Array;
 }
 
 /** Wrap a fragment in a minimal XHTML plugin entry (entries use
@@ -79,10 +78,10 @@ export function nGoReply(nodeId: number): ServerReply {
   };
 }
 
-/** Flatten one typed message to its single wire view (assertion helper for
- *  suites that re-mock `send` themselves). */
-export function flat(msg: ServerMessage): SentMessage {
-  return { ...flattenEncoded(encode(msg))[0], msg };
+/** Flatten one encoded message to its single wire view (assertion helper
+ *  for suites that re-mock `send` themselves). */
+export function flat(msg: Uint8Array): SentMessage {
+  return { ...flattenEncoded(msg)[0], msg };
 }
 
 /** Script the scsynth side of the sequenced commands. Replies go through the
@@ -120,11 +119,11 @@ export function autoRespond(sent: SentMessage): void {
  *  auto-restore between tests via the config's `restoreMocks: true`. */
 export function installScsynthMock(): {
   sent: SentMessage[];
-  send: MockInstance<(msg: ServerMessage) => void>;
-  sendBundle: MockInstance<(time: OscTimetag, msgs: ServerMessage[]) => void>;
+  send: MockInstance<(bytes: Uint8Array) => void>;
+  sendBundle: MockInstance<(time: OscTimetag, elements: Uint8Array[]) => void>;
 } {
   const sent: SentMessage[] = [];
-  const record = (msg: ServerMessage) => {
+  const record = (msg: Uint8Array) => {
     const entry = flat(msg);
     sent.push(entry);
     autoRespond(entry);
@@ -132,7 +131,7 @@ export function installScsynthMock(): {
   const send = vi.spyOn(workerOscClient, "send").mockImplementation(record);
   const sendBundle = vi
     .spyOn(workerOscClient, "sendBundle")
-    .mockImplementation((_time, msgs) => msgs.forEach(record));
+    .mockImplementation((_time, elements) => elements.forEach(record));
   let nextId = FIRST_NODE_ID;
   vi.spyOn(workerOscClient, "nextNodeId").mockImplementation(() => nextId++);
   vi.spyOn(oscClient, "sessionGroupId", "get").mockReturnValue(SESSION_GROUP);

@@ -11,11 +11,10 @@ import {
   atUnixMs,
   decodeReply,
   decodeReplyPacket,
-  describeMessage,
+  describeEncoded,
   dFree,
   dirtPlay,
   dRecv,
-  encode,
   encodeBundle,
   flattenEncoded,
   formatOscArg,
@@ -30,14 +29,14 @@ import {
   scopeUnsubscribe,
   sNew,
   sync,
-  type ServerMessage,
 } from "..";
 
 // The OSC "immediate" tag (what invalid atUnixMs input clamps to).
 const IMMEDIATE_TIME = { seconds: 0, fractional: 1 };
 
 /** The single-message flat view most assertions want. */
-const flat = (msg: Parameters<typeof encode>[0]) => flattenEncoded(encode(msg))[0];
+// Builders return wire bytes — flatten straight from them.
+const flat = (bytes: Uint8Array) => flattenEncoded(bytes)[0];
 
 describe("builders produce the exact wire messages", () => {
   it("node/group lifecycle commands", () => {
@@ -67,7 +66,7 @@ describe("builders produce the exact wire messages", () => {
 
   it("synthdef installation with an embedded completion message", () => {
     const def = Uint8Array.from([83, 67, 103, 102]); // "SCgf"
-    const message = flat(dRecv(def, encode(sync(7))));
+    const message = flat(dRecv(def, sync(7)));
     expect(message.address).toBe("/d_recv");
     expect(message.args[0]).toEqual(def);
     // The completion blob is itself a decodable /sync message.
@@ -113,15 +112,15 @@ describe("bundles and timetags", () => {
 
 describe("typed reply classification", () => {
   it("classifies the replies the worker routes on", () => {
-    expect(decodeReply(encode(raw("/n_go", 2001, 1, -1, -1, 0)))).toEqual({
+    expect(decodeReply(raw("/n_go", 2001, 1, -1, -1, 0))).toEqual({
       address: "/n_go",
       args: { nodeId: 2001, parentId: 1, prevNode: -1, nextNode: -1, isGroup: 0 },
     });
-    expect(decodeReply(encode(raw("/synced", 7)))).toEqual({
+    expect(decodeReply(raw("/synced", 7))).toEqual({
       address: "/synced",
       args: { syncId: 7 },
     });
-    expect(decodeReply(encode(raw("/fail", "/s_new", "SynthDef not found")))).toEqual({
+    expect(decodeReply(raw("/fail", "/s_new", "SynthDef not found"))).toEqual({
       address: "/fail",
       args: { command: "/s_new", error: "SynthDef not found", extras: [] },
     });
@@ -132,7 +131,7 @@ describe("typed reply classification", () => {
     const blob = new Uint8Array(8);
     new DataView(blob.buffer).setFloat32(0, 1, false);
     new DataView(blob.buffer).setFloat32(4, -1, false);
-    const reply = decodeReply(encode(raw("/scope/chunk", 5, 9, 0, 2, blob)));
+    const reply = decodeReply(raw("/scope/chunk", 5, 9, 0, 2, blob));
     if (reply.address !== "/scope/chunk" || Array.isArray(reply.args)) {
       throw new Error(`expected chunk, got ${reply.address}`);
     }
@@ -155,10 +154,10 @@ describe("display formatting", () => {
     expect(formatOscArg(440)).toBe("440");
   });
 
-  it("describeMessage renders the same wire view flattenEncoded decodes (no crossings)", () => {
-    // Every builder the worker's tx log renders typed — pin against the
-    // byte-level truth so the two views can never drift.
-    const msgs: ServerMessage[] = [
+  it("describeEncoded renders the same wire view flattenEncoded decodes", () => {
+    // Every builder the worker's tx log renders — both views come from the
+    // same raw decode of the same bytes, so this pins the seam stays wired.
+    const msgs: Uint8Array[] = [
       gNew([[2000, AddToTail, 1]]),
       sNew("sine", 2001, AddToTail, 2000, [["freq", 440.5]]),
       nSet(9, { freq: 440 }),
@@ -173,17 +172,16 @@ describe("display formatting", () => {
       dirtPlay({ s: "bd", n: 1 }),
     ];
     for (const msg of msgs) {
-      const wire = flattenEncoded(encode(msg))[0];
-      expect(describeMessage(msg)).toEqual({
-        address: wire.address,
-        args: wire.args.map(formatOscArg),
-      });
+      const [wire] = flattenEncoded(msg);
+      expect(describeEncoded(msg)).toEqual([wire]);
     }
-    // The blob-carrying case renders size tags on both paths.
-    const recv = dRecv(Uint8Array.from([83, 67, 103, 102]), encode(sync(7)));
-    expect(describeMessage(recv).args.every((a) => a.startsWith("blob("))).toBe(true);
+    // The blob-carrying case renders as bytes on both paths.
+    const recv = dRecv(Uint8Array.from([83, 67, 103, 102]), sync(7));
+    expect(describeEncoded(recv)[0].args.every((a) => formatOscArg(a).startsWith("blob("))).toBe(
+      true,
+    );
     // A typed-reply collision on the byte path renders instead of throwing.
-    expect(flattenEncoded(encode(raw("/b_setn", 0, 0, 0)))[0].address).toBe("/b_setn");
+    expect(flattenEncoded(raw("/b_setn", 0, 0, 0))[0].address).toBe("/b_setn");
   });
 });
 

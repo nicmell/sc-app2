@@ -1,4 +1,4 @@
-import { raw_message } from "../pkg/scserver_commands.js";
+import { raw_bytes } from "../pkg/scserver_commands.js";
 
 export const AddToHead = 0;
 export const AddToTail = 1;
@@ -6,8 +6,10 @@ export const AddBefore = 2;
 export const AddAfter = 3;
 export const AddReplace = 4;
 
-export function raw(address: string, ...args: Array<number | string | Uint8Array>) {
-  return raw_message(address, args);
+/** Escape hatch: a raw address + args outside the command catalogue —
+ *  wire bytes, like every builder. */
+export function raw(address: string, ...args: Array<number | string | Uint8Array>): Uint8Array {
+  return raw_bytes(address, args);
 }
 
 export {

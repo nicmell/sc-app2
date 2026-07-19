@@ -1,11 +1,10 @@
 //! The wasm binding layer (feature `wasm`): wasm-bindgen exports over the
 //! compiler, built by `yarn generate:synthdef-compiler` (wasm-pack) into
 //! `packages/synthdef-compiler/pkg`. The typed per-UGen builder surface
-//! lives in the GENERATED `builders_wasm.rs` sibling
-//! (scripts/generate_ugens_wasm.mjs); this file owns the hand-written core:
-//! the `SynthDef` class, the one-shot metadata read-outs the TS package
-//! caches at init (registry, operators, env shapes), and the envelope
-//! build/encode functions.
+//! lives in `ugens/wasm.rs` (hand helpers + the generated `wasm_gen.rs`
+//! invocation); this file owns the hand-written core: the `SynthDef`
+//! class (with the ambient graph-callback constructor), the operator
+//! lookups, and the envelope build/encode functions.
 //!
 //! `UGenInput` crosses the boundary as its serde value
 //! (`{ constant: n } | { ugen: i } | { ugenOutput: [i, o] }`); plain JS
@@ -16,8 +15,8 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
-use crate::env::{Curve, Curves, EnvSpec};
-use crate::env_registry::{build_env, BuildOpts, EnvArgValue};
+use crate::envs::spec::{Curve, Curves, EnvSpec};
+use crate::envs::{build_env, BuildOpts, EnvArgValue};
 use crate::{encode_env, Rate, SynthDef, UGenInput};
 
 thread_local! {

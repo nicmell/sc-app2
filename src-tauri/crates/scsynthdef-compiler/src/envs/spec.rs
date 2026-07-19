@@ -15,7 +15,7 @@
 //! Level and duration slots are [`UGenInput`] — a constant OR a UGen/param
 //! reference — so envelope times/levels can be MODULATED by other signals
 //! (the structural slots and curve encodings stay constants). The per-shape
-//! constructors live in [`crate::env_registry`].
+//! constructors live in [`crate::envs`].
 
 use crate::{CompileError, UGenInput};
 

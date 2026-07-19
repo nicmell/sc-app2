@@ -50,3 +50,6 @@ pub use osc::*;
 pub use pan::*;
 pub use random::*;
 pub use trig::*;
+
+#[cfg(feature = "wasm")]
+mod wasm;

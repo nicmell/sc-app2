@@ -1,13 +1,12 @@
 // The typed UGen builder surface over wasm: one function per builder × rate,
 // delegating to the crate's typed builders. The generated macro invocation is
-// committed in `builders_wasm_gen.rs`; this file keeps the hand-written JS
+// committed in `wasm_gen.rs`; this file keeps the hand-written JS
 // conversion helpers.
 
 #![allow(warnings)]
 
 use wasm_bindgen::prelude::*;
 
-use crate::builders;
 use crate::wasm::{input_from_js, input_to_js, WasmSynthDef};
 
 fn opt(args: &JsValue, key: &str) -> Option<JsValue> {
@@ -29,4 +28,4 @@ fn inputs_from_js(v: &JsValue) -> Result<Vec<crate::UGenInput>, JsError> {
         .collect()
 }
 
-include!("builders_wasm_gen.rs");
+include!("wasm_gen.rs");

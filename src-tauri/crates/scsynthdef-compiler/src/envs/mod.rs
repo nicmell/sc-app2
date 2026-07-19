@@ -2,7 +2,7 @@
 //! constructor (https://doc.sccode.org/Classes/Env.html), mirroring how UGens
 //! live in the registry. Each entry declares its parameter names/defaults/
 //! arity; [`build_env`] assembles the [`EnvSpec`] (levels/times +
-//! releaseNode/loopNode) that [`crate::env::encode_env`] flattens into
+//! releaseNode/loopNode) that [`spec::encode_env`] flattens into
 //! EnvGen's `envelope` input run.
 //!
 //! Modulation: params that map DIRECTLY to an envelope slot (all `times`, and
@@ -14,10 +14,10 @@
 //! constant-only too. Arithmetic runs in f64 and casts to f32 only at
 //! [`UGenInput`] construction — TS byte parity depends on it.
 
-use serde::Serialize;
+pub(crate) mod spec;
 
-use crate::env::{Curve, Curves, EnvSpec};
 use crate::{CompileError, UGenInput};
+use spec::{Curve, Curves, EnvSpec};
 
 /// A resolved env argument: a scalar (const or ref) or an array of them.
 #[derive(Debug, Clone)]
@@ -37,16 +37,13 @@ impl From<UGenInput> for EnvArgValue {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, Copy)]
 pub struct EnvArg {
     pub name: &'static str,
     pub default: f64,
     /// Comma-list value (levels/times/pairs/xyc), not a single scalar.
-    #[serde(skip_serializing_if = "core::ops::Not::not")]
     pub array: bool,
     /// Whether a ref (bind:value) is accepted; false → constant only.
-    #[serde(skip_serializing_if = "core::ops::Not::not")]
     pub modulatable: bool,
 }
 
@@ -72,8 +69,7 @@ const fn aarg(name: &'static str, modulatable: bool) -> EnvArg {
     }
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct EnvShapeEntry {
     pub name: &'static str,
     pub args: &'static [EnvArg],
@@ -84,7 +80,7 @@ pub struct EnvShapeEntry {
 // The shape table is generated from specs/envs.json and committed. The
 // `build_env` match below stays hand-written: each arm carries the sclang
 // constructor semantics the spec cannot express.
-include!("env_shapes.rs");
+include!("shapes.rs");
 
 /// Look up an envelope shape by its `type` name.
 pub fn lookup_env(name: &str) -> Option<&'static EnvShapeEntry> {

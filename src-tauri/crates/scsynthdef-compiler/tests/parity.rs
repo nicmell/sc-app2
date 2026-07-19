@@ -259,10 +259,10 @@ fn synthdef_bytes_round_trip() {
 
 /// Typed UGen builders produce the exact same bytes as the low-level
 /// `add_ugen` path for an equivalent graph. Exercises the generated
-/// `builders::*` structs end-to-end.
+/// `ugens::*` structs end-to-end.
 #[test]
 fn typed_builders_match_low_level_path() {
-    use scsynthdef_compiler::builders::{Out, SinOsc};
+    use scsynthdef_compiler::ugens::{Out, SinOsc};
 
     // Reference: hand-assembled via add_ugen.
     let mut reference = SynthDef::new("typed");

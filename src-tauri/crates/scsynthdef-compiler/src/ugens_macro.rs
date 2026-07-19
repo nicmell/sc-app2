@@ -1,12 +1,10 @@
 //! The macro layer behind the typed UGen builders.
 //!
-//! `build.rs` deserializes `assets/specs/ugens.json` (via the
-//! `sc-spec-types` crate) and emits three files into `OUT_DIR`:
-//! `ugen_specs.rs` (plain `UGenRegistryEntry` const slices — data, no
-//! macro), `ugen_builders.rs` (one `sc_ugens!` invocation) and
-//! `ugen_builders_wasm.rs` (one `sc_ugens_wasm!` invocation + the
-//! generated TypeScript custom section). Edit the SPEC, never the
-//! expansion.
+//! `packages/synthdef-compiler/scripts/generate-rust.ts` deserializes the
+//! package specs and emits the committed registries: `src/ugens/<category>.rs`
+//! (one `sc_ugens!` invocation each), `src/ugens/wasm_gen.rs` (one
+//! `sc_ugens_wasm!` invocation + the generated TypeScript custom section)
+//! and `src/envs/shapes.rs`. Edit the SPEC, never the expansion.
 //!
 //! Per-ugen grammar (every ident/literal is precomputed by build.rs —
 //! macros only assemble, they never convert names):
@@ -223,7 +221,7 @@ macro_rules! sc_ugens_wasm {
                         crate::wasm::with_current_def(
                             concat!($js, ".", stringify!($rf)),
                             |def| {
-                                let mut b = builders::$builder::$rf();
+                                let mut b = super::$builder::$rf();
                                 let _ = &args;
                                 $( sc_wasm_set!(b, args, $kind $f $fjs); )*
                                 input_to_js(&b.build(def))

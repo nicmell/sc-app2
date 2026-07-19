@@ -16,7 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
-use scsynthdef_compiler::builders::{BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc, A2K};
+use scsynthdef_compiler::ugens::{BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc, A2K};
 use scsynthdef_compiler::{Rate, SynthDef, UGenInput};
 
 // ── Fixture definitions ──────────────────────────────────────────────────

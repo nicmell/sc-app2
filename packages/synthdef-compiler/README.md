@@ -62,7 +62,7 @@ yarn generate:synthdef-compiler
 
 For the committed Rust sources only, use
 `yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts` (or add
-`--check`). The generator emits `src/specs/` and `src/builders/` by category,
-plus `builders_wasm_gen.rs` and `env_shapes.rs`, canonicalized through rustfmt
+`--check`). The generator emits the crate's `src/ugens/` modules by category,
+plus `src/ugens/wasm_gen.rs` and `src/envs/shapes.rs`, canonicalized through rustfmt
 stdin. The crate then builds entirely from those committed files; it has no
 `build.rs` or shared spec-schema crate.

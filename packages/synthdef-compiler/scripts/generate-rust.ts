@@ -299,25 +299,6 @@ const outputs = (u: Ugen) =>
       : "fixed 1";
 const buildable = (u: Ugen) => !u.noBuilder && u.rates.length > 0;
 
-function specCategory(c: Category): string {
-  let o =
-    header("ugens") +
-    "use crate::registry::UGenRegistryEntry;\nuse crate::Rate;\n\npub(crate) const UGENS: &[UGenRegistryEntry] = &[\n";
-  for (const u of [...c.ugens].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
-    o += `    UGenRegistryEntry {\n        name: r"${u.name}",\n        rates: &[${u.rates.map((r) => `Rate::${variant(r)}`).join(", ")}],\n        defaults: &[${u.args.map((a) => `(r"${a.name}", ${a.default === null ? "None" : `Some(${f32(a.default)})`})`).join(", ")}],\n        num_outputs: ${typeof u.numOutputs === "number" ? `Some(${u.numOutputs})` : "None"},\n        extends: ${optional(u.extends)},\n        summary: ${optional(u.summary)},\n        doc: ${optional(u.doc)},\n        signal_range: ${optional(u.signalRange)},\n        arg_docs: &[${u.args
-      .filter((a) => a.doc !== null)
-      .map((a) => `(r"${a.name}", ${raw(a.doc!)})`)
-      .join(", ")}],\n    },\n`;
-  }
-  return o + "];\n";
-}
-function specsMod(s: Ugens): string {
-  let o = header("ugens") + "use crate::registry::UGenRegistryEntry;\n\n";
-  for (const c of s.categories) o += `pub(crate) mod ${c.name};\n`;
-  o += "\npub(crate) const ALL_SLICES: &[(&str, &[UGenRegistryEntry])] = &[\n";
-  for (const c of s.categories) o += `    ("${c.name}", ${c.name}::UGENS),\n`;
-  return o + "];\n";
-}
 function builderCategory(c: Category): string {
   let o =
     header("ugens") +
@@ -339,11 +320,14 @@ function builderCategory(c: Category): string {
   }
   return o + "}\n";
 }
-function buildersMod(s: Ugens): string {
+function ugensMod(s: Ugens): string {
   let o = header("ugens");
   for (const c of s.categories) o += `pub mod ${c.name};\n`;
   o += "\n";
   for (const c of s.categories) o += `pub use ${c.name}::*;\n`;
+  // The hand-written wasm conversion shim (which includes the generated
+  // wasm_gen.rs invocation).
+  o += '\n#[cfg(feature = "wasm")]\nmod wasm;\n';
   return o;
 }
 function wasm(s: Ugens): string {
@@ -401,13 +385,11 @@ export function render(): Map<string, string> {
     m = new Map<string, string>(),
     base = "src-tauri/crates/scsynthdef-compiler/src";
   for (const c of u.categories) {
-    m.set(`${base}/specs/${c.name}.rs`, specCategory(c));
-    m.set(`${base}/builders/${c.name}.rs`, builderCategory(c));
+    m.set(`${base}/ugens/${c.name}.rs`, builderCategory(c));
   }
-  m.set(`${base}/specs/mod.rs`, specsMod(u));
-  m.set(`${base}/builders/mod.rs`, buildersMod(u));
-  m.set(`${base}/builders_wasm_gen.rs`, wasm(u));
-  m.set(`${base}/env_shapes.rs`, envs(e));
+  m.set(`${base}/ugens/mod.rs`, ugensMod(u));
+  m.set(`${base}/ugens/wasm_gen.rs`, wasm(u));
+  m.set(`${base}/envs/shapes.rs`, envs(e));
   for (const [rel, content] of m) m.set(rel, rustfmt(content, rel));
   return m;
 }
@@ -415,15 +397,16 @@ export function render(): Map<string, string> {
  *  produces — a category removed from the spec would otherwise leave an
  *  orphan module silently dropped from the generated mod.rs. */
 export function strayFiles(): string[] {
-  const dirs = [
-    "src-tauri/crates/scsynthdef-compiler/src/specs",
-    "src-tauri/crates/scsynthdef-compiler/src/builders",
+  const managed: Array<[string, Set<string>]> = [
+    ["src-tauri/crates/scsynthdef-compiler/src/ugens", new Set(["wasm.rs"])],
+    ["src-tauri/crates/scsynthdef-compiler/src/envs", new Set(["mod.rs", "spec.rs"])],
   ];
   const expected = new Set(render().keys());
   const strays: string[] = [];
-  for (const dir of dirs) {
+  for (const [dir, hand] of managed) {
     for (const f of readdirSync(resolve(ROOT, dir))) {
-      if (f.endsWith(".rs") && !expected.has(`${dir}/${f}`)) strays.push(`${dir}/${f}`);
+      if (f.endsWith(".rs") && !hand.has(f) && !expected.has(`${dir}/${f}`))
+        strays.push(`${dir}/${f}`);
     }
   }
   return strays;

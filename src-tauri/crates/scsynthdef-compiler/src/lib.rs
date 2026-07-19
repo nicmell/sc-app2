@@ -12,29 +12,21 @@
 
 #[macro_use]
 mod ugens_macro;
-pub mod builders;
-mod env;
-mod env_registry;
+mod envs;
 mod error;
 mod operators;
 mod rate;
-mod registry;
-mod specs;
 mod synthdef;
+pub mod ugens;
 
-#[cfg(feature = "wasm")]
-mod builders_wasm;
 #[cfg(feature = "wasm")]
 mod wasm;
 
-pub use env::{curve_type, curve_value, encode_env, Curve, Curves, EnvSpec};
-pub use env_registry::{
-    build_env, lookup_env, BuildOpts, EnvArg, EnvArgValue, EnvShapeEntry, ENV_SHAPES,
-};
+pub use envs::spec::{curve_type, curve_value, encode_env, Curve, Curves, EnvSpec};
+pub use envs::{build_env, lookup_env, BuildOpts, EnvArg, EnvArgValue, EnvShapeEntry, ENV_SHAPES};
 pub use error::CompileError;
 pub use operators::{binary_op_index, unary_op_index};
 pub use rate::Rate;
-pub use registry::{lookup_ugen, ugens_by_category, UGenRegistryEntry};
 pub use synthdef::{
     parse_scgf, InputSpec, OutputSpec, ParamName, Parameters, SynthDef, SynthDefJson, UGenInput,
     UGenJson,

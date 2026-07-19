@@ -3,8 +3,9 @@
  *
  * An abstraction/utility layer over the wasm-bindgen build of the
  * scserver-commands Rust crate (`pkg/`, regenerated via
- * `yarn generate:server-commands`): typed `ServerMessage` builders for the
- * commands the app speaks, the encode/decode boundary, and typed
+ * `yarn generate:server-commands`): typed `ServerMessage` builders for every
+ * spec command (exported through the `src/builders/` barrel), the
+ * encode/decode boundary, and typed
  * `ServerReply` classification for everything inbound. The serde tag IS the
  * OSC address, so every value narrows on its `address` field and typed
  * payloads live under `args` — no tag↔address mapping exists anywhere.

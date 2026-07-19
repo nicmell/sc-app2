@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -196,6 +197,18 @@ function renderCommand(command: CommandSpec): string {
   return out + "    }\n";
 }
 
+/** Canonicalize through rustfmt (stdin — the @generated skip only applies
+ *  to on-disk files) so the committed output always satisfies the repo's
+ *  `cargo fmt --check` gate. */
+function rustfmt(content: string, rel: string): string {
+  const r = spawnSync("rustfmt", ["--edition", "2021", "--emit", "stdout"], {
+    input: content,
+    encoding: "utf8",
+  });
+  if (r.status !== 0) throw new Error(`rustfmt failed for ${rel}: ${r.stderr}`);
+  return r.stdout;
+}
+
 export function render(): Map<string, string> {
   const specPath = path.join(root, "packages/server-commands/specs/server-commands.json");
   const spec = parseSpec(JSON.parse(readFileSync(specPath, "utf8")));
@@ -221,6 +234,7 @@ export function render(): Map<string, string> {
     `${base}/mod.rs`,
     `${header}\nuse serde::{Deserialize, Serialize};\n#[cfg(feature = "wasm")]\nuse tsify::Tsify;\n\nuse crate::OscMessage;\n\nmod prelude;\npub use prelude::*;\n\n${modules}\n\ndefine_known_message! {\n    payload {\n${arms(true)}\n    }\n    unit {\n${arms(false)}\n    }\n}\n`,
   );
+  for (const [rel, content] of rendered) rendered.set(rel, rustfmt(content, rel));
   return rendered;
 }
 

@@ -9,10 +9,12 @@ by the Rust backend (native rlib) and the frontend.
 
 - `pkg/` — the wasm-pack output (glue + wasm + `.d.ts` + the `init.js`
   dual-environment loader). **Generated and committed** — regenerate with
-  `yarn generate:synthdef-compiler` whenever the crate changes (prereqs:
-  `rustup target add wasm32-unknown-unknown`, `cargo install wasm-pack`).
-  The generate script first regenerates the typed builder surface
-  (`src/builders_wasm.rs`, 548 fns) from the crate's builder structs.
+  `yarn generate:synthdef-compiler` whenever the specs or crate change
+  (prereqs: `rustup target add wasm32-unknown-unknown`,
+  `cargo install wasm-pack`).
+  The generate command first runs `scripts/generate-rust.ts`, which reads
+  `specs/{ugens,envs}.json` and refreshes the crate's committed per-category
+  registries and builders before wasm-pack.
 - `src/component.ts` — init + the compiler core: the `SynthDef` class
   (`addControl`/`addControlArray`/`addUgen`/`nodeRate`/`toBytes`/`toJson`),
   typed `parseScgf`, `binaryOpIndex`/`unaryOpIndex`,
@@ -47,4 +49,19 @@ const bytes = def.toBytes(); // SCgf v2, byte-identical to sclang
 - Env runs and control defaults carry wire (float32) precision; tests
   compare via `Math.fround`.
 - Tests (`yarn workspace @sc-app/synthdef-compiler test`) run the REAL wasm
-  in node.
+  in node. A generator test catches drift in the committed Rust output.
+
+## Regeneration
+
+Edit `specs/ugens.json` or `specs/envs.json`, then run:
+
+```bash
+yarn generate:synthdef-compiler
+```
+
+For the committed Rust sources only, use
+`yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts` (or add
+`--check`). The generator emits `src/specs/` and `src/builders/` by category,
+plus `builders_wasm_gen.rs` and `env_shapes.rs`, canonicalized through rustfmt
+stdin. The crate then builds entirely from those committed files; it has no
+`build.rs` or shared spec-schema crate.

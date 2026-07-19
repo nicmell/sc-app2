@@ -273,25 +273,30 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 - `@sc-app/server-commands` — the frontend's only OSC vocabulary, an
   abstraction layer over the `scserver-commands` crate's wasm-bindgen build
   (`pkg/`, committed; regenerate with `yarn generate:server-commands` —
-  needs wasm-pack): the serde tag IS the OSC address, so every message/reply
-  is a flat `{ address: "/s_new", … }` object TS narrows on `address` (no
-  tag↔address maps anywhere; the `raw()` escape hatch is the one shape with
-  an `args` field). Typed builders (`sNew`, `dRecv`, `gNew`,
-  `scopeSubscribe`, `dirtPlay`, …), `encode`/`encodeBundle`, typed reply
+  needs wasm-pack): the serde tag IS the OSC address, so typed payloads are
+  adjacently tagged `{ address: "/s_new", args: { defName, … } }` objects
+  (unit commands are bare `{ address: "/quit" }`) that TS narrows on
+  `address`; `raw()` retains `args: OscArg[]`, so `Array.isArray(msg.args)`
+  distinguishes it. Builders cover all 67 commands in category files;
+  `src/spec.ts` exports `COMMANDS`/`KNOWN_ADDRESSES`/`isKnownAddress`, and
+  `describeMessage` renders wire order generically from the spec field forms
+  while replies use a hand switch. `encode`/`encodeBundle`, typed reply
   decode (`/scope/chunk` samples lift as a transferable Float32Array),
   `atUnixMs` NTP timetags, console formatting. No osc-js — the crate is the
   single protocol source for backend and frontend; the scope protocol lives
-  there as sc-app bridge extensions. Its standard command catalogue derives
-  from `assets/specs/server-commands.json`; the three bridge commands stay
-  hand-maintained in-crate.
+  there as sc-app bridge extensions. All commands derive from
+  `packages/server-commands/specs/server-commands.json`; the three bridge
+  commands use category `bridge`, and the two `/scope/*` entries opt into
+  generated decode support.
 - `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation, a thin layer over
   the `scsynthdef-compiler` crate's wasm-bindgen build (`pkg/`, committed;
   regenerate with `yarn generate:synthdef-compiler` — needs wasm-pack): the
   `SynthDef` graph-builder class, the SCDoc-reconciled 367-UGen registry and
-  12-shape env registry imported directly from `assets/specs/*.json`
+  12-shape env registry imported directly from
+  `packages/synthdef-compiler/specs/{ugens,envs}.json`
   (`buildRun` has pinned modulatable-slot errors), and a typed builder
   class per UGen with a static method per rate (`SinOsc.ar({ freq })`,
-  mirroring SC) — emitted by the crate's `build.rs` (`import … from
+  mirroring SC) — emitted from the package specs (`import … from
   "@sc-app/synthdef-compiler/builders"`). The builders attach to the
   AMBIENT build: the `new SynthDef(name, (def) => …)` graph callback
   (synchronous — a returned Promise throws; nested builds stack; outside
@@ -300,10 +305,14 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   the UGen spec against `yarn scdoc:diff`.
   UGenInput crosses as `{ constant } | { ugen } | { ugenOutput }`; env runs
   carry wire (float32) precision.
-- `assets/specs/` + `sc-spec-types` — committed UGen, server-command, and env
-  JSON plus their strict serde schema/lint. Pipeline: spec JSON → crate
-  `build.rs` → `OUT_DIR` macro invocations/data → in-crate macros; nothing
-  generated there is committed, and bridge commands remain hand-maintained.
+- Package-owned specs and generators — server commands live in
+  `packages/server-commands/specs/server-commands.json`; UGens and envs in
+  `packages/synthdef-compiler/specs/{ugens,envs}.json`. Each package's
+  `scripts/generate-rust.ts` emits committed per-category Rust macro
+  invocations/data, then hand-written in-crate macros expand them. The root
+  generate commands run this step before wasm-pack; package vitest tests catch
+  drift. The vendored crates have no build scripts or shared schema crate and
+  are self-contained.
 - `@sc-app/ui-components` — base styles/custom-element foundation.
 
 ## How the element architecture settled (the design decisions)

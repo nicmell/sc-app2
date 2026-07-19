@@ -2,8 +2,7 @@
 //!
 //! A score is a sequence of timestamped OSC bundles, serialised to the
 //! length-prefixed binary file scsynth's `-N` mode consumes. See the
-//! [`NrtScore`] type for the Rust-side builder and the sibling `nrt`
-//! WIT interface for the component surface.
+//! [`NrtScore`] type for the Rust-side builder.
 
 use rosc::{OscBundle, OscPacket, OscTime};
 

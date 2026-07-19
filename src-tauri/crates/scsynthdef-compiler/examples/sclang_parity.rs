@@ -4,8 +4,8 @@
 //! Usage:
 //!     cargo run --example sclang_parity
 //!
-//! Fixtures are defined inline below using the `scsynthdef_compiler::builders`
-//! API (auto-generated from the bundled UGen registry). Each fixture's SC
+//! Fixtures are defined inline below using the spec-generated, committed
+//! `scsynthdef_compiler::ugens` builders. Each fixture's SC
 //! source lives alongside this example at
 //! `crates/scsynthdef-compiler/examples/fixtures/<name>.scd`.
 //!

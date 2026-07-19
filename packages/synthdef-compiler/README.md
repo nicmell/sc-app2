@@ -1,68 +1,61 @@
 # @sc-app/synthdef-compiler
 
-SynthDef → SCgf v2 compilation for the app — a thin layer over the
-**wasm-bindgen build** of the vendored `scsynthdef-compiler` Rust crate
-(`src-tauri/crates/scsynthdef-compiler`). One compiler implementation shared
-by the Rust backend (native rlib) and the frontend.
+SynthDef-to-SCgf-v2 compilation for the app, backed by the wasm build of
+`src-tauri/crates/scsynthdef-compiler`.
 
 ## Layout
 
-- `pkg/` — the wasm-pack output (glue + wasm + `.d.ts` + the `init.js`
-  dual-environment loader). **Generated and committed** — regenerate with
-  `yarn generate:synthdef-compiler` whenever the specs or crate change
-  (prereqs: `rustup target add wasm32-unknown-unknown`,
-  `cargo install wasm-pack`).
-  The generate command first runs `scripts/generate-rust.ts`, which reads
-  `specs/{ugens,envs}.json` and refreshes the crate's committed per-category
-  registries and builders before wasm-pack.
-- `src/component.ts` — init + the compiler core: the `SynthDef` class
-  (`addControl`/`addControlArray`/`addUgen`/`nodeRate`/`toBytes`/`toJson`),
-  typed `parseScgf`, `binaryOpIndex`/`unaryOpIndex`,
-  `buildEnvRun`/`encodeEnvRun`.
-- `src/registry.ts` — `lookupUgen`/`ugensByCategory` over ONE cached
-  `registryJson()` call; the SCDoc-reconciled data lives in the crate.
-- `src/env-registry.ts` — `ENV_SHAPES`/`lookupEnv` with per-entry
-  `buildRun(args, opts)`; modulatable-slot rules enforced crate-side with
-  pinned error strings (`adsr: "sustain" is not modulatable`).
-- `src/ugen-input.ts` — `k`/`u`/`uo`/`ugenIndex`/`outputIndex` over the
-  serde shape `{ constant: n } | { ugen: i } | { ugenOutput: [i, o] }`.
-- `./builders` subpath — the generated typed builder fns
-  (`SinOsc.ar({ freq })` inside a `new SynthDef(name, (def) => …)` graph
-  callback — the ambient build; absent args keep registry defaults).
+- `specs/ugens.json` and `specs/envs.json` are the metadata specs.
+- `scripts/generate-rust.ts` emits committed, rustfmt-canonicalized Rust
+  registries: 24 UGen category files, `ugens/mod.rs`, `ugens/wasm_gen.rs`, and
+  `envs/shapes.rs`. `--check` detects drift and the package tests reject stray
+  generated files.
+- `pkg/` is committed wasm-pack output. `yarn generate:synthdef-compiler` runs
+  the generator before wasm-pack.
+- `src/component.ts` re-exports the wasm compiler core: `SynthDef`, SCgf
+  parsing, operator lookup, and envelope building/encoding.
+- `src/builders.ts` re-exports the generated wasm UGen classes.
+- `src/registry.ts` and `src/env-registry.ts` consume the package spec JSON
+  directly. No Rust-side UGen lookup registry crosses the wasm boundary.
+- The remaining `src` modules provide UGen-input, rate, and structured-JSON
+  helpers; `src/index.ts` is the package re-export shell.
 
 ## Usage
 
 ```ts
-import { SynthDef, k, u, lookupUgen } from "@sc-app/synthdef-compiler";
+import { Out, SinOsc, SynthDef } from "@sc-app/synthdef-compiler/builders";
 
-const def = new SynthDef("sine");
-const freq = def.addControl("freq", 440, "control");
-const osc = def.addUgen("SinOsc", "audio", [freq, k(0)], 1, 0);
-def.addUgen("Out", "audio", [k(0), u(osc)], 0, 0);
-const bytes = def.toBytes(); // SCgf v2, byte-identical to sclang
+const def = new SynthDef("sine", (def) => {
+  const freq = def.addControl("freq", 440, "control");
+  Out.ar({ bus: 0, channelsArray: [SinOsc.ar({ freq })] });
+});
+
+const bytes = def.toBytes();
 ```
 
-## Notes
+Generated UGen classes attach to the ambient build established by the
+synchronous `new SynthDef(name, (def) => …)` callback. Nested builds stack;
+an async callback is rejected, and calling a typed UGen builder outside an
+active build produces a pointed error. Absent arguments retain spec defaults.
 
-- Byte parity with sclang is pinned by the crate's parity harness
-  (`cargo run -p scsynthdef-compiler --example sclang_parity`) — 4 fixtures
-  incl. an array-control + EnvGen def.
-- Env runs and control defaults carry wire (float32) precision; tests
-  compare via `Math.fround`.
-- Tests (`yarn workspace @sc-app/synthdef-compiler test`) run the REAL wasm
-  in node. A generator test catches drift in the committed Rust output.
+The lower-level `def.addUgen(...)` API remains available when a dynamic graph
+does not fit the generated class surface. `lookupUgen`, `ugensByCategory`,
+`ENV_SHAPES`, and `lookupEnv` read metadata TS-side from the committed specs.
 
 ## Regeneration
 
-Edit `specs/ugens.json` or `specs/envs.json`, then run:
+After editing either spec, run:
 
 ```bash
 yarn generate:synthdef-compiler
 ```
 
-For the committed Rust sources only, use
-`yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts` (or add
-`--check`). The generator emits the crate's `src/ugens/` modules by category,
-plus `src/ugens/wasm_gen.rs` and `src/envs/shapes.rs`, canonicalized through rustfmt
-stdin. The crate then builds entirely from those committed files; it has no
-`build.rs` or shared spec-schema crate.
+To generate or check only the committed Rust registries:
+
+```bash
+yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts
+yarn tsx packages/synthdef-compiler/scripts/generate-rust.ts --check
+```
+
+The crate has no build script or Rust-side UGen registry. Package tests run
+the real wasm and check generator drift and stray generated files.

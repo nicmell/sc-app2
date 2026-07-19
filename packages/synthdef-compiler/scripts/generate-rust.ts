@@ -253,7 +253,6 @@ function f32(v: number): string {
   const s = String(v);
   return s.includes(".") || s.includes("e") ? s : `${s}.0`;
 }
-const optional = (v: string | null) => (v === null ? "None" : `Some(${raw(v)})`);
 const variant = (r: Rate) => (r === "ar" ? "Audio" : r === "kr" ? "Control" : "Scalar");
 const docs = (indent: string, text: string) =>
   text

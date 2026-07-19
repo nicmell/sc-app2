@@ -1,78 +1,55 @@
 # scserver-commands
 
-Typed Rust encoders and parsers for the [SuperCollider server command
-protocol](https://doc.sccode.org/Reference/Server-Command-Reference.html)
-— the OSC messages scsynth accepts at runtime, the replies it sends
-back, and the NRT (non-realtime) score file format.
+Typed Rust encoders and parsers for the
+[SuperCollider server command protocol](https://doc.sccode.org/Reference/Server-Command-Reference.html),
+including NRT score files and wasm bindings used by
+`@sc-app/server-commands`.
 
-## Layers
+## Source layout
 
-- **`commands::*`** — spec-generated, committed category modules with one
-  typed struct per command (`SNew`, `NFree`, `BAlloc`, …), plus the
-  hand-written shared types in `commands/prelude.rs`. Required args in the
-  constructor, optional trailing args editable via struct update:
-  ```rust
-  BAlloc { num_channels: Some(2), ..BAlloc::new(0, 8192) }.encode()?;
-  ```
-- **`ServerMessage`** — tagged union over every known command (61
-  payload variants + 6 argless unit cases + an `Other { address, args }`
-  escape hatch). Construct via `From<Cmd>` or directly:
-  ```rust
-  let msg: ServerMessage = BAlloc::new(0, 8192).into();
-  let bytes = msg.encode()?;      // OSC wire bytes
-  KnownMessage::Status.encode()?; // unit variant
-  ```
-- **`commands::{ControlId, NumericValue, ControlValue}`** — the three
-  polymorphic OSC arg shapes the SC protocol uses. Each has ergonomic
-  `From` impls: `"freq".into()` → `ControlId::Name`, `440.0f32.into()`
-  → `ControlValue::Float`.
-- **`OscMessage`** — one raw OSC wire message (address + typed args).
-  The low-level shape every command encodes into.
-  `encode() -> Vec<u8>` via [`rosc`](https://docs.rs/rosc);
-  `decode(&[u8])` is the inverse.
-- **`ServerReply`** — tagged enum over every documented reply
-  (`/done`, `/fail`, `/n_go`, `/status.reply`, `/tr`, …).
-  `ServerReply::decode(&[u8])` dispatches on the incoming address.
-- **`NrtScore`** — timestamped OSC bundles, serialised to the
-  length-prefixed binary file scsynth's `-N` mode consumes.
+`packages/server-commands/specs/server-commands.json` defines 67 commands in
+10 categories and 15 replies. The package generator emits committed,
+rustfmt-canonicalized registries and supports `--check`:
 
-## Usage
+- `src/commands/`: hand-written `prelude.rs` (polymorphic enums, constants,
+  `OtherMsg`, and `ServerMessage`) and `wasm.rs` coercers; 10 generated
+  category files plus generated `mod.rs` and `wasm_gen.rs`.
+- `src/replies/`: generated `mod.rs`, with `custom.rs` providing typed
+  `take_*` accessors plus the bespoke `ScopeChunkReply` and recursive
+  `QueryTreeReply` implementations used by generated dispatch arms.
+- Hand-written `commands_macro.rs`, `args.rs`, `osc.rs`, `error.rs`, `nrt.rs`,
+  and crate-level `wasm.rs`.
 
-### From Rust
+The generated reply newtypes are `Done(DoneReply)`, `Fail(FailReply)`,
+`Late(LateReply)`, `NGo` through `NInfo` over shared `NodeInfo`,
+`StatusReply`, `Tr(TrReply)`, `BSetn(BSetnReply)`, and
+`Synced(SyncedReply)`, followed by the two custom variants.
 
-Encode a command, decode a reply, build an NRT score:
+## Native Rust
 
 ```rust
-use scserver_commands::{NrtScore, ServerMessage, ServerReply};
 use scserver_commands::commands::{NFree, SNew};
+use scserver_commands::{KnownReply, NrtScore, ServerMessage, ServerReply};
 
-// 1. Encode a /s_new with two control pairs.
-let msg: ServerMessage = SNew::new(
+let command: ServerMessage = SNew::new(
     "sine".into(),
-    1001,   // new node id
-    0,      // add action = head
-    1,      // target group
-    vec![
-        ("freq".into(), 440.0f32.into()),
-        ("amp".into(),   0.5f32.into()),
-    ],
+    1001,
+    0,
+    1,
+    vec![("freq".into(), 440.0f32.into())],
 ).into();
-let bytes: Vec<u8> = msg.encode()?;
-// … send `bytes` to scsynth over UDP …
+let bytes = command.encode()?;
 
-// 2. Decode an incoming reply — typed variant dispatch.
 match ServerReply::decode(&reply_bytes)? {
-    ServerReply::Known(KnownReply::StatusReply(s)) =>
-        println!("{} ugens, {} synths", s.num_ugens, s.num_synths),
-    ServerReply::Known(KnownReply::NGo(n)) =>
-        println!("node {} started in group {}", n.node_id, n.parent_id),
-    ServerReply::Known(KnownReply::Fail { command, error, .. }) =>
-        eprintln!("fail {command}: {error}"),
+    ServerReply::Known(KnownReply::StatusReply(reply)) => {
+        println!("{} ugens", reply.num_ugens);
+    }
+    ServerReply::Known(KnownReply::Fail(reply)) => {
+        eprintln!("{}: {}", reply.command, reply.error);
+    }
     _ => {}
 }
 
-// 3. Assemble an NRT score — feed typed commands into timestamped
-//    bundles, serialise to the scsynth `-N` file format.
 let score = NrtScore::new()
     .at(0.0, ServerMessage::from(SNew::new(
         "sine".into(), 1001, 0, 1, vec![],
@@ -82,129 +59,34 @@ let nrt_bytes = score.encode()?;
 # Ok::<(), scserver_commands::CommandError>(())
 ```
 
-Required args go in `new(...)`; optional trailing args use struct-update:
+Required command fields are constructor parameters. Optional trailing scalars
+use their spec `default` values and can be overridden with struct update
+syntax. `OscMessage` is the low-level address-plus-args representation, and
+`ServerMessage::Other(OtherMsg { … })` is the native raw escape hatch.
 
-```rust
-use scserver_commands::commands::BAlloc;
+## WebAssembly boundary
 
-let bytes = BAlloc {
-    num_channels: Some(2),
-    ..BAlloc::new(0, 8192)
-}.encode()?;
-```
+Generated wasm command builders return OSC wire bytes (`Uint8Array`) directly:
+construction and encoding are fused into one boundary crossing. No
+command-shaped JS value, general `encode`, parser, or message-to-OSC conversion
+is exported. `raw_bytes` provides the raw escape hatch, and `encode_bundle`
+frames already-encoded elements.
 
-### From TypeScript (wasm-bindgen)
+Replies cross as typed, adjacently tagged `{ address, args }` values.
+`/scope/chunk` samples are lifted into a transferable `Float32Array`;
+`decode_raw_packet` supplies the wire-truth view used to render both transmitted
+and received console packets.
 
-Encode commands and decode replies through the wasm-bindgen/tsify bindings:
+## Regeneration and tests
 
-```ts
-import {
-  at_unix_ms,
-  decode_reply,
-  encode,
-  encode_bundle,
-} from './pkg/scserver_commands.js';
-
-// 1. Encode a /s_new command.
-const message = {
-  address: '/s_new' as const,
-  args: {
-    defName: 'sine',
-    nodeId: 1001,
-    addAction: 0,
-    targetId: 1,
-    tail: [
-      [{ name: 'freq' }, { float: 440 }],
-      [{ name: 'amp' }, { float: 0.5 }],
-    ],
-  },
-};
-const bytes = encode(message);
-
-// 2. Encode an atomic OSC bundle.
-const bundle = encode_bundle(at_unix_ms(Date.now()), [message]);
-
-// 3. Decode a reply — the address discriminates the union.
-const reply = decode_reply(replyBytes);
-switch (reply.address) {
-  case '/status.reply':
-    console.log(reply.args.numUgens, reply.args.numSynths);
-    break;
-  case '/n_go':
-    console.log(reply.args.nodeId, reply.args.parentId);
-    break;
-  case '/fail':
-    console.error(reply.args.command, reply.args.error);
-    break;
-}
-```
-
-Addresses outside the catalogue go through `OtherMsg`:
-
-```ts
-encode({
-  address: '/my-plugin-cmd',
-  args: [{ int32: 1 }],
-});
-```
-
-## Source of truth
-
-`packages/server-commands/specs/server-commands.json` is the source of truth
-for all 67 commands. Each entry has a category; `/dirt/play`,
-`/scope/subscribe`, and `/scope/unsubscribe` live in `bridge`, with the two
-`/scope/*` commands marked `decode: true` so their generated structs also
-parse messages received by the bridge.
-
-`packages/server-commands/scripts/generate-rust.ts` emits committed
-per-category `src/commands/*.rs` files containing full `sc_commands!`
-invocations, plus `src/commands/mod.rs` and its `define_known_message!`
-registry. `src/commands_macro.rs` expands those invocations into structs,
-encoders, parsers, and the address-tagged enum; `src/commands/prelude.rs` and
-replies remain hand-written. There is no `build.rs` or shared schema crate.
-
-After editing the spec, run `yarn generate:server-commands` from the repo root
-to regenerate the Rust catalogue before wasm-pack, or run the TypeScript
-generator directly (with optional `--check`) for the catalogue alone. The
-package's vitest suite checks the committed output for drift.
-
-## Build targets
-
-Native Rust + tests:
+From the repository root:
 
 ```bash
-cargo build -p scserver-commands
-cargo test  -p scserver-commands
+yarn generate:server-commands
+yarn tsx packages/server-commands/scripts/generate-rust.ts --check
+cargo test -p scserver-commands --manifest-path src-tauri/Cargo.toml
 ```
 
-WebAssembly + TS bindings:
-
-```bash
-cd crates/scserver-commands
-wasm-pack build --release --target web -- --features wasm
-```
-
-## Wasm surface
-
-The wasm-bindgen layer exports `encode`, `encode_bundle`, `decode_reply`,
-`decode_reply_packet`, and `at_unix_ms`. tsify emits the address-tagged
-`KnownMessage` and `KnownReply` unions; `OtherMsg` is the raw-message escape
-hatch whose `args` remains an `OscArg[]`. Typed payloads use an `args` object,
-so `Array.isArray(msg.args)` distinguishes raw from typed. NRT score
-construction remains available through the native Rust API.
-
-The generated TS `.d.ts` exposes `ServerMessage` and `ServerReply` as
-symmetric discriminated unions:
-
-```ts
-export type ServerMessage =
-  | BAlloc                    // { address: '/b_alloc', args: { ... } }
-  | SNew                      // { address: '/s_new', args: { ... } }
-  | Status                    // { address: '/status' }
-  | OtherMsg                  // { address, args }
-  | ...;
-export function encode(msg: ServerMessage): Uint8Array;
-```
-
-The package wrapper in `packages/server-commands` exposes the generated wasm
-through its typed builders and encode/decode helpers.
+The yarn generation command runs the TypeScript generator before wasm-pack.
+The package Vitest suite checks drift and stray committed registry files. The
+crate has no build script.

@@ -1,7 +1,7 @@
 /**
  * Envelope-shape registry — metadata read straight from the committed
- * spec at `specs/envs.json` (the SAME file the crate's generator
- * compiles ENV_SHAPES from), with each entry's `buildRun`
+ * spec at `specs/envs.json` (the same file the generator uses for the
+ * committed Rust shapes), with each entry's `buildRun`
  * delegating to the crate's build+encode (`buildEnvRun`). Params that feed
  * arithmetic are constant-only — the crate throws the pinned
  * `<shape>: "<name>" is not modulatable` errors.

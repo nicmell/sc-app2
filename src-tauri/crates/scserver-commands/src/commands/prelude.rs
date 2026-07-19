@@ -1,6 +1,6 @@
-//! The hand-written half of the command catalog: the polymorphic arg
+//! The hand-written command prelude: the polymorphic arg
 //! enums, the bridge address constants, and the `OtherMsg`/`ServerMessage`
-//! unions. The catalog itself (one module per spec category + the
+//! unions. The committed registries (one module per spec category + the
 //! `KnownMessage` enum) is generated into the sibling files by
 //! `packages/server-commands/scripts/generate-rust.ts` — edit the SPEC,
 //! never those files.
@@ -138,7 +138,7 @@ pub const SCOPE_UNSUBSCRIBE_ADDRESS: &str = "/scope/unsubscribe";
 /// OSC address of a SuperDirt/Strudel event.
 pub const DIRT_PLAY_ADDRESS: &str = "/dirt/play";
 
-/// Escape hatch for addresses outside the catalogue (SC extensions,
+/// Escape hatch for addresses outside the spec (SC extensions,
 /// plug-in commands): a raw address + arg list.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "wasm", derive(Tsify))]
@@ -148,7 +148,7 @@ pub struct OtherMsg {
     pub args: Vec<OscArg>,
 }
 
-/// A command in transit: catalogued, or the raw escape hatch. Construct via
+/// A Rust command in transit: spec-defined, or the raw escape hatch. Construct via
 /// `From<…>` (`let msg: ServerMessage = BAlloc::new(0, 8192).into();`) and
 /// call [`ServerMessage::encode`] for OSC wire bytes. (Plain enum — the wasm
 /// boundary discriminates known-vs-other itself, so no serde here.)

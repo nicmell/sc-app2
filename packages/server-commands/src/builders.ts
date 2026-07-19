@@ -6,7 +6,7 @@ export const AddBefore = 2;
 export const AddAfter = 3;
 export const AddReplace = 4;
 
-/** Escape hatch: a raw address + args outside the command catalogue —
+/** Escape hatch: a raw address + args outside the command spec —
  *  wire bytes, like every builder. */
 export function raw(address: string, ...args: Array<number | string | Uint8Array>): Uint8Array {
   return raw_bytes(address, args);

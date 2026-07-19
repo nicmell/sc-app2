@@ -3,12 +3,10 @@
  *
  * An abstraction/utility layer over the wasm-bindgen build of the
  * scserver-commands Rust crate (`pkg/`, regenerated via
- * `yarn generate:server-commands`): typed `ServerMessage` builders for every
- * spec command (exported through the `src/builders/` barrel), the
- * encode/decode boundary, and typed
- * `ServerReply` classification for everything inbound. The serde tag IS the
- * OSC address, so every value narrows on its `address` field and typed
- * payloads live under `args` — no tag↔address mapping exists anywhere.
+ * `yarn generate:server-commands`): typed builders for every spec command
+ * (exported through `src/builders.ts`) return OSC wire bytes directly. The
+ * package also frames pre-encoded bundles and classifies inbound replies as
+ * typed, address-discriminated `{ address, args }` values.
  *
  * ```ts
  * import { sNew, AddToHead, decodeReply } from "@sc-app/server-commands";
@@ -31,10 +29,10 @@ export {
 // Typed command builders + add-action constants.
 export * from "./builders.js";
 
-// Console-log display helpers (no wasm crossings for the typed paths).
+// Console-log display helpers over the actual encoded packet bytes.
 export { flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
 
-// The crate's own generated types, re-exported under the package root.
+// The crate's generated reply and low-level Rust API types.
 export type {
   ServerMessage,
   ServerReply,

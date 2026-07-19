@@ -1,4 +1,4 @@
-//! The macro layer behind the command catalog.
+//! The macro layer behind the spec-generated command registries.
 //!
 //! `packages/server-commands/scripts/generate-rust.ts` emits one committed
 //! `sc_commands!` module per spec category and a direct
@@ -253,7 +253,7 @@ macro_rules! sc_command_one {
     };
 }
 
-/// The command-catalog macro: each block is one command struct. A
+/// The command-registry macro: each block is one command struct. A
 /// `decode` marker after the struct name (spec `"decode": true` — the
 /// bridge CONSUMES the command) additionally emits `from_message`/`decode`
 /// parsers; it only matches all-`scalar i32` field lists.

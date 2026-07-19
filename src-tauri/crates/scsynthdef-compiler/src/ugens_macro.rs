@@ -6,8 +6,8 @@
 //! `sc_ugens_wasm!` invocation + the generated TypeScript custom section)
 //! and `src/envs/shapes.rs`. Edit the SPEC, never the expansion.
 //!
-//! Per-ugen grammar (every ident/literal is precomputed by build.rs —
-//! macros only assemble, they never convert names):
+//! Per-UGen grammar (every identifier and literal is precomputed by the
+//! generator; macros only assemble, they never convert names):
 //!
 //! ```text
 //! #[doc = "..."]
@@ -194,7 +194,7 @@ macro_rules! sc_wasm_set {
 /// currently under construction (the ambient build stack a
 /// `new SynthDef(name, () => …)` callback runs inside — see
 /// `wasm::with_current_def`), so no def crosses the call. TS types come
-/// from the build.rs-emitted custom section (the marker struct is
+/// from the generator-emitted custom section (the marker struct is
 /// `skip_typescript`).
 #[cfg(feature = "wasm")]
 macro_rules! sc_ugens_wasm {

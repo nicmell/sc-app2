@@ -1,8 +1,8 @@
 /**
  * The UGen registry — read straight from the committed spec at
- * `specs/ugens.json` (the SAME file the crate's
- * generator compiles the Rust registry and typed builders from) and normalized to
- * the shapes the app has always consumed (lowercase long rate names,
+ * `specs/ugens.json` (the same spec the generator uses for the committed
+ * Rust typed builders) and normalized to the shapes the app consumes
+ * (lowercase long rate names,
  * `{name, default}` records).
  */
 
@@ -62,7 +62,7 @@ const CATEGORIES: [string, UGenRegistryEntry[]][] = spec.categories.map((categor
     rates: u.rates.map((r) => RATE[r]),
     defaults: u.args.map((a) => ({ name: a.name, default: a.default ?? null })),
     // A `{ fromArg }` count is runtime builder state — no static count,
-    // like the Rust registry.
+    // like the typed Rust builder.
     numOutputs: typeof u.numOutputs === "number" ? u.numOutputs : null,
     extends: u.extends ?? null,
     summary: u.summary ?? null,

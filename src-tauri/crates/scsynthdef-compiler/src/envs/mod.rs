@@ -1,6 +1,6 @@
-//! Envelope-shape registry — one entry per SuperCollider `Env` class-method
-//! constructor (https://doc.sccode.org/Classes/Env.html), mirroring how UGens
-//! live in the registry. Each entry declares its parameter names/defaults/
+//! Envelope-shape table — one entry per SuperCollider `Env` class-method
+//! constructor (https://doc.sccode.org/Classes/Env.html). Each entry declares
+//! its parameter names/defaults/
 //! arity; [`build_env`] assembles the [`EnvSpec`] (levels/times +
 //! releaseNode/loopNode) that [`spec::encode_env`] flattens into
 //! EnvGen's `envelope` input run.

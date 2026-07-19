@@ -15,7 +15,6 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "parity": "tsx examples/node/sclang_parity.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

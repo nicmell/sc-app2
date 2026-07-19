@@ -1,87 +1,71 @@
 # @sc-app/server-commands
 
-The app's typed OSC vocabulary for
-[`scsynth`](https://doc.sccode.org/Reference/Server-Command-Reference.html) — an
-abstraction/utility layer over the **wasm-bindgen build** of the vendored
-`scserver-commands` Rust crate (`src-tauri/crates/scserver-commands`). One
-protocol implementation shared by the Rust backend (native rlib) and the
-frontend (this package), with tsify-generated TypeScript types whose
-discriminant IS the OSC address: a typed message is an args-nested
-`{ address: "/s_new", args: { defName, … } }` object, and a decoded reply
-narrows on `reply.address` — no tag↔address mapping exists anywhere.
+The app's typed OSC command and reply boundary for
+[`scsynth`](https://doc.sccode.org/Reference/Server-Command-Reference.html),
+backed by the wasm build of `src-tauri/crates/scserver-commands`.
 
 ## Layout
 
-- `pkg/` — the wasm-pack output (24 KB glue + wasm + `.d.ts` + the
-  `init.js` dual-environment loader). **Generated and committed** —
-  regenerate with `yarn generate:server-commands` whenever the spec or crate
-  changes (prereqs: `rustup target add wasm32-unknown-unknown`,
-  `cargo install wasm-pack`). Importing the package instantiates the wasm at
-  module load: node (vitest included) feeds the bytes from disk, browsers
-  fetch the Vite-emitted asset.
-- `src/component.ts` — the binary boundary: `encode(msg)`,
-  `encodeBundle(time, msgs)`, `decodeReply(bytes)`, `decodeReplyPacket(bytes)`
-  (bundle-aware), `messageToOsc(msg)`, `decodeRawPacket(bytes)`, and
-  `atUnixMs(ms)` (wall-clock → NTP `OscTimetag`). All throw on malformed input.
-- `specs/server-commands.json` — all 67 typed commands, grouped by category;
-  the three sc-app bridge commands live under `bridge`, and the two
-  `/scope/*` commands carry `decode: true` for the bridge-side parser.
-- `scripts/generate-rust.ts` — validates the local spec and emits the
-  committed per-category `src/commands/*.rs` macro invocations plus `mod.rs`
-  in the Rust crate. `--check` reports drift without writing.
-- `src/builders.ts` — re-exports the wasm builders and adds only the add-action
-  constants plus the `raw` escape hatch.
-- `src/describe.ts` — console-log formatting backed by the wasm wire views:
-  `describeMessage(msg)` and `flattenEncoded(bytes)`.
+- `specs/server-commands.json` is the source spec: 67 commands in 10
+  categories, including decode flags and optional-scalar `default` values,
+  plus 15 reply entries.
+- `scripts/generate-rust.ts` validates that spec and emits the committed,
+  rustfmt-canonicalized Rust registries: 10 category modules, `commands/mod.rs`,
+  `commands/wasm_gen.rs`, and `replies/mod.rs`. `--check` detects drift and the
+  package tests also reject stray generated files.
+- `pkg/` is committed wasm-pack output. `yarn generate:server-commands` runs
+  the generator before wasm-pack.
+- `src/component.ts` initializes wasm and exposes bundle framing, reply
+  decoding, raw packet decoding, and Unix-ms-to-NTP conversion.
+- `src/builders.ts` re-exports the generated command builders and adds the
+  add-action constants plus `raw()`.
+- `src/describe.ts` contains only `FlatMessage`, `formatOscArg`, and
+  `flattenEncoded` for rendering actual wire bytes through `decodeRawPacket`.
+- `src/index.ts` is the package re-export shell.
 
 ## Usage
 
 ```ts
-import { sNew, AddToHead, encode, decodeReply } from "@sc-app/server-commands";
+import { AddToHead, atUnixMs, decodeReply, encodeBundle, raw, sNew } from "@sc-app/server-commands";
 
-const bytes = encode(sNew("sine", 1001, AddToHead, 100, [["freq", 440]]));
-// …send bytes over the WS transport…
+// Construction and OSC encoding are fused into one wasm boundary crossing.
+const command = sNew("sine", 1001, AddToHead, 100, [["freq", 440]]);
+const packet = encodeBundle(atUnixMs(Date.now()), [command]);
 
-const reply = decodeReply(incoming); // { address: "/n_go", args: { nodeId, … } }
+// The escape hatch also returns wire bytes.
+const extension = raw("/my-plugin-cmd", 1, "value");
+
+// Replies cross as typed, adjacently tagged values.
+const reply = decodeReply(incoming);
 if (reply.address === "/synced") console.log(reply.args.syncId);
 ```
 
-## Notes
+Every command builder returns `Uint8Array`; no command-shaped JS value exists.
+`encodeBundle` only frames pre-encoded elements. `raw()` (backed by the wasm
+`raw_bytes` export) is the escape hatch for addresses outside the spec.
 
-- The escape hatch (`raw()`) keeps an `args: OscArg[]` array; typed payloads
-  use an `args` object, so `Array.isArray(value.args)` distinguishes raw from
-  catalogued values.
-- `/scope/chunk` samples cross the boundary as one transferable
-  `Float32Array` memcpy (the binding layer builds that arm manually — serde
-  would box them into `number[]` on the ~47 Hz streaming path).
-- Floats ride the wire as OSC float32 — non-dyadic values (0.2, 0.9) come
-  back with float32 precision; tests compare via `Math.fround`.
-- The scope protocol (`/scope/subscribe|unsubscribe|chunk`) is an sc-app
-  bridge extension in the package spec/reply catalogue, spoken with the Rust
-  bridge — never routed to scsynth.
-- Tests (`yarn workspace @sc-app/server-commands test`) run the REAL wasm in
-  node — the encode/decode goldens are the cross-language contract gate. A
-  generator test catches committed Rust drift, and the round-trip tests check
-  `flattenEncoded` against `describeMessage`.
+Replies decode to `{ address, args }` values. The generated reply registry
+contains the regular newtype variants and routes its two bespoke layouts to
+hand-written implementations: `/scope/chunk` and the recursive
+`/g_queryTree.reply`. Scope samples cross as a transferable `Float32Array`.
+Both console transmit and receive formatting should call `flattenEncoded` on
+the bytes actually sent or received.
 
 ## Regeneration
 
-Edit `specs/server-commands.json`, then regenerate the committed Rust catalogue
-and wasm package:
+After editing the spec, run:
 
 ```bash
 yarn generate:server-commands
 ```
 
-The command runs `scripts/generate-rust.ts` before wasm-pack. To update or
-check only the committed Rust modules, run the script directly:
+To generate or check only the committed Rust registries:
 
 ```bash
 yarn tsx packages/server-commands/scripts/generate-rust.ts
 yarn tsx packages/server-commands/scripts/generate-rust.ts --check
 ```
 
-The generated command modules contain full `sc_commands!` invocations;
-`commands_macro.rs` expands them into structs and encoders. `commands/prelude.rs`
-is hand-written. The crate has no build script or shared spec-schema crate, so
-its committed sources are self-contained.
+The crate has no build script; committed registries make native builds
+self-contained. Package tests run the real wasm and check generator drift,
+stray files, wire round trips, and `flattenEncoded` output.

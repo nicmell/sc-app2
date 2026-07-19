@@ -1,4 +1,5 @@
-// The typed UGen builder surface over wasm: one function per builder × rate,
+// The typed UGen builder surface over wasm: one class per UGen with a static
+// method per supported rate,
 // delegating to the crate's typed builders. The generated macro invocation is
 // committed in `wasm_gen.rs`; this file keeps the hand-written JS
 // conversion helpers.

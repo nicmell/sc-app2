@@ -1,8 +1,8 @@
 // The typed command-builder surface over wasm: one exported function per
 // command, returning the WIRE BYTES directly — construction and OSC
 // encoding fused into a single boundary crossing (no intermediate JS
-// value to serialize out and re-parse). The generated functions are committed in
-// `wasm_gen.rs`; this file keeps the hand-written JS coercion helpers —
+// value to serialize out and re-parse). The generated functions are committed
+// in `wasm_gen.rs`; this file keeps the hand-written JS coercion helpers —
 // every coercer is LENIENT the way the old TS builders were: plain numbers
 // and strings coerce into the polymorphic OSC arg shapes, and pair tails
 // also accept a `{ key: value }` object.

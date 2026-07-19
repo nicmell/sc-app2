@@ -101,7 +101,7 @@ export class SynthDef {
   addControl(name: string, defaultValue: number, rate: string): UGenInput;
   /** Add a named ARRAY control (consecutive slots, one name at the base index). */
   addControlArray(name: string, defaults: Float32Array | number[], rate: string): UGenInput[];
-  /** Append a UGen node (registry-driven); returns the node index. */
+  /** Append a UGen node from explicit layout data; returns the node index. */
   addUgen(className: string, rate: string, inputs: (UGenInput | number)[], numOutputs: number, specialIndex: number): number;
   /** The calculation rate of an already-added node, or undefined. */
   nodeRate(index: number): string | undefined;
@@ -185,8 +185,8 @@ impl WasmSynthDef {
         serde_wasm_bindgen::to_value(&inputs).map_err(err)
     }
 
-    /// Append a UGen node (registry-driven — what the app's markup compiler
-    /// uses); returns the node index.
+    /// Append a UGen node from explicit layout data (the lower-level API the
+    /// app's markup compiler uses); returns the node index.
     #[wasm_bindgen(js_name = addUgen)]
     pub fn add_ugen(
         &mut self,
@@ -242,11 +242,8 @@ pub fn parse_scgf(bytes: &[u8]) -> Result<JsValue, JsError> {
     serde_wasm_bindgen::to_value(&crate::parse_scgf(bytes).map_err(err)?).map_err(err)
 }
 
-// ── one-shot metadata (the TS package caches these at init) ─────────────
-//
 // NOTE: the UGen registry is no longer served from the wasm — the TS
-// package imports `assets/specs/ugens.json` (the same file this crate's
-// build.rs compiles the Rust registry from) directly.
+// package imports `packages/synthdef-compiler/specs/ugens.json` directly.
 
 /// `specialIndex` for a binary operator name (`+`, `min`, …); undefined
 /// for unknown operators.
@@ -264,8 +261,8 @@ pub fn unary_op_index(op: &str) -> Option<i16> {
 // ── envelopes ────────────────────────────────────────────────────────────
 //
 // NOTE: the envelope-shape metadata is no longer served from the wasm —
-// the TS package imports `assets/specs/envs.json` (the same file this
-// crate's build.rs compiles ENV_SHAPES from) directly.
+// the TS package imports `packages/synthdef-compiler/specs/envs.json`
+// directly; the generator emits the crate's committed shape table.
 
 fn env_arg_from_js(v: &JsValue) -> Result<EnvArgValue, JsError> {
     if js_sys::Array::is_array(v) {

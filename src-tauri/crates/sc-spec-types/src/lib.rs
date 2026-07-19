@@ -142,8 +142,15 @@ pub struct CommandSpec {
     pub address: String,
     #[serde(rename = "struct")]
     pub struct_name: String,
+    /// SCDoc reference section slug (`buffer`, `node`, …) — `bridge` for
+    /// the sc-app extensions.
+    pub category: String,
     #[serde(default)]
     pub doc: Option<String>,
+    /// The bridge consumes this command: the struct also carries
+    /// `from_message`/`decode` parsers (all-scalar fields only).
+    #[serde(default)]
+    pub decode: bool,
     /// Empty = a unit command (no payload struct fields, unit
     /// `KnownMessage` arm).
     pub fields: Vec<CommandField>,
@@ -212,9 +219,11 @@ pub enum ListTy {
 pub enum TupleTy {
     I32,
     F32,
+    String,
     ControlId,
     NumericValue,
     ControlValue,
+    OscArg,
 }
 
 pub fn load_commands(path: &Path) -> Result<CommandsSpec, String> {

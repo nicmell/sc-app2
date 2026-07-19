@@ -1,17 +1,15 @@
 /**
  * The UGen registry — read straight from the committed spec at
- * `assets/specs/ugens.json` (repo root; the SAME file the crate's build.rs
- * compiles the Rust registry and typed builders from) and normalized to
+ * `specs/ugens.json` (the SAME file the crate's
+ * generator compiles the Rust registry and typed builders from) and normalized to
  * the shapes the app has always consumed (lowercase long rate names,
  * `{name, default}` records).
  */
 
-import rawSpec from "../../../assets/specs/ugens.json";
+import rawSpec from "../specs/ugens.json";
 import type { Rate } from "./rate.js";
 
-/** The shape of `assets/specs/ugens.json` (see the sc-spec-types crate —
- *  the serde schema is the authority; this mirrors what the registry
- *  consumes). */
+/** The shape of `specs/ugens.json` — mirrors what the registry consumes. */
 interface UgensSpec {
   categories: {
     name: string;

@@ -12,6 +12,6 @@
     "scripts",
     "vitest.config.ts",
     "tsup.config.ts",
-    "../../assets/specs/*.json"
+    "specs/*.json"
   ]
 }

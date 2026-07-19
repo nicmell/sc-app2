@@ -1,13 +1,13 @@
 /**
  * Envelope-shape registry — metadata read straight from the committed
- * spec at `assets/specs/envs.json` (repo root; the SAME file the crate's
- * build.rs compiles ENV_SHAPES from), with each entry's `buildRun`
+ * spec at `specs/envs.json` (the SAME file the crate's generator
+ * compiles ENV_SHAPES from), with each entry's `buildRun`
  * delegating to the crate's build+encode (`buildEnvRun`). Params that feed
  * arithmetic are constant-only — the crate throws the pinned
  * `<shape>: "<name>" is not modulatable` errors.
  */
 
-import envsSpec from "../../../assets/specs/envs.json";
+import envsSpec from "../specs/envs.json";
 import { buildEnvRun } from "./component.js";
 import type { UGenInput, UGenInputLike } from "../pkg/scsynthdef_compiler.js";
 

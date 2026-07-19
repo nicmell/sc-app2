@@ -25,7 +25,7 @@ const RUST_KEYWORDS: &[&str] = &[
 
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let specs_dir = Path::new(&manifest).join("../../../assets/specs");
+    let specs_dir = Path::new(&manifest).join("../../../packages/synthdef-compiler/specs");
     println!(
         "cargo:rerun-if-changed={}",
         specs_dir.join("ugens.json").display()

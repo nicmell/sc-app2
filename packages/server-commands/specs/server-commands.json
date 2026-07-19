@@ -3,6 +3,7 @@
     {
       "address": "/b_alloc",
       "struct": "BAlloc",
+      "category": "buffer",
       "doc": "Allocate buffer space.",
       "fields": [
         {
@@ -43,6 +44,7 @@
     {
       "address": "/b_allocRead",
       "struct": "BAllocRead",
+      "category": "buffer",
       "doc": "Allocate buffer space and read a sound file.",
       "fields": [
         {
@@ -83,6 +85,7 @@
     {
       "address": "/b_allocReadChannel",
       "struct": "BAllocReadChannel",
+      "category": "buffer",
       "doc": "Allocate buffer space and read channels from a sound file.",
       "fields": [
         {
@@ -130,6 +133,7 @@
     {
       "address": "/b_close",
       "struct": "BClose",
+      "category": "buffer",
       "doc": "Close soundfile.",
       "fields": [
         {
@@ -149,6 +153,7 @@
     {
       "address": "/b_fill",
       "struct": "BFill",
+      "category": "buffer",
       "doc": "Fill ranges of sample value(s).",
       "fields": [
         {
@@ -174,6 +179,7 @@
     {
       "address": "/b_free",
       "struct": "BFree",
+      "category": "buffer",
       "doc": "Free buffer data.",
       "fields": [
         {
@@ -193,6 +199,7 @@
     {
       "address": "/b_gen",
       "struct": "BGen",
+      "category": "buffer",
       "doc": "Call a command to fill a buffer.",
       "fields": [
         {
@@ -219,6 +226,7 @@
     {
       "address": "/b_get",
       "struct": "BGet",
+      "category": "buffer",
       "doc": "Get sample value(s).",
       "fields": [
         {
@@ -240,6 +248,7 @@
     {
       "address": "/b_getn",
       "struct": "BGetn",
+      "category": "buffer",
       "doc": "Get ranges of sample value(s).",
       "fields": [
         {
@@ -264,6 +273,7 @@
     {
       "address": "/b_query",
       "struct": "BQuery",
+      "category": "buffer",
       "doc": "Get buffer info.",
       "fields": [
         {
@@ -278,6 +288,7 @@
     {
       "address": "/b_read",
       "struct": "BRead",
+      "category": "buffer",
       "doc": "Read sound file data into an existing buffer.",
       "fields": [
         {
@@ -332,6 +343,7 @@
     {
       "address": "/b_readChannel",
       "struct": "BReadChannel",
+      "category": "buffer",
       "doc": "Read sound file channel data into an existing buffer.",
       "fields": [
         {
@@ -393,6 +405,7 @@
     {
       "address": "/b_set",
       "struct": "BSet",
+      "category": "buffer",
       "doc": "Set sample value(s).",
       "fields": [
         {
@@ -417,6 +430,7 @@
     {
       "address": "/b_setn",
       "struct": "BSetn",
+      "category": "buffer",
       "doc": "Set ranges of sample value(s).",
       "fields": [
         {
@@ -441,6 +455,7 @@
     {
       "address": "/b_setSampleRate",
       "struct": "BSetSampleRate",
+      "category": "buffer",
       "doc": "Set the sampling rate of the buffer.",
       "fields": [
         {
@@ -462,6 +477,7 @@
     {
       "address": "/b_write",
       "struct": "BWrite",
+      "category": "buffer",
       "doc": "Write sound file data.",
       "fields": [
         {
@@ -523,6 +539,7 @@
     {
       "address": "/b_zero",
       "struct": "BZero",
+      "category": "buffer",
       "doc": "Zero sample data.",
       "fields": [
         {
@@ -542,6 +559,7 @@
     {
       "address": "/c_fill",
       "struct": "CFill",
+      "category": "control-bus",
       "doc": "Fill ranges of bus value(s).",
       "fields": [
         {
@@ -560,6 +578,7 @@
     {
       "address": "/c_get",
       "struct": "CGet",
+      "category": "control-bus",
       "doc": "Get bus value(s).",
       "fields": [
         {
@@ -574,6 +593,7 @@
     {
       "address": "/c_getn",
       "struct": "CGetn",
+      "category": "control-bus",
       "doc": "Get ranges of bus value(s).",
       "fields": [
         {
@@ -591,6 +611,7 @@
     {
       "address": "/c_set",
       "struct": "CSet",
+      "category": "control-bus",
       "doc": "Set bus value(s).",
       "fields": [
         {
@@ -608,6 +629,7 @@
     {
       "address": "/c_setn",
       "struct": "CSetn",
+      "category": "control-bus",
       "doc": "Set ranges of bus value(s).",
       "fields": [
         {
@@ -625,6 +647,7 @@
     {
       "address": "/g_deepFree",
       "struct": "GDeepFree",
+      "category": "group",
       "doc": "Free all synths in this group and all its sub-groups.",
       "fields": [
         {
@@ -639,6 +662,7 @@
     {
       "address": "/g_dumpTree",
       "struct": "GDumpTree",
+      "category": "group",
       "doc": "Post a representation of this group's node subtree.",
       "fields": [
         {
@@ -656,6 +680,7 @@
     {
       "address": "/g_freeAll",
       "struct": "GFreeAll",
+      "category": "group",
       "doc": "Delete all nodes in a group.",
       "fields": [
         {
@@ -670,6 +695,7 @@
     {
       "address": "/g_head",
       "struct": "GHead",
+      "category": "group",
       "doc": "Add node to head of group.",
       "fields": [
         {
@@ -687,6 +713,7 @@
     {
       "address": "/g_new",
       "struct": "GNew",
+      "category": "group",
       "doc": "Create a new group.",
       "fields": [
         {
@@ -705,6 +732,7 @@
     {
       "address": "/g_queryTree",
       "struct": "GQueryTree",
+      "category": "group",
       "doc": "Get a representation of this group's node subtree.",
       "fields": [
         {
@@ -722,6 +750,7 @@
     {
       "address": "/g_tail",
       "struct": "GTail",
+      "category": "group",
       "doc": "Add node to tail of group.",
       "fields": [
         {
@@ -739,6 +768,7 @@
     {
       "address": "/p_new",
       "struct": "PNew",
+      "category": "group",
       "doc": "Create a new parallel group.",
       "fields": [
         {
@@ -757,12 +787,14 @@
     {
       "address": "/clearSched",
       "struct": "ClearSched",
+      "category": "top-level",
       "doc": "Clear all scheduled bundles. Removes all bundles from the scheduling queue.",
       "fields": []
     },
     {
       "address": "/cmd",
       "struct": "Cmd",
+      "category": "top-level",
       "doc": "Plug-in defined command.",
       "fields": [
         {
@@ -782,6 +814,7 @@
     {
       "address": "/dumpOSC",
       "struct": "DumpOSC",
+      "category": "top-level",
       "doc": "Display incoming OSC messages.",
       "fields": [
         {
@@ -796,6 +829,7 @@
     {
       "address": "/error",
       "struct": "Error",
+      "category": "top-level",
       "doc": "Enable/disable error message posting.",
       "fields": [
         {
@@ -810,6 +844,7 @@
     {
       "address": "/notify",
       "struct": "Notify",
+      "category": "top-level",
       "doc": "Register to receive notifications from server",
       "fields": [
         {
@@ -831,24 +866,28 @@
     {
       "address": "/quit",
       "struct": "Quit",
+      "category": "top-level",
       "doc": "Quit program. Exits the synthesis server.",
       "fields": []
     },
     {
       "address": "/rtMemoryStatus",
       "struct": "RtMemoryStatus",
+      "category": "top-level",
       "doc": "Queries the amount of currently free real-time memory (in bytes).",
       "fields": []
     },
     {
       "address": "/status",
       "struct": "Status",
+      "category": "top-level",
       "doc": "Query the status. Replies to sender with the following message:",
       "fields": []
     },
     {
       "address": "/sync",
       "struct": "Sync",
+      "category": "top-level",
       "doc": "Notify when async commands have completed.",
       "fields": [
         {
@@ -863,12 +902,14 @@
     {
       "address": "/version",
       "struct": "Version",
+      "category": "top-level",
       "doc": "Query the SuperCollider version. Replies to sender with the following message:",
       "fields": []
     },
     {
       "address": "/n_after",
       "struct": "NAfter",
+      "category": "node",
       "doc": "Place a node after another.",
       "fields": [
         {
@@ -886,6 +927,7 @@
     {
       "address": "/n_before",
       "struct": "NBefore",
+      "category": "node",
       "doc": "Place a node before another.",
       "fields": [
         {
@@ -903,6 +945,7 @@
     {
       "address": "/n_fill",
       "struct": "NFill",
+      "category": "node",
       "doc": "Fill ranges of a node's control value(s).",
       "fields": [
         {
@@ -928,6 +971,7 @@
     {
       "address": "/n_free",
       "struct": "NFree",
+      "category": "node",
       "doc": "Delete a node.",
       "fields": [
         {
@@ -942,6 +986,7 @@
     {
       "address": "/n_map",
       "struct": "NMap",
+      "category": "node",
       "doc": "Map a node's controls to read from a bus.",
       "fields": [
         {
@@ -966,6 +1011,7 @@
     {
       "address": "/n_mapa",
       "struct": "NMapa",
+      "category": "node",
       "doc": "Map a node's controls to read from an audio bus.",
       "fields": [
         {
@@ -990,6 +1036,7 @@
     {
       "address": "/n_mapan",
       "struct": "NMapan",
+      "category": "node",
       "doc": "Map a node's controls to read from audio buses.",
       "fields": [
         {
@@ -1015,6 +1062,7 @@
     {
       "address": "/n_mapn",
       "struct": "NMapn",
+      "category": "node",
       "doc": "Map a node's controls to read from buses.",
       "fields": [
         {
@@ -1040,6 +1088,7 @@
     {
       "address": "/n_order",
       "struct": "NOrder",
+      "category": "node",
       "doc": "Move and order a list of nodes.",
       "fields": [
         {
@@ -1068,6 +1117,7 @@
     {
       "address": "/n_query",
       "struct": "NQuery",
+      "category": "node",
       "doc": "Get info about a node.",
       "fields": [
         {
@@ -1082,6 +1132,7 @@
     {
       "address": "/n_run",
       "struct": "NRun",
+      "category": "node",
       "doc": "Turn node on or off.",
       "fields": [
         {
@@ -1099,6 +1150,7 @@
     {
       "address": "/n_set",
       "struct": "NSet",
+      "category": "node",
       "doc": "Set a node's control value(s).",
       "fields": [
         {
@@ -1123,6 +1175,7 @@
     {
       "address": "/n_setn",
       "struct": "NSetn",
+      "category": "node",
       "doc": "Set ranges of a node's control value(s).",
       "fields": [
         {
@@ -1147,6 +1200,7 @@
     {
       "address": "/n_trace",
       "struct": "NTrace",
+      "category": "node",
       "doc": "Trace a node.",
       "fields": [
         {
@@ -1161,12 +1215,14 @@
     {
       "address": "/nrt_end",
       "struct": "NrtEnd",
+      "category": "nrt",
       "doc": "End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete.",
       "fields": []
     },
     {
       "address": "/s_get",
       "struct": "SGet",
+      "category": "synth",
       "doc": "Get control value(s).",
       "fields": [
         {
@@ -1188,6 +1244,7 @@
     {
       "address": "/s_getn",
       "struct": "SGetn",
+      "category": "synth",
       "doc": "Get ranges of control value(s).",
       "fields": [
         {
@@ -1212,6 +1269,7 @@
     {
       "address": "/s_new",
       "struct": "SNew",
+      "category": "synth",
       "doc": "Create a new synth.",
       "fields": [
         {
@@ -1257,6 +1315,7 @@
     {
       "address": "/s_noid",
       "struct": "SNoid",
+      "category": "synth",
       "doc": "Auto-reassign synth's ID to a reserved value.",
       "fields": [
         {
@@ -1271,6 +1330,7 @@
     {
       "address": "/d_free",
       "struct": "DFree",
+      "category": "synthdef",
       "doc": "Delete synth definition.",
       "fields": [
         {
@@ -1285,6 +1345,7 @@
     {
       "address": "/d_load",
       "struct": "DLoad",
+      "category": "synthdef",
       "doc": "Load synth definition.",
       "fields": [
         {
@@ -1304,6 +1365,7 @@
     {
       "address": "/d_loadDir",
       "struct": "DLoadDir",
+      "category": "synthdef",
       "doc": "Load a directory of synth definitions.",
       "fields": [
         {
@@ -1323,6 +1385,7 @@
     {
       "address": "/d_recv",
       "struct": "DRecv",
+      "category": "synthdef",
       "doc": "Receive a synth definition file.",
       "fields": [
         {
@@ -1340,6 +1403,7 @@
     {
       "address": "/u_cmd",
       "struct": "UCmd",
+      "category": "ugen",
       "doc": "Send a command to a unit generator.",
       "fields": [
         {
@@ -1367,6 +1431,77 @@
           "name": "any_arguments",
           "form": "variadic",
           "doc": "variadic trailing OSC args — types depend on the UGen command being invoked."
+        }
+      ]
+    },
+    {
+      "address": "/scope/subscribe",
+      "struct": "ScopeSubscribe",
+      "category": "bridge",
+      "doc": "sc-app bridge extension (not in the SC command reference): register a scope-slot stream with the bridge. The bridge is the consumer, so the struct also carries from_message/decode parsers.",
+      "decode": true,
+      "fields": [
+        {
+          "name": "sub_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "Client-minted subscription id, echoed on every chunk."
+        },
+        {
+          "name": "scope",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "scsynth SHM scope-buffer index to stream."
+        },
+        {
+          "name": "channels",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "Channel count (informational — the SHM header carries the truth)."
+        },
+        {
+          "name": "chunk_size",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "Requested frames per chunk (informational, as above)."
+        }
+      ]
+    },
+    {
+      "address": "/scope/unsubscribe",
+      "struct": "ScopeUnsubscribe",
+      "category": "bridge",
+      "doc": "sc-app bridge extension (not in the SC command reference): drop a scope-slot stream.",
+      "decode": true,
+      "fields": [
+        {
+          "name": "sub_id",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "The subscription id to drop."
+        }
+      ]
+    },
+    {
+      "address": "/dirt/play",
+      "struct": "DirtPlay",
+      "category": "bridge",
+      "doc": "sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list.",
+      "fields": [
+        {
+          "name": "pairs",
+          "form": {
+            "tail": [
+              "string",
+              "oscArg"
+            ]
+          },
+          "doc": "Repeated tuples: parameter name; parameter value."
         }
       ]
     }

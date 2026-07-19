@@ -5,5 +5,5 @@
     "paths": {},
     "types": ["node"]
   },
-  "include": ["src", "pkg/**/*.d.ts", "vitest.config.ts"]
+  "include": ["src", "specs/*.json", "pkg/**/*.d.ts", "vitest.config.ts"]
 }

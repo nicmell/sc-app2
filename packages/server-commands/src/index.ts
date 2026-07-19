@@ -32,7 +32,7 @@ export {
 export * from "./builders.js";
 
 // Console-log display helpers (no wasm crossings for the typed paths).
-export { describeEncoded, flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
+export { flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
 
 // The crate's own generated types, re-exported under the package root.
 export type {

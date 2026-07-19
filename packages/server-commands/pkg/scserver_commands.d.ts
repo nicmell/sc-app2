@@ -37,14 +37,11 @@ export interface OtherMsg {
 }
 
 /**
- * Every catalogued server-to-client reply, one variant per address. Like
- * [`crate::commands::KnownMessage`], the serde representation is internally
- * tagged BY THE OSC ADDRESS — a decoded reply crosses the wasm boundary as
- * an adjacently tagged `{ \"address\": \"/n_go\", \"args\": { …fields } }` object,
- * so the address is the TypeScript discriminant and the payload rides in
- * `args`.
+ * Every catalogued server-to-client reply, one variant per address —
+ * adjacently tagged like the command side: a decoded reply crosses the
+ * wasm boundary as `{ \"address\": \"/n_go\", \"args\": { …fields } }`.
  */
-export type KnownReply = { address: "/done"; args: { command: string; extras: OscArg[] } } | { address: "/fail"; args: { command: string; error: string; extras: OscArg[] } } | { address: "/late"; args: { seconds: number; fractions: number; lateSecs: number; lateFracs: number } } | { address: "/n_go"; args: NodeInfo } | { address: "/n_end"; args: NodeInfo } | { address: "/n_on"; args: NodeInfo } | { address: "/n_off"; args: NodeInfo } | { address: "/n_move"; args: NodeInfo } | { address: "/n_info"; args: NodeInfo } | { address: "/status.reply"; args: StatusReply } | { address: "/tr"; args: { nodeId: number; triggerId: number; value: number } } | { address: "/b_setn"; args: BSetnReply } | { address: "/synced"; args: { syncId: number } } | { address: "/scope/chunk"; args: ScopeChunkReply };
+export type KnownReply = { address: "/done"; args: DoneReply } | { address: "/fail"; args: FailReply } | { address: "/late"; args: LateReply } | { address: "/n_go"; args: NodeInfo } | { address: "/n_end"; args: NodeInfo } | { address: "/n_on"; args: NodeInfo } | { address: "/n_off"; args: NodeInfo } | { address: "/n_move"; args: NodeInfo } | { address: "/n_info"; args: NodeInfo } | { address: "/status.reply"; args: StatusReply } | { address: "/tr"; args: TrReply } | { address: "/b_setn"; args: BSetnReply } | { address: "/synced"; args: SyncedReply } | { address: "/scope/chunk"; args: ScopeChunkReply } | { address: "/g_queryTree.reply"; args: QueryTreeReply };
 
 /**
  * Every typed command, adjacently tagged by its OSC address — a
@@ -60,32 +57,32 @@ export type KnownMessage = { address: "/b_alloc"; args: BAlloc } | { address: "/
 export type ControlId = { index: number } | { name: string };
 
 /**
- * Payload of a `/b_setn` reply — samples read from a buffer.
- *
- * The SC wire format is: `/b_setn bufnum startIndex N sample0 sample1 … sampleN-1`.
+ * One `(name, value)` control of a synth node — the name is the declared
+ * control name, or the control INDEX rendered as a string.
  */
-export interface BSetnReply {
-    bufnum: number;
-    start: number;
-    samples: number[];
+export interface QueryTreeControl {
+    name: string;
+    value: OscArg;
 }
 
 /**
- * Shared arg layout for `/n_go`, `/n_end`, `/n_on`, `/n_off`, `/n_move`,
- * `/n_info`. The last two fields are only present when the node is a
- * group.
+ * One node of a query-tree reply.
  */
-export interface NodeInfo {
-    nodeId: number;
-    parentId: number;
-    prevNode: number;
-    nextNode: number;
+export type QueryTreeNode = { kind: "group"; id: number; children: QueryTreeNode[] } | { kind: "synth"; id: number; def: string; controls: QueryTreeControl[] };
+
+/**
+ * Reply to `/g_queryTree`: the queried group\'s subtree, depth-first.
+ */
+export interface QueryTreeReply {
     /**
-     * 1 if the node is a group, 0 if a synth.
+     * Whether per-synth control values were included (the query\'s flag).
      */
-    isGroup: number;
-    headNode?: number;
-    tailNode?: number;
+    withControls: boolean;
+    /**
+     * The group the query was rooted at.
+     */
+    rootGroup: number;
+    children: QueryTreeNode[];
 }
 
 /**
@@ -127,6 +124,39 @@ export interface ScopeChunkReply {
      * Planar samples, `frames × channels` floats.
      */
     samples: Float32Array;
+}
+
+/**
+ *A SendTrig fired.
+ */
+export interface TrReply {
+    nodeId: number;
+    triggerId: number;
+    value: number;
+}
+
+/**
+ *A bundle's timetag was already in the past when it arrived.
+ */
+export interface LateReply {
+    seconds: number;
+    fractions: number;
+    lateSecs: number;
+    lateFracs: number;
+}
+
+/**
+ *Acknowledges an async command. `command` is the first wire arg — the address of the ACKNOWLEDGED command; the reply's own address, /done, is the serde tag.
+ */
+export interface DoneReply {
+    /**
+     *Address of the command being acknowledged (e.g. /notify).
+     */
+    command: string;
+    /**
+     *Any additional args (e.g. the clientID a /notify ack echoes).
+     */
+    extras: OscArg[];
 }
 
 /**
@@ -239,6 +269,21 @@ export interface BAlloc {
      *the required sample rate (optional. default (or 0) = the server's sample rate)
      */
     sampleRate: number | undefined;
+}
+
+/**
+ *An async command failed.
+ */
+export interface FailReply {
+    /**
+     *Address of the command that failed.
+     */
+    command: string;
+    /**
+     *The error message (empty when scsynth omits it).
+     */
+    error: string;
+    extras: OscArg[];
 }
 
 /**
@@ -728,6 +773,28 @@ export interface NOrder {
 }
 
 /**
+ *Node notification (node started) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.
+ */
+export interface NodeInfo {
+    nodeId: number;
+    parentId: number;
+    prevNode: number;
+    nextNode: number;
+    /**
+     *1 if the node is a group, 0 if a synth.
+     */
+    isGroup: number;
+    /**
+     *Present only when the node is a group.
+     */
+    headNode?: number;
+    /**
+     *Present only when the node is a group.
+     */
+    tailNode?: number;
+}
+
+/**
  *Notify when async commands have completed.
  *
  *
@@ -925,6 +992,37 @@ export interface Notify {
      *client ID (optional)
      */
     clientId: number | undefined;
+}
+
+/**
+ *Reply to /status — the server's load and node counts.
+ */
+export interface StatusReply {
+    unused: number;
+    numUgens: number;
+    numSynths: number;
+    numGroups: number;
+    numSynthDefs: number;
+    avgCpu: number;
+    peakCpu: number;
+    nominalSampleRate: number;
+    actualSampleRate: number;
+}
+
+/**
+ *Response to a /sync command — carries the sync id supplied by the client so callers can correlate request and reply.
+ */
+export interface SyncedReply {
+    syncId: number;
+}
+
+/**
+ *Samples read from a buffer in response to /b_getn. The wire carries bufnum, startIndex, N, then N samples.
+ */
+export interface BSetnReply {
+    bufnum: number;
+    start: number;
+    samples: number[];
 }
 
 /**
@@ -1318,18 +1416,6 @@ export function scopeUnsubscribe(subId: number): Uint8Array;
 /** `/dirt/play` — sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list. */
 export function dirtPlay(pairs?: Array<[string, number | string | Uint8Array]> | Record<string, number | string | Uint8Array>): Uint8Array;
 
-
-export interface StatusReply {
-    unused: number;
-    numUgens: number;
-    numSynths: number;
-    numGroups: number;
-    numSynthDefs: number;
-    avgCpu: number;
-    peakCpu: number;
-    nominalSampleRate: number;
-    actualSampleRate: number;
-}
 
 export type OscArg = { int32: number } | { float32: number } | { float64: number } | { string: string } | { blob: Uint8Array };
 

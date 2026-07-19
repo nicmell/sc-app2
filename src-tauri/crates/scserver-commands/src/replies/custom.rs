@@ -1,150 +1,17 @@
-//! Typed parsers for the server-sent OSC replies documented in the SC
-//! Server Command Reference.
-//!
-//! Usage:
-//!
-//! ```no_run
-//! use scserver_commands::{KnownReply, ServerReply};
-//! let bytes = [/* … from UDP socket … */];
-//! match ServerReply::decode(&bytes).unwrap() {
-//!     ServerReply::Known(KnownReply::Done { command, .. }) => println!("done: {command}"),
-//!     ServerReply::Known(KnownReply::NGo(n)) => println!("node {} started", n.node_id),
-//!     _ => {}
-//! }
-//! ```
+//! The hand-written half of the reply surface: the typed-value accessors
+//! the generated dispatch parses with, plus the two replies whose layouts
+//! are bespoke — `/scope/chunk` (bridge-emitted, big-endian float32 blob
+//! with a native-endian encode fast path) and `/g_queryTree.reply` (a
+//! variable, recursive node walk). Everything regular is generated into
+//! the sibling `mod.rs` from the spec's `replies` section.
 
 use rosc::OscType;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "wasm")]
 use tsify::Tsify;
 
-use crate::args::{osc_args, OscArg};
-use crate::commands::OtherMsg;
+use crate::args::OscArg;
 use crate::{CommandError, OscMessage};
-
-/// Every catalogued server-to-client reply, one variant per address. Like
-/// [`crate::commands::KnownMessage`], the serde representation is internally
-/// tagged BY THE OSC ADDRESS — a decoded reply crosses the wasm boundary as
-/// an adjacently tagged `{ "address": "/n_go", "args": { …fields } }` object,
-/// so the address is the TypeScript discriminant and the payload rides in
-/// `args`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "wasm", derive(Tsify))]
-#[serde(tag = "address", content = "args", rename_all_fields = "camelCase")]
-pub enum KnownReply {
-    /// Acknowledges an async command. (`command` is the first wire arg —
-    /// the address of the ACKNOWLEDGED command; the reply's own address,
-    /// `/done`, is the serde tag, hence the field rename.)
-    #[serde(rename = "/done")]
-    Done {
-        /// Address of the command being acknowledged (e.g. `/notify`).
-        command: String,
-        /// Any additional args (e.g. the clientID a `/notify` ack echoes).
-        extras: Vec<OscArg>,
-    },
-    #[serde(rename = "/fail")]
-    Fail {
-        /// Address of the command that failed.
-        command: String,
-        error: String,
-        extras: Vec<OscArg>,
-    },
-    #[serde(rename = "/late")]
-    Late {
-        seconds: i32,
-        fractions: i32,
-        late_secs: i32,
-        late_fracs: i32,
-    },
-    #[serde(rename = "/n_go")]
-    NGo(NodeInfo),
-    #[serde(rename = "/n_end")]
-    NEnd(NodeInfo),
-    #[serde(rename = "/n_on")]
-    NOn(NodeInfo),
-    #[serde(rename = "/n_off")]
-    NOff(NodeInfo),
-    #[serde(rename = "/n_move")]
-    NMove(NodeInfo),
-    #[serde(rename = "/n_info")]
-    NInfo(NodeInfo),
-    #[serde(rename = "/status.reply")]
-    StatusReply(StatusReply),
-    #[serde(rename = "/tr")]
-    Tr {
-        node_id: i32,
-        trigger_id: i32,
-        value: f32,
-    },
-    /// Samples read from a buffer in response to `/b_getn`.
-    #[serde(rename = "/b_setn")]
-    BSetn(BSetnReply),
-    /// Response to a `/sync` command — carries the sync id supplied by
-    /// the client so callers can correlate request ↔ reply.
-    #[serde(rename = "/synced")]
-    Synced { sync_id: i32 },
-    /// sc-app bridge extension: one streamed scope chunk (`/scope/chunk`,
-    /// emitted by the bridge in response to a `ScopeSubscribe`).
-    #[serde(rename = "/scope/chunk")]
-    ScopeChunk(ScopeChunkReply),
-}
-
-/// A reply in transit: catalogued, or the raw fallback for any address the
-/// parser doesn't know (shares [`OtherMsg`] with the command side). Plain
-/// enum — the wasm boundary serializes each arm itself, so no serde here.
-#[derive(Debug, Clone, PartialEq)]
-pub enum ServerReply {
-    Known(KnownReply),
-    Other(OtherMsg),
-}
-
-/// Shared arg layout for `/n_go`, `/n_end`, `/n_on`, `/n_off`, `/n_move`,
-/// `/n_info`. The last two fields are only present when the node is a
-/// group.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "wasm", derive(Tsify))]
-#[serde(rename_all = "camelCase")]
-pub struct NodeInfo {
-    pub node_id: i32,
-    pub parent_id: i32,
-    pub prev_node: i32,
-    pub next_node: i32,
-    /// 1 if the node is a group, 0 if a synth.
-    pub is_group: i32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "wasm", tsify(optional))]
-    pub head_node: Option<i32>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "wasm", tsify(optional))]
-    pub tail_node: Option<i32>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "wasm", derive(Tsify))]
-#[serde(rename_all = "camelCase")]
-pub struct StatusReply {
-    pub unused: i32,
-    pub num_ugens: i32,
-    pub num_synths: i32,
-    pub num_groups: i32,
-    pub num_synth_defs: i32,
-    pub avg_cpu: f32,
-    pub peak_cpu: f32,
-    pub nominal_sample_rate: f64,
-    pub actual_sample_rate: f64,
-}
-
-/// Payload of a `/b_setn` reply — samples read from a buffer.
-///
-/// The SC wire format is: `/b_setn bufnum startIndex N sample0 sample1 … sampleN-1`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "wasm", derive(Tsify))]
-#[serde(rename_all = "camelCase")]
-pub struct BSetnReply {
-    pub bufnum: i32,
-    pub start: i32,
-    pub samples: Vec<f32>,
-}
 
 /// sc-app bridge extension: payload of a `/scope/chunk` reply — one chunk
 /// of a scope-slot stream.
@@ -241,113 +108,161 @@ impl ScopeChunkReply {
     }
 }
 
-impl ServerReply {
-    /// Decode raw OSC reply bytes into a typed variant.
-    pub fn decode(bytes: &[u8]) -> Result<Self, CommandError> {
-        Self::from_message(OscMessage::decode(bytes)?)
-    }
-
-    /// Dispatch an already-decoded message into the typed variant whose
-    /// OSC address it matches. Unknown addresses become `Other(..)`.
-    pub fn from_message(msg: OscMessage) -> Result<Self, CommandError> {
-        let known = |k: KnownReply| Ok(Self::Known(k));
-        match msg.address.as_str() {
-            "/done" => known(KnownReply::Done {
-                command: take_string(&msg, 0, "/done")?,
-                extras: osc_args(&msg.args[1..]),
-            }),
-            "/fail" => known(KnownReply::Fail {
-                command: take_string(&msg, 0, "/fail")?,
-                error: take_string(&msg, 1, "/fail").unwrap_or_default(),
-                extras: msg.args.get(2..).map(osc_args).unwrap_or_default(),
-            }),
-            "/late" => known(KnownReply::Late {
-                seconds: take_int(&msg, 0, "/late")?,
-                fractions: take_int(&msg, 1, "/late")?,
-                late_secs: take_int(&msg, 2, "/late")?,
-                late_fracs: take_int(&msg, 3, "/late")?,
-            }),
-            "/n_go" => known(KnownReply::NGo(parse_node_info(&msg)?)),
-            "/n_end" => known(KnownReply::NEnd(parse_node_info(&msg)?)),
-            "/n_on" => known(KnownReply::NOn(parse_node_info(&msg)?)),
-            "/n_off" => known(KnownReply::NOff(parse_node_info(&msg)?)),
-            "/n_move" => known(KnownReply::NMove(parse_node_info(&msg)?)),
-            "/n_info" => known(KnownReply::NInfo(parse_node_info(&msg)?)),
-            "/status.reply" => known(KnownReply::StatusReply(StatusReply {
-                unused: take_int(&msg, 0, "/status.reply")?,
-                num_ugens: take_int(&msg, 1, "/status.reply")?,
-                num_synths: take_int(&msg, 2, "/status.reply")?,
-                num_groups: take_int(&msg, 3, "/status.reply")?,
-                num_synth_defs: take_int(&msg, 4, "/status.reply")?,
-                avg_cpu: take_float(&msg, 5, "/status.reply")?,
-                peak_cpu: take_float(&msg, 6, "/status.reply")?,
-                nominal_sample_rate: take_double(&msg, 7, "/status.reply")?,
-                actual_sample_rate: take_double(&msg, 8, "/status.reply")?,
-            })),
-            "/tr" => known(KnownReply::Tr {
-                node_id: take_int(&msg, 0, "/tr")?,
-                trigger_id: take_int(&msg, 1, "/tr")?,
-                value: take_float(&msg, 2, "/tr")?,
-            }),
-            "/b_setn" => {
-                // /b_setn bufnum startIndex N sample0 sample1 … sampleN-1
-                let bufnum = take_int(&msg, 0, "/b_setn")?;
-                let start = take_int(&msg, 1, "/b_setn")?;
-                let count = take_int(&msg, 2, "/b_setn")? as usize;
-                let mut samples = Vec::with_capacity(count);
-                for i in 0..count {
-                    samples.push(take_float(&msg, 3 + i, "/b_setn")?);
-                }
-                known(KnownReply::BSetn(BSetnReply {
-                    bufnum,
-                    start,
-                    samples,
-                }))
-            }
-            "/synced" => known(KnownReply::Synced {
-                sync_id: take_int(&msg, 0, "/synced")?,
-            }),
-            SCOPE_CHUNK_ADDRESS => {
-                let blob = take_blob(&msg, 4, SCOPE_CHUNK_ADDRESS)?;
-                if !blob.len().is_multiple_of(4) {
-                    return Err(CommandError::ArgType {
-                        address: SCOPE_CHUNK_ADDRESS.to_string(),
-                        pos: 4,
-                        expected: "float32 blob (length % 4 == 0)",
-                        got: format!("blob of {} bytes", blob.len()),
-                    });
-                }
-                let samples = blob
-                    .chunks_exact(4)
-                    .map(|c| f32::from_be_bytes(c.try_into().expect("chunks_exact(4)")))
-                    .collect();
-                known(KnownReply::ScopeChunk(ScopeChunkReply {
-                    sub_id: take_int(&msg, 0, SCOPE_CHUNK_ADDRESS)?,
-                    tick_index: take_int(&msg, 1, SCOPE_CHUNK_ADDRESS)?,
-                    is_gap: take_int(&msg, 2, SCOPE_CHUNK_ADDRESS)? != 0,
-                    channels: take_int(&msg, 3, SCOPE_CHUNK_ADDRESS)?,
-                    samples,
-                }))
-            }
-            _ => Ok(Self::Other(OtherMsg {
-                address: msg.address,
-                args: osc_args(&msg.args),
-            })),
+impl ScopeChunkReply {
+    /// Parse a decoded `/scope/chunk` message (the generated dispatch in
+    /// `mod.rs` routes here — the BE-blob layout is bespoke).
+    pub(crate) fn parse(msg: &OscMessage) -> Result<Self, CommandError> {
+        let blob = take_blob(msg, 4, SCOPE_CHUNK_ADDRESS)?;
+        if !blob.len().is_multiple_of(4) {
+            return Err(CommandError::ArgType {
+                address: SCOPE_CHUNK_ADDRESS.to_string(),
+                pos: 4,
+                expected: "float32 blob (length % 4 == 0)",
+                got: format!("blob of {} bytes", blob.len()),
+            });
         }
+        let samples = blob
+            .chunks_exact(4)
+            .map(|c| f32::from_be_bytes(c.try_into().expect("chunks_exact(4)")))
+            .collect();
+        Ok(Self {
+            sub_id: take_int(msg, 0, SCOPE_CHUNK_ADDRESS)?,
+            tick_index: take_int(msg, 1, SCOPE_CHUNK_ADDRESS)?,
+            is_gap: take_int(msg, 2, SCOPE_CHUNK_ADDRESS)? != 0,
+            channels: take_int(msg, 3, SCOPE_CHUNK_ADDRESS)?,
+            samples,
+        })
     }
 }
 
-fn parse_node_info(msg: &OscMessage) -> Result<NodeInfo, CommandError> {
-    let addr = msg.address.clone();
-    Ok(NodeInfo {
-        node_id: take_int(msg, 0, &addr)?,
-        parent_id: take_int(msg, 1, &addr)?,
-        prev_node: take_int(msg, 2, &addr)?,
-        next_node: take_int(msg, 3, &addr)?,
-        is_group: take_int(msg, 4, &addr)?,
-        head_node: msg.args.get(5).and_then(as_int),
-        tail_node: msg.args.get(6).and_then(as_int),
-    })
+// ── /g_queryTree.reply ──────────────────────────────────────────────────
+//
+// Layout: [flag, queriedGroupId, childCount, <node>…] where each <node> is:
+//   nodeId, numChildren(-1 = synth)
+//   if synth:            defName
+//   if synth && flag:    numControls, then numControls × (name|index, value)
+//   if group:            its numChildren nodes follow inline (depth-first).
+// Variable and recursive — parsed by hand; the generated dispatch routes
+// here.
+
+/// Reply to `/g_queryTree`: the queried group's subtree, depth-first.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
+pub struct QueryTreeReply {
+    /// Whether per-synth control values were included (the query's flag).
+    pub with_controls: bool,
+    /// The group the query was rooted at.
+    pub root_group: i32,
+    pub children: Vec<QueryTreeNode>,
+}
+
+/// One node of a query-tree reply.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum QueryTreeNode {
+    Group {
+        id: i32,
+        children: Vec<QueryTreeNode>,
+    },
+    Synth {
+        id: i32,
+        def: String,
+        controls: Vec<QueryTreeControl>,
+    },
+}
+
+/// One `(name, value)` control of a synth node — the name is the declared
+/// control name, or the control INDEX rendered as a string.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
+pub struct QueryTreeControl {
+    pub name: String,
+    pub value: OscArg,
+}
+
+/// OSC address of the query-tree reply.
+pub const QUERY_TREE_ADDRESS: &str = "/g_queryTree.reply";
+
+impl QueryTreeReply {
+    /// Parse a decoded `/g_queryTree.reply` message. Defensive like the
+    /// rest of the reply parsers: a malformed tail fails with a pointed
+    /// `ArgType` error rather than panicking.
+    pub(crate) fn parse(msg: &OscMessage) -> Result<Self, CommandError> {
+        let with_controls = take_int(msg, 0, QUERY_TREE_ADDRESS)? == 1;
+        let root_group = take_int(msg, 1, QUERY_TREE_ADDRESS)?;
+        let child_count = take_int(msg, 2, QUERY_TREE_ADDRESS)?.max(0);
+        let mut i = 3usize;
+        let mut children = Vec::new();
+        for _ in 0..child_count {
+            children.push(Self::parse_node(msg, &mut i, with_controls)?);
+        }
+        Ok(Self {
+            with_controls,
+            root_group,
+            children,
+        })
+    }
+
+    fn parse_node(
+        msg: &OscMessage,
+        i: &mut usize,
+        with_controls: bool,
+    ) -> Result<QueryTreeNode, CommandError> {
+        let id = take_int(msg, *i, QUERY_TREE_ADDRESS)?;
+        *i += 1;
+        let n_children = take_int(msg, *i, QUERY_TREE_ADDRESS)?;
+        *i += 1;
+        if n_children == -1 {
+            // Synth.
+            let def = take_string(msg, *i, QUERY_TREE_ADDRESS)?;
+            *i += 1;
+            let mut controls = Vec::new();
+            if with_controls {
+                let n = take_int(msg, *i, QUERY_TREE_ADDRESS)?.max(0);
+                *i += 1;
+                for _ in 0..n {
+                    // The control key is a declared name or a plain index.
+                    let name = match msg.args.get(*i) {
+                        Some(OscType::String(s)) => s.clone(),
+                        Some(OscType::Int(v)) => v.to_string(),
+                        other => {
+                            return Err(CommandError::ArgType {
+                                address: QUERY_TREE_ADDRESS.to_string(),
+                                pos: *i,
+                                expected: "control name or index",
+                                got: format!("{other:?}"),
+                            })
+                        }
+                    };
+                    *i += 1;
+                    let value = msg.args.get(*i).map(OscArg::from).ok_or_else(|| {
+                        CommandError::ArgType {
+                            address: QUERY_TREE_ADDRESS.to_string(),
+                            pos: *i,
+                            expected: "control value",
+                            got: "missing".into(),
+                        }
+                    })?;
+                    *i += 1;
+                    controls.push(QueryTreeControl { name, value });
+                }
+            }
+            Ok(QueryTreeNode::Synth { id, def, controls })
+        } else {
+            let mut children = Vec::with_capacity(n_children.max(0) as usize);
+            for _ in 0..n_children {
+                children.push(Self::parse_node(msg, i, with_controls)?);
+            }
+            Ok(QueryTreeNode::Group { id, children })
+        }
+    }
 }
 
 pub(crate) fn take_int(msg: &OscMessage, i: usize, addr: &str) -> Result<i32, CommandError> {
@@ -366,7 +281,7 @@ pub(crate) fn take_int(msg: &OscMessage, i: usize, addr: &str) -> Result<i32, Co
         })
 }
 
-fn take_float(msg: &OscMessage, i: usize, addr: &str) -> Result<f32, CommandError> {
+pub(crate) fn take_float(msg: &OscMessage, i: usize, addr: &str) -> Result<f32, CommandError> {
     msg.args
         .get(i)
         .and_then(as_float)
@@ -382,7 +297,7 @@ fn take_float(msg: &OscMessage, i: usize, addr: &str) -> Result<f32, CommandErro
         })
 }
 
-fn take_double(msg: &OscMessage, i: usize, addr: &str) -> Result<f64, CommandError> {
+pub(crate) fn take_double(msg: &OscMessage, i: usize, addr: &str) -> Result<f64, CommandError> {
     msg.args
         .get(i)
         .and_then(as_double)
@@ -398,7 +313,7 @@ fn take_double(msg: &OscMessage, i: usize, addr: &str) -> Result<f64, CommandErr
         })
 }
 
-fn take_string(msg: &OscMessage, i: usize, addr: &str) -> Result<String, CommandError> {
+pub(crate) fn take_string(msg: &OscMessage, i: usize, addr: &str) -> Result<String, CommandError> {
     msg.args
         .get(i)
         .and_then(as_string)
@@ -415,7 +330,11 @@ fn take_string(msg: &OscMessage, i: usize, addr: &str) -> Result<String, Command
         })
 }
 
-fn take_blob<'a>(msg: &'a OscMessage, i: usize, addr: &str) -> Result<&'a [u8], CommandError> {
+pub(crate) fn take_blob<'a>(
+    msg: &'a OscMessage,
+    i: usize,
+    addr: &str,
+) -> Result<&'a [u8], CommandError> {
     msg.args
         .get(i)
         .and_then(as_blob)
@@ -431,35 +350,35 @@ fn take_blob<'a>(msg: &'a OscMessage, i: usize, addr: &str) -> Result<&'a [u8], 
         })
 }
 
-fn as_int(v: &OscType) -> Option<i32> {
+pub(crate) fn as_int(v: &OscType) -> Option<i32> {
     match v {
         OscType::Int(i) => Some(*i),
         _ => None,
     }
 }
 
-fn as_float(v: &OscType) -> Option<f32> {
+pub(crate) fn as_float(v: &OscType) -> Option<f32> {
     match v {
         OscType::Float(f) => Some(*f),
         _ => None,
     }
 }
 
-fn as_double(v: &OscType) -> Option<f64> {
+pub(crate) fn as_double(v: &OscType) -> Option<f64> {
     match v {
         OscType::Double(d) => Some(*d),
         _ => None,
     }
 }
 
-fn as_string(v: &OscType) -> Option<&str> {
+pub(crate) fn as_string(v: &OscType) -> Option<&str> {
     match v {
         OscType::String(s) => Some(s.as_str()),
         _ => None,
     }
 }
 
-fn as_blob(v: &OscType) -> Option<&[u8]> {
+pub(crate) fn as_blob(v: &OscType) -> Option<&[u8]> {
     match v {
         OscType::Blob(b) => Some(b.as_slice()),
         _ => None,
@@ -469,12 +388,13 @@ fn as_blob(v: &OscType) -> Option<&[u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::replies::{DoneReply, KnownReply, NodeInfo, ServerReply, SyncedReply};
 
     #[test]
     fn done_reply_roundtrip() {
         let m = OscMessage::new("/done").arg("/notify").arg(0i32);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::Known(KnownReply::Done { command, extras }) => {
+            ServerReply::Known(KnownReply::Done(DoneReply { command, extras })) => {
                 assert_eq!(command, "/notify");
                 assert_eq!(extras.len(), 1);
             }
@@ -555,7 +475,9 @@ mod tests {
     fn synced_reply_carries_id() {
         let m = OscMessage::new("/synced").arg(42i32);
         match ServerReply::from_message(m).unwrap() {
-            ServerReply::Known(KnownReply::Synced { sync_id }) => assert_eq!(sync_id, 42),
+            ServerReply::Known(KnownReply::Synced(SyncedReply { sync_id })) => {
+                assert_eq!(sync_id, 42)
+            }
             other => panic!("expected Synced, got {:?}", other),
         }
     }
@@ -579,7 +501,7 @@ mod tests {
         assert!(j["args"].get("headNode").is_none()); // absent options are omitted
         assert_eq!(serde_json::from_value::<KnownReply>(j).unwrap(), r);
 
-        let r = KnownReply::Synced { sync_id: 7 };
+        let r = KnownReply::Synced(SyncedReply { sync_id: 7 });
         let j = serde_json::to_value(&r).unwrap();
         assert_eq!(j["address"], "/synced");
         assert_eq!(j["args"]["syncId"], 7);

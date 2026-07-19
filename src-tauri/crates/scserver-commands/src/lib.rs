@@ -27,8 +27,9 @@ pub use error::CommandError;
 pub use nrt::NrtScore;
 pub use osc::{ntp_from_unix_ms, OscMessage};
 pub use replies::{
-    BSetnReply, KnownReply, NodeInfo, ScopeChunkReply, ServerReply, StatusReply,
-    SCOPE_CHUNK_ADDRESS,
+    BSetnReply, DoneReply, FailReply, KnownReply, LateReply, NodeInfo, QueryTreeControl,
+    QueryTreeNode, QueryTreeReply, ScopeChunkReply, ServerReply, StatusReply, SyncedReply, TrReply,
+    QUERY_TREE_ADDRESS, SCOPE_CHUNK_ADDRESS,
 };
 
 pub use rosc::OscType;

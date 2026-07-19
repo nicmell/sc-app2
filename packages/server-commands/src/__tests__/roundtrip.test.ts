@@ -11,7 +11,6 @@ import {
   atUnixMs,
   decodeReply,
   decodeReplyPacket,
-  describeEncoded,
   dFree,
   dirtPlay,
   dRecv,
@@ -154,9 +153,7 @@ describe("display formatting", () => {
     expect(formatOscArg(440)).toBe("440");
   });
 
-  it("describeEncoded renders the same wire view flattenEncoded decodes", () => {
-    // Every builder the worker's tx log renders — both views come from the
-    // same raw decode of the same bytes, so this pins the seam stays wired.
+  it("flattenEncoded renders every builder the worker's tx log sees", () => {
     const msgs: Uint8Array[] = [
       gNew([[2000, AddToTail, 1]]),
       sNew("sine", 2001, AddToTail, 2000, [["freq", 440.5]]),
@@ -173,11 +170,12 @@ describe("display formatting", () => {
     ];
     for (const msg of msgs) {
       const [wire] = flattenEncoded(msg);
-      expect(describeEncoded(msg)).toEqual([wire]);
+      expect(wire.address).toMatch(/^\//);
+      expect(Array.isArray(wire.args)).toBe(true);
     }
-    // The blob-carrying case renders as bytes on both paths.
+    // The blob-carrying case renders as bytes.
     const recv = dRecv(Uint8Array.from([83, 67, 103, 102]), sync(7));
-    expect(describeEncoded(recv)[0].args.every((a) => formatOscArg(a).startsWith("blob("))).toBe(
+    expect(flattenEncoded(recv)[0].args.every((a) => formatOscArg(a).startsWith("blob("))).toBe(
       true,
     );
     // A typed-reply collision on the byte path renders instead of throwing.

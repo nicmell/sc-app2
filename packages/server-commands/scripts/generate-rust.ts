@@ -25,7 +25,7 @@ type CommandSpec = {
   decode?: boolean;
   fields: FieldSpec[];
 };
-type RegistrySpec = { commands: CommandSpec[] };
+type RegistrySpec = { commands: CommandSpec[]; replies: ReplySpec[] };
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const categories = [
@@ -59,7 +59,7 @@ function oneOf<T extends string>(value: unknown, allowed: readonly T[], where: s
 }
 function parseSpec(raw: unknown): RegistrySpec {
   const registry = object(raw, "spec");
-  keys(registry, ["commands"], "spec");
+  keys(registry, ["commands", "replies"], "spec");
   if (!Array.isArray(registry.commands)) throw new Error("spec.commands: expected array");
   const commands = registry.commands.map((rawCommand, ci): CommandSpec => {
     const where = `commands[${ci}]`;
@@ -148,7 +148,7 @@ function parseSpec(raw: unknown): RegistrySpec {
   for (const command of commands)
     if (!known.has(command.category))
       throw new Error(`command ${command.struct}: unknown category ${command.category}`);
-  return { commands };
+  return { commands, replies: parseReplies(registry.replies) };
 }
 
 const rustType = (type: string): string =>
@@ -228,6 +228,228 @@ function rustfmt(content: string, rel: string): string {
   if (r.error) throw new Error(`rustfmt failed for ${rel}: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`rustfmt failed for ${rel}: ${r.stderr}`);
   return r.stdout;
+}
+
+// ── the reply surface (replies/mod.rs) ──────────────────────────────────
+//
+// Generated from the spec's `replies` section: the regular payload structs,
+// the KnownReply enum (every variant a newtype), the ServerReply wrapper and
+// the from_message dispatch. Entries flagged `custom` keep their struct +
+// parser hand-written in replies/custom.rs; the dispatch routes to
+// `Struct::parse`.
+
+type ReplyForm =
+  | { scalar: "i32" | "f32" | "f64" | "string" }
+  | { optionScalar: "i32" }
+  | "extras"
+  | "lenPrefixedFloats";
+type ReplyFieldSpec = { name: string; form: ReplyForm; lenient?: boolean; doc?: string };
+type ReplySpec = {
+  address: string;
+  variant: string;
+  struct: string;
+  custom?: boolean;
+  doc?: string;
+  fields?: ReplyFieldSpec[];
+};
+
+function parseReplies(raw: unknown): ReplySpec[] {
+  if (!Array.isArray(raw)) throw new Error("spec.replies: expected array");
+  return raw.map((rawReply, ri): ReplySpec => {
+    const where = `replies[${ri}]`;
+    const reply = object(rawReply, where);
+    keys(reply, ["address", "variant", "struct", "custom", "doc", "fields"], where);
+    for (const key of ["address", "variant", "struct"] as const)
+      if (typeof reply[key] !== "string") throw new Error(`${where}.${key}: expected string`);
+    if (reply.custom !== undefined && typeof reply.custom !== "boolean")
+      throw new Error(`${where}.custom: expected boolean`);
+    if (reply.custom) {
+      if (reply.fields !== undefined) throw new Error(`${where}: custom replies carry no fields`);
+      return {
+        address: reply.address as string,
+        variant: reply.variant as string,
+        struct: reply.struct as string,
+        custom: true,
+        ...(reply.doc === undefined ? {} : { doc: reply.doc as string }),
+      };
+    }
+    if (!Array.isArray(reply.fields)) throw new Error(`${where}.fields: expected array`);
+    const fields = reply.fields.map((rawField, fi): ReplyFieldSpec => {
+      const fw = `${where}.fields[${fi}]`;
+      const field = object(rawField, fw);
+      keys(field, ["name", "form", "lenient", "doc"], fw);
+      if (typeof field.name !== "string") throw new Error(`${fw}.name: expected string`);
+      let form: ReplyForm;
+      if (field.form === "extras" || field.form === "lenPrefixedFloats") form = field.form;
+      else {
+        const fo = object(field.form, `${fw}.form`);
+        if ("scalar" in fo)
+          form = { scalar: oneOf(fo.scalar, ["i32", "f32", "f64", "string"], `${fw}.form.scalar`) };
+        else if ("optionScalar" in fo)
+          form = { optionScalar: oneOf(fo.optionScalar, ["i32"], `${fw}.form.optionScalar`) };
+        else throw new Error(`${fw}.form: unknown reply form`);
+      }
+      return {
+        name: field.name,
+        form,
+        ...(field.lenient === undefined ? {} : { lenient: field.lenient as boolean }),
+        ...(field.doc === undefined ? {} : { doc: field.doc as string }),
+      };
+    });
+    // container/optional forms must be trailing (positional wire layout)
+    fields.forEach((field, index) => {
+      const trailing = field.form === "extras" || field.form === "lenPrefixedFloats";
+      if (trailing && index !== fields.length - 1)
+        throw new Error(`${where}.${field.name}: this form must be the last field`);
+      if (
+        typeof field.form === "object" &&
+        "optionScalar" in field.form &&
+        fields.slice(index + 1).some((f) => typeof f.form === "object" && "scalar" in f.form)
+      )
+        throw new Error(`${where}.${field.name}: required field after an optional one`);
+    });
+    return {
+      address: reply.address as string,
+      variant: reply.variant as string,
+      struct: reply.struct as string,
+      fields,
+      ...(reply.doc === undefined ? {} : { doc: reply.doc as string }),
+    };
+  });
+}
+
+function replyStructField(field: ReplyFieldSpec): string {
+  const doc = docs(field.doc, "    ");
+  const form = field.form;
+  if (form === "extras") return `${doc}    pub ${field.name}: Vec<OscArg>,\n`;
+  if (form === "lenPrefixedFloats") return `${doc}    pub ${field.name}: Vec<f32>,\n`;
+  if ("optionScalar" in form)
+    return (
+      doc +
+      `    #[serde(default, skip_serializing_if = "Option::is_none")]\n` +
+      `    #[cfg_attr(feature = "wasm", tsify(optional))]\n` +
+      `    pub ${field.name}: Option<i32>,\n`
+    );
+  const ty = { i32: "i32", f32: "f32", f64: "f64", string: "String" }[form.scalar];
+  return `${doc}    pub ${field.name}: ${ty},\n`;
+}
+
+/** The dispatch expression parsing one field at wire position `index`. */
+function replyParseExpr(reply: ReplySpec, field: ReplyFieldSpec, index: number): string {
+  const addr = `"${reply.address}"`;
+  const form = field.form;
+  if (form === "extras") return `msg.args.get(${index}..).map(osc_args).unwrap_or_default()`;
+  if (form === "lenPrefixedFloats") return `${field.name}`; // bound by the prelude block
+  if ("optionScalar" in form) return `msg.args.get(${index}).and_then(as_int)`;
+  const take = { i32: "take_int", f32: "take_float", f64: "take_double", string: "take_string" }[
+    form.scalar
+  ];
+  const call = `${take}(&msg, ${index}, ${addr})`;
+  return field.lenient ? `${call}.unwrap_or_default()` : `${call}?`;
+}
+
+function repliesMod(replies: ReplySpec[]): string {
+  let out = `${header}
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
+use tsify::Tsify;
+
+use crate::args::{osc_args, OscArg};
+use crate::commands::OtherMsg;
+use crate::{CommandError, OscMessage};
+
+mod custom;
+pub use custom::*;
+pub(crate) use custom::{as_int, take_double, take_float, take_int, take_string};
+
+`;
+  // structs (dedup by name; NodeInfo is shared by the /n_* family)
+  const seen = new Map<string, string>();
+  for (const reply of replies) {
+    if (reply.custom) continue;
+    const fingerprint = JSON.stringify(reply.fields);
+    const prior = seen.get(reply.struct);
+    if (prior !== undefined) {
+      if (prior !== fingerprint)
+        throw new Error(`reply struct ${reply.struct}: conflicting field lists`);
+      continue;
+    }
+    seen.set(reply.struct, fingerprint);
+    out += docs(reply.doc, "");
+    out += `#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(rename_all = "camelCase")]
+pub struct ${reply.struct} {
+${reply.fields!.map(replyStructField).join("")}}
+
+`;
+  }
+  // the enum
+  out += `/// Every catalogued server-to-client reply, one variant per address —
+/// adjacently tagged like the command side: a decoded reply crosses the
+/// wasm boundary as \`{ "address": "/n_go", "args": { …fields } }\`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "wasm", derive(Tsify))]
+#[serde(tag = "address", content = "args")]
+pub enum KnownReply {
+${replies.map((r) => `${docs(r.doc, "    ")}    #[serde(rename = "${r.address}")]\n    ${r.variant}(${r.struct}),\n`).join("")}}
+
+/// A reply in transit: catalogued, or the raw fallback for any address the
+/// parser doesn't know (shares [\`OtherMsg\`] with the command side). Plain
+/// enum — the wasm boundary serializes each arm itself, so no serde here.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ServerReply {
+    Known(KnownReply),
+    Other(OtherMsg),
+}
+
+impl ServerReply {
+    /// Decode raw OSC reply bytes into a typed variant.
+    pub fn decode(bytes: &[u8]) -> Result<Self, CommandError> {
+        Self::from_message(OscMessage::decode(bytes)?)
+    }
+
+    /// Dispatch an already-decoded message into the typed variant whose
+    /// OSC address it matches. Unknown addresses become \`Other(..)\`.
+    pub fn from_message(msg: OscMessage) -> Result<Self, CommandError> {
+        let known = |k: KnownReply| Ok(Self::Known(k));
+        match msg.address.as_str() {
+`;
+  for (const reply of replies) {
+    if (reply.custom) {
+      out += `            "${reply.address}" => known(KnownReply::${reply.variant}(${reply.struct}::parse(&msg)?)),\n`;
+      continue;
+    }
+    const lenPrefixed = reply.fields!.find((f) => f.form === "lenPrefixedFloats");
+    let prelude = "";
+    if (lenPrefixed) {
+      const base = reply.fields!.indexOf(lenPrefixed);
+      prelude = `{
+                // wire: …, N, sample0 … sampleN-1
+                let count = take_int(&msg, ${base}, "${reply.address}")? as usize;
+                let mut ${lenPrefixed.name} = Vec::with_capacity(count);
+                for i in 0..count {
+                    ${lenPrefixed.name}.push(take_float(&msg, ${base + 1} + i, "${reply.address}")?);
+                }
+                `;
+    }
+    const fields = reply
+      .fields!.map((f, i) => `                ${f.name}: ${replyParseExpr(reply, f, i)},`)
+      .join("\n");
+    const literal = `known(KnownReply::${reply.variant}(${reply.struct} {\n${fields}\n            }))`;
+    out += lenPrefixed
+      ? `            "${reply.address}" => ${prelude}${literal.replaceAll("\n            ", "\n                ")}\n            }\n`
+      : `            "${reply.address}" => ${literal},\n`;
+  }
+  out += `            _ => Ok(Self::Other(OtherMsg {
+                address: msg.address,
+                args: osc_args(&msg.args),
+            })),
+        }
+    }
+}
+`;
+  return out;
 }
 
 // ── the wasm builder surface (commands/wasm_gen.rs) ─────────────────────
@@ -435,6 +657,7 @@ export function render(): Map<string, string> {
     `${header}\nuse serde::{Deserialize, Serialize};\n#[cfg(feature = "wasm")]\nuse tsify::Tsify;\n\nuse crate::OscMessage;\n\nmod prelude;\npub use prelude::*;\n\n#[cfg(feature = "wasm")]\npub(crate) mod wasm;\n\n${modules}\n\ndefine_known_message! {\n    payload {\n${arms(true)}\n    }\n    unit {\n${arms(false)}\n    }\n}\n`,
   );
   rendered.set(`${base}/wasm_gen.rs`, wasmGen(spec));
+  rendered.set("src-tauri/crates/scserver-commands/src/replies/mod.rs", repliesMod(spec.replies));
   for (const [rel, content] of rendered) rendered.set(rel, rustfmt(content, rel));
   return rendered;
 }
@@ -443,12 +666,19 @@ export function render(): Map<string, string> {
  *  produces — e.g. a category removed from the spec would otherwise leave
  *  an orphan module that silently drops out of the generated mod.rs. */
 export function strayFiles(): string[] {
-  const managed = "src-tauri/crates/scserver-commands/src/commands";
-  const hand = new Set(["prelude.rs", "wasm.rs"]);
-  const expected = new Set([...render().keys()].map((rel) => path.basename(rel)));
-  return readdirSync(path.join(root, managed))
-    .filter((f) => f.endsWith(".rs") && !hand.has(f) && !expected.has(f))
-    .map((f) => `${managed}/${f}`);
+  const managed: Array<[string, Set<string>]> = [
+    ["src-tauri/crates/scserver-commands/src/commands", new Set(["prelude.rs", "wasm.rs"])],
+    ["src-tauri/crates/scserver-commands/src/replies", new Set(["custom.rs"])],
+  ];
+  const expected = new Set(render().keys());
+  const strays: string[] = [];
+  for (const [dir, hand] of managed) {
+    for (const f of readdirSync(path.join(root, dir))) {
+      if (f.endsWith(".rs") && !hand.has(f) && !expected.has(`${dir}/${f}`))
+        strays.push(`${dir}/${f}`);
+    }
+  }
+  return strays;
 }
 
 function main(): void {

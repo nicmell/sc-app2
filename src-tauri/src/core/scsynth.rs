@@ -15,6 +15,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use scserver_commands::commands::{GFreeAll, NFree, Notify, Status};
+use scserver_commands::{DoneReply, FailReply, LateReply};
 use scserver_commands::{KnownReply, ServerReply};
 use tokio::sync::{broadcast, watch};
 
@@ -90,7 +91,9 @@ fn classify_reply(bytes: &[u8]) -> Reply {
         return Reply::Other;
     };
     match reply {
-        ServerReply::Known(KnownReply::Done { command, extras }) if command == "/notify" => {
+        ServerReply::Known(KnownReply::Done(DoneReply { command, extras }))
+            if command == "/notify" =>
+        {
             // `/done /notify <clientId> [maxLogins]` — the id is the first extra.
             extras
                 .first()
@@ -98,11 +101,11 @@ fn classify_reply(bytes: &[u8]) -> Reply {
                 .map_or(Reply::Other, Reply::DoneNotify)
         }
         ServerReply::Known(KnownReply::StatusReply(_)) => Reply::Status,
-        ServerReply::Known(KnownReply::Fail {
+        ServerReply::Known(KnownReply::Fail(FailReply {
             command,
             error,
             extras,
-        }) => Reply::Fail {
+        })) => Reply::Fail {
             command,
             message: if error.is_empty() {
                 "(no message)".into()
@@ -111,12 +114,12 @@ fn classify_reply(bytes: &[u8]) -> Reply {
             },
             extras: extras.iter().filter_map(|a| a.as_int()).collect(),
         },
-        ServerReply::Known(KnownReply::Late {
+        ServerReply::Known(KnownReply::Late(LateReply {
             seconds,
             fractions,
             late_secs,
             late_fracs,
-        }) => {
+        })) => {
             // Two NTP-style timetags (scheduled, executed), each seconds +
             // 1/2^32 fractions; the lateness is their difference.
             let frac = |f: i32| f as u32 as f64 / (u64::from(u32::MAX) + 1) as f64;

@@ -26,12 +26,11 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::{Json, Router};
-use serde_json::{json, Value};
 use tokio::time::timeout;
 
 use crate::core::server::Server;
 use scserver_commands::commands::{GDumpTree, GQueryTree};
-use scserver_commands::{OscMessage, OscType};
+use scserver_commands::{KnownReply, ServerReply};
 
 /// The `/api/diag/*` routes.
 pub fn routes() -> Router<Server> {
@@ -57,13 +56,12 @@ async fn nodetree(State(server): State<Server>) -> Response {
     let reply = timeout(Duration::from_secs(2), async {
         loop {
             match rx.recv().await {
-                Ok(bytes) => {
-                    if let Ok(msg) = OscMessage::decode(&bytes) {
-                        if msg.address == "/g_queryTree.reply" {
-                            return Some(msg.args);
-                        }
-                    }
-                }
+                // The crate owns the recursive reply layout — anything that
+                // decodes to the typed tree is our answer.
+                Ok(bytes) => match ServerReply::decode(&bytes) {
+                    Ok(ServerReply::Known(KnownReply::QueryTree(tree))) => return Some(tree),
+                    _ => continue,
+                },
                 Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
                 Err(_) => return None,
             }
@@ -72,7 +70,7 @@ async fn nodetree(State(server): State<Server>) -> Response {
     .await;
 
     match reply {
-        Ok(Some(args)) => Json(parse_query_tree(&args)).into_response(),
+        Ok(Some(tree)) => Json(tree).into_response(),
         Ok(None) => (StatusCode::BAD_GATEWAY, "bridge closed before reply\n").into_response(),
         Err(_) => (
             StatusCode::GATEWAY_TIMEOUT,
@@ -97,89 +95,4 @@ async fn dumptree(State(server): State<Server>) -> Response {
         "sent /g_dumpTree 0 1 — see scsynth stdout\n",
     )
         .into_response()
-}
-
-// ── /g_queryTree.reply parsing ─────────────────────────────────────────────
-//
-// Layout: [flag, queriedGroupId, childCount, <node>…] where each <node> is:
-//   nodeId, numChildren(-1=synth)
-//   if synth:  defName
-//   if synth && flag:  numControls, then numControls × (name:str|int, value:f|str)
-//   if group:  its `numChildren` nodes follow inline (depth-first).
-
-fn as_int(args: &[OscType], i: usize) -> Option<i64> {
-    match args.get(i)? {
-        OscType::Int(v) => Some(*v as i64),
-        OscType::Long(v) => Some(*v),
-        _ => None,
-    }
-}
-
-fn as_value(arg: Option<&OscType>) -> Value {
-    match arg {
-        Some(OscType::Int(v)) => json!(v),
-        Some(OscType::Long(v)) => json!(v),
-        Some(OscType::Float(v)) => json!(v),
-        Some(OscType::Double(v)) => json!(v),
-        Some(OscType::String(s)) => json!(s),
-        _ => Value::Null,
-    }
-}
-
-fn parse_node(args: &[OscType], i: &mut usize, with_controls: bool) -> Value {
-    let node_id = as_int(args, *i).unwrap_or(i64::MIN);
-    *i += 1;
-    let n_children = as_int(args, *i).unwrap_or(-1);
-    *i += 1;
-
-    if n_children == -1 {
-        // Synth.
-        let def = match args.get(*i) {
-            Some(OscType::String(s)) => s.clone(),
-            _ => String::new(),
-        };
-        *i += 1;
-        let mut controls = serde_json::Map::new();
-        if with_controls {
-            let n = as_int(args, *i).unwrap_or(0).max(0);
-            *i += 1;
-            for _ in 0..n {
-                let name = match args.get(*i) {
-                    Some(OscType::String(s)) => s.clone(),
-                    Some(OscType::Int(v)) => v.to_string(),
-                    _ => "?".into(),
-                };
-                *i += 1;
-                let value = as_value(args.get(*i));
-                *i += 1;
-                controls.insert(name, value);
-            }
-        }
-        json!({ "id": node_id, "synth": def, "controls": Value::Object(controls) })
-    } else {
-        let mut children = Vec::new();
-        for _ in 0..n_children {
-            children.push(parse_node(args, i, with_controls));
-        }
-        json!({ "id": node_id, "group": true, "children": children })
-    }
-}
-
-fn parse_query_tree(args: &[OscType]) -> Value {
-    let with_controls = as_int(args, 0).unwrap_or(0) == 1;
-    let group_id = as_int(args, 1).unwrap_or(0);
-    let child_count = as_int(args, 2).unwrap_or(0).max(0);
-    let mut i = 3;
-    let mut children = Vec::new();
-    for _ in 0..child_count {
-        if i >= args.len() {
-            break;
-        }
-        children.push(parse_node(args, &mut i, with_controls));
-    }
-    json!({
-        "rootGroup": group_id,
-        "withControls": with_controls,
-        "children": children,
-    })
 }

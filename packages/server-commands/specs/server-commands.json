@@ -1436,5 +1436,544 @@
         }
       ]
     }
+  ],
+  "replies": [
+    {
+      "address": "/done",
+      "variant": "Done",
+      "struct": "DoneReply",
+      "doc": "Acknowledges an async command. `command` is the first wire arg — the address of the ACKNOWLEDGED command; the reply's own address, /done, is the serde tag.",
+      "fields": [
+        {
+          "name": "command",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "Address of the command being acknowledged (e.g. /notify)."
+        },
+        {
+          "name": "extras",
+          "form": "extras",
+          "doc": "Any additional args (e.g. the clientID a /notify ack echoes)."
+        }
+      ]
+    },
+    {
+      "address": "/fail",
+      "variant": "Fail",
+      "struct": "FailReply",
+      "doc": "An async command failed.",
+      "fields": [
+        {
+          "name": "command",
+          "form": {
+            "scalar": "string"
+          },
+          "doc": "Address of the command that failed."
+        },
+        {
+          "name": "error",
+          "form": {
+            "scalar": "string"
+          },
+          "lenient": true,
+          "doc": "The error message (empty when scsynth omits it)."
+        },
+        {
+          "name": "extras",
+          "form": "extras"
+        }
+      ]
+    },
+    {
+      "address": "/late",
+      "variant": "Late",
+      "struct": "LateReply",
+      "doc": "A bundle's timetag was already in the past when it arrived.",
+      "fields": [
+        {
+          "name": "seconds",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "fractions",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "late_secs",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "late_fracs",
+          "form": {
+            "scalar": "i32"
+          }
+        }
+      ]
+    },
+    {
+      "address": "/n_go",
+      "variant": "NGo",
+      "struct": "NodeInfo",
+      "doc": "Node notification (node started) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/n_end",
+      "variant": "NEnd",
+      "struct": "NodeInfo",
+      "doc": "Node notification (node ended) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/n_on",
+      "variant": "NOn",
+      "struct": "NodeInfo",
+      "doc": "Node notification (node resumed) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/n_off",
+      "variant": "NOff",
+      "struct": "NodeInfo",
+      "doc": "Node notification (node paused) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/n_move",
+      "variant": "NMove",
+      "struct": "NodeInfo",
+      "doc": "Node notification (node moved) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/n_info",
+      "variant": "NInfo",
+      "struct": "NodeInfo",
+      "doc": "Node notification (reply to /n_query) — shared arg layout for the /n_* family; the last two fields are only present when the node is a group.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "parent_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "prev_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "next_node",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "is_group",
+          "form": {
+            "scalar": "i32"
+          },
+          "doc": "1 if the node is a group, 0 if a synth."
+        },
+        {
+          "name": "head_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        },
+        {
+          "name": "tail_node",
+          "form": {
+            "optionScalar": "i32"
+          },
+          "doc": "Present only when the node is a group."
+        }
+      ]
+    },
+    {
+      "address": "/status.reply",
+      "variant": "StatusReply",
+      "struct": "StatusReply",
+      "doc": "Reply to /status — the server's load and node counts.",
+      "fields": [
+        {
+          "name": "unused",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "num_ugens",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "num_synths",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "num_groups",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "num_synth_defs",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "avg_cpu",
+          "form": {
+            "scalar": "f32"
+          }
+        },
+        {
+          "name": "peak_cpu",
+          "form": {
+            "scalar": "f32"
+          }
+        },
+        {
+          "name": "nominal_sample_rate",
+          "form": {
+            "scalar": "f64"
+          }
+        },
+        {
+          "name": "actual_sample_rate",
+          "form": {
+            "scalar": "f64"
+          }
+        }
+      ]
+    },
+    {
+      "address": "/tr",
+      "variant": "Tr",
+      "struct": "TrReply",
+      "doc": "A SendTrig fired.",
+      "fields": [
+        {
+          "name": "node_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "trigger_id",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "value",
+          "form": {
+            "scalar": "f32"
+          }
+        }
+      ]
+    },
+    {
+      "address": "/b_setn",
+      "variant": "BSetn",
+      "struct": "BSetnReply",
+      "doc": "Samples read from a buffer in response to /b_getn. The wire carries bufnum, startIndex, N, then N samples.",
+      "fields": [
+        {
+          "name": "bufnum",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "start",
+          "form": {
+            "scalar": "i32"
+          }
+        },
+        {
+          "name": "samples",
+          "form": "lenPrefixedFloats"
+        }
+      ]
+    },
+    {
+      "address": "/synced",
+      "variant": "Synced",
+      "struct": "SyncedReply",
+      "doc": "Response to a /sync command — carries the sync id supplied by the client so callers can correlate request and reply.",
+      "fields": [
+        {
+          "name": "sync_id",
+          "form": {
+            "scalar": "i32"
+          }
+        }
+      ]
+    },
+    {
+      "address": "/scope/chunk",
+      "variant": "ScopeChunk",
+      "struct": "ScopeChunkReply",
+      "custom": true,
+      "doc": "sc-app bridge extension: one streamed scope chunk (bridge-emitted; big-endian float32 blob with a native-endian encode fast path — the struct, parser and encoders are hand-written)."
+    },
+    {
+      "address": "/g_queryTree.reply",
+      "variant": "QueryTree",
+      "struct": "QueryTreeReply",
+      "custom": true,
+      "doc": "Reply to /g_queryTree — the depth-first node tree, with per-synth controls when the query asked for them (variable recursive layout; the struct and parser are hand-written)."
+    }
   ]
 }

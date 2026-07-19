@@ -12,7 +12,7 @@ import {
   atUnixMs,
   decodeReplyPacket,
   decodeRawPacket,
-  describeEncoded,
+  flattenEncoded,
   dFree,
   dirtPlay,
   dRecv,
@@ -334,7 +334,7 @@ export class OscClient {
   /** Log one outbound command from its wire bytes — the same raw decode
    *  the rx side renders with, so the tx log is wire-true by construction. */
   private appendTx(bytes: Uint8Array) {
-    for (const d of describeEncoded(bytes)) {
+    for (const d of flattenEncoded(bytes)) {
       this.append("tx", d.address, d.args.map(formatOscArg));
     }
   }

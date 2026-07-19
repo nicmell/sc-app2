@@ -236,3 +236,25 @@ fn scope_commands_via_server_message() {
         ScopeSubscribe::new(1, 0, 1, 512).encode().unwrap()
     );
 }
+
+/// The hand-written bridge address constants (routed on by the app's
+/// bridge) must agree with the spec-generated catalog's addresses.
+#[test]
+fn bridge_address_constants_match_the_catalog() {
+    use scserver_commands::{
+        DirtPlay, ScopeUnsubscribe, DIRT_PLAY_ADDRESS, SCOPE_SUBSCRIBE_ADDRESS,
+        SCOPE_UNSUBSCRIBE_ADDRESS,
+    };
+    assert_eq!(
+        ScopeSubscribe::new(0, 0, 0, 0).to_message().address,
+        SCOPE_SUBSCRIBE_ADDRESS
+    );
+    assert_eq!(
+        ScopeUnsubscribe::new(0).to_message().address,
+        SCOPE_UNSUBSCRIBE_ADDRESS
+    );
+    assert_eq!(
+        DirtPlay::new(Vec::new()).to_message().address,
+        DIRT_PLAY_ADDRESS
+    );
+}

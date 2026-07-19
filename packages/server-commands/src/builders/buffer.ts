@@ -1,20 +1,33 @@
 import type { ServerMessage } from "../../pkg/scserver_commands.js";
 import { toOscArg } from "./helpers.js";
 
+/** OSC optional args are positional-trailing: sending a later optional
+ *  forces every earlier one onto the wire, so the gaps get the documented
+ *  server defaults (a skipped mid-list optional would silently shift the
+ *  following args into the wrong positions). */
+const orDefault = (value: number | undefined, laterPresent: boolean, dflt: number) =>
+  value ?? (laterPresent ? dflt : undefined);
+
 /** `/b_alloc` — Allocate buffer space. */
 export function bAlloc(
   bufnum: number,
   numFrames: number,
   opts?: { numChannels?: number; completionMsg?: Uint8Array; sampleRate?: number },
 ): ServerMessage {
+  const { numChannels, completionMsg, sampleRate } = opts ?? {};
+  if (sampleRate !== undefined && completionMsg === undefined) {
+    // sampleRate rides AFTER the completion blob on the wire — there is no
+    // blob default to fill the gap with.
+    throw new Error("bAlloc: sampleRate requires completionMsg (it follows the blob on the wire)");
+  }
   return {
     address: "/b_alloc",
     args: {
       bufnum,
       numFrames,
-      numChannels: opts?.numChannels,
-      completionMsg: opts?.completionMsg,
-      sampleRate: opts?.sampleRate,
+      numChannels: orDefault(numChannels, completionMsg !== undefined, 1),
+      completionMsg,
+      sampleRate,
     },
   };
 }
@@ -24,14 +37,19 @@ export function bAllocRead(
   path: string,
   opts?: { startFrame?: number; numberOfFrames?: number; completionMsg?: Uint8Array },
 ): ServerMessage {
+  const { startFrame, numberOfFrames, completionMsg } = opts ?? {};
   return {
     address: "/b_allocRead",
     args: {
       bufnum,
       path,
-      startFrame: opts?.startFrame,
-      numberOfFrames: opts?.numberOfFrames,
-      completionMsg: opts?.completionMsg,
+      startFrame: orDefault(
+        startFrame,
+        numberOfFrames !== undefined || completionMsg !== undefined,
+        0,
+      ),
+      numberOfFrames: orDefault(numberOfFrames, completionMsg !== undefined, 0),
+      completionMsg,
     },
   };
 }
@@ -102,16 +120,19 @@ export function bRead(
     completionMsg?: Uint8Array;
   },
 ): ServerMessage {
+  const { startFrame, numberOfFrames, startingFrame, leaveFileOpen, completionMsg } = opts ?? {};
+  const after = [numberOfFrames, startingFrame, leaveFileOpen, completionMsg];
+  const later = (from: number) => after.slice(from).some((v) => v !== undefined);
   return {
     address: "/b_read",
     args: {
       bufnum,
       path,
-      startFrame: opts?.startFrame,
-      numberOfFrames: opts?.numberOfFrames,
-      startingFrame: opts?.startingFrame,
-      leaveFileOpen: opts?.leaveFileOpen,
-      completionMsg: opts?.completionMsg,
+      startFrame: orDefault(startFrame, later(0), 0),
+      numberOfFrames: orDefault(numberOfFrames, later(1), -1),
+      startingFrame: orDefault(startingFrame, later(2), 0),
+      leaveFileOpen: orDefault(leaveFileOpen, later(3), 0),
+      completionMsg,
     },
   };
 }
@@ -171,6 +192,9 @@ export function bWrite(
     completionMsg?: Uint8Array;
   },
 ): ServerMessage {
+  const { numberOfFrames, startingFrame, leaveFileOpen, completionMsg } = opts ?? {};
+  const after = [startingFrame, leaveFileOpen, completionMsg];
+  const later = (from: number) => after.slice(from).some((v) => v !== undefined);
   return {
     address: "/b_write",
     args: {
@@ -178,10 +202,10 @@ export function bWrite(
       path,
       headerFormat,
       sampleFormat,
-      numberOfFrames: opts?.numberOfFrames,
-      startingFrame: opts?.startingFrame,
-      leaveFileOpen: opts?.leaveFileOpen,
-      completionMsg: opts?.completionMsg,
+      numberOfFrames: orDefault(numberOfFrames, later(0), -1),
+      startingFrame: orDefault(startingFrame, later(1), 0),
+      leaveFileOpen: orDefault(leaveFileOpen, later(2), 0),
+      completionMsg,
     },
   };
 }

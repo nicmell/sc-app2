@@ -5,6 +5,8 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  bAlloc,
+  bRead,
   AddToTail,
   atUnixMs,
   decodeReply,
@@ -182,5 +184,25 @@ describe("display formatting", () => {
     expect(describeMessage(recv).args.every((a) => a.startsWith("blob("))).toBe(true);
     // A typed-reply collision on the byte path renders instead of throwing.
     expect(flattenEncoded(encode(raw("/b_setn", 0, 0, 0)))[0].address).toBe("/b_setn");
+  });
+});
+
+describe("positional-trailing optionals", () => {
+  it("fills the documented server defaults for skipped mid-list optionals", () => {
+    // leaveFileOpen alone must NOT shift left into startFrame's slot.
+    expect(flat(bRead(0, "f.wav", { leaveFileOpen: 1 }))).toEqual({
+      address: "/b_read",
+      args: [0, "f.wav", 0, -1, 0, 1],
+    });
+    // trailing run stays minimal when nothing later is present
+    expect(flat(bRead(0, "f.wav", { startFrame: 5 }))).toEqual({
+      address: "/b_read",
+      args: [0, "f.wav", 5],
+    });
+    expect(flat(bAlloc(0, 8192))).toEqual({ address: "/b_alloc", args: [0, 8192] });
+  });
+
+  it("rejects a sampleRate without the completion blob it rides behind", () => {
+    expect(() => bAlloc(0, 8192, { sampleRate: 48000 })).toThrowError(/requires completionMsg/);
   });
 });

@@ -27,7 +27,8 @@ by the Rust backend (native rlib) and the frontend.
 - `src/ugen-input.ts` — `k`/`u`/`uo`/`ugenIndex`/`outputIndex` over the
   serde shape `{ constant: n } | { ugen: i } | { ugenOutput: [i, o] }`.
 - `./builders` subpath — the generated typed builder fns
-  (`sinOscAr(def, { freq })`, absent args keep registry defaults).
+  (`SinOsc.ar({ freq })` inside a `new SynthDef(name, (def) => …)` graph
+  callback — the ambient build; absent args keep registry defaults).
 
 ## Usage
 

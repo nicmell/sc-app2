@@ -63,7 +63,7 @@ if (reply.address === "/synced") console.log(reply.args.syncId);
   back with float32 precision; tests compare via `Math.fround`.
 - The scope protocol (`/scope/subscribe|unsubscribe|chunk`) is an sc-app
   bridge extension in the package spec/reply catalogue, spoken with the Rust
-  routed to scsynth.
+  bridge — never routed to scsynth.
 - Tests (`yarn workspace @sc-app/server-commands test`) run the REAL wasm in
   node — the encode/decode goldens are the cross-language contract gate. A
   generator test catches committed Rust drift, and the 67-builder coverage

@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -251,7 +251,7 @@ function raw(s: string): string {
 function f32(v: number): string {
   if (!Number.isFinite(v)) throw new Error(`spec default ${v} is not a finite number`);
   const s = String(v);
-  return s.includes(".") ? s : `${s}.0`;
+  return s.includes(".") || s.includes("e") ? s : `${s}.0`;
 }
 const optional = (v: string | null) => (v === null ? "None" : `Some(${raw(v)})`);
 const variant = (r: Rate) => (r === "ar" ? "Audio" : r === "kr" ? "Control" : "Scalar");
@@ -390,6 +390,7 @@ function rustfmt(content: string, rel: string): string {
     input: content,
     encoding: "utf8",
   });
+  if (r.error) throw new Error(`rustfmt failed for ${rel}: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`rustfmt failed for ${rel}: ${r.stderr}`);
   return r.stdout;
 }
@@ -410,6 +411,24 @@ export function render(): Map<string, string> {
   for (const [rel, content] of m) m.set(rel, rustfmt(content, rel));
   return m;
 }
+/** Committed .rs files in the managed dirs that render() no longer
+ *  produces — a category removed from the spec would otherwise leave an
+ *  orphan module silently dropped from the generated mod.rs. */
+export function strayFiles(): string[] {
+  const dirs = [
+    "src-tauri/crates/scsynthdef-compiler/src/specs",
+    "src-tauri/crates/scsynthdef-compiler/src/builders",
+  ];
+  const expected = new Set(render().keys());
+  const strays: string[] = [];
+  for (const dir of dirs) {
+    for (const f of readdirSync(resolve(ROOT, dir))) {
+      if (f.endsWith(".rs") && !expected.has(`${dir}/${f}`)) strays.push(`${dir}/${f}`);
+    }
+  }
+  return strays;
+}
+
 function main(): void {
   const args = process.argv.slice(2),
     check = args.includes("--check");
@@ -433,6 +452,10 @@ function main(): void {
       writeFileSync(path, content);
       console.log(rel);
     }
+  }
+  for (const stray of strayFiles()) {
+    console.error(`stray generated file (not produced by the spec): ${stray}`);
+    drift = true;
   }
   if (drift) process.exitCode = 1;
 }

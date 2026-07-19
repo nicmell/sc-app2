@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -175,6 +175,19 @@ function renderCommand(command: CommandSpec): string {
     )
   )
     throw new Error(`${command.struct}: decode commands may contain only scalar i32 fields`);
+  // OSC optionals are positional-trailing: a required field after an
+  // optional one would silently shift wire positions whenever the optional
+  // is omitted.
+  const isOptional = ({ form }: FieldSpec) =>
+    form === "completion" || (typeof form === "object" && "optionScalar" in form);
+  const firstOptional = command.fields.findIndex(isOptional);
+  if (firstOptional !== -1) {
+    const offender = command.fields.slice(firstOptional).find((f) => !isOptional(f));
+    if (offender)
+      throw new Error(
+        `${command.struct}: required field "${offender.name}" follows an optional one — optionals must form a trailing run`,
+      );
+  }
   let out =
     docs(command.doc, "    ") +
     `    "${command.address}" ${command.struct}${command.decode ? " decode" : ""} {\n`;
@@ -205,6 +218,7 @@ function rustfmt(content: string, rel: string): string {
     input: content,
     encoding: "utf8",
   });
+  if (r.error) throw new Error(`rustfmt failed for ${rel}: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`rustfmt failed for ${rel}: ${r.stderr}`);
   return r.stdout;
 }
@@ -238,6 +252,18 @@ export function render(): Map<string, string> {
   return rendered;
 }
 
+/** Committed .rs files in the managed dir that render() no longer
+ *  produces — e.g. a category removed from the spec would otherwise leave
+ *  an orphan module that silently drops out of the generated mod.rs. */
+export function strayFiles(): string[] {
+  const managed = "src-tauri/crates/scserver-commands/src/commands";
+  const hand = new Set(["prelude.rs"]);
+  const expected = new Set([...render().keys()].map((rel) => path.basename(rel)));
+  return readdirSync(path.join(root, managed))
+    .filter((f) => f.endsWith(".rs") && !hand.has(f) && !expected.has(f))
+    .map((f) => `${managed}/${f}`);
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const check = args.length === 1 && args[0] === "--check";
@@ -262,6 +288,10 @@ function main(): void {
       writeFileSync(target, content);
       console.log(`wrote ${relative}`);
     }
+  }
+  for (const stray of strayFiles()) {
+    console.error(`stray generated file (not produced by the spec): ${stray}`);
+    mismatch = true;
   }
   if (mismatch) process.exitCode = 1;
 }

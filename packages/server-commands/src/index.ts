@@ -20,26 +20,21 @@
  */
 
 // The binary boundary (throws on malformed input) + the NTP conversion.
-export { encode, encodeBundle, decodeReply, decodeReplyPacket, atUnixMs } from "./component";
+export {
+  encode,
+  encodeBundle,
+  decodeReply,
+  decodeReplyPacket,
+  messageToOsc,
+  decodeRawPacket,
+  atUnixMs,
+} from "./component";
 
 // Typed command builders + add-action constants.
-export * from "./builders/index.js";
-export {
-  COMMANDS,
-  KNOWN_ADDRESSES,
-  isKnownAddress,
-  type CommandSpec,
-  type CommandField,
-} from "./spec.js";
+export * from "./builders.js";
 
 // Console-log display helpers (no wasm crossings for the typed paths).
-export {
-  describeMessage,
-  describeReply,
-  flattenEncoded,
-  formatOscArg,
-  type FlatMessage,
-} from "./describe";
+export { describeMessage, flattenEncoded, formatOscArg, type FlatMessage } from "./describe";
 
 // The crate's own generated types, re-exported under the package root.
 export type {

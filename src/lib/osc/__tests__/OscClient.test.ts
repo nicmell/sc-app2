@@ -30,7 +30,10 @@ beforeEach(() => {
 
 describe("OscClient.handleReply", () => {
   it("logs an ordinary reply as rx", async () => {
-    workerOscClient.handleReply(nGoReply(1000));
+    workerOscClient.handleReply(nGoReply(1000), {
+      address: "/n_go",
+      args: [{ int32: 1000 }, { int32: 1 }, { int32: -1 }, { int32: -1 }, { int32: 0 }],
+    });
     await Promise.resolve();
     const log = oscClient.log.get();
     expect(log).toHaveLength(1);
@@ -43,7 +46,7 @@ describe("OscClient.handleReply", () => {
 
   it("keeps the log bounded to MAX_LOG, dropping the oldest", async () => {
     for (let i = 0; i < MAX_LOG + 10; i++) {
-      workerOscClient.handleReply(nGoReply(i));
+      workerOscClient.handleReply(nGoReply(i), { address: "/n_go", args: [{ int32: i }] });
     }
     await Promise.resolve();
     const log = oscClient.log.get();

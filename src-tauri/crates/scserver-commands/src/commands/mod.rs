@@ -10,6 +10,9 @@ use crate::OscMessage;
 mod prelude;
 pub use prelude::*;
 
+#[cfg(feature = "wasm")]
+pub(crate) mod wasm;
+
 mod top_level;
 pub use top_level::*;
 

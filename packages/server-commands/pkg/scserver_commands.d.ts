@@ -8,6 +8,9 @@ export function encode(msg: ServerMessage): Uint8Array;
 export function encode_bundle(time: OscTimetag, msgs: ServerMessage[]): Uint8Array;
 export function decode_reply(bytes: Uint8Array): ServerReply;
 export function decode_reply_packet(bytes: Uint8Array): ServerReply[];
+export function message_to_osc(msg: ServerMessage): OtherMsg;
+export function decode_raw_packet(bytes: Uint8Array): OtherMsg[];
+export function raw_message(address: string, args: Array<number | string | Uint8Array>): OtherMsg;
 
 
 /**
@@ -1182,6 +1185,142 @@ export interface ScopeSubscribe {
     chunkSize: number;
 }
 
+/** `/b_alloc` — Allocate buffer space. */
+export function bAlloc(bufnum: number, numFrames: number, opts?: { numChannels?: number; completionMsg?: Uint8Array; sampleRate?: number }): ServerMessage;
+/** `/b_allocRead` — Allocate buffer space and read a sound file. */
+export function bAllocRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; completionMsg?: Uint8Array }): ServerMessage;
+/** `/b_allocReadChannel` — Allocate buffer space and read channels from a sound file. */
+export function bAllocReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, channels?: Array<number>, completionMsg?: Uint8Array): ServerMessage;
+/** `/b_close` — Close soundfile. */
+export function bClose(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+/** `/b_fill` — Fill ranges of sample value(s). */
+export function bFill(bufnum: number, tail?: Array<[number, number, number]>): ServerMessage;
+/** `/b_free` — Free buffer data. */
+export function bFree(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+/** `/b_gen` — Call a command to fill a buffer. */
+export function bGen(bufnum: number, cmd: string, commandArguments?: Array<number | string | Uint8Array>): ServerMessage;
+/** `/b_get` — Get sample value(s). */
+export function bGet(bufnum: number, sampleIndices?: Array<number>): ServerMessage;
+/** `/b_getn` — Get ranges of sample value(s). */
+export function bGetn(bufnum: number, tail?: Array<[number, number]>): ServerMessage;
+/** `/b_query` — Get buffer info. */
+export function bQuery(bufnums?: Array<number>): ServerMessage;
+/** `/b_read` — Read sound file data into an existing buffer. */
+export function bRead(bufnum: number, path: string, opts?: { startFrame?: number; numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): ServerMessage;
+/** `/b_readChannel` — Read sound file channel data into an existing buffer. */
+export function bReadChannel(bufnum: number, path: string, startFrame: number, numberOfFrames: number, startingFrame: number, leaveFileOpen: number, channels?: Array<number>, completionMsg?: Uint8Array): ServerMessage;
+/** `/b_set` — Set sample value(s). */
+export function bSet(bufnum: number, tail?: Array<[number, number]>): ServerMessage;
+/** `/b_setn` — Set ranges of sample value(s). */
+export function bSetn(bufnum: number, tail?: Array<[number, Array<number>]>): ServerMessage;
+/** `/b_setSampleRate` — Set the sampling rate of the buffer. */
+export function bSetSampleRate(bufnum: number, theDesiredSampling: number): ServerMessage;
+/** `/b_write` — Write sound file data. */
+export function bWrite(bufnum: number, path: string, headerFormat: string, sampleFormat: string, opts?: { numberOfFrames?: number; startingFrame?: number; leaveFileOpen?: number; completionMsg?: Uint8Array }): ServerMessage;
+/** `/b_zero` — Zero sample data. */
+export function bZero(bufnum: number, completionMsg?: Uint8Array): ServerMessage;
+/** `/c_fill` — Fill ranges of bus value(s). */
+export function cFill(tail?: Array<[number, number, number]>): ServerMessage;
+/** `/c_get` — Get bus value(s). */
+export function cGet(busIndices?: Array<number>): ServerMessage;
+/** `/c_getn` — Get ranges of bus value(s). */
+export function cGetn(tail?: Array<[number, number]>): ServerMessage;
+/** `/c_set` — Set bus value(s). */
+export function cSet(tail?: Array<[number, number]>): ServerMessage;
+/** `/c_setn` — Set ranges of bus value(s). */
+export function cSetn(tail?: Array<[number, Array<number>]>): ServerMessage;
+/** `/g_deepFree` — Free all synths in this group and all its sub-groups. */
+export function gDeepFree(groupIds?: Array<number>): ServerMessage;
+/** `/g_dumpTree` — Post a representation of this group's node subtree. */
+export function gDumpTree(tail?: Array<[number, number]>): ServerMessage;
+/** `/g_freeAll` — Delete all nodes in a group. */
+export function gFreeAll(groupIds?: Array<number>): ServerMessage;
+/** `/g_head` — Add node to head of group. */
+export function gHead(tail?: Array<[number, number]>): ServerMessage;
+/** `/g_new` — Create a new group. */
+export function gNew(tail?: Array<[number, number, number]>): ServerMessage;
+/** `/g_queryTree` — Get a representation of this group's node subtree. */
+export function gQueryTree(tail?: Array<[number, number]>): ServerMessage;
+/** `/g_tail` — Add node to tail of group. */
+export function gTail(tail?: Array<[number, number]>): ServerMessage;
+/** `/p_new` — Create a new parallel group. */
+export function pNew(tail?: Array<[number, number, number]>): ServerMessage;
+/** `/clearSched` — Clear all scheduled bundles. Removes all bundles from the scheduling queue. */
+export function clearSched(): ServerMessage;
+/** `/cmd` — Plug-in defined command. */
+export function cmd(cmd: string, anyArguments?: Array<number | string | Uint8Array>): ServerMessage;
+/** `/dumpOSC` — Display incoming OSC messages. */
+export function dumpOSC(code: number): ServerMessage;
+/** `/error` — Enable/disable error message posting. */
+export function error(mode: number): ServerMessage;
+/** `/notify` — Register to receive notifications from server */
+export function notify(enable: number, clientId?: number): ServerMessage;
+/** `/quit` — Quit program. Exits the synthesis server. */
+export function quit(): ServerMessage;
+/** `/rtMemoryStatus` — Queries the amount of currently free real-time memory (in bytes). */
+export function rtMemoryStatus(): ServerMessage;
+/** `/status` — Query the status. Replies to sender with the following message: */
+export function status(): ServerMessage;
+/** `/sync` — Notify when async commands have completed. */
+export function sync(aUniqueNumber: number): ServerMessage;
+/** `/version` — Query the SuperCollider version. Replies to sender with the following message: */
+export function version(): ServerMessage;
+/** `/n_after` — Place a node after another. */
+export function nAfter(tail?: Array<[number, number]>): ServerMessage;
+/** `/n_before` — Place a node before another. */
+export function nBefore(tail?: Array<[number, number]>): ServerMessage;
+/** `/n_fill` — Fill ranges of a node's control value(s). */
+export function nFill(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+/** `/n_free` — Delete a node. */
+export function nFree(nodeIds?: Array<number>): ServerMessage;
+/** `/n_map` — Map a node's controls to read from a bus. */
+export function nMap(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+/** `/n_mapa` — Map a node's controls to read from an audio bus. */
+export function nMapa(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+/** `/n_mapan` — Map a node's controls to read from audio buses. */
+export function nMapan(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+/** `/n_mapn` — Map a node's controls to read from buses. */
+export function nMapn(nodeId: number, tail?: Array<[string | number, number, number]>): ServerMessage;
+/** `/n_order` — Move and order a list of nodes. */
+export function nOrder(addAction: number, targetId: number, nodeIds?: Array<number>): ServerMessage;
+/** `/n_query` — Get info about a node. */
+export function nQuery(nodeIds?: Array<number>): ServerMessage;
+/** `/n_run` — Turn node on or off. */
+export function nRun(tail?: Array<[number, number]>): ServerMessage;
+/** `/n_set` — Set a node's control value(s). */
+export function nSet(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+/** `/n_setn` — Set ranges of a node's control value(s). */
+export function nSetn(nodeId: number, tail?: Array<[string | number, Array<number>]>): ServerMessage;
+/** `/n_trace` — Trace a node. */
+export function nTrace(nodeIds?: Array<number>): ServerMessage;
+/** `/nrt_end` — End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete. */
+export function nrtEnd(): ServerMessage;
+/** `/s_get` — Get control value(s). */
+export function sGet(nodeId: number, controls?: Array<string | number>): ServerMessage;
+/** `/s_getn` — Get ranges of control value(s). */
+export function sGetn(nodeId: number, tail?: Array<[string | number, number]> | Record<string, number>): ServerMessage;
+/** `/s_new` — Create a new synth. */
+export function sNew(defName: string, nodeId: number, addAction: number, targetId: number, tail?: Array<[string | number, number | string]> | Record<string, number | string>): ServerMessage;
+/** `/s_noid` — Auto-reassign synth's ID to a reserved value. */
+export function sNoid(synthIds?: Array<number>): ServerMessage;
+/** `/d_free` — Delete synth definition. */
+export function dFree(synthDefNames?: Array<string>): ServerMessage;
+/** `/d_load` — Load synth definition. */
+export function dLoad(pathnameOfFile: string, completionMsg?: Uint8Array): ServerMessage;
+/** `/d_loadDir` — Load a directory of synth definitions. */
+export function dLoadDir(pathnameOfDirectory: string, completionMsg?: Uint8Array): ServerMessage;
+/** `/d_recv` — Receive a synth definition file. */
+export function dRecv(bufferOfData: Uint8Array, completionMsg?: Uint8Array): ServerMessage;
+/** `/u_cmd` — Send a command to a unit generator. */
+export function uCmd(nodeId: number, unitGeneratorIndex: number, cmd: string, anyArguments?: Array<number | string | Uint8Array>): ServerMessage;
+/** `/scope/subscribe` — sc-app bridge extension (not in the SC command reference): register a scope-slot stream with the bridge. The bridge is the consumer, so the struct also carries from_message/decode parsers. */
+export function scopeSubscribe(subId: number, scope: number, channels: number, chunkSize: number): ServerMessage;
+/** `/scope/unsubscribe` — sc-app bridge extension (not in the SC command reference): drop a scope-slot stream. */
+export function scopeUnsubscribe(subId: number): ServerMessage;
+/** `/dirt/play` — sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list. */
+export function dirtPlay(pairs?: Array<[string, number | string | Uint8Array]> | Record<string, number | string | Uint8Array>): ServerMessage;
+
+
 export interface StatusReply {
     unused: number;
     numUgens: number;
@@ -1208,11 +1347,81 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly bAlloc: (a: any, b: any, c: any) => [number, number, number];
+    readonly bAllocRead: (a: any, b: any, c: any) => [number, number, number];
+    readonly bAllocReadChannel: (a: any, b: any, c: any, d: any, e: any, f: any) => [number, number, number];
+    readonly bClose: (a: any, b: any) => [number, number, number];
+    readonly bFill: (a: any, b: any) => [number, number, number];
+    readonly bFree: (a: any, b: any) => [number, number, number];
+    readonly bGen: (a: any, b: any, c: any) => [number, number, number];
+    readonly bGet: (a: any, b: any) => [number, number, number];
+    readonly bGetn: (a: any, b: any) => [number, number, number];
+    readonly bQuery: (a: any) => [number, number, number];
+    readonly bRead: (a: any, b: any, c: any) => [number, number, number];
+    readonly bReadChannel: (a: any, b: any, c: any, d: any, e: any, f: any, g: any, h: any) => [number, number, number];
+    readonly bSet: (a: any, b: any) => [number, number, number];
+    readonly bSetSampleRate: (a: any, b: any) => [number, number, number];
+    readonly bSetn: (a: any, b: any) => [number, number, number];
+    readonly bWrite: (a: any, b: any, c: any, d: any, e: any) => [number, number, number];
+    readonly bZero: (a: any, b: any) => [number, number, number];
+    readonly cFill: (a: any) => [number, number, number];
+    readonly cGet: (a: any) => [number, number, number];
+    readonly cGetn: (a: any) => [number, number, number];
+    readonly cSet: (a: any) => [number, number, number];
+    readonly cSetn: (a: any) => [number, number, number];
+    readonly clearSched: () => [number, number, number];
+    readonly cmd: (a: any, b: any) => [number, number, number];
+    readonly dFree: (a: any) => [number, number, number];
+    readonly dLoad: (a: any, b: any) => [number, number, number];
+    readonly dLoadDir: (a: any, b: any) => [number, number, number];
+    readonly dRecv: (a: any, b: any) => [number, number, number];
+    readonly dirtPlay: (a: any) => [number, number, number];
+    readonly dumpOSC: (a: any) => [number, number, number];
+    readonly error: (a: any) => [number, number, number];
+    readonly gDeepFree: (a: any) => [number, number, number];
+    readonly gDumpTree: (a: any) => [number, number, number];
+    readonly gFreeAll: (a: any) => [number, number, number];
+    readonly gHead: (a: any) => [number, number, number];
+    readonly gNew: (a: any) => [number, number, number];
+    readonly gQueryTree: (a: any) => [number, number, number];
+    readonly gTail: (a: any) => [number, number, number];
+    readonly nAfter: (a: any) => [number, number, number];
+    readonly nBefore: (a: any) => [number, number, number];
+    readonly nFill: (a: any, b: any) => [number, number, number];
+    readonly nFree: (a: any) => [number, number, number];
+    readonly nMap: (a: any, b: any) => [number, number, number];
+    readonly nMapa: (a: any, b: any) => [number, number, number];
+    readonly nMapan: (a: any, b: any) => [number, number, number];
+    readonly nMapn: (a: any, b: any) => [number, number, number];
+    readonly nOrder: (a: any, b: any, c: any) => [number, number, number];
+    readonly nQuery: (a: any) => [number, number, number];
+    readonly nRun: (a: any) => [number, number, number];
+    readonly nSet: (a: any, b: any) => [number, number, number];
+    readonly nSetn: (a: any, b: any) => [number, number, number];
+    readonly nTrace: (a: any) => [number, number, number];
+    readonly notify: (a: any, b: any) => [number, number, number];
+    readonly nrtEnd: () => [number, number, number];
+    readonly pNew: (a: any) => [number, number, number];
+    readonly quit: () => [number, number, number];
+    readonly rtMemoryStatus: () => [number, number, number];
+    readonly sGet: (a: any, b: any) => [number, number, number];
+    readonly sGetn: (a: any, b: any) => [number, number, number];
+    readonly sNew: (a: any, b: any, c: any, d: any, e: any) => [number, number, number];
+    readonly sNoid: (a: any) => [number, number, number];
+    readonly scopeSubscribe: (a: any, b: any, c: any, d: any) => [number, number, number];
+    readonly scopeUnsubscribe: (a: any) => [number, number, number];
+    readonly status: () => [number, number, number];
+    readonly sync: (a: any) => [number, number, number];
+    readonly uCmd: (a: any, b: any, c: any, d: any) => [number, number, number];
+    readonly version: () => [number, number, number];
     readonly at_unix_ms: (a: number) => any;
+    readonly decode_raw_packet: (a: number, b: number) => [number, number, number];
     readonly decode_reply: (a: number, b: number) => [number, number, number];
     readonly decode_reply_packet: (a: number, b: number) => [number, number, number];
     readonly encode: (a: any) => [number, number, number];
     readonly encode_bundle: (a: any, b: any) => [number, number, number];
+    readonly message_to_osc: (a: any) => [number, number, number];
+    readonly raw_message: (a: number, b: number, c: any) => [number, number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_exn_store: (a: number) => void;

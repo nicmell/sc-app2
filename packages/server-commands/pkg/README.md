@@ -7,9 +7,10 @@ back, and the NRT (non-realtime) score file format.
 
 ## Layers
 
-- **`commands::*`** — one typed struct per command (`SNew`, `NFree`,
-  `BAlloc`, …). Required args in the constructor, optional trailing
-  args editable via struct update:
+- **`commands::*`** — spec-generated, committed category modules with one
+  typed struct per command (`SNew`, `NFree`, `BAlloc`, …), plus the
+  hand-written shared types in `commands/prelude.rs`. Required args in the
+  constructor, optional trailing args editable via struct update:
   ```rust
   BAlloc { num_channels: Some(2), ..BAlloc::new(0, 8192) }.encode()?;
   ```
@@ -107,14 +108,16 @@ import {
 // 1. Encode a /s_new command.
 const message = {
   address: '/s_new' as const,
-  defName: 'sine',
-  nodeId: 1001,
-  addAction: 0,
-  targetId: 1,
-  tail: [
-    [{ name: 'freq' }, { float: 440 }],
-    [{ name: 'amp' }, { float: 0.5 }],
-  ],
+  args: {
+    defName: 'sine',
+    nodeId: 1001,
+    addAction: 0,
+    targetId: 1,
+    tail: [
+      [{ name: 'freq' }, { float: 440 }],
+      [{ name: 'amp' }, { float: 0.5 }],
+    ],
+  },
 };
 const bytes = encode(message);
 
@@ -125,13 +128,13 @@ const bundle = encode_bundle(at_unix_ms(Date.now()), [message]);
 const reply = decode_reply(replyBytes);
 switch (reply.address) {
   case '/status.reply':
-    console.log(reply.numUgens, reply.numSynths);
+    console.log(reply.args.numUgens, reply.args.numSynths);
     break;
   case '/n_go':
-    console.log(reply.nodeId, reply.parentId);
+    console.log(reply.args.nodeId, reply.args.parentId);
     break;
   case '/fail':
-    console.error(reply.command, reply.error);
+    console.error(reply.args.command, reply.args.error);
     break;
 }
 ```
@@ -147,13 +150,23 @@ encode({
 
 ## Source of truth
 
-`assets/specs/server-commands.json` is the source of truth for the standard
-SC command surface. `build.rs` emits one `sc_commands!` invocation and the
-`KnownMessage` callback list into `OUT_DIR`; `src/commands_macro.rs` expands
-the structs, encoders, and address-tagged enum. `/dirt/play` is a typed
-`DirtPlay { pairs }`, and it and `/scope/subscribe` and `/scope/unsubscribe`
-remain hand-written `sc_commands!` invocations in `src/commands.rs` because
-they are bridge extensions. Replies remain hand-written in `src/replies.rs`.
+`packages/server-commands/specs/server-commands.json` is the source of truth
+for all 67 commands. Each entry has a category; `/dirt/play`,
+`/scope/subscribe`, and `/scope/unsubscribe` live in `bridge`, with the two
+`/scope/*` commands marked `decode: true` so their generated structs also
+parse messages received by the bridge.
+
+`packages/server-commands/scripts/generate-rust.ts` emits committed
+per-category `src/commands/*.rs` files containing full `sc_commands!`
+invocations, plus `src/commands/mod.rs` and its `define_known_message!`
+registry. `src/commands_macro.rs` expands those invocations into structs,
+encoders, parsers, and the address-tagged enum; `src/commands/prelude.rs` and
+replies remain hand-written. There is no `build.rs` or shared schema crate.
+
+After editing the spec, run `yarn generate:server-commands` from the repo root
+to regenerate the Rust catalogue before wasm-pack, or run the TypeScript
+generator directly (with optional `--check`) for the catalogue alone. The
+package's vitest suite checks the committed output for drift.
 
 ## Build targets
 
@@ -176,15 +189,17 @@ wasm-pack build --release --target web -- --features wasm
 The wasm-bindgen layer exports `encode`, `encode_bundle`, `decode_reply`,
 `decode_reply_packet`, and `at_unix_ms`. tsify emits the address-tagged
 `KnownMessage` and `KnownReply` unions; `OtherMsg` is the raw-message escape
-hatch. NRT score construction remains available through the native Rust API.
+hatch whose `args` remains an `OscArg[]`. Typed payloads use an `args` object,
+so `Array.isArray(msg.args)` distinguishes raw from typed. NRT score
+construction remains available through the native Rust API.
 
 The generated TS `.d.ts` exposes `ServerMessage` and `ServerReply` as
 symmetric discriminated unions:
 
 ```ts
 export type ServerMessage =
-  | BAlloc                    // { address: '/b_alloc', ... }
-  | SNew                      // { address: '/s_new', ... }
+  | BAlloc                    // { address: '/b_alloc', args: { ... } }
+  | SNew                      // { address: '/s_new', args: { ... } }
   | Status                    // { address: '/status' }
   | OtherMsg                  // { address, args }
   | ...;

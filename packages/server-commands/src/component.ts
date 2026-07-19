@@ -11,8 +11,10 @@ import {
   at_unix_ms,
   decode_reply,
   decode_reply_packet,
+  decode_raw_packet,
   encode as encodeMessage,
   encode_bundle,
+  message_to_osc,
   type OscTimetag,
   type ServerMessage,
   type ServerReply,
@@ -45,6 +47,9 @@ export function decodeReply(bytes: Uint8Array): ServerReply {
 export function decodeReplyPacket(bytes: Uint8Array): ServerReply[] {
   return decode_reply_packet(bytes);
 }
+
+export const messageToOsc = message_to_osc;
+export const decodeRawPacket = decode_raw_packet;
 
 /** NTP timetag from a wall-clock Unix ms timestamp (`Date.now()` style);
  *  negative/non-finite input yields the OSC "immediate" tag. */

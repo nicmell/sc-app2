@@ -13,6 +13,423 @@ export function at_unix_ms(ms) {
 }
 
 /**
+ * Allocate buffer space.
+ * @param {any} bufnum
+ * @param {any} num_frames
+ * @param {any} opts
+ * @returns {any}
+ */
+export function bAlloc(bufnum, num_frames, opts) {
+    const ret = wasm.bAlloc(bufnum, num_frames, opts);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Allocate buffer space and read a sound file.
+ * @param {any} bufnum
+ * @param {any} path
+ * @param {any} opts
+ * @returns {any}
+ */
+export function bAllocRead(bufnum, path, opts) {
+    const ret = wasm.bAllocRead(bufnum, path, opts);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Allocate buffer space and read channels from a sound file.
+ * @param {any} bufnum
+ * @param {any} path
+ * @param {any} start_frame
+ * @param {any} number_of_frames
+ * @param {any} channels
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function bAllocReadChannel(bufnum, path, start_frame, number_of_frames, channels, completion_msg) {
+    const ret = wasm.bAllocReadChannel(bufnum, path, start_frame, number_of_frames, channels, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Close soundfile.
+ * @param {any} bufnum
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function bClose(bufnum, completion_msg) {
+    const ret = wasm.bClose(bufnum, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Fill ranges of sample value(s).
+ * @param {any} bufnum
+ * @param {any} tail
+ * @returns {any}
+ */
+export function bFill(bufnum, tail) {
+    const ret = wasm.bFill(bufnum, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Free buffer data.
+ * @param {any} bufnum
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function bFree(bufnum, completion_msg) {
+    const ret = wasm.bFree(bufnum, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Call a command to fill a buffer.
+ * @param {any} bufnum
+ * @param {any} cmd
+ * @param {any} command_arguments
+ * @returns {any}
+ */
+export function bGen(bufnum, cmd, command_arguments) {
+    const ret = wasm.bGen(bufnum, cmd, command_arguments);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get sample value(s).
+ * @param {any} bufnum
+ * @param {any} sample_indices
+ * @returns {any}
+ */
+export function bGet(bufnum, sample_indices) {
+    const ret = wasm.bGet(bufnum, sample_indices);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get ranges of sample value(s).
+ * @param {any} bufnum
+ * @param {any} tail
+ * @returns {any}
+ */
+export function bGetn(bufnum, tail) {
+    const ret = wasm.bGetn(bufnum, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get buffer info.
+ * @param {any} bufnums
+ * @returns {any}
+ */
+export function bQuery(bufnums) {
+    const ret = wasm.bQuery(bufnums);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Read sound file data into an existing buffer.
+ * @param {any} bufnum
+ * @param {any} path
+ * @param {any} opts
+ * @returns {any}
+ */
+export function bRead(bufnum, path, opts) {
+    const ret = wasm.bRead(bufnum, path, opts);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Read sound file channel data into an existing buffer.
+ * @param {any} bufnum
+ * @param {any} path
+ * @param {any} start_frame
+ * @param {any} number_of_frames
+ * @param {any} starting_frame
+ * @param {any} leave_file_open
+ * @param {any} channels
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function bReadChannel(bufnum, path, start_frame, number_of_frames, starting_frame, leave_file_open, channels, completion_msg) {
+    const ret = wasm.bReadChannel(bufnum, path, start_frame, number_of_frames, starting_frame, leave_file_open, channels, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set sample value(s).
+ * @param {any} bufnum
+ * @param {any} tail
+ * @returns {any}
+ */
+export function bSet(bufnum, tail) {
+    const ret = wasm.bSet(bufnum, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set the sampling rate of the buffer.
+ * @param {any} bufnum
+ * @param {any} the_desired_sampling
+ * @returns {any}
+ */
+export function bSetSampleRate(bufnum, the_desired_sampling) {
+    const ret = wasm.bSetSampleRate(bufnum, the_desired_sampling);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set ranges of sample value(s).
+ * @param {any} bufnum
+ * @param {any} tail
+ * @returns {any}
+ */
+export function bSetn(bufnum, tail) {
+    const ret = wasm.bSetn(bufnum, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Write sound file data.
+ * @param {any} bufnum
+ * @param {any} path
+ * @param {any} header_format
+ * @param {any} sample_format
+ * @param {any} opts
+ * @returns {any}
+ */
+export function bWrite(bufnum, path, header_format, sample_format, opts) {
+    const ret = wasm.bWrite(bufnum, path, header_format, sample_format, opts);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Zero sample data.
+ * @param {any} bufnum
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function bZero(bufnum, completion_msg) {
+    const ret = wasm.bZero(bufnum, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Fill ranges of bus value(s).
+ * @param {any} tail
+ * @returns {any}
+ */
+export function cFill(tail) {
+    const ret = wasm.cFill(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get bus value(s).
+ * @param {any} bus_indices
+ * @returns {any}
+ */
+export function cGet(bus_indices) {
+    const ret = wasm.cGet(bus_indices);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get ranges of bus value(s).
+ * @param {any} tail
+ * @returns {any}
+ */
+export function cGetn(tail) {
+    const ret = wasm.cGetn(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set bus value(s).
+ * @param {any} tail
+ * @returns {any}
+ */
+export function cSet(tail) {
+    const ret = wasm.cSet(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set ranges of bus value(s).
+ * @param {any} tail
+ * @returns {any}
+ */
+export function cSetn(tail) {
+    const ret = wasm.cSetn(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Clear all scheduled bundles. Removes all bundles from the scheduling queue.
+ * @returns {any}
+ */
+export function clearSched() {
+    const ret = wasm.clearSched();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Plug-in defined command.
+ * @param {any} cmd
+ * @param {any} any_arguments
+ * @returns {any}
+ */
+export function cmd(cmd, any_arguments) {
+    const ret = wasm.cmd(cmd, any_arguments);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Delete synth definition.
+ * @param {any} synth_def_names
+ * @returns {any}
+ */
+export function dFree(synth_def_names) {
+    const ret = wasm.dFree(synth_def_names);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Load synth definition.
+ * @param {any} pathname_of_file
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function dLoad(pathname_of_file, completion_msg) {
+    const ret = wasm.dLoad(pathname_of_file, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Load a directory of synth definitions.
+ * @param {any} pathname_of_directory
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function dLoadDir(pathname_of_directory, completion_msg) {
+    const ret = wasm.dLoadDir(pathname_of_directory, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Receive a synth definition file.
+ * @param {any} buffer_of_data
+ * @param {any} completion_msg
+ * @returns {any}
+ */
+export function dRecv(buffer_of_data, completion_msg) {
+    const ret = wasm.dRecv(buffer_of_data, completion_msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Decode an inbound packet — a bare message or a `#bundle` — into raw
+ * `{ address, args }` views with NO typed mapping: the rx log rendering
+ * and the tests' wire-truth view.
+ * @param {Uint8Array} bytes
+ * @returns {Array<any>}
+ */
+export function decode_raw_packet(bytes) {
+    const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.decode_raw_packet(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * Classify one OSC reply message into its typed variant.
  * @param {Uint8Array} bytes
  * @returns {any}
@@ -45,6 +462,32 @@ export function decode_reply_packet(bytes) {
 }
 
 /**
+ * sc-app bridge extension (not in the SC command reference): a SuperDirt/Strudel event, routed by the bridge to the strudel peer. The wire format is SuperDirt's alternating key/value arg list.
+ * @param {any} pairs
+ * @returns {any}
+ */
+export function dirtPlay(pairs) {
+    const ret = wasm.dirtPlay(pairs);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Display incoming OSC messages.
+ * @param {any} code
+ * @returns {any}
+ */
+export function dumpOSC(code) {
+    const ret = wasm.dumpOSC(code);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * Serialise one typed command to OSC wire bytes.
  * @param {any} msg
  * @returns {Uint8Array}
@@ -66,6 +509,536 @@ export function encode(msg) {
  */
 export function encode_bundle(time, msgs) {
     const ret = wasm.encode_bundle(time, msgs);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Enable/disable error message posting.
+ * @param {any} mode
+ * @returns {any}
+ */
+export function error(mode) {
+    const ret = wasm.error(mode);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Free all synths in this group and all its sub-groups.
+ * @param {any} group_ids
+ * @returns {any}
+ */
+export function gDeepFree(group_ids) {
+    const ret = wasm.gDeepFree(group_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Post a representation of this group's node subtree.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function gDumpTree(tail) {
+    const ret = wasm.gDumpTree(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Delete all nodes in a group.
+ * @param {any} group_ids
+ * @returns {any}
+ */
+export function gFreeAll(group_ids) {
+    const ret = wasm.gFreeAll(group_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Add node to head of group.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function gHead(tail) {
+    const ret = wasm.gHead(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Create a new group.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function gNew(tail) {
+    const ret = wasm.gNew(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get a representation of this group's node subtree.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function gQueryTree(tail) {
+    const ret = wasm.gQueryTree(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Add node to tail of group.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function gTail(tail) {
+    const ret = wasm.gTail(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Lower one typed command to its raw wire view (`{ address, args }` with
+ * the args in wire ORDER) via `to_osc_message()` — the console's tx log
+ * rendering, definitionally in sync with the encoder.
+ * @param {any} msg
+ * @returns {any}
+ */
+export function message_to_osc(msg) {
+    const ret = wasm.message_to_osc(msg);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Place a node after another.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nAfter(tail) {
+    const ret = wasm.nAfter(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Place a node before another.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nBefore(tail) {
+    const ret = wasm.nBefore(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Fill ranges of a node's control value(s).
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nFill(node_id, tail) {
+    const ret = wasm.nFill(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Delete a node.
+ * @param {any} node_ids
+ * @returns {any}
+ */
+export function nFree(node_ids) {
+    const ret = wasm.nFree(node_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Map a node's controls to read from a bus.
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nMap(node_id, tail) {
+    const ret = wasm.nMap(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Map a node's controls to read from an audio bus.
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nMapa(node_id, tail) {
+    const ret = wasm.nMapa(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Map a node's controls to read from audio buses.
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nMapan(node_id, tail) {
+    const ret = wasm.nMapan(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Map a node's controls to read from buses.
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nMapn(node_id, tail) {
+    const ret = wasm.nMapn(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Move and order a list of nodes.
+ * @param {any} add_action
+ * @param {any} target_id
+ * @param {any} node_ids
+ * @returns {any}
+ */
+export function nOrder(add_action, target_id, node_ids) {
+    const ret = wasm.nOrder(add_action, target_id, node_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get info about a node.
+ * @param {any} node_ids
+ * @returns {any}
+ */
+export function nQuery(node_ids) {
+    const ret = wasm.nQuery(node_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Turn node on or off.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nRun(tail) {
+    const ret = wasm.nRun(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set a node's control value(s).
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nSet(node_id, tail) {
+    const ret = wasm.nSet(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Set ranges of a node's control value(s).
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function nSetn(node_id, tail) {
+    const ret = wasm.nSetn(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Trace a node.
+ * @param {any} node_ids
+ * @returns {any}
+ */
+export function nTrace(node_ids) {
+    const ret = wasm.nTrace(node_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Register to receive notifications from server
+ * @param {any} enable
+ * @param {any} client_id
+ * @returns {any}
+ */
+export function notify(enable, client_id) {
+    const ret = wasm.notify(enable, client_id);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * End real time mode, close file. Not yet implemented. This message should be sent in a bundle in non real time mode. The bundle timestamp will establish the ending time of the file. This command will end non real time mode and close the sound file. Replies to sender with /done when complete.
+ * @returns {any}
+ */
+export function nrtEnd() {
+    const ret = wasm.nrtEnd();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Create a new parallel group.
+ * @param {any} tail
+ * @returns {any}
+ */
+export function pNew(tail) {
+    const ret = wasm.pNew(tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Quit program. Exits the synthesis server.
+ * @returns {any}
+ */
+export function quit() {
+    const ret = wasm.quit();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * The escape hatch: a raw address + leniently-coerced args, outside the
+ * command catalogue.
+ * @param {string} address
+ * @param {Array<any>} args
+ * @returns {any}
+ */
+export function raw_message(address, args) {
+    const ptr0 = passStringToWasm0(address, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.raw_message(ptr0, len0, args);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Queries the amount of currently free real-time memory (in bytes).
+ * @returns {any}
+ */
+export function rtMemoryStatus() {
+    const ret = wasm.rtMemoryStatus();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get control value(s).
+ * @param {any} node_id
+ * @param {any} controls
+ * @returns {any}
+ */
+export function sGet(node_id, controls) {
+    const ret = wasm.sGet(node_id, controls);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Get ranges of control value(s).
+ * @param {any} node_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function sGetn(node_id, tail) {
+    const ret = wasm.sGetn(node_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Create a new synth.
+ * @param {any} def_name
+ * @param {any} node_id
+ * @param {any} add_action
+ * @param {any} target_id
+ * @param {any} tail
+ * @returns {any}
+ */
+export function sNew(def_name, node_id, add_action, target_id, tail) {
+    const ret = wasm.sNew(def_name, node_id, add_action, target_id, tail);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Auto-reassign synth's ID to a reserved value.
+ * @param {any} synth_ids
+ * @returns {any}
+ */
+export function sNoid(synth_ids) {
+    const ret = wasm.sNoid(synth_ids);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * sc-app bridge extension (not in the SC command reference): register a scope-slot stream with the bridge. The bridge is the consumer, so the struct also carries from_message/decode parsers.
+ * @param {any} sub_id
+ * @param {any} scope
+ * @param {any} channels
+ * @param {any} chunk_size
+ * @returns {any}
+ */
+export function scopeSubscribe(sub_id, scope, channels, chunk_size) {
+    const ret = wasm.scopeSubscribe(sub_id, scope, channels, chunk_size);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * sc-app bridge extension (not in the SC command reference): drop a scope-slot stream.
+ * @param {any} sub_id
+ * @returns {any}
+ */
+export function scopeUnsubscribe(sub_id) {
+    const ret = wasm.scopeUnsubscribe(sub_id);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Query the status. Replies to sender with the following message:
+ * @returns {any}
+ */
+export function status() {
+    const ret = wasm.status();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Notify when async commands have completed.
+ * @param {any} a_unique_number
+ * @returns {any}
+ */
+export function sync(a_unique_number) {
+    const ret = wasm.sync(a_unique_number);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Send a command to a unit generator.
+ * @param {any} node_id
+ * @param {any} unit_generator_index
+ * @param {any} cmd
+ * @param {any} any_arguments
+ * @returns {any}
+ */
+export function uCmd(node_id, unit_generator_index, cmd, any_arguments) {
+    const ret = wasm.uCmd(node_id, unit_generator_index, cmd, any_arguments);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * Query the SuperCollider version. Replies to sender with the following message:
+ * @returns {any}
+ */
+export function version() {
+    const ret = wasm.version();
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -117,6 +1090,10 @@ function __wbg_get_imports() {
         },
         __wbg___wbindgen_is_function_754e9f305ff6029e: function(arg0) {
             const ret = typeof(arg0) === 'function';
+            return ret;
+        },
+        __wbg___wbindgen_is_null_87c3bfe968c6a5ad: function(arg0) {
+            const ret = arg0 === null;
             return ret;
         },
         __wbg___wbindgen_is_object_56732c2bc353f41d: function(arg0) {

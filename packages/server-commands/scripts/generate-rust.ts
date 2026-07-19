@@ -16,7 +16,7 @@ type FieldForm =
   | "variadic"
   | { tail: Tuple[] }
   | { setnTail: { head: Tuple; values: Tuple } };
-type FieldSpec = { name: string; form: FieldForm; doc?: string };
+type FieldSpec = { name: string; form: FieldForm; default?: number; doc?: string };
 type CommandSpec = {
   address: string;
   struct: string;
@@ -75,10 +75,12 @@ function parseSpec(raw: unknown): RegistrySpec {
     const fields = command.fields.map((rawField, fi): FieldSpec => {
       const fw = `${where}.fields[${fi}]`;
       const field = object(rawField, fw);
-      keys(field, ["name", "form", "doc"], fw);
+      keys(field, ["name", "form", "default", "doc"], fw);
       if (typeof field.name !== "string") throw new Error(`${fw}.name: expected string`);
       if (field.doc !== undefined && typeof field.doc !== "string")
         throw new Error(`${fw}.doc: expected string`);
+      if (field.default !== undefined && typeof field.default !== "number")
+        throw new Error(`${fw}.default: expected number`);
       let form: FieldForm;
       if (field.form === "completion" || field.form === "blob" || field.form === "variadic")
         form = field.form;
@@ -126,7 +128,12 @@ function parseSpec(raw: unknown): RegistrySpec {
           };
         } else throw new Error(`${fw}.form: unknown form ${kind}`);
       }
-      return { name: field.name, form, ...(field.doc === undefined ? {} : { doc: field.doc }) };
+      return {
+        name: field.name,
+        form,
+        ...(field.default === undefined ? {} : { default: field.default }),
+        ...(field.doc === undefined ? {} : { doc: field.doc }),
+      };
     });
     return {
       address: command.address as string,
@@ -223,6 +230,185 @@ function rustfmt(content: string, rel: string): string {
   return r.stdout;
 }
 
+// ── the wasm builder surface (commands/wasm_gen.rs) ─────────────────────
+//
+// One exported function per command, mirroring the crate's serde value the
+// TS side feeds to encode/encodeBundle. Coercion helpers live in the hand
+// commands/wasm.rs; the TS signatures ride a typescript_custom_section.
+
+const jsNameOf = (address: string): string =>
+  address.slice(1).replace(/[/_.]+(.)/g, (_, c: string) => c.toUpperCase());
+const fnIdent = (js: string): string => js.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+const camel = (snake: string): string =>
+  snake.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+
+/** coercer fn + TS type per value type (the polymorphic shapes are lenient). */
+const VALUE: Record<Tuple, [string, string]> = {
+  i32: ["js_i32", "number"],
+  f32: ["js_f32", "number"],
+  string: ["js_string", "string"],
+  controlId: ["js_control_id", "string | number"],
+  numericValue: ["js_numeric_value", "number"],
+  controlValue: ["js_control_value", "number | string"],
+  oscArg: ["js_osc_arg", "number | string | Uint8Array"],
+};
+
+const isOptionalField = ({ form }: FieldSpec) =>
+  form === "completion" || (typeof form === "object" && "optionScalar" in form);
+
+function rawStr(s: string): string {
+  let hashes = 0;
+  while (s.includes(`"${"#".repeat(hashes)}`)) hashes += 1;
+  const h = "#".repeat(hashes);
+  return `r${h}"${s}"${h}`;
+}
+
+function wasmCommand(command: CommandSpec): { rust: string; ts: string } {
+  const js = jsNameOf(command.address);
+  const fn = fnIdent(js);
+  const required = command.fields.filter((f) => !isOptionalField(f));
+  const optionals = command.fields.filter(isOptionalField);
+  const what = (f: FieldSpec) => `"${js}: ${camel(f.name)}"`;
+
+  // ── params ──
+  const params: string[] = required.map((f) => `${f.name}: JsValue`);
+  const tsParams: string[] = [];
+  for (let i = 0; i < required.length; i++) {
+    const f = required[i];
+    // containers may be omitted (→ empty) when nothing required follows
+    const restOptional = required.slice(i + 1).every((r) => container(r));
+    tsParams.push(tsRequiredParam(f, container(f) && restOptional));
+  }
+  const single = optionals.length === 1 ? optionals[0] : undefined;
+  if (single) {
+    params.push(`${single.name}: JsValue`);
+    tsParams.push(
+      single.form === "completion"
+        ? `${camel(single.name)}?: Uint8Array`
+        : `${camel(single.name)}?: number`,
+    );
+  } else if (optionals.length > 1) {
+    params.push("opts: JsValue");
+    const keys = optionals.map((f) =>
+      f.form === "completion" ? `${camel(f.name)}?: Uint8Array` : `${camel(f.name)}?: number`,
+    );
+    tsParams.push(`opts?: { ${keys.join("; ")} }`);
+  }
+
+  // ── body ──
+  let body = "";
+  if (optionals.length > 1) {
+    for (const f of optionals) body += `    let ${f.name} = opt_key(&opts, "${camel(f.name)}");\n`;
+    // guards: a present optional can't ride behind an absent, unfillable one
+    for (let i = 0; i < optionals.length; i++) {
+      const f = optionals[i];
+      const unfillable = f.form === "completion" || f.default === undefined;
+      if (!unfillable) continue;
+      for (const later of optionals.slice(i + 1)) {
+        body += `    if ${later.name}.is_some() && ${f.name}.is_none() {\n        return Err(JsError::new("${js}: ${camel(later.name)} requires ${camel(f.name)} (it rides later on the wire)"));\n    }\n`;
+      }
+    }
+  }
+  if (command.fields.length) {
+    const fieldExprs = command.fields.map((f) => `        ${f.name}: ${fieldExpr(f)},\n`).join("");
+    body += `    msg_to_js(KnownMessage::${command.struct}(${command.struct} {\n${fieldExprs}    }))`;
+  } else {
+    // unit variant — no payload struct in the enum arm
+    body += `    msg_to_js(KnownMessage::${command.struct})`;
+  }
+
+  function fieldExpr(f: FieldSpec): string {
+    const form = f.form;
+    if (isOptionalField(f)) {
+      const coerce = (v: string) =>
+        form === "completion"
+          ? `js_blob(${v}, ${what(f)})?`
+          : `${VALUE[(form as { optionScalar: Tuple }).optionScalar][0]}(${v}, ${what(f)})?`;
+      if (single) {
+        return `if ${f.name}.is_undefined() { None } else { Some(${coerce(`&${f.name}`)}) }`;
+      }
+      // opts-mode: fill the documented default when a later optional forces
+      // this slot onto the wire
+      const laterFlags = optionals
+        .slice(optionals.indexOf(f) + 1)
+        .map((l) => `${l.name}.is_some()`);
+      const fill =
+        f.default !== undefined && laterFlags.length
+          ? `if ${laterFlags.join(" || ")} { Some(${f.default}) } else { None }`
+          : "None";
+      return `match &${f.name} { Some(v) => Some(${coerce("v")}), None => ${fill} }`;
+    }
+    if (form === "blob") return `js_blob(&${f.name}, ${what(f)})?`;
+    if (form === "variadic") return `js_list(&${f.name}, ${what(f)}, js_osc_arg)?`;
+    if (typeof form === "object" && "scalar" in form)
+      return `${VALUE[form.scalar][0]}(&${f.name}, ${what(f)})?`;
+    if (typeof form === "object" && "list" in form)
+      return `js_list(&${f.name}, ${what(f)}, ${VALUE[form.list][0]})?`;
+    if (typeof form === "object" && "tail" in form) {
+      const cs = form.tail.map((t) => VALUE[t][0]);
+      if (form.tail.length === 2) return `js_pairs(&${f.name}, ${what(f)}, ${cs[0]}, ${cs[1]})?`;
+      if (form.tail.length === 3)
+        return `js_triples(&${f.name}, ${what(f)}, ${cs[0]}, ${cs[1]}, ${cs[2]})?`;
+      throw new Error(`${command.struct}: unsupported tail arity ${form.tail.length}`);
+    }
+    if (typeof form === "object" && "setnTail" in form)
+      return `js_setn(&${f.name}, ${what(f)}, ${VALUE[form.setnTail.head][0]}, ${VALUE[form.setnTail.values][0]})?`;
+    throw new Error(`${command.struct}: unhandled form for wasm builder`);
+  }
+
+  function container(f: FieldSpec): boolean {
+    const form = f.form;
+    return (
+      form === "variadic" ||
+      (typeof form === "object" && ("list" in form || "tail" in form || "setnTail" in form))
+    );
+  }
+
+  function tsRequiredParam(f: FieldSpec, optional: boolean): string {
+    const form = f.form;
+    const q = optional ? "?" : "";
+    const name = camel(f.name);
+    if (form === "blob") return `${name}: Uint8Array`;
+    if (form === "variadic") return `${name}${q}: Array<number | string | Uint8Array>`;
+    if (typeof form === "object" && "scalar" in form) return `${name}: ${VALUE[form.scalar][1]}`;
+    if (typeof form === "object" && "list" in form)
+      return `${name}${q}: Array<${VALUE[form.list][1]}>`;
+    if (typeof form === "object" && "tail" in form) {
+      const tys = form.tail.map((t) => VALUE[t][1]);
+      const tuples = `Array<[${tys.join(", ")}]>`;
+      const keyed =
+        form.tail.length === 2 && (form.tail[0] === "controlId" || form.tail[0] === "string");
+      return `${name}${q}: ${keyed ? `${tuples} | Record<string, ${tys[1]}>` : tuples}`;
+    }
+    if (typeof form === "object" && "setnTail" in form) {
+      const h = VALUE[form.setnTail.head][1];
+      const v = VALUE[form.setnTail.values][1];
+      return `${name}${q}: Array<[${h}, Array<${v}>]>`;
+    }
+    throw new Error(`${command.struct}: unhandled form for TS signature`);
+  }
+
+  const doc = command.doc ? `/// ${command.doc.split("\n").join(" ")}\n` : "";
+  const rust = `${doc}#[wasm_bindgen(js_name = "${js}", skip_typescript)]\npub fn ${fn}(${params.join(", ")}) -> Result<JsValue, JsError> {\n${body}\n}\n`;
+  const tsDoc = command.doc
+    ? `/** \`${command.address}\` — ${command.doc.split("\n")[0]} */\n`
+    : "";
+  const ts = `${tsDoc}export function ${js}(${tsParams.join(", ")}): ServerMessage;\n`;
+  return { rust, ts };
+}
+
+function wasmGen(spec: RegistrySpec): string {
+  let rust = `${header}\n`;
+  let ts = "";
+  for (const command of spec.commands) {
+    const emitted = wasmCommand(command);
+    rust += emitted.rust + "\n";
+    ts += emitted.ts;
+  }
+  rust += `#[wasm_bindgen(typescript_custom_section)]\nconst TS_COMMANDS: &'static str = ${rawStr(ts)};\n`;
+  return rust;
+}
+
 export function render(): Map<string, string> {
   const specPath = path.join(root, "packages/server-commands/specs/server-commands.json");
   const spec = parseSpec(JSON.parse(readFileSync(specPath, "utf8")));
@@ -246,8 +432,9 @@ export function render(): Map<string, string> {
       .join("\n");
   rendered.set(
     `${base}/mod.rs`,
-    `${header}\nuse serde::{Deserialize, Serialize};\n#[cfg(feature = "wasm")]\nuse tsify::Tsify;\n\nuse crate::OscMessage;\n\nmod prelude;\npub use prelude::*;\n\n${modules}\n\ndefine_known_message! {\n    payload {\n${arms(true)}\n    }\n    unit {\n${arms(false)}\n    }\n}\n`,
+    `${header}\nuse serde::{Deserialize, Serialize};\n#[cfg(feature = "wasm")]\nuse tsify::Tsify;\n\nuse crate::OscMessage;\n\nmod prelude;\npub use prelude::*;\n\n#[cfg(feature = "wasm")]\npub(crate) mod wasm;\n\n${modules}\n\ndefine_known_message! {\n    payload {\n${arms(true)}\n    }\n    unit {\n${arms(false)}\n    }\n}\n`,
   );
+  rendered.set(`${base}/wasm_gen.rs`, wasmGen(spec));
   for (const [rel, content] of rendered) rendered.set(rel, rustfmt(content, rel));
   return rendered;
 }
@@ -257,7 +444,7 @@ export function render(): Map<string, string> {
  *  an orphan module that silently drops out of the generated mod.rs. */
 export function strayFiles(): string[] {
   const managed = "src-tauri/crates/scserver-commands/src/commands";
-  const hand = new Set(["prelude.rs"]);
+  const hand = new Set(["prelude.rs", "wasm.rs"]);
   const expected = new Set([...render().keys()].map((rel) => path.basename(rel)));
   return readdirSync(path.join(root, managed))
     .filter((f) => f.endsWith(".rs") && !hand.has(f) && !expected.has(f))

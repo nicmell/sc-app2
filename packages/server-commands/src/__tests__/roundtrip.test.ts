@@ -41,14 +41,14 @@ const flat = (msg: Parameters<typeof encode>[0]) => flattenEncoded(encode(msg))[
 
 describe("builders produce the exact wire messages", () => {
   it("node/group lifecycle commands", () => {
-    expect(flat(gNew(2000, AddToTail, 1))).toEqual({ address: "/g_new", args: [2000, 1, 1] });
+    expect(flat(gNew([[2000, AddToTail, 1]]))).toEqual({ address: "/g_new", args: [2000, 1, 1] });
     expect(flat(sNew("sine", 2001, AddToTail, 2000, [["freq", 440.5]]))).toEqual({
       address: "/s_new",
       args: ["sine", 2001, 1, 2000, "freq", 440.5],
     });
-    expect(flat(nRun(2001, 0))).toEqual({ address: "/n_run", args: [2001, 0] });
-    expect(flat(nFree(2001, 2002))).toEqual({ address: "/n_free", args: [2001, 2002] });
-    expect(flat(gFreeAll(2000))).toEqual({ address: "/g_freeAll", args: [2000] });
+    expect(flat(nRun([[2001, 0]]))).toEqual({ address: "/n_run", args: [2001, 0] });
+    expect(flat(nFree([2001, 2002]))).toEqual({ address: "/n_free", args: [2001, 2002] });
+    expect(flat(gFreeAll([2000]))).toEqual({ address: "/g_freeAll", args: [2000] });
   });
 
   it("control writes type ints and floats like osc-js did", () => {
@@ -57,7 +57,7 @@ describe("builders produce the exact wire messages", () => {
       args: [9, "freq", 440, "amp", 0.5],
     });
     // The wire carries the run length between the control name and values.
-    expect(flat(nSetn(9, "env", [0, 0.5, 1]))).toEqual({
+    expect(flat(nSetn(9, [["env", [0, 0.5, 1]]]))).toEqual({
       address: "/n_setn",
       args: [9, "env", 3, 0, 0.5, 1],
     });
@@ -71,13 +71,13 @@ describe("builders produce the exact wire messages", () => {
     expect(message.address).toBe("/d_recv");
     expect(message.args[0]).toEqual(def);
     // The completion blob is itself a decodable /sync message.
-    expect(flat(dFree("sine", "saw"))).toEqual({ address: "/d_free", args: ["sine", "saw"] });
+    expect(flat(dFree(["sine", "saw"]))).toEqual({ address: "/d_free", args: ["sine", "saw"] });
     const completion = flattenEncoded(message.args[1] as Uint8Array)[0];
     expect(completion).toEqual({ address: "/sync", args: [7] });
   });
 
   it("scope protocol commands", () => {
-    expect(flat(scopeSubscribe({ subId: 1, scope: 3, channels: 2, chunkSize: 1024 }))).toEqual({
+    expect(flat(scopeSubscribe(1, 3, 2, 1024))).toEqual({
       address: "/scope/subscribe",
       args: [1, 3, 2, 1024],
     });
@@ -159,16 +159,16 @@ describe("display formatting", () => {
     // Every builder the worker's tx log renders typed — pin against the
     // byte-level truth so the two views can never drift.
     const msgs: ServerMessage[] = [
-      gNew(2000, AddToTail, 1),
+      gNew([[2000, AddToTail, 1]]),
       sNew("sine", 2001, AddToTail, 2000, [["freq", 440.5]]),
       nSet(9, { freq: 440 }),
-      nSetn(9, "env", [0, 0.5, 1]),
-      nRun(2001, 0),
-      nFree(2001, 2002),
-      gFreeAll(2000),
-      dFree("sine"),
+      nSetn(9, [["env", [0, 0.5, 1]]]),
+      nRun([[2001, 0]]),
+      nFree([2001, 2002]),
+      gFreeAll([2000]),
+      dFree(["sine"]),
       sync(7),
-      scopeSubscribe({ subId: 1, scope: 3, channels: 2, chunkSize: 1024 }),
+      scopeSubscribe(1, 3, 2, 1024),
       scopeUnsubscribe(1),
       dirtPlay({ s: "bd", n: 1 }),
     ];

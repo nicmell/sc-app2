@@ -25,6 +25,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 1,
           "doc": "number of channels (optional. default = 1 channel)"
         },
         {
@@ -66,6 +67,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "starting frame in file (optional. default = 0)"
         },
         {
@@ -73,6 +75,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "number of frames to read (optional. default = 0, see below)"
         },
         {
@@ -303,6 +306,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "starting frame in file (optional. default = 0)"
         },
         {
@@ -310,6 +314,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": -1,
           "doc": "number of frames to read (optional. default = -1, see below)"
         },
         {
@@ -317,6 +322,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "starting frame in buffer (optional. default = 0)"
         },
         {
@@ -324,6 +330,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "leave file open (optional. default = 0)"
         },
         {
@@ -503,6 +510,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": -1,
           "doc": "number of frames to write (optional. default = -1, see below)"
         },
         {
@@ -510,6 +518,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "starting frame in buffer (optional. default = 0)"
         },
         {
@@ -517,6 +526,7 @@
           "form": {
             "optionScalar": "i32"
           },
+          "default": 0,
           "doc": "leave file open (optional. default = 0)"
         },
         {

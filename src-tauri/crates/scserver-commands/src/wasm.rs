@@ -75,7 +75,75 @@ export function encode(msg: ServerMessage): Uint8Array;
 export function encode_bundle(time: OscTimetag, msgs: ServerMessage[]): Uint8Array;
 export function decode_reply(bytes: Uint8Array): ServerReply;
 export function decode_reply_packet(bytes: Uint8Array): ServerReply[];
+export function message_to_osc(msg: ServerMessage): OtherMsg;
+export function decode_raw_packet(bytes: Uint8Array): OtherMsg[];
+export function raw_message(address: string, args: Array<number | string | Uint8Array>): OtherMsg;
 "#;
+
+fn osc_to_flat(msg: crate::OscMessage) -> Result<JsValue, JsError> {
+    let flat = OtherMsg {
+        address: msg.address,
+        args: crate::args::osc_args(&msg.args),
+    };
+    serde_wasm_bindgen::to_value(&flat).map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// Lower one typed command to its raw wire view (`{ address, args }` with
+/// the args in wire ORDER) via `to_osc_message()` — the console's tx log
+/// rendering, definitionally in sync with the encoder.
+#[wasm_bindgen(skip_typescript)]
+pub fn message_to_osc(msg: JsValue) -> Result<JsValue, JsError> {
+    osc_to_flat(parse_message(&msg)?.to_osc_message())
+}
+
+/// Decode an inbound packet — a bare message or a `#bundle` — into raw
+/// `{ address, args }` views with NO typed mapping: the rx log rendering
+/// and the tests' wire-truth view.
+#[wasm_bindgen(skip_typescript)]
+pub fn decode_raw_packet(bytes: &[u8]) -> Result<Array, JsError> {
+    let out = Array::new();
+    let mut push = |m: rosc::OscMessage| -> Result<(), JsError> {
+        out.push(&osc_to_flat(crate::OscMessage::from(m))?);
+        Ok(())
+    };
+    if bytes.first() == Some(&b'#') {
+        let packet = rosc::decoder::decode_udp(bytes)
+            .map_err(|e| JsError::new(&format!("{e:?}")))?
+            .1;
+        let rosc::OscPacket::Bundle(bundle) = packet else {
+            return Err(JsError::new("expected OSC bundle, got a bare message"));
+        };
+        for elem in bundle.content {
+            match elem {
+                rosc::OscPacket::Message(m) => push(m)?,
+                rosc::OscPacket::Bundle(_) => {
+                    return Err(JsError::new("nested bundles are not supported"));
+                }
+            }
+        }
+    } else {
+        let packet = rosc::decoder::decode_udp(bytes)
+            .map_err(|e| JsError::new(&format!("{e:?}")))?
+            .1;
+        let rosc::OscPacket::Message(m) = packet else {
+            return Err(JsError::new("expected a bare OSC message"));
+        };
+        push(m)?;
+    }
+    Ok(out)
+}
+
+/// The escape hatch: a raw address + leniently-coerced args, outside the
+/// command catalogue.
+#[wasm_bindgen(skip_typescript)]
+pub fn raw_message(address: String, args: Array) -> Result<JsValue, JsError> {
+    let args = args
+        .iter()
+        .map(|v| crate::commands::wasm::js_osc_arg(&v, "raw"))
+        .collect::<Result<Vec<_>, _>>()?;
+    let msg = OtherMsg { address, args };
+    serde_wasm_bindgen::to_value(&msg).map_err(|e| JsError::new(&e.to_string()))
+}
 
 /// Serialise one typed command to OSC wire bytes.
 #[wasm_bindgen(skip_typescript)]

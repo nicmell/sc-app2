@@ -277,12 +277,16 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
   adjacently tagged `{ address: "/s_new", args: { defName, … } }` objects
   (unit commands are bare `{ address: "/quit" }`) that TS narrows on
   `address`; `raw()` retains `args: OscArg[]`, so `Array.isArray(msg.args)`
-  distinguishes it. Builders cover all 67 commands in category files;
-  `src/spec.ts` exports `COMMANDS`/`KNOWN_ADDRESSES`/`isKnownAddress`, and
-  `describeMessage` renders wire order generically from the spec field forms
-  while replies use a hand switch. `encode`/`encodeBundle`, typed reply
+  distinguishes it. The typed builders for all 67 commands are WASM exports
+  (generated `commands/wasm_gen.rs` over hand coercers in
+  `commands/wasm.rs` — lenient args: `string|number` control ids, `Record`
+  sugar for pair tails, trailing-optional server-default fill); the TS
+  src/ is a re-export shell plus `raw()`/add-action consts. Console
+  rendering is wire-true by construction: `messageToOsc` (Rust
+  `to_osc_message`) for tx, `decodeRawPacket` for rx/tests — no TS
+  field-order knowledge anywhere. `encode`/`encodeBundle`, typed reply
   decode (`/scope/chunk` samples lift as a transferable Float32Array),
-  `atUnixMs` NTP timetags, console formatting. No osc-js — the crate is the
+  `atUnixMs` NTP timetags. No osc-js — the crate is the
   single protocol source for backend and frontend; the scope protocol lives
   there as sc-app bridge extensions. All commands derive from
   `packages/server-commands/specs/server-commands.json`; the three bridge

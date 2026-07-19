@@ -11,13 +11,14 @@ import {
   AddToTail,
   atUnixMs,
   decodeReplyPacket,
+  decodeRawPacket,
   describeMessage,
-  describeReply,
   dFree,
   dirtPlay,
   dRecv,
   encode,
   encodeBundle,
+  formatOscArg,
   gFreeAll,
   gNew,
   nFree,
@@ -90,8 +91,14 @@ export class OscClient {
         // One typed reply per contained message (bundles split in the
         // component); a malformed packet is a transport-level failure.
         try {
-          for (const reply of decodeReplyPacket(new Uint8Array(event.data))) {
-            this.handleReply(reply);
+          const bytes = new Uint8Array(event.data);
+          const replies = decodeReplyPacket(bytes);
+          const needsLog = replies.some(
+            (reply) => reply.address !== "/scope/chunk" && reply.address !== "/status.reply",
+          );
+          const raw = needsLog ? decodeRawPacket(bytes) : [];
+          for (const [index, reply] of replies.entries()) {
+            this.handleReply(reply, raw[index]);
           }
         } catch (err) {
           this.transportError(err);
@@ -112,7 +119,7 @@ export class OscClient {
     });
     this.nextId = session.nodeIdBase;
     this.endId = session.nodeIdBase + session.nodeIdCount;
-    this.send(gNew(session.sessionGroupId, AddToTail, 0));
+    this.send(gNew([[session.sessionGroupId, AddToTail, 0]]));
     this.armWatchdog();
   }
 
@@ -191,7 +198,7 @@ export class OscClient {
   async createGroup(targetId: number): Promise<number> {
     const id = this.nextNodeId();
     const reply = this.once("/n_go", (n) => n.args.nodeId === id);
-    this.send(gNew(id, AddToTail, targetId));
+    this.send(gNew([[id, AddToTail, targetId]]));
     await reply;
     return id;
   }
@@ -237,25 +244,25 @@ export class OscClient {
     this.send(nSet(id, { [name]: value }));
   }
   setControln(id: number, name: string, values: readonly number[]) {
-    this.send(nSetn(id, name, values));
+    this.send(nSetn(id, [[name, [...values]]]));
   }
   setNodeRun(id: number, flag: 0 | 1) {
-    this.send(nRun(id, flag));
+    this.send(nRun([[id, flag]]));
   }
   freeSynth(id: number) {
-    this.send(nFree(id));
+    this.send(nFree([id]));
   }
   /** Free a group and everything inside it — `/g_freeAll` empties, `/n_free`
    *  removes the group node itself. */
   freeGroup(id: number) {
-    this.send(gFreeAll(id));
-    this.send(nFree(id));
+    this.send(gFreeAll([id]));
+    this.send(nFree([id]));
   }
   freeSynthDef(name: string) {
-    this.send(dFree(name));
+    this.send(dFree([name]));
   }
   subscribeScope(subId: number, scope: number, channels: number, chunkSize: number) {
-    this.send(scopeSubscribe({ subId, scope, channels, chunkSize }));
+    this.send(scopeSubscribe(subId, scope, channels, chunkSize));
   }
   unsubscribeScope(subId: number) {
     this.send(scopeUnsubscribe(subId));
@@ -267,7 +274,7 @@ export class OscClient {
    *  telemetry arms — scope chunks and status stay OUT of the console log
    *  (they stream continuously), everything else lands as an rx entry.
    *  Public on purpose: the unit suites feed replies here directly. */
-  handleReply(reply: ServerReply): void {
+  handleReply(reply: ServerReply, raw?: { address: string; args: object[] }): void {
     const waiter = this.waiters.find(
       (w) => w.address === reply.address && (w.match as (r: ServerReply) => boolean)(reply),
     );
@@ -278,8 +285,7 @@ export class OscClient {
     }
     if (Array.isArray(reply.args)) {
       // Unknown-address fallback: log-only (nothing routes on it).
-      const d = describeReply(reply);
-      this.append("rx", d.address, d.args);
+      this.appendRawReply(reply, raw);
       return;
     }
     if (reply.address === "/scope/chunk") {
@@ -318,8 +324,13 @@ export class OscClient {
         (reply.args.lateFracs - reply.args.fractions) / 2 ** 32;
       this.events.banner("/late", `bundle ran ${seconds.toFixed(3)}s late`, "warn");
     }
-    const d = describeReply(reply);
-    this.append("rx", d.address, d.args);
+    this.appendRawReply(reply, raw);
+  }
+  private appendRawReply(reply: ServerReply, raw?: { address: string; args: object[] }) {
+    // Production always supplies the raw wire view; the unit tests that
+    // inject typed replies without bytes log the address alone.
+    const values = raw?.args.map((arg) => Object.values(arg)[0]) ?? [];
+    this.append("rx", raw?.address ?? reply.address, values.map(formatOscArg));
   }
   /** Log one outbound command, rendered straight from the typed message —
    *  no second wasm crossing per send just for the console. */

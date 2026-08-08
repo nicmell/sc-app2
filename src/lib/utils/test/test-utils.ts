@@ -9,7 +9,7 @@
 // imports, so its factory can't reference a shared helper here.
 
 import { vi, type MockInstance } from "vitest";
-import { decode, isMessage, OSC, type OscPacket } from "@sc-app/server-commands";
+import { isMessage, type OscMessage, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { adoptEntry } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
@@ -56,9 +56,9 @@ export async function mountPlugin(xml: string): Promise<{ host: ScPlugin; nodes:
  *  is satisfied — the sequencing itself is under test:
  *  /g_new → /n_go, /d_recv → its embedded /sync completion → /synced,
  *  /s_new → /n_go. */
-export function autoRespond(msg: OSC.Message): void {
+export function autoRespond(msg: OscMessage): void {
   const nGo = (nodeId: number) =>
-    oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
+    oscClient.handleReply({ address: "/n_go", args: [nodeId, 1, -1, -1, 0] });
   switch (msg.address) {
     case "/g_new":
     case "/s_new": {
@@ -66,9 +66,14 @@ export function autoRespond(msg: OSC.Message): void {
       break;
     }
     case "/d_recv": {
-      const completion = decode(msg.args[1] as unknown as Uint8Array);
-      if (isMessage(completion) && completion.address === "/sync") {
-        oscClient.handleReply(new OSC.Message("/synced", completion.args[0]));
+      const completion = msg.args[1];
+      if (
+        typeof completion === "object" &&
+        !(completion instanceof Uint8Array) &&
+        isMessage(completion) &&
+        completion.address === "/sync"
+      ) {
+        oscClient.handleReply({ address: "/synced", args: [completion.args[0]] });
       }
       break;
     }
@@ -81,12 +86,12 @@ export function autoRespond(msg: OSC.Message): void {
  *  stalled or partial server). Spies auto-restore between tests via the
  *  config's `restoreMocks: true`. */
 export function installScsynthMock(): {
-  sent: OSC.Message[];
+  sent: OscMessage[];
   send: MockInstance<(packet: OscPacket) => void>;
 } {
-  const sent: OSC.Message[] = [];
+  const sent: OscMessage[] = [];
   const send = vi.spyOn(oscClient, "send").mockImplementation((packet) => {
-    const msg = packet as OSC.Message;
+    const msg = packet as OscMessage;
     sent.push(msg);
     autoRespond(msg);
   });

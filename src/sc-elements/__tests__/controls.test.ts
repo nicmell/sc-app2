@@ -12,7 +12,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
-import { OSC } from "@sc-app/server-commands";
+import { type OscMessage } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import type { StateValue } from "@/types/runtime";
@@ -39,7 +39,12 @@ import {
 } from "@/lib/utils/test/test-utils";
 import xml from "/examples/synths/example-plugin/index.html?raw";
 
-let sent: OSC.Message[];
+const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
+  address,
+  args,
+});
+
+let sent: OscMessage[];
 let send: ReturnType<typeof installScsynthMock>["send"];
 
 const parseExample = () => parsePlugin(xml);
@@ -158,7 +163,7 @@ describe("load pass", () => {
   it("never resolves /s_new before the synthdef's /synced ack", async () => {
     // Withhold the /synced ack: the load pass must stall before /s_new.
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address !== "/d_recv") autoRespond(msg);
     });
@@ -351,9 +356,9 @@ describe("unmount", () => {
 describe("disconnect / reconnect", () => {
   it("does not adopt a plugin group whose /n_go arrives after unload", async () => {
     setConnected(true);
-    let pendingGroup: OSC.Message | undefined;
+    let pendingGroup: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/g_new") pendingGroup = msg;
       else autoRespond(msg);
@@ -375,9 +380,9 @@ describe("disconnect / reconnect", () => {
 
   it("does not mark a synthdef loaded when /synced arrives after unload", async () => {
     setConnected(true);
-    let pendingDef: OSC.Message | undefined;
+    let pendingDef: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/d_recv") pendingDef = msg;
       else autoRespond(msg);
@@ -450,7 +455,7 @@ describe("disconnect / reconnect", () => {
     setConnected(true);
     // Withhold the /synced ack so the first pass stalls at /d_recv.
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address !== "/d_recv") autoRespond(msg);
     });
@@ -466,7 +471,7 @@ describe("disconnect / reconnect", () => {
 
     // Reconnect against a fully answering server: exactly one clean pass.
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       autoRespond(msg);
     });
@@ -479,9 +484,9 @@ describe("disconnect / reconnect", () => {
 
   it("does not adopt a synth id from a load invalidated during the /n_go wait", async () => {
     setConnected(true);
-    let pendingSNew: OSC.Message | undefined;
+    let pendingSNew: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/s_new") pendingSNew = msg;
       else autoRespond(msg);
@@ -496,13 +501,13 @@ describe("disconnect / reconnect", () => {
     // Invalidate without closing the mock transport, then deliver the late
     // ack. The old pass resolves but must not resurrect the stale synth.
     setConnected(false);
-    oscClient.handleReply(new OSC.Message("/n_go", staleId, 1, -1, -1, 0));
+    oscClient.handleReply(oscMessage("/n_go", staleId, 1, -1, -1, 0));
     await firstLoad;
     expect(synth.loaded).toBe(false);
     expect(synth.nodeId).toBe(0);
 
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       autoRespond(msg);
     });
@@ -671,9 +676,9 @@ describe("bound enabled control on a synth", () => {
   });
 
   it("a write landing in the /s_new ack window is caught up after the ack", async () => {
-    let pendingSNew: OSC.Message | undefined;
+    let pendingSNew: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/s_new")
         pendingSNew = msg; // withhold the /n_go
@@ -692,7 +697,7 @@ describe("bound enabled control on a synth", () => {
     master(host).setValue(400);
     expect(nSets()).toHaveLength(0);
 
-    oscClient.handleReply(new OSC.Message("/n_go", nodeId, 1, -1, -1, 0));
+    oscClient.handleReply(oscMessage("/n_go", nodeId, 1, -1, -1, 0));
     await loading;
     expect(nSets()).toHaveLength(1); // the catch-up diff
     expect(nSets()[0].args).toEqual([nodeId, "freq", 800]);

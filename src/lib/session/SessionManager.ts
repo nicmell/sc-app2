@@ -30,7 +30,7 @@ export class SessionManager {
   readonly scsynthAddress = this.state.select((state) => state.scsynthAddress);
 
   /** (event, id) pairs of our oscClient subscriptions, for teardown(). */
-  private subscriptions: Array<[string, number]> = [];
+  private subscriptions: Array<["close", number]> = [];
   /** The layout-autosave timer + the last value it saved (reference compare). */
   private saveTimer: ReturnType<typeof setInterval> | null = null;
   private lastSavedLayout: BoxItem[] | null = null;
@@ -147,7 +147,10 @@ export class SessionManager {
     oscClient.close();
   }
 
-  private subscribe(event: string, callback: (...args: any[]) => void): void {
+  private subscribe(
+    event: "close",
+    callback: (info?: { code?: number; reason?: string }) => void,
+  ): void {
     this.subscriptions.push([event, oscClient.on(event, callback)]);
   }
 

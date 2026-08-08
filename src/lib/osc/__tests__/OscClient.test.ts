@@ -8,11 +8,21 @@
 // inside connect(), which is never called in this file.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { OSC, formatOscArg, SCOPE_CHUNK_ADDRESS, Synced } from "@sc-app/server-commands";
+import {
+  type OscMessage,
+  formatOscArg,
+  SCOPE_CHUNK_ADDRESS,
+  Synced,
+} from "@sc-app/server-commands";
 import { MAX_LOG, REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import { SliceName } from "@/constants/store";
+
+const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
+  address,
+  args,
+});
 
 const oscSlice = appStore.slice(SliceName.OSC);
 
@@ -22,7 +32,7 @@ beforeEach(() => {
 
 describe("OscClient.handleReply", () => {
   it("logs an ordinary reply as rx", () => {
-    oscClient.handleReply(new OSC.Message("/n_go", 1000, 1));
+    oscClient.handleReply(oscMessage("/n_go", 1000, 1));
     const log = oscClient.log.get();
     expect(log).toHaveLength(1);
     expect(log[0]).toMatchObject({ dir: "rx", address: "/n_go", args: ["1000", "1"] });
@@ -30,7 +40,7 @@ describe("OscClient.handleReply", () => {
 
   it("keeps the log bounded to MAX_LOG, dropping the oldest", () => {
     for (let i = 0; i < MAX_LOG + 10; i++) {
-      oscClient.handleReply(new OSC.Message("/n_go", i));
+      oscClient.handleReply(oscMessage("/n_go", i));
     }
     const log = oscClient.log.get();
     expect(log).toHaveLength(MAX_LOG);
@@ -39,9 +49,7 @@ describe("OscClient.handleReply", () => {
   });
 
   it("routes /status.reply into scsynthStatus and keeps it out of the log", () => {
-    oscClient.handleReply(
-      new OSC.Message("/status.reply", 1, 0, 0, 0, 0, 12.5, 20.25, 48000, 48000.0),
-    );
+    oscClient.handleReply(oscMessage("/status.reply", 1, 0, 0, 0, 0, 12.5, 20.25, 48000, 48000.0));
     expect(oscClient.scsynthStatus.get()).toEqual({
       avgCpu: 12.5,
       peakCpu: 20.25,
@@ -54,7 +62,7 @@ describe("OscClient.handleReply", () => {
   });
 
   it("coalesces identical /fail banners and still logs them; dismissError drops one", () => {
-    const fail = () => new OSC.Message("/fail", "/s_new", "SynthDef not found");
+    const fail = () => oscMessage("/fail", "/s_new", "SynthDef not found");
     oscClient.handleReply(fail());
     oscClient.handleReply(fail());
     const errors = oscClient.errors.get();
@@ -72,7 +80,7 @@ describe("OscClient.handleReply", () => {
   });
 
   it("skips /scope/chunk in the console log", () => {
-    oscClient.handleReply(new OSC.Message(SCOPE_CHUNK_ADDRESS, 1, 0));
+    oscClient.handleReply(oscMessage(SCOPE_CHUNK_ADDRESS, 1, 0));
     expect(oscClient.log.get()).toHaveLength(0);
   });
 });
@@ -84,7 +92,7 @@ describe("OscClient.once", () => {
 
   it("resolves on the first matching reply, which still reaches the console log", async () => {
     const reply = oscClient.once("/synced", (m) => Synced.syncId(m) === 7);
-    oscClient.handleReply(new OSC.Message("/synced", 7));
+    oscClient.handleReply(oscMessage("/synced", 7));
     const msg = await reply;
     expect(msg.args).toEqual([7]);
     expect(oscClient.log.get()).toHaveLength(1);
@@ -93,11 +101,11 @@ describe("OscClient.once", () => {
   it("ignores non-matching replies and is one-shot FIFO per match", async () => {
     const first = oscClient.once("/n_go", (m) => m.args[0] === 100);
     const second = oscClient.once("/n_go", (m) => m.args[0] === 100);
-    oscClient.handleReply(new OSC.Message("/n_go", 99, 1, -1, -1, 0));
-    oscClient.handleReply(new OSC.Message("/n_go", 100, 1, -1, -1, 0));
+    oscClient.handleReply(oscMessage("/n_go", 99, 1, -1, -1, 0));
+    oscClient.handleReply(oscMessage("/n_go", 100, 1, -1, -1, 0));
     await expect(first).resolves.toMatchObject({ address: "/n_go" });
     // The second waiter is still pending — only one waiter consumed the reply.
-    oscClient.handleReply(new OSC.Message("/n_go", 100, 1, -1, -1, 0));
+    oscClient.handleReply(oscMessage("/n_go", 100, 1, -1, -1, 0));
     await expect(second).resolves.toMatchObject({ address: "/n_go" });
   });
 
@@ -110,7 +118,7 @@ describe("OscClient.once", () => {
     vi.advanceTimersByTime(REPLY_TIMEOUT_MS);
     await expectation;
     // A late reply after the timeout matches nothing (the waiter is gone).
-    oscClient.handleReply(new OSC.Message("/synced", 8));
+    oscClient.handleReply(oscMessage("/synced", 8));
   });
 
   it("rejects pending waiters when the connection closes", async () => {
@@ -128,8 +136,8 @@ describe("OscClient.createSynth", () => {
   });
 
   it("frees the allocated node when the /n_go ack times out (no untracked drones)", async () => {
-    const sent: OSC.Message[] = [];
-    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OSC.Message));
+    const sent: OscMessage[] = [];
+    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OscMessage));
     vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => 4242);
     vi.useFakeTimers();
     const create = oscClient.createSynth("sine", 1, { freq: 440 });
@@ -146,8 +154,8 @@ describe("OscClient.createSynth", () => {
 
 describe("OscClient.setControln", () => {
   it("sends /n_setn with the named contiguous run", () => {
-    const sent: OSC.Message[] = [];
-    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OSC.Message));
+    const sent: OscMessage[] = [];
+    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OscMessage));
     oscClient.setControln(2001, "shape", [0, 3, 2, -99, 1, 0.5]);
     expect(sent).toHaveLength(1);
     expect(sent[0].address).toBe("/n_setn");

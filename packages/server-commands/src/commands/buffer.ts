@@ -2,13 +2,9 @@
  * Buffer commands. Allocation / read / write / query.
  */
 
-import OSC from "osc-js";
+import type { OscArg, OscMessage, OscPacket } from "../types";
 
-// osc-js's .d.ts types blob args as `Blob`; its runtime check is
-// `instanceof Uint8Array`. Widen via cast at every call site that
-// takes a `completionMsg` blob.
-const anyArr = (xs: ReadonlyArray<unknown>): any[] => xs as any[];
-const b = (bytes: Uint8Array): any => bytes;
+const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, args });
 
 // ── /b_alloc[Read][Channel] ───────────────────────────────────────────
 
@@ -16,22 +12,22 @@ export const bAlloc = (
   bufnum: number,
   numFrames: number,
   numChannels = 1,
-  completionMsg?: Uint8Array,
-): OSC.Message =>
+  completionMsg?: OscPacket,
+): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/b_alloc", bufnum, numFrames, numChannels)
-    : new OSC.Message("/b_alloc", bufnum, numFrames, numChannels, b(completionMsg));
+    ? message("/b_alloc", bufnum, numFrames, numChannels)
+    : message("/b_alloc", bufnum, numFrames, numChannels, completionMsg);
 
 export const bAllocRead = (
   bufnum: number,
   path: string,
   startFrame = 0,
   numFrames = 0,
-  completionMsg?: Uint8Array,
-): OSC.Message =>
+  completionMsg?: OscPacket,
+): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/b_allocRead", bufnum, path, startFrame, numFrames)
-    : new OSC.Message("/b_allocRead", bufnum, path, startFrame, numFrames, b(completionMsg));
+    ? message("/b_allocRead", bufnum, path, startFrame, numFrames)
+    : message("/b_allocRead", bufnum, path, startFrame, numFrames, completionMsg);
 
 export const bAllocReadChannel = (
   bufnum: number,
@@ -39,11 +35,11 @@ export const bAllocReadChannel = (
   startFrame: number,
   numFrames: number,
   channels: readonly number[],
-  completionMsg?: Uint8Array,
-): OSC.Message => {
-  const base: unknown[] = [bufnum, path, startFrame, numFrames, ...channels];
-  if (completionMsg !== undefined) base.push(b(completionMsg));
-  return new OSC.Message("/b_allocReadChannel", ...anyArr(base));
+  completionMsg?: OscPacket,
+): OscMessage => {
+  const base: OscArg[] = [bufnum, path, startFrame, numFrames, ...channels];
+  if (completionMsg !== undefined) base.push(completionMsg);
+  return message("/b_allocReadChannel", ...base);
 };
 
 // ── /b_read[Channel] ──────────────────────────────────────────────────
@@ -55,11 +51,11 @@ export const bRead = (
   numFrames = -1,
   bufStartFrame = 0,
   leaveOpen = 0,
-  completionMsg?: Uint8Array,
-): OSC.Message => {
-  const base: unknown[] = [bufnum, path, startFrame, numFrames, bufStartFrame, leaveOpen];
-  if (completionMsg !== undefined) base.push(b(completionMsg));
-  return new OSC.Message("/b_read", ...anyArr(base));
+  completionMsg?: OscPacket,
+): OscMessage => {
+  const base: OscArg[] = [bufnum, path, startFrame, numFrames, bufStartFrame, leaveOpen];
+  if (completionMsg !== undefined) base.push(completionMsg);
+  return message("/b_read", ...base);
 };
 
 export const bReadChannel = (
@@ -70,9 +66,9 @@ export const bReadChannel = (
   bufStartFrame: number,
   leaveOpen: number,
   channels: readonly number[],
-  completionMsg?: Uint8Array,
-): OSC.Message => {
-  const base: unknown[] = [
+  completionMsg?: OscPacket,
+): OscMessage => {
+  const base: OscArg[] = [
     bufnum,
     path,
     startFrame,
@@ -81,8 +77,8 @@ export const bReadChannel = (
     leaveOpen,
     ...channels,
   ];
-  if (completionMsg !== undefined) base.push(b(completionMsg));
-  return new OSC.Message("/b_readChannel", ...anyArr(base));
+  if (completionMsg !== undefined) base.push(completionMsg);
+  return message("/b_readChannel", ...base);
 };
 
 // ── /b_write ──────────────────────────────────────────────────────────
@@ -95,9 +91,9 @@ export const bWrite = (
   numFrames = -1,
   startFrame = 0,
   leaveOpen = 0,
-  completionMsg?: Uint8Array,
-): OSC.Message => {
-  const base: unknown[] = [
+  completionMsg?: OscPacket,
+): OscMessage => {
+  const base: OscArg[] = [
     bufnum,
     path,
     headerFormat,
@@ -106,54 +102,53 @@ export const bWrite = (
     startFrame,
     leaveOpen,
   ];
-  if (completionMsg !== undefined) base.push(b(completionMsg));
-  return new OSC.Message("/b_write", ...anyArr(base));
+  if (completionMsg !== undefined) base.push(completionMsg);
+  return message("/b_write", ...base);
 };
 
 // ── /b_free, /b_close, /b_zero ────────────────────────────────────────
 
-export const bFree = (bufnum: number, completionMsg?: Uint8Array): OSC.Message =>
+export const bFree = (bufnum: number, completionMsg?: OscPacket): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/b_free", bufnum)
-    : new OSC.Message("/b_free", bufnum, b(completionMsg));
+    ? message("/b_free", bufnum)
+    : message("/b_free", bufnum, completionMsg);
 
-export const bClose = (bufnum: number, completionMsg?: Uint8Array): OSC.Message =>
+export const bClose = (bufnum: number, completionMsg?: OscPacket): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/b_close", bufnum)
-    : new OSC.Message("/b_close", bufnum, b(completionMsg));
+    ? message("/b_close", bufnum)
+    : message("/b_close", bufnum, completionMsg);
 
-export const bZero = (bufnum: number, completionMsg?: Uint8Array): OSC.Message =>
+export const bZero = (bufnum: number, completionMsg?: OscPacket): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/b_zero", bufnum)
-    : new OSC.Message("/b_zero", bufnum, b(completionMsg));
+    ? message("/b_zero", bufnum)
+    : message("/b_zero", bufnum, completionMsg);
 
 // ── /b_query ──────────────────────────────────────────────────────────
 
-export const bQuery = (...bufnums: number[]): OSC.Message =>
-  new OSC.Message("/b_query", ...bufnums);
+export const bQuery = (...bufnums: number[]): OscMessage => message("/b_query", ...bufnums);
 
 // ── /b_set, /b_setn, /b_fill ──────────────────────────────────────────
 
-export const bSet = (bufnum: number, ...pairs: ReadonlyArray<[number, number]>): OSC.Message =>
-  new OSC.Message("/b_set", bufnum, ...pairs.flat());
+export const bSet = (bufnum: number, ...pairs: ReadonlyArray<[number, number]>): OscMessage =>
+  message("/b_set", bufnum, ...pairs.flat());
 
 /** `/b_setn bufnum start numValues v1 v2 …` — one contiguous run. */
-export const bSetn = (bufnum: number, start: number, values: readonly number[]): OSC.Message =>
-  new OSC.Message("/b_setn", bufnum, start, values.length, ...values);
+export const bSetn = (bufnum: number, start: number, values: readonly number[]): OscMessage =>
+  message("/b_setn", bufnum, start, values.length, ...values);
 
 export const bFill = (
   bufnum: number,
   ...ranges: ReadonlyArray<[number, number, number]>
-): OSC.Message => new OSC.Message("/b_fill", bufnum, ...ranges.flat());
+): OscMessage => message("/b_fill", bufnum, ...ranges.flat());
 
 // ── /b_get, /b_getn ───────────────────────────────────────────────────
 
-export const bGet = (bufnum: number, ...indices: number[]): OSC.Message =>
-  new OSC.Message("/b_get", bufnum, ...indices);
+export const bGet = (bufnum: number, ...indices: number[]): OscMessage =>
+  message("/b_get", bufnum, ...indices);
 
 /** `/b_getn bufnum start count` — single range. */
-export const bGetn = (bufnum: number, start: number, count: number): OSC.Message =>
-  new OSC.Message("/b_getn", bufnum, start, count);
+export const bGetn = (bufnum: number, start: number, count: number): OscMessage =>
+  message("/b_getn", bufnum, start, count);
 
 // ── /b_gen, /b_setSampleRate ──────────────────────────────────────────
 
@@ -162,7 +157,7 @@ export const bGen = (
   command: string,
   flags: number,
   ...params: (number | string)[]
-): OSC.Message => new OSC.Message("/b_gen", bufnum, command, flags, ...params);
+): OscMessage => message("/b_gen", bufnum, command, flags, ...params);
 
-export const bSetSampleRate = (bufnum: number, sampleRate: number): OSC.Message =>
-  new OSC.Message("/b_setSampleRate", bufnum, sampleRate);
+export const bSetSampleRate = (bufnum: number, sampleRate: number): OscMessage =>
+  message("/b_setSampleRate", bufnum, sampleRate);

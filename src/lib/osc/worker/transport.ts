@@ -2,13 +2,17 @@
 // `{ open, close, send, onEvent, status }` interface. This runs INSIDE the
 // Web Worker (worker.ts calls `createWsTransport()` directly); the main
 // thread talks to it through the WorkerClient, which exposes the same
-// interface across the postMessage boundary. No osc-js here.
+// interface across the postMessage boundary. No binary codec here.
 
-import type { TransportEvent } from "@/types/osc";
+export type RawTransportEvent =
+  | { type: "open" }
+  | { type: "message"; data: ArrayBuffer }
+  | { type: "error"; message: string }
+  | { type: "close"; code?: number; reason?: string };
 
 /** Connection states. The numbering deliberately mirrors WebSocket
- *  `readyState` — and therefore `OSC.STATUS` — plus -1 for "never opened",
- *  so the osc-js plugin can return it from `status()` verbatim. */
+ *  `readyState` — plus -1 for "never opened",
+ *  so the main-thread proxy can mirror it exactly. */
 export const TRANSPORT_STATUS = {
   IS_NOT_INITIALIZED: -1,
   IS_CONNECTING: 0,
@@ -31,8 +35,8 @@ export interface WorkerTransport {
   send(data: Uint8Array): void;
   /** Register the consumer of transport events — open/message/error/close
    *  (one listener). */
-  onEvent(cb: (msg: TransportEvent) => void): void;
-  /** Connection status (a `TRANSPORT_STATUS` / `OSC.STATUS` value). */
+  onEvent(cb: (msg: RawTransportEvent) => void): void;
+  /** Connection status (a `TRANSPORT_STATUS` value). */
   status(): TransportStatus;
 }
 
@@ -44,7 +48,7 @@ export interface WorkerTransport {
  *  after a new connection's subscribers are in place. */
 export function createWsTransport(): WorkerTransport {
   let ws: WebSocket | null = null;
-  let notify: (msg: TransportEvent) => void = () => {};
+  let notify: (msg: RawTransportEvent) => void = () => {};
 
   /** Detach + close the current socket without emitting anything. */
   const dispose = () => {

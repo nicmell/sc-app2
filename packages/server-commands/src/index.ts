@@ -1,26 +1,17 @@
 /**
  * @sc-app/server-commands — scsynth OSC messaging layer for the app.
  *
- * Wraps `osc-js`. Callers work with `OSC.Message` and `OSC.Bundle`
- * directly; these helpers provide the per-address constructors,
+ * Callers work with plain OSC packet objects. These helpers provide per-address constructors,
  * typed reply accessors, and timetag helpers for sample-accurate
  * scheduling.
  *
  * ```ts
- * import OSC from 'osc-js';
- * import { sNew, AddToHead, encode, inFuture } from '@sc-app/server-commands';
+ * import { sNew, AddToHead, inFuture } from '@sc-app/server-commands';
  *
  * const msg = sNew('myDef', 1001, AddToHead, 100);
- * const bundle = new OSC.Bundle([msg], inFuture(200));  // fire in 200 ms
- * const bytes = encode(bundle);
+ * const bundle = { timetag: inFuture(200), packets: [msg] };
  * ```
  */
-
-// Re-export osc-js as the default "OSC" symbol for ergonomic imports.
-export { default as OSC } from "osc-js";
-
-// Binary <-> osc-js.
-export { encode, decode, isBundle, isMessage, type OscPacket } from "./encode";
 
 // Flatten a packet/bundle into per-message (address, args) entries.
 export { flattenPacket, formatOscArg, type FlatOsc } from "./flatten";
@@ -30,7 +21,16 @@ export * as timetag from "./timetag";
 export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } from "./timetag";
 
 // Type primitives.
-export type { OscArg, ControlKey, ControlValue } from "./types";
+export {
+  isBundle,
+  isMessage,
+  type OscArg,
+  type OscBundle,
+  type OscMessage,
+  type OscPacket,
+  type ControlKey,
+  type ControlValue,
+} from "./types";
 
 // Command constructors.
 export * from "./commands";

@@ -1,39 +1,33 @@
 /**
  * SynthDef commands. `/d_recv` is the one we lean on most — embed a
- * `/sync` bundle in `completionMsg` to atomically correlate install
+ * `/sync` packet in `completionMsg` to atomically correlate install
  * success.
  */
 
-import OSC from "osc-js";
+import type { OscArg, OscMessage, OscPacket } from "../types";
 
-// osc-js's .d.ts types blob args as `Blob` but its runtime check is
-// `instanceof Uint8Array`. Cast at call sites.
-const b = (bytes: Uint8Array): any => bytes;
+const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, args });
 
 // ── /d_recv ───────────────────────────────────────────────────────────
 
 /** Bytes of one or more compiled synthdefs. `completionMsg` is an
- *  OSC packet (already packed to bytes) scsynth will execute *after*
- *  the synthdefs are installed — a convenient place to embed a
- *  `/sync` so the caller can await the install as a single promise. */
-export const dRecv = (bytes: Uint8Array, completionMsg?: Uint8Array): OSC.Message =>
+ *  plain OSC packet the worker codec packs as a blob. scsynth executes it
+ *  *after* installation — a convenient place to embed `/sync`. */
+export const dRecv = (bytes: Uint8Array, completionMsg?: OscPacket): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/d_recv", b(bytes))
-    : new OSC.Message("/d_recv", b(bytes), b(completionMsg));
+    ? message("/d_recv", bytes)
+    : message("/d_recv", bytes, completionMsg);
 
 // ── /d_load, /d_loadDir ───────────────────────────────────────────────
 
-export const dLoad = (path: string, completionMsg?: Uint8Array): OSC.Message =>
-  completionMsg === undefined
-    ? new OSC.Message("/d_load", path)
-    : new OSC.Message("/d_load", path, b(completionMsg));
+export const dLoad = (path: string, completionMsg?: OscPacket): OscMessage =>
+  completionMsg === undefined ? message("/d_load", path) : message("/d_load", path, completionMsg);
 
-export const dLoadDir = (path: string, completionMsg?: Uint8Array): OSC.Message =>
+export const dLoadDir = (path: string, completionMsg?: OscPacket): OscMessage =>
   completionMsg === undefined
-    ? new OSC.Message("/d_loadDir", path)
-    : new OSC.Message("/d_loadDir", path, b(completionMsg));
+    ? message("/d_loadDir", path)
+    : message("/d_loadDir", path, completionMsg);
 
 // ── /d_free ───────────────────────────────────────────────────────────
 
-export const dFree = (...defNames: string[]): OSC.Message =>
-  new OSC.Message("/d_free", ...defNames);
+export const dFree = (...defNames: string[]): OscMessage => message("/d_free", ...defNames);

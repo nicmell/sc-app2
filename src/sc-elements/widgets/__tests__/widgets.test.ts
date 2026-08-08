@@ -8,7 +8,7 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { flattenPacket, OSC } from "@sc-app/server-commands";
+import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
@@ -28,10 +28,15 @@ import {
 import { strudelMirrors } from "@/lib/utils/test/stubs/strudel-codemirror";
 import strudelStyles from "@/sc-elements/widgets/sc-strudel/sc-strudel.module.scss";
 
+const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
+  address,
+  args,
+});
+
 const SCOPE_BASE = 8;
 const SCOPE_COUNT = 8;
 
-let sent: OSC.Message[];
+let sent: OscMessage[];
 let send: ReturnType<typeof installScsynthMock>["send"];
 
 /** Arm the private scope-slot allocator (normally done by connect()). */
@@ -58,14 +63,12 @@ const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
   (await mountPlugin(wrapXml(bodyXml))).host;
 
 /** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
- *  channel — the SHM slot's own layout). osc-js types message blob args as
- *  `Blob` though the runtime uses Uint8Array, so return it cast (as the
- *  package's own command constructors do). */
-function beBlob(floats: number[]): Blob {
+ *  channel — the SHM slot's own layout). */
+function beBlob(floats: number[]): Uint8Array {
   const bytes = new Uint8Array(floats.length * 4);
   const dv = new DataView(bytes.buffer);
   floats.forEach((f, i) => dv.setFloat32(i * 4, f, false));
-  return bytes as unknown as Blob;
+  return bytes;
 }
 
 beforeAll(() => {
@@ -99,9 +102,9 @@ describe("sc-scope", () => {
   });
 
   it("releases a late tap and its scope slot when load was invalidated", async () => {
-    let pendingTap: OSC.Message | undefined;
+    let pendingTap: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/s_new") pendingTap = msg;
       else autoRespond(msg);
@@ -156,12 +159,10 @@ describe("sc-scope", () => {
     const scope = host.querySelector("sc-scope") as ScScope;
     const subId = sent[3].args[0] as number;
 
-    oscClient.handleReply(
-      new OSC.Message("/scope/chunk", subId + 99, 1, 0, 2, beBlob([0.5, -0.5])),
-    );
+    oscClient.handleReply(oscMessage("/scope/chunk", subId + 99, 1, 0, 2, beBlob([0.5, -0.5])));
     expect(scope.chunkRef.current).toBeNull(); // foreign subId ignored
 
-    oscClient.handleReply(new OSC.Message("/scope/chunk", subId, 1, 0, 2, beBlob([0.5, -0.5])));
+    oscClient.handleReply(oscMessage("/scope/chunk", subId, 1, 0, 2, beBlob([0.5, -0.5])));
     expect(scope.chunkRef.current).toMatchObject({ subId, channels: 2, frameCount: 1 });
     expect(scope.chunkRef.current!.data[0]).toBeCloseTo(0.5);
   });
@@ -456,9 +457,9 @@ describe("sc-keyboard", () => {
     const kbd = host.querySelector("sc-keyboard") as ScKeyboard;
 
     // Withhold the /s_new reply so the voice stays pending.
-    let pending: OSC.Message | undefined;
+    let pending: OscMessage | undefined;
     send.mockImplementation((packet) => {
-      const msg = packet as OSC.Message;
+      const msg = packet as OscMessage;
       sent.push(msg);
       if (msg.address === "/s_new") pending = msg;
       else autoRespond(msg);

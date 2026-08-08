@@ -21,7 +21,9 @@
  * decodes via `decodeScopeChunkBlob`.
  */
 
-import OSC from "osc-js";
+import type { OscArg, OscMessage } from "../types";
+
+const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, args });
 
 export const SCOPE_SUBSCRIBE_ADDRESS = "/scope/subscribe";
 export const SCOPE_UNSUBSCRIBE_ADDRESS = "/scope/unsubscribe";
@@ -42,11 +44,11 @@ export const scopeSubscribe = ({
   scope,
   channels,
   chunkSize,
-}: ScopeSubscribeParams): OSC.Message =>
-  new OSC.Message(SCOPE_SUBSCRIBE_ADDRESS, subId, scope, channels, chunkSize);
+}: ScopeSubscribeParams): OscMessage =>
+  message(SCOPE_SUBSCRIBE_ADDRESS, subId, scope, channels, chunkSize);
 
-export const scopeUnsubscribe = (subId: number): OSC.Message =>
-  new OSC.Message(SCOPE_UNSUBSCRIBE_ADDRESS, subId);
+export const scopeUnsubscribe = (subId: number): OscMessage =>
+  message(SCOPE_UNSUBSCRIBE_ADDRESS, subId);
 
 export interface DecodedScopeChunk {
   subId: number;
@@ -63,8 +65,8 @@ export interface DecodedScopeChunk {
 
 /** Parse the args of a decoded `/scope/chunk` reply. The bridge
  *  encodes the data blob with big-endian f32 bytes; we byte-swap
- *  on the way to a `Float32Array` because osc-js gives us the raw
- *  blob bytes as a `Uint8Array` (host-native float interpretation
+ *  on the way to a `Float32Array` because the codec gives us the raw blob
+ *  bytes as a `Uint8Array` (host-native float interpretation
  *  isn't safe). */
 export function parseScopeChunkArgs(args: ReadonlyArray<unknown>): DecodedScopeChunk {
   if (args.length < 5) {

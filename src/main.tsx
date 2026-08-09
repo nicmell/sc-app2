@@ -11,9 +11,8 @@ import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
-// Activate the OSC packet observers at the application composition root.
+// Activate the OSC packet observers and status watchdog at the application composition root.
 import "@/lib/osc/middlewares";
-import "@/lib/osc/watchdog";
 
 // Define the plugin custom elements + the ui-components `-base` widgets before
 // the router renders any route that can mount them.

@@ -1,8 +1,6 @@
-// The raw WebSocket transport for packed OSC frames, behind the shared
-// `{ open, close, send, onEvent, status }` interface. This runs INSIDE the
-// Web Worker (worker.ts calls `createWsTransport()` directly); the main
-// thread talks to it through the WorkerClient, which exposes the same
-// interface across the postMessage boundary. No binary codec here.
+// The raw WebSocket transport for packed OSC frames. This runs inside the Web
+// Worker and has one implementation: `createWsTransport`, consumed directly by
+// worker.ts. WorkerClient is the distinct main-thread plain-packet proxy.
 
 export type RawTransportEvent =
   | { type: "open" }
@@ -23,9 +21,8 @@ export const TRANSPORT_STATUS = {
 
 export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_STATUS];
 
-/** A transport for packed OSC frames — implemented by the raw WebSocket
- *  (`createWsTransport`, in the worker) and by its main-thread proxy
- *  (the WorkerClient). */
+/** A transport for packed OSC frames — implemented by `createWsTransport` and
+ *  consumed by worker.ts. */
 export interface WorkerTransport {
   /** Open the connection to `url`. */
   open(url: string): void;

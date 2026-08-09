@@ -3,8 +3,8 @@
 import { statusWatchdog } from "../watchdog";
 import { workerClient } from "../worker/WorkerClient";
 import { errorsMiddleware } from "./errors";
-import { logging } from "./logging";
-import { status } from "./status";
+import { loggingMiddleware } from "./logging";
+import { statusMiddleware } from "./status";
 
 /** Register the transport observers. Tx logging skips `/clock/*`; scope
  * subscribe/unsubscribe remain logged. Rx logging skips `/scope/chunk`,
@@ -13,11 +13,7 @@ import { status } from "./status";
  * dependency because every observer calls next synchronously. Phase 2 will
  * run this contract worker-side, beginning with worker.ts's `/clock/*`
  * interception; that symmetry is intentionally not implemented here. */
-workerClient.use(logging);
+workerClient.use(loggingMiddleware);
 workerClient.use(errorsMiddleware);
-workerClient.use(status);
+workerClient.use(statusMiddleware);
 workerClient.use(statusWatchdog.middleware);
-
-export * from "./errors";
-export * from "./logging";
-export * from "./status";

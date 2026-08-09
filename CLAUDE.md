@@ -109,8 +109,8 @@ types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
                          runtime.d.ts (engine types: runtime mixins + RuntimeContext)
-constants/               per-domain constants (as-const maps + defaults):
-                         env (HTTP_BASE_URL), osc (OSC_REPLIES, scope tap),
+  constants/               per-domain constants (as-const maps + defaults):
+                         env (HTTP_BASE_URL), osc (timeouts/limits, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
 lib/                     non-React infrastructure
   expression/              the bind-expression LANGUAGE: ast (the Expr union),

@@ -18,8 +18,8 @@ export const version = (): OscMessage => message("/version");
 
 // ── /sync ─────────────────────────────────────────────────────────────
 
-/** `/sync id`. Prefer `WorkerClient.sendAndSync` which allocates the id
- *  for you — this helper is useful for embedding into `completionMsg`s. */
+/** `/sync id`. `OscClient.sendSynthDef` allocates the id and awaits the
+ *  embedded `/sync` acknowledgement; this helper builds that completion message. */
 export const sync = (id: number): OscMessage => message("/sync", id);
 
 // ── /notify ───────────────────────────────────────────────────────────

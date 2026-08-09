@@ -3,11 +3,11 @@
 // and checks freshness on the worker's unthrottled clock so background-tab
 // timer throttling cannot postpone detection of a dead scsynth connection.
 
-import { OSC_REPLIES, CLOCK_WATCHDOG_INTERVAL_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
-import { walkPacket } from "@sc-app/server-commands";
+import { ADDR_STATUS_REPLY, walkPacket } from "@sc-app/server-commands";
+import { CLOCK_WATCHDOG_INTERVAL_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportMiddleware } from "./middleware";
 import { oscClient } from "./OscClient";
-import { push } from "./middlewares/errors";
+import { pushError } from "./middlewares/errors";
 
 export class StatusWatchdog {
   private lastStatusAt = 0;
@@ -16,7 +16,7 @@ export class StatusWatchdog {
     event: (event, next) => {
       if (event.type === "osc") {
         walkPacket(event.packet, (message) => {
-          if (message.address === OSC_REPLIES.STATUS) this.lastStatusAt = performance.now();
+          if (message.address === ADDR_STATUS_REPLY) this.lastStatusAt = performance.now();
         });
       }
       next(event);
@@ -40,9 +40,9 @@ export class StatusWatchdog {
       ) {
         return;
       }
-      const message = `no ${OSC_REPLIES.STATUS} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
+      const message = `no ${ADDR_STATUS_REPLY} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
       console.error(`[osc] ${message}`);
-      push(OSC_REPLIES.STATUS, message, "error");
+      pushError(ADDR_STATUS_REPLY, message, "error");
       oscClient.close();
     }).off;
   }

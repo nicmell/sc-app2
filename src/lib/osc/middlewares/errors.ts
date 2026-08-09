@@ -1,7 +1,7 @@
 // Transport and scsynth error middleware. Owns only coalesced error banners.
 
-import { formatOscArg, walkPacket } from "@sc-app/server-commands";
-import { MAX_ERRORS, OSC_REPLIES } from "@/constants/osc";
+import { ADDR_FAIL, ADDR_LATE, formatOscArg, walkPacket } from "@sc-app/server-commands";
+import { MAX_ERRORS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { TransportMiddleware } from "../middleware";
@@ -10,7 +10,7 @@ const state = appStore.slice(SliceName.OSC);
 export const errors = state.select((value) => value.errors);
 let nextBannerId = 0;
 
-export function push(address: string, message: string, variant: "error" | "warn"): void {
+export function pushError(address: string, message: string, variant: "error" | "warn"): void {
   state.update((value) => {
     const existing = value.errors.find(
       (error) => error.address === address && error.message === message,
@@ -45,23 +45,23 @@ export const errorsMiddleware: TransportMiddleware = {
   event(event, next) {
     if (event.type === "error") {
       console.error("[osc] transport error:", event.message);
-      push("websocket", event.message, "error");
+      pushError("websocket", event.message, "error");
     } else if (event.type === "close" && event.code && event.code !== 1000) {
       const message = `connection closed (${event.code}${event.reason ? `: ${event.reason}` : ""})`;
       console.warn(`[osc] ${message}`);
-      push("websocket", message, "warn");
+      pushError("websocket", message, "warn");
     } else if (event.type === "osc") {
       walkPacket(event.packet, (message) => {
-        if (message.address === OSC_REPLIES.FAIL) {
+        if (message.address === ADDR_FAIL) {
           const command = formatOscArg(message.args[0] ?? "?");
           const detail = formatOscArg(message.args[1] ?? "(no message)");
           console.error(`[scsynth] ${command}: ${detail}`);
-          push(command, detail, "error");
-        } else if (message.address === OSC_REPLIES.LATE) {
+          pushError(command, detail, "error");
+        } else if (message.address === ADDR_LATE) {
           const seconds = Number(message.args[0]) || 0;
           const detail = `bundle ran ${seconds.toFixed(3)}s late`;
           console.warn(`[scsynth] /late: ${detail}`);
-          push("/late", detail, "warn");
+          pushError(ADDR_LATE, detail, "warn");
         }
       });
     }

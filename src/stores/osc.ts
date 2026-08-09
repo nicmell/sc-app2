@@ -1,7 +1,7 @@
 // React bindings for the OSC transport middleware stores:
 // useSyncExternalStore hooks over its reactive views — the bounded tx/rx
 // console log, the coalescing error banners, and scsynth's reported load.
-// Middleware exports remain available to non-React consumers.
+// Only the middleware views/actions consumed by app code are exposed here.
 
 import { useSyncExternalStore } from "react";
 import { errors } from "@/lib/osc/middlewares/errors";
@@ -11,9 +11,9 @@ import type { ClockStatus, LoggedEntry, ScsynthError, ScsynthStatus } from "@/ty
 
 // Re-export the singleton so app imports go through the store layer.
 export { oscClient } from "@/lib/osc/OscClient";
-export * from "@/lib/osc/middlewares/errors";
-export * from "@/lib/osc/middlewares/logging";
-export * from "@/lib/osc/middlewares/status";
+export { dismissError, errors } from "@/lib/osc/middlewares/errors";
+export { log } from "@/lib/osc/middlewares/logging";
+export { clock, scsynthStatus } from "@/lib/osc/middlewares/status";
 
 /** Subscribe a React component to the bounded OSC log. */
 export function useOscLog(): LoggedEntry[] {

@@ -1,13 +1,9 @@
 /**
- * Scope-protocol OSC commands (Phase 38).
+ * Scope-protocol OSC commands.
  *
- * Pre-Phase-38 these flowed as binary 0x01/0x02/0x03 frames on
- * the main /ws via a now-deleted `src/workers/scopeWire.ts` module.
- * Phase 38 retired the binary mux in favor of plain OSC messages;
- * the bridge handles
- * `/scope/{subscribe,unsubscribe}` via outbound middleware
- * (`src-tauri/src/scope/middleware.rs`) and emits `/scope/chunk`
- * inbound as a regular OSC reply.
+ * The bridge intercepts `/scope/*` messages in the WebSocket pump and services
+ * them through `src-tauri/src/core/scope/`. It emits `/scope/chunk` as a regular
+ * OSC reply; the main thread decodes chunk args with `parseScopeChunkArgs`.
  *
  * Wire shape:
  * - `/scope/subscribe`   subId:i, scope:i, channels:i, chunk:i
@@ -17,8 +13,7 @@
  * `data` is a blob (`Uint8Array`) of `frameCount × channels × 4`
  * bytes of **big-endian** IEEE-754 float32, planar — one frame run
  * per channel (the SHM slot's own layout).
- * BE for consistency with OSC's `,f` type. The worker's reply pump
- * decodes via `decodeScopeChunkBlob`.
+ * BE for consistency with OSC's `,f` type.
  */
 
 import type { OscArg, OscMessage } from "../types";

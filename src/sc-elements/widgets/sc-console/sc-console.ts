@@ -1,11 +1,11 @@
 // <sc-console> — the OSC message log. Ports the old OscConsole: subscribes to
-// the OscClient's bounded tx/rx log store and renders it as a scrolling list,
+// the telemetry observer's bounded tx/rx log store and renders it as a scrolling list,
 // pinned to the newest row. Light DOM so ui-components .osc-* styles apply.
 
 import { html } from "lit";
 import { requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
-import { oscClient } from "@/stores/osc";
+import { oscTelemetry } from "@/stores/osc";
 import type { LoggedEntry } from "@/types/stores";
 import styles from "./sc-console.module.scss";
 
@@ -24,7 +24,7 @@ export class ScConsole extends ScElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.off = oscClient.log.subscribe(() => this.requestUpdate());
+    this.off = oscTelemetry.log.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback(): void {
@@ -40,7 +40,7 @@ export class ScConsole extends ScElement {
   }
 
   render() {
-    const entries: LoggedEntry[] = oscClient.log.get();
+    const entries: LoggedEntry[] = oscTelemetry.log.get();
     return html`
       <section class=${styles.console}>
         <header class=${styles.header}>

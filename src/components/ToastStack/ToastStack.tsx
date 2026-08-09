@@ -8,11 +8,11 @@
 // countdown deliberately does NOT re-arm when a coalesced repeat refreshes the
 // entry's `ts` — while a modal <dialog> is open the whole document (top-layer
 // popovers included) is inert, so a repeating error must not pin an
-// unclickable toast forever. Driven by the OscClient store.
+// unclickable toast forever. Driven by the OSC telemetry store.
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Toast as BaseToast } from "@/components/ui";
-import { oscClient, useScsynthErrors } from "@/stores/osc";
+import { oscTelemetry, useScsynthErrors } from "@/stores/osc";
 import type { ScsynthError } from "@/types/stores";
 import styles from "./ToastStack.module.scss";
 
@@ -26,7 +26,7 @@ function Toast({ error }: { error: ScsynthError }) {
   // the ×count display but don't extend the toast's life (see the header note on
   // modal inertness). A recurrence after dismissal mints a new entry/toast.
   useEffect(() => {
-    const t = setTimeout(() => oscClient.dismissError(error.id), DISMISS_MS);
+    const t = setTimeout(() => oscTelemetry.dismissError(error.id), DISMISS_MS);
     return () => clearTimeout(t);
   }, [error.id]);
 
@@ -36,7 +36,7 @@ function Toast({ error }: { error: ScsynthError }) {
     <BaseToast
       variant={error.variant}
       message={message}
-      onDismiss={() => oscClient.dismissError(error.id)}
+      onDismiss={() => oscTelemetry.dismissError(error.id)}
     />
   );
 }

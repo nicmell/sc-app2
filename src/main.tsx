@@ -11,6 +11,9 @@ import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
+// Activate the OSC packet observers at the application composition root.
+import "@/lib/osc/telemetry";
+import "@/lib/osc/watchdog";
 
 // Define the plugin custom elements + the ui-components `-base` widgets before
 // the router renders any route that can mount them.
@@ -27,10 +30,11 @@ if (import.meta.env.DEV) {
     import("@/stores/osc"),
     import("@/runtime/registry"),
     import("@sc-app/server-commands"),
-  ]).then(([{ appStore }, { oscClient }, registry, commands]) => {
+  ]).then(([{ appStore }, { oscClient, oscTelemetry }, registry, commands]) => {
     (window as unknown as Record<string, unknown>).__scDebug = {
       appStore,
       oscClient,
+      oscTelemetry,
       registry,
       session,
       // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries

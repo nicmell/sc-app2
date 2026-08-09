@@ -4,8 +4,8 @@
 // localStorage identity, mint/revive over HTTP, the 503 retry budget — lives
 // in the route loaders (`@/lib/session/resolveSession`); SessionLayout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
-// The OSC domain — console log, error banners, scsynth load, heartbeat
-// watchdog — lives on the OscClient itself (`@/lib/osc/OscClient`), which also
+// OSC telemetry and the heartbeat watchdog observe OscClient's public seams;
+// the client itself (`@/lib/osc/OscClient`) also
 // terminates the connection on critical failures; this manager only observes
 // the close.
 //

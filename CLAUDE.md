@@ -129,9 +129,11 @@ lib/                     non-React infrastructure
   osc/                   the OSC endpoint (see lib/osc/README.md):
                          OscClient (global `oscClient`, plain-packet main-thread client,
                          owns /g_new of the session group + nextNodeId allocation,
-                         AND the osc store slice: tx/rx console log, /fail–/late
-                         banners, /status.reply load + heartbeat watchdog, the
-                         `connected` signal; closes itself on critical failures;
+                         the `connected` signal, and closes itself on critical
+                         transport failures; telemetry.ts observes its public
+                         taps to own the osc store slice (tx/rx console log,
+                         /fail–/late banners, /status.reply load, clock status),
+                         while watchdog.ts owns heartbeat expiry;
                          AND the elements' scsynth command methods — every
                          sequenced send + reply wait: createGroup/createSynth
                          (→ /n_go, returning the allocated node id),
@@ -634,7 +636,8 @@ excluded here.
 send order, store seeding, /n_set wiring, unmount cleanup — against a scripted
 scsynth auto-responder through `handleReply`),
 `src/lib/synthdef/__tests__/compileSynthDef.test.ts` the compiler, and
-`src/lib/osc/__tests__/OscClient.test.ts` the telemetry + `once()` waiters.
+`src/lib/osc/__tests__/{OscClient,telemetry,watchdog}.test.ts` cover protocol
+waiters, packet telemetry, and heartbeat expiry respectively.
 
 **End-to-end gate (the harness technique)**: when elements/parsers change,
 validate every example through the real stack: run

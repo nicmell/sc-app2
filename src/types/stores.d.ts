@@ -65,7 +65,7 @@ export interface SessionState {
   scsynthAddress: string | null;
 }
 
-/** The OSC slice of the app store, owned by the OscClient. */
+/** The OSC slice: connected is owned by OscClient; telemetry owns the rest. */
 export interface OscState {
   /** Transport-level "connection ready" — the session group exists and the
    *  node-id allocator is armed. Consumers like the plugin lifecycle arm on

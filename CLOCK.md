@@ -142,8 +142,9 @@ restarts — fine for a crash path, consumers only rely on the cadence).
    At offset 0 this degrades to exactly the pre-sync expression. The timetag
    is correct because scsynth shares the bridge host clock.
 
-**Heartbeat watchdog (`OscClient`).** A 1 s clock subscription (armed on
-connect) checks `performance.now() − lastStatusAt > STATUS_REPLY_TIMEOUT_MS`
+**Heartbeat watchdog (`lib/osc/watchdog.ts`).** The standalone observer consumes
+OscClient's public seams; a 1 s clock subscription (armed on the connected
+rising edge) checks `performance.now() − lastStatusAt > STATUS_REPLY_TIMEOUT_MS`
 and closes the connection when scsynth's `/status.reply` heartbeats stop —
 running on worker ticks, it fires on time even in a backgrounded window (a
 main-thread timer would detect late), and it doubles as the recovery path

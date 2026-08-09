@@ -115,8 +115,10 @@ export class OscClient {
     });
     this.on("close", () => {
       // Whatever the reason, no reply is coming anymore: fail pending
-      // waiters now instead of letting them run out their timeouts.
+      // waiters now instead of letting them run out their timeouts, and let
+      // connected subscribers tear down from the single transport seam.
       this.rejectWaiters(new Error("OscClient.once: connection closed"));
+      this.state.update((s) => ({ ...s, connected: false }));
     });
   }
 
@@ -232,13 +234,10 @@ export class OscClient {
     return this.nextId++;
   }
 
-  /** Close the connection (and the worker behind it). Dropping `connected`
-   *  first lets subscribers send their teardown while the
-   *  socket is still open — harmlessly dropped when the transport is already
-   *  dead, since the bridge frees the whole session group on WS close. */
+  /** Request an orderly transport close. The transport's synthesized close
+   *  event performs client teardown; sends triggered afterward are dropped,
+   *  and the bridge frees the session group when the WebSocket closes. */
   close(): void {
-    this.rejectWaiters(new Error("OscClient.once: connection closed"));
-    this.state.update((s) => ({ ...s, connected: false }));
     workerClient.close();
   }
 

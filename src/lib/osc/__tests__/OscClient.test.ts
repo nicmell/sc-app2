@@ -10,8 +10,10 @@ import {
   Synced,
 } from "@sc-app/server-commands";
 import { REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
 import { workerClient } from "@/lib/osc/worker/WorkerClient";
+import { appStore } from "@/stores/store";
 
 const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
   address,
@@ -85,11 +87,41 @@ describe("OscClient.once", () => {
     oscClient.handleReply(oscMessage("/synced", 8));
   });
 
-  it("rejects pending waiters when the connection closes", async () => {
+  it("drops connected and rejects pending waiters at the transport close seam", async () => {
+    appStore.slice(SliceName.OSC).update((s) => ({ ...s, connected: true }));
     const reply = oscClient.once("/synced");
     const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
-    oscClient.close();
+    (
+      oscClient as unknown as {
+        handleTransportEvent(event: { type: "close"; reason?: string }): void;
+      }
+    ).handleTransportEvent({ type: "close", reason: "remote close" });
     await expectation;
+    expect(oscClient.connected.get()).toBe(false);
+  });
+
+  it("reports a worker crash as a close after respawn and error", () => {
+    appStore.slice(SliceName.OSC).update((s) => ({ ...s, connected: true }));
+    const events: string[] = [];
+    const removeMiddleware = workerClient.use({
+      event: (event, next) => {
+        events.push(event.type);
+        next(event);
+      },
+    });
+    const close = vi.fn();
+    const closeId = oscClient.on("close", close);
+    const worker = (
+      workerClient as unknown as { worker: Worker & { onerror: (event: ErrorEvent) => void } }
+    ).worker;
+
+    worker.onerror(new ErrorEvent("error", { message: "boom" }));
+
+    expect(events).toEqual(["respawn", "error", "close"]);
+    expect(oscClient.connected.get()).toBe(false);
+    expect(close).toHaveBeenCalledWith({ type: "close", reason: "worker crashed" });
+    oscClient.off("close", closeId);
+    removeMiddleware();
   });
 });
 

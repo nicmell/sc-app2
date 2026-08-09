@@ -27,8 +27,8 @@ export type TransportCommand =
   | { type: "close" };
 
 /** What the transport reports (transport → worker → WorkerClient). A real
- *  socket close carries the WebSocket close code/reason for diagnostics; the
- *  WorkerClient's synthesized close (orderly shutdown) carries neither. */
+ *  socket close carries the WebSocket close code/reason for diagnostics; a
+ *  WorkerClient-synthesized close may carry the worker-crash reason. */
 export type TransportEvent =
   | { type: "open" }
   | { type: "respawn" }

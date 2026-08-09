@@ -115,6 +115,11 @@ afterEach(() => {
 const setConnected = (connected: boolean) =>
   appStore.update((s) => ({ ...s, osc: { ...s.osc, connected } }));
 
+const closeTransport = () =>
+  (
+    oscClient as unknown as { handleTransportEvent(event: { type: "close" }): void }
+  ).handleTransportEvent({ type: "close" });
+
 describe("load pass", () => {
   it("seeds exactly the enabled literal controls' defaults, keyed by full path", async () => {
     const { host } = await mountExample();
@@ -176,7 +181,7 @@ describe("load pass", () => {
     await new Promise((r) => setTimeout(r, 10));
     expect(settled).toBe(false);
     expect(sent.map((m) => m.address)).toEqual(["/g_new", "/d_recv"]);
-    oscClient.close(); // reject the pending waiter so the test ends cleanly
+    closeTransport(); // reject the pending waiter so the test ends cleanly
     await loading;
   });
 });
@@ -409,7 +414,7 @@ describe("disconnect / reconnect", () => {
     control(host, "freq").setValue(880);
 
     sent.length = 0;
-    oscClient.close(); // → connected=false → unload (and waiter rejection, like a real drop)
+    closeTransport(); // → connected=false → unload (and waiter rejection, like a real drop)
 
     expect(host.loaded).toBe(false);
     expect(host.nodeId).toBe(0);
@@ -464,7 +469,7 @@ describe("disconnect / reconnect", () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(host.loaded).toBe(true); // group is up, def stalled
 
-    oscClient.close(); // rejects the pending waiter AND unloads the partial state
+    closeTransport(); // rejects the pending waiter AND unloads the partial state
     await loading;
     expect(host.loaded).toBe(false);
     expect(host.nodeId).toBe(0);

@@ -73,6 +73,7 @@ export class WorkerClient {
       this.worker = this.spawn();
       this.dispatchEvent({ type: "respawn" });
       this.dispatchEvent({ type: "error", message: ev.message || "worker error" });
+      this.dispatchEvent({ type: "close", reason: "worker crashed" });
     };
     return worker;
   }

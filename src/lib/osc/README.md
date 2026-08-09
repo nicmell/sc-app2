@@ -2,8 +2,9 @@
 
 OSC communication is split at a plain-data boundary. The main thread owns app
 state and scsynth sequencing; the worker owns the WebSocket, binary codec, and
-backend-synchronized clock estimator/tick scheduler.
-Neither side exposes wire bytes across `postMessage`.
+backend-synchronized clock estimator/tick scheduler (see CLOCK.md at the repo
+root for the full sync design). Neither side exposes wire bytes across
+`postMessage`.
 
 ```text
 OscClient.send(OscPacket)                         main thread

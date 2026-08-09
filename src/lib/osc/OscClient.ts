@@ -167,6 +167,8 @@ export class OscClient {
 
   private handleTransportEvent(event: TransportEvent): void {
     if (event.type === "respawn") {
+      // Replayed subscriptions restart their tick phase — fine for a
+      // crash-recovery path; consumers only rely on the cadence.
       for (const [id, sub] of this.clockSubs) {
         workerClient.send(clockSubscribe(id, sub.intervalMs));
       }

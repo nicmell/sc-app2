@@ -9,8 +9,6 @@ import {
   type OscMessage,
 } from "@sc-app/server-commands";
 import {
-  CLOCK_OFFSET_SLEW_FACTOR,
-  CLOCK_OFFSET_STEP_THRESHOLD_MS,
   CLOCK_PING_BURST_COUNT,
   CLOCK_PING_BURST_INTERVAL_MS,
   CLOCK_PING_INTERVAL_MS,
@@ -23,7 +21,7 @@ interface ClockSample {
 }
 
 interface TickStream {
-  timer: ReturnType<typeof setTimeout>;
+  timer?: ReturnType<typeof setTimeout>;
   phase0: number;
   intervalMs: number;
   n: number;
@@ -40,11 +38,10 @@ export class WorkerClock {
   private readonly sendPing: ClockOptions["sendPing"];
   private readonly monotonicNow: () => number;
   private samples: ClockSample[] = [];
-  private offset = 0;
   private sequence = 0;
   private pending = new Map<number, number>();
-  private burstTimer: ReturnType<typeof setInterval> | null = null;
-  private cadenceTimer: ReturnType<typeof setInterval> | null = null;
+  private pingTimer: ReturnType<typeof setTimeout> | null = null;
+  private pingsSent = 0;
   private ticks = new Map<number, TickStream>();
 
   constructor({ post, sendPing, monotonicNow = () => performance.now() }: ClockOptions) {
@@ -57,27 +54,15 @@ export class WorkerClock {
     this.stopPinging();
     this.samples = [];
     this.pending.clear();
-    this.offset = 0;
     this.post(clockStatus(0, 0));
-    this.ping();
-    let sent = 1;
-    if (sent < CLOCK_PING_BURST_COUNT) {
-      this.burstTimer = setInterval(() => {
-        this.ping();
-        if (++sent >= CLOCK_PING_BURST_COUNT && this.burstTimer !== null) {
-          clearInterval(this.burstTimer);
-          this.burstTimer = null;
-        }
-      }, CLOCK_PING_BURST_INTERVAL_MS);
-    }
-    this.cadenceTimer = setInterval(() => this.ping(), CLOCK_PING_INTERVAL_MS);
+    this.pingsSent = 0;
+    this.pingLoop();
   }
 
   onClose(): void {
     this.stopPinging();
     this.samples = [];
     this.pending.clear();
-    this.offset = 0;
     this.post(clockStatus(0, 0));
   }
 
@@ -93,19 +78,13 @@ export class WorkerClock {
     this.samples.push({ rtt, offset: srv + rtt / 2 - d1 });
     if (this.samples.length > CLOCK_SAMPLE_WINDOW) this.samples.shift();
 
-    // Median-filter the RTT window, then take its minimum-delay sample: NTP's
-    // clock-filter rule avoids queueing delay without letting the slow half
-    // of a burst influence the exported estimate.
-    const byRtt = [...this.samples].sort((a, b) => a.rtt - b.rtt);
-    const medianRtt = byRtt[Math.floor(byRtt.length / 2)].rtt;
-    const best = byRtt.find((sample) => sample.rtt <= medianRtt) ?? byRtt[0];
-    const target = best.offset;
-    const delta = target - this.offset;
-    this.offset =
-      this.samples.length === 1 || Math.abs(delta) > CLOCK_OFFSET_STEP_THRESHOLD_MS
-        ? target
-        : this.offset + delta * CLOCK_OFFSET_SLEW_FACTOR;
-    this.post(clockStatus(this.offset, best.rtt));
+    // NTP's clock-filter rule: trust the minimum-delay sample in the window —
+    // queueing delay only ever ADDS to rtt, so the fastest exchange carries
+    // the least-biased offset. Consumers convert clock domains at stamp time,
+    // so a small estimate change only shifts not-yet-stamped events; no
+    // smoothing needed.
+    const best = this.samples.reduce((a, b) => (b.rtt < a.rtt ? b : a));
+    this.post(clockStatus(best.offset, best.rtt));
   }
 
   handleCommand(message: OscMessage): void {
@@ -114,12 +93,7 @@ export class WorkerClock {
       const intervalMs = Number(message.args[1]);
       if (!Number.isInteger(id) || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
       this.unsubscribe(id);
-      const stream: TickStream = {
-        timer: 0 as unknown as ReturnType<typeof setTimeout>,
-        phase0: this.monotonicNow(),
-        intervalMs,
-        n: 1,
-      };
+      const stream: TickStream = { phase0: this.monotonicNow(), intervalMs, n: 1 };
       this.ticks.set(id, stream);
       this.schedule(id, stream);
     } else if (message.address === CLOCK_UNSUBSCRIBE_ADDRESS) {
@@ -127,10 +101,18 @@ export class WorkerClock {
     }
   }
 
-  private ping(): void {
+  /** One chained ping loop: the first CLOCK_PING_BURST_COUNT pings fire at
+   *  the tight burst spacing (fast first lock), then the steady cadence. */
+  private pingLoop(): void {
     const seq = this.sequence++;
     this.pending.set(seq, this.monotonicNow());
     this.sendPing(clockPing(seq));
+    this.pingsSent += 1;
+    const delay =
+      this.pingsSent < CLOCK_PING_BURST_COUNT
+        ? CLOCK_PING_BURST_INTERVAL_MS
+        : CLOCK_PING_INTERVAL_MS;
+    this.pingTimer = setTimeout(() => this.pingLoop(), delay);
   }
 
   private schedule(id: number, stream: TickStream): void {
@@ -154,9 +136,7 @@ export class WorkerClock {
   }
 
   private stopPinging(): void {
-    if (this.burstTimer !== null) clearInterval(this.burstTimer);
-    if (this.cadenceTimer !== null) clearInterval(this.cadenceTimer);
-    this.burstTimer = null;
-    this.cadenceTimer = null;
+    if (this.pingTimer !== null) clearTimeout(this.pingTimer);
+    this.pingTimer = null;
   }
 }

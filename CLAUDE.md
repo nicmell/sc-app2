@@ -139,7 +139,8 @@ lib/                     non-React infrastructure
                          freeGroup/freeSynthDef/freeSynth/setControl,
                          subscribeClock(intervalMs, cb) + bridge-synced clockNow()
                          (worker absolute-phase ticks; subscriptions survive
-                         reconnect/respawn), subscribeScope(…, onChunk) → {subId, off} (handler
+                         reconnect/respawn — see CLOCK.md),
+                         subscribeScope(…, onChunk) → {subId, off} (handler
                          registered under the minted subId before the send;
                          decoded chunks dispatch by subId from handleReply;
                          off also stops the bridge stream) + the scope-slot

@@ -129,7 +129,7 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                         // Bridge-internal families are claimed, never routed.
                         Some(clock::CLOCK_PING) => {
                             let srv = clock::unix_ms();
-                            let Some((seq, t0)) = osc::decode_message(bytes.as_ref())
+                            let Some(seq) = osc::decode_message(bytes.as_ref())
                                 .as_ref()
                                 .and_then(clock::parse_ping)
                             else {
@@ -137,7 +137,7 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
                                 continue;
                             };
                             if socket
-                                .send(Message::Binary(clock::encode_pong(seq, t0, srv).into()))
+                                .send(Message::Binary(clock::encode_pong(seq, srv).into()))
                                 .await
                                 .is_err()
                             {

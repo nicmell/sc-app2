@@ -38,7 +38,7 @@ transport.onEvent((event) => {
   try {
     const packet = decode(new Uint8Array(event.data));
     if (isMessage(packet) && packet.address === CLOCK_PONG_ADDRESS) {
-      clock.onPong(packet, performance.now(), Date.now());
+      clock.onPong(packet, Date.now());
       return;
     }
     const transfer: ArrayBuffer[] = [];

@@ -12,19 +12,12 @@ use crate::core::osc::{self, int_arg};
 pub const CLOCK_PING: &str = "/clock/ping";
 pub const CLOCK_PONG: &str = "/clock/pong";
 
-pub fn parse_ping(msg: &OscMessage) -> Option<(i32, f64)> {
-    let seq = int_arg(msg.args.first()?)?;
-    let OscType::Double(t0) = msg.args.get(1)? else {
-        return None;
-    };
-    Some((seq, *t0))
+pub fn parse_ping(msg: &OscMessage) -> Option<i32> {
+    int_arg(msg.args.first()?)
 }
 
-pub fn encode_pong(seq: i32, t0: f64, srv: f64) -> Vec<u8> {
-    osc::encode(
-        CLOCK_PONG,
-        vec![OscType::Int(seq), OscType::Double(t0), OscType::Double(srv)],
-    )
+pub fn encode_pong(seq: i32, srv: f64) -> Vec<u8> {
+    osc::encode(CLOCK_PONG, vec![OscType::Int(seq), OscType::Double(srv)])
 }
 
 pub fn unix_ms() -> f64 {
@@ -43,16 +36,23 @@ mod tests {
     use crate::core::osc::{decode_message, peek_address};
 
     #[test]
-    fn ping_and_pong_round_trip_with_double_times() {
-        let ping = osc::encode(CLOCK_PING, vec![OscType::Int(7), OscType::Double(123.25)]);
+    fn ping_and_pong_round_trip() {
+        let ping = osc::encode(CLOCK_PING, vec![OscType::Int(7)]);
         let msg = decode_message(&ping).expect("decode ping");
-        assert_eq!(parse_ping(&msg), Some((7, 123.25)));
+        assert_eq!(parse_ping(&msg), Some(7));
 
-        let pong = encode_pong(7, 123.25, 1_700_000_000_000.5);
+        let pong = encode_pong(7, 1_700_000_000_000.5);
+        assert_eq!(
+            pong,
+            vec![
+                0x2f, 0x63, 0x6c, 0x6f, 0x63, 0x6b, 0x2f, 0x70, 0x6f, 0x6e, 0x67, 0x00, 0x2c, 0x69,
+                0x64, 0x00, 0x00, 0x00, 0x00, 0x07, 0x42, 0x78, 0xbc, 0xfe, 0x56, 0x80, 0x08, 0x00,
+            ]
+        );
         let msg = decode_message(&pong).expect("decode pong");
         assert_eq!(msg.addr, CLOCK_PONG);
         assert!(
-            matches!(msg.args.as_slice(), [OscType::Int(7), OscType::Double(123.25), OscType::Double(v)] if *v == 1_700_000_000_000.5)
+            matches!(msg.args.as_slice(), [OscType::Int(7), OscType::Double(v)] if *v == 1_700_000_000_000.5)
         );
     }
 
@@ -62,7 +62,7 @@ mod tests {
             timetag: OscTime::from((0, 1)),
             content: vec![OscPacket::Message(OscMessage {
                 addr: CLOCK_PING.into(),
-                args: vec![OscType::Int(1), OscType::Double(2.0)],
+                args: vec![OscType::Int(1)],
             })],
         });
         let bytes = rosc::encoder::encode(&packet).expect("encode bundle");

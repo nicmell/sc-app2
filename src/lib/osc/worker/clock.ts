@@ -42,6 +42,7 @@ export class WorkerClock {
   private samples: ClockSample[] = [];
   private offset = 0;
   private sequence = 0;
+  private pending = new Map<number, number>();
   private burstTimer: ReturnType<typeof setInterval> | null = null;
   private cadenceTimer: ReturnType<typeof setInterval> | null = null;
   private ticks = new Map<number, TickStream>();
@@ -55,6 +56,7 @@ export class WorkerClock {
   onOpen(): void {
     this.stopPinging();
     this.samples = [];
+    this.pending.clear();
     this.offset = 0;
     this.post(clockStatus(0, 0));
     this.ping();
@@ -74,15 +76,19 @@ export class WorkerClock {
   onClose(): void {
     this.stopPinging();
     this.samples = [];
+    this.pending.clear();
     this.offset = 0;
     this.post(clockStatus(0, 0));
   }
 
-  onPong(message: OscMessage, t1: number, d1: number): void {
+  onPong(message: OscMessage, d1: number): void {
     if (message.address !== CLOCK_PONG_ADDRESS) return;
-    const t0 = ClockPong.t0(message);
+    const seq = ClockPong.seq(message);
+    const t0 = this.pending.get(seq);
+    if (t0 === undefined) return;
+    this.pending.delete(seq);
     const srv = ClockPong.serverTime(message);
-    const rtt = t1 - t0;
+    const rtt = this.monotonicNow() - t0;
     if (!Number.isFinite(rtt) || rtt < 0 || !Number.isFinite(srv)) return;
     this.samples.push({ rtt, offset: srv + rtt / 2 - d1 });
     if (this.samples.length > CLOCK_SAMPLE_WINDOW) this.samples.shift();
@@ -122,7 +128,9 @@ export class WorkerClock {
   }
 
   private ping(): void {
-    this.sendPing(clockPing(this.sequence++, this.monotonicNow()));
+    const seq = this.sequence++;
+    this.pending.set(seq, this.monotonicNow());
+    this.sendPing(clockPing(seq));
   }
 
   private schedule(id: number, stream: TickStream): void {

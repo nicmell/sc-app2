@@ -27,19 +27,44 @@ describe("WorkerClock", () => {
     expect(posted[0]).toEqual({ address: CLOCK_STATUS_ADDRESS, args: [0, 0] });
     expect(pings[0]).toMatchObject({
       address: CLOCK_PING_ADDRESS,
-      args: [0, { type: "d", value: 100 }],
+      args: [0],
     });
     vi.advanceTimersByTime(CLOCK_PING_BURST_INTERVAL_MS * (CLOCK_PING_BURST_COUNT - 1));
     expect(pings).toHaveLength(CLOCK_PING_BURST_COUNT);
 
-    // t0/t1 are monotonic, d1/srv are UNIX time: 20 ms RTT and +30 ms offset.
-    clock.onPong({ address: "/clock/pong", args: [0, 100, 1_000_020] }, 120, 1_000_000);
+    // Send/receipt are monotonic, d1/srv are UNIX time: 20 ms RTT and +30 ms offset.
+    mono = 120;
+    clock.onPong({ address: "/clock/pong", args: [0, 1_000_020] }, 1_000_000);
     expect(posted.at(-1)).toEqual({ address: CLOCK_STATUS_ADDRESS, args: [30, 20] });
 
     mono = 500;
     clock.onOpen();
     expect(posted.at(-1)).toEqual({ address: CLOCK_STATUS_ADDRESS, args: [0, 0] });
-    expect(pings.at(-1)?.args[1]).toEqual({ type: "d", value: 500 });
+    expect(pings.at(-1)?.args).toEqual([CLOCK_PING_BURST_COUNT]);
+    clock.onClose();
+  });
+
+  it("ignores stale pongs and clears pending sends on open", () => {
+    vi.useFakeTimers();
+    let mono = 10;
+    const posted: OscMessage[] = [];
+    const pings: OscMessage[] = [];
+    const clock = new WorkerClock({
+      post: (message) => posted.push(message),
+      sendPing: (message) => pings.push(message),
+      monotonicNow: () => mono,
+    });
+
+    clock.onOpen();
+    const statusCount = posted.length;
+    clock.onPong({ address: "/clock/pong", args: [999, 1_000] }, 900);
+    expect(posted).toHaveLength(statusCount);
+
+    const oldSeq = pings[0].args[0] as number;
+    mono = 20;
+    clock.onOpen();
+    clock.onPong({ address: "/clock/pong", args: [oldSeq, 1_000] }, 900);
+    expect(posted).toHaveLength(statusCount + 1);
     clock.onClose();
   });
 

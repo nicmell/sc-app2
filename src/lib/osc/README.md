@@ -47,6 +47,7 @@ main thread in wire order and each message feeds `handleReply` immediately.
 `/scope/*` and `/clock/*` are bridge-internal families and never route to UDP
 peers. Bare clock subscribe commands are intercepted before encoding; ping/pong
 uses the WebSocket so the offset estimate measures the transport that carries
-scheduled OSC. Clock subscriptions continue while disconnected and are replayed
+scheduled OSC. Ping carries `[seq:i]`; pong carries `[seq:i, srv:d]`, with the
+worker retaining the monotonic send time by sequence. Clock subscriptions continue while disconnected and are replayed
 after worker respawn. `clockNow()` is wall time plus the latest estimated offset;
 monotonic scheduler phase must continue to use `performance.now()`.

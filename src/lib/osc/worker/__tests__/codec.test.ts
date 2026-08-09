@@ -23,10 +23,21 @@ describe("OSC worker codec", () => {
     });
   });
 
-  it("encodes clock ping t0 as OSC double", () => {
-    const bytes = encode(clockPing(7, 123.25));
-    expect(new TextDecoder().decode(bytes)).toContain(",id");
-    expect(decode(bytes)).toEqual({ address: "/clock/ping", args: [7, 123.25] });
+  it("encodes clock ping as an int-only message", () => {
+    const bytes = encode(clockPing(7));
+    expect(new TextDecoder().decode(bytes)).toContain(",i");
+    expect(decode(bytes)).toEqual({ address: "/clock/ping", args: [7] });
+  });
+
+  it("decodes the Rust clock pong double fixture", () => {
+    const bytes = new Uint8Array([
+      0x2f, 0x63, 0x6c, 0x6f, 0x63, 0x6b, 0x2f, 0x70, 0x6f, 0x6e, 0x67, 0x00, 0x2c, 0x69, 0x64,
+      0x00, 0x00, 0x00, 0x00, 0x07, 0x42, 0x78, 0xbc, 0xfe, 0x56, 0x80, 0x08, 0x00,
+    ]);
+    expect(decode(bytes)).toEqual({
+      address: "/clock/pong",
+      args: [7, 1_700_000_000_000.5],
+    });
   });
 
   it("round-trips bundle timetags and inbound nested bundles", () => {

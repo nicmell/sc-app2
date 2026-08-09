@@ -1,23 +1,32 @@
 // The status watchdog is an external consumer of OscClient's public seams.
-// It follows the connected signal, listens for `/status.reply` message taps,
+// It follows the connected signal, observes `/status.reply` transport events,
 // and checks freshness on the worker's unthrottled clock so background-tab
 // timer throttling cannot postpone detection of a dead scsynth connection.
 
 import { OSC_REPLIES, CLOCK_WATCHDOG_INTERVAL_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { walkPacket } from "@sc-app/server-commands";
+import type { TransportMiddleware } from "./middleware";
 import { oscClient } from "./OscClient";
-import { oscTelemetry } from "./telemetry";
+import { push } from "./middlewares/errors";
 
 export class StatusWatchdog {
   private lastStatusAt = 0;
   private watchdogOff: (() => void) | null = null;
+  readonly middleware: TransportMiddleware = {
+    event: (event, next) => {
+      if (event.type === "osc") {
+        walkPacket(event.packet, (message) => {
+          if (message.address === OSC_REPLIES.STATUS) this.lastStatusAt = performance.now();
+        });
+      }
+      next(event);
+    },
+  };
 
   constructor() {
     oscClient.connected.subscribe(() => {
       if (oscClient.connected.get()) this.arm();
       else this.disarm();
-    });
-    oscClient.on("message", (msg) => {
-      if (msg.address === OSC_REPLIES.STATUS) this.lastStatusAt = performance.now();
     });
   }
 
@@ -33,7 +42,7 @@ export class StatusWatchdog {
       }
       const message = `no ${OSC_REPLIES.STATUS} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
       console.error(`[osc] ${message}`);
-      oscTelemetry.push(OSC_REPLIES.STATUS, message, "error");
+      push(OSC_REPLIES.STATUS, message, "error");
       oscClient.close();
     }).off;
   }

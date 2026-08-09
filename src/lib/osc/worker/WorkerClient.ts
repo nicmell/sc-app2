@@ -3,12 +3,14 @@
 
 import type { OscPacket } from "@sc-app/server-commands";
 import type { TransportCommand, TransportEvent } from "@/types/osc";
+import { composeDispatch, type TransportMiddleware } from "../middleware";
 import { TRANSPORT_STATUS, type TransportStatus } from "./transport";
 
 export class WorkerClient {
   private worker: Worker;
   private socketStatus: TransportStatus = TRANSPORT_STATUS.IS_NOT_INITIALIZED;
   private notify: (event: TransportEvent) => void = () => {};
+  private readonly middlewares: TransportMiddleware[] = [];
 
   constructor() {
     this.worker = this.spawn();
@@ -16,7 +18,7 @@ export class WorkerClient {
 
   open(url: string): void {
     this.socketStatus = TRANSPORT_STATUS.IS_CONNECTING;
-    this.post({ type: "open", url });
+    this.dispatchCommand({ type: "open", url });
   }
 
   /** The worker remains alive for the next connection. The orderly close is
@@ -28,17 +30,28 @@ export class WorkerClient {
     ) {
       return;
     }
-    this.post({ type: "close" });
+    this.dispatchCommand({ type: "close" });
     this.socketStatus = TRANSPORT_STATUS.IS_CLOSED;
-    this.notify({ type: "close" });
+    this.dispatchEvent({ type: "close" });
   }
 
   send(packet: OscPacket): void {
-    this.post({ type: "osc", packet });
+    this.dispatchCommand({ type: "osc", packet });
   }
 
   onEvent(cb: (event: TransportEvent) => void): void {
     this.notify = cb;
+  }
+
+  use(middleware: TransportMiddleware): () => void {
+    if (this.middlewares.includes(middleware)) {
+      throw new Error("WorkerClient.use: middleware already registered");
+    }
+    this.middlewares.push(middleware);
+    return () => {
+      const index = this.middlewares.indexOf(middleware);
+      if (index !== -1) this.middlewares.splice(index, 1);
+    };
   }
 
   status(): TransportStatus {
@@ -52,20 +65,34 @@ export class WorkerClient {
       const event = ev.data;
       if (event.type === "open") this.socketStatus = TRANSPORT_STATUS.IS_OPEN;
       if (event.type === "close") this.socketStatus = TRANSPORT_STATUS.IS_CLOSED;
-      this.notify(event);
+      this.dispatchEvent(event);
     };
     worker.onerror = (ev: ErrorEvent) => {
       worker.terminate();
       this.socketStatus = TRANSPORT_STATUS.IS_CLOSED;
       this.worker = this.spawn();
-      this.notify({ type: "respawn" });
-      this.notify({ type: "error", message: ev.message || "worker error" });
+      this.dispatchEvent({ type: "respawn" });
+      this.dispatchEvent({ type: "error", message: ev.message || "worker error" });
     };
     return worker;
   }
 
   private post(command: TransportCommand): void {
     this.worker.postMessage(command);
+  }
+
+  private dispatchCommand(command: TransportCommand): void {
+    composeDispatch(
+      this.middlewares.map((middleware) => middleware.command?.bind(middleware)),
+      (next) => this.post(next),
+    )(command);
+  }
+
+  private dispatchEvent(event: TransportEvent): void {
+    composeDispatch(
+      this.middlewares.map((middleware) => middleware.event?.bind(middleware)),
+      (next) => this.notify(next),
+    )(event);
   }
 }
 

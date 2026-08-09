@@ -12,7 +12,7 @@ import { registerUiComponents } from "@sc-app/ui-components/lit";
 import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
 // Activate the OSC packet observers at the application composition root.
-import "@/lib/osc/telemetry";
+import "@/lib/osc/middlewares";
 import "@/lib/osc/watchdog";
 
 // Define the plugin custom elements + the ui-components `-base` widgets before
@@ -30,19 +30,21 @@ if (import.meta.env.DEV) {
     import("@/stores/osc"),
     import("@/runtime/registry"),
     import("@sc-app/server-commands"),
-  ]).then(([{ appStore }, { oscClient, oscTelemetry }, registry, commands]) => {
-    (window as unknown as Record<string, unknown>).__scDebug = {
-      appStore,
-      oscClient,
-      oscTelemetry,
-      registry,
-      session,
-      // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
-      // (e.g. a /s_getn readback of a live node's control array) and watch
-      // the reply land in the rx log.
-      commands,
-    };
-  });
+  ]).then(
+    ([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, registry, commands]) => {
+      (window as unknown as Record<string, unknown>).__scDebug = {
+        appStore,
+        oscClient,
+        osc: { log, errors, scsynthStatus, clock },
+        registry,
+        session,
+        // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
+        // (e.g. a /s_getn readback of a live node's control array) and watch
+        // the reply land in the rx log.
+        commands,
+      };
+    },
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

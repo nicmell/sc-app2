@@ -14,7 +14,7 @@
  */
 
 // Flatten a packet/bundle into per-message (address, args) entries.
-export { flattenPacket, formatOscArg, type FlatOsc } from "./flatten";
+export { flattenPacket, formatOscArg, walkPacket, type FlatOsc } from "./flatten";
 
 // Timetag helpers.
 export * as timetag from "./timetag";

@@ -19,7 +19,7 @@ const initialSessionState: SessionState = {
   scsynthAddress: null,
 };
 
-/** Initial OSC slice, shared by OscClient and its telemetry observer. */
+/** Initial OSC slice, shared by OscClient and transport middlewares. */
 const initialOscState: OscState = {
   connected: false,
   scsynthStatus: null,

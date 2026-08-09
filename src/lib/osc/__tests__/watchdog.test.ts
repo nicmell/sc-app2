@@ -12,8 +12,8 @@ import { STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { oscClient } from "../OscClient";
-import { oscTelemetry } from "../telemetry";
-import "../watchdog";
+import { errors } from "../middlewares/errors";
+import { statusWatchdog } from "../watchdog";
 import { workerClient } from "../worker/WorkerClient";
 
 const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
@@ -33,7 +33,10 @@ describe("StatusWatchdog", () => {
     const send = vi.spyOn(workerClient, "send");
     const close = vi.spyOn(oscClient, "close").mockImplementation(() => {});
     oscSlice.update((s) => ({ ...s, connected: true }));
-    oscClient.handleReply(oscMessage("/status.reply", 1, 0, 0, 0, 0, 0, 0, 48_000, 48_000));
+    statusWatchdog.middleware.event!(
+      { type: "osc", packet: oscMessage("/status.reply", 1, 0, 0, 0, 0, 0, 0, 48_000, 48_000) },
+      () => {},
+    );
     const subscribe = send.mock.calls
       .map(([packet]) => packet as OscMessage)
       .filter((packet) => packet.address === CLOCK_SUBSCRIBE_ADDRESS)
@@ -42,7 +45,7 @@ describe("StatusWatchdog", () => {
     vi.advanceTimersByTime(STATUS_REPLY_TIMEOUT_MS + 1);
     oscClient.handleReply(oscMessage(CLOCK_TICK_ADDRESS, subscribe!.args[0], 1));
     expect(close).toHaveBeenCalledOnce();
-    expect(oscTelemetry.errors.get().at(-1)?.address).toBe("/status.reply");
+    expect(errors.get().at(-1)?.address).toBe("/status.reply");
     oscSlice.update((s) => ({ ...s, connected: false }));
     vi.useRealTimers();
   });

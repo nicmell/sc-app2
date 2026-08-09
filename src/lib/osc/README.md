@@ -26,10 +26,11 @@ OscClient.handleReply ◄──────────────────�
 
 | Module                   | Responsibility                                                                                                                                                                                                                                                                                                  |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OscClient.ts`           | Global transport and stateful protocol owner: connection and packet tap events, reply waiters, worker-clock subscriptions, node and scope allocation, command sequencing, and scope-chunk dispatch. `send()` and `handleReply()` use the plain `OscPacket` / `OscMessage` model from `@sc-app/server-commands`. |
-| `telemetry.ts`           | Import-activated observer of the client's public taps. Owns the bounded tx/rx log, error banners, scsynth load, and clock diagnostics in the OSC store slice.                                                                                                                                                   |
-| `watchdog.ts`            | Import-activated heartbeat watchdog consuming only the client's public connected, message, clock-subscription, and close seams.                                                                                                                                                                                 |
-| `worker/WorkerClient.ts` | Permanent main-thread worker proxy. It posts plain packets, mirrors connection status, respawns a crashed worker, and synthesizes the single orderly close event.                                                                                                                                               |
+| `OscClient.ts`           | Global stateful protocol owner: lifecycle events, reply waiters, worker-clock subscriptions, node and scope allocation, command sequencing, and scope-chunk dispatch. `send()` and `handleReply()` use the plain `OscPacket` / `OscMessage` model from `@sc-app/server-commands`.                                    |
+| `middleware.ts`          | Transport middleware contract and the reentrant, error-isolated command/event dispatcher. Lifecycle traffic is guaranteed to reach the terminal.                                                                                                                                                                |
+| `middlewares/`           | Plain logging, error-banner, and status observers plus their sole registration site. They consume worker-protocol commands/events and own their respective OSC store fields.                                                                                                                                     |
+| `watchdog.ts`            | Heartbeat watchdog consuming the client's connected/clock seams and exposing a transport middleware that stamps `/status.reply`.                                                                                                                                                                                |
+| `worker/WorkerClient.ts` | Permanent main-thread worker proxy. It runs command/event middleware chains, posts plain packets, mirrors connection status, respawns a crashed worker, and synthesizes the single orderly close event.                                                                                                           |
 | `worker/worker.ts`       | OSC worker endpoint. It encodes outgoing packets, decodes incoming frames, intercepts worker-internal `/clock/*` commands/replies, reports codec failures, and transfers inbound blob buffers. The binary codec dependency is imported only here.                                                               |
 | `worker/clock.ts`        | NTP-style bridge offset estimator over `Date.now()` plus monotonic absolute-phase tick streams. RTT and scheduling stay in the worker's `performance.now()` domain.                                                                                                                                             |
 | `worker/transport.ts`    | Raw in-worker WebSocket transport. Its private events carry byte frames and never cross the worker boundary directly.                                                                                                                                                                                           |
@@ -41,6 +42,13 @@ or `{ type: "osc", packet }`. Events back are `open`, `close`, `error`, `respawn
 same `{ type: "osc", packet }` shape. Packets are plain messages
 `{ address, args }` or bundles `{ timetag, packets }` and are structured-clone
 safe.
+
+The main-thread middleware registration order carries no correctness
+dependency: each current observer calls `next` synchronously. Tx logging skips
+`/clock/*`; rx logging skips scope chunks, clock tick/status, and
+`/status.reply`, while `/fail` and `/late` remain both logged and bannered. A
+future phase will apply the same contract inside the worker, starting by
+turning worker.ts's `/clock/*` interception into worker-side middleware.
 
 Outbound packet-shaped arguments (notably `/d_recv`'s embedded `/sync`)
 become OSC blobs in the worker codec. Decode is intentionally asymmetric:

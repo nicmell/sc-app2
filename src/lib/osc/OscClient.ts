@@ -11,8 +11,8 @@
 // fresh; the bridge ends them when the WebSocket closes) and owns node-id
 // allocation from the session's server-assigned block (`nextNodeId`).
 //
-// Its public events expose transport and packet taps to the telemetry and
-// watchdog observers without making the protocol client depend on either.
+// Its public events expose transport lifecycle without coupling protocol
+// consumers to transport middleware concerns.
 
 import {
   ADDR_N_GO,
@@ -20,6 +20,7 @@ import {
   AddToTail,
   CLOCK_STATUS_ADDRESS,
   CLOCK_TICK_ADDRESS,
+  ClockStatus,
   ClockTick,
   clockSubscribe,
   clockUnsubscribe,
@@ -42,6 +43,7 @@ import {
   type DecodedScopeChunk,
   type OscMessage,
   type OscPacket,
+  walkPacket,
 } from "@sc-app/server-commands";
 import { REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
@@ -60,24 +62,18 @@ interface ReplyWaiter {
 }
 
 type ClientEventArgs = {
-  connecting: [];
   open: [];
   close: [info?: { code?: number; reason?: string }];
   error: [error: Error];
-  message: [msg: OscMessage];
-  send: [packet: OscPacket];
 };
 type ClientEvent = keyof ClientEventArgs;
 type StoredListener = (...args: never[]) => void;
 
 export class OscClient {
   private readonly listeners: { [K in ClientEvent]: Map<number, StoredListener> } = {
-    connecting: new Map(),
     open: new Map(),
     close: new Map(),
     error: new Map(),
-    message: new Map(),
-    send: new Map(),
   };
   private nextListenerId = 1;
 
@@ -132,21 +128,13 @@ export class OscClient {
         workerClient.send(clockSubscribe(id, sub.intervalMs));
       }
     } else if (event.type === "osc") {
-      this.walkMessages(event.packet);
+      walkPacket(event.packet, (message) => this.handleReply(message));
     } else if (event.type === "error") {
       this.emit("error", new Error(event.message));
     } else if (event.type === "close") {
       this.emit("close", event);
     } else if (event.type === "open") {
       this.emit("open");
-    }
-  }
-
-  private walkMessages(packet: OscPacket): void {
-    if ("timetag" in packet) {
-      for (const child of packet.packets) this.walkMessages(child);
-    } else {
-      this.handleReply(packet);
     }
   }
 
@@ -162,7 +150,6 @@ export class OscClient {
    *  plugin reloads and the status watchdog). Resolves once the socket is
    *  open; rejects on an error or close before that. */
   connect(url: string, session: OscSession): Promise<void> {
-    this.emit("connecting");
     return new Promise<void>((resolve, reject) => {
       const offAll = () => {
         this.off("open", onOpen);
@@ -259,7 +246,6 @@ export class OscClient {
    *  while not open. */
   send(packet: OscPacket): void {
     if (this.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    this.emit("send", packet);
     workerClient.send(packet);
   }
 
@@ -446,22 +432,20 @@ export class OscClient {
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    this.emit("message", reply);
     if (reply.address === CLOCK_TICK_ADDRESS) {
       this.clockSubs.get(ClockTick.id(reply))?.cb();
       return;
     }
     if (reply.address === CLOCK_STATUS_ADDRESS) {
-      const offset = Number(reply.args[0]);
-      const rtt = Number(reply.args[1]);
+      const offset = ClockStatus.offset(reply);
+      const rtt = ClockStatus.rtt(reply);
       if (Number.isFinite(offset) && Number.isFinite(rtt)) {
         this.clockOffset = offset;
       }
       return;
     }
     // One-shot waiters first — the message still falls through to the
-    // telemetry routing below (a /synced or /n_go someone awaits is logged
-    // like any other reply).
+    // protocol routing below (transport middleware has already observed it).
     const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));
     if (waiter) {
       this.waiters = this.waiters.filter((w) => w !== waiter);

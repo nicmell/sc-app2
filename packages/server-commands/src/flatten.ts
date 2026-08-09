@@ -2,7 +2,7 @@
 // recurses to its inner messages. Useful for decoding inbound rx and for logging
 // outbound tx (where the caller already holds the packet, no need to re-decode).
 
-import { isBundle, isMessage, type OscPacket } from "./types";
+import { isBundle, isMessage, type OscMessage, type OscPacket } from "./types";
 
 export interface FlatOsc {
   address: string;
@@ -11,8 +11,15 @@ export interface FlatOsc {
 
 export function flattenPacket(packet: OscPacket): FlatOsc[] {
   const out: FlatOsc[] = [];
-  walk(packet, out);
+  walkPacket(packet, (message) => {
+    out.push({ address: message.address, args: message.args.map(formatOscArg) });
+  });
   return out;
+}
+
+export function walkPacket(packet: OscPacket, fn: (message: OscMessage) => void): void {
+  if (isMessage(packet)) fn(packet);
+  else if (isBundle(packet)) for (const child of packet.packets) walkPacket(child, fn);
 }
 
 /** One OSC arg as display text — binary args (e.g. a /d_recv SynthDef blob)
@@ -27,12 +34,4 @@ export function formatOscArg(arg: unknown): string {
     return "address" in arg ? `packet(${String(arg.address)})` : "packet(#bundle)";
   }
   return String(arg);
-}
-
-function walk(packet: OscPacket, out: FlatOsc[]): void {
-  if (isBundle(packet)) {
-    for (const element of packet.packets) walk(element, out);
-  } else if (isMessage(packet)) {
-    out.push({ address: packet.address, args: packet.args.map(formatOscArg) });
-  }
 }

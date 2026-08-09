@@ -65,7 +65,7 @@ export interface SessionState {
   scsynthAddress: string | null;
 }
 
-/** The OSC slice: connected is owned by OscClient; telemetry owns the rest. */
+/** The OSC slice: OscClient owns connected; transport middlewares own the rest. */
 export interface OscState {
   /** Transport-level "connection ready" — the session group exists and the
    *  node-id allocator is armed. Consumers like the plugin lifecycle arm on
@@ -80,7 +80,7 @@ export interface OscState {
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
-  /** The OSC transport's telemetry (console log, banners, scsynth load). */
+  /** OSC transport observations (console log, banners, scsynth load). */
   osc: OscState;
   /** Dashboard grid placement. Restored from / periodically saved to the
    *  backend's saved-session storage by the SessionManager. */

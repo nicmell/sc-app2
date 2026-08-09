@@ -33,3 +33,8 @@ export const ClockTick = {
   id: (m: OscMessage): number => m.args[0] as number,
   index: (m: OscMessage): number => m.args[1] as number,
 };
+
+export const ClockStatus = {
+  offset: (m: OscMessage): number => Number(m.args[0]),
+  rtt: (m: OscMessage): number => Number(m.args[1]),
+};

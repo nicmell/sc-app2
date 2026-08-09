@@ -1,8 +1,9 @@
 // OSC transport types: the client-facing session block and the message
 // protocol between the WorkerClient (main thread) and the WebSocket-owning
-// worker — commands down, transport events up. Pure bytes on the wire — all
-// OSC encode/decode happens in osc-js on the main thread; the worker only
-// moves frames.
+// worker — commands down, transport events up. OSC traffic crosses this
+// boundary as plain packets; the worker owns binary encode/decode.
+
+import type { OscPacket } from "@sc-app/server-commands";
 
 /** A session's scsynth allocation, as `OscClient.connect` consumes it. */
 export interface OscSession {
@@ -22,14 +23,15 @@ export interface OscSession {
 /** What the transport is told to do (WorkerClient → worker). */
 export type TransportCommand =
   | { type: "open"; url: string }
-  | { type: "send"; data: Uint8Array }
+  | { type: "osc"; packet: OscPacket }
   | { type: "close" };
 
 /** What the transport reports (transport → worker → WorkerClient). A real
- *  socket close carries the WebSocket close code/reason for diagnostics; the
- *  WorkerClient's synthesized close (orderly shutdown) carries neither. */
+ *  socket close carries the WebSocket close code/reason for diagnostics; a
+ *  WorkerClient-synthesized close may carry the worker-crash reason. */
 export type TransportEvent =
   | { type: "open" }
-  | { type: "message"; data: ArrayBuffer }
+  | { type: "respawn" }
+  | { type: "osc"; packet: OscPacket }
   | { type: "error"; message: string }
   | { type: "close"; code?: number; reason?: string };

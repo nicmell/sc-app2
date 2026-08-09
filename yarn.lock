@@ -4723,7 +4723,6 @@ __metadata:
     globals: "npm:^17.6.0"
     happy-dom: "npm:^20.10.2"
     lit: "npm:^3.3.3"
-    osc-js: "npm:^2.4.1"
     prettier: "npm:^3.8.4"
     react: "npm:^19"
     react-dom: "npm:^19"

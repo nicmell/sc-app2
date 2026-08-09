@@ -12,6 +12,7 @@ const osc = vi.hoisted(() => ({
   close: vi.fn(),
   on: vi.fn(() => 1),
   off: vi.fn(),
+  subscribeClock: vi.fn(() => ({ id: 1, off: vi.fn() })),
 }));
 
 vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));
@@ -36,6 +37,7 @@ beforeEach(() => {
   osc.close.mockReset();
   osc.on.mockClear();
   osc.off.mockClear();
+  osc.subscribeClock.mockClear();
   appStore.update((state) => ({
     ...state,
     session: { status: "connecting", scsynthAddress: null },

@@ -1,60 +1,64 @@
-# `src/lib/osc` — the OSC transport subsystem
+# OSC client and worker endpoint
 
-How the app talks OSC to the SuperCollider/Strudel bridge. Built on
-[osc-js](https://github.com/adzialocha/osc-js): one `OSC` instance does all
-encode/decode/dispatch; a custom transport plugin rides the worker-backed
-WebSocket transport (`src/lib/worker/`) so socket traffic stays off the main
-thread.
+OSC communication is split at a plain-data boundary. The main thread owns app
+state and scsynth sequencing; the worker owns the WebSocket, binary codec, and
+backend-synchronized clock estimator/tick scheduler (see CLOCK.md at the repo
+root for the full sync design). Neither side exposes wire bytes across
+`postMessage`.
 
-## Layer stack (each box has one job; deps point downward)
+```text
+OscClient.send(OscPacket)                         main thread
+        │  { type: "osc", packet }
+        ▼
+worker/WorkerClient.ts ───────────────────────► worker/worker.ts
+                                                   │ encode
+                                                   ▼
+                                              WebSocket bytes
 
-```
-SessionManager / sc-elements
-        │   import { oscClient } — the global instance
-   OscClient (OscClient.ts)            connect/close/send/on/off/status — mirrors the osc-js OSC class
-        │   composes `new OSC({ plugin })`
-   OscWorkerPlugin.ts            osc-js Plugin impl: adapts the transport's events onto
-        │                              osc-js's `notify` (osc-js does all decode/dispatch)
-        │   workerClient: WorkerTransport — { open, close, send, onEvent, status }
-   ../worker/WorkerClient.ts           the main-thread proxy: owns THE worker (spawned once,
-        │                              in its constructor), tracks status, relays the protocol
-        │   postMessage (types/osc.d.ts): TransportCommand ↓ / TransportEvent ↑
-   ../worker/worker.ts                 the Web Worker entry — wires the protocol to the transport
-        │   createWsTransport(): WorkerTransport — the same interface, in-worker
-   ../worker/transport.ts              the raw WebSocket: binary frames in/out
+                                              WebSocket bytes
+                                                   │ decode
+                                                   ▼
+OscClient.handleReply ◄────────────────────── worker/worker.ts
+        ▲  { type: "osc", packet }
 ```
 
-## Files
+## Modules
 
-| file                            | responsibility                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OscClient.ts`                  | the client class + the global `oscClient` instance. `connect(url)` resolves once the socket is open; `send(packet)` takes the `OSC.Message`/`OSC.Bundle` packets the `@sc-app/server-commands` constructors build (and logs each message as `tx`); `on(address, cb)` subscribes to inbound messages (osc-js address patterns, `*` for all) and to `'open'`/`'close'`/`'error'`. The client also **owns the OSC telemetry** — the app store's `osc` slice: the bounded tx/rx console log, the `/fail`–`/late` banners, scsynth's `/status.reply` load, and the `connected` signal the plugin lifecycle arms on — and **terminates its own connection** on a critical transport error or a missed `/status.reply` heartbeat (the SessionManager only observes the close). It is also the sc-elements' whole scsynth vocabulary: the sequenced command methods (createGroup/createSynth/sendSynthDef/…), the scope-slot allocator over the session's span, and the decoded `onScopeChunk` stream. |
-| `OscWorkerPlugin.ts`            | the osc-js transport plugin — a thin adapter: implements the Plugin contract over the `workerClient` singleton and maps its events onto `notify` — osc-js unpacks and dispatches inbound frames.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `../worker/WorkerClient.ts`     | the `WorkerClient` class + the `workerClient` singleton — the main-thread proxy to the worker: spawns the one permanent worker in its constructor (at import time; connections come and go over it via open/close), tracks the status (numbering mirrors `OSC.STATUS`), and synthesizes the single `close` event on an orderly close.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `../worker/worker.ts`           | Web Worker entry: wires the postMessage protocol to the in-worker transport (inbound frames transferred zero-copy). No osc-js here.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `../worker/transport.ts`        | the shared `WorkerTransport` interface (`{ open, close, send, onEvent, status }`) + `createWsTransport()` — the raw `WebSocket`, running inside the worker; `open` silently disposes a previous socket, an orderly `close` emits no event (the client synthesizes it), and a real socket close carries its code/reason up for diagnostics.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `types/osc.d.ts` (in `@/types`) | the WorkerClient ⇄ worker protocol (`TransportCommand` / `TransportEvent`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Module                   | Responsibility                                                                                                                                                                                                                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OscClient.ts`           | Global stateful protocol owner: lifecycle events, reply waiters, worker-clock subscriptions, node and scope allocation, command sequencing, and scope-chunk dispatch. `send()` and `handleReply()` use the plain `OscPacket` / `OscMessage` model from `@sc-app/server-commands`. |
+| `middleware.ts`          | Transport middleware contract and the reentrant, error-isolated command/event dispatcher. Lifecycle traffic is guaranteed to reach the terminal.                                                                                                                                  |
+| `middlewares/`           | Plain logging, error-banner, and status observers plus their sole registration site. They consume worker-protocol commands/events and own their respective OSC store fields.                                                                                                      |
+| `watchdog.ts`            | Heartbeat watchdog consuming the client's connected/clock seams and exposing a transport middleware that stamps `/status.reply`.                                                                                                                                                  |
+| `worker/WorkerClient.ts` | Permanent main-thread worker proxy. It runs command/event middleware chains, posts plain packets, mirrors connection status, respawns a crashed worker, and synthesizes close events for orderly shutdown and worker crashes.                                                     |
+| `worker/worker.ts`       | OSC worker endpoint. It encodes outgoing packets, decodes incoming frames, intercepts worker-internal `/clock/*` commands/replies, reports codec failures, and transfers inbound blob buffers. The binary codec dependency is imported only here.                                 |
+| `worker/clock.ts`        | NTP-style bridge offset estimator over `Date.now()` plus monotonic absolute-phase tick streams. RTT and scheduling stay in the worker's `performance.now()` domain.                                                                                                               |
+| `worker/transport.ts`    | Raw in-worker WebSocket transport. Its private events carry byte frames and never cross the worker boundary directly.                                                                                                                                                             |
 
-## Trace a message each way
+## Worker protocol
 
-**Outbound** — `oscClient.send(packet)`:
+Commands from `WorkerClient` are `{ type: "open", url }`, `{ type: "close" }`,
+or `{ type: "osc", packet }`. Events back are `open`, `close`, `error`, `respawn`, or the
+same `{ type: "osc", packet }` shape. Packets are plain messages
+`{ address, args }` or bundles `{ timetag, packets }` and are structured-clone
+safe.
 
-```
-oscClient.send (tx log) → OSC.send → packet.pack()                     [main thread]
-  → plugin.send(bytes) → worker.postMessage({type:"send"}, transfer)
-══ worker ══ ws.send(bytes) → bridge
-```
+The main-thread middleware registration order carries no correctness
+dependency: each current observer calls `next` synchronously. Tx logging skips
+`/clock/*`; rx logging skips scope chunks, clock tick/status, and
+`/status.reply`, while `/fail` and `/late` remain both logged and bannered. A
+future phase will apply the same contract inside the worker, starting by
+turning worker.ts's `/clock/*` interception into worker-side middleware.
 
-**Inbound** — e.g. a `/scope/chunk`:
+Outbound packet-shaped arguments (notably `/d_recv`'s embedded `/sync`)
+become OSC blobs in the worker codec. Decode is intentionally asymmetric:
+inbound blobs remain `Uint8Array` values. Bundle packets are walked on the
+main thread in wire order and each message feeds `handleReply` immediately.
 
-```
-══ worker ══ ws message → postMessage({type:"message", data}, transfer)   (zero-copy)
-══ main ══ plugin.notify(bytes) → osc-js unpacks + dispatches by address
-  → handleReply → parseScopeChunkArgs → dispatch by subId to the owning
-    sc-scope's subscribeScope handler → chunkRef
-```
-
-`/scope/chunk` is an ordinary OSC message — no special-casing anywhere in the
-transport; the client decodes it once in `handleReply` and dispatches it by
-subId to the handler `subscribeScope` registered. Bundles are dispatched
-per-element by osc-js (future timetags are honored with delayed dispatch).
+`/scope/*` and `/clock/*` are bridge-internal families and never route to UDP
+peers. Bare clock subscribe commands are intercepted before encoding; ping/pong
+uses the WebSocket so the offset estimate measures the transport that carries
+scheduled OSC. Ping carries `[seq:i]`; pong carries `[seq:i, srv:d]`, with the
+worker retaining the monotonic send time by sequence. Clock subscriptions continue while disconnected and are replayed
+after worker respawn. `clockNow()` is wall time plus the latest estimated offset;
+monotonic scheduler phase must continue to use `performance.now()`.

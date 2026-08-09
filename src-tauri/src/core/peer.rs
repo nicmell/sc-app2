@@ -216,7 +216,7 @@ mod tests {
         let peers = connect_all(
             &[
                 peer_config("scsynth", r"^/(s_new|notify|status)", &addr),
-                peer_config("strudel", r"^/(dirt|clock)(/|$)", &addr),
+                peer_config("strudel", r"^/dirt(/|$)", &addr),
             ],
             channel(),
         )
@@ -226,6 +226,7 @@ mod tests {
             route_for(&peers, "/dirt/play").map(|p| p.name.as_str()),
             Some("strudel")
         );
+        assert!(route_for(&peers, "/clock/ping").is_none());
         assert_eq!(
             route_for(&peers, "/s_new").map(|p| p.name.as_str()),
             Some("scsynth")

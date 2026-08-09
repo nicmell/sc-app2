@@ -17,7 +17,7 @@ import { ScElement } from "@/sc-elements/internal/sc-element";
 // is dynamically imported in mountEditor() so it stays out of the boot bundle.
 import type { StrudelMirror } from "@strudel/codemirror";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
-import { OSC, atDate, type OscPacket } from "@sc-app/server-commands";
+import { atDate, type OscPacket } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
 import { oscClient } from "@/stores/osc";
 import { session } from "@/stores/session";
@@ -29,12 +29,14 @@ const SAFETY_LOOKAHEAD_MS = 200;
 type DirtEvent = Record<string, string | number>;
 
 /** Build a `/dirt/play` bundle: flat `[key, value, …]` args, scheduled at
- *  `timetagMs` (a wall-clock ms timestamp — osc-js converts it to NTP). */
+ *  `timetagMs` (a wall-clock ms timestamp converted to NTP by the worker codec). */
 function dirtPlayBundle(event: DirtEvent, timetagMs: number): OscPacket {
   const args: Array<string | number> = [];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
-  const message = new OSC.Message("/dirt/play", ...args);
-  return new OSC.Bundle([message], atDate(timetagMs));
+  return {
+    timetag: atDate(timetagMs),
+    packets: [{ address: "/dirt/play", args }],
+  };
 }
 
 const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the OSC bridge.
@@ -163,10 +165,23 @@ export class ScStrudel extends ScElement {
       // the event itself (`.orbit(n)` wins).
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
+      // scsynth and the bridge share a host clock. Cyclist stays entirely in
+      // the monotonic performance.now() domain; convert only while stamping.
       const timetag = Math.round(
-        Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
+        oscClient.clockNow() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );
       oscClient.send(dirtPlayBundle(event, timetag));
+    };
+
+    const clockIntervals = new Map<number, () => void>();
+    const setInterval = (cb: () => void, ms: number): number => {
+      const sub = oscClient.subscribeClock(ms, cb);
+      clockIntervals.set(sub.id, sub.off);
+      return sub.id;
+    };
+    const clearInterval = (id: number): void => {
+      clockIntervals.get(id)?.();
+      clockIntervals.delete(id);
     };
 
     this.mirror = new StrudelMirror({
@@ -174,6 +189,8 @@ export class ScStrudel extends ScElement {
       initialCode: this.initialCode || DEFAULT_CODE,
       defaultOutput,
       transpiler,
+      setInterval,
+      clearInterval,
       getTime: () => performance.now() / 1000,
       prebake: () => ensureStrudelGlobals().then(() => undefined),
       bgFill: false,

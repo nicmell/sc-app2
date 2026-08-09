@@ -3,63 +3,55 @@
  * (sync, notify, dumpOSC, error, /cmd, /u_cmd).
  */
 
-import OSC from "osc-js";
-import type { OscArg } from "../types";
+import type { OscArg, OscMessage } from "../types";
 
-// osc-js's .d.ts types blob args as `Blob`; runtime accepts Uint8Array.
-// Widen via cast here so our `OscArg` (which includes Uint8Array) is
-// accepted at construction.
-const anyArr = (xs: ReadonlyArray<OscArg>): any[] => xs as any[];
+const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, args });
 
 // ── Argless ───────────────────────────────────────────────────────────
 
-export const clearSched = (): OSC.Message => new OSC.Message("/clearSched");
-export const nrtEnd = (): OSC.Message => new OSC.Message("/nrt_end");
-export const quit = (): OSC.Message => new OSC.Message("/quit");
-export const rtMemoryStatus = (): OSC.Message => new OSC.Message("/rt_memoryStatus");
-export const status = (): OSC.Message => new OSC.Message("/status");
-export const version = (): OSC.Message => new OSC.Message("/version");
+export const clearSched = (): OscMessage => message("/clearSched");
+export const nrtEnd = (): OscMessage => message("/nrt_end");
+export const quit = (): OscMessage => message("/quit");
+export const rtMemoryStatus = (): OscMessage => message("/rt_memoryStatus");
+export const status = (): OscMessage => message("/status");
+export const version = (): OscMessage => message("/version");
 
 // ── /sync ─────────────────────────────────────────────────────────────
 
-/** `/sync id`. Prefer `WorkerClient.sendAndSync` which allocates the id
- *  for you — this helper is useful for embedding into `completionMsg`s. */
-export const sync = (id: number): OSC.Message => new OSC.Message("/sync", id);
+/** `/sync id`. `OscClient.sendSynthDef` allocates the id and awaits the
+ *  embedded `/sync` acknowledgement; this helper builds that completion message. */
+export const sync = (id: number): OscMessage => message("/sync", id);
 
 // ── /notify ───────────────────────────────────────────────────────────
 
 /** `/notify enable` (+ optional clientId for multi-client setups). */
-export const notify = (enable: 0 | 1, clientId?: number): OSC.Message =>
-  clientId === undefined
-    ? new OSC.Message("/notify", enable)
-    : new OSC.Message("/notify", enable, clientId);
+export const notify = (enable: 0 | 1, clientId?: number): OscMessage =>
+  clientId === undefined ? message("/notify", enable) : message("/notify", enable, clientId);
 
 // ── /dumpOSC ──────────────────────────────────────────────────────────
 
 /** Mode: 0=off, 1=parsed, 2=hex, 3=both. */
-export const dumpOsc = (mode: 0 | 1 | 2 | 3): OSC.Message => new OSC.Message("/dumpOSC", mode);
+export const dumpOsc = (mode: 0 | 1 | 2 | 3): OscMessage => message("/dumpOSC", mode);
 
 // ── /error ────────────────────────────────────────────────────────────
 
 /** Server error-posting mode: 0=off, 1=on (default), 2=off-scope/on-bundle,
  *  -1/-2 = same for one command, then back. */
-export const errorMode = (mode: number): OSC.Message => new OSC.Message("/error", mode);
+export const errorMode = (mode: number): OscMessage => message("/error", mode);
 
 // ── /cmd and /u_cmd (plugin / UGen extension dispatch) ────────────────
 
-export const cmd = (name: string, ...args: OscArg[]): OSC.Message =>
-  new OSC.Message("/cmd", name, ...anyArr(args));
+export const cmd = (name: string, ...args: OscArg[]): OscMessage => message("/cmd", name, ...args);
 
 export const uCmd = (
   nodeId: number,
   ugenIndex: number,
   commandName: string,
   ...args: OscArg[]
-): OSC.Message => new OSC.Message("/u_cmd", nodeId, ugenIndex, commandName, ...anyArr(args));
+): OscMessage => message("/u_cmd", nodeId, ugenIndex, commandName, ...args);
 
 // ── Raw escape hatch ─────────────────────────────────────────────────
 
 /** Drop down to a raw address + positional args — for commands this
  *  package doesn't model specifically, or for experimenting. */
-export const raw = (address: string, ...args: OscArg[]): OSC.Message =>
-  new OSC.Message(address, ...anyArr(args));
+export const raw = (address: string, ...args: OscArg[]): OscMessage => message(address, ...args);

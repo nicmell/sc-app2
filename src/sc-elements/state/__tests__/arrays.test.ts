@@ -8,11 +8,11 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { OSC } from "@sc-app/server-commands";
+import { type OscMessage } from "@sc-app/server-commands";
 import { registerScElements, type ScControl, type ScVar } from "@/sc-elements";
 import { installScsynthMock, mountPlugin, parsePlugin, wrapXml } from "@/lib/utils/test/test-utils";
 
-let sent: OSC.Message[];
+let sent: OscMessage[];
 
 const PLUGIN = wrapXml(`<sc-synthdef name="voice">
     <sc-control name="freq" value="440"/>
@@ -245,5 +245,3 @@ describe("voice array latching", () => {
     expect(sent.filter((m) => m.address === "/n_setn")).toHaveLength(0);
   });
 });
-
-

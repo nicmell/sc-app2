@@ -1,11 +1,3 @@
-// scsynth reply addresses the app routes on. Command addresses live with their
-// constructors in @sc-app/server-commands — not duplicated here.
-export const OSC_REPLIES = {
-  STATUS: "/status.reply",
-  FAIL: "/fail",
-  LATE: "/late",
-} as const;
-
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
@@ -22,6 +14,25 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  commands (`/d_recv` → `/synced`, `/s_new` → `/n_go`) fail loudly instead
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
+
+// ── bridge clock (see CLOCK.md) ──────────────────────────────────────
+
+/** Pings fired back-to-back on socket open so the offset estimator locks
+ *  fast (~0.6 s) instead of waiting out the steady cadence. */
+export const CLOCK_PING_BURST_COUNT = 5;
+/** Spacing inside the burst — must exceed the worst-case RTT so a ping never
+ *  queues behind the previous one (queueing inflates its own RTT sample). */
+export const CLOCK_PING_BURST_INTERVAL_MS = 150;
+/** Steady re-sync cadence, sized for clock drift: at a worst-case ~100 ppm
+ *  crystal, ms-level precision over the 8-sample window needs a sample about
+ *  every 1 ms / 100 ppm / 8 ≈ 1.25 s. */
+export const CLOCK_PING_INTERVAL_MS = 2_000;
+/** Recent-sample ring the estimate is picked from (min-RTT rule) — 8 is
+ *  NTP's clock-filter register size. */
+export const CLOCK_SAMPLE_WINDOW = 8;
+/** Watchdog poll cadence, derived: detection latency is the reply timeout
+ *  plus at most one poll interval, so a fifth keeps it tight. */
+export const CLOCK_WATCHDOG_INTERVAL_MS = STATUS_REPLY_TIMEOUT_MS / 5;
 
 // ── scope taps (<sc-scope> defaults) ──────────────────────────────────
 

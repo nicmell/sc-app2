@@ -40,6 +40,11 @@ export interface ScsynthStatus {
   numGroups: number;
 }
 
+export interface ClockStatus {
+  offset: number;
+  rtt: number;
+}
+
 /** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
  *  surfaced to the user as a toast banner. Repeated identical failures coalesce
  *  into one entry with a bumped `count`. */
@@ -60,7 +65,7 @@ export interface SessionState {
   scsynthAddress: string | null;
 }
 
-/** The OSC slice of the app store, owned by the OscClient. */
+/** The OSC slice: OscClient owns connected; transport middlewares own the rest. */
 export interface OscState {
   /** Transport-level "connection ready" — the session group exists and the
    *  node-id allocator is armed. Consumers like the plugin lifecycle arm on
@@ -68,13 +73,14 @@ export interface OscState {
   connected: boolean;
   log: LoggedEntry[];
   scsynthStatus: ScsynthStatus | null;
+  clock: ClockStatus | null;
   errors: ScsynthError[];
 }
 
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
-  /** The OSC transport's telemetry (console log, banners, scsynth load). */
+  /** OSC transport observations (console log, banners, scsynth load). */
   osc: OscState;
   /** Dashboard grid placement. Restored from / periodically saved to the
    *  backend's saved-session storage by the SessionManager. */

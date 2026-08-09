@@ -55,7 +55,7 @@ fn default_port() -> u16 {
 }
 
 /// Starter peers, seeded when `config.json` declares none: scsynth (its command
-/// surface) and strudel/SuperDirt (dirt/clock/scope).
+/// surface) and strudel/SuperDirt (dirt).
 fn default_peers() -> Vec<PeerConfig> {
     vec![
         PeerConfig {
@@ -67,9 +67,9 @@ fn default_peers() -> Vec<PeerConfig> {
         },
         PeerConfig {
             name: "strudel".into(),
-            // `/scope/*` is bridge-internal (intercepted in the WS pump for the
-            // SHM scope), so it's deliberately not routed to a peer here.
-            pattern: r"^/(dirt|clock)(/|$)".into(),
+            // `/scope/*` and `/clock/*` are bridge-internal (intercepted in
+            // the WS pump), so neither is routed to a peer here.
+            pattern: r"^/dirt(/|$)".into(),
             target: "127.0.0.1:57120".into(),
         },
     ]

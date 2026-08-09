@@ -1,14 +1,16 @@
-// The raw WebSocket transport for packed OSC frames, behind the shared
-// `{ open, close, send, onEvent, status }` interface. This runs INSIDE the
-// Web Worker (worker.ts calls `createWsTransport()` directly); the main
-// thread talks to it through the WorkerClient, which exposes the same
-// interface across the postMessage boundary. No osc-js here.
+// The raw WebSocket transport for packed OSC frames. This runs inside the Web
+// Worker and has one implementation: `createWsTransport`, consumed directly by
+// worker.ts. WorkerClient is the distinct main-thread plain-packet proxy.
 
-import type { TransportEvent } from "@/types/osc";
+export type RawTransportEvent =
+  | { type: "open" }
+  | { type: "message"; data: ArrayBuffer }
+  | { type: "error"; message: string }
+  | { type: "close"; code?: number; reason?: string };
 
 /** Connection states. The numbering deliberately mirrors WebSocket
- *  `readyState` — and therefore `OSC.STATUS` — plus -1 for "never opened",
- *  so the osc-js plugin can return it from `status()` verbatim. */
+ *  `readyState` — plus -1 for "never opened",
+ *  so the main-thread proxy can mirror it exactly. */
 export const TRANSPORT_STATUS = {
   IS_NOT_INITIALIZED: -1,
   IS_CONNECTING: 0,
@@ -19,9 +21,8 @@ export const TRANSPORT_STATUS = {
 
 export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_STATUS];
 
-/** A transport for packed OSC frames — implemented by the raw WebSocket
- *  (`createWsTransport`, in the worker) and by its main-thread proxy
- *  (the WorkerClient). */
+/** A transport for packed OSC frames — implemented by `createWsTransport` and
+ *  consumed by worker.ts. */
 export interface WorkerTransport {
   /** Open the connection to `url`. */
   open(url: string): void;
@@ -31,8 +32,8 @@ export interface WorkerTransport {
   send(data: Uint8Array): void;
   /** Register the consumer of transport events — open/message/error/close
    *  (one listener). */
-  onEvent(cb: (msg: TransportEvent) => void): void;
-  /** Connection status (a `TRANSPORT_STATUS` / `OSC.STATUS` value). */
+  onEvent(cb: (msg: RawTransportEvent) => void): void;
+  /** Connection status (a `TRANSPORT_STATUS` value). */
   status(): TransportStatus;
 }
 
@@ -44,7 +45,7 @@ export interface WorkerTransport {
  *  after a new connection's subscribers are in place. */
 export function createWsTransport(): WorkerTransport {
   let ws: WebSocket | null = null;
-  let notify: (msg: TransportEvent) => void = () => {};
+  let notify: (msg: RawTransportEvent) => void = () => {};
 
   /** Detach + close the current socket without emitting anything. */
   const dispose = () => {

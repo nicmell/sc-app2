@@ -4,8 +4,8 @@
 // localStorage identity, mint/revive over HTTP, the 503 retry budget — lives
 // in the route loaders (`@/lib/session/resolveSession`); SessionLayout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
-// The OSC domain — console log, error banners, scsynth load, heartbeat
-// watchdog — lives on the OscClient itself (`@/lib/osc/OscClient`), which also
+// OSC telemetry and the heartbeat watchdog observe OscClient's public seams;
+// the client itself (`@/lib/osc/OscClient`) also
 // terminates the connection on critical failures; this manager only observes
 // the close.
 //
@@ -30,9 +30,9 @@ export class SessionManager {
   readonly scsynthAddress = this.state.select((state) => state.scsynthAddress);
 
   /** (event, id) pairs of our oscClient subscriptions, for teardown(). */
-  private subscriptions: Array<[string, number]> = [];
-  /** The layout-autosave timer + the last value it saved (reference compare). */
-  private saveTimer: ReturnType<typeof setInterval> | null = null;
+  private subscriptions: Array<["close", number]> = [];
+  /** The layout-autosave worker-clock subscription + last saved reference. */
+  private saveOff: (() => void) | null = null;
   private lastSavedLayout: BoxItem[] | null = null;
   /** Bumped by every connect()/disconnect(): a stale async connect abandons
    *  itself when the epoch moved under it (a session switch mid-await). */
@@ -118,7 +118,7 @@ export class SessionManager {
    *  where the layout hasn't changed since the last save; failures just retry
    *  on the next tick. */
   private startLayoutAutosave(sessionId: string): void {
-    this.saveTimer = setInterval(() => {
+    this.saveOff = oscClient.subscribeClock(LAYOUT_SAVE_INTERVAL_MS, () => {
       const current = layout.get();
       if (current === this.lastSavedLayout) return;
       put(`/api/session/${sessionId}`, JSON.stringify(current), {
@@ -129,7 +129,7 @@ export class SessionManager {
         },
         (error) => console.warn("[session] layout save failed:", error),
       );
-    }, LAYOUT_SAVE_INTERVAL_MS);
+    }).off;
   }
 
   /** Shared teardown: stop the autosave, drop our subscriptions, and close
@@ -138,16 +138,17 @@ export class SessionManager {
    *  watchdog, worker. Subscriptions drop before the close so the intentional
    *  close doesn't read as an error. */
   private teardown(): void {
-    if (this.saveTimer !== null) {
-      clearInterval(this.saveTimer);
-      this.saveTimer = null;
-    }
+    this.saveOff?.();
+    this.saveOff = null;
     for (const [event, id] of this.subscriptions) oscClient.off(event, id);
     this.subscriptions = [];
     oscClient.close();
   }
 
-  private subscribe(event: string, callback: (...args: any[]) => void): void {
+  private subscribe(
+    event: "close",
+    callback: (info?: { code?: number; reason?: string }) => void,
+  ): void {
     this.subscriptions.push([event, oscClient.on(event, callback)]);
   }
 

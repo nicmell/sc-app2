@@ -1,6 +1,5 @@
-// The app's OSC client: composes osc-js's OSC class with the
-// OscWorkerPlugin, so all encode/decode/dispatch is osc-js and the
-// WebSocket runs in a Web Worker. The interface mirrors the OSC class
+// The app's OSC client consumes plain OSC packets from the worker, which owns
+// both the WebSocket and binary codec. The interface provides
 // (open/close/send/on/off/status), plus a promise-returning
 // `connect(url, session)`.
 //
@@ -12,24 +11,21 @@
 // fresh; the bridge ends them when the WebSocket closes) and owns node-id
 // allocation from the session's server-assigned block (`nextNodeId`).
 //
-// The client also owns the whole OSC telemetry domain — the `osc` slice of the
-// app store: the bounded tx/rx console log, the `/fail`–`/late` error banners,
-// scsynth's `/status.reply` load, and the transport-level `connected` signal
-// consumers arm on (the plugins reload/unload with it). And it polices
-// its own connection: a critical transport error or a missed `/status.reply`
-// heartbeat terminates the session by closing the WebSocket — the
-// SessionManager only observes the close.
+// Its public events expose transport lifecycle without coupling protocol
+// consumers to transport middleware concerns.
 
-import OSC from "osc-js";
 import {
   ADDR_N_GO,
   ADDR_SYNCED,
   AddToTail,
+  CLOCK_STATUS_ADDRESS,
+  CLOCK_TICK_ADDRESS,
+  ClockStatus,
+  ClockTick,
+  clockSubscribe,
+  clockUnsubscribe,
   dFree,
   dRecv,
-  encode,
-  flattenPacket,
-  formatOscArg,
   gFreeAll,
   gNewOne,
   nFree,
@@ -45,55 +41,47 @@ import {
   sync,
   Synced,
   type DecodedScopeChunk,
-  type OscArg,
+  type OscMessage,
   type OscPacket,
+  walkPacket,
 } from "@sc-app/server-commands";
-import {
-  MAX_ERRORS,
-  MAX_LOG,
-  OSC_REPLIES,
-  REPLY_TIMEOUT_MS,
-  STATUS_REPLY_TIMEOUT_MS,
-} from "@/constants/osc";
+import { REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
-import { OscWorkerPlugin } from "./OscWorkerPlugin";
-import type { OscSession } from "@/types/osc";
-import type { ScsynthStatus } from "@/types/stores";
-
-/** Parse a `/status.reply`'s args. Layout (scsynth):
- *  `[1, ugens, synths, groups, defs, avgCpu, peakCpu, srNominal, srActual]`. */
-function parseStatus(args: ReadonlyArray<OscArg>): ScsynthStatus {
-  return {
-    avgCpu: Number(args[5]) || 0,
-    peakCpu: Number(args[6]) || 0,
-    sampleRate: Number(args[8]) || 0,
-    numUgens: Number(args[1]) || 0,
-    numSynths: Number(args[2]) || 0,
-    numGroups: Number(args[3]) || 0,
-  };
-}
+import { workerClient } from "./worker/WorkerClient";
+import { TRANSPORT_STATUS } from "./worker/transport";
+import type { OscSession, TransportEvent } from "@/types/osc";
 
 /** A pending `once()` reply waiter, matched in `handleReply`. */
 interface ReplyWaiter {
   address: string;
-  match: (msg: OSC.Message) => boolean;
-  resolve: (msg: OSC.Message) => void;
+  match: (msg: OscMessage) => boolean;
+  resolve: (msg: OscMessage) => void;
   reject: (err: Error) => void;
   timer: ReturnType<typeof setTimeout>;
 }
 
+type ClientEventArgs = {
+  open: [];
+  close: [info?: { code?: number; reason?: string }];
+  error: [error: Error];
+};
+type ClientEvent = keyof ClientEventArgs;
+type StoredListener = (...args: never[]) => void;
+
 export class OscClient {
-  private readonly osc = new OSC({ plugin: new OscWorkerPlugin() });
+  private readonly listeners: { [K in ClientEvent]: Map<number, StoredListener> } = {
+    open: new Map(),
+    close: new Map(),
+    error: new Map(),
+  };
+  private nextListenerId = 1;
 
   /** The OSC slice of the single app store. */
   private readonly state = appStore.slice(SliceName.OSC);
   /** Transport-level "connection ready": the session group exists and the
    *  node-id allocator is armed. The plugins reload/unload on it. */
   readonly connected = this.state.select((s) => s.connected);
-  readonly log = this.state.select((s) => s.log);
-  readonly errors = this.state.select((s) => s.errors);
-  readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
 
   /** Next node id to hand out, within `[nodeIdBase, nodeIdEnd)`. */
   private nextId = 0;
@@ -107,40 +95,55 @@ export class OscClient {
   /** Monotonic /scope/subscribe subId — never reused within a connection, so
    *  a freed slot's late chunk can't be misattributed to a new subscriber. */
   private nextSubId = 1;
-  /** Stable React keys for log entries and banners. */
-  private nextEntryId = 0;
-  /** The `/status.reply` heartbeat watchdog (armed while connected). */
-  private statusTimer: ReturnType<typeof setTimeout> | null = null;
   /** Pending one-shot reply waiters (FIFO per address+match). */
   private waiters: ReplyWaiter[] = [];
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
+  /** Clock subscriptions outlive socket sessions; worker respawn replays them. */
+  private clockSubs = new Map<number, { intervalMs: number; cb: () => void }>();
+  private nextClockSubId = 1;
+  private clockOffset = 0;
 
   constructor() {
-    // Always-on subscriptions (osc-js handlers survive reconnects; nothing
-    // here spawns the worker — that only happens in connect()).
-    this.osc.on("*", (msg: OSC.Message) => this.handleReply(msg));
-    // A transport error is critical: surface it, then terminate the session
+    workerClient.onEvent((event) => this.handleTransportEvent(event));
+    // A transport error is critical: terminate the session
     // by closing — the bridge frees the session group on WS close. Pre-open
     // failures belong to connect()'s promise, so only close an open socket.
-    this.osc.on("error", (err: unknown) => {
-      console.error("[osc] transport error:", err);
-      this.pushError("websocket", err instanceof Error ? err.message : String(err), "error");
-      if (this.status() === OSC.STATUS.IS_OPEN) this.close();
+    this.on("error", () => {
+      if (this.status() === TRANSPORT_STATUS.IS_OPEN) this.close();
     });
-    // Diagnose abnormal closes: only a real socket close carries a code (the
-    // WorkerClient's synthesized orderly close doesn't), and 1000 is a normal
-    // closure — anything else gets a banner saying why the connection died.
-    this.osc.on("close", (info?: { code?: number; reason?: string }) => {
+    this.on("close", () => {
       // Whatever the reason, no reply is coming anymore: fail pending
-      // waiters now instead of letting them run out their timeouts.
+      // waiters now instead of letting them run out their timeouts, and let
+      // connected subscribers tear down from the single transport seam.
       this.rejectWaiters(new Error("OscClient.once: connection closed"));
-      if (!info?.code || info.code === 1000) return;
-      const message = `connection closed (${info.code}${info.reason ? `: ${info.reason}` : ""})`;
-      console.warn(`[osc] ${message}`);
-      this.pushError("websocket", message, "warn");
+      this.state.update((s) => ({ ...s, connected: false }));
     });
+  }
+
+  private handleTransportEvent(event: TransportEvent): void {
+    if (event.type === "respawn") {
+      // Replayed subscriptions restart their tick phase — fine for a
+      // crash-recovery path; consumers only rely on the cadence.
+      for (const [id, sub] of this.clockSubs) {
+        workerClient.send(clockSubscribe(id, sub.intervalMs));
+      }
+    } else if (event.type === "osc") {
+      walkPacket(event.packet, (message) => this.handleReply(message));
+    } else if (event.type === "error") {
+      this.emit("error", new Error(event.message));
+    } else if (event.type === "close") {
+      this.emit("close", event);
+    } else if (event.type === "open") {
+      this.emit("open");
+    }
+  }
+
+  private emit<E extends ClientEvent>(event: E, ...args: ClientEventArgs[E]): void {
+    for (const listener of this.listeners[event].values()) {
+      listener(...(args as never[]));
+    }
   }
 
   /** Open the WebSocket (via the worker) to `url`; once open, create the
@@ -149,9 +152,6 @@ export class OscClient {
    *  plugin reloads and the status watchdog). Resolves once the socket is
    *  open; rejects on an error or close before that. */
   connect(url: string, session: OscSession): Promise<void> {
-    // Fresh connection, fresh telemetry: drop the dead connection's load and
-    // banners. The console log deliberately survives reconnects.
-    this.state.update((s) => ({ ...s, scsynthStatus: null, errors: [] }));
     return new Promise<void>((resolve, reject) => {
       const offAll = () => {
         this.off("open", onOpen);
@@ -176,7 +176,6 @@ export class OscClient {
         // Flag readiness only after /g_new, so subscribers (plugin reloads)
         // allocate and send into an existing group.
         this.state.update((s) => ({ ...s, connected: true }));
-        this.armWatchdog();
         resolve();
       });
       const onError = this.on("error", (err: unknown) => {
@@ -187,7 +186,7 @@ export class OscClient {
         offAll();
         reject(new Error("websocket closed before open"));
       });
-      this.osc.open({ url });
+      workerClient.open(url);
     });
   }
 
@@ -235,35 +234,30 @@ export class OscClient {
     return this.nextId++;
   }
 
-  /** Close the connection (and the worker behind it). Dropping `connected`
-   *  first lets subscribers send their teardown while the
-   *  socket is still open — harmlessly dropped when the transport is already
-   *  dead, since the bridge frees the whole session group on WS close. */
+  /** Request an orderly transport close. The transport's synthesized close
+   *  event performs client teardown; sends triggered afterward are dropped,
+   *  and the bridge frees the session group when the WebSocket closes. */
   close(): void {
-    this.disarmWatchdog();
-    this.rejectWaiters(new Error("OscClient.once: connection closed"));
-    this.state.update((s) => ({ ...s, connected: false }));
-    this.osc.close();
+    workerClient.close();
   }
 
-  /** Pack and send an OSC message/bundle over the worker's WebSocket, logging
-   *  each flattened message as `tx`. Dropped (unlogged) while not open. */
+  /** Pack and send an OSC message/bundle over the worker's WebSocket. Dropped
+   *  while not open. */
   send(packet: OscPacket): void {
-    if (this.status() !== OSC.STATUS.IS_OPEN) return;
-    for (const { address, args } of flattenPacket(packet)) this.append("tx", address, args);
-    this.osc.send(packet);
+    if (this.status() !== TRANSPORT_STATUS.IS_OPEN) return;
+    workerClient.send(packet);
   }
 
-  /** Subscribe to an OSC address pattern (wildcards supported, `*` for every
-   *  message) or a connection event ('open' | 'close' | 'error'). Returns a
-   *  subscription id for `off`. */
-  on(event: string, callback: (...args: any[]) => void): number {
-    return this.osc.on(event, callback);
+  /** Subscribe to a connection event. Returns a subscription id for `off`. */
+  on<E extends ClientEvent>(event: E, callback: (...args: ClientEventArgs[E]) => void): number {
+    const id = this.nextListenerId++;
+    this.listeners[event].set(id, callback as StoredListener);
+    return id;
   }
 
   /** Remove a subscription made with `on`. */
-  off(event: string, subscriptionId: number): boolean {
-    return this.osc.off(event, subscriptionId);
+  off(event: ClientEvent, subscriptionId: number): boolean {
+    return this.listeners[event].delete(subscriptionId);
   }
 
   /** Wait for one inbound reply on `address` satisfying `match`. Resolves
@@ -274,10 +268,10 @@ export class OscClient {
    *  below (`/d_recv` → `/synced`, `/s_new`–`/g_new` → `/n_go`). */
   once(
     address: string,
-    match: (msg: OSC.Message) => boolean = () => true,
+    match: (msg: OscMessage) => boolean = () => true,
     timeoutMs: number = REPLY_TIMEOUT_MS,
-  ): Promise<OSC.Message> {
-    return new Promise<OSC.Message>((resolve, reject) => {
+  ): Promise<OscMessage> {
+    return new Promise<OscMessage>((resolve, reject) => {
       const waiter: ReplyWaiter = {
         address,
         match,
@@ -336,7 +330,7 @@ export class OscClient {
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const syncId = this.nextNodeId();
     const reply = this.once(ADDR_SYNCED, (m) => Synced.syncId(m) === syncId);
-    this.send(dRecv(bytes, encode(sync(syncId))));
+    this.send(dRecv(bytes, sync(syncId)));
     await reply;
   }
 
@@ -410,32 +404,47 @@ export class OscClient {
     };
   }
 
-  /** Connection status (an `OSC.STATUS` value). */
+  /** Start an absolute-phase tick stream in the worker. Unlike scope streams,
+   *  clock subscriptions survive socket reconnects and worker respawns. */
+  subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
+    const id = this.nextClockSubId++;
+    this.clockSubs.set(id, { intervalMs, cb });
+    workerClient.send(clockSubscribe(id, intervalMs));
+    return {
+      id,
+      off: () => {
+        if (this.clockSubs.delete(id)) workerClient.send(clockUnsubscribe(id));
+      },
+    };
+  }
+
+  /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */
+  clockNow(): number {
+    return Date.now() + this.clockOffset;
+  }
+
+  /** Connection status (a `TRANSPORT_STATUS` value). */
   status(): number {
-    return this.osc.status();
+    return workerClient.status();
   }
 
-  /** Dismiss one banner by id (the toast's × / auto-dismiss timer). */
-  dismissError(id: number): void {
-    this.state.update((s) => ({ ...s, errors: s.errors.filter((e) => e.id !== id) }));
-  }
-
-  /** Drop every banner. */
-  clearErrors(): void {
-    this.state.update((s) => ({ ...s, errors: [] }));
-  }
-
-  /** Route an inbound reply: `/status.reply` feeds the watchdog + the
-   *  scsynth-status view (and is kept out of the console); `/scope/chunk`
-   *  streams at ~47 Hz and is consumed by the sc-scope elements' own
-   *  subscription, so only the console log skips it; `/fail` and `/late`
-   *  additionally raise a banner; everything else is logged as `rx`.
-   *  Public for unit tests — normally fed by the constructor's `*`
-   *  subscription. */
-  handleReply(reply: OSC.Message): void {
+  /** Route an inbound reply to protocol consumers. Public for unit tests —
+   *  normally fed by worker packet events. */
+  handleReply(reply: OscMessage): void {
+    if (reply.address === CLOCK_TICK_ADDRESS) {
+      this.clockSubs.get(ClockTick.id(reply))?.cb();
+      return;
+    }
+    if (reply.address === CLOCK_STATUS_ADDRESS) {
+      const offset = ClockStatus.offset(reply);
+      const rtt = ClockStatus.rtt(reply);
+      if (Number.isFinite(offset) && Number.isFinite(rtt)) {
+        this.clockOffset = offset;
+      }
+      return;
+    }
     // One-shot waiters first — the message still falls through to the
-    // telemetry routing below (a /synced or /n_go someone awaits is logged
-    // like any other reply).
+    // protocol routing below (transport middleware has already observed it).
     const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));
     if (waiter) {
       this.waiters = this.waiters.filter((w) => w !== waiter);
@@ -457,73 +466,6 @@ export class OscClient {
       }
       return;
     }
-    if (reply.address === OSC_REPLIES.STATUS) {
-      const next = parseStatus(reply.args as ReadonlyArray<OscArg>);
-      this.state.update((s) => ({ ...s, scsynthStatus: next }));
-      // The heartbeat arrived — push the watchdog deadline out again.
-      if (this.statusTimer !== null) this.armWatchdog();
-      return;
-    }
-    // `/fail <command> <error> [extras…]` and `/late <seconds>` are mirrored to
-    // the browser console so every failure is visible there, and also raise a
-    // toast banner. Either way they still fall through to the OSC console as
-    // the full history.
-    if (reply.address === OSC_REPLIES.FAIL) {
-      const command = formatOscArg(reply.args[0] ?? "?");
-      const message = formatOscArg(reply.args[1] ?? "(no message)");
-      console.error(`[scsynth] ${command}: ${message}`);
-      this.pushError(command, message, "error");
-    } else if (reply.address === OSC_REPLIES.LATE) {
-      const seconds = Number(reply.args[0]) || 0;
-      const message = `bundle ran ${seconds.toFixed(3)}s late`;
-      console.warn(`[scsynth] /late: ${message}`);
-      this.pushError("/late", message, "warn");
-    }
-    this.append("rx", reply.address, reply.args.map(formatOscArg));
-  }
-
-  /** (Re)arm the heartbeat watchdog: if no `/status.reply` lands within the
-   *  timeout, the connection is considered dead and gets terminated. */
-  private armWatchdog(): void {
-    this.disarmWatchdog();
-    this.statusTimer = setTimeout(() => {
-      this.statusTimer = null;
-      const message = `no ${OSC_REPLIES.STATUS} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
-      console.error(`[osc] ${message}`);
-      this.pushError(OSC_REPLIES.STATUS, message, "error");
-      this.close();
-    }, STATUS_REPLY_TIMEOUT_MS);
-  }
-
-  private disarmWatchdog(): void {
-    if (this.statusTimer !== null) {
-      clearTimeout(this.statusTimer);
-      this.statusTimer = null;
-    }
-  }
-
-  /** Add a banner, coalescing an identical (address + message) one into a
-   *  bumped count + refreshed timestamp (which restarts its auto-dismiss). */
-  private pushError(address: string, message: string, variant: "error" | "warn"): void {
-    this.state.update((s) => {
-      const existing = s.errors.find((e) => e.address === address && e.message === message);
-      const errors = existing
-        ? s.errors.map((e) => (e === existing ? { ...e, count: e.count + 1, ts: Date.now() } : e))
-        : [
-            ...s.errors,
-            { id: this.nextEntryId++, address, message, variant, count: 1, ts: Date.now() },
-          ].slice(-MAX_ERRORS);
-      return { ...s, errors };
-    });
-  }
-
-  private append(dir: "tx" | "rx", address: string, args: string[]): void {
-    this.state.update((s) => ({
-      ...s,
-      log: [...s.log, { ts: Date.now(), dir, address, args, id: this.nextEntryId++ }].slice(
-        -MAX_LOG,
-      ),
-    }));
   }
 }
 

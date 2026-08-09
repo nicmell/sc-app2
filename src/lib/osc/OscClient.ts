@@ -23,6 +23,11 @@ import {
   ADDR_N_GO,
   ADDR_SYNCED,
   AddToTail,
+  CLOCK_STATUS_ADDRESS,
+  CLOCK_TICK_ADDRESS,
+  ClockTick,
+  clockSubscribe,
+  clockUnsubscribe,
   dFree,
   dRecv,
   flattenPacket,
@@ -49,6 +54,7 @@ import {
 import {
   MAX_ERRORS,
   MAX_LOG,
+  CLOCK_WATCHDOG_INTERVAL_MS,
   OSC_REPLIES,
   REPLY_TIMEOUT_MS,
   STATUS_REPLY_TIMEOUT_MS,
@@ -106,6 +112,7 @@ export class OscClient {
   readonly log = this.state.select((s) => s.log);
   readonly errors = this.state.select((s) => s.errors);
   readonly scsynthStatus = this.state.select((s) => s.scsynthStatus);
+  readonly clock = this.state.select((s) => s.clock);
 
   /** Next node id to hand out, within `[nodeIdBase, nodeIdEnd)`. */
   private nextId = 0;
@@ -121,13 +128,18 @@ export class OscClient {
   private nextSubId = 1;
   /** Stable React keys for log entries and banners. */
   private nextEntryId = 0;
-  /** The `/status.reply` heartbeat watchdog (armed while connected). */
-  private statusTimer: ReturnType<typeof setTimeout> | null = null;
+  /** The `/status.reply` watchdog runs from the worker's unthrottled clock. */
+  private watchdogOff: (() => void) | null = null;
+  private lastStatusAt = 0;
   /** Pending one-shot reply waiters (FIFO per address+match). */
   private waiters: ReplyWaiter[] = [];
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
+  /** Clock subscriptions outlive socket sessions; worker respawn replays them. */
+  private clockSubs = new Map<number, { intervalMs: number; cb: () => void }>();
+  private nextClockSubId = 1;
+  private clockOffset = 0;
 
   constructor() {
     workerClient.onEvent((event) => this.handleTransportEvent(event));
@@ -154,13 +166,17 @@ export class OscClient {
   }
 
   private handleTransportEvent(event: TransportEvent): void {
-    if (event.type === "osc") {
+    if (event.type === "respawn") {
+      for (const [id, sub] of this.clockSubs) {
+        workerClient.send(clockSubscribe(id, sub.intervalMs));
+      }
+    } else if (event.type === "osc") {
       this.walkMessages(event.packet);
     } else if (event.type === "error") {
       this.emit("error", new Error(event.message));
     } else if (event.type === "close") {
       this.emit("close", event);
-    } else {
+    } else if (event.type === "open") {
       this.emit("open");
     }
   }
@@ -446,6 +462,25 @@ export class OscClient {
     };
   }
 
+  /** Start an absolute-phase tick stream in the worker. Unlike scope streams,
+   *  clock subscriptions survive socket reconnects and worker respawns. */
+  subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
+    const id = this.nextClockSubId++;
+    this.clockSubs.set(id, { intervalMs, cb });
+    workerClient.send(clockSubscribe(id, intervalMs));
+    return {
+      id,
+      off: () => {
+        if (this.clockSubs.delete(id)) workerClient.send(clockUnsubscribe(id));
+      },
+    };
+  }
+
+  /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */
+  clockNow(): number {
+    return Date.now() + this.clockOffset;
+  }
+
   /** Connection status (a `TRANSPORT_STATUS` value). */
   status(): number {
     return workerClient.status();
@@ -468,6 +503,19 @@ export class OscClient {
    *  additionally raise a banner; everything else is logged as `rx`.
    *  Public for unit tests — normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
+    if (reply.address === CLOCK_TICK_ADDRESS) {
+      this.clockSubs.get(ClockTick.id(reply))?.cb();
+      return;
+    }
+    if (reply.address === CLOCK_STATUS_ADDRESS) {
+      const offset = Number(reply.args[0]);
+      const rtt = Number(reply.args[1]);
+      if (Number.isFinite(offset) && Number.isFinite(rtt)) {
+        this.clockOffset = offset;
+        this.state.update((s) => ({ ...s, clock: { offset, rtt } }));
+      }
+      return;
+    }
     // One-shot waiters first — the message still falls through to the
     // telemetry routing below (a /synced or /n_go someone awaits is logged
     // like any other reply).
@@ -495,8 +543,7 @@ export class OscClient {
     if (reply.address === OSC_REPLIES.STATUS) {
       const next = parseStatus(reply.args);
       this.state.update((s) => ({ ...s, scsynthStatus: next }));
-      // The heartbeat arrived — push the watchdog deadline out again.
-      if (this.statusTimer !== null) this.armWatchdog();
+      this.lastStatusAt = performance.now();
       return;
     }
     // `/fail <command> <error> [extras…]` and `/late <seconds>` are mirrored to
@@ -517,24 +564,28 @@ export class OscClient {
     this.append("rx", reply.address, reply.args.map(formatOscArg));
   }
 
-  /** (Re)arm the heartbeat watchdog: if no `/status.reply` lands within the
-   *  timeout, the connection is considered dead and gets terminated. */
+  /** Arm the heartbeat watchdog on the worker clock so background throttling
+   *  cannot postpone detection of a dead scsynth connection. */
   private armWatchdog(): void {
     this.disarmWatchdog();
-    this.statusTimer = setTimeout(() => {
-      this.statusTimer = null;
+    this.lastStatusAt = performance.now();
+    this.watchdogOff = this.subscribeClock(CLOCK_WATCHDOG_INTERVAL_MS, () => {
+      if (
+        !this.connected.get() ||
+        performance.now() - this.lastStatusAt <= STATUS_REPLY_TIMEOUT_MS
+      ) {
+        return;
+      }
       const message = `no ${OSC_REPLIES.STATUS} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
       console.error(`[osc] ${message}`);
       this.pushError(OSC_REPLIES.STATUS, message, "error");
       this.close();
-    }, STATUS_REPLY_TIMEOUT_MS);
+    }).off;
   }
 
   private disarmWatchdog(): void {
-    if (this.statusTimer !== null) {
-      clearTimeout(this.statusTimer);
-      this.statusTimer = null;
-    }
+    this.watchdogOff?.();
+    this.watchdogOff = null;
   }
 
   /** Add a banner, coalescing an identical (address + message) one into a

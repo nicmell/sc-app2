@@ -4,7 +4,7 @@
  */
 
 import OSC from "osc-js";
-import { isMessage, type OscArg, type OscPacket } from "./types";
+import { isMessage, isOscDouble, type OscArg, type OscPacket } from "./types";
 
 // osc-js's string decoder probes `global`-else-`window` (hasProperty, lib/osc.js),
 // and a Web Worker scope has neither — alias `global` so unpack works everywhere.
@@ -12,12 +12,29 @@ import { isMessage, type OscArg, type OscPacket } from "./types";
 
 function toOsc(packet: OscPacket): OSC.Message | OSC.Bundle {
   if (isMessage(packet)) {
-    const args = packet.args.map((arg) =>
-      typeof arg === "object" && !(arg instanceof Uint8Array) ? encode(arg) : arg,
-    );
+    const hasDouble = packet.args.some(isOscDouble);
+    const args = packet.args.map((arg) => {
+      if (isOscDouble(arg)) return arg.value;
+      return typeof arg === "object" && !(arg instanceof Uint8Array) ? encode(arg) : arg;
+    });
+    if (hasDouble) {
+      const message = new OSC.Message(packet.address);
+      message.types = packet.args
+        .map((arg) => (isOscDouble(arg) ? "d" : inferredType(arg)))
+        .join("");
+      message.args = args as OSC.Message["args"];
+      return message;
+    }
     return new OSC.Message(packet.address, ...(args as OSC.Message["args"]));
   }
   return new OSC.Bundle(packet.packets.map(toOsc), packet.timetag);
+}
+
+function inferredType(arg: OscArg): "i" | "f" | "s" | "b" {
+  if (typeof arg === "string") return "s";
+  if (arg instanceof Uint8Array) return "b";
+  if (typeof arg !== "number") return "b"; // packet-shaped args encode to blobs
+  return Number.isInteger(arg) ? "i" : "f";
 }
 
 /** Serialise a plain message or bundle to OSC binary. */

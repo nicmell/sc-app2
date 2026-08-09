@@ -6,7 +6,7 @@
 
 import { useSyncExternalStore } from "react";
 import { oscClient } from "@/lib/osc/OscClient";
-import type { LoggedEntry, ScsynthError, ScsynthStatus } from "@/types/stores";
+import type { ClockStatus, LoggedEntry, ScsynthError, ScsynthStatus } from "@/types/stores";
 
 // Re-export the singleton so app imports go through the store layer.
 export { oscClient } from "@/lib/osc/OscClient";
@@ -19,6 +19,10 @@ export function useOscLog(): LoggedEntry[] {
 /** Subscribe a React component to scsynth's reported load (CPU + sample rate). */
 export function useScsynthStatus(): ScsynthStatus | null {
   return useSyncExternalStore(oscClient.scsynthStatus.subscribe, oscClient.scsynthStatus.get);
+}
+
+export function useClockStatus(): ClockStatus | null {
+  return useSyncExternalStore(oscClient.clock.subscribe, oscClient.clock.get);
 }
 
 /** Subscribe a React component to the active OSC error banners. */

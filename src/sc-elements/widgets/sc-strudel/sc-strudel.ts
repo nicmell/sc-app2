@@ -165,10 +165,23 @@ export class ScStrudel extends ScElement {
       // the event itself (`.orbit(n)` wins).
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
+      // scsynth and the bridge share a host clock. Cyclist stays entirely in
+      // the monotonic performance.now() domain; convert only while stamping.
       const timetag = Math.round(
-        Date.now() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
+        oscClient.clockNow() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
       );
       oscClient.send(dirtPlayBundle(event, timetag));
+    };
+
+    const clockIntervals = new Map<number, () => void>();
+    const setInterval = (cb: () => void, ms: number): number => {
+      const sub = oscClient.subscribeClock(ms, cb);
+      clockIntervals.set(sub.id, sub.off);
+      return sub.id;
+    };
+    const clearInterval = (id: number): void => {
+      clockIntervals.get(id)?.();
+      clockIntervals.delete(id);
     };
 
     this.mirror = new StrudelMirror({
@@ -176,6 +189,8 @@ export class ScStrudel extends ScElement {
       initialCode: this.initialCode || DEFAULT_CODE,
       defaultOutput,
       transpiler,
+      setInterval,
+      clearInterval,
       getTime: () => performance.now() / 1000,
       prebake: () => ensureStrudelGlobals().then(() => undefined),
       bgFill: false,

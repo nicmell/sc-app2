@@ -23,6 +23,7 @@ const initialSessionState: SessionState = {
 const initialOscState: OscState = {
   connected: false,
   scsynthStatus: null,
+  clock: null,
   log: [],
   errors: [],
 };

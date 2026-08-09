@@ -31,6 +31,7 @@ export type TransportCommand =
  *  WorkerClient's synthesized close (orderly shutdown) carries neither. */
 export type TransportEvent =
   | { type: "open" }
+  | { type: "respawn" }
   | { type: "osc"; packet: OscPacket }
   | { type: "error"; message: string }
   | { type: "close"; code?: number; reason?: string };

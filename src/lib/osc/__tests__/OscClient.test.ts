@@ -9,13 +9,16 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  CLOCK_SUBSCRIBE_ADDRESS,
+  CLOCK_TICK_ADDRESS,
   type OscMessage,
   formatOscArg,
   SCOPE_CHUNK_ADDRESS,
   Synced,
 } from "@sc-app/server-commands";
-import { MAX_LOG, REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { MAX_LOG, REPLY_TIMEOUT_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { oscClient } from "@/lib/osc/OscClient";
+import { workerClient } from "@/lib/osc/worker/WorkerClient";
 import { appStore } from "@/stores/store";
 import { SliceName } from "@/constants/store";
 
@@ -82,6 +85,57 @@ describe("OscClient.handleReply", () => {
   it("skips /scope/chunk in the console log", () => {
     oscClient.handleReply(oscMessage(SCOPE_CHUNK_ADDRESS, 1, 0));
     expect(oscClient.log.get()).toHaveLength(0);
+  });
+
+  it("dispatches /clock/tick by id and keeps clock traffic out of the log", () => {
+    const cb = vi.fn();
+    const sub = oscClient.subscribeClock(100, cb);
+    oscClient.handleReply(oscMessage(CLOCK_TICK_ADDRESS, sub.id, 1));
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(oscClient.log.get()).toHaveLength(0);
+    sub.off();
+  });
+
+  it("mirrors /clock/status and applies its Date.now offset", () => {
+    vi.spyOn(Date, "now").mockReturnValue(10_000);
+    oscClient.handleReply(oscMessage("/clock/status", 12.5, 3));
+    expect(oscClient.clock.get()).toEqual({ offset: 12.5, rtt: 3 });
+    expect(oscClient.clockNow()).toBe(10_012.5);
+  });
+});
+
+describe("OscClient clock lifecycle", () => {
+  it("replays subscriptions after worker respawn", () => {
+    const send = vi.spyOn(workerClient, "send");
+    const sub = oscClient.subscribeClock(250, () => {});
+    send.mockClear();
+    (
+      oscClient as unknown as { handleTransportEvent(event: { type: "respawn" }): void }
+    ).handleTransportEvent({ type: "respawn" });
+    expect(send).toHaveBeenCalledWith({
+      address: CLOCK_SUBSCRIBE_ADDRESS,
+      args: [sub.id, 250],
+    });
+    sub.off();
+  });
+
+  it("closes from watchdog ticks after the status deadline", () => {
+    vi.useFakeTimers();
+    const send = vi.spyOn(workerClient, "send");
+    const close = vi.spyOn(oscClient, "close").mockImplementation(() => {});
+    appStore.slice(SliceName.OSC).update((s) => ({ ...s, connected: true }));
+    oscClient.handleReply(oscMessage("/status.reply", 1, 0, 0, 0, 0, 0, 0, 48_000, 48_000));
+    (oscClient as unknown as { armWatchdog(): void }).armWatchdog();
+    const subscribes = send.mock.calls
+      .map(([packet]) => packet as OscMessage)
+      .filter((packet) => packet.address === CLOCK_SUBSCRIBE_ADDRESS);
+    const subscribe = subscribes[subscribes.length - 1];
+    vi.advanceTimersByTime(STATUS_REPLY_TIMEOUT_MS + 1);
+    oscClient.handleReply(oscMessage(CLOCK_TICK_ADDRESS, subscribe.args[0], 1));
+    expect(close).toHaveBeenCalledOnce();
+    (oscClient as unknown as { disarmWatchdog(): void }).disarmWatchdog();
+    appStore.slice(SliceName.OSC).update((s) => ({ ...s, connected: false }));
+    vi.useRealTimers();
   });
 });
 

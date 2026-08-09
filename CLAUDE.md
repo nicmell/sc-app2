@@ -137,7 +137,9 @@ lib/                     non-React infrastructure
                          (→ /n_go, returning the allocated node id),
                          sendSynthDef (/d_recv + embedded /sync ack),
                          freeGroup/freeSynthDef/freeSynth/setControl,
-                         subscribeScope(…, onChunk) → {subId, off} (handler
+                         subscribeClock(intervalMs, cb) + bridge-synced clockNow()
+                         (worker absolute-phase ticks; subscriptions survive
+                         reconnect/respawn), subscribeScope(…, onChunk) → {subId, off} (handler
                          registered under the minted subId before the send;
                          decoded chunks dispatch by subId from handleReply;
                          off also stops the bridge stream) + the scope-slot
@@ -146,7 +148,8 @@ lib/                     non-React infrastructure
                          → worker/WorkerClient.ts (global `workerClient`: the
                            permanent-worker proxy, respawn-on-crash + status)
                          → worker/worker.ts (Web Worker OSC endpoint: plain
-                           `{type:"osc", packet}` protocol ⇄ codec ⇄ bytes)
+                           `{type:"osc", packet}` protocol ⇄ codec ⇄ bytes;
+                           `/clock/*` estimator + absolute-phase scheduler)
                          → worker/transport.ts (raw in-worker WebSocket). The
                            binary codec dependency is worker-only.
   session/               SessionManager (global `session`): the LIVE-connection
@@ -154,7 +157,7 @@ lib/                     non-React infrastructure
                          a one-tick deferred disconnect so a StrictMode remount
                          with the same loader info keeps the standing WS),
                          observes oscClient's close (→ conn status), 10s layout
-                         autosave; resolveSession.ts: the route loaders —
+                         autosave on worker clock ticks; resolveSession.ts: the route loaders —
                          mint/revive over HTTP, localStorage ownership, the
                          bounded 503 quiet-retry, the mint→redirect handoff
   scope/                 scopeTapSynthDef: the ScopeOut2 tap def, compiled per
@@ -268,7 +271,7 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 
 - HTTP server: `127.0.0.1:3000` (config.json `port`); Vite dev: `1420`.
 - Peers: scsynth `127.0.0.1:57110` (`/[sngbcdpu]_*`, /notify, /status…),
-  strudel/SuperDirt `127.0.0.1:57120` (`/dirt`, `/clock`); `/scope/*` is
+  strudel/SuperDirt `127.0.0.1:57120` (`/dirt`); `/scope/*` + `/clock/*` are
   bridge-internal (never routed to a peer).
 - scsynth must boot with `-maxLogins ≥ 2` (`yarn osc` does) so the bridge's
   clientID ≠ sclang's and node-id blocks don't overlap.
@@ -282,7 +285,7 @@ App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`
 ## Workspace packages (`packages/`)
 
 - `@sc-app/server-commands` — scsynth OSC command constructors over osc-js
-  (`sNew`, `dRecv`, `gNewOne`, scope subscribe/chunk parsing, encode/decode,
+  (`sNew`, `dRecv`, `gNewOne`, scope + clock vocabulary, encode/decode,
   timetags). The frontend's only OSC vocabulary.
 - `@sc-app/synthdef-compiler` — SynthDef → SCgf compilation (used by lib/scope's
   tap def).

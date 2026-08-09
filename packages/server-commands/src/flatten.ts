@@ -2,7 +2,7 @@
 // recurses to its inner messages. Useful for decoding inbound rx and for logging
 // outbound tx (where the caller already holds the packet, no need to re-decode).
 
-import { isBundle, isMessage, type OscPacket } from "./types";
+import { isBundle, isMessage, isOscDouble, type OscPacket } from "./types";
 
 export interface FlatOsc {
   address: string;
@@ -23,6 +23,7 @@ export function formatOscArg(arg: unknown): string {
   if (arg instanceof Uint8Array || arg instanceof ArrayBuffer) {
     return `blob(${arg.byteLength}B)`;
   }
+  if (isOscDouble(arg)) return String(arg.value);
   if (typeof arg === "object" && arg !== null) {
     return "address" in arg ? `packet(${String(arg.address)})` : "packet(#bundle)";
   }

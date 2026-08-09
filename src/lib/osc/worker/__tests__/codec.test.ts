@@ -2,7 +2,7 @@
 // cover the codec directly; worker message routing remains intentionally thin.
 
 import { describe, expect, it } from "vitest";
-import { dRecv, sync, type OscPacket } from "@sc-app/server-commands";
+import { clockPing, dRecv, sync, type OscPacket } from "@sc-app/server-commands";
 import { decode, encode } from "@sc-app/server-commands/codec";
 
 describe("OSC worker codec", () => {
@@ -21,6 +21,12 @@ describe("OSC worker codec", () => {
       address: "/d_recv",
       args: [new Uint8Array([83, 67, 103, 102]), encode(sync(42))],
     });
+  });
+
+  it("encodes clock ping t0 as OSC double", () => {
+    const bytes = encode(clockPing(7, 123.25));
+    expect(new TextDecoder().decode(bytes)).toContain(",id");
+    expect(decode(bytes)).toEqual({ address: "/clock/ping", args: [7, 123.25] });
   });
 
   it("round-trips bundle timetags and inbound nested bundles", () => {

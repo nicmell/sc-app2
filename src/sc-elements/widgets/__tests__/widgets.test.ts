@@ -324,6 +324,10 @@ describe("sc-strudel", () => {
     // The raw code text was cleared before the editor rendered.
     expect(strudel.querySelector(`.${strudelStyles.editor}`)).not.toBeNull();
     expect(strudel.textContent).not.toContain('s("bd hh*2")');
+    expect(strudelMirrors[0].opts.setInterval).toEqual(expect.any(Function));
+    expect(strudelMirrors[0].opts.clearInterval).toEqual(expect.any(Function));
+    const now = performance.now() / 1000;
+    expect(strudelMirrors[0].opts.getTime()).toBeCloseTo(now);
   });
 
   it("stamps its orbit onto dirt events the pattern didn't route", async () => {

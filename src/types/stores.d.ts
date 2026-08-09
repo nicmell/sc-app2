@@ -40,6 +40,11 @@ export interface ScsynthStatus {
   numGroups: number;
 }
 
+export interface ClockStatus {
+  offset: number;
+  rtt: number;
+}
+
 /** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
  *  surfaced to the user as a toast banner. Repeated identical failures coalesce
  *  into one entry with a bumped `count`. */
@@ -68,6 +73,7 @@ export interface OscState {
   connected: boolean;
   log: LoggedEntry[];
   scsynthStatus: ScsynthStatus | null;
+  clock: ClockStatus | null;
   errors: ScsynthError[];
 }
 

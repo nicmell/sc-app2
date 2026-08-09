@@ -9,7 +9,7 @@
 // imports, so its factory can't reference a shared helper here.
 
 import { vi, type MockInstance } from "vitest";
-import { isMessage, type OscMessage, type OscPacket } from "@sc-app/server-commands";
+import { isMessage, isOscDouble, type OscMessage, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { adoptEntry } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
@@ -70,6 +70,7 @@ export function autoRespond(msg: OscMessage): void {
       if (
         typeof completion === "object" &&
         !(completion instanceof Uint8Array) &&
+        !isOscDouble(completion) &&
         isMessage(completion) &&
         completion.address === "/sync"
       ) {

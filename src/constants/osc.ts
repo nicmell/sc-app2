@@ -23,6 +23,16 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
+// ── bridge clock ─────────────────────────────────────────────────────
+
+export const CLOCK_PING_BURST_COUNT = 5;
+export const CLOCK_PING_BURST_INTERVAL_MS = 150;
+export const CLOCK_PING_INTERVAL_MS = 2_000;
+export const CLOCK_SAMPLE_WINDOW = 8;
+export const CLOCK_OFFSET_STEP_THRESHOLD_MS = 50;
+export const CLOCK_OFFSET_SLEW_FACTOR = 0.2;
+export const CLOCK_WATCHDOG_INTERVAL_MS = 1_000;
+
 // ── scope taps (<sc-scope> defaults) ──────────────────────────────────
 
 /** Default tap input: SuperDirt sums all orbits to the stereo master out

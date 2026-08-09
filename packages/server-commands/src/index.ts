@@ -24,8 +24,10 @@ export { fromTick as tickToTimetag, immediate, inFuture, atDate, type Timetag } 
 export {
   isBundle,
   isMessage,
+  isOscDouble,
   type OscArg,
   type OscBundle,
+  type OscDouble,
   type OscMessage,
   type OscPacket,
   type ControlKey,

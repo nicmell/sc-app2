@@ -56,7 +56,9 @@ export class WorkerClient {
     };
     worker.onerror = (ev: ErrorEvent) => {
       worker.terminate();
+      this.socketStatus = TRANSPORT_STATUS.IS_CLOSED;
       this.worker = this.spawn();
+      this.notify({ type: "respawn" });
       this.notify({ type: "error", message: ev.message || "worker error" });
     };
     return worker;

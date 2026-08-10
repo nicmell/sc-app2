@@ -1,8 +1,9 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// XML-parse + import its authored root's children into a connected <sc-plugin> host,
-// and run the host's own process() — the runtime validation.
+// XML-parse + import the whole authored <sc-plugin> root through the main
+// document, upgrade it disconnected, and run its own process() — the runtime
+// validation, mirroring lib/plugins' parseEntry.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
 // each — see examples/README.md). Anything else failing is a migration bug.
@@ -79,7 +80,7 @@ const probeRuntime = (pluginId, entry) =>
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
   try {
     const parseError = doc.querySelector("parsererror");
-    if (parseError) throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
+    if (parseError) throw new Error(\`plugin entry is not valid XHTML: \${parseError.textContent}\`);
     const root = doc.documentElement;
     if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
     const host = document.importNode(root, true);

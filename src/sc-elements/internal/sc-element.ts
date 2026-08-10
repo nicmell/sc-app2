@@ -299,7 +299,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign the parsed identity the registry keys by. */
+  /** Hydrate this element: assign the parsed identity (the DOM id). */
   hydrate(id: string): this {
     this.id = id;
     return this;

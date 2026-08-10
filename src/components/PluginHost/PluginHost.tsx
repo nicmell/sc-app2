@@ -31,7 +31,7 @@ export function PluginHost({ pluginId }: { pluginId: string }) {
     })();
 
     // Intentionally no cleanup: DOM removal disconnects the host, whose own
-    // callback unloads and unregisters it. That also makes the run-once guard
+    // callback unloads it. That also makes the run-once guard
     // safe when StrictMode repeats effect setup for the same mounted container.
   }, [info]);
 

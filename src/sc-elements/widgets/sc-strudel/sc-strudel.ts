@@ -3,16 +3,16 @@
 // the session, with a status pill + Play/Stop controls. Light DOM so the
 // ui-components .strudel styles + <sc-base-chip>/<sc-base-button> + CodeMirror apply directly.
 //
-// Parametrized: the element's TEXT CONTENT is the initial pattern code
-// (captured before Lit's first light-DOM render, which would otherwise show
-// it raw), and `orbit` stamps a default orbit onto every dirt event the
-// pattern doesn't route itself. The load pass needs nothing (the editor works
-// offline; only the sends need the connection), but unload() stops playback —
-// a disconnect would otherwise keep emitting /dirt/play into a dead socket.
+// Parametrized: `value` is the initial pattern code and supports the shared
+// ScInput `bind:value` seam (plain path = two-way; expression = read-only);
+// `orbit` stamps a default orbit onto every dirt event the pattern doesn't
+// route itself. The editor works offline, but unload() stops playback — a
+// disconnect would otherwise keep emitting /dirt/play into a dead socket.
 
 import { html } from "lit";
 import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScInput } from "@/sc-elements/internal/sc-input";
+import type { StateValue } from "@/types/runtime";
 // Type only — the heavy editor stack (@strudel/codemirror + @strudel/transpiler)
 // is dynamically imported in mountEditor() so it stays out of the boot bundle.
 import type { StrudelMirror } from "@strudel/codemirror";
@@ -43,13 +43,21 @@ const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the 
 // Edit, then press Play (or Ctrl+Enter). Stop with the button (or Ctrl+.).
 s("bd hh*2 sd hh")`;
 
+/** Decode the attribute-safe two-character `\\n` escape into a real newline.
+ *  Editor writes already contain real newlines, so decoding them is a no-op.
+ *  Consequently, a literal backslash-n in pattern source cannot be represented
+ *  through the XML attribute; that asymmetry is intentional. */
+function decodeCode(value: string): string {
+  return value.replaceAll("\\n", "\n");
+}
+
 const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
   connecting: "warn",
   connected: "ok",
   error: "error",
 };
 
-export class ScStrudel extends ScElement {
+export class ScStrudel extends ScInput {
   validate(): void {
     requireNoScChildren(this);
     const orbit = this.getProp("orbit") as number | undefined;
@@ -66,17 +74,12 @@ export class ScStrudel extends ScElement {
   private status: ConnStatus = "connecting";
   private playing = false;
   private detail = "";
-  /** The element's markup text — the initial pattern code. */
-  private initialCode = "";
+  /** The bubbling CodeMirror input listener is installed on its mount root,
+   *  then explicitly removed on disconnect before the mirror is discarded. */
+  private editorRoot: HTMLDivElement | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
-    // Capture the authored pattern BEFORE Lit's first light-DOM render and
-    // clear it, so the raw code text doesn't show next to the editor.
-    if (!this.initialCode) {
-      this.initialCode = this.textContent?.trim() ?? "";
-      if (this.initialCode) this.replaceChildren();
-    }
     this.status = session.status.get();
     this.off = session.status.subscribe((s) => {
       this.status = s;
@@ -86,6 +89,8 @@ export class ScStrudel extends ScElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this.editorRoot?.removeEventListener("input", this.onEditorInput);
+    this.editorRoot = null;
     this.off?.();
     this.off = null;
     if (this.mirror) {
@@ -94,6 +99,29 @@ export class ScStrudel extends ScElement {
       this.mirror = null;
     }
   }
+
+  /** Map static/bound state into the editor. The document comparison is the
+   *  two-way loop guard: state echoes of an editor commit do not call setCode. */
+  protected syncFromState(value: StateValue | undefined): void {
+    if (value === undefined) return;
+    const code = decodeCode(String(value));
+    if (this.mirror && this.mirror.editor.state.doc.toString() !== code) {
+      this.mirror.setCode(code);
+    }
+  }
+
+  /** CodeMirror's contenteditable emits one bubbling input event per edit.
+   *  Plain-path binds commit each document value; expression binds have no
+   *  writable target and follow ScInput's read-only snap-back rule. A static
+   *  value is only the initial code, so later local edits need no dispatch. */
+  private onEditorInput = (): void => {
+    if (!this.mirror) return;
+    const code = this.mirror.editor.state.doc.toString();
+    if (!this.runtimeProps?.value) return;
+    const state = this.runtimeValue("value") ?? (this.getProp("value") as StateValue | undefined);
+    if (state !== undefined && decodeCode(String(state)) === code) return;
+    this.commit(code);
+  };
 
   /** Stop playback on the connection-loss unload — the editor stays mounted
    *  (it works offline); only the event stream dies with the socket. */
@@ -184,9 +212,15 @@ export class ScStrudel extends ScElement {
       clockIntervals.delete(id);
     };
 
+    // A bind is seeded through syncFromState, not as constructor input: this
+    // keeps the shared load-pass path observable and correct in both lifecycle
+    // orders (editor-before-load in the app, load-before-editor in tests).
+    const initialCode = this.runtimeProps?.value
+      ? DEFAULT_CODE
+      : decodeCode(String(this.getProp("value") ?? DEFAULT_CODE));
     this.mirror = new StrudelMirror({
       root,
-      initialCode: this.initialCode || DEFAULT_CODE,
+      initialCode,
       defaultOutput,
       transpiler,
       setInterval,
@@ -211,6 +245,9 @@ export class ScStrudel extends ScElement {
         this.bridgeEditorStyles();
       },
     });
+    this.editorRoot = root;
+    root.addEventListener("input", this.onEditorInput);
+    if (this.runtimeProps?.value) this.syncFromState(this.runtimeValue("value"));
     this.bridgeEditorStyles();
     // The ctor applies the persisted strudel defaults (18px / monospace) as
     // INLINE styles on the editor root and scroller, beating any stylesheet

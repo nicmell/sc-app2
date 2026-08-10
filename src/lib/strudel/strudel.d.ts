@@ -21,6 +21,8 @@ declare module "@strudel/codemirror" {
     stop(): Promise<void>;
     clear(): void;
     code: string;
+    setCode(code: string): void;
+    editor: { state: { doc: { toString(): string } } };
   }
 }
 

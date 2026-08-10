@@ -696,9 +696,11 @@
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
-  <xs:complexType name="scStrudelType" mixed="true">
+  <xs:complexType name="scStrudelType">
+    <xs:attribute name="value" type="xs:string"/>
     <xs:attribute name="orbit" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
+    <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scKeyboardType">

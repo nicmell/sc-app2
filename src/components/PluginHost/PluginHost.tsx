@@ -1,16 +1,14 @@
 // Shared React boundary for dashboard and standalone plugin mounts. It resolves
 // metadata and loads the authored <sc-plugin> root as the explicitly upgraded,
-// processed, DISCONNECTED host. Only the clean, registered runtime tree enters
-// the document; from there the element owns its load/unload lifecycle and
-// scsynth group.
+// processed, DISCONNECTED host. Once connected, the element owns registry and
+// load/unload lifecycle together with its scsynth group.
 import { useEffect, useRef, useState } from "react";
 import { loadPluginHost } from "@/lib/plugins/PluginManager";
-import { registerAll } from "@/runtime/registry";
 import { plugins } from "@/stores/plugins";
 import { useStore } from "@/stores/useStore";
 import styles from "./PluginHost.module.scss";
 
-export function PluginHost({ pluginId, hostId }: { pluginId: string; hostId: string }) {
+export function PluginHost({ pluginId }: { pluginId: string }) {
   const info = useStore(plugins).find((plugin) => plugin.id === pluginId);
   const containerRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -24,10 +22,9 @@ export function PluginHost({ pluginId, hostId }: { pluginId: string; hostId: str
 
     void (async () => {
       try {
-        const host = await loadPluginHost(info, hostId);
+        const host = await loadPluginHost(info);
         if (!containerRef.current?.isConnected) return;
         container.appendChild(host);
-        registerAll(host);
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause));
       }
@@ -36,7 +33,7 @@ export function PluginHost({ pluginId, hostId }: { pluginId: string; hostId: str
     // Intentionally no cleanup: DOM removal disconnects the host, whose own
     // callback unloads and unregisters it. That also makes the run-once guard
     // safe when StrictMode repeats effect setup for the same mounted container.
-  }, [hostId, info]);
+  }, [info]);
 
   const message = info ? error : "PluginHost: no plugin assigned";
   return (

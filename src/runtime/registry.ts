@@ -3,8 +3,8 @@
 // process()) has produced — the element IS its runtime, so the registry exposes
 // props, runtime values, and methods from outside the DOM. Deliberately NOT a
 // slice of the app store — parsed trees are not reactive UI state. A plugin
-// registers its whole tree at parse time and unregisters it when the
-// sc-plugin root unmounts.
+// registers its whole parsed tree when the root connects and unregisters it
+// when the sc-plugin root disconnects.
 
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 

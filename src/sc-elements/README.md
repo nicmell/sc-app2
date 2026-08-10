@@ -63,11 +63,10 @@ See the root CLAUDE.md implementation plan.
 ### `<sc-plugin>` — functional
 
 The authored entry root is the runtime host. PluginHost mounts one per dashboard
-box with the box id as its DOM id; the loader imports and upgrades the whole
-authored root through the main document. Display `title` and `description` live
-in `metadata.json` / `PluginInfo`. It then runs `process()`
-(validation inside; the registry adopts the parsed tree) and owns the plugin's
-scsynth group:
+box; the loader imports and upgrades the whole authored root through the main
+document. Display `title` and `description` live in `metadata.json` /
+`PluginInfo`. It then runs `process()` (validation inside), registers its parsed
+tree when connected, and owns the plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
 Prop: `run` (boolean attribute, `run="false"` is the only falsy spelling).

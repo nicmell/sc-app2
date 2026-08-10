@@ -1,7 +1,7 @@
 // <sc-plugin> — the runtime host for an authored <sc-plugin> entry. React's
 // shared PluginHost resolves and fetches the plugin, then imports, upgrades,
-// parses, validates, and registers its tree while this element is disconnected.
-// Once React connects that prepared host, the element owns the load lifecycle
+// parses, and validates its tree while this element is disconnected. Once React
+// connects that prepared host, the element owns registration, the load lifecycle,
 // and its scsynth group: created inside the session group on mount, freed — with
 // every synth in it — on unmount. Title and description live in metadata.json /
 // PluginInfo.
@@ -16,7 +16,7 @@ import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { oscClient } from "@/stores/osc";
 import { createStore, type Store } from "@/lib/utils/reactiveStore";
-import { unregisterTree } from "@/runtime/registry";
+import { registerAll, unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { PluginRuntimeValues, RuntimeContext } from "@/types/runtime";
@@ -51,6 +51,9 @@ export class ScPlugin extends ScNode {
 
   connectedCallback(): void {
     super.connectedCallback();
+    // The registry tracks connected parsed trees; re-appending this host
+    // registers the tree again after disconnectedCallback removed it.
+    if (this.parsed) registerAll(this);
     // Live with the connection (a change-only signal — the initial load runs
     // in firstUpdated): a drop unloads, reestablishment reloads.
     this.offConnected ??= oscClient.connected.subscribe((up) =>

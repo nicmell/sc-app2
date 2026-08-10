@@ -24,8 +24,13 @@ export async function removePlugin(id: string): Promise<void> {
   await del(`${PLUGINS_BASE}/${id}`);
 }
 
-/** Import and explicitly upgrade the authored plugin root while disconnected. */
-export function importEntryRoot(doc: Document): ScPlugin {
+/** Parse, import, and explicitly upgrade an authored plugin root while disconnected. */
+export function parseEntry(text: string): ScPlugin {
+  const doc = new DOMParser().parseFromString(text, "text/xml");
+  const parseError = doc.querySelector("parsererror");
+  if (parseError) {
+    throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
+  }
   if (doc.documentElement.localName !== "sc-plugin") {
     throw new Error(
       `plugin entry root must be <sc-plugin> (got <${doc.documentElement.localName}>)`,
@@ -37,16 +42,9 @@ export function importEntryRoot(doc: Document): ScPlugin {
 }
 
 /** Load and process an authored plugin root while it is disconnected. */
-export async function loadPluginHost(plugin: PluginInfo, hostId: string): Promise<ScPlugin> {
+export async function loadPluginHost(plugin: PluginInfo): Promise<ScPlugin> {
   const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
-  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
-  const parseError = doc.querySelector("parsererror");
-  if (parseError) {
-    throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
-  }
-
-  const host = importEntryRoot(doc);
-  host.id = hostId;
+  const host = parseEntry(await res.text());
   host.process({
     rootNode: host,
     nodes: new Set<ScElement>(),

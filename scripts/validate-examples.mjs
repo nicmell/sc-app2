@@ -77,8 +77,9 @@ const probeRuntime = (pluginId, entry) =>
   evaluate(`(async () => {
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
-  if (doc.querySelector("parsererror")) return "PARSE ERROR: " + doc.querySelector("parsererror").textContent.slice(0, 120);
   try {
+    const parseError = doc.querySelector("parsererror");
+    if (parseError) throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
     const root = doc.documentElement;
     if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
     const host = document.importNode(root, true);

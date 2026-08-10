@@ -11,7 +11,7 @@
 import { vi, type MockInstance } from "vitest";
 import { isMessage, type OscMessage, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
-import { importEntryRoot } from "@/lib/plugins/PluginManager";
+import { parseEntry } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
 
 /** The session group id the load pass targets (oscClient.sessionGroupId). */
@@ -28,14 +28,9 @@ export function wrapXml(xml: string): string {
 
 /** Parse plugin XML into a disconnected, explicitly upgraded <sc-plugin> host
  *  and run the parse engine (text/xml parse + importNode — the host IS the
- *  parsed root), exactly like production. Throws on an XML parse error. */
+ *  parsed root), exactly like production. */
 export function parsePlugin(xml: string): { host: ScPlugin; nodes: Set<ScElement> } {
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
-  if (doc.querySelector("parsererror")) {
-    throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
-  }
-  const host = importEntryRoot(doc);
-  host.id = `test-${Math.random().toString(36).slice(2)}`;
+  const host = parseEntry(xml);
   const nodes = new Set<ScElement>();
   host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };

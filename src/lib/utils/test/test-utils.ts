@@ -11,7 +11,7 @@
 import { vi, type MockInstance } from "vitest";
 import { isMessage, type OscMessage, type OscPacket } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
-import { adoptEntry } from "@/lib/plugins/PluginManager";
+import { importEntryRoot } from "@/lib/plugins/PluginManager";
 import type { ScElement, ScPlugin } from "@/sc-elements";
 
 /** The session group id the load pass targets (oscClient.sessionGroupId). */
@@ -34,10 +34,8 @@ export function parsePlugin(xml: string): { host: ScPlugin; nodes: Set<ScElement
   if (doc.querySelector("parsererror")) {
     throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
   }
-  const host = document.createElement("sc-plugin") as ScPlugin;
+  const host = importEntryRoot(doc);
   host.id = `test-${Math.random().toString(36).slice(2)}`;
-  adoptEntry(host, doc);
-  customElements.upgrade(host);
   const nodes = new Set<ScElement>();
   host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };

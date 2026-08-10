@@ -1,12 +1,11 @@
 // Shared React boundary for dashboard and standalone plugin mounts. It resolves
-// metadata, fetches and parses the authored XHTML, and processes the imported
-// tree on an explicitly upgraded but DISCONNECTED <sc-plugin>. Only the clean,
-// registered runtime tree enters the document; from there the element owns its
-// load/unload lifecycle and scsynth group.
+// metadata and loads the authored <sc-plugin> root as the explicitly upgraded,
+// processed, DISCONNECTED host. Only the clean, registered runtime tree enters
+// the document; from there the element owns its load/unload lifecycle and
+// scsynth group.
 import { useEffect, useRef, useState } from "react";
-import { adoptEntry, fetchPluginEntry } from "@/lib/plugins/PluginManager";
+import { loadPluginHost } from "@/lib/plugins/PluginManager";
 import { registerAll } from "@/runtime/registry";
-import type { ScElement, ScPlugin } from "@/sc-elements";
 import { plugins } from "@/stores/plugins";
 import { useStore } from "@/stores/useStore";
 import styles from "./PluginHost.module.scss";
@@ -25,33 +24,12 @@ export function PluginHost({ pluginId, hostId }: { pluginId: string; hostId: str
 
     void (async () => {
       try {
-        const text = await fetchPluginEntry(info);
-        if (!container.isConnected) return; // React unmounted us during the fetch.
-
-        const doc = new DOMParser().parseFromString(text, "text/xml");
-        const parseError = doc.querySelector("parsererror");
-        if (parseError) {
-          throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
-        }
-
-        const host = document.createElement("sc-plugin") as ScPlugin;
-        host.id = hostId;
-        adoptEntry(host, doc);
-        customElements.upgrade(host);
-        host.process({
-          rootNode: host,
-          nodes: new Set<ScElement>(),
-          scope: [host],
-          path: [],
-        });
-
-        if (!container.isConnected) return;
+        const host = await loadPluginHost(info, hostId);
+        if (!containerRef.current?.isConnected) return;
         container.appendChild(host);
         registerAll(host);
       } catch (cause) {
-        if (container.isConnected) {
-          setError(cause instanceof Error ? cause.message : String(cause));
-        }
+        setError(cause instanceof Error ? cause.message : String(cause));
       }
     })();
 

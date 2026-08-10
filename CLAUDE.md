@@ -452,7 +452,7 @@ further `sc-*` element:
 
 | element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; React's shared PluginHost imports, offline-parses, and registers the entry tree; the synthesized host owns the plugin scsynth group (its `nodeId`) and orchestrates the load pass                                                                                                                                                                                                                                                                                 |
+| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; React's shared PluginHost imports, offline-parses, and registers the authored root; that host owns the plugin scsynth group (its `nodeId`) and orchestrates the load pass                                                                                                                                                                                                                                                                                         |
 | sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                                                                                              |
 | sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet                                                                               |
 | sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                                                                                       |
@@ -621,7 +621,7 @@ setup + shared element-suite helpers in `src/lib/utils/test/` (`test-setup.ts`,
 scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
-mounts it into a connected `<sc-plugin>` host (text/xml parse + `adoptEntry` child import),
+mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
 and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
@@ -653,11 +653,10 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
    their specific messages.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): create an `<sc-plugin>` host, **append it to the
-   document first** (custom elements only upgrade when connected), fetch the
-   entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
-   self-closing tags; HTML parsing mis-nests them), require an authored
-   `<sc-plugin>` root, and `importNode` its children into the host, then
+   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
+   as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
+   require an authored `<sc-plugin>` root, `importNode` that whole root through
+   the main document, explicitly upgrade it while disconnected, then
    `host.process({rootNode: host, nodes: new Set(), scope: [host],
 path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each

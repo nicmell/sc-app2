@@ -78,19 +78,16 @@ const probeRuntime = (pluginId, entry) =>
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
   if (doc.querySelector("parsererror")) return "PARSE ERROR: " + doc.querySelector("parsererror").textContent.slice(0, 120);
-  const host = document.createElement("sc-plugin");
-  document.body.appendChild(host);
   try {
     const root = doc.documentElement;
     if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
-    host.replaceChildren(...[...root.children].map((child) => document.importNode(child, true)));
+    const host = document.importNode(root, true);
+    customElements.upgrade(host);
 
     host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [] });
     return "PASS";
   } catch (e) {
     return "FAIL: " + e.message;
-  } finally {
-    host.remove();
   }
 })()`);
 

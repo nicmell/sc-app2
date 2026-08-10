@@ -1,6 +1,6 @@
 // Shared React boundary for dashboard and standalone plugin mounts. It resolves
 // metadata and loads the authored <sc-plugin> root as the explicitly upgraded,
-// processed, DISCONNECTED host. Once connected, the element owns registry and
+// processed, DISCONNECTED host. Once connected, the element owns the
 // load/unload lifecycle together with its scsynth group.
 import { useEffect, useRef, useState } from "react";
 import { loadPluginHost } from "@/lib/plugins/PluginManager";

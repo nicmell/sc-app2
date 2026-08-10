@@ -21,21 +21,19 @@ registerUiComponents();
 
 // DEV-only debug hook: expose the module singletons for CDP-driven live
 // debugging — stable handles onto the store, the OSC client (tx/rx log,
-// command methods), the element registry, and the session, so live probes
-// read state instead of spelunking the DOM. Absent from production builds.
+// command methods), and the session, so live probes read state instead of
+// spelunking the DOM (parsed trees hang off the mounted <sc-plugin> hosts).
 if (import.meta.env.DEV) {
   void Promise.all([
     import("@/stores/store"),
     import("@/stores/osc"),
-    import("@/runtime/registry"),
     import("@sc-app/server-commands"),
   ]).then(
-    ([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, registry, commands]) => {
+    ([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, commands]) => {
       (window as unknown as Record<string, unknown>).__scDebug = {
         appStore,
         oscClient,
         osc: { log, errors, scsynthStatus, clock },
-        registry,
         session,
         // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
         // (e.g. a /s_getn readback of a live node's control array) and watch

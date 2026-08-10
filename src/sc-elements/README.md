@@ -19,8 +19,8 @@ element IS the runtime**: `resolveRuntime()` resolves the runtime values and
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `path`/`enabled` + `_scChildren` for parents + the
 runtime-prop machinery on `ScElement`, the category values on
-`ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
-maps ids straight to the live components.
+`ScNode`/`ScState`/`ScInput`). There is no global element registry — the
+parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,

@@ -95,8 +95,6 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          declare the category props + runtime values; each
                          component overrides resolveRuntime(), whose result
                          process() assigns onto the element itself
-runtime/                 the global parsed-element registry (id → the live
-                         ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
@@ -321,11 +319,12 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
    `children` is taken), `targetScState` on inputs, and each runtime prop's
    `targets: Record<path, ScState>`. Cycle detection walks the bind graph
-   through these references with no lookups; the only id-keyed structure
-   left is the global registry (`@/runtime/registry`, id → live element),
-   whose purpose IS lookup from outside the DOM — it adopts a parsed tree
-   by walking `_scChildren` from the root. Anything _persisted_ (presets,
-   layout) stays id/path-based; references are in-memory runtime only.
+   through these references with no lookups; there is NO id-keyed lookup
+   structure at all — access from outside the DOM goes through the mounted
+   `<sc-plugin>` hosts (each parsed tree hangs off its root via
+   `_scChildren`; name paths resolve with `walkPath`). Anything _persisted_
+   (presets, layout) stays name-path-based; references are in-memory
+   runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`. The live VALUE is the exception that settled the
    other way: `value` is the plain declarative attribute mirror everywhere
@@ -443,10 +442,11 @@ further `sc-*` element:
    (state/node/parent). Add the element's examples to the unit suite's
    expectations (`src/sc-elements/__tests__/examples.test.ts`) if it ships
    a new fixture.
-6. The registry (`@/runtime/registry`) maps ids to the live components
-   themselves (identity pinned by the unit suite and the dashboard probe),
-   so props, runtime values, and methods are reachable from outside the
-   DOM.
+6. Props, runtime values, and methods are reachable from outside the DOM
+   through the mounted `<sc-plugin>` host: the parsed tree hangs off the
+   root (`_scChildren`), and named elements resolve by name path
+   (`walkPath`, seeing through transparent containers). There is no global
+   element registry.
 
 ## Migration state (elements)
 
@@ -532,7 +532,7 @@ defaults). It holds ONLY the literal, user-writable
 keys: ScState seeds the declarative default in the load pass (a reload keeps
 user-moved values) and mirrors the store key into `_state`, so external
 store writes (a second input, future presets — literal keys only, via the
-registry → element → `.runtime`) notify
+mounted host → element → `.runtime`) notify
 dependents through the same statechange, with no OSC. DERIVED state (a
 `bind:value` expression) recomputes element-to-element — NO store key at all.
 Inside ugens the SAME `bind:value` spelling is the graph-input REFERENCE the
@@ -732,7 +732,7 @@ steps, each independently shippable:
 8. **Persistence & presets** — extend the saved-session layout payload with
    the old per-box `OverrideEntry[]` presets (replaces the old
    zustand-persist), marshalled as sparse diffs read from the element's
-   per-instance runtime store via the registry —
+   per-instance runtime store via the mounted host's name-path walk —
    LITERAL keys only (derived values live on the elements and recompute; a
    preset writing a bound key would create an orphan store entry nothing
    reads).

@@ -111,6 +111,8 @@ describe("sc-scope", () => {
     });
 
     const { host } = parsePlugin(wrapXml("<sc-scope/>"));
+    document.body.appendChild(host);
+    await host.updateComplete;
     const scope = host.querySelector("sc-scope") as ScScope;
     const loading = host.load();
     await vi.waitFor(() => expect(pendingTap).toBeDefined());

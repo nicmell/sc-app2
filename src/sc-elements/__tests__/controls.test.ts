@@ -173,6 +173,8 @@ describe("load pass", () => {
       if (msg.address !== "/d_recv") autoRespond(msg);
     });
     const { host } = parseExample();
+    document.body.appendChild(host);
+    await host.updateComplete;
     let settled = false;
     const loading = host
       .load()
@@ -370,6 +372,8 @@ describe("disconnect / reconnect", () => {
     });
 
     const { host } = parseExample();
+    document.body.appendChild(host);
+    await host.updateComplete;
     const loading = host.load();
     await vi.waitFor(() => expect(pendingGroup).toBeDefined());
     const staleId = pendingGroup!.args[0] as number;
@@ -394,6 +398,8 @@ describe("disconnect / reconnect", () => {
     });
 
     const { host } = parseExample();
+    document.body.appendChild(host);
+    await host.updateComplete;
     const def = host.querySelector("sc-synthdef") as ScSynthDef;
     const loading = host.load();
     await vi.waitFor(() => expect(pendingDef).toBeDefined());
@@ -465,6 +471,8 @@ describe("disconnect / reconnect", () => {
       if (msg.address !== "/d_recv") autoRespond(msg);
     });
     const { host } = parseExample();
+    document.body.appendChild(host);
+    await host.updateComplete;
     const loading = host.load().catch(() => {});
     await new Promise((r) => setTimeout(r, 0));
     expect(host.loaded).toBe(true); // group is up, def stalled
@@ -498,6 +506,8 @@ describe("disconnect / reconnect", () => {
     });
 
     const { host } = parseExample();
+    document.body.appendChild(host);
+    await host.updateComplete;
     const synth = host.querySelector("sc-synth") as ScSynth;
     const firstLoad = host.load();
     await vi.waitFor(() => expect(pendingSNew).toBeDefined());
@@ -691,6 +701,8 @@ describe("bound enabled control on a synth", () => {
     });
 
     const { host } = parsePlugin(BOUND_XML);
+    document.body.appendChild(host);
+    await host.updateComplete;
     const loading = host.load();
     await vi.waitFor(() => expect(pendingSNew).toBeDefined());
     // The element's nodeId is assigned only once /n_go lands — the allocated

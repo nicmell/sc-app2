@@ -1,12 +1,12 @@
 // Full-screen standalone plugin view (/:sessionId/plugins/:pluginId): an
-// <sc-plugin> INDEPENDENT of any dashboard box — the explicit `plugin`
-// property resolves it, and the "plugin:<id>" DOM id (disjoint from box-…
-// ids) keys its own runtime map, registry tree, and scsynth group, dropped on
-// leave exactly like a box unmount. The plugins slice is populated — the
-// session loader awaited refreshPlugins().
+// standalone PluginHost INDEPENDENT of any dashboard box. Its "plugin:<id>"
+// DOM id (disjoint from box-… ids) keys its own runtime map, registry tree, and
+// scsynth group, dropped on leave exactly like a box unmount. The plugins slice
+// is populated — the session loader awaited refreshPlugins().
 
 import { generatePath, useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui";
+import { PluginHost } from "@/components/PluginHost";
 import { ROUTES } from "@/constants/routes";
 import { plugins } from "@/stores/plugins";
 import { useStore } from "@/stores/useStore";
@@ -32,7 +32,7 @@ export function PluginPage() {
       </header>
       <div className={styles.content}>
         {info && pluginId && (
-          <sc-plugin key={pluginId} id={`plugin:${pluginId}`} plugin={pluginId} />
+          <PluginHost key={pluginId} pluginId={pluginId} hostId={`plugin:${pluginId}`} />
         )}
       </div>
     </main>

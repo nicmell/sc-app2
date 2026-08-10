@@ -1,6 +1,6 @@
 // Shared unit-test helpers for the sc-elements suites (examples / controls /
-// widgets). The duplication these remove: mounting an entry into a connected
-// <sc-plugin> host + running the parse engine, the sequential load pass, and
+// widgets). The duplication these remove: parsing an entry into an offline,
+// explicitly upgraded <sc-plugin> host, the sequential load pass, and
 // the scripted-scsynth auto-responder feeding the real handleReply so the
 // `once()` waiters gate exactly as against a live server.
 //
@@ -26,27 +26,30 @@ export function wrapXml(xml: string): string {
 <sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">${xml}</sc-plugin>`;
 }
 
-/** Parse plugin XML into a connected <sc-plugin> host and run the parse engine
- *  (text/xml parse + importNode — the host IS the parsed root), exactly like
- *  the CDP probe. Throws on an XML parse error. */
+/** Parse plugin XML into a disconnected, explicitly upgraded <sc-plugin> host
+ *  and run the parse engine (text/xml parse + importNode — the host IS the
+ *  parsed root), exactly like production. Throws on an XML parse error. */
 export function parsePlugin(xml: string): { host: ScPlugin; nodes: Set<ScElement> } {
   const doc = new DOMParser().parseFromString(xml, "text/xml");
   if (doc.querySelector("parsererror")) {
     throw new Error("XML parse error: " + doc.querySelector("parsererror")!.textContent);
   }
   const host = document.createElement("sc-plugin") as ScPlugin;
-  document.body.appendChild(host); // custom elements only upgrade when connected
-  adoptEntry(host, doc);
-  const nodes = new Set<ScElement>();
   host.id = `test-${Math.random().toString(36).slice(2)}`;
+  adoptEntry(host, doc);
+  customElements.upgrade(host);
+  const nodes = new Set<ScElement>();
   host.process({ rootNode: host, nodes, scope: [host], path: [] });
   return { host, nodes };
 }
 
-/** parsePlugin + await the sequential load pass (needs an installed scsynth
- *  mock to answer the sequenced commands). */
+/** parsePlugin + connect the parsed tree + await the sequential load pass
+ *  (needs an installed scsynth mock to answer the sequenced commands). */
 export async function mountPlugin(xml: string): Promise<{ host: ScPlugin; nodes: Set<ScElement> }> {
   const parsed = parsePlugin(xml);
+  document.body.appendChild(parsed.host);
+  // Let firstUpdated start the production pass, then join that in-flight load.
+  await parsed.host.updateComplete;
   await parsed.host.load();
   return parsed;
 }

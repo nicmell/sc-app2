@@ -1,12 +1,10 @@
-// <sc-plugin> — the runtime host for an authored <sc-plugin> entry. PluginHost
-// renders one per dashboard box, and PluginPage renders a standalone one; the
-// loader imports the entry's children into that host without replacing its runtime
-// id. Title and description live in metadata.json / PluginInfo. It resolves its
-// plugin — the `plugin` property, else the
-// layout/plugins stores keyed by its DOM id — then parses + validates it into the runtime
-// registry (the ScElement parse engine), and owns the plugin's scsynth
-// group: created inside the session group on mount, freed — with every synth
-// in it — on unmount.
+// <sc-plugin> — the runtime host for an authored <sc-plugin> entry. React's
+// shared PluginHost resolves and fetches the plugin, then imports, upgrades,
+// parses, validates, and registers its tree while this element is disconnected.
+// Once React connects that prepared host, the element owns the load lifecycle
+// and its scsynth group: created inside the session group on mount, freed — with
+// every synth in it — on unmount. Title and description live in metadata.json /
+// PluginInfo.
 //
 // The plugin also lives with the OSC connection (`oscClient.connected`,
 // the old ScopeController's pattern): a drop unloads every element — flags and
@@ -16,14 +14,11 @@
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
-import { loadPluginInto } from "@/lib/plugins/PluginManager";
 import { oscClient } from "@/stores/osc";
 import { createStore, type Store } from "@/lib/utils/reactiveStore";
-import { registerAll, unregisterTree } from "@/runtime/registry";
+import { unregisterTree } from "@/runtime/registry";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
-import { layout } from "@/stores/layout";
-import { plugins } from "@/stores/plugins";
 import type { PluginRuntimeValues, RuntimeContext } from "@/types/runtime";
 import "./sc-plugin.scss";
 
@@ -35,11 +30,6 @@ export class ScPlugin extends ScNode {
    *  descendant. Lives and dies with the element — a remount reseeds. */
   readonly runtime: Store<PluginRuntimeValues> = createStore({});
 
-  /** Explicit plugin id for instances outside a dashboard box (a plain JS
-   *  property, deliberately not an attribute — validateProps rejects unknown
-   *  attributes; React 19 assigns it as a property since the field exists). */
-  plugin?: string;
-
   /** Parse succeeded — there is a tree to (re)load. A parse failure is
    *  permanent for this mount; reload() never retries it. */
   parsed = false;
@@ -47,6 +37,10 @@ export class ScPlugin extends ScNode {
   /** Unsubscribe from the `connected` signal (set on connect, cleared on
    *  disconnect). */
   private offConnected?: () => void;
+
+  /** The in-flight pass started by firstUpdated/reload. Test helpers and any
+   *  same-turn connection signal join it instead of creating two groups. */
+  private loading?: Promise<void>;
 
   /** Unlike the other sc-elements, the plugin root renders into a shadow
    *  root: the plugin markup stays in the light DOM and shows through the
@@ -65,34 +59,8 @@ export class ScPlugin extends ScNode {
   }
 
   protected firstUpdated(): void {
-    // Lit ignores the lifecycle return; kick the async boot off explicitly.
-    void this.boot();
-  }
-
-  private async boot(): Promise<void> {
-    // The explicit `plugin` property wins (standalone PluginPage instance);
-    // otherwise the DOM id IS the dashboard box id (assigned by PluginHost's
-    // JSX) and the box's assigned plugin resolves from the stores.
-    const assigned = this.plugin ?? layout.get().find((box) => box.i === this.id)?.plugin;
-    const info = plugins.get().find((candidate) => candidate.id === assigned);
-    if (!info) {
-      this._error = "sc-plugin: no plugin assigned";
-      return;
-    }
-    try {
-      await loadPluginInto(this, info);
-      if (!this.isConnected) return; // unmounted while fetching
-      // Process the tree (validation runs inside; the children derive from
-      // the DOM): the registry adopts it (root + scChildren) only on success.
-      this.process({ rootNode: this, nodes: new Set<ScElement>(), scope: [this], path: [] });
-      registerAll(this);
-      // The async load pass: the plugin group first, then every child fully,
-      // sequentially, in DOM order (/d_recv before /s_new etc.). A failure
-      // lands in the same error box as a parse failure.
-      await this.load();
-    } catch (e) {
-      this._error = e instanceof Error ? e.message : String(e);
-    }
+    // Lit ignores lifecycle return values; kick the initial load off explicitly.
+    void this.reload();
   }
 
   process(ctx: RuntimeContext): ScElement {
@@ -105,6 +73,18 @@ export class ScPlugin extends ScNode {
    *  synths live in, freed wholesale on unmount. The plugin's `nodeId` IS
    *  the group id, so children target `targetGroupId` uniformly. */
   async load(): Promise<void> {
+    if (this.loading) return this.loading;
+    const loading = this.loadTree();
+    this.loading = loading;
+    try {
+      await loading;
+    } finally {
+      if (this.loading === loading) this.loading = undefined;
+    }
+  }
+
+  /** Perform one load pass; load() coalesces callers around this operation. */
+  private async loadTree(): Promise<void> {
     if (!this.isConnected || this.loaded) return; // unmounted mid-load / already live
     const epoch = this.loadEpoch;
     const nodeId = await oscClient.createGroup(oscClient.sessionGroupId);

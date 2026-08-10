@@ -19,8 +19,8 @@ element IS the runtime**: `resolveRuntime()` resolves the runtime values and
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `path`/`enabled` + `_scChildren` for parents + the
 runtime-prop machinery on `ScElement`, the category values on
-`ScNode`/`ScState`/`ScInput`). The runtime registry (`@/runtime/registry`)
-maps ids straight to the live components.
+`ScNode`/`ScState`/`ScInput`). There is no global element registry — the
+parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,
@@ -62,12 +62,11 @@ See the root CLAUDE.md implementation plan.
 
 ### `<sc-plugin>` — functional
 
-The authored entry root and app-synthesized runtime host. PluginHost renders one
-per dashboard box with the box id as its DOM id; the loader imports the authored
-root's children into it without replacing that runtime id. Display `title` and
-`description` live in `metadata.json` / `PluginInfo`. It then runs `process()`
-(validation inside; the registry adopts the parsed tree) and owns the plugin's
-scsynth group:
+The authored entry root is the runtime host. PluginHost mounts one per dashboard
+box; the loader imports and upgrades the whole authored root through the main
+document. Display `title` and `description` live in `metadata.json` /
+`PluginInfo`. It then runs `process()` (validation inside) and owns the
+plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
 Prop: `run` (boolean attribute, `run="false"` is the only falsy spelling).

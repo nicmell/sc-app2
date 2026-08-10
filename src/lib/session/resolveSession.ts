@@ -73,9 +73,9 @@ export async function rootLoader() {
 }
 
 export async function sessionLoader({ params }: LoaderFunctionArgs) {
-  // The plugin registry must be in the store before any <sc-plugin> boots —
-  // the element reads `plugins.get()` synchronously. Failure degrades to an
-  // empty list (boxes show "no plugin assigned"), never a dead session.
+  // The plugin registry must be in the store before PluginHost resolves an
+  // assignment. Failure degrades to an empty list (boxes show "no plugin
+  // assigned"), never a dead session.
   await refreshPlugins().catch((error: unknown) => {
     console.warn("[session] plugin registry load failed:", error);
   });

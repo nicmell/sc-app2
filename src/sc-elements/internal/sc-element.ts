@@ -272,6 +272,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       // numeric-only elements enforce it semantically: ScControl.validate.)
     }
     for (const { name } of Array.from(this.attributes)) {
+      // Namespace declarations are XML plumbing, not contract attributes.
+      if (name === "xmlns") continue;
       const colon = name.indexOf(":");
       if (colon === -1) {
         if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {
@@ -297,8 +299,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign the parsed identity (the registry keys by
-   *  it; the root arrives with the box id instead). */
+  /** Hydrate this element: assign the parsed identity (the DOM id). */
   hydrate(id: string): this {
     this.id = id;
     return this;

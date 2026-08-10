@@ -23,7 +23,7 @@ import { DashboardPanel, dragHandleClass } from "@/components/Dashboard/Dashboar
 import { DashboardHeader } from "@/components/Dashboard/DashboardHeader";
 import { DashboardFooter } from "@/components/Dashboard/DashboardFooter";
 import { Placeholder } from "@/components/Dashboard/Placeholder";
-import { PluginHost } from "@/components/Dashboard/PluginHost";
+import { PluginHost } from "@/components/PluginHost";
 import { PluginPicker } from "@/components/PluginPicker";
 import styles from "./Dashboard.module.scss";
 
@@ -114,7 +114,7 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         ) : plugin ? (
-          <PluginHost box={item} />
+          <PluginHost key={plugin.id} pluginId={plugin.id} />
         ) : (
           <div className={styles.panelEmpty}>
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />

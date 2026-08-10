@@ -67,11 +67,12 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          the drawer, open only once the session is connected —
                          never over the connecting scrim / error modal)
                          and PluginPage (/:sessionId/plugins/:pluginId — a
-                         full-screen STANDALONE <sc-plugin> instance, id
-                         "plugin:<id>", own runtime map + scsynth group);
+                         full-screen STANDALONE <sc-plugin> instance with its
+                         own runtime map + scsynth group);
                          SessionBootError is the loader-failure modal (Retry =
                          same-path replace navigation, re-runs loaders)
-components/              React shell: Dashboard grid, plugin picker/list, toasts,
+components/              React shell: Dashboard grid, shared PluginHost (offline
+                         fetch/parse/process/mount), plugin picker/list, toasts,
                          the connection overlay (connecting scrim + retry modal
                          over the session status; Retry revalidates the route
                          loaders in place), ui/ (Modal — the first of the
@@ -94,8 +95,6 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          declare the category props + runtime values; each
                          component overrides resolveRuntime(), whose result
                          process() assigns onto the element itself
-runtime/                 the global parsed-element registry (id → the live
-                         ScElement component), deliberately NOT a store slice
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
@@ -320,11 +319,12 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
    `children` is taken), `targetScState` on inputs, and each runtime prop's
    `targets: Record<path, ScState>`. Cycle detection walks the bind graph
-   through these references with no lookups; the only id-keyed structure
-   left is the global registry (`@/runtime/registry`, id → live element),
-   whose purpose IS lookup from outside the DOM — it adopts a parsed tree
-   by walking `_scChildren` from the root. Anything _persisted_ (presets,
-   layout) stays id/path-based; references are in-memory runtime only.
+   through these references with no lookups; there is NO id-keyed lookup
+   structure at all — access from outside the DOM goes through the mounted
+   `<sc-plugin>` hosts (each parsed tree hangs off its root via
+   `_scChildren`; name paths resolve with `walkPath`). Anything _persisted_
+   (presets, layout) stays name-path-based; references are in-memory
+   runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`. The live VALUE is the exception that settled the
    other way: `value` is the plain declarative attribute mirror everywhere
@@ -442,16 +442,17 @@ further `sc-*` element:
    (state/node/parent). Add the element's examples to the unit suite's
    expectations (`src/sc-elements/__tests__/examples.test.ts`) if it ships
    a new fixture.
-6. The registry (`@/runtime/registry`) maps ids to the live components
-   themselves (identity pinned by the unit suite and the dashboard probe),
-   so props, runtime values, and methods are reachable from outside the
-   DOM.
+6. Props, runtime values, and methods are reachable from outside the DOM
+   through the mounted `<sc-plugin>` host: the parsed tree hangs off the
+   root (`_scChildren`), and named elements resolve by name path
+   (`walkPath`, seeing through transparent containers). There is no global
+   element registry.
 
 ## Migration state (elements)
 
 | element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; the synthesized host imports and parses the entry children, owns the plugin scsynth group (its `nodeId`), and orchestrates the load pass                                                                                                                                                                                                                                                                                                                          |
+| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; React's shared PluginHost imports, offline-parses, and mounts the authored root; that host owns the plugin scsynth group (its `nodeId`) and orchestrates the load pass                                                                                                                                                                                                                                                    |
 | sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                                                                                              |
 | sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet                                                                               |
 | sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                                                                                       |
@@ -470,8 +471,9 @@ further `sc-*` element:
 | sc-envelope                                                | NEW: the draggable-breakpoint envelope editor over an ordinary ARRAY-valued control/var (`bind:value` — writable plain path; Env.asArray codec in lib/synthdef/envValue.ts); gesture-frozen scale + edge pinning (no runaway feedback), `minbreakpoints`/`maxbreakpoints` lock the structure (positions stay draggable — stable `env.N` slot-lens binds), drag readout, double-click curve reset                                                                                                                                                                  |
 | sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
-**The load pass**: after the sync parse, `ScPlugin.firstUpdated` awaits
-`load()` — an async walk over `_scChildren` in strict DOM order, each child
+**The load pass**: after React connects the offline-parsed tree,
+`ScPlugin.firstUpdated` kicks `reload()` — which awaits `load()`, an async walk
+over `_scChildren` in strict DOM order, each child
 fully awaited before the next (no reactive depsReady gates; the bind-order
 constraint makes DOM order a valid dependency order, so /d_recv's ack always
 precedes the dependent /s_new). The elements never touch `send`/`once`
@@ -530,7 +532,7 @@ defaults). It holds ONLY the literal, user-writable
 keys: ScState seeds the declarative default in the load pass (a reload keeps
 user-moved values) and mirrors the store key into `_state`, so external
 store writes (a second input, future presets — literal keys only, via the
-registry → element → `.runtime`) notify
+mounted host → element → `.runtime`) notify
 dependents through the same statechange, with no OSC. DERIVED state (a
 `bind:value` expression) recomputes element-to-element — NO store key at all.
 Inside ugens the SAME `bind:value` spelling is the graph-input REFERENCE the
@@ -619,7 +621,7 @@ setup + shared element-suite helpers in `src/lib/utils/test/` (`test-setup.ts`,
 scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
-mounts it into a connected `<sc-plugin>` host (text/xml parse + `adoptEntry` child import),
+mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
 and runs `host.process({rootNode: host, nodes, scope:
 [host], path:[]})`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
@@ -651,11 +653,10 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
    their specific messages.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): create an `<sc-plugin>` host, **append it to the
-   document first** (custom elements only upgrade when connected), fetch the
-   entry via `/api/plugins/<id>/<entry>`, parse as **text/xml** (entries use
-   self-closing tags; HTML parsing mis-nests them), require an authored
-   `<sc-plugin>` root, and `importNode` its children into the host, then
+   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
+   as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
+   require an authored `<sc-plugin>` root, `importNode` that whole root through
+   the main document, explicitly upgrade it while disconnected, then
    `host.process({rootNode: host, nodes: new Set(), scope: [host],
 path: []})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
@@ -731,7 +732,7 @@ steps, each independently shippable:
 8. **Persistence & presets** — extend the saved-session layout payload with
    the old per-box `OverrideEntry[]` presets (replaces the old
    zustand-persist), marshalled as sparse diffs read from the element's
-   per-instance runtime store via the registry —
+   per-instance runtime store via the mounted host's name-path walk —
    LITERAL keys only (derived values live on the elements and recompute; a
    preset writing a bound key would create an orphan store entry nothing
    reads).

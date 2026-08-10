@@ -1,8 +1,9 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// XML-parse + import its authored root's children into a connected <sc-plugin> host,
-// and run the host's own process() — the runtime validation.
+// XML-parse + import the whole authored <sc-plugin> root through the main
+// document, upgrade it disconnected, and run its own process() — the runtime
+// validation, mirroring lib/plugins' parseEntry.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
 // each — see examples/README.md). Anything else failing is a migration bug.
@@ -77,20 +78,18 @@ const probeRuntime = (pluginId, entry) =>
   evaluate(`(async () => {
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
   const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
-  if (doc.querySelector("parsererror")) return "PARSE ERROR: " + doc.querySelector("parsererror").textContent.slice(0, 120);
-  const host = document.createElement("sc-plugin");
-  document.body.appendChild(host);
   try {
+    const parseError = doc.querySelector("parsererror");
+    if (parseError) throw new Error(\`plugin entry is not valid XHTML: \${parseError.textContent}\`);
     const root = doc.documentElement;
     if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
-    host.replaceChildren(...[...root.children].map((child) => document.importNode(child, true)));
+    const host = document.importNode(root, true);
+    customElements.upgrade(host);
 
     host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [] });
     return "PASS";
   } catch (e) {
     return "FAIL: " + e.message;
-  } finally {
-    host.remove();
   }
 })()`);
 

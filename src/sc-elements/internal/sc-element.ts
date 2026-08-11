@@ -40,7 +40,7 @@ import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { evalExpr, tryEvalCallLiteral } from "@/lib/expression";
 import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
-import { randomId } from "@/lib/utils/randomId";
+import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
   baseRuntime,
   checkDuplicateNames,
@@ -131,6 +131,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   #runtime: Record<string, StateValue | undefined> = {};
   /** Target/store unsubscribes (set in load, cleared on unload/disconnect). */
   #offs: Array<() => void> = [];
+  /** The root-owned document-order suffix for deterministic hydrated ids. */
+  #idOrdinal = 0;
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -299,7 +301,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign the parsed identity (the DOM id). */
+  /** Hydrate this element: assign its parsed `hash@ordinal` DOM identity. */
   hydrate(id: string): this {
     this.id = id;
     return this;
@@ -320,7 +322,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       return this;
     }
     ctx.nodes.add(this);
-    if (!this.id) this.id = randomId();
+    if (ctx.rootNode === this) {
+      this.#idOrdinal = 0;
+      this.id = `${contentHash(this)}@0`;
+    }
     const parent = ctx.parentNode && this.parseParentOf(ctx.parentNode);
     if (parent) {
       ((parent as ScElement)._scChildren ??= []).push(this);
@@ -539,7 +544,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
-    const scope = [...this.walkScElements()].map((el) => el.hydrate(randomId()));
+    const scope = [...this.walkScElements()].map((el) =>
+      el.hydrate(`${contentHash(el)}@${++ctx.rootNode.#idOrdinal}`),
+    );
 
     checkDuplicateNames(scope);
 

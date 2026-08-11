@@ -65,7 +65,8 @@ See the root CLAUDE.md implementation plan.
 The authored entry root is the runtime host. PluginHost mounts one per dashboard
 box; the loader imports and upgrades the whole authored root through the main
 document. Display `title` and `description` live in `metadata.json` /
-`PluginInfo`. It then runs `process()` (validation inside) and owns the
+`PluginInfo`. It then runs `process()` (validation inside; hydration assigns
+deterministic `hash@ordinal` ids) and owns the
 plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.

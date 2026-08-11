@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- XML normalizes literal attribute newlines, so `\n` is the explicit
+       sc-strudel escape. The editor receives a real two-line pattern. -->
+  <sc-var name="pattern" value='s("bd hh*2")\ns("sd hh")'/>
+  <sc-flex orientation="vertical" gap="md">
+      <sc-text weight="bold">Two-way Strudel pattern</sc-text>
+      <sc-text tone="dim">Every editor keystroke updates the shared variable:</sc-text>
+      <sc-display bind:value="pattern"/>
+      <sc-strudel bind:value="pattern"/>
+  </sc-flex>
+</sc-plugin>

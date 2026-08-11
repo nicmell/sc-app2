@@ -1,0 +1,8 @@
+{
+  "name": "strudel-var-plugin",
+  "title": "Strudel Var Plugin",
+  "author": "sc-app2",
+  "version": "0.1.0",
+  "entry": "index.html",
+  "assets": []
+}

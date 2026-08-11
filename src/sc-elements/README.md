@@ -315,10 +315,14 @@ buffer-family migration.
 ### `<sc-strudel>`
 
 A Strudel editor whose patterns route to StrudelDirt through the OSC bridge
-(timetagged `/dirt/play` bundles). The element's text content is the initial
-pattern code; `orbit` stamps a default orbit onto events the pattern doesn't
-route itself (`.orbit(n)` wins). The editor works offline; unload stops
-playback on connection loss.
+(timetagged `/dirt/play` bundles). Optional `value` holds the initial pattern
+code (the built-in pattern is used when absent); `\\n` in an XML attribute
+decodes to a real newline. A plain-path `bind:value` is two-way per keystroke,
+while an expression bind only drives the editor. Editor writes contain raw
+newlines, so a literal backslash-n cannot be represented through the attribute.
+`orbit` stamps a default orbit onto events the pattern doesn't route itself
+(`.orbit(n)` wins). The editor works offline; unload stops playback on
+connection loss.
 
 ### `<sc-keyboard>`
 

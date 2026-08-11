@@ -1,6 +1,6 @@
 // Widget lifecycle + parametrization gate: sc-scope's per-element tap (bus/
 // channels → tap synthdef + scope-slot subscription, through the load/unload
-// pass) and sc-strudel's text-content initial code + orbit stamping. Same
+// pass) and sc-strudel's value/bind:value code flow + orbit stamping. Same
 // scripted-scsynth recipe as controls.test.ts: oscClient.send is mocked into
 // an auto-responder feeding the real handleReply, so the sequenced commands
 // gate exactly as against a live server. The scope-slot allocator is armed
@@ -61,6 +61,14 @@ function disarmScopeAllocator(): void {
 
 const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
   (await mountPlugin(wrapXml(bodyXml))).host;
+
+/** Simulate CodeMirror's per-keystroke update: its internal change handler
+ *  updates mirror.code before the contenteditable input event bubbles. */
+function typeInStrudel(code: string): void {
+  const mirror = strudelMirrors[0];
+  mirror.code = code;
+  (mirror.opts.root as HTMLElement).dispatchEvent(new Event("input", { bubbles: true }));
+}
 
 /** A /scope/chunk frame's blob: big-endian f32, planar (one frame run per
  *  channel — the SHM slot's own layout). */
@@ -317,19 +325,77 @@ describe("sc-scope", () => {
 });
 
 describe("sc-strudel", () => {
-  it("captures its text content as the initial pattern code", async () => {
-    const host = await mountXml('<sc-strudel>s("bd hh*2")</sc-strudel>');
+  it("decodes static value code and falls back to the default code", async () => {
+    const host = await mountXml(`<sc-strudel value='s("bd")\\ns("hh")'/>`);
     const strudel = host.querySelector("sc-strudel") as ScStrudel;
     await strudel.updateComplete;
     expect(strudelMirrors).toHaveLength(1);
-    expect(strudelMirrors[0].opts.initialCode).toBe('s("bd hh*2")');
-    // The raw code text was cleared before the editor rendered.
+    expect(strudelMirrors[0].opts.initialCode).toBe('s("bd")\ns("hh")');
     expect(strudel.querySelector(`.${strudelStyles.editor}`)).not.toBeNull();
-    expect(strudel.textContent).not.toContain('s("bd hh*2")');
     expect(strudelMirrors[0].opts.setInterval).toEqual(expect.any(Function));
     expect(strudelMirrors[0].opts.clearInterval).toEqual(expect.any(Function));
     const now = performance.now() / 1000;
     expect(strudelMirrors[0].opts.getTime()).toBeCloseTo(now);
+
+    document.body.replaceChildren();
+    const defaultHost = await mountXml("<sc-strudel/>");
+    await (defaultHost.querySelector("sc-strudel") as ScStrudel).updateComplete;
+    expect(strudelMirrors[1].opts.initialCode).toContain('s("bd hh*2 sd hh")');
+  });
+
+  it("reads and writes a plain-path bind per editor input", async () => {
+    const host = await mountXml(
+      `<sc-var name="code" value='s("bd")\\ns("hh")'/><sc-strudel bind:value="code"/>`,
+    );
+    await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
+    const mirror = strudelMirrors[0];
+    expect(mirror.setCode).toHaveBeenCalledWith('s("bd")\ns("hh")');
+
+    typeInStrudel('s("sd")');
+    expect(host.runtime.get().code).toBe('s("sd")');
+    typeInStrudel('s("sd hh")');
+    expect(host.runtime.get().code).toBe('s("sd hh")');
+  });
+
+  it("syncs external writes with a same-code loop guard", async () => {
+    const host = await mountXml(`<sc-var name="code" value="first"/><sc-strudel bind:value="code"/>`);
+    await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
+    const mirror = strudelMirrors[0];
+    mirror.setCode.mockClear();
+
+    host.runtime.update((state) => ({ ...state, code: "second" }));
+    expect(mirror.setCode).toHaveBeenCalledOnce();
+    expect(mirror.setCode).toHaveBeenCalledWith("second");
+    mirror.setCode.mockClear();
+    host.runtime.update((state) => ({ ...state, code: "second" }));
+    expect(mirror.setCode).not.toHaveBeenCalled();
+  });
+
+  it("keeps expression binds read-only while still driving the editor", async () => {
+    const host = await mountXml(
+      `<sc-var name="choice" value="1"/><sc-strudel bind:value="choice ? 'a' : 'b'"/>`,
+    );
+    await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
+    const mirror = strudelMirrors[0];
+    expect(mirror.setCode).toHaveBeenCalledWith("a");
+    const before = host.runtime.get();
+
+    typeInStrudel("typed");
+    expect(host.runtime.get()).toBe(before);
+    expect(mirror.setCode).toHaveBeenLastCalledWith("a");
+    host.runtime.update((state) => ({ ...state, choice: 0 }));
+    expect(mirror.setCode).toHaveBeenLastCalledWith("b");
+  });
+
+  it("rejects static value together with bind:value", () => {
+    // happy-dom drops namespace-local-name collisions during XML parsing, so
+    // pin the generic validator directly, matching the runtime-prop suite.
+    const strudel = document.createElement("sc-strudel") as ScStrudel;
+    strudel.setAttribute("value", "a");
+    strudel.setAttribute("bind:value", "code");
+    expect(() => strudel.validateProps()).toThrow(
+      '<sc-strudel>: "value" and "bind:value" are mutually exclusive',
+    );
   });
 
   it("stamps its orbit onto dirt events the pattern didn't route", async () => {

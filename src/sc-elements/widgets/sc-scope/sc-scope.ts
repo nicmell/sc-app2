@@ -47,7 +47,7 @@ interface DrawWindow {
 export class ScScope extends ScElement {
   // Declarative attributes, coerced via the spec with the scope defaults —
   // enum membership (trigger/slope/layout), numeric lexical gates, and the
-  // static range facets are enforced by ScElement.validateProps.
+  // static range facets are enforced by validation.ts's validateProps.
   /** First audio bus the tap reads. */
   private get _bus(): number {
     return (this.getProp("bus") as number) ?? SCOPE_INPUT_BUS;

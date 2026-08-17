@@ -28,6 +28,7 @@ import {
   type ScVar,
 } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
+import { validateProps } from "@/sc-elements/internal/validation";
 import {
   autoRespond,
   FIRST_NODE_ID,
@@ -1102,7 +1103,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "a");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "b");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-var>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -1272,7 +1273,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "freq");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "freq");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-control>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -1305,7 +1306,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "s1");
     el.setAttribute("synthdef", "sine");
     el.setAttribute("bind:synthdef", "sine");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-synth>: unknown runtime attribute "bind:synthdef"',
     );
   });

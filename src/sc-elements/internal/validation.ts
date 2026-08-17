@@ -1,22 +1,162 @@
-// Attribute validation + runtime-inference helpers over the live elements,
-// as plain functions taking the element explicitly where the error messages
-// or cycle seeds need it (the ScElement base keeps only the parse engine).
+// The whole parse-time gate — spec validation + static coercion — and the
+// runtime-inference helpers over live elements, all as plain functions taking
+// the element explicitly where the error messages or cycle seeds need it.
+// ScElement keeps the parse ENGINE and the live evaluated runtime only.
 // Hydrate-time: failValidation plus checkDuplicateNames over a sibling scope.
 // Process-time: the bind-resolution machinery the `resolveRuntime` overrides
 // build on. The error messages are the runtime gate's contract — pinned
 // verbatim by src/sc-elements/examples.test.ts and the CDP harness.
 
-import { parseBind } from "@/lib/expression";
+import { ELEMENTS } from "@/constants/sc-elements";
+import { parseBind, tryEvalCallLiteral } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
+import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
 
 // ── Attribute validation (parse-time) ──────────────────────────────────────
 
+// XML Schema lexical spaces for the primitive attribute types we coerce.
+// Number() is deliberately not used for validation: it accepts empty strings,
+// whitespace, exponents for decimals, and fractional integers.
+const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const XSD_INTEGER = /^[+-]?\d+$/;
+const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
+const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
+const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
+
+/** Vector coercion: an already-array value passes through; a STATIC string
+ *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
+ *  — evaluated to number[] through lib/expression, memoized per raw string;
+ *  a KNOWN function head with bad args throws loud at parse, an unknown head
+ *  keeps the string semantics); a comma-list of numerics becomes number[];
+ *  anything else keeps the scalar semantics (number-if-numeric-else-string —
+ *  string vars keep working, commas in non-numeric strings included).
+ *  EVALUATED values are never call-evaluated: a bind-computed string that
+ *  happens to look like a call must not turn into an array. */
+export function coerceVector(
+  value: number | string | number[],
+  evaluated: boolean,
+): string | number | number[] {
+  if (typeof value !== "string") return value;
+  if (!evaluated) {
+    const call = tryEvalCallLiteral(value);
+    if (call) return call;
+  }
+  const tokens = value.split(",").map((s) => s.trim());
+  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
+    return tokens.map(Number);
+  }
+  const n = Number(value);
+  return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+}
+
+/** Coerce a static attribute string per its spec. This is deliberately pure:
+ *  static values are validated at parse time, while live evaluated values
+ *  remain on ScElement with its once-per-property warning state. */
+export function coerceStatic(
+  attr: AttrSpec | undefined,
+  raw: string,
+): string | number | boolean | number[] {
+  if (attr?.type === "decimal" || attr?.type === "integer") return Number(raw);
+  if (attr?.type === "boolean") return raw === "true" || raw === "1";
+  if (attr?.type === "scalar") {
+    const n = Number(raw);
+    return raw.trim() !== "" && !Number.isNaN(n) ? n : raw;
+  }
+  if (attr?.type === "vector") return coerceVector(raw, false);
+  return String(raw); // string / name / enum / untyped
+}
+
 /** Throw a validation error in the canonical `<tag>: message` shape. */
 export function failValidation(el: Element, message: string): never {
   throw new Error(`<${el.tagName.toLowerCase()}>: ${message}`);
+}
+
+/** Spec-driven attribute validation, run before the component's `validate()`:
+ *  required present (a runtime attr satisfies it with either form),
+ *  static/`bind:` mutual exclusion, numeric lexical/range gates, enum
+ *  membership, name syntax, and the attribute-name hygiene: only the
+ *  canonical `bind:` prefix carries runtime props (the XSD admits the
+ *  NAMESPACE, the runtime matches the QUALIFIED NAME — a foreign prefix would
+ *  silently no-op, so it fails loudly), and only spec attrs not opted out have
+ *  a `bind:` form. Choice-less content models also reject nested sc-* elements
+ *  here; evaluated values remain unvalidated. */
+export function validateProps(el: ScElement): void {
+  const attrs = el.spec?.attrs ?? {};
+  for (const [name, attr] of Object.entries(attrs)) {
+    const raw = el.getAttribute(name);
+    const dynamic = attr.runtime !== false ? el.getAttribute(bindAttr(name)) : null;
+    if (raw !== null && dynamic !== null) {
+      failValidation(el, `"${name}" and "${bindAttr(name)}" are mutually exclusive`);
+    }
+    if (raw === null) {
+      if (attr.required && dynamic === null) {
+        failValidation(el, `missing required "${name}" attribute`);
+      }
+      continue;
+    }
+    if (attr.type === "decimal" && !XSD_DECIMAL.test(raw)) {
+      failValidation(el, `"${name}" attribute must be a decimal number`);
+    }
+    if (attr.type === "integer" && !XSD_INTEGER.test(raw)) {
+      failValidation(el, `"${name}" attribute must be an integer`);
+    }
+    if (attr.type === "boolean" && !XSD_BOOLEAN.has(raw)) {
+      failValidation(el, `"${name}" attribute must be one of true|false|1|0 (got "${raw}")`);
+    }
+    if (attr.type === "enum" && !attr.values.includes(raw)) {
+      failValidation(
+        el,
+        `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
+      );
+    }
+    if (attr.type === "name" && !NAME_SEGMENT.test(raw)) {
+      failValidation(
+        el,
+        `"${name}" attribute must be a plain identifier — letters, digits, "_", "-" (got "${raw}")`,
+      );
+    }
+    if (attr.type === "decimal" || attr.type === "integer") {
+      const n = Number(raw);
+      if (attr.min !== undefined && n < attr.min) {
+        failValidation(el, `"${name}" attribute must be ≥ ${attr.min} (got "${raw}")`);
+      }
+      if (attr.exclusiveMin !== undefined && n <= attr.exclusiveMin) {
+        failValidation(el, `"${name}" attribute must be > ${attr.exclusiveMin} (got "${raw}")`);
+      }
+      if (attr.max !== undefined && n > attr.max) {
+        failValidation(el, `"${name}" attribute must be ≤ ${attr.max} (got "${raw}")`);
+      }
+    }
+    // (`vector` has no lexical gate: an all-numeric comma-list is an array,
+    // anything else keeps the scalar semantics — string vars included. The
+    // numeric-only elements enforce it semantically: ScControl.validate.)
+  }
+  for (const { name } of Array.from(el.attributes)) {
+    // Namespace declarations are XML plumbing, not contract attributes.
+    if (name === "xmlns") continue;
+    const colon = name.indexOf(":");
+    if (colon === -1) {
+      if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {
+        failValidation(el, `unknown attribute "${name}"`);
+      }
+      continue;
+    }
+    const prefix = name.slice(0, colon);
+    if (prefix === "xmlns") continue;
+    if (prefix !== "bind") {
+      failValidation(el, `unknown attribute namespace prefix "${prefix}:" (use "bind:")`);
+    }
+    const base = attrs[name.slice(colon + 1)];
+    if (base === undefined || base.runtime === false) {
+      failValidation(el, `unknown runtime attribute "${name}"`);
+    }
+  }
+  if (!el.spec?.content?.choice?.length && el.querySelector(SC_ELEMENT_SELECTOR)) {
+    failValidation(el, "must not contain sc-* elements");
+  }
 }
 
 /** Reject duplicate names within one sibling scope (the same name in nested

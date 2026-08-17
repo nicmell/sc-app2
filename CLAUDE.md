@@ -89,8 +89,9 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          the element IS the runtime — no item structures. The
                          ScElement base carries the parse engine (process/
                          processChildren) + the common runtime fields;
-                         validation.ts holds the validation + bind-resolution
-                         helpers as plain functions; the category bases
+                         validation.ts holds the parse-time validation/static-
+                         coercion + bind-resolution helpers as plain functions;
+                         the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
                          component overrides resolveRuntime(), whose result
@@ -401,8 +402,9 @@ further `sc-*` element:
    value); only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
-3. **Validation is layered**: `validateProps()` (ScElement, spec-driven)
-   enforces required/numeric/enum plus numeric range facets
+3. **Validation is layered**: `validateProps()` (the plain parse-time
+   function in `internal/validation.ts`, spec-driven) enforces
+   required/numeric/enum plus numeric range facets
    (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
    no-sc-children rule for choice-less content models, and the runtime-prop
    rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no

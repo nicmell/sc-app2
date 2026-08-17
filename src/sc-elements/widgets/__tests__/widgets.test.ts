@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
+import { validateProps } from "@/sc-elements/internal/validation";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
@@ -393,7 +394,7 @@ describe("sc-strudel", () => {
     const strudel = document.createElement("sc-strudel") as ScStrudel;
     strudel.setAttribute("value", "a");
     strudel.setAttribute("bind:value", "code");
-    expect(() => strudel.validateProps()).toThrow(
+    expect(() => validateProps(strudel)).toThrow(
       '<sc-strudel>: "value" and "bind:value" are mutually exclusive',
     );
   });

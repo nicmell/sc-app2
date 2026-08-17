@@ -38,60 +38,23 @@
 
 import { LitElement } from "lit";
 import { ELEMENTS } from "@/constants/sc-elements";
-import { evalExpr, tryEvalCallLiteral } from "@/lib/expression";
+import { evalExpr } from "@/lib/expression";
 import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
   baseRuntime,
   checkDuplicateNames,
+  coerceVector,
+  coerceStatic,
   failValidation,
   isTransparent,
   nameOf,
   resolveStateBind,
+  validateProps,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import {
-  bindAttr,
-  COMMON_ATTRS,
-  type AttrSpec,
-  type ElementSpec,
-} from "@/sc-elements/internal/xsd/types";
+import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
-
-// XML Schema lexical spaces for the primitive attribute types we coerce.
-// Number() is deliberately not used for validation: it accepts empty strings,
-// whitespace, exponents for decimals, and fractional integers.
-const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
-const XSD_INTEGER = /^[+-]?\d+$/;
-const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
-const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
-const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
-
-/** Vector coercion: an already-array value passes through; a STATIC string
- *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
- *  — evaluated to number[] through lib/expression, memoized per raw string;
- *  a KNOWN function head with bad args throws loud at parse, an unknown head
- *  keeps the string semantics); a comma-list of numerics becomes number[];
- *  anything else keeps the scalar semantics (number-if-numeric-else-string —
- *  string vars keep working, commas in non-numeric strings included).
- *  EVALUATED values are never call-evaluated: a bind-computed string that
- *  happens to look like a call must not turn into an array. */
-function coerceVector(
-  value: number | string | number[],
-  evaluated: boolean,
-): string | number | number[] {
-  if (typeof value !== "string") return value;
-  if (!evaluated) {
-    const call = tryEvalCallLiteral(value);
-    if (call) return call;
-  }
-  const tokens = value.split(",").map((s) => s.trim());
-  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
-    return tokens.map(Number);
-  }
-  const n = Number(value);
-  return value.trim() !== "" && !Number.isNaN(n) ? n : value;
-}
 
 /** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
  *  names cannot start with a digit, so the tail is unambiguous. */
@@ -163,11 +126,11 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   getProp(name: string): string | number | boolean | number[] | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
-      return this.coerceProp(attr, name, this.#runtime[name], true);
+      return this.coerceProp(attr, name, this.#runtime[name]);
     }
     const raw = this.getAttribute(name);
     if (raw === null) return undefined;
-    return this.coerceProp(attr, name, raw, false);
+    return coerceStatic(attr, raw);
   }
 
   /** Once-per-element+prop warning bookkeeping for evaluated-value type
@@ -181,29 +144,22 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     console.warn(`<${this.tagName.toLowerCase()}>: ${message}`);
   }
 
-  /** Coerce a raw attribute string or an evaluated runtime value per the spec
-   *  type: decimal/integer → Number, boolean → `!== "false"` for the static
-   *  attribute (run/disabled) and plain truthiness for evaluated values (an
-   *  evaluated `''`/0 is falsy), scalar → number-if-numeric-else-string,
-   *  string/enum → String. Evaluated values that miss their spec type warn
-   *  once per element+prop (the static forms fail at parse in validateProps;
-   *  evaluated ones can only be checked live): a non-numeric on a numeric
-   *  prop returns undefined so the reader falls back to its default instead
-   *  of receiving NaN; an enum miss returns the string (graceful). */
+  /** Coerce an evaluated runtime value per the spec, keeping live warning
+   *  bookkeeping on the element. Static values use the pure `coerceStatic`
+   *  function in internal/validation.ts. */
   private coerceProp(
     attr: AttrSpec | undefined,
     name: string,
     value: StateValue | undefined,
-    evaluated: boolean,
   ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
-    if (attr?.type === "vector") return coerceVector(value, evaluated);
+    if (attr?.type === "vector") return coerceVector(value, true);
     // Array values have no scalar coercion outside vector attrs — getProp
     // readers fall back to their defaults; the value rides `_state` instead.
     if (typeof value === "object") return undefined;
     if (attr?.type === "decimal" || attr?.type === "integer") {
       const n = Number(value);
-      if (evaluated && Number.isNaN(n)) {
+      if (Number.isNaN(n)) {
         this.#warnOnce(
           name,
           `"${bindAttr(name)}" evaluated to non-numeric ${JSON.stringify(value)} — falling back`,
@@ -213,7 +169,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       return n;
     }
     if (attr?.type === "boolean") {
-      return evaluated ? Boolean(value) : value === "true" || value === "1";
+      return Boolean(value);
     }
     if (attr?.type === "scalar") {
       if (typeof value === "number") return value;
@@ -221,98 +177,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       return value.trim() !== "" && !Number.isNaN(n) ? n : value;
     }
     const s = String(value);
-    if (evaluated && attr?.type === "enum" && !attr.values.includes(s)) {
+    if (attr?.type === "enum" && !attr.values.includes(s)) {
       this.#warnOnce(
         name,
         `"${bindAttr(name)}" evaluated to "${s}" — not one of ${attr.values.join("|")}`,
       );
     }
     return s; // string / enum
-  }
-
-  /** Spec-driven attribute validation, run before `validate()`: required
-   *  present (a runtime attr satisfies it with either form), static/`bind:`
-   *  mutual exclusion, numeric lexical/range gates, enum membership, name
-   *  syntax, and the attribute-name hygiene: only the canonical `bind:`
-   *  prefix carries runtime props (the XSD admits the NAMESPACE, the runtime
-   *  matches the QUALIFIED NAME — a foreign prefix would silently no-op, so
-   *  it fails loudly), and only spec attrs not opted out have a `bind:` form.
-   *  Choice-less content models also reject nested sc-* elements here;
-   *  evaluated values remain unvalidated. */
-  validateProps(): void {
-    const attrs = this.spec?.attrs ?? {};
-    for (const [name, attr] of Object.entries(attrs)) {
-      const raw = this.getAttribute(name);
-      const dynamic = attr.runtime !== false ? this.getAttribute(bindAttr(name)) : null;
-      if (raw !== null && dynamic !== null) {
-        failValidation(this, `"${name}" and "${bindAttr(name)}" are mutually exclusive`);
-      }
-      if (raw === null) {
-        if (attr.required && dynamic === null) {
-          failValidation(this, `missing required "${name}" attribute`);
-        }
-        continue;
-      }
-      if (attr.type === "decimal" && !XSD_DECIMAL.test(raw)) {
-        failValidation(this, `"${name}" attribute must be a decimal number`);
-      }
-      if (attr.type === "integer" && !XSD_INTEGER.test(raw)) {
-        failValidation(this, `"${name}" attribute must be an integer`);
-      }
-      if (attr.type === "boolean" && !XSD_BOOLEAN.has(raw)) {
-        failValidation(this, `"${name}" attribute must be one of true|false|1|0 (got "${raw}")`);
-      }
-      if (attr.type === "enum" && !attr.values.includes(raw)) {
-        failValidation(
-          this,
-          `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
-        );
-      }
-      if (attr.type === "name" && !NAME_SEGMENT.test(raw)) {
-        failValidation(
-          this,
-          `"${name}" attribute must be a plain identifier — letters, digits, "_", "-" (got "${raw}")`,
-        );
-      }
-      if (attr.type === "decimal" || attr.type === "integer") {
-        const n = Number(raw);
-        if (attr.min !== undefined && n < attr.min) {
-          failValidation(this, `"${name}" attribute must be ≥ ${attr.min} (got "${raw}")`);
-        }
-        if (attr.exclusiveMin !== undefined && n <= attr.exclusiveMin) {
-          failValidation(this, `"${name}" attribute must be > ${attr.exclusiveMin} (got "${raw}")`);
-        }
-        if (attr.max !== undefined && n > attr.max) {
-          failValidation(this, `"${name}" attribute must be ≤ ${attr.max} (got "${raw}")`);
-        }
-      }
-      // (`vector` has no lexical gate: an all-numeric comma-list is an array,
-      // anything else keeps the scalar semantics — string vars included. The
-      // numeric-only elements enforce it semantically: ScControl.validate.)
-    }
-    for (const { name } of Array.from(this.attributes)) {
-      // Namespace declarations are XML plumbing, not contract attributes.
-      if (name === "xmlns") continue;
-      const colon = name.indexOf(":");
-      if (colon === -1) {
-        if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {
-          failValidation(this, `unknown attribute "${name}"`);
-        }
-        continue;
-      }
-      const prefix = name.slice(0, colon);
-      if (prefix === "xmlns") continue;
-      if (prefix !== "bind") {
-        failValidation(this, `unknown attribute namespace prefix "${prefix}:" (use "bind:")`);
-      }
-      const base = attrs[name.slice(colon + 1)];
-      if (base === undefined || base.runtime === false) {
-        failValidation(this, `unknown runtime attribute "${name}"`);
-      }
-    }
-    if (!this.spec?.content?.choice?.length && this.querySelector(SC_ELEMENT_SELECTOR)) {
-      failValidation(this, "must not contain sc-* elements");
-    }
   }
 
   /** Per-element SEMANTIC validation (cross-attribute rules, …), run after
@@ -344,7 +215,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       ((parent as ScElement)._scChildren ??= []).push(this);
     }
     try {
-      this.validateProps();
+      validateProps(this);
       this.validate();
       Object.assign(this, this.resolveRuntime(ctx));
       this.resolveRuntimeProps(ctx);

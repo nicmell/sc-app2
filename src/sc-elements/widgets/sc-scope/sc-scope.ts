@@ -27,12 +27,10 @@ import {
   SCOPE_CHANNELS,
   SCOPE_CHUNK_SIZE,
   SCOPE_INPUT_BUS,
-  SCOPE_MAX_FRAMES,
 } from "@/constants/osc";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
 import { findTriggerOffset } from "@/lib/scope/trigger";
 import { oscClient } from "@/stores/osc";
-import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import styles from "./sc-scope.module.scss";
 
@@ -48,8 +46,8 @@ interface DrawWindow {
 
 export class ScScope extends ScElement {
   // Declarative attributes, coerced via the spec with the scope defaults —
-  // enum membership (trigger/slope/layout) and numeric NaN are enforced by
-  // ScElement.validateProps; validate() below adds the range rules.
+  // enum membership (trigger/slope/layout), numeric lexical gates, and the
+  // static range facets are enforced by ScElement.validateProps.
   /** First audio bus the tap reads. */
   private get _bus(): number {
     return (this.getProp("bus") as number) ?? SCOPE_INPUT_BUS;
@@ -97,31 +95,6 @@ export class ScScope extends ScElement {
   private scopeIdx = -1;
   /** The chunk stream handle (subId + the off that also stops it). */
   private stream?: { subId: number; off: () => void };
-
-  validate(): void {
-    requireNoScChildren(this);
-    if (!Number.isInteger(this._bus) || this._bus < 0) {
-      failValidation(this, `"bus" attribute must be a non-negative integer (got "${this._bus}")`);
-    }
-    if (!Number.isInteger(this._channels) || this._channels < 1) {
-      failValidation(
-        this,
-        `"channels" attribute must be a positive integer (got "${this._channels}")`,
-      );
-    }
-    if (!Number.isInteger(this._frames) || this._frames < 1) {
-      failValidation(this, `"frames" attribute must be a positive integer (got "${this._frames}")`);
-    }
-    if (this._frames > SCOPE_MAX_FRAMES) {
-      failValidation(
-        this,
-        `"frames" attribute must be ≤ ${SCOPE_MAX_FRAMES} (got "${this._frames}")`,
-      );
-    }
-    if (!(this._gain > 0)) {
-      failValidation(this, `"gain" attribute must be a positive number (got "${this._gain}")`);
-    }
-  }
 
   /** Install + start the tap and subscribe its chunk stream. */
   async load(): Promise<void> {

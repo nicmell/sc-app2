@@ -5,7 +5,7 @@ export const spec: ElementSpec = {
   tag: "sc-ugen",
   category: "ugen",
   attrs: {
-    name: { type: "string", required: true, runtime: false },
+    name: { type: "name", required: true, runtime: false },
     type: { type: "string", required: true, runtime: false },
     rate: { type: "enum", values: ["ar", "kr", "ir"], runtime: false },
     op: { type: "string", runtime: false },

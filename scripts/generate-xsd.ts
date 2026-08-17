@@ -25,6 +25,9 @@ const SPEC_ROOT = resolve(ROOT, "src/sc-elements");
 const PREAMBLE = resolve(ROOT, "src/sc-elements/internal/xsd/preamble.xml");
 const OUT = resolve(ROOT, "src-tauri/src/core/plugin/xsd/sc-plugin-schema.xsd");
 
+// XML Schema's equivalent of /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/.
+const NAME_PATTERN = "[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*";
+
 /** `sc-radio-group` → `scRadioGroupType`. */
 function typeName(tag: string): string {
   const parts = tag.replace(/^sc-/, "").split("-");
@@ -75,8 +78,28 @@ function attribute(name: string, a: AttrSpec): string[] {
       `    </xs:attribute>`,
     ];
   }
+  const base = a.type === "scalar" || a.type === "name" ? "string" : a.type;
+  const facets = [
+    a.type === "name" ? `          <xs:pattern value="${NAME_PATTERN}"/>` : undefined,
+    a.min !== undefined ? `          <xs:minInclusive value="${a.min}"/>` : undefined,
+    a.max !== undefined ? `          <xs:maxInclusive value="${a.max}"/>` : undefined,
+    a.exclusiveMin !== undefined
+      ? `          <xs:minExclusive value="${a.exclusiveMin}"/>`
+      : undefined,
+  ].filter((line): line is string => line !== undefined);
+  if (facets.length) {
+    return [
+      `    <xs:attribute name="${name}"${use}>`,
+      `      <xs:simpleType>`,
+      `        <xs:restriction base="xs:${base}">`,
+      ...facets,
+      `        </xs:restriction>`,
+      `      </xs:simpleType>`,
+      `    </xs:attribute>`,
+    ];
+  }
   return [
-    `    <xs:attribute name="${name}" type="xs:${a.type === "scalar" ? "string" : a.type}"${use}/>`,
+    `    <xs:attribute name="${name}" type="xs:${base}"${use}/>`,
   ];
 }
 

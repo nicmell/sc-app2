@@ -16,7 +16,7 @@ export const spec: ElementSpec = {
     // latched into each voice's /s_new on the def's single array param.
     envelope: { type: "vector" },
     // The drawn range: `octaves` keys' worth from the leftmost MIDI note `start`.
-    octaves: { type: "integer", runtime: false },
-    start: { type: "integer", runtime: false },
+    octaves: { type: "integer", min: 1, runtime: false },
+    start: { type: "integer", min: 0, max: 127, runtime: false },
   },
 };

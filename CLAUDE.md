@@ -391,7 +391,7 @@ further `sc-*` element:
 2. **Attributes live in the colocated spec — the spec IS the attribute
    contract.** Ship a `<tag>.spec.ts` exporting a pure-JSON `ElementSpec`
    (`internal/xsd/types.ts`: attrs typed
-   `string|decimal|integer|boolean|scalar|enum`, `required`,
+   `string|name|decimal|integer|boolean|scalar|enum`, `required`,
    `runtime: false` to opt attrs out of `bind:` bindability; category;
    content model),
    auto-globbed into the runtime `SPECS` registry. Run `yarn generate:xsd`
@@ -402,14 +402,15 @@ further `sc-*` element:
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
 3. **Validation is layered**: `validateProps()` (ScElement, spec-driven)
-   enforces required/numeric/enum plus the runtime-prop rules (static-XOR-
-   `bind:` mutual exclusion, required-by-either-form, no stray `bind:` attrs,
-   foreign-prefix rejection); override
-   `validate()` only for SEMANTIC rules (name syntax via
-   `requireName(this)`, ranges, `requireNoScChildren(this)`,
-   `failValidation(this, …)`). `process` calls both before resolving and a
-   violation fails the whole plugin. This is the _real_ gate — fastxml does
-   not enforce XSD attribute requirements at upload.
+   enforces required/numeric/enum plus numeric range facets
+   (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
+   no-sc-children rule for choice-less content models, and the runtime-prop
+   rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
+   stray `bind:` attrs, foreign-prefix rejection); overrides of `validate()`
+   are only for genuinely cross-attribute/semantic rules. `process` calls
+   both before resolving and a violation fails the whole plugin. This is the
+   _real_ gate — fastxml does not enforce XSD attribute requirements at
+   upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;
@@ -586,10 +587,10 @@ lookups see through transparency too (`scChildrenThrough` in
 walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
-are syntax-validated as ONE bind-path segment (`requireName` — letters,
-digits, `*`, `-`; no dots): a dotted name would forge another scope's store
-key (`bad-name-syntax`; the XSD cannot express the grammar — fastxml
-ignores pattern facets, the runtime is the gate). The old app's name-based
+are syntax-validated as ONE bind-path segment (the spec `name` type — letters,
+digits, `_`, `-`; no dots): a dotted name would forge another scope's store
+key (`bad-name-syntax`; the XSD carries the same pattern facet, while the
+runtime remains the authoritative gate). The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
 group-level control's /n_set on the group node is the server-side
 replacement (scsynth fans it out), plus explicit `bind:value="group.ctl"`.

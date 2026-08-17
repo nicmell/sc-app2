@@ -72,7 +72,7 @@ describe("sc-envelope", () => {
         wrapXml(`<sc-control name="env" value="${ENV}"/>
           <sc-envelope bind:value="env" minbreakpoints="1"/>`),
       ),
-    ).rejects.toThrow('"minbreakpoints" must be an integer ≥ 2');
+    ).rejects.toThrow('"minbreakpoints" attribute must be ≥ 2');
     document.body.replaceChildren();
     await expect(
       mountPlugin(

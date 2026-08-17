@@ -27,7 +27,6 @@ import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import {
   baseRuntime,
   failValidation,
-  requireNoScChildren,
   resolveNode,
 } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
@@ -95,16 +94,6 @@ export class ScKeyboard extends ScElement {
   private midiInputs: MIDIInput[] = [];
   private onKeyDown = (e: KeyboardEvent): void => this.handleKeyDown(e);
   private onKeyUp = (e: KeyboardEvent): void => this.handleKeyUp(e);
-
-  validate(): void {
-    requireNoScChildren(this);
-    if (!Number.isInteger(this._octaves) || this._octaves < 1) {
-      failValidation(this, `"octaves" attribute must be a positive integer (got "${this._octaves}")`);
-    }
-    if (!Number.isInteger(this._start) || this._start < 0 || this._start > 127) {
-      failValidation(this, `"start" attribute must be a MIDI note 0–127 (got "${this._start}")`);
-    }
-  }
 
   /** The resolved definition element (set at parse) — each voice latches the
    *  keyboard's live `envelope` value onto `envParam` inside its /s_new. */

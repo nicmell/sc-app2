@@ -829,7 +829,7 @@ describe("selection inputs (select + radio-group)", () => {
   });
 });
 
-describe("name syntax (requireName)", () => {
+describe("name syntax (spec type)", () => {
   const NAME_ERROR = (tag: string, name: string) =>
     `<${tag}>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${name}")`;
 

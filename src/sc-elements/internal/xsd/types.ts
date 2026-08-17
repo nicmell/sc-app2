@@ -47,14 +47,19 @@ export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
 interface AttrCommon {
   required?: boolean;
   runtime?: boolean;
+  /** Numeric range facets, meaningful only on `decimal`/`integer` attrs. */
+  min?: number;
+  max?: number;
+  exclusiveMin?: number;
 }
 
 /** One attribute, discriminated on `type` — maps 1:1 to `<xs:attribute>`. `enum`
- *  emits an inline `<xs:simpleType>` restriction; `scalar` is xs:string in the
- *  schema but number-if-numeric-else-string at runtime (string-capable state);
- *  the rest are xs: builtins. */
+ *  and `name` emit inline `<xs:simpleType>` restrictions; `scalar` and `vector`
+ *  are xs:string in the schema but have richer runtime coercion. */
 export type AttrSpec =
   | (AttrCommon & { type: "string" })
+  // One bind-path segment identifier (`freq`, `mod-freq`), not a dotted path.
+  | (AttrCommon & { type: "name" })
   | (AttrCommon & { type: "decimal" })
   | (AttrCommon & { type: "integer" })
   | (AttrCommon & { type: "boolean" })

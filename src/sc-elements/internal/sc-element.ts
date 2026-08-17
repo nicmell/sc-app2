@@ -64,6 +64,8 @@ import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/typ
 const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const XSD_INTEGER = /^[+-]?\d+$/;
 const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
+const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
+const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
 /** Vector coercion: an already-array value passes through; a STATIC string
  *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
@@ -230,14 +232,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   /** Spec-driven attribute validation, run before `validate()`: required
    *  present (a runtime attr satisfies it with either form), static/`bind:`
-   *  mutual exclusion, numeric non-NaN, enum membership (static form only —
-   *  evaluated values are unvalidated, an accepted limitation), and the
-   *  attribute-name hygiene: only the canonical `bind:` prefix carries
-   *  runtime props (the XSD admits the NAMESPACE, the runtime matches the
-   *  QUALIFIED NAME — a foreign prefix would silently no-op, so it fails
-   *  loudly), and only spec attrs not opted out have a `bind:` form. Element-specific
-   *  semantic and range rules (name syntax, positive/≤max, no-sc-children)
-   *  stay in the per-element `validate()` override. */
+   *  mutual exclusion, numeric lexical/range gates, enum membership, name
+   *  syntax, and the attribute-name hygiene: only the canonical `bind:`
+   *  prefix carries runtime props (the XSD admits the NAMESPACE, the runtime
+   *  matches the QUALIFIED NAME — a foreign prefix would silently no-op, so
+   *  it fails loudly), and only spec attrs not opted out have a `bind:` form.
+   *  Choice-less content models also reject nested sc-* elements here;
+   *  evaluated values remain unvalidated. */
   validateProps(): void {
     const attrs = this.spec?.attrs ?? {};
     for (const [name, attr] of Object.entries(attrs)) {
@@ -267,6 +268,24 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
           `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
         );
       }
+      if (attr.type === "name" && !NAME_SEGMENT.test(raw)) {
+        failValidation(
+          this,
+          `"${name}" attribute must be a plain identifier — letters, digits, "_", "-" (got "${raw}")`,
+        );
+      }
+      if (attr.type === "decimal" || attr.type === "integer") {
+        const n = Number(raw);
+        if (attr.min !== undefined && n < attr.min) {
+          failValidation(this, `"${name}" attribute must be ≥ ${attr.min} (got "${raw}")`);
+        }
+        if (attr.exclusiveMin !== undefined && n <= attr.exclusiveMin) {
+          failValidation(this, `"${name}" attribute must be > ${attr.exclusiveMin} (got "${raw}")`);
+        }
+        if (attr.max !== undefined && n > attr.max) {
+          failValidation(this, `"${name}" attribute must be ≤ ${attr.max} (got "${raw}")`);
+        }
+      }
       // (`vector` has no lexical gate: an all-numeric comma-list is an array,
       // anything else keeps the scalar semantics — string vars included. The
       // numeric-only elements enforce it semantically: ScControl.validate.)
@@ -291,10 +310,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         failValidation(this, `unknown runtime attribute "${name}"`);
       }
     }
+    if (!this.spec?.content?.choice?.length && this.querySelector(SC_ELEMENT_SELECTOR)) {
+      failValidation(this, "must not contain sc-* elements");
+    }
   }
 
-  /** Per-element SEMANTIC validation (value-XOR-bind, name syntax, ranges, …),
-   *  run after `validateProps`. A violation fails the whole plugin parse. */
+  /** Per-element SEMANTIC validation (cross-attribute rules, …), run after
+   *  `validateProps`. A violation fails the whole plugin parse. */
   validate(): void {}
 
   // ── The parse engine ────────────────────────────────────────────────────

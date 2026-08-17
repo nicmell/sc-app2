@@ -5,18 +5,10 @@
 import { parseBind, splitTopLevel } from "@/lib/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import {
-  baseRuntime,
-  requireName,
-  resolveNode,
-} from "@/sc-elements/internal/validation";
+import { baseRuntime, resolveNode } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScUgen extends ScElement {
-  validate(): void {
-    requireName(this);
-  }
-
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
     this.processChildren(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a

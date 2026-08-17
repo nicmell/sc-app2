@@ -6,7 +6,7 @@
 import { isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
-import { requireName, resolveNode } from "@/sc-elements/internal/validation";
+import { resolveNode } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 
@@ -18,10 +18,6 @@ export class ScSynth extends ScNode {
    *  tags, and a post-create /n_setn would race the first control block),
    *  and the index is the def's param layout — `paramIndexOf`. */
   private defElement?: ScSynthDef;
-
-  validate(): void {
-    requireName(this);
-  }
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
     const synthdef = this.getProp("synthdef") as string;

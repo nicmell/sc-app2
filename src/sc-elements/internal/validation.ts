@@ -1,57 +1,22 @@
 // Attribute validation + runtime-inference helpers over the live elements,
 // as plain functions taking the element explicitly where the error messages
 // or cycle seeds need it (the ScElement base keeps only the parse engine).
-// Hydrate-time: the require*/failValidation primitives the components'
-// `validate()` overrides build on, plus checkDuplicateNames over a sibling
-// scope. Process-time: the bind-resolution machinery the `resolveRuntime`
-// overrides build on. The error messages are the runtime gate's contract —
-// pinned verbatim by src/sc-elements/examples.test.ts and the CDP harness.
+// Hydrate-time: failValidation plus checkDuplicateNames over a sibling scope.
+// Process-time: the bind-resolution machinery the `resolveRuntime` overrides
+// build on. The error messages are the runtime gate's contract — pinned
+// verbatim by src/sc-elements/examples.test.ts and the CDP harness.
 
-import { ELEMENTS } from "@/constants/sc-elements";
 import { parseBind } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
 
-const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
-
 // ── Attribute validation (parse-time) ──────────────────────────────────────
 
 /** Throw a validation error in the canonical `<tag>: message` shape. */
 export function failValidation(el: Element, message: string): never {
   throw new Error(`<${el.tagName.toLowerCase()}>: ${message}`);
-}
-
-/** Require a non-empty reactive property (backing a required attribute). */
-export function requireProp(el: Element, name: string, value: string): void {
-  if (!value) failValidation(el, `missing required "${name}" attribute`);
-}
-
-/** One bind-path segment: hyphenated identifier words (`freq`, `mod-freq`). */
-const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
-
-/** Require a well-formed `name`: exactly the grammar of ONE bind-path
- *  segment. Dots are the path separator — a dotted name would FORGE another
- *  scope's runtime store key (`name="s1.freq"` at the root aliases the
- *  `freq` control of synth `s1`: silent cross-wiring the per-scope duplicate
- *  check cannot see) — and any other illegal character would make the name
- *  unreferenceable by binds/expressions. */
-export function requireName(el: Element): void {
-  const value = el.getAttribute("name") ?? "";
-  requireProp(el, "name", value);
-  if (!NAME_SEGMENT.test(value)) {
-    failValidation(
-      el,
-      `"name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${value}")`,
-    );
-  }
-}
-
-/** Leaves must not nest other sc-* elements. (Plain DOM children are fine:
- *  an upgraded element has already rendered its own UI into itself.) */
-export function requireNoScChildren(el: Element): void {
-  if (el.querySelector(SC_ELEMENT_SELECTOR)) failValidation(el, "must not contain sc-* elements");
 }
 
 /** Reject duplicate names within one sibling scope (the same name in nested

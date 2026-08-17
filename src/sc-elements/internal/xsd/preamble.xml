@@ -8,8 +8,8 @@
        from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
        To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
        fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
-       `name` syntax (one bind-path segment, no dots) is validated in the
-       components' requireName() — deliberately not carried into the schema.
+       `name` syntax (one bind-path segment, no dots) is carried as an XSD
+       pattern facet and enforced again by the runtime's validateProps().
        XSD 1.0 permits any global element as the document root; the runtime
        loader requires sc-plugin. -->
 

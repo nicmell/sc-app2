@@ -11,8 +11,9 @@ properties). Every spec attr (unless flagged `runtime: false`) accepts a
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
 returns the evaluated value. Validation is layered — the spec-driven `validateProps()`
-(required/numeric/enum + the runtime-prop rules) before the component's own
-SEMANTIC `validate()` (both called by `process` during parse — the real
+(required/numeric/enum, numeric range facets, `name` syntax, choice-less
+no-sc-children, and the runtime-prop rules) before the component's own
+SEMANTIC `validate()` (only for genuinely cross-attribute/semantic rules; both called by `process` during parse — the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
 element IS the runtime**: `resolveRuntime()` resolves the runtime values and
 `process()` assigns them onto the component itself (declared as plain fields
@@ -34,7 +35,7 @@ internal/   ScElement (parse engine — process/
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything
-            reads); validation.ts (the require*/failValidation primitives +
+            reads); validation.ts (the failValidation/duplicate-name primitives +
             the bind-resolution machinery, as plain functions over the
             elements); the category bases ScNode (run + nodeId/loaded),
             ScState (`_state` = the `value` runtime slot + the plugin root's

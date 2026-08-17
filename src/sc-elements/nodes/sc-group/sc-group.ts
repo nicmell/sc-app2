@@ -11,14 +11,9 @@
 // would only add double-free /fail noise).
 
 import { oscClient } from "@/stores/osc";
-import { requireName } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScGroup extends ScNode {
-  validate(): void {
-    requireName(this);
-  }
-
   /** Own node first (children target it), then the children in DOM order. */
   async load(): Promise<void> {
     const epoch = this._rootScNode?.loadEpoch ?? 0;

@@ -8,7 +8,7 @@ import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
-import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
+import { baseRuntime } from "@/sc-elements/internal/validation";
 import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
@@ -54,10 +54,6 @@ export class ScSynthDef extends ScElement {
    *  compiled to SCgf at /d_recv time in the load pass. */
   params!: Record<string, number | number[]>;
   specs!: UgenSpec[];
-
-  validate(): void {
-    requireName(this);
-  }
 
   /** The param's base slot index in the compiled def's flat control space —
    *  params occupy consecutive slots in declaration order, arrays spanning

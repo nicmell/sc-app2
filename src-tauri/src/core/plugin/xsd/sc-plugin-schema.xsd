@@ -8,8 +8,8 @@
        from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
        To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
        fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
-       `name` syntax (one bind-path segment, no dots) is validated in the
-       components' requireName() — deliberately not carried into the schema.
+       `name` syntax (one bind-path segment, no dots) is carried as an XSD
+       pattern facet and enforced again by the runtime's validateProps().
        XSD 1.0 permits any global element as the document root; the runtime
        loader requires sc-plugin. -->
 
@@ -208,7 +208,13 @@
         <xs:group ref="blockContent"/>
       </xs:choice>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
@@ -220,7 +226,13 @@
         <xs:element ref="sc-ugen"/>
       </xs:choice>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attributeGroup ref="commonAttrs"/>
   </xs:complexType>
 
@@ -230,7 +242,13 @@
         <xs:element ref="sc-control"/>
       </xs:choice>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="type" type="xs:string" use="required"/>
     <xs:attribute name="rate">
       <xs:simpleType>
@@ -246,14 +264,26 @@
   </xs:complexType>
 
   <xs:complexType name="scControlType">
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="value" type="xs:vector"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
 
   <xs:complexType name="scVarType">
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="value" type="xs:vector"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
@@ -265,7 +295,13 @@
         <xs:element ref="sc-control"/>
       </xs:choice>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="synthdef" type="xs:string" use="required"/>
     <xs:attribute name="run" type="xs:boolean"/>
     <xs:attributeGroup ref="commonAttrs"/>
@@ -301,7 +337,13 @@
 
   <xs:complexType name="scEnvelopeType">
     <xs:attribute name="value" type="xs:string"/>
-    <xs:attribute name="minbreakpoints" type="xs:integer"/>
+    <xs:attribute name="minbreakpoints">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="2"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="maxbreakpoints" type="xs:integer"/>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
@@ -662,9 +704,28 @@
   </xs:complexType>
 
   <xs:complexType name="scScopeType">
-    <xs:attribute name="bus" type="xs:integer"/>
-    <xs:attribute name="channels" type="xs:integer"/>
-    <xs:attribute name="frames" type="xs:integer"/>
+    <xs:attribute name="bus">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="channels">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="1"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="frames">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="1"/>
+          <xs:maxInclusive value="16384"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="trigger">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -683,7 +744,13 @@
       </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="level" type="xs:decimal"/>
-    <xs:attribute name="gain" type="xs:decimal"/>
+    <xs:attribute name="gain">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minExclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="layout">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -706,7 +773,13 @@
 
   <xs:complexType name="scStrudelType">
     <xs:attribute name="value" type="xs:string"/>
-    <xs:attribute name="orbit" type="xs:integer"/>
+    <xs:attribute name="orbit">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>
@@ -717,8 +790,21 @@
     <xs:attribute name="amp" type="xs:string"/>
     <xs:attribute name="gate" type="xs:string"/>
     <xs:attribute name="envelope" type="xs:vector"/>
-    <xs:attribute name="octaves" type="xs:integer"/>
-    <xs:attribute name="start" type="xs:integer"/>
+    <xs:attribute name="octaves">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="1"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="start">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="0"/>
+          <xs:maxInclusive value="127"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

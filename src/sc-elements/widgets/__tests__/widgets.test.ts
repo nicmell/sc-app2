@@ -211,15 +211,15 @@ describe("sc-scope", () => {
 
   it("rejects invalid bus/channels at parse", async () => {
     await expect(mountXml('<sc-scope channels="0"/>')).rejects.toThrow(
-      '"channels" attribute must be a positive integer (got "0")',
+      '"channels" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope bus="-1"/>')).rejects.toThrow(
-      '"bus" attribute must be a non-negative integer (got "-1")',
+      '"bus" attribute must be ≥ 0 (got "-1")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope frames="0"/>')).rejects.toThrow(
-      '"frames" attribute must be a positive integer (got "0")',
+      '"frames" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope frames="32768"/>')).rejects.toThrow(
@@ -271,7 +271,7 @@ describe("sc-scope", () => {
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope gain="0"/>')).rejects.toThrow(
-      '"gain" attribute must be a positive number (got "0")',
+      '"gain" attribute must be > 0 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope layout="stack"/>')).rejects.toThrow(
@@ -429,7 +429,7 @@ describe("sc-strudel", () => {
 
   it("rejects a negative orbit at parse", async () => {
     await expect(mountXml('<sc-strudel orbit="-1"></sc-strudel>')).rejects.toThrow(
-      '"orbit" attribute must be a non-negative integer (got "-1")',
+      '"orbit" attribute must be ≥ 0 (got "-1")',
     );
   });
 });
@@ -594,11 +594,11 @@ describe("sc-keyboard", () => {
 
   it("rejects an invalid range at parse", async () => {
     await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" octaves="0"/>`)).rejects.toThrow(
-      '"octaves" attribute must be a positive integer (got "0")',
+      '"octaves" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" start="200"/>`)).rejects.toThrow(
-      '"start" attribute must be a MIDI note 0–127 (got "200")',
+      '"start" attribute must be ≤ 127 (got "200")',
     );
   });
 });

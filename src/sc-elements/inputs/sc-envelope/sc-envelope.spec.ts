@@ -12,7 +12,7 @@ export const spec: ElementSpec = {
     // insert is blocked at `maxbreakpoints`, removal at `minbreakpoints` —
     // set both equal to LOCK the structure (positions stay draggable), so
     // slot lenses (`bind:value="env.5"` knobs) keep stable meanings.
-    minbreakpoints: { type: "integer", runtime: false },
+    minbreakpoints: { type: "integer", min: 2, runtime: false },
     maxbreakpoints: { type: "integer", runtime: false },
   },
 };

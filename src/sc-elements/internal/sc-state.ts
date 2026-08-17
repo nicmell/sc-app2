@@ -27,15 +27,10 @@
 import type { Store } from "@/lib/utils/reactiveStore";
 import { isPluginRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
-import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
+import { baseRuntime } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
-  validate(): void {
-    requireName(this);
-    // value XOR bind:value is the generic validateProps mutual exclusion.
-  }
-
   /** The element's live value — the derived `value` runtime prop, or the
    *  store-backed value for literal state. */
   get _state(): StateValue | undefined {

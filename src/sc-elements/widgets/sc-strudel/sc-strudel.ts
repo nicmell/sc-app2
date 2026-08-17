@@ -10,7 +10,6 @@
 // disconnect would otherwise keep emitting /dirt/play into a dead socket.
 
 import { html } from "lit";
-import { failValidation, requireNoScChildren } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import type { StateValue } from "@/types/runtime";
 // Type only — the heavy editor stack (@strudel/codemirror + @strudel/transpiler)
@@ -58,14 +57,6 @@ const STATUS_VARIANT: Record<ConnStatus, "ok" | "warn" | "error"> = {
 };
 
 export class ScStrudel extends ScInput {
-  validate(): void {
-    requireNoScChildren(this);
-    const orbit = this.getProp("orbit") as number | undefined;
-    if (orbit !== undefined && (!Number.isInteger(orbit) || orbit < 0)) {
-      failValidation(this, `"orbit" attribute must be a non-negative integer (got "${orbit}")`);
-    }
-  }
-
   private mirror: StrudelMirror | null = null;
   /** Resolves once mountEditor() has loaded the dynamic chunk and built the
    *  editor (or bailed) — `updateComplete` awaits it so callers/tests can too. */

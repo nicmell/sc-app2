@@ -102,10 +102,7 @@ export class ScEnvelope extends ScInput {
     super.validate();
     const min = this._minBreakpoints;
     const max = this._maxBreakpoints;
-    if (!Number.isInteger(min) || min < 2) {
-      failValidation(this, `"minbreakpoints" must be an integer ≥ 2 (got "${min}")`);
-    }
-    if (max !== undefined && (!Number.isInteger(max) || max < min)) {
+    if (max !== undefined && max < min) {
       failValidation(this, `"maxbreakpoints" must be an integer ≥ minbreakpoints (got "${max}")`);
     }
   }

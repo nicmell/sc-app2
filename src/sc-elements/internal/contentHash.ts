@@ -1,14 +1,13 @@
-// Deterministic parsed-element identity: every id is `hash@ordinal` (the root
-// is `@0`; split on the LAST `@`). The hash covers the tag, present spec attrs
-// and runtime `bind:` forms, own trimmed text, and ordered sc-* child hashes.
-// COMMON_ATTRS, xmlns declarations, unknown attrs, and tree location are
-// deliberately excluded. Attribute-value formatting is significant: notably,
-// sc-strudel's `\n` escape is hashed raw. Ordinals make equal subtrees unique
-// within a parse; insertions shift later ordinals, so consumers match the hash
-// first and use the ordinal as a tiebreaker. Two mounts of one plugin may have
-// duplicate DOM ids — accepted, because nothing queries elements by id.
+// Deterministic parsed-element identity: every id is a bare cyrb53 hex,
+// chained from its parent's id so ids are tree-unique and deterministic across
+// mounts. It covers ONLY parent id, tag, sibling index, and present spec attrs
+// plus `bind:` forms. COMMON_ATTRS ({id,class,title,style}), xmlns, unknown
+// attrs, text content, and children are excluded; editing a child never
+// changes its parent's id. Inserting a sibling shifts later siblings and their
+// whole subtrees (ids encode ancestry). Attribute-value formatting stays
+// significant (sc-strudel's `\n` escape hashes raw); two mounts of one plugin
+// repeat ids — accepted; nothing queries by id.
 
-import { isNodeType } from "@/lib/utils/guards";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { bindAttr, COMMON_ATTRS } from "@/sc-elements/internal/xsd/types";
 
@@ -25,36 +24,9 @@ function cyrb53(value: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
 }
 
-function ownText(el: Element): string {
-  const chunks: string[] = [];
-  const visit = (node: Node): void => {
-    for (const child of Array.from(node.childNodes)) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const value = child.textContent?.trim();
-        if (value) chunks.push(value);
-      } else if (child instanceof Element && !isNodeType(child.tagName.toLowerCase())) {
-        visit(child);
-      }
-    }
-  };
-  visit(el);
-  return chunks.join(" ");
-}
-
-function scChildren(el: Element): Element[] {
-  const children: Element[] = [];
-  const visit = (parent: Element): void => {
-    for (const child of Array.from(parent.children)) {
-      if (isNodeType(child.tagName.toLowerCase())) children.push(child);
-      else visit(child);
-    }
-  };
-  visit(el);
-  return children;
-}
-
-/** Hash an sc-* element's canonical authored-content serialization. */
-export function contentHash(el: Element): string {
+/** Hash an sc-* element's path-chained identity: the parent's id, the tag,
+ *  the sibling index within the hydration scope, and the present spec attrs. */
+export function contentHash(el: Element, parentId: string, index: number): string {
   const tag = el.tagName.toLowerCase();
   const attrs: Array<[string, string]> = [];
   for (const [name, spec] of Object.entries(SPECS.get(tag)?.attrs ?? {})) {
@@ -69,6 +41,5 @@ export function contentHash(el: Element): string {
   }
   attrs.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   const serializedAttrs = attrs.map(([name, value]) => `${name}=${JSON.stringify(value)}`).join(",");
-  const childHashes = scChildren(el).map(contentHash).join(",");
-  return cyrb53(`${tag}(${serializedAttrs}){${ownText(el)}}[${childHashes}]`);
+  return cyrb53(`${parentId}/${tag}[${index}](${serializedAttrs})`);
 }

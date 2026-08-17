@@ -131,8 +131,6 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   #runtime: Record<string, StateValue | undefined> = {};
   /** Target/store unsubscribes (set in load, cleared on unload/disconnect). */
   #offs: Array<() => void> = [];
-  /** The root-owned document-order suffix for deterministic hydrated ids. */
-  #idOrdinal = 0;
 
   /** Render into the light DOM so plugin markup children stay visible. */
   createRenderRoot(): HTMLElement | DocumentFragment {
@@ -301,7 +299,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign its parsed `hash@ordinal` DOM identity. */
+  /** Hydrate this element: assign its parsed path-chained hash DOM identity. */
   hydrate(id: string): this {
     this.id = id;
     return this;
@@ -323,8 +321,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
     ctx.nodes.add(this);
     if (ctx.rootNode === this) {
-      this.#idOrdinal = 0;
-      this.id = `${contentHash(this)}@0`;
+      this.id = contentHash(this, "", 0);
     }
     const parent = ctx.parentNode && this.parseParentOf(ctx.parentNode);
     if (parent) {
@@ -544,8 +541,8 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
-    const scope = [...this.walkScElements()].map((el) =>
-      el.hydrate(`${contentHash(el)}@${++ctx.rootNode.#idOrdinal}`),
+    const scope = [...this.walkScElements()].map((el, index) =>
+      el.hydrate(contentHash(el, this.id, index)),
     );
 
     checkDuplicateNames(scope);

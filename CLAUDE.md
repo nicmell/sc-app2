@@ -351,7 +351,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    one shared object per sibling scope; it attaches the element to its
    parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
    (which recurses via `processChildren` where the element parses
-   children). A parent hydrates (assigns deterministic `hash@ordinal` ids to)
+   children). A parent hydrates (assigns deterministic path-chained hash ids to)
    ALL its children into the level scope and checks duplicate names BEFORE
    any child processes, with inner-scope shadowing on name lookups.
 7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE

@@ -3,10 +3,9 @@
 // the nearest ancestor group (the plugin group) — sequentially AFTER the
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
 
-import { isSynthDefRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
-import { resolveNode } from "@/sc-elements/internal/validation";
+import { resolveSynthDefRef } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 
@@ -20,14 +19,7 @@ export class ScSynth extends ScNode {
   private defElement?: ScSynthDef;
 
   protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    const synthdef = this.getProp("synthdef") as string;
-    const target = resolveNode(this, ctx, [synthdef]);
-    // The reference must name an actual synthdef — any other named element
-    // (a group, another synth) is the same error.
-    if (!target || !isSynthDefRuntime(target)) {
-      throw new Error(`<sc-synth synthdef="${synthdef}">: does not match any <sc-synthdef>`);
-    }
-    this.defElement = target;
+    this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
     return super.resolveRuntime(ctx);
   }
 

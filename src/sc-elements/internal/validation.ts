@@ -9,9 +9,10 @@
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { parseBind, tryEvalCallLiteral } from "@/lib/expression";
-import { isNodeRuntime, isStateRuntime, typeOf } from "@/lib/utils/guards";
+import { isNodeRuntime, isStateRuntime, isSynthDefRuntime, typeOf } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
+import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";
 import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
 
@@ -242,6 +243,19 @@ export function resolveNode(
   }
 
   return walkPath(target, rest);
+}
+
+/** Resolve a `synthdef` reference attribute: the name must match an actual
+ *  `<sc-synthdef>` in scope — any other named element (a group, another
+ *  synth) or no match at all is the same error. */
+export function resolveSynthDefRef(el: ScElement, ctx: RuntimeContext, name: string): ScSynthDef {
+  const target = resolveNode(el, ctx, [name]);
+  if (!target || !isSynthDefRuntime(target)) {
+    throw new Error(
+      `<${el.tagName.toLowerCase()} synthdef="${name}">: does not match any <sc-synthdef>`,
+    );
+  }
+  return target;
 }
 
 /** Resolve `el`'s bind into its node + control-name pair: the leading

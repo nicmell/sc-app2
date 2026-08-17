@@ -29,7 +29,7 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (parse engine — hydrate/process/
+internal/   ScElement (parse engine — process/
             processChildren — the common runtime fields, AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
@@ -65,8 +65,8 @@ See the root CLAUDE.md implementation plan.
 The authored entry root is the runtime host. PluginHost mounts one per dashboard
 box; the loader imports and upgrades the whole authored root through the main
 document. Display `title` and `description` live in `metadata.json` /
-`PluginInfo`. It then runs `process()` (validation inside; hydration assigns
-deterministic path-chained hash ids) and owns the
+`PluginInfo`. It then runs `process()` (validation inside; each element mints
+its deterministic path-chained hash id) and owns the
 plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
@@ -260,7 +260,7 @@ the children show when the value is truthy (non-zero, non-empty string).
 Props: `when` (required — in practice always the `bind:when` form).
 Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
 `[hidden] display: none`). sc-if is a TRANSPARENT container: it opens no
-sibling scope and no path segment — its contents are hydrated,
+sibling scope and no path segment — its contents are collected,
 duplicate-checked (`bad-if-shadow`), and processed by the ENCLOSING level
 (they attach to the sc-if as their true parse parent, and belong to the
 enclosing node as their effective owner). Full block content is allowed and

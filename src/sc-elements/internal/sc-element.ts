@@ -104,8 +104,8 @@ export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 export abstract class ScElement extends LitElement implements BaseRuntime {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
-  /** The hydrated identity — the native DOM id; `process` assigns one where
-   *  none exists yet (the browser reflects it to the attribute). */
+  /** The parsed identity — the native DOM id; `process` mints the
+   *  path-chained hash (the browser reflects it to the attribute). */
   declare id: string;
   /** The plugin root element this element was parsed under. */
   _rootScNode!: ScElement;
@@ -299,30 +299,23 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign its parsed path-chained hash DOM identity. */
-  hydrate(id: string): this {
-    this.id = id;
-    return this;
-  }
-
-  /** Process this hydrated element: pre-register it (so re-entrant resolves
-   *  of a mid-processing ancestor return it), attach it to its TRUE parse
-   *  parent's `_scChildren` (the transparent container — sc-if/sc-select/… —
-   *  for elements inside one; the level owner otherwise), run the element's
-   *  own `validate()`, then resolve the runtime values and assign them onto
-   *  the element. `ctx.parentNode` stays the level OWNER throughout
-   *  resolution (enablement/path/bindless defaults read the named parent);
-   *  `_parentScNode` is corrected to the parse parent afterwards, keeping
-   *  the runtime tree truthful. Idempotent — an already-processed element is
-   *  returned as-is. */
+  /** Process this element: mint its path-chained hash DOM identity (the
+   *  level owner's id + the level's document-order counter), pre-register it
+   *  (so re-entrant resolves of a mid-processing ancestor return it), attach
+   *  it to its TRUE parse parent's `_scChildren` (the transparent container —
+   *  sc-if/sc-select/… — for elements inside one; the level owner otherwise),
+   *  run the element's own `validate()`, then resolve the runtime values and
+   *  assign them onto the element. `ctx.parentNode` stays the level OWNER
+   *  throughout resolution (enablement/path/bindless defaults read the named
+   *  parent); `_parentScNode` is corrected to the parse parent afterwards,
+   *  keeping the runtime tree truthful. Idempotent — an already-processed
+   *  element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
     }
     ctx.nodes.add(this);
-    if (ctx.rootNode === this) {
-      this.id = contentHash(this, "", 0);
-    }
+    this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.ordinal++);
     const parent = ctx.parentNode && this.parseParentOf(ctx.parentNode);
     if (parent) {
       ((parent as ScElement)._scChildren ??= []).push(this);
@@ -529,21 +522,19 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
   }
 
-  /** Recurse into this parent's children: hydrate EVERY child first — the
-   *  full sibling scope (including transparent containers' contents) goes
-   *  into the level context BEFORE any child processes, and duplicate names
-   *  are checked across the whole scope up front — then reset this parent's
-   *  `_scChildren` and process each child in document order (each attaches
-   *  itself to its true parse parent). All siblings share ONE level context;
-   *  `process` recurses per child. Only naming containers (and the root) run
-   *  this — transparent containers never open a level. */
+  /** Recurse into this parent's children: collect the full sibling scope
+   *  (including transparent containers' contents) into the level context and
+   *  check duplicate names across it BEFORE any child processes — then reset
+   *  this parent's `_scChildren` and process each child in document order
+   *  (each mints its id and attaches itself to its true parse parent). All
+   *  siblings share ONE level context; `process` recurses per child. Only
+   *  naming containers (and the root) run this — transparent containers
+   *  never open a level. */
   protected processChildren(ctx: RuntimeContext): void {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
-    const scope = [...this.walkScElements()].map((el, index) =>
-      el.hydrate(contentHash(el, this.id, index)),
-    );
+    const scope = [...this.walkScElements()];
 
     checkDuplicateNames(scope);
 
@@ -553,6 +544,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       scope: [...scope, ...ctx.scope],
       parentNode: this as ScElement as ScParentElement,
       path,
+      ordinal: 0,
     };
     for (const child of scope) {
       child.process(childCtx);

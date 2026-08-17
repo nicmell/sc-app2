@@ -86,7 +86,7 @@ const probeRuntime = (pluginId, entry) =>
     const host = document.importNode(root, true);
     customElements.upgrade(host);
 
-    host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [] });
+    host.process({ rootNode: host, nodes: new Set(), scope: [host], path: [], ordinal: 0 });
     return "PASS";
   } catch (e) {
     return "FAIL: " + e.message;

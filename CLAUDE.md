@@ -87,8 +87,8 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (hydrate/
-                         process/processChildren) + the common runtime fields;
+                         ScElement base carries the parse engine (process/
+                         processChildren) + the common runtime fields;
                          validation.ts holds the validation + bind-resolution
                          helpers as plain functions; the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
@@ -351,9 +351,10 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    one shared object per sibling scope; it attaches the element to its
    parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
    (which recurses via `processChildren` where the element parses
-   children). A parent hydrates (assigns deterministic path-chained hash ids to)
-   ALL its children into the level scope and checks duplicate names BEFORE
-   any child processes, with inner-scope shadowing on name lookups.
+   children). A parent collects ALL its children into the level scope and
+   checks duplicate names BEFORE any child processes (each child mints its
+   deterministic path-chained hash id as it processes), with inner-scope
+   shadowing on name lookups.
 7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE
    their references in DOM order.** Elements that have not yet been
    processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
@@ -575,7 +576,7 @@ Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
 sc-select, sc-radio-group — `isTransparent`, internal/validation.ts) open
 NO sibling scope and NO path segment — the parse walks through them
-(`walkScElements`), so their contents hydrate into the ENCLOSING level,
+(`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails
 flat, `bad-if-shadow`), its bind scope, and its store paths. The tree stays
 truthful — `_parentScNode` is the true parse parent (the sc-if), while

@@ -25,7 +25,7 @@ function cyrb53(value: string): string {
 }
 
 /** Hash an sc-* element's path-chained identity: the parent's id, the tag,
- *  the sibling index within the hydration scope, and the present spec attrs. */
+ *  the sibling index within the level scope, and the present spec attrs. */
 export function contentHash(el: Element, parentId: string, index: number): string {
   const tag = el.tagName.toLowerCase();
   const attrs: Array<[string, string]> = [];

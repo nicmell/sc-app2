@@ -50,6 +50,7 @@ export async function loadPluginHost(plugin: PluginInfo): Promise<ScPlugin> {
     nodes: new Set<ScElement>(),
     scope: [host],
     path: [],
+    ordinal: 0,
   });
   return host;
 }

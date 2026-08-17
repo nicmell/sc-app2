@@ -7,23 +7,14 @@ import { isControlRuntime } from "@/lib/utils/guards";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
 import {
   baseRuntime,
-  failValidation,
   requireName,
   resolveNode,
 } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-const UGEN_RATES: ReadonlySet<string> = new Set(["ar", "kr", "ir"]);
-
 export class ScUgen extends ScElement {
   validate(): void {
     requireName(this);
-    // `type` is required (via validateProps); `rate` defaults to "ar" and is
-    // the one enum the spec leaves to a semantic check (it's a plain string).
-    const rate = (this.getProp("rate") as string) ?? "ar";
-    if (!UGEN_RATES.has(rate)) {
-      failValidation(this, `"rate" attribute must be one of ar|kr|ir (got "${rate}")`);
-    }
   }
 
   protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {

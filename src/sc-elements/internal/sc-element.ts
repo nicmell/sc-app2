@@ -308,8 +308,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  assign them onto the element. `ctx.parentNode` stays the level OWNER
    *  throughout resolution (enablement/path/bindless defaults read the named
    *  parent); `_parentScNode` is corrected to the parse parent afterwards,
-   *  keeping the runtime tree truthful. Idempotent — an already-processed
-   *  element is returned as-is. */
+   *  keeping the runtime tree truthful. Library throws get the canonical
+   *  `<tag>:` prefix; already-shaped errors pass through. Idempotent — an
+   *  already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
@@ -320,11 +321,17 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     if (parent) {
       ((parent as ScElement)._scChildren ??= []).push(this);
     }
-    this.validateProps();
-    this.validate();
-    Object.assign(this, this.resolveRuntime(ctx));
-    this.resolveRuntimeProps(ctx);
-    this.validateRuntimeProps();
+    try {
+      this.validateProps();
+      this.validate();
+      Object.assign(this, this.resolveRuntime(ctx));
+      this.resolveRuntimeProps(ctx);
+      this.validateRuntimeProps();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (e instanceof Error && message.startsWith("<")) throw e;
+      throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`, { cause: e });
+    }
     if (parent) this._parentScNode = parent;
     return this;
   }

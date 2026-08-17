@@ -48,13 +48,6 @@ export function requireName(el: Element): void {
   }
 }
 
-/** Reject a numeric property whose attribute didn't parse as a number. */
-export function requireNumeric(el: Element, name: string, value: number | undefined): void {
-  if (value !== undefined && Number.isNaN(value)) {
-    failValidation(el, `"${name}" attribute must be a number`);
-  }
-}
-
 /** Leaves must not nest other sc-* elements. (Plain DOM children are fine:
  *  an upgraded element has already rendered its own UI into itself.) */
 export function requireNoScChildren(el: Element): void {

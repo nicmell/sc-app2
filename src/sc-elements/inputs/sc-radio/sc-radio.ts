@@ -3,6 +3,12 @@
 // <sc-base-radio>. Consumed by the parent, never enabled. Presentational
 // attributes (width/height/src/colors) are XSD-allowed but not declared yet.
 
-import { ScChoiceOption } from "@/sc-elements/internal/sc-choice-option";
+import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
+import { baseRuntime } from "@/sc-elements/internal/validation";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScRadio extends ScChoiceOption {}
+export class ScRadio extends ScElement {
+  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+    return { ...baseRuntime(ctx), enabled: false };
+  }
+}

@@ -5,50 +5,23 @@
 // (consumed at parse, never enabled); the shared ScInput seam syncs the
 // selection from the target's `_state` and dispatches the chosen value.
 
-import { html } from "lit";
-import { state } from "lit/decorators.js";
-import { live } from "lit/directives/live.js";
-import { ifDefined } from "lit/directives/if-defined.js";
-import type { ScRadioGroupBase } from "@sc-app/ui-components/lit";
-import { ScInput } from "@/sc-elements/internal/sc-input";
-import type { ScRadio } from "@/sc-elements/inputs/sc-radio";
+import { ScChoiceInput } from "@/sc-elements/internal/sc-choice-input";
 import "@sc-app/ui-components/lit";
 
-export class ScRadioGroup extends ScInput {
-  @state() accessor _value = 0;
-
-  /** The declarative choices — read lazily from the parsed children: the
-   *  radio-group is a transparent container, so its sc-radio children are
-   *  processed by the ENCLOSING level (after this element) and attach here
-   *  as their parse parent. Lit's first update runs after the synchronous
-   *  parse, so render always sees them. */
-  get _options(): Array<{ value: number; label: string }> {
-    return (this._scChildren ?? [])
-      .filter((c): c is ScRadio => c.tagName.toLowerCase() === "sc-radio")
-      .map((r) => ({ value: r.getProp("value") as number, label: r.getProp("label") as string }));
+export class ScRadioGroup extends ScChoiceInput {
+  protected get baseTag() {
+    return "radioGroup" as const;
   }
 
-  protected syncFromState(value: number | string | undefined): void {
-    const n = this.numericState(value);
-    if (n !== undefined) this._value = n;
+  protected get optionTag() {
+    return "radio" as const;
   }
 
-  private onChange = (e: Event) => {
-    this.commit((e.target as ScRadioGroupBase).value);
-  };
+  protected get choiceOrientation(): string | undefined {
+    return this.getProp("orientation") as string | undefined;
+  }
 
-  render() {
-    return html`<sc-base-radio-group
-      orientation=${ifDefined(this.getProp("orientation"))}
-      label=${ifDefined(this.getProp("label"))}
-      size=${ifDefined(this.getProp("size"))}
-      ?disabled=${this.getProp("disabled")}
-      .value=${live(this._value)}
-      @change=${this.onChange}
-    >
-      ${this._options.map(
-        (o) => html`<sc-base-radio value=${o.value} label=${o.label}></sc-base-radio>`,
-      )}
-    </sc-base-radio-group>`;
+  protected get choiceLabel(): string | undefined {
+    return this.getProp("label") as string | undefined;
   }
 }

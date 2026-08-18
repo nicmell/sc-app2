@@ -4,33 +4,15 @@
 // seam wires the load-pass subscription (syncFromState) and the write path
 // (commit), reading the target through `_state`/`onStateChange`.
 
-import { html } from "lit";
-import { state } from "lit/decorators.js";
-import { live } from "lit/directives/live.js";
-import { ifDefined } from "lit/directives/if-defined.js";
-import type { ScCheckboxBase } from "@sc-app/ui-components/lit";
-import { ScInput } from "@/sc-elements/internal/sc-input";
+import { ScCheckedInput } from "@/sc-elements/internal/sc-checked-input";
 import "@sc-app/ui-components/lit";
 
-export class ScCheckbox extends ScInput {
-  @state() accessor _checked = false;
-
-  protected syncFromState(value: number | string | undefined): void {
-    const n = this.numericState(value);
-    if (n !== undefined) this._checked = n !== 0;
+export class ScCheckbox extends ScCheckedInput {
+  protected get baseTag() {
+    return "checkbox" as const;
   }
 
-  private onChange = (e: Event) => {
-    this.commit((e.target as ScCheckboxBase).checked ? 1 : 0);
-  };
-
-  render() {
-    return html`<sc-base-checkbox
-      label=${ifDefined(this.getProp("label"))}
-      size=${ifDefined(this.getProp("size"))}
-      ?disabled=${this.getProp("disabled")}
-      .checked=${live(this._checked)}
-      @change=${this.onChange}
-    ></sc-base-checkbox>`;
+  protected get widgetLabel(): string | undefined {
+    return this.getProp("label") as string | undefined;
   }
 }

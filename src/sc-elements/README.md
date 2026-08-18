@@ -5,7 +5,10 @@ root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
 in each element's colocated `<tag>.spec.ts` (the spec IS the attribute
 contract — it also generates the backend XSD) and are read on demand via
 `getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
-properties). Every spec attr (unless flagged `runtime: false`) accepts a
+properties). A spec-declared `default` is applied by `getProp` when neither
+the static attr nor a settled bind supplies a value; undeclared attrs remain
+`undefined`, so forwarded props defer to the base widget's own default. Every
+spec attr (unless flagged `runtime: false`) accepts a
 `bind:`-namespaced sibling holding a bind expression (`bind:min="vars.lo"`,
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the

@@ -117,21 +117,33 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
-   *  call site (`this.getProp("min") as number`). Absent → undefined; a
-   *  forwarded prop then falls back to the base widget's own default. When the
-   *  attr is runtime-flagged and its `bind:` form is present, this returns the LIVE
-   *  evaluated value instead (undefined until the targets settle) — reads from
-   *  render() re-run on every recompute. The genuinely-reactive fields (a
-   *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
-   *  as reactive class fields. */
+   *  call site (`this.getProp("min") as number`). A declared spec `default` is
+   *  returned, with the same coercion as a static value, when neither the
+   *  static attr nor a settled `bind:` value is present; undeclared attrs stay
+   *  undefined, so a forwarded prop then falls back to the base widget's own
+   *  default. When the attr is runtime-flagged and its `bind:` form is present,
+   *  this returns the LIVE evaluated value instead (undefined until the targets
+   *  settle) — reads from render() re-run on every recompute. The genuinely-
+   *  reactive fields (a widget's `value`, `_checked`, …) are NOT declarative
+   *  attributes and stay as reactive class fields. */
   getProp(name: string): string | number | boolean | number[] | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
-      return this.coerceProp(attr, name, this.#runtime[name]);
+      return this.coerceProp(attr, name, this.#runtime[name]) ?? this.coerceDefault(attr);
     }
     const raw = this.getAttribute(name);
-    if (raw === null) return undefined;
+    if (raw === null) return this.coerceDefault(attr);
     return coerceStatic(attr, raw);
+  }
+
+  /** Apply static lexical coercion to a spec default. Stringifying first keeps
+   *  defaults authored as numbers/booleans on their native shapes while still
+   *  making a string default on (for example) an integer attr numeric. */
+  private coerceDefault(
+    attr: AttrSpec | undefined,
+  ): string | number | boolean | number[] | undefined {
+    if (attr?.default === undefined) return undefined;
+    return coerceStatic(attr, String(attr.default));
   }
 
   /** Once-per-element+prop warning bookkeeping for evaluated-value type

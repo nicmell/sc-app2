@@ -34,6 +34,14 @@ function typeName(tag: string): string {
   return "sc" + parts.map((p) => p[0].toUpperCase() + p.slice(1)).join("") + "Type";
 }
 
+function xmlAttributeValue(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 /** Load every `<tag>.spec.ts` under src/sc-elements, keyed by tag. */
 export async function loadSpecs(): Promise<Map<string, ElementSpec>> {
   const files = readdirSync(SPEC_ROOT, { recursive: true }) as string[];
@@ -60,16 +68,23 @@ function assertBijection(specs: Map<string, ElementSpec>): void {
     if (!tags.has(tag)) throw new Error(`spec "${tag}" is not an ELEMENTS entry`);
 }
 
-function attribute(name: string, a: AttrSpec): string[] {
+function attribute(elementTag: string, name: string, a: AttrSpec): string[] {
+  if (a.default !== undefined && a.required) {
+    throw new Error(
+      `element "${elementTag}" attribute "${name}" cannot declare a default because it is required`,
+    );
+  }
   // A runtime attr (the default) is satisfied by EITHER its static form or
   // its `bind:` sibling, which XSD 1.0 can't express — it emits optional;
   // the runtime gate owns required and the mutual exclusion (XSD 1.1
   // asserts are the future upgrade). Only opted-out attrs keep
   // use="required".
   const use = a.required && a.runtime === false ? ' use="required"' : "";
+  const defaultValue =
+    a.default === undefined ? "" : ` default="${xmlAttributeValue(String(a.default))}"`;
   if (a.type === "enum") {
     return [
-      `    <xs:attribute name="${name}"${use}>`,
+      `    <xs:attribute name="${name}"${defaultValue}${use}>`,
       `      <xs:simpleType>`,
       `        <xs:restriction base="xs:string">`,
       ...a.values.map((v) => `          <xs:enumeration value="${v}"/>`),
@@ -89,7 +104,7 @@ function attribute(name: string, a: AttrSpec): string[] {
   ].filter((line): line is string => line !== undefined);
   if (facets.length) {
     return [
-      `    <xs:attribute name="${name}"${use}>`,
+      `    <xs:attribute name="${name}"${defaultValue}${use}>`,
       `      <xs:simpleType>`,
       `        <xs:restriction base="xs:${base}">`,
       ...facets,
@@ -98,9 +113,7 @@ function attribute(name: string, a: AttrSpec): string[] {
       `    </xs:attribute>`,
     ];
   }
-  return [
-    `    <xs:attribute name="${name}" type="xs:${base}"${use}/>`,
-  ];
+  return [`    <xs:attribute name="${name}" type="xs:${base}"${defaultValue}${use}/>`];
 }
 
 function complexType(spec: ElementSpec): string[] {
@@ -125,7 +138,7 @@ function complexType(spec: ElementSpec): string[] {
   }
   const attrs = Object.entries(spec.attrs ?? {});
   for (const [name, a] of attrs) {
-    if (!COMMON_ATTRS.has(name)) lines.push(...attribute(name, a));
+    if (!COMMON_ATTRS.has(name)) lines.push(...attribute(spec.tag, name, a));
   }
   lines.push(`    <xs:attributeGroup ref="commonAttrs"/>`);
   // Any runtime attr admits its whole `bind:` namespace here (fastxml doesn't

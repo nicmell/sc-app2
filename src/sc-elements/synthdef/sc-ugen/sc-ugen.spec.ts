@@ -7,7 +7,8 @@ export const spec: ElementSpec = {
   attrs: {
     name: { type: "name", required: true, runtime: false },
     type: { type: "string", required: true, runtime: false },
-    rate: { type: "enum", values: ["ar", "kr", "ir"], runtime: false },
+    // The default rate used by sc-synthdef's collector.
+    rate: { type: "enum", values: ["ar", "kr", "ir"], default: "ar", runtime: false },
     op: { type: "string", runtime: false },
   },
   content: { choice: ["sc-control"] },

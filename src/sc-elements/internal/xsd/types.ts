@@ -47,6 +47,9 @@ export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
 interface AttrCommon {
   required?: boolean;
   runtime?: boolean;
+  /** Value getProp returns when neither the static attr nor a bind: value is
+   *  present; also emitted as the XSD attribute's `default`. */
+  default?: string | number | boolean;
   /** Numeric range facets, meaningful only on `decimal`/`integer` attrs. */
   min?: number;
   max?: number;

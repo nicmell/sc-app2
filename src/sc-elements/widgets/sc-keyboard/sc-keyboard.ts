@@ -24,11 +24,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import {
-  baseRuntime,
-  failValidation,
-  resolveSynthDefRef,
-} from "@/sc-elements/internal/validation";
+import { baseRuntime, failValidation, resolveSynthDefRef } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import styles from "./sc-keyboard.module.scss";
@@ -64,27 +60,10 @@ interface Voice {
 const clampVel = (n: number): number => Math.min(1, Math.max(0.05, n));
 
 export class ScKeyboard extends ScElement {
-  // Declarative attributes, coerced via the spec. `synthdef` is required
-  // (enforced by validateProps); the param-name attrs default to the SC-idiomatic
-  // names, so a synthdef using `freq`/`amp`/`gate` needs no mapping.
-  private get _synthdef(): string {
-    return this.getProp("synthdef") as string;
-  }
-  private get _freqParam(): string {
-    return (this.getProp("freq") as string) ?? "freq";
-  }
-  private get _ampParam(): string {
-    return (this.getProp("amp") as string) ?? "amp";
-  }
-  private get _gateParam(): string {
-    return (this.getProp("gate") as string) ?? "gate";
-  }
-  private get _octaves(): number {
-    return (this.getProp("octaves") as number) ?? 2;
-  }
-  private get _start(): number {
-    return (this.getProp("start") as number) ?? 60;
-  }
+  // Declarative attributes are coerced and defaulted by getProp. `synthdef`
+  // is required (enforced by validateProps); the param-name attrs default to
+  // the SC-idiomatic names, so a synthdef using `freq`/`amp`/`gate` needs no
+  // mapping.
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** note → its live voice. Cleared on unload (the ids die with the group). */
@@ -163,11 +142,11 @@ export class ScKeyboard extends ScElement {
         arrays.push({ index, values: envelope });
       }
       const nodeId = await oscClient.createSynth(
-        this._synthdef,
+        this.getProp("synthdef") as string,
         groupId,
         {
-          [this._freqParam]: ScKeyboard.midicps(note),
-          [this._ampParam]: velocity,
+          [this.getProp("freq") as string]: ScKeyboard.midicps(note),
+          [this.getProp("amp") as string]: velocity,
         },
         arrays,
       );
@@ -179,7 +158,7 @@ export class ScKeyboard extends ScElement {
       }
       voice.nodeId = nodeId;
       if (voice.releaseWhenReady) {
-        oscClient.setControl(nodeId, this._gateParam, 0);
+        oscClient.setControl(nodeId, this.getProp("gate") as string, 0);
         this.held.delete(note);
       }
     } catch {
@@ -198,7 +177,7 @@ export class ScKeyboard extends ScElement {
     this.requestUpdate();
     if (!voice) return;
     if (voice.nodeId !== null) {
-      oscClient.setControl(voice.nodeId, this._gateParam, 0);
+      oscClient.setControl(voice.nodeId, this.getProp("gate") as string, 0);
       this.held.delete(note);
     } else {
       voice.releaseWhenReady = true;
@@ -271,13 +250,13 @@ export class ScKeyboard extends ScElement {
     const offset = KEY_OFFSETS[e.key.toLowerCase()];
     if (offset === undefined) return;
     e.preventDefault();
-    void this.noteOn(this._start + offset, 0.7);
+    void this.noteOn((this.getProp("start") as number) + offset, 0.7);
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
     const offset = KEY_OFFSETS[e.key.toLowerCase()];
     if (offset === undefined) return;
-    this.noteOff(this._start + offset);
+    this.noteOff((this.getProp("start") as number) + offset);
   }
 
   /** velocity from the vertical click position: top of a key = quiet, bottom =
@@ -303,8 +282,8 @@ export class ScKeyboard extends ScElement {
   }
 
   render() {
-    const startNote = this._start;
-    const count = this._octaves * 12;
+    const startNote = this.getProp("start") as number;
+    const count = (this.getProp("octaves") as number) * 12;
     const notes: number[] = [];
     for (let i = 0; i < count; i++) notes.push(startNote + i);
 
@@ -341,7 +320,10 @@ export class ScKeyboard extends ScElement {
           ${blacks.map(
             (b) => html`
               <div
-                class=${classMap({ [styles.black]: true, [styles.active]: this.active.has(b.note) })}
+                class=${classMap({
+                  [styles.black]: true,
+                  [styles.active]: this.active.has(b.note),
+                })}
                 data-note=${b.note}
                 style="left:${b.leftPct}%;width:${blackWidthPct}%"
                 @pointerdown=${(e: PointerEvent) => this.pressKey(b.note, e)}

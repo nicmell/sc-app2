@@ -100,14 +100,14 @@ describe("sc-scope", () => {
     const host = await mountXml(
       '<sc-var name="scopeGain" value="2"/><sc-scope bind:gain="scopeGain"/>',
     );
-    const scope = host.querySelector("sc-scope") as unknown as { _gain: number };
+    const scope = host.querySelector("sc-scope") as ScScope;
     const gain = host.querySelector("sc-var") as HTMLElement & {
       setValue(value: number): void;
     };
 
-    expect(scope._gain).toBe(2);
+    expect(scope.getProp("gain") as number).toBe(2);
     gain.setValue(3);
-    expect(scope._gain).toBe(3);
+    expect(scope.getProp("gain") as number).toBe(3);
   });
 
   it("releases a late tap and its scope slot when load was invalidated", async () => {
@@ -233,33 +233,26 @@ describe("sc-scope", () => {
       '<sc-scope channels="1" trigger="normal" slope="falling" level="0.1" gain="2" layout="split"/>',
     );
     // The display props are declarative — read (coerced + defaulted) through
-    // the element's private getters over `getProp`.
-    type Display = {
-      _trigger: string;
-      _slope: string;
-      _level: number;
-      _gain: number;
-      _layout: string;
-    };
-    const scope = host.querySelector("sc-scope") as unknown as Display;
-    expect([scope._trigger, scope._slope, scope._level, scope._gain, scope._layout]).toEqual([
-      "normal",
-      "falling",
-      0.1,
-      2,
-      "split",
-    ]);
+    // the spec-backed getProp path.
+    const scope = host.querySelector("sc-scope") as ScScope;
+    expect([
+      scope.getProp("trigger") as string,
+      scope.getProp("slope") as string,
+      scope.getProp("level") as number,
+      scope.getProp("gain") as number,
+      scope.getProp("layout") as string,
+    ]).toEqual(["normal", "falling", 0.1, 2, "split"]);
 
     document.body.replaceChildren();
     const bare = await mountXml("<sc-scope/>");
-    const def = bare.querySelector("sc-scope") as unknown as Display;
-    expect([def._trigger, def._slope, def._level, def._gain, def._layout]).toEqual([
-      "auto",
-      "rising",
-      0,
-      1,
-      "overlay",
-    ]);
+    const def = bare.querySelector("sc-scope") as ScScope;
+    expect([
+      def.getProp("trigger") as string,
+      def.getProp("slope") as string,
+      def.getProp("level") as number,
+      def.getProp("gain") as number,
+      def.getProp("layout") as string,
+    ]).toEqual(["auto", "rising", 0, 1, "overlay"]);
   });
 
   it("rejects invalid display props at parse", async () => {
@@ -359,7 +352,9 @@ describe("sc-strudel", () => {
   });
 
   it("syncs external writes with a same-code loop guard", async () => {
-    const host = await mountXml(`<sc-var name="code" value="first"/><sc-strudel bind:value="code"/>`);
+    const host = await mountXml(
+      `<sc-var name="code" value="first"/><sc-strudel bind:value="code"/>`,
+    );
     await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
     const mirror = strudelMirrors[0];
     mirror.setCode.mockClear();

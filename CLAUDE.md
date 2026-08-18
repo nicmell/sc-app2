@@ -348,7 +348,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
-   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, ordinal}` —
+   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
    one shared object per sibling scope; it attaches the element to its
    parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
    (which recurses via `processChildren` where the element parses

@@ -71,7 +71,7 @@ export class ScPlugin extends ScNode {
   /** Process this authored root with a fresh root parse context. */
   processRoot(): Set<ScElement> {
     const nodes = new Set<ScElement>();
-    this.process({ rootNode: this, nodes, scope: [this], path: [], ordinal: 0 });
+    this.process({ rootNode: this, nodes, scope: [this], path: [], index: 0 });
     return nodes;
   }
 

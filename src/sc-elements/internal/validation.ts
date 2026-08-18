@@ -69,6 +69,16 @@ export function failValidation(el: Element, message: string): never {
   throw new Error(`<${el.tagName.toLowerCase()}>: ${message}`);
 }
 
+/** A DISABLED element's `bind:` prop splits by position: inside an sc-ugen it
+ *  is a GRAPH-INPUT reference left raw for the synthdef collectors (true —
+ *  skip it, never resolved on the state graph); on a direct synthdef param it
+ *  is rejected loudly — the param collector reads static values only and
+ *  would silently drop it from the def. */
+export function skipDisabledBind(el: ScElement, ctx: RuntimeContext, attr: string): boolean {
+  if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) return true;
+  failValidation(el, `"${attr}" is not allowed on a synthdef param`);
+}
+
 /** Spec-driven attribute validation, run before the component's `validate()`:
  *  required present (a runtime attr satisfies it with either form),
  *  static/`bind:` mutual exclusion, numeric lexical/range gates, enum
@@ -106,6 +116,11 @@ export function validateProps(el: ScElement): void {
         el,
         `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
       );
+    }
+    // An empty name is a MISSING one (the old requireProp semantics), not a
+    // grammar violation.
+    if (attr.type === "name" && raw === "") {
+      failValidation(el, `missing required "${name}" attribute`);
     }
     if (attr.type === "name" && !NAME_SEGMENT.test(raw)) {
       failValidation(
@@ -314,8 +329,12 @@ export function resolveStateBind(
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path, attr);
     const targetState = (target._scChildren ?? []).find(
-      (c) => isStateRuntime(c) && nameOf(c) === controlName,
-    ) as ScState;
+      (c): c is ScState => isStateRuntime(c) && nameOf(c) === controlName,
+    );
+    if (!targetState) {
+      // Unreachable: resolveControlBind just proved the state child exists.
+      throw new Error(`<${el.tagName.toLowerCase()}>: "${controlName}" lost its state target`);
+    }
     // With references restricted to already-processed elements, processing
     // order strictly decreases along any bind chain — the targets graph is a
     // DAG by construction. The only cycle left is the self-reference (an

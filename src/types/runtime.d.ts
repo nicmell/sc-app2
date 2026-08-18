@@ -107,5 +107,5 @@ export interface RuntimeContext {
   path: string[];
   /** The level's mutable document-order counter — each `process` mints its
    *  path-chained hash id from it. 0 at the entry call and per child level. */
-  ordinal: number;
+  index: number;
 }

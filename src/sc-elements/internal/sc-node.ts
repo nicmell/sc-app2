@@ -32,7 +32,9 @@ export abstract class ScNode extends ScElement {
     for (let el = this._parentScNode; el; el = el._parentScNode) {
       if (isNodeRuntime(el) && el.nodeId !== 0) return el.nodeId;
     }
-    throw new Error(`<${this.tagName.toLowerCase()}>: no loaded ancestor group`);
+    // A LOAD-pass invariant (groups load before their contents), not a parse
+    // error — deliberately outside the `<tag>: message` validation shape.
+    throw new Error(`no loaded ancestor group for <${this.tagName.toLowerCase()}> at load time`);
   }
 
   /** Pause (false) / resume (true) the live node (/n_run); a no-op until the

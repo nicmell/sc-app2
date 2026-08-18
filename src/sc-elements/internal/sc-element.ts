@@ -37,9 +37,8 @@
 // (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides.
 
 import { LitElement } from "lit";
-import { ELEMENTS } from "@/constants/sc-elements";
 import { evalExpr } from "@/lib/expression";
-import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
+import { isNodeType, isStateRuntime } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
   baseRuntime,
@@ -47,10 +46,10 @@ import {
   coerceScalar,
   coerceVector,
   coerceStatic,
-  failValidation,
   isTransparent,
   nameOf,
   resolveStateBind,
+  skipDisabledBind,
   validateProps,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
@@ -220,7 +219,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       return this;
     }
     ctx.nodes.add(this);
-    this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.ordinal++);
+    this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.index++);
     this.processParent(ctx);
     try {
       validateProps(this);
@@ -276,12 +275,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       if (attr.runtime === false) continue;
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
-      if (!this.enabled) {
-        // A graph-input reference: left raw for the synthdef collector (ugen
-        // inputs), never resolved on the state graph.
-        if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) continue;
-        failValidation(this, `"${bindAttr(name)}" is not allowed on a synthdef param`);
-      }
+      if (!this.enabled && skipDisabledBind(this, ctx, bindAttr(name))) continue;
       (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
     }
   }
@@ -447,8 +441,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  (each mints its id and attaches itself to its owning parent). All
    *  siblings share ONE level context; `process` recurses per child. Only
    *  naming containers (and the root) run this — transparent containers
-   *  never open a level. */
-  protected processChildren(ctx: RuntimeContext): void {
+   *  never open a level. Returns the parsed `_scChildren`, so callers need
+   *  no non-null assertion. */
+  protected processChildren(ctx: RuntimeContext): ScElement[] {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
@@ -456,16 +451,17 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
     checkDuplicateNames(scope);
 
-    this._scChildren = [];
+    const children: ScElement[] = (this._scChildren = []);
     const childCtx: RuntimeContext = {
       ...ctx,
       scope: [...scope, ...ctx.scope],
       parentNode: this as ScElement as ScParentElement,
       path,
-      ordinal: 0,
+      index: 0,
     };
     for (const child of scope) {
       child.process(childCtx);
     }
+    return children;
   }
 }

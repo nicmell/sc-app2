@@ -9,14 +9,14 @@ import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
 import { baseRuntime } from "@/sc-elements/internal/validation";
-import { ScElement, type ScParentElement } from "@/sc-elements/internal/sc-element";
+import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
 /** Param defaults: a scalar per param, or a numeric ARRAY (a comma-list
  *  value — compiled as a control array, sclang's `\name.kr([...])`). */
-function collectControlParams(node: ScParentElement): Record<string, number | number[]> {
+function collectControlParams(children: readonly ScElement[]): Record<string, number | number[]> {
   const controls: Record<string, number | number[]> = {};
-  for (const child of node._scChildren) {
+  for (const child of children) {
     if (isControlRuntime(child)) {
       const value = child.getProp("value") as number | number[] | undefined;
       if (value != null) controls[child.getProp("name") as string] = value;
@@ -72,12 +72,12 @@ export class ScSynthDef extends ScElement {
   }
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
-    this.processChildren(ctx);
+    const children = this.processChildren(ctx);
     // Collect params + per-ugen input specs (DOM order — the bind-order
     // constraint makes that a valid build order); collecting validates that
     // every ugen input has a bind or value. Compilation waits for load.
-    const params = collectControlParams(this as ScElement as ScParentElement);
-    const specs = this._scChildren!.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
+    const params = collectControlParams(children);
+    const specs = children.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
       (c) => ({
         name: c.getProp("name") as string,
         type: c.getProp("type") as string,

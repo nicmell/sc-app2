@@ -19,10 +19,10 @@ numeric range facets, `name` syntax, choice-less no-sc-children, and the
 runtime-prop rules) before the component's own
 SEMANTIC `validate()` (only for genuinely cross-attribute/semantic rules; both called by `process` during parse — the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
-element IS the runtime**: `resolveRuntime()` resolves the runtime values and
-`process()` assigns them onto the component itself (declared as plain fields
+element IS the runtime**: `process()` assigns the shared runtime core and the
+void `resolveRuntime()` hook mutates the component itself (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
-references, not ids) + `path` + `_scChildren` for parents + the
+references, not ids) + `basePath` + `_scChildren` for parents + the
 runtime-prop machinery on `ScElement`, the category values on
 `ScNode`/`ScState`/`ScInput`). There is no global element registry — the
 parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).

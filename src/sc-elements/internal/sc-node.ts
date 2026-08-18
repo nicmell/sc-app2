@@ -1,13 +1,12 @@
 // Base for the node-owning elements (sc-plugin / sc-group / sc-synth): the
 // shared `run` attribute plus the node runtime values — `nodeId` (the scsynth
-// node, assigned when it goes live) and `loaded`. The default runtime parses
-// the children and resolves the node core; subclasses extend it (sc-synth
-// checks its synthdef bind first, sc-plugin wraps it in the root rollback).
+// node, assigned when it goes live) and `loaded`. The default resolution
+// parses the children; subclasses extend it (sc-synth checks its synthdef
+// bind first, sc-plugin wraps it in the root rollback).
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime } from "@/sc-elements/internal/validation";
+import type { RuntimeContext } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScNode extends ScElement {
@@ -15,14 +14,8 @@ export abstract class ScNode extends ScElement {
   nodeId = 0;
   loaded = false;
 
-  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): void {
     this.processChildren(ctx);
-    return this.nodeRuntime(ctx);
-  }
-
-  /** The node-owning elements' runtime core. */
-  protected nodeRuntime(ctx: RuntimeContext): NodeRuntime {
-    return { ...baseRuntime(ctx), loaded: false, nodeId: 0 };
   }
 
   /** The scsynth group this node's create targets: the nearest LOADED node

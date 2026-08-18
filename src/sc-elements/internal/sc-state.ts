@@ -46,7 +46,7 @@ export abstract class ScState extends ScElement {
    *  plus its own name (the plugin root contributes no segment). Literal
    *  state only — derived state has no store key. */
   protected get key(): string {
-    return [...this.path, this.getProp("name") as string].join(".");
+    return [...this.basePath, this.getProp("name") as string].join(".");
   }
 
   /** The plugin root's per-instance runtime store — _rootScNode IS the

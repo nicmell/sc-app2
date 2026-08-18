@@ -7,8 +7,8 @@ import { ELEMENTS } from "@/constants/sc-elements";
 import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
-import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
-import { baseRuntime, failValidation } from "@/sc-elements/internal/validation";
+import type { RuntimeContext } from "@/types/runtime";
+import { failValidation } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
@@ -71,7 +71,7 @@ export class ScSynthDef extends ScElement {
     return undefined;
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): void {
     const children = this.processChildren(ctx);
     // The synthdef PLANE is compile-time data — this class owns its rules:
     // a param (direct sc-control child) carrying a bind:value would be
@@ -86,17 +86,14 @@ export class ScSynthDef extends ScElement {
     // Collect params + per-ugen input specs (DOM order — the bind-order
     // constraint makes that a valid build order); collecting validates that
     // every ugen input has a bind or value. Compilation waits for load.
-    const params = collectControlParams(children);
-    const specs = children.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map(
-      (c) => ({
-        name: c.getProp("name") as string,
-        type: c.getProp("type") as string,
-        rate: c.getProp("rate") as string,
-        op: c.getProp("op") as string | undefined,
-        inputs: collectControlEntries(c._scChildren ?? []),
-      }),
-    );
-    return { ...baseRuntime(ctx), loaded: false, params, specs };
+    this.params = collectControlParams(children);
+    this.specs = children.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map((c) => ({
+      name: c.getProp("name") as string,
+      type: c.getProp("type") as string,
+      rate: c.getProp("rate") as string,
+      op: c.getProp("op") as string | undefined,
+      inputs: collectControlEntries(c._scChildren ?? []),
+    }));
   }
 
   /** Compile the collected specs and install the def: the /d_recv's

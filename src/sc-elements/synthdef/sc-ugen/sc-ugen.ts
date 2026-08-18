@@ -4,12 +4,12 @@
 
 import { parseBind, splitTopLevel } from "@/lib/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
-import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime, resolveNode } from "@/sc-elements/internal/validation";
+import type { RuntimeContext } from "@/types/runtime";
+import { resolveNode } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScUgen extends ScElement {
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): void {
     const children = this.processChildren(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
     // synthdef param. A comma-token may be a plain ref, a `name.idx`
@@ -35,6 +35,5 @@ export class ScUgen extends ScElement {
         }
       }
     }
-    return baseRuntime(ctx);
   }
 }

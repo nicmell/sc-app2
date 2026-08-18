@@ -15,7 +15,7 @@ import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";
-import type { BaseRuntime, Expr, RuntimeContext } from "@/types/runtime";
+import type { Expr, RuntimeContext } from "@/types/runtime";
 
 // ── Attribute validation (parse-time) ──────────────────────────────────────
 
@@ -190,16 +190,6 @@ export function nameOf(el: Element): string | undefined {
  *  import cycle: guards ← validation. */
 export function isTransparent(el: Element): boolean {
   return !nameOf(el) && !isNodeRuntime(el);
-}
-
-/** The runtime core every element shares. `_parentScNode` is NOT part of it —
- *  the parent link is owned by `processParent` (the nearest non-transparent
- *  sc ancestor, not the level owner this ctx carries). */
-export function baseRuntime(ctx: RuntimeContext): BaseRuntime {
-  return {
-    _rootScNode: ctx.rootNode,
-    path: ctx.path,
-  };
 }
 
 function walkPath(node: ScElement, path: string[]): ScElement | undefined {

@@ -23,8 +23,8 @@ import { html } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime, failValidation, resolveSynthDefRef } from "@/sc-elements/internal/validation";
+import type { RuntimeContext } from "@/types/runtime";
+import { failValidation, resolveSynthDefRef } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import styles from "./sc-keyboard.module.scss";
@@ -85,7 +85,7 @@ export class ScKeyboard extends ScElement {
    *  <sc-synthdef> in scope — and, when an `envelope` is given, declare
    *  exactly ONE array param to latch it onto. A leaf otherwise — no
    *  children, no node. */
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): void {
     const synthdef = this.getProp("synthdef") as string;
     const target = resolveSynthDefRef(this, ctx, synthdef);
     if (this.hasAttribute("envelope") || this.hasAttribute("bind:envelope")) {
@@ -103,7 +103,6 @@ export class ScKeyboard extends ScElement {
       this.envParam = arrayParams[0];
     }
     this.defElement = target;
-    return baseRuntime(ctx);
   }
 
   /** The plugin group a voice spawns into (the root's own nodeId), or 0 when

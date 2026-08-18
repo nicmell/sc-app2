@@ -94,8 +94,8 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
-                         component overrides resolveRuntime(), whose result
-                         process() assigns onto the element itself
+                         component overrides the void resolveRuntime() hook,
+                         mutating the element itself
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
@@ -108,7 +108,7 @@ stores/                  the single app store + slices and React hooks
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
-                         runtime.d.ts (engine types: runtime mixins + RuntimeContext)
+                         runtime.d.ts (engine types: RuntimeContext + store/prop shapes)
   constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (timeouts/limits, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
@@ -307,8 +307,9 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
    `process()` lives on `ScElement` — it attaches the element to its
-   parent, validates it, then assigns `resolveRuntime()`'s values onto the
-   component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
+   parent, validates it, assigns the shared runtime core, then runs the
+   void `resolveRuntime()` hook (element-specific resolution mutating the
+   component itself). `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
    helpers are plain functions in `internal/validation.ts`, taking the
    element explicitly where the error messages need it.
@@ -423,11 +424,11 @@ further `sc-*` element:
    backing for literal state; `internal/sc-input`: `targetScState` + the
    syncFromState/commit seam); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus path, `_scChildren` for parents, and the runtime-prop
+   plus `basePath`, `_scChildren` for parents, and the runtime-prop
    machinery: `runtimeProps`, `getProp`/`runtimeValue`,
    `updateRuntimeValue` → `runtimeValueChanged` hook → "statechange",
    `onStateChange`, the load-prefix subscription wiring) is on `ScElement`.
-   The mixin contracts (`BaseRuntime`/`NodeRuntime`/`RuntimeProp`/…) live in
+   The shared engine types (`RuntimeContext`/`RuntimeProp`/…) live in
    `src/types/runtime.d.ts`. Values that duplicate a declarative prop are
    unified with it, never copied (no runtime `name`/`run`; `value` stays the
    plain attribute mirror — the LIVE value is `_state`, see "Runtime
@@ -439,12 +440,13 @@ further `sc-*` element:
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
    need no component code: the base resolves them through
    `resolveRuntimeProps` → `resolveStateBind` from the element spec. Override
-   `resolveRuntime(ctx)` only when an element has additional structural
-   runtime data (for example node ownership or synthdef references), building
-   over `baseRuntime(ctx)` or ScNode's `this.nodeRuntime(ctx)`. The base
-   `process(ctx)` assigns that result onto the element. `ctx` is
-   the per-LEVEL state ({rootNode, nodes, scope, parentNode, path}) shared
-   by all siblings. The default is the self-contained leaf. Extend
+   the void `resolveRuntime(ctx)` hook only when an element has additional
+   structural runtime data (for example node ownership or synthdef
+   references), mutating the element directly (`super.resolveRuntime(ctx)`
+   where the parent's recursion should follow); `process(ctx)` assigns the
+   shared core (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL
+   state ({rootNode, nodes, scope, parentNode, path, index}) shared by all
+   siblings. The default is the self-contained no-op leaf. Extend
    `lib/utils/guards.ts` if the element joins a category
    (state/node/parent). Add the element's examples to the unit suite's
    expectations (`src/sc-elements/__tests__/examples.test.ts`) if it ships

@@ -1,5 +1,4 @@
 import type { Expr } from "@/lib/expression";
-import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import type { Store } from "@/lib/utils/reactiveStore";
 import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
@@ -35,28 +34,13 @@ export type PluginRuntimeValues = Record<string, StateValue>;
 /** The bind-expression AST — defined by the language module. */
 export type { Expr } from "@/lib/expression";
 
-// ── Runtime value mixins ──────────────────────────────────────────────────
-//
-// What `resolveRuntime` returns and `process()` assigns onto the element;
-// the bases declare the matching properties. Values that would duplicate a
-// reactive property are unified with it instead: there is no runtime `name`
-// or `run` (read the props), and a state element's resolved value lives in
-// its `value` prop.
-
-export interface BaseRuntime {
-  /** The plugin root element this element was parsed under. */
-  _rootScNode: ScElement;
-  /** The parsed parent — the nearest NON-TRANSPARENT sc ancestor (unset at
-   *  the root). Owned by `processParent`, not `baseRuntime`: resolution must
-   *  not overwrite it with the level owner. */
-  _parentScNode?: ScParentElement;
-  path: string[];
-}
-
-export interface NodeRuntime extends BaseRuntime {
-  loaded: boolean;
-  nodeId: number;
-}
+// The runtime values live as plain fields declared on the element classes
+// (ScElement: `_rootScNode`/`_parentScNode`/`basePath`; the bases add their
+// category fields — ScNode: nodeId/loaded, ScSynthDef: params/specs),
+// assigned by `process()` and the per-element `resolveRuntime` hooks. Values
+// that would duplicate a reactive property are unified with it instead:
+// there is no runtime `name` or `run` (read the props), and a state
+// element's resolved value lives in its `value` prop.
 
 /** The plugin root's per-instance runtime store: this instance's literal
  *  state map (path → value), reached by descendants via `_rootScNode`. Lives
@@ -78,15 +62,6 @@ export interface RuntimeProp {
   targets: Record<string, ScState>;
   /** Parsed bind expression, when the bind isn't a plain path. */
   expression?: Expr;
-}
-
-export interface SynthDefRuntime extends BaseRuntime {
-  loaded: boolean;
-  /** The param defaults (scalars or control-array comma-lists) + DOM-ordered
-   *  ugen specs (collected at parse) — compiled to SCgf right at /d_recv
-   *  time in the load pass. */
-  params: Record<string, number | number[]>;
-  specs: UgenSpec[];
 }
 
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`

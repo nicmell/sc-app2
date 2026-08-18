@@ -41,7 +41,6 @@ import { evalExpr } from "@/lib/expression";
 import { isNodeRuntime, isNodeType, isStateRuntime } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
-  baseRuntime,
   checkDuplicateNames,
   coerceScalar,
   coerceVector,
@@ -53,7 +52,7 @@ import {
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
-import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
+import type { RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
  *  names cannot start with a digit, so the tail is unambiguous. */
@@ -65,7 +64,7 @@ export function slotIndexOf(path: string): number | null {
 /** A parent element — its parsed sc-* children live in `_scChildren`. */
 export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
-export abstract class ScElement extends LitElement implements BaseRuntime {
+export abstract class ScElement extends LitElement {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
   /** The parsed identity — the native DOM id; `process` mints the
@@ -79,7 +78,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  sc-* descendants reached through plain HTML wrappers). */
   _scChildren?: ScElement[];
   /** The named ancestor path (scope names, outermost first). */
-  path: string[] = [];
+  basePath: string[] = [];
   /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
    *  root's unload()/reload(), it invalidates a suspended load pass: the
    *  sequential walk re-checks it after every awaited child and aborts when
@@ -205,13 +204,14 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  level owner's id + the level's document-order counter), pre-register it
    *  (so re-entrant resolves of a mid-processing ancestor return it), attach
    *  to its owning parent (`processParent`), run the element's own
-   *  `validate()`, then resolve the runtime values and assign them onto the
-   *  element. `ctx.parentNode` stays the level OWNER throughout resolution
-   *  (enablement/path/bindless defaults read the named parent) —
-   *  `_parentScNode` carries the parse parent, keeping the runtime tree
-   *  truthful. Library throws get the canonical `<tag>:` prefix;
-   *  already-shaped errors pass through. Idempotent — an already-processed
-   *  element is returned as-is. */
+   *  `validate()`, assign the shared runtime core (`_rootScNode`/`basePath`),
+   *  then run the `resolveRuntime` hook (element-specific resolution — the
+   *  parents recurse via `processChildren` there). `ctx.parentNode` stays
+   *  the level OWNER throughout resolution (path/bindless defaults read the
+   *  named parent) — `_parentScNode` carries the parse parent, keeping the
+   *  runtime tree truthful. Library throws get the canonical `<tag>:`
+   *  prefix; already-shaped errors pass through. Idempotent — an
+   *  already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
@@ -222,7 +222,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     try {
       validateProps(this);
       this.validate();
-      Object.assign(this, this.resolveRuntime(ctx));
+      this._rootScNode = ctx.rootNode;
+      this.basePath = ctx.path;
+      this.resolveRuntime(ctx);
       this.resolveRuntimeProps(ctx);
       this.validateRuntimeProps();
     } catch (e) {
@@ -237,10 +239,9 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  ancestor within the level (transparent containers — sc-if/sc-select/… —
    *  are walked through, so their contents belong directly to the enclosing
    *  node; transparent containers themselves stay runtime-tree leaves) —
-   *  pushing it onto the parent's `_scChildren` and setting `_parentScNode`.
-   *  The parent link is owned HERE — `baseRuntime` deliberately carries no
-   *  `_parentScNode`, so resolution can't overwrite it with the level owner.
-   *  The root has no parent and skips both. */
+   *  pushing it onto the parent's `_scChildren` and setting `_parentScNode`
+   *  (owned HERE — resolution never touches it). The root has no parent and
+   *  skips both. */
   private processParent(ctx: RuntimeContext): void {
     const level = ctx.parentNode;
     if (!level) return;
@@ -276,12 +277,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
   }
 
-  /** Resolve this element's runtime values — bind resolution lives here, on
-   *  each component (over the internal/validation machinery). The default is
-   *  the self-contained leaf (sc-console / sc-scope / sc-strudel). */
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return baseRuntime(ctx);
-  }
+  /** Element-specific resolution hook, run after the shared runtime core is
+   *  assigned: overrides mutate the element directly (sc-synth resolves its
+   *  def reference, sc-synthdef collects its graph) and the parents recurse
+   *  via `processChildren`. The default is the self-contained leaf
+   *  (sc-console / sc-scope / sc-strudel). */
+  protected resolveRuntime(_ctx: RuntimeContext): void {}
 
   // ── Runtime values (the live evaluated props / the state seam) ──────────
 

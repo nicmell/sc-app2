@@ -67,7 +67,7 @@ export abstract class ScNode extends ScElement {
 
   /** The scsynth group this node's create targets: the nearest LOADED node
    *  ancestor — the enclosing sc-group's node, or the plugin group (the walk
-   *  skips transparent otcontainers and not-yet-live nodes naturally). */
+   *  skips transparent containers and not-yet-live nodes naturally). */
   protected get targetGroupId(): number {
     for (let el = this._parentScNode; el; el = el._parentScNode) {
       if (isNodeRuntime(el) && el.nodeId !== 0) return el.nodeId;

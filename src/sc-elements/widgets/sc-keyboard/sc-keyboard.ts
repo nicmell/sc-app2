@@ -61,7 +61,7 @@ interface Voice {
   releaseWhenReady: boolean;
 }
 
-const clamp01 = (n: number): number => Math.min(1, Math.max(0.05, n));
+const clampVel = (n: number): number => Math.min(1, Math.max(0.05, n));
 
 export class ScKeyboard extends ScElement {
   // Declarative attributes, coerced via the spec. `synthdef` is required
@@ -287,7 +287,7 @@ export class ScKeyboard extends ScElement {
     const el = e.currentTarget as HTMLElement;
     const h = el.clientHeight || 0;
     if (!h || Number.isNaN(e.offsetY)) return 0.7;
-    return clamp01(e.offsetY / h);
+    return clampVel(e.offsetY / h);
   }
 
   private pressKey(note: number, e: PointerEvent): void {

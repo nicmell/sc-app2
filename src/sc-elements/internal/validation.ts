@@ -2,7 +2,8 @@
 // runtime-inference helpers over live elements, all as plain functions taking
 // the element explicitly where the error messages or cycle seeds need it.
 // ScElement keeps the parse ENGINE and the live evaluated runtime only.
-// Hydrate-time: failValidation plus checkDuplicateNames over a sibling scope.
+// Parse-time: failValidation via validateProps/validate, plus
+// checkDuplicateNames per sibling scope in processChildren.
 // Process-time: the bind-resolution machinery the `resolveRuntime` overrides
 // build on. The error messages are the runtime gate's contract — pinned
 // verbatim by src/sc-elements/examples.test.ts and the CDP harness.

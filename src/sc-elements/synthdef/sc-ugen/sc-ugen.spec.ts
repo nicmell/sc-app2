@@ -1,6 +1,6 @@
 import type { ElementSpec } from "@/sc-elements/internal/xsd/types";
 
-// The `type` attribute maps to the component's `ugen` property (`attribute: "type"`).
+// The `type` attribute names the UGen class; the component reads it via getProp("type").
 export const spec: ElementSpec = {
   tag: "sc-ugen",
   category: "ugen",

@@ -9,8 +9,8 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 // runtime values and assigns them onto the component, where they're declared
 // as plain fields (ScElement base + the internal/ category bases) next to the
 // HTML attributes' decorated reactive properties (the component class IS the
-// attribute contract). The runtime registry maps ids straight to the live
-// elements.
+// attribute contract). Outside-the-DOM access goes through the mounted
+// plugin root's `_scChildren` tree and `walkPath` name paths.
 
 // ── Bind expressions (lib/expression) ─────────────────────────────────────
 
@@ -96,8 +96,8 @@ export interface InputRuntime extends BaseRuntime {
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
- *  idempotence/forward-ref guard; the registry adopts the tree from the root
- *  on success), `scope` the cumulative bind-resolution scope. Store-key
+ *  idempotence/forward-ref guard), `scope` the cumulative bind-resolution
+ *  scope. Store-key
  *  uniqueness needs no global map: enabled state must be declared on a node
  *  (vars validate it; controls encode it in their enablement), and sc-if
  *  rejects node descendants — so path-transparent containers can never

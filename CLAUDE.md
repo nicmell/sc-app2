@@ -348,7 +348,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
-   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
+   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, ordinal}` —
    one shared object per sibling scope; it attaches the element to its
    parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
    (which recurses via `processChildren` where the element parses
@@ -627,7 +627,7 @@ tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
 mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
 and runs `host.process({rootNode: host, nodes, scope:
-[host], path:[]})`. Functional examples must parse clean, and every parsed
+[host], path:[], ordinal: 0})`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
 load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
 registry is plain data, happy-dom-safe); the
@@ -662,7 +662,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    require an authored `<sc-plugin>` root, `importNode` that whole root through
    the main document, explicitly upgrade it while disconnected, then
    `host.process({rootNode: host, nodes: new Set(), scope: [host],
-path: []})` — the host's own parse-engine methods; nothing to import.
+path: [], ordinal: 0})` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration
@@ -688,10 +688,10 @@ steps, each independently shippable:
    compiled at /d_recv time).
 3. **`types/` + `constants/` + `lib/utils`** — parser types, guards, the bind
    expression parser.
-4. **`lib/html` + `lib/runtime`** — element-tree hydration (cumulative scopes)
-   and runtime processing (bind resolution, expressions, overrides). Grow the
-   current innerHTML plugin loading into the two-phase pipeline; the Rust XSD
-   validation stays as-is.
+4. **`lib/html` + `lib/runtime`** — DONE, absorbed into `sc-elements`:
+   element-tree parsing (cumulative scopes) and runtime processing (bind
+   resolution, expressions, overrides) live on `ScElement`; these directories
+   never materialized as separate layers.
 5. **Core `sc-elements`** — DONE for the synth path AND the state layer:
    `OscClient.once(address, match)` reply matching (waiters in
    `handleReply`) + the scsynth command methods (the elements' whole OSC

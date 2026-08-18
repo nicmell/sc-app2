@@ -1,6 +1,6 @@
 // Full-screen standalone plugin view (/:sessionId/plugins/:pluginId): an
 // standalone PluginHost INDEPENDENT of any dashboard box. It owns its runtime
-// map, registry tree, and scsynth group, dropped on leave exactly like a box
+// store, parsed element tree, and scsynth group, dropped on leave exactly like a box
 // unmount. The plugins slice is populated — the session loader awaited
 // refreshPlugins().
 

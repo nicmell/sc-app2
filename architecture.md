@@ -316,10 +316,11 @@ scsynth dies → replies stop → backend supervisor enters reconnect loop;
 zip → POST /api/plugins (or `sc-app2 plugin add`) → manager validation
   (metadata rules → XSD on entry XHTML → image sniffing) → zip stored +
   registry → frontend refreshPlugins → plugins slice → picker
-  → box assigned → PluginHost mounts <sc-plugin id=boxId>
-  → fetch /api/plugins/{id}/{entry} → parse as text/xml → importNode
-  → process(ctx): hydrate ids → validate() → resolveRuntime() per element
-  → registry adoption (id → live element) → group /g_new
+  → box assigned → PluginHost fetches entry → `parseEntry` parses/upgrades the
+    authored `<sc-plugin>` root while disconnected
+  → `loadPluginHost`: process(ctx) mints path-chained hash id
+    → validateProps + validate → resolveRuntime() per element
+  → mount authored root (tree hangs off `_scChildren`) → group /g_new on mount
 ```
 
 **Layout persistence**: grid edits → `layout` slice → 10 s autosave PUT →

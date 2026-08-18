@@ -104,12 +104,11 @@ export class ScPlugin extends ScNode {
    *  already freed the whole session group server-side). */
   unload(): void {
     this.loadEpoch++;
+    const nodeId = this.nodeId;
     super.unload();
-    if (this.nodeId !== 0) {
-      oscClient.freeGroup(this.nodeId);
+    if (nodeId !== 0) {
+      oscClient.freeGroup(nodeId);
     }
-    this.nodeId = 0;
-    this.loaded = false;
   }
 
   /** Re-run the load pass once the connection is reestablished. Nothing to

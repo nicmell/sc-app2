@@ -81,12 +81,6 @@ export abstract class ScState extends ScElement {
     this.dispatchValue(next);
   }
 
-  /** The declarative default seeded into the store on load. Scalar state
-   *  reads its `value` attribute; sc-env builds its structured EnvValue. */
-  protected defaultStateValue(): StateValue {
-    return (this.getProp("value") as StateValue) ?? 0;
-  }
-
   /** Literal state wires its store key: seed the declarative default, sync
    *  `_state` once (subscriptions are change-only), then mirror every store
    *  write into `_state` — which notifies dependents via statechange. Derived
@@ -99,7 +93,7 @@ export abstract class ScState extends ScElement {
     const loading = super.load();
     const store = this.#pluginRuntime;
     if (store && this.enabled && this.isConnected && !this.derived) {
-      const seed = this.defaultStateValue();
+      const seed = (this.getProp("value") as StateValue) ?? 0;
       store.update((s) => (s[this.key] !== undefined ? s : { ...s, [this.key]: seed }));
       const view = store.select((s) => s[this.key]);
       const v = view.get();

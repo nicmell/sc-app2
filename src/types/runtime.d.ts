@@ -88,11 +88,6 @@ export interface SynthDefRuntime extends BaseRuntime {
   specs: UgenSpec[];
 }
 
-export interface InputRuntime extends BaseRuntime {
-  /** The live bound target state element. */
-  _targetScNode?: ScElement;
-}
-
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the

@@ -28,46 +28,39 @@ const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
 const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
-/** Vector coercion: an already-array value passes through; a STATIC string
- *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
- *  — evaluated to number[] through lib/expression, memoized per raw string;
- *  a KNOWN function head with bad args throws loud at parse, an unknown head
- *  keeps the string semantics); a comma-list of numerics becomes number[];
- *  anything else keeps the scalar semantics (number-if-numeric-else-string —
- *  string vars keep working, commas in non-numeric strings included).
- *  EVALUATED values are never call-evaluated: a bind-computed string that
- *  happens to look like a call must not turn into an array. */
-export function coerceVector(
-  value: number | string | number[],
-  evaluated: boolean,
-): string | number | number[] {
-  if (typeof value !== "string") return value;
-  if (!evaluated) {
-    const call = tryEvalCallLiteral(value);
-    if (call) return call;
-  }
-  const tokens = value.split(",").map((s) => s.trim());
-  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
-    return tokens.map(Number);
-  }
+/** Coerce a scalar string to a number when it is numeric, preserving strings
+ *  (including empty/whitespace strings) otherwise. */
+export function coerceScalar(value: string): string | number {
   const n = Number(value);
   return value.trim() !== "" && !Number.isNaN(n) ? n : value;
 }
 
-/** Coerce a static attribute string per its spec. This is deliberately pure:
- *  static values are validated at parse time, while live evaluated values
- *  remain on ScElement with its once-per-property warning state. */
+/** Pure vector coercion: an already-array value passes through; a comma-list
+ *  of numerics becomes number[]; anything else keeps scalar semantics. Static
+ *  call evaluation is performed by coerceStatic before this function, while
+ *  evaluated values call this function directly and therefore can never turn
+ *  a call-shaped string into an array. */
+export function coerceVector(value: number | string | number[]): string | number | number[] {
+  if (typeof value !== "string") return value;
+  const tokens = value.split(",").map((s) => s.trim());
+  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
+    return tokens.map(Number);
+  }
+  return coerceScalar(value);
+}
+
+/** Coerce a static attribute string per its spec. Vector call-shaped values
+ *  are tried through the strict static evaluator first; live evaluated values
+ *  remain on ScElement and use pure coerceVector with its once-per-property
+ *  warning state. */
 export function coerceStatic(
   attr: AttrSpec | undefined,
   raw: string,
 ): string | number | boolean | number[] {
   if (attr?.type === "decimal" || attr?.type === "integer") return Number(raw);
   if (attr?.type === "boolean") return raw === "true" || raw === "1";
-  if (attr?.type === "scalar") {
-    const n = Number(raw);
-    return raw.trim() !== "" && !Number.isNaN(n) ? n : raw;
-  }
-  if (attr?.type === "vector") return coerceVector(raw, false);
+  if (attr?.type === "scalar") return coerceScalar(raw);
+  if (attr?.type === "vector") return tryEvalCallLiteral(raw) ?? coerceVector(raw);
   return String(raw); // string / name / enum / untyped
 }
 

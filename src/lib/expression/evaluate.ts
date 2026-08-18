@@ -8,14 +8,12 @@
 import type { Expr } from "./ast";
 import { lookupFunction, type Value } from "./functions";
 
-export type StateValue = Value;
-
-/** One scalar element of a StateValue (arrays never nest). */
+/** One scalar element of a Value (arrays never nest). */
 type Scalar = number | string;
 
 /** SC's multichannel-expansion zip: scalars broadcast; the shorter array
  *  cycles (wrapAt). */
-function zipWrap(l: StateValue, r: StateValue, apply: (a: Scalar, b: Scalar) => Scalar): StateValue {
+function zipWrap(l: Value, r: Value, apply: (a: Scalar, b: Scalar) => Scalar): Value {
   if (!Array.isArray(l) && !Array.isArray(r)) return apply(l, r);
   const la = Array.isArray(l) ? l : [l];
   const ra = Array.isArray(r) ? r : [r];
@@ -74,8 +72,8 @@ function warnOnce(message: string): void {
  *  their previous value. */
 export function evalExpr(
   expr: Expr,
-  values: Record<string, StateValue>,
-): StateValue | undefined {
+  values: Record<string, Value>,
+): Value | undefined {
   switch (expr.type) {
     case "number":
     case "string":
@@ -83,7 +81,7 @@ export function evalExpr(
     case "var":
       return values[expr.name] ?? 0;
     case "call": {
-      const args: StateValue[] = [];
+      const args: Value[] = [];
       for (const argExpr of expr.args) {
         const v = evalExpr(argExpr, values);
         if (v === undefined) return undefined; // a nested call already failed
@@ -108,7 +106,7 @@ export function evalExpr(
         const then = evalExpr(expr.then, values);
         const other = evalExpr(expr.else, values);
         if (then === undefined || other === undefined) return undefined;
-        const pick = (branch: StateValue, i: number): Scalar =>
+        const pick = (branch: Value, i: number): Scalar =>
           Array.isArray(branch) ? branch[i % branch.length] : branch;
         return cond.map((c, i) => Number(c ? pick(then, i) : pick(other, i)));
       }

@@ -27,10 +27,4 @@ export class ScGroup extends ScNode {
     }
     await super.load();
   }
-
-  unload(): void {
-    super.unload();
-    this.nodeId = 0;
-    this.loaded = false;
-  }
 }

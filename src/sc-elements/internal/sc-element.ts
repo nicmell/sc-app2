@@ -44,6 +44,7 @@ import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
   baseRuntime,
   checkDuplicateNames,
+  coerceScalar,
   coerceVector,
   coerceStatic,
   failValidation,
@@ -153,7 +154,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     value: StateValue | undefined,
   ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
-    if (attr?.type === "vector") return coerceVector(value, true);
+    if (attr?.type === "vector") return coerceVector(value);
     // Array values have no scalar coercion outside vector attrs — getProp
     // readers fall back to their defaults; the value rides `_state` instead.
     if (typeof value === "object") return undefined;
@@ -173,8 +174,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     }
     if (attr?.type === "scalar") {
       if (typeof value === "number") return value;
-      const n = Number(value);
-      return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+      return coerceScalar(value);
     }
     const s = String(value);
     if (attr?.type === "enum" && !attr.values.includes(s)) {

@@ -4,6 +4,7 @@
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
 
 import { oscClient } from "@/stores/osc";
+import { isControlRuntime } from "@/lib/utils/guards";
 import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
 import { resolveSynthDefRef } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
@@ -23,6 +24,33 @@ export class ScSynth extends ScNode {
     return super.resolveRuntime(ctx);
   }
 
+  /** Read the enabled control children once in DOM order. Scalar controls
+   *  become /s_new pairs; array controls are sent as indexed pairs. A string
+   *  scalar is skipped with the same warning the old scalar collector used. */
+  private getControlSnapshots(): {
+    scalars: Array<[string, number]>;
+    arrays: Array<{ name: string; values: readonly number[] }>;
+  } {
+    const scalars: Array<[string, number]> = [];
+    const arrays: Array<{ name: string; values: readonly number[] }> = [];
+    for (const child of this._scChildren ?? []) {
+      if (!isControlRuntime(child) || !child.enabled) continue;
+      const name = child.getProp("name") as string;
+      const state = child._state ?? child.getProp("value");
+      if (Array.isArray(state)) {
+        arrays.push({ name, values: state });
+        continue;
+      }
+      const value = Number(state ?? 0);
+      if (Number.isNaN(value)) {
+        console.warn(`<sc-control name="${name}">: non-numeric value — control pair skipped`);
+        continue;
+      }
+      scalars.push([name, value]);
+    }
+    return { scalars, arrays };
+  }
+
   /** Children first (the sc-controls seed/sync their store values), then
    *  /s_new with those values baked in as control pairs. */
   async load(): Promise<void> {
@@ -33,12 +61,15 @@ export class ScSynth extends ScNode {
     // The pass was invalidated while the children loaded — don't create a
     // node whose target group is gone.
     if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
-    const snapshot = this.getControls();
+    const initial = this.getControlSnapshots();
+    const snapshot: Record<string, number> = Object.fromEntries(initial.scalars);
     // ARRAY controls ride the /s_new as consecutive index/value pairs from
     // each array's base param index. Instance controls only — a def array
     // param without one keeps its compiled defaults (share live state
     // explicitly via bind:value, like every other control).
-    const arraySnapshot: Record<string, readonly number[]> = this.getArrayControls();
+    const arraySnapshot: Record<string, readonly number[]> = Object.fromEntries(
+      initial.arrays.map(({ name, values }) => [name, values]),
+    );
     const arrays: Array<{ index: number; values: readonly number[] }> = [];
     for (const [name, values] of Object.entries(arraySnapshot)) {
       const index = this.defElement?.paramIndexOf(name);
@@ -55,22 +86,15 @@ export class ScSynth extends ScNode {
     // the store but SKIPPED its /n_set (dispatch gates on `loaded`, false
     // until here). Diff live state against the snapshot and send only the
     // drift — the common case sends nothing.
-    for (const [name, value] of Object.entries(this.getControls())) {
+    const current = this.getControlSnapshots();
+    for (const [name, value] of current.scalars) {
       if (!Object.is(snapshot[name], value)) {
         oscClient.setControl(this.nodeId, name, value);
       }
     }
     // Same for arrays (immutable per edit, so a reference change IS a drift).
-    for (const [name, values] of Object.entries(this.getArrayControls())) {
+    for (const { name, values } of current.arrays) {
       if (arraySnapshot[name] !== values) oscClient.setControln(this.nodeId, name, values);
     }
-  }
-
-  /** The node itself dies with the plugin group's gFreeAll — no per-synth
-   *  nFree (it would double-free into /fail noise). */
-  unload(): void {
-    super.unload();
-    this.nodeId = 0;
-    this.loaded = false;
   }
 }

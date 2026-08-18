@@ -8,11 +8,8 @@ export type { BinaryOp, Expr } from "./ast";
 export { evalExpr } from "./evaluate";
 export {
   lookupFunction,
-  isKnownFunctionHead,
-  UNSUPPORTED_FUNCTIONS,
-  type ExprFunction,
   type LoweredArg,
 } from "./functions";
 export { tryEvalCallLiteral } from "./literal";
-export { parseBind, type ParsedBind } from "./parser";
+export { parseBind } from "./parser";
 export { splitTopLevel } from "./split";

@@ -98,17 +98,16 @@ export class ScScope extends ScElement {
 
   /** Install + start the tap and subscribe its chunk stream. */
   async load(): Promise<void> {
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     // Wire runtime display props before installing the tap. ScElement's
     // synchronous load prefix performs the initial recompute + subscriptions.
     await super.load();
     if (!this.isConnected || this.loaded) return;
-    if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+    if (!live()) return;
 
     const scopeIdx = oscClient.allocScopeIndex();
     let tapNodeId = 0;
     let stream: ReturnType<typeof oscClient.subscribeScope> | undefined;
-    const current = () => this.isConnected && (this._rootScNode?.loadEpoch ?? 0) === epoch;
     const release = () => {
       stream?.off();
       if (tapNodeId !== 0) oscClient.freeSynth(tapNodeId);
@@ -117,7 +116,7 @@ export class ScScope extends ScElement {
 
     try {
       await oscClient.sendSynthDef(compileScopeTapSynthDef(this._channels, this._frames));
-      if (!current()) {
+      if (!this.isConnected || !live()) {
         release();
         return;
       }
@@ -127,7 +126,7 @@ export class ScScope extends ScElement {
         oscClient.sessionGroupId,
         { inBus: this._bus, scopeNum: scopeIdx },
       );
-      if (!current()) {
+      if (!this.isConnected || !live()) {
         release();
         return;
       }

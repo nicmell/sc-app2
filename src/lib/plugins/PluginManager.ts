@@ -6,7 +6,7 @@
 // then mounts it. Display metadata lives in PluginInfo.
 
 import { get, post, del } from "@/lib/http";
-import type { ScElement, ScPlugin } from "@/sc-elements";
+import type { ScPlugin } from "@/sc-elements";
 import type { PluginInfo } from "@/types/api";
 
 const PLUGINS_BASE = "/api/plugins";
@@ -45,12 +45,6 @@ export function parseEntry(text: string): ScPlugin {
 export async function loadPluginHost(plugin: PluginInfo): Promise<ScPlugin> {
   const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
   const host = parseEntry(await res.text());
-  host.process({
-    rootNode: host,
-    nodes: new Set<ScElement>(),
-    scope: [host],
-    path: [],
-    ordinal: 0,
-  });
+  host.processRoot();
   return host;
 }

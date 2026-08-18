@@ -16,12 +16,12 @@ import { ScNode } from "@/sc-elements/internal/sc-node";
 export class ScGroup extends ScNode {
   /** Own node first (children target it), then the children in DOM order. */
   async load(): Promise<void> {
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     if (this.isConnected && !this.loaded) {
       const nodeId = await oscClient.createGroup(this.targetGroupId);
       // The pass was invalidated while the /n_go was pending — don't adopt a
       // node the new connection knows nothing about.
-      if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+      if (!live()) return;
       this.nodeId = nodeId;
       this.loaded = true;
     }

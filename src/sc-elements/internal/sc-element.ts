@@ -355,6 +355,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     this.#offs = [];
   }
 
+  /** Capture the current load epoch; the returned probe is true while this
+   *  load pass is still current (no unload/reload superseded it). */
+  protected loadGuard(): () => boolean {
+    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    return () => (this._rootScNode?.loadEpoch ?? 0) === epoch;
+  }
+
   /** The async load pass, run AFTER the sync parse, in strict DOM order: a
    *  parent awaits each child fully before the next starts — no concurrency,
    *  no reactive gates. The bind-order constraint (targets declared before
@@ -382,10 +389,10 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         this.#offs.push(target.onStateChange(recompute));
       }
     }
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     for (const child of this._scChildren ?? []) {
       await child.load();
-      if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return; // pass invalidated mid-await
+      if (!live()) return; // pass invalidated mid-await
     }
   }
 

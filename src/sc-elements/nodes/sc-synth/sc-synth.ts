@@ -54,13 +54,13 @@ export class ScSynth extends ScNode {
   /** Children first (the sc-controls seed/sync their store values), then
    *  /s_new with those values baked in as control pairs. */
   async load(): Promise<void> {
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     await super.load();
     const synthdef = this.getProp("synthdef") as string;
     if (!this.isConnected || this.loaded) return;
     // The pass was invalidated while the children loaded — don't create a
     // node whose target group is gone.
-    if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+    if (!live()) return;
     const initial = this.getControlSnapshots();
     const snapshot: Record<string, number> = Object.fromEntries(initial.scalars);
     // ARRAY controls ride the /s_new as consecutive index/value pairs from
@@ -78,7 +78,7 @@ export class ScSynth extends ScNode {
     const nodeId = await oscClient.createSynth(synthdef, this.targetGroupId, snapshot, arrays);
     // The pass may have been invalidated while /s_new was awaiting /n_go.
     // Never adopt an id from a disconnected or superseded session.
-    if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+    if (!this.isConnected || !live()) return;
     this.nodeId = nodeId;
     this.loaded = true;
     // NOT a resend: the /s_new args are the SEND-TIME snapshot, and /n_go is

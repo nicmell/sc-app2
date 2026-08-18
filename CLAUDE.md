@@ -626,8 +626,7 @@ scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
 mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
-and runs `host.process({rootNode: host, nodes, scope:
-[host], path:[], ordinal: 0})`. Functional examples must parse clean, and every parsed
+and runs `host.processRoot()`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
 load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
 registry is plain data, happy-dom-safe); the
@@ -661,8 +660,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
    require an authored `<sc-plugin>` root, `importNode` that whole root through
    the main document, explicitly upgrade it while disconnected, then
-   `host.process({rootNode: host, nodes: new Set(), scope: [host],
-path: [], ordinal: 0})` — the host's own parse-engine methods; nothing to import.
+   `host.processRoot()` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration

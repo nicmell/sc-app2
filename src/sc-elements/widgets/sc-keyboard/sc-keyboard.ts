@@ -150,7 +150,7 @@ export class ScKeyboard extends ScElement {
     this.active.add(note);
     this.requestUpdate();
 
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     try {
       // The live `envelope` value (typically bind:envelope to a var an
       // editor edits) is latched onto the def's array param INSIDE the
@@ -173,7 +173,7 @@ export class ScKeyboard extends ScElement {
       );
       // Superseded/disconnected while awaiting /n_go, or released mid-flight.
       if (this.held.get(note) !== voice) return;
-      if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) {
+      if (!this.isConnected || !live()) {
         this.held.delete(note);
         return;
       }

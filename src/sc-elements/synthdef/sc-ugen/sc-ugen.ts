@@ -35,6 +35,6 @@ export class ScUgen extends ScElement {
         }
       }
     }
-    return { ...baseRuntime(ctx), enabled: false };
+    return baseRuntime(ctx);
   }
 }

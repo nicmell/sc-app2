@@ -18,10 +18,12 @@
 // string-valued expression skips the /n_set with a console warning (the UI
 // state still updates).
 
-import { isNodeRuntime } from "@/lib/utils/guards";
+import { ELEMENTS } from "@/constants/sc-elements";
+import { isNodeRuntime, typeOf } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
+import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
+import { bindAttr } from "@/sc-elements/internal/xsd/types";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
@@ -37,10 +39,17 @@ export class ScControl extends ScState {
         `"value" attribute must be a number or a comma-list of numbers (got "${value}")`,
       );
     }
-  }
-
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
+    // A `bind:value` on a DISABLED control splits by position: inside an
+    // sc-ugen it is a graph-input REFERENCE (consumed raw by the synthdef
+    // collectors — resolveRuntimeProps skips it); on a direct synthdef param
+    // it would be silently dropped from the def — reject loudly.
+    if (
+      !this.enabled &&
+      this.hasAttribute(bindAttr("value")) &&
+      (!this._parentScNode || typeOf(this._parentScNode) !== ELEMENTS.SC_UGEN)
+    ) {
+      failValidation(this, `"${bindAttr("value")}" is not allowed on a synthdef param`);
+    }
   }
 
   /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is

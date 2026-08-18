@@ -423,7 +423,8 @@ further `sc-*` element:
    backing for literal state; `internal/sc-input`: `targetScState` + the
    syncFromState/commit seam); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus path/enabled, `_scChildren` for parents, and the runtime-prop
+   plus path and the INFERRED `enabled` getter (live iff the parent type
+   says so — never stored), `_scChildren` for parents, and the runtime-prop
    machinery: `runtimeProps`, `getProp`/`runtimeValue`,
    `updateRuntimeValue` → `runtimeValueChanged` hook → "statechange",
    `onStateChange`, the load-prefix subscription wiring) is on `ScElement`.

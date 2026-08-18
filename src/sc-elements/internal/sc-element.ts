@@ -49,7 +49,6 @@ import {
   isTransparent,
   nameOf,
   resolveStateBind,
-  skipDisabledBind,
   validateProps,
 } from "@/sc-elements/internal/validation";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
@@ -81,7 +80,13 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   _scChildren?: ScElement[];
   /** The named ancestor path (scope names, outermost first). */
   path: string[] = [];
-  enabled = true;
+  /** Whether this element participates in the LIVE runtime — INFERRED, never
+   *  stored: the default is live; ScState derives it from its parent's type
+   *  (a control off a node is graph data), the pure-data choice children
+   *  (sc-option/sc-radio) pin it false. */
+  get enabled(): boolean {
+    return true;
+  }
   /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
    *  root's unload()/reload(), it invalidates a suspended load pass: the
    *  sequential walk re-checks it after every awaited child and aborts when
@@ -263,19 +268,20 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
 
   /** Resolve every present `bind:attr` into live targets + expression — the
    *  same machinery state binds use, so the bind-order constraint applies.
-   *  Runs AFTER `resolveRuntime` (enablement is known). DISABLED elements
-   *  split by position: inside an sc-ugen, `bind:value` is a GRAPH-INPUT
-   *  reference the synthdef collectors consume raw (skip — never resolved on
-   *  the state graph); on a direct sc-synthdef child (a param), a `bind:` is
-   *  rejected loudly — the param collector reads static values only and
-   *  would silently drop it from the def. */
+   *  DISABLED elements are skipped wholesale (a graph input's `bind:value`
+   *  is a raw reference for the synthdef collectors; the loud
+   *  on-a-synthdef-param rejection lives in ScControl.validate). */
   private resolveRuntimeProps(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
     for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
       if (attr.runtime === false) continue;
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
-      if (!this.enabled && skipDisabledBind(this, ctx, bindAttr(name))) continue;
+      // DISABLED elements never resolve on the state graph: inside an
+      // sc-ugen the expression is a GRAPH-INPUT reference the synthdef
+      // collectors consume raw; the synthdef-param rejection is ScControl's
+      // validate().
+      if (!this.enabled) continue;
       (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
     }
   }

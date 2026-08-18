@@ -2,12 +2,11 @@
 // (`value`/`label`), collected by the parent at parse and projected into an
 // <sc-base-option>. Consumed by the parent, never enabled.
 
-import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export class ScOption extends ScElement {
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return { ...baseRuntime(ctx), enabled: false };
+  /** Pure data — never part of the live runtime. */
+  get enabled(): boolean {
+    return false;
   }
 }

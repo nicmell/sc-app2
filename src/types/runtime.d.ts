@@ -51,7 +51,6 @@ export interface BaseRuntime {
    *  not overwrite it with the level owner. */
   _parentScNode?: ScParentElement;
   path: string[];
-  enabled: boolean;
 }
 
 export interface NodeRuntime extends BaseRuntime {

@@ -25,9 +25,8 @@
 // in their enablement; vars enforce it as a parse error.
 
 import type { Store } from "@/lib/utils/reactiveStore";
-import { isPluginRuntime } from "@/lib/utils/guards";
-import type { BaseRuntime, PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
-import { baseRuntime } from "@/sc-elements/internal/validation";
+import { isNodeRuntime, isPluginRuntime } from "@/lib/utils/guards";
+import type { PluginRuntimeValues, StateValue } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
@@ -42,12 +41,12 @@ export abstract class ScState extends ScElement {
     return this.runtimeProps?.value !== undefined;
   }
 
-  /** Resolve the state runtime — just the enablement: the `bind:value` (when
-   *  present) is resolved by the base's generic runtime-prop pass. Disabled
-   *  state (a pure graph input inside synthdefs/ugens) stays a plain
-   *  attribute mirror the graph collection reads. */
-  protected stateRuntime(ctx: RuntimeContext, enabled: boolean): BaseRuntime {
-    return { ...baseRuntime(ctx), enabled };
+  /** State is live exactly when its parent is a NODE (plugin/group/synth) —
+   *  inferred, never stored. Disabled state (a pure graph input inside
+   *  synthdefs/ugens) stays a plain attribute mirror the graph collection
+   *  reads. */
+  get enabled(): boolean {
+    return this._parentScNode != null && isNodeRuntime(this._parentScNode);
   }
 
   /** The element's key in the plugin's store map: the named ancestor path

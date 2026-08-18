@@ -11,16 +11,16 @@
 // silently share an outer var's key. Controls encode the same rule in their
 // enablement; vars enforce it as a parse error.
 
-import { isNodeRuntime } from "@/lib/utils/guards";
-import type { RuntimeContext, BaseRuntime } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScVar extends ScState {
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    if (!ctx.parentNode || !isNodeRuntime(ctx.parentNode)) {
+  validate(): void {
+    super.validate();
+    // The inferred enablement doubles as the guard: a var whose parent is
+    // not a node (inside a synthdef) has no store path to key under.
+    if (!this.enabled) {
       failValidation(this, "must be declared on a node");
     }
-    return this.stateRuntime(ctx, true);
   }
 }

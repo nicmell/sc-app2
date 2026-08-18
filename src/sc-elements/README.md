@@ -22,7 +22,7 @@ gate, since the upload-time XSD doesn't enforce attribute rules). **The
 element IS the runtime**: `resolveRuntime()` resolves the runtime values and
 `process()` assigns them onto the component itself (declared as plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
-references, not ids) + `path`/`enabled` + `_scChildren` for parents + the
+references, not ids) + `path` + `_scChildren` for parents + the
 runtime-prop machinery on `ScElement`, the category values on
 `ScNode`/`ScState`/`ScInput`). There is no global element registry — the
 parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
@@ -83,7 +83,7 @@ Prop: `run` (boolean attribute, `run="false"` is the only falsy spelling).
 A named container node. Props: `name` (required), `run` (parsed but not yet honored).
 The load pass `/g_new`s its own group node FIRST — the
 inverse of sc-synth's children-first order — so its children's
-`targetGroupId` walk finds it live; nested groups nest. Group-level enabled
+`targetGroupId` walk finds it live; nested groups nest. Group-level
 `sc-control` children key under the group path and `/n_set` the GROUP node
 on writes (scsynth fans a group `/n_set` out to every node inside — the
 server-side replacement for the old app's name-based propagation). Unload
@@ -140,7 +140,7 @@ with a console warning.
 
 ### `<sc-var>`
 
-A state variable: like `sc-control` but always enabled and never sent over
+A state variable: like `sc-control` but always live and never sent over
 OSC. Props: `name` (required), `value` xor `bind:value` (expressions allowed;
 `value` is a SCALAR — a string literal like `value="lin"` is legal state).
 Its live value is `_state` on the shared state machinery: a literal var is
@@ -204,7 +204,7 @@ target's `_state` and a choice dispatches through `commit()`.
 ### `<sc-option>` — data element
 
 One declarative choice. Props: `value` (number, required by the XSD),
-`label` (required). Never enabled — consumed by the parent select at parse.
+`label` (required). Pure data — consumed by the parent select at parse.
 
 ### `<sc-radio-group>` / `<sc-radio>` — functional (ui-components `<sc-base-radio-group>`)
 

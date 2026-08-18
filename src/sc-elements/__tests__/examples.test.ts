@@ -146,7 +146,6 @@ describe("example-plugin structure", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
     expect(host._rootScNode).toBe(host);
     expect(host._parentScNode).toBeUndefined();
-    expect(host.enabled).toBe(true);
     expect(host._scChildren!.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
@@ -171,7 +170,6 @@ describe("example-plugin structure", () => {
       expect(targets).toHaveLength(1);
       const target = targets[0] as ScControl;
       expect(target.tagName.toLowerCase()).toBe("sc-control");
-      expect(target.enabled).toBe(true);
       expect(nodes.has(target)).toBe(true);
     }
   });

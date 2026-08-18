@@ -94,10 +94,10 @@ export interface SynthDefRuntime extends BaseRuntime {
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard), `scope` the cumulative bind-resolution
  *  scope. Store-key
- *  uniqueness needs no global map: enabled state must be declared on a node
- *  (vars validate it; controls encode it in their enablement), and sc-if
- *  rejects node descendants — so path-transparent containers can never
- *  smuggle in a colliding key. */
+ *  uniqueness needs no global map: live state must be declared on a node
+ *  (vars validate it; a control off a node is synthdef-plane data that
+ *  never loads), and sc-if rejects node descendants — so path-transparent
+ *  containers can never smuggle in a colliding key. */
 export interface RuntimeContext {
   rootNode: ScElement;
   nodes: Set<ScElement>;

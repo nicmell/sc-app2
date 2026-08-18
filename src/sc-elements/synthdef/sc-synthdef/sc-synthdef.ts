@@ -8,7 +8,7 @@ import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext, SynthDefRuntime } from "@/types/runtime";
-import { baseRuntime } from "@/sc-elements/internal/validation";
+import { baseRuntime, failValidation } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
@@ -73,6 +73,16 @@ export class ScSynthDef extends ScElement {
 
   protected resolveRuntime(ctx: RuntimeContext): SynthDefRuntime {
     const children = this.processChildren(ctx);
+    // The synthdef PLANE is compile-time data — this class owns its rules:
+    // a param (direct sc-control child) carrying a bind:value would be
+    // silently dropped from the def, so reject it loudly here (ugen INPUTS
+    // use the same spelling as raw graph references — collectControlEntries
+    // consumes them; the plane never loads, so no runtime gates exist).
+    for (const child of children) {
+      if (isControlRuntime(child) && child.hasAttribute("bind:value")) {
+        failValidation(child, `"bind:value" is not allowed on a synthdef param`);
+      }
+    }
     // Collect params + per-ugen input specs (DOM order — the bind-order
     // constraint makes that a valid build order); collecting validates that
     // every ugen input has a bind or value. Compilation waits for load.

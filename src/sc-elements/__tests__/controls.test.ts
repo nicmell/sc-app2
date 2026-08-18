@@ -988,7 +988,6 @@ describe("sc-group", () => {
     expect(nSets()[0].args).toEqual([g.nodeId, "vol", 0.8]);
 
     const mix = groupControl(host, "mix"); // declared inside <sc-if> under the group
-    expect(mix.enabled).toBe(true);
     expect(host.runtime.get()["g.mix"]).toBe(0); // group-pathed key
     expect(mix._parentScNode).toBe(g);
     mix.setValue(0.3);

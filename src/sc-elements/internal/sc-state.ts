@@ -25,7 +25,7 @@
 // in their enablement; vars enforce it as a parse error.
 
 import type { Store } from "@/lib/utils/reactiveStore";
-import { isNodeRuntime, isPluginRuntime } from "@/lib/utils/guards";
+import { isPluginRuntime } from "@/lib/utils/guards";
 import type { PluginRuntimeValues, StateValue } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
@@ -41,13 +41,6 @@ export abstract class ScState extends ScElement {
     return this.runtimeProps?.value !== undefined;
   }
 
-  /** State is live exactly when its parent is a NODE (plugin/group/synth) —
-   *  inferred, never stored. Disabled state (a pure graph input inside
-   *  synthdefs/ugens) stays a plain attribute mirror the graph collection
-   *  reads. */
-  get enabled(): boolean {
-    return this._parentScNode != null && isNodeRuntime(this._parentScNode);
-  }
 
   /** The element's key in the plugin's store map: the named ancestor path
    *  plus its own name (the plugin root contributes no segment). Literal
@@ -74,9 +67,12 @@ export abstract class ScState extends ScElement {
   }
 
   /** The public write path (what inputs call). Derived state is read-only —
-   *  the write is silently inert, like the old app's. */
+   *  the write is silently inert, like the old app's. Graph-plane state
+   *  (synthdef params, ugen inputs) is NOT writable: nothing legitimate
+   *  reaches it (binds cannot target it, its subtree never loads) — callers
+   *  going out of their way via walkPath get an orphan store key. */
   setValue(next: StateValue): void {
-    if (!this.enabled || this.derived) return;
+    if (this.derived) return;
     this.dispatchValue(next);
   }
 
@@ -90,8 +86,10 @@ export abstract class ScState extends ScElement {
     // (re-entrant reload) — state elements are leaves, so nothing awaits
     // before the store wiring below registers; no write can slip the gap.
     const loading = super.load();
+    // No graph-plane guard needed: ScSynthDef.load never recurses into its
+    // subtree, so only node-parented state ever reaches this wiring.
     const store = this.#pluginRuntime;
-    if (store && this.enabled && this.isConnected && !this.derived) {
+    if (store && this.isConnected && !this.derived) {
       const seed = (this.getProp("value") as StateValue) ?? 0;
       store.update((s) => (s[this.key] !== undefined ? s : { ...s, [this.key]: seed }));
       const view = store.select((s) => s[this.key]);

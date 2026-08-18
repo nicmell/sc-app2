@@ -1,9 +1,10 @@
 // <sc-control> — a named parameter: a literal `value` or a `bind:value`
 // expression (mutually exclusive; the store seam and the statechange
-// propagation live on the ScState/ScElement bases). Enabled when the parent
-// is a node (plugin/group/synth); a pure graph input inside ugens — where
-// the SAME spelling means a graph-input REFERENCE (`bind:value="lfo"`) the
-// synthdef collectors consume raw.
+// propagation live on the ScState/ScElement bases). LIVE when the parent is
+// a node (plugin/group/synth); inside the synthdef plane it is pure graph
+// data — a param default, or a ugen input where the SAME spelling means a
+// graph REFERENCE (`bind:value="lfo"`) the synthdef collectors consume raw
+// (the plane never loads; sc-synthdef owns its rules).
 //
 // The only control-specific behavior is the OSC side of a value change,
 // /n_set on the owning node when it is live, fired from exactly two places:
@@ -18,12 +19,10 @@
 // string-valued expression skips the /n_set with a console warning (the UI
 // state still updates).
 
-import { ELEMENTS } from "@/constants/sc-elements";
-import { isNodeRuntime, typeOf } from "@/lib/utils/guards";
+import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
-import { bindAttr } from "@/sc-elements/internal/xsd/types";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
@@ -38,17 +37,6 @@ export class ScControl extends ScState {
         this,
         `"value" attribute must be a number or a comma-list of numbers (got "${value}")`,
       );
-    }
-    // A `bind:value` on a DISABLED control splits by position: inside an
-    // sc-ugen it is a graph-input REFERENCE (consumed raw by the synthdef
-    // collectors — resolveRuntimeProps skips it); on a direct synthdef param
-    // it would be silently dropped from the def — reject loudly.
-    if (
-      !this.enabled &&
-      this.hasAttribute(bindAttr("value")) &&
-      (!this._parentScNode || typeOf(this._parentScNode) !== ELEMENTS.SC_UGEN)
-    ) {
-      failValidation(this, `"${bindAttr("value")}" is not allowed on a synthdef param`);
     }
   }
 

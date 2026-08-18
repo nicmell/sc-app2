@@ -4,9 +4,4 @@
 
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
-export class ScOption extends ScElement {
-  /** Pure data — never part of the live runtime. */
-  get enabled(): boolean {
-    return false;
-  }
-}
+export class ScOption extends ScElement {}

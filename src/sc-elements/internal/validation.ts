@@ -187,21 +187,12 @@ export function isTransparent(el: Element): boolean {
   return !nameOf(el) && !isNodeRuntime(el);
 }
 
-/** A parent's sc children as name lookups see them: recursing through
- *  transparent containers, so state inside an sc-if stays addressable on the
- *  enclosing node (`bind="g.x"` with x wrapped in an sc-if under g). */
-export function* scChildrenThrough(parent: ScElement): Generator<ScElement> {
-  for (const child of parent._scChildren ?? []) {
-    yield child;
-    if (isTransparent(child)) yield* scChildrenThrough(child);
-  }
-}
-
-/** The runtime core every element shares. */
+/** The runtime core every element shares. `_parentScNode` is NOT part of it —
+ *  the parent link is owned by `processParent` (the nearest non-transparent
+ *  sc ancestor, not the level owner this ctx carries). */
 export function baseRuntime(ctx: RuntimeContext): BaseRuntime {
   return {
     _rootScNode: ctx.rootNode,
-    _parentScNode: ctx.parentNode,
     path: ctx.path,
     enabled: true,
   };
@@ -211,7 +202,7 @@ function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
   if (node._scChildren) {
     const [name, ...rest] = path;
-    for (const child of scChildrenThrough(node)) {
+    for (const child of node._scChildren) {
       if (nameOf(child) === name) return walkPath(child, rest);
     }
   }
@@ -280,14 +271,14 @@ export function resolveControlBind(
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
   }
-  if (![...scChildrenThrough(target)].some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+  if (!(target._scChildren ?? []).some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // Lexical fallback for the bare-name form: the name may address a STATE
     // element in an enclosing scope (declared before, per resolveNode's
-    // bind-order gate). Its effective owner carries the control lookup.
+    // bind-order gate). Its owner carries the control lookup.
     if (segments.length === 0) {
       const scoped = resolveNode(el, ctx, [controlName]);
       if (scoped && isStateRuntime(scoped)) {
-        const owner = scoped.namedScParent ?? ctx.rootNode;
+        const owner = scoped._parentScNode ?? ctx.rootNode;
         return { target: owner, controlName };
       }
     }
@@ -322,7 +313,7 @@ export function resolveStateBind(
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path, attr);
-    const targetState = [...scChildrenThrough(target)].find(
+    const targetState = (target._scChildren ?? []).find(
       (c) => isStateRuntime(c) && nameOf(c) === controlName,
     ) as ScState;
     // With references restricted to already-processed elements, processing

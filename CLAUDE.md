@@ -584,12 +584,12 @@ sc-select, sc-radio-group — `isTransparent`, internal/validation.ts) open
 NO sibling scope and NO path segment — the parse walks through them
 (`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails
-flat, `bad-if-shadow`), its bind scope, and its store paths. The tree stays
-truthful — `_parentScNode` is the true parse parent (the sc-if), while
-`namedScParent` recovers the effective owner (the nearest non-transparent
-ancestor) wherever a node is needed (ScControl's /n_set); named-child
-lookups see through transparency too (`scChildrenThrough` in
-walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
+flat, `bad-if-shadow`), its bind scope, and its store paths. Attachment
+walks through transparency too (`processParent`): `_parentScNode` IS the
+nearest non-transparent ancestor — the owner every consumer needs
+(ScControl's /n_set, name lookups over `_scChildren`) — and transparent
+containers stay runtime-tree leaves (sc-select reads its option children
+from the DOM). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
 are syntax-validated as ONE bind-path segment (the spec `name` type — letters,

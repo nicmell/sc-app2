@@ -8,6 +8,7 @@ import { state } from "lit/decorators.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { live } from "lit/directives/live.js";
 import type { StateValue } from "@/types/runtime";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 
 const BASE_TAGS = {
@@ -52,15 +53,16 @@ export abstract class ScChoiceInput extends ScInput {
 
   @state() accessor _value = 0;
 
-  /** The declarative choices — read lazily from the parsed children: these
-   *  inputs are transparent containers, so their option children are processed
-   *  by the ENCLOSING level (after this element) and attach here as their parse
-   *  parent. Lit's first update runs after the synchronous parse, so render
-   *  always sees them. */
+  /** The declarative choices — read lazily from the authored DOM children:
+   *  these inputs are transparent containers, so their option children belong
+   *  to the ENCLOSING node's runtime tree (`_parentScNode` walks through
+   *  transparency) — the DOM is the one place they stay this element's.
+   *  Lit's first update runs after the synchronous parse, so render always
+   *  sees them upgraded. */
   get _options(): Array<{ value: number; label: string }> {
     const optionName = OPTION_NAMES[this.optionTag];
-    return (this._scChildren ?? [])
-      .filter((c) => c.tagName.toLowerCase() === optionName)
+    return Array.from(this.children)
+      .filter((c): c is ScElement => c.tagName.toLowerCase() === optionName)
       .map((o) => ({ value: o.getProp("value") as number, label: o.getProp("label") as string }));
   }
 

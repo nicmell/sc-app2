@@ -268,8 +268,8 @@ Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
 `[hidden] display: none`). sc-if is a TRANSPARENT container: it opens no
 sibling scope and no path segment — its contents are collected,
 duplicate-checked (`bad-if-shadow`), and processed by the ENCLOSING level
-(they attach to the sc-if as their true parse parent, and belong to the
-enclosing node as their effective owner). Full block content is allowed and
+(they attach DIRECTLY to the enclosing node — `_parentScNode` walks through
+transparency, the sc-if stays a runtime-tree leaf). Full block content is allowed and
 is UNCONDITIONALLY live — a synth inside a hidden sc-if keeps playing, a var
 keys at the enclosing path, an outer sibling can bind to elements inside —
 only visibility follows the condition.

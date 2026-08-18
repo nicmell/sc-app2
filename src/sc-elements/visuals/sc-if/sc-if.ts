@@ -8,11 +8,11 @@
 // / [hidden] display: none). sc-if is a TRANSPARENT container (nameless — see
 // internal/validation isTransparent): it opens no sibling scope and no store
 // path segment; its contents are collected, duplicate-checked, and processed
-// by the ENCLOSING level (the parse walks through it), attach to the sc-if as
-// their true parse parent, and belong to the enclosing node as their
-// effective owner (`namedScParent`). The contents are therefore
-// UNCONDITIONALLY LIVE — a synth inside a hidden sc-if keeps playing, a var
-// keys at the enclosing path — only visibility is conditional.
+// by the ENCLOSING level (the parse walks through it) and attach DIRECTLY to
+// the enclosing node (`processParent` walks through transparency — the sc-if
+// stays a runtime-tree leaf). The contents are therefore UNCONDITIONALLY
+// LIVE — a synth inside a hidden sc-if keeps playing, a var keys at the
+// enclosing path — only visibility is conditional.
 
 import { nothing, type PropertyValues } from "lit";
 import { ScElement } from "@/sc-elements/internal/sc-element";

@@ -885,10 +885,11 @@ describe("sc-if transparency", () => {
 
     expect(host.runtime.get()).toEqual({ gate: 1 }); // literal only, root path
     expect(mirror._state).toBe(2);
-    // The tree stays truthful; the OWNER is recovered through transparency.
-    expect(mirror._parentScNode).toBe(scIf);
-    expect(mirror.namedScParent).toBe(host);
-    expect(scIf._scChildren).toContain(mirror);
+    // Transparency is walked through at attach: the sc-if stays a
+    // runtime-tree leaf and its contents belong directly to the owner.
+    expect(mirror._parentScNode).toBe(host);
+    expect(scIf._scChildren).toBeUndefined();
+    expect(host._scChildren).toContain(mirror);
     await display.updateComplete;
     expect(display.textContent).toBe("2");
   });
@@ -989,7 +990,7 @@ describe("sc-group", () => {
     const mix = groupControl(host, "mix"); // declared inside <sc-if> under the group
     expect(mix.enabled).toBe(true);
     expect(host.runtime.get()["g.mix"]).toBe(0); // group-pathed key
-    expect(mix.namedScParent).toBe(g);
+    expect(mix._parentScNode).toBe(g);
     mix.setValue(0.3);
     expect(nSets()[1].args).toEqual([g.nodeId, "mix", 0.3]);
   });

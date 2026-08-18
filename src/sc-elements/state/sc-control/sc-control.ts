@@ -46,12 +46,12 @@ export class ScControl extends ScState {
   /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is
    *  live (the load-pass initial lands before the parent's /s_new and rides
    *  it via getControls / the array seed instead; the ack-window catch-up in
-   *  ScSynth.load covers the send→/n_go gap). The owner is the nearest
-   *  NON-TRANSPARENT ancestor: a control wrapped in an sc-if under a group
+   *  ScSynth.load covers the send→/n_go gap). `_parentScNode` IS the nearest
+   *  non-transparent ancestor: a control wrapped in an sc-if under a group
    *  still writes the group's node — and a GROUP-level array write fans to
    *  every synth inside that carries the named control array. */
   private sendControl(next: StateValue): void {
-    const parent = this.namedScParent;
+    const parent = this._parentScNode;
     if (!(parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0)) return;
     const name = this.getProp("name") as string;
     if (Array.isArray(next)) {

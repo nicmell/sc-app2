@@ -46,7 +46,9 @@ export type { Expr } from "@/lib/expression";
 export interface BaseRuntime {
   /** The plugin root element this element was parsed under. */
   _rootScNode: ScElement;
-  /** The parsed parent element (unset at the root). */
+  /** The parsed parent — the nearest NON-TRANSPARENT sc ancestor (unset at
+   *  the root). Owned by `processParent`, not `baseRuntime`: resolution must
+   *  not overwrite it with the level owner. */
   _parentScNode?: ScParentElement;
   path: string[];
   enabled: boolean;

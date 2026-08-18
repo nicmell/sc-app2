@@ -207,25 +207,21 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   /** Process this element: mint its path-chained hash DOM identity (the
    *  level owner's id + the level's document-order counter), pre-register it
    *  (so re-entrant resolves of a mid-processing ancestor return it), attach
-   *  it to its TRUE parse parent's `_scChildren` (the transparent container —
-   *  sc-if/sc-select/… — for elements inside one; the level owner otherwise),
-   *  run the element's own `validate()`, then resolve the runtime values and
-   *  assign them onto the element. `ctx.parentNode` stays the level OWNER
-   *  throughout resolution (enablement/path/bindless defaults read the named
-   *  parent); `_parentScNode` is corrected to the parse parent afterwards,
-   *  keeping the runtime tree truthful. Library throws get the canonical
-   *  `<tag>:` prefix; already-shaped errors pass through. Idempotent — an
-   *  already-processed element is returned as-is. */
+   *  to its owning parent (`processParent`), run the element's own
+   *  `validate()`, then resolve the runtime values and assign them onto the
+   *  element. `ctx.parentNode` stays the level OWNER throughout resolution
+   *  (enablement/path/bindless defaults read the named parent) —
+   *  `_parentScNode` carries the parse parent, keeping the runtime tree
+   *  truthful. Library throws get the canonical `<tag>:` prefix;
+   *  already-shaped errors pass through. Idempotent — an already-processed
+   *  element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
     }
     ctx.nodes.add(this);
     this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.ordinal++);
-    const parent = ctx.parentNode && this.parseParentOf(ctx.parentNode);
-    if (parent) {
-      ((parent as ScElement)._scChildren ??= []).push(this);
-    }
+    this.processParent(ctx);
     try {
       validateProps(this);
       this.validate();
@@ -237,8 +233,29 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       if (e instanceof Error && message.startsWith("<")) throw e;
       throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`, { cause: e });
     }
-    if (parent) this._parentScNode = parent;
     return this;
+  }
+
+  /** Attach this element to its parent — the nearest NON-TRANSPARENT sc
+   *  ancestor within the level (transparent containers — sc-if/sc-select/… —
+   *  are walked through, so their contents belong directly to the enclosing
+   *  node; transparent containers themselves stay runtime-tree leaves) —
+   *  pushing it onto the parent's `_scChildren` and setting `_parentScNode`.
+   *  The parent link is owned HERE — `baseRuntime` deliberately carries no
+   *  `_parentScNode`, so resolution can't overwrite it with the level owner.
+   *  The root has no parent and skips both. */
+  private processParent(ctx: RuntimeContext): void {
+    const level = ctx.parentNode;
+    if (!level) return;
+    let parent = level;
+    for (let p = this.parentElement; p && p !== level; p = p.parentElement) {
+      if (isNodeType(p.tagName.toLowerCase()) && !isTransparent(p)) {
+        parent = p as ScElement as ScParentElement;
+        break;
+      }
+    }
+    (parent._scChildren ??= []).push(this);
+    this._parentScNode = parent;
   }
 
   /** Post-resolution validation hook — for rules that need the RESOLVED
@@ -267,24 +284,6 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       }
       (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
     }
-  }
-
-  /** The element's true parse parent: its nearest sc ancestor within the
-   *  level. Direct and HTML-wrapped children resolve to the level owner;
-   *  elements inside a transparent container resolve to that container. */
-  private parseParentOf(level: ScParentElement): ScParentElement {
-    for (let p = this.parentElement; p && p !== level; p = p.parentElement) {
-      if (isNodeType(p.tagName.toLowerCase())) return p as ScElement as ScParentElement;
-    }
-    return level;
-  }
-
-  /** The nearest non-transparent sc ancestor — the element's effective owner
-   *  (an element inside an sc-if belongs to the enclosing node). */
-  get namedScParent(): ScParentElement | undefined {
-    let p = this._parentScNode;
-    while (p && isTransparent(p)) p = p._parentScNode;
-    return p;
   }
 
   /** Resolve this element's runtime values — bind resolution lives here, on
@@ -445,7 +444,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  (including transparent containers' contents) into the level context and
    *  check duplicate names across it BEFORE any child processes — then reset
    *  this parent's `_scChildren` and process each child in document order
-   *  (each mints its id and attaches itself to its true parse parent). All
+   *  (each mints its id and attaches itself to its owning parent). All
    *  siblings share ONE level context; `process` recurses per child. Only
    *  naming containers (and the root) run this — transparent containers
    *  never open a level. */

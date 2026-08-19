@@ -132,9 +132,15 @@ export function validateProps(el: ScElement): void {
         failValidation(el, `"${name}" attribute must be ≤ ${attr.max} (got "${raw}")`);
       }
     }
-    // (`vector` has no lexical gate: an all-numeric comma-list is an array,
-    // anything else keeps the scalar semantics — string vars included. The
-    // numeric-only elements enforce it semantically: ScControl.validate.)
+    // A numeric-STRICT vector (spec `numeric: true` — OSC/compiler-bound
+    // values) rejects a static value whose coercion stays a string; plain
+    // vectors keep the string fallback (legal state — sc-var).
+    if (attr.type === "vector" && attr.numeric && typeof coerceStatic(attr, raw) === "string") {
+      failValidation(
+        el,
+        `"${name}" attribute must be a number or a comma-list of numbers (got "${raw}")`,
+      );
+    }
   }
   for (const { name } of Array.from(el.attributes)) {
     // Namespace declarations are XML plumbing, not contract attributes.

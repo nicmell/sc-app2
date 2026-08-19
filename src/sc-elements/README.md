@@ -153,7 +153,7 @@ with a console warning.
 
 A state variable: like `sc-control` but always live and never sent over
 OSC. Props: `name` (required), `value` xor `bind:value` (expressions allowed;
-`value` is a SCALAR — a string literal like `value="lin"` is legal state).
+`value` is a plain — non-strict — vector: a string literal like `value="lin"` is legal state).
 Its live value is `_state` on the shared state machinery: a literal var is
 one runtime-store key (path-keyed, like controls), a derived var recomputes
 element-to-element from its targets' statechange (no store key) and is

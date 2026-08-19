@@ -71,7 +71,11 @@ export type AttrSpec =
   // element's `value` — control-array params, envelope buffers); a single
   // token or a non-numeric list keeps the scalar semantics (string vars).
   // xs:string in the schema; the runtime is the gate.
-  | (AttrCommon & { type: "vector" })
+  // `numeric: true` makes the attr numeric-STRICT: a static value whose
+  // coercion stays a string fails validateProps (sc-control's value,
+  // sc-keyboard's envelope — OSC/compiler-bound floats); without it the
+  // string fallback is legal state (sc-var's string values).
+  | (AttrCommon & { type: "vector"; numeric?: boolean })
   | (AttrCommon & { type: "enum"; values: readonly string[] });
 
 /** The content model — XSD's own vocabulary. Omit it entirely for empty content

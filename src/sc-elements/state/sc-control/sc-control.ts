@@ -22,23 +22,9 @@
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { StateValue } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
-  validate(): void {
-    super.validate();
-    // The vector coercion admits strings (sc-var's string values) — a
-    // control is numeric: scalar or comma-list array (the old decimal gate,
-    // array-aware).
-    const value = this.getProp("value");
-    if (typeof value === "string") {
-      failValidation(
-        this,
-        `"value" attribute must be a number or a comma-list of numbers (got "${value}")`,
-      );
-    }
-  }
 
   /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is
    *  live (the load-pass initial lands before the parent's /s_new and rides

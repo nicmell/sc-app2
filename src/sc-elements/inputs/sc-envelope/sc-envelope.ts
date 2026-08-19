@@ -91,8 +91,8 @@ export class ScEnvelope extends ScInput {
   /** Breakpoint-count bounds (start point included; segments + 1). Insert
    *  blocks at max, removal at min — equal bounds LOCK the structure while
    *  positions stay draggable (stable slots for `env.N` lens binds). */
-  validate(ctx: RuntimeContext): void {
-    super.validate(ctx);
+  validate(): void {
+    super.validate();
     const min = this.getProp("minbreakpoints") as number;
     const max = this.getProp("maxbreakpoints") as number | undefined;
     if (max !== undefined && max < min) {

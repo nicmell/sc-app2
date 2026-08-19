@@ -2,13 +2,16 @@
 // no separate item structure. The element IS the runtime — `process()`
 // attaches the element to its parent's `_scChildren`, assigns the shared
 // core, then runs the TWO conceptual steps every component can extend
-// through `super`: `validate(ctx)` (static — the spec gate + the recursion
-// into sc children) and `resolveRuntime(ctx)` (runtime — bind/reference
-// resolution; the runtime values are plain fields declared here and on the
-// category bases: internal/sc-node, sc-state, sc-input). Bind targets must
-// be declared BEFORE their references in the DOM (see CLAUDE.md —
-// processing is strict DOM order). The validation and bind-resolution
-// helpers the two steps build on live in internal/validation.ts.
+// through `super`: `validate()` (purely STATIC — the spec gate; no ctx, so
+// it can resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
+// bind/reference resolution AND the recursion into sc children: the
+// runtime tree `_scChildren` is a runtime value like the rest, built by the
+// level-opening overrides via `processChildren`; all plain fields declared
+// here and on the category bases: internal/sc-node, sc-state, sc-input).
+// Bind targets must be declared BEFORE their references in the DOM (see
+// CLAUDE.md — processing is strict DOM order). The validation and
+// bind-resolution helpers the two steps build on live in
+// internal/validation.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
 // also generates the XSD); only the handful of genuinely-reactive fields (a
@@ -195,18 +198,12 @@ export abstract class ScElement extends LitElement {
     return s; // string / enum
   }
 
-  /** STEP 1 — static validation: the spec-driven attribute gate, then the
-   *  recursion into the sc children (data-driven: only non-transparent
-   *  elements whose content model admits sc children open a level — leaves
-   *  keep `_scChildren` undefined). Overrides add their SEMANTIC rules
-   *  (cross-attribute, positional) and MUST call `super.validate(ctx)` —
-   *  rules placed before it run pre-children, after it post-children. A
-   *  violation fails the whole plugin parse. */
-  validate(ctx: RuntimeContext): void {
+  /** STEP 1 — STATIC validation: the spec-driven attribute gate. Takes no
+   *  ctx by design — this step can resolve nothing. Overrides add their
+   *  SEMANTIC rules (cross-attribute, positional) and MUST call
+   *  `super.validate()`. A violation fails the whole plugin parse. */
+  validate(): void {
     validateProps(this);
-    if (!isTransparent(this) && this.spec?.content?.choice?.length) {
-      this.processChildren(ctx);
-    }
   }
 
   // ── The parse engine ────────────────────────────────────────────────────
@@ -216,14 +213,15 @@ export abstract class ScElement extends LitElement {
    *  (so re-entrant resolves of a mid-processing ancestor return it), attach
    *  to its owning parent (`processParent`), assign the shared runtime core
    *  (`_rootScNode`/`basePath`), then run the TWO conceptual steps —
-   *  `validate(ctx)` (static: the spec gate + the recursion into sc
-   *  children) and `resolveRuntime(ctx)` (runtime: bind/reference
-   *  resolution) — both extendable per element THROUGH `super`.
-   *  `ctx.parentNode` stays the level OWNER throughout (path/bindless
-   *  defaults read the named parent) — `_parentScNode` carries the parse
-   *  parent, keeping the runtime tree truthful. Library throws get the
-   *  canonical `<tag>:` prefix; already-shaped errors pass through.
-   *  Idempotent — an already-processed element is returned as-is. */
+   *  `validate()` (static: the spec gate; ctx-free) and
+   *  `resolveRuntime(ctx)` (runtime construction: the recursion into sc
+   *  children where the element opens a level, bind/reference resolution) —
+   *  both extendable per element THROUGH `super`. `ctx.parentNode` stays the
+   *  level OWNER throughout (path/bindless defaults read the named parent) —
+   *  `_parentScNode` carries the parse parent, keeping the runtime tree
+   *  truthful. Library throws get the canonical `<tag>:` prefix;
+   *  already-shaped errors pass through. Idempotent — an already-processed
+   *  element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
@@ -234,7 +232,7 @@ export abstract class ScElement extends LitElement {
     try {
       this._rootScNode = ctx.rootNode;
       this.basePath = ctx.path;
-      this.validate(ctx);
+      this.validate();
       this.resolveRuntime(ctx);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -265,15 +263,17 @@ export abstract class ScElement extends LitElement {
     this._parentScNode = parent;
   }
 
-  /** STEP 2 — runtime resolution: every present `bind:attr` becomes live
+  /** STEP 2 — runtime construction: every present `bind:attr` becomes live
    *  targets + expression (the same machinery state binds use, so the
    *  bind-order constraint applies). The SYNTHDEF PLANE is skipped wholesale
    *  (a non-node level exists only inside sc-synthdef/sc-ugen): there a
    *  `bind:value` is a raw GRAPH reference the synthdef collectors consume —
    *  never resolved on the state graph; the loud on-a-param rejection is
-   *  ScSynthDef's. Overrides add their element-specific resolution
-   *  (references, graph collection, resolved-state rules — the children are
-   *  already parsed) and MUST call `super.resolveRuntime(ctx)`. */
+   *  ScSynthDef's. Overrides add their element-specific construction — the
+   *  level-opening elements build the runtime tree via `processChildren`
+   *  (`_scChildren` is a runtime value like the rest), then references,
+   *  graph collection, resolved-state rules — and MUST call
+   *  `super.resolveRuntime(ctx)`. */
   protected resolveRuntime(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
     if (ctx.parentNode && !isNodeRuntime(ctx.parentNode)) return;
@@ -438,9 +438,10 @@ export abstract class ScElement extends LitElement {
    *  this parent's `_scChildren` and process each child in document order
    *  (each mints its id and attaches itself to its owning parent). All
    *  siblings share ONE level context; `process` recurses per child. Called
-   *  by the base `validate(ctx)` for the level-opening elements only —
-   *  transparent containers and leaves never open a level. */
-  private processChildren(ctx: RuntimeContext): void {
+   *  by the level-opening elements' `resolveRuntime` overrides only —
+   *  transparent containers and leaves never open a level. Returns the
+   *  parsed `_scChildren`, so callers need no non-null assertion. */
+  protected processChildren(ctx: RuntimeContext): ScElement[] {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
 
@@ -448,7 +449,7 @@ export abstract class ScElement extends LitElement {
 
     checkDuplicateNames(scope);
 
-    this._scChildren = [];
+    const children: ScElement[] = (this._scChildren = []);
     const childCtx: RuntimeContext = {
       ...ctx,
       scope: [...scope, ...ctx.scope],
@@ -459,5 +460,6 @@ export abstract class ScElement extends LitElement {
     for (const child of scope) {
       child.process(childCtx);
     }
+    return children;
   }
 }

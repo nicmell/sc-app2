@@ -14,11 +14,12 @@ spec attr (unless flagged `runtime: false`) accepts a
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
 returns the evaluated value. `process()` runs TWO extendable steps:
-`validate(ctx)` — static validation (the spec-driven `validateProps()` plain
-function in `internal/validation.ts`: required/numeric/enum, numeric range
-facets, `name` syntax, choice-less no-sc-children, runtime-prop rules — plus
-the recursion into the sc children; overrides add semantic rules around
-`super`) and `resolveRuntime(ctx)` — bind/reference resolution (the real
+`validate()` — ctx-free STATIC validation (the spec-driven `validateProps()`
+plain function in `internal/validation.ts`: required/numeric/enum, numeric
+range facets, `name` syntax, choice-less no-sc-children, runtime-prop rules;
+overrides add semantic rules after `super`) and `resolveRuntime(ctx)` —
+runtime construction: the recursion into the sc children where the element
+opens a level (`processChildren`) plus bind/reference resolution (the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
 element IS the runtime**: both steps mutate the component itself (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element

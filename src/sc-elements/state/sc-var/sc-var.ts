@@ -12,13 +12,12 @@
 // synthdef-plane data; vars enforce the rule as a parse error.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import type { RuntimeContext } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScVar extends ScState {
-  validate(ctx: RuntimeContext): void {
-    super.validate(ctx);
+  validate(): void {
+    super.validate();
     // A var whose parent is not a node (inside a synthdef) has no store
     // path to key under — the runtime gate the XSD content model only
     // mirrors at upload.

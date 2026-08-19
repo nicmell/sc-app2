@@ -21,13 +21,13 @@
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { RuntimeContext, StateValue } from "@/types/runtime";
+import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
-  validate(ctx: RuntimeContext): void {
-    super.validate(ctx);
+  validate(): void {
+    super.validate();
     // The vector coercion admits strings (sc-var's string values) — a
     // control is numeric: scalar or comma-list array (the old decimal gate,
     // array-aware).

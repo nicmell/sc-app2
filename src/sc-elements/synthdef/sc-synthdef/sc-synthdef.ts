@@ -72,8 +72,8 @@ export class ScSynthDef extends ScElement {
   }
 
   protected resolveRuntime(ctx: RuntimeContext): void {
+    const children = this.processChildren(ctx);
     super.resolveRuntime(ctx);
-    const children = this._scChildren ?? [];
     // The synthdef PLANE is compile-time data — this class owns its rules:
     // a param (direct sc-control child) carrying a bind:value would be
     // silently dropped from the def, so reject it loudly here (ugen INPUTS

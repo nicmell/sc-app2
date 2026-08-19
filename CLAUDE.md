@@ -308,8 +308,10 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    flat), **and finally their existence**: the element IS the runtime.
    `process()` lives on `ScElement` — it attaches the element to its
    parent, assigns the shared runtime core, then runs the TWO extendable
-   steps: `validate(ctx)` (spec gate + recursion into the sc children) and
-   `resolveRuntime(ctx)` (bind/reference resolution), both mutating the
+   steps: `validate()` (the ctx-free static spec gate) and
+   `resolveRuntime(ctx)` (runtime construction: the recursion into the sc
+   children where the element opens a level — `_scChildren` is a runtime
+   value like the rest — plus bind/reference resolution), both mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
    helpers are plain functions in `internal/validation.ts`, taking the
@@ -352,10 +354,10 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
    one shared object per sibling scope; it attaches the element to its
-   parent's `_scChildren`, runs `validate()` (which recurses via
-   `processChildren` — data-driven: non-transparent elements whose content
-   model admits sc children), then `resolveRuntime()`. A parent collects
-   ALL its children into the level scope and
+   parent's `_scChildren`, runs `validate()` (spec gate + semantic rules),
+   then `resolveRuntime(ctx)` (bind/reference resolution; the level-opening
+   elements — nodes/synthdef/ugen — recurse via `processChildren` there).
+   A parent collects ALL its children into the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
    shadowing on name lookups.
@@ -414,11 +416,10 @@ further `sc-*` element:
    (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
    no-sc-children rule for choice-less content models, and the runtime-prop
    rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
-   stray `bind:` attrs, foreign-prefix rejection). The base `validate(ctx)`
-   runs it and then recurses into the sc children; overrides add genuinely
-   cross-attribute/semantic rules around `super.validate(ctx)` (before =
-   pre-children, after = post-children). A violation fails the whole
-   plugin. This is the _real_ gate — fastxml does not enforce XSD attribute
+   stray `bind:` attrs, foreign-prefix rejection). The ctx-free base
+   `validate()` runs it; overrides add genuinely cross-attribute/semantic
+   rules after `super.validate()`. A violation fails the whole plugin.
+   This is the _real_ gate — fastxml does not enforce XSD attribute
    requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
@@ -442,11 +443,12 @@ further `sc-*` element:
    (`process`/`processChildren`/`walkScElements`) is inherited from
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
-   through `resolveStateBind` from the element spec. Override it only when
-   an element has additional resolution (references, graph collection,
+   through `resolveStateBind` from the element spec. Override it when an
+   element opens a level (`const children = this.processChildren(ctx)` —
+   ScNode does it for the nodes; `_scChildren` is a runtime value built
+   HERE) or has additional resolution (references, graph collection,
    resolved-state rules), mutating the element directly and ALWAYS calling
-   `super.resolveRuntime(ctx)` — the children are already parsed (the base
-   `validate(ctx)` recursed); `process(ctx)` assigns the shared core
+   `super.resolveRuntime(ctx)`; `process(ctx)` assigns the shared core
    (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL state
    ({rootNode, nodes, scope, parentNode, path, index}) shared by all
    siblings. The default is the self-contained no-op leaf. Extend

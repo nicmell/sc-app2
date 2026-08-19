@@ -13,14 +13,14 @@ spec attr (unless flagged `runtime: false`) accepts a
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. Validation is layered — the spec-driven
-`validateProps()` plain function in `internal/validation.ts` (required/numeric/enum,
-numeric range facets, `name` syntax, choice-less no-sc-children, and the
-runtime-prop rules) before the component's own
-SEMANTIC `validate()` (only for genuinely cross-attribute/semantic rules; both called by `process` during parse — the real
+returns the evaluated value. `process()` runs TWO extendable steps:
+`validate(ctx)` — static validation (the spec-driven `validateProps()` plain
+function in `internal/validation.ts`: required/numeric/enum, numeric range
+facets, `name` syntax, choice-less no-sc-children, runtime-prop rules — plus
+the recursion into the sc children; overrides add semantic rules around
+`super`) and `resolveRuntime(ctx)` — bind/reference resolution (the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
-element IS the runtime**: `process()` assigns the shared runtime core and the
-void `resolveRuntime()` hook mutates the component itself (all plain fields
+element IS the runtime**: both steps mutate the component itself (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `basePath` + `_scChildren` for parents + the
 runtime-prop machinery on `ScElement`, the category values on
@@ -218,7 +218,7 @@ collected and projected as `<sc-base-radio>`s exactly like select/option.
 
 A push button over the ScInput seam — WRITE-ONLY: `bind:value` must be a
 plain writable path (an expression or static value fails at parse,
-validateRuntimeProps). Props: `value` (required, the binding slot), `set`
+the resolveRuntime override). Props: `value` (required, the binding slot), `set`
 (a fixed value to write on click, runtime-capable as `bind:set`; ABSENT =
 the click TOGGLES the target 0 ↔ 1 on the live value's truthiness),
 `label`, `icon`, `disabled` (all three runtime-capable —

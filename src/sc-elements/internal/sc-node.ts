@@ -1,22 +1,17 @@
 // Base for the node-owning elements (sc-plugin / sc-group / sc-synth): the
 // shared `run` attribute plus the node runtime values — `nodeId` (the scsynth
-// node, assigned when it goes live) and `loaded`. The default resolution
-// parses the children; subclasses extend it (sc-synth checks its synthdef
-// bind first, sc-plugin wraps it in the root rollback).
+// node, assigned when it goes live) and `loaded`. The children recurse via
+// the base validate step (their content models admit sc children); sc-synth
+// adds its synthdef reference in resolveRuntime.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { RuntimeContext } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScNode extends ScElement {
   /** The scsynth node id — 0 until the node goes live. */
   nodeId = 0;
   loaded = false;
-
-  protected resolveRuntime(ctx: RuntimeContext): void {
-    this.processChildren(ctx);
-  }
 
   /** The scsynth group this node's create targets: the nearest LOADED node
    *  ancestor — the enclosing sc-group's node, or the plugin group (the walk

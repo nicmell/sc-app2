@@ -20,8 +20,8 @@ export class ScSynth extends ScNode {
   private defElement?: ScSynthDef;
 
   protected resolveRuntime(ctx: RuntimeContext): void {
-    this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
     super.resolveRuntime(ctx);
+    this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
   }
 
   /** Read the enabled control children once in DOM order. Scalar controls

@@ -307,9 +307,10 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
    `process()` lives on `ScElement` — it attaches the element to its
-   parent, validates it, assigns the shared runtime core, then runs the
-   void `resolveRuntime()` hook (element-specific resolution mutating the
-   component itself). `lib/html` and `src/runtime/handlers.ts` are gone —
+   parent, assigns the shared runtime core, then runs the TWO extendable
+   steps: `validate(ctx)` (spec gate + recursion into the sc children) and
+   `resolveRuntime(ctx)` (bind/reference resolution), both mutating the
+   component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
    helpers are plain functions in `internal/validation.ts`, taking the
    element explicitly where the error messages need it.
@@ -351,9 +352,10 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
    one shared object per sibling scope; it attaches the element to its
-   parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
-   (which recurses via `processChildren` where the element parses
-   children). A parent collects ALL its children into the level scope and
+   parent's `_scChildren`, runs `validate()` (which recurses via
+   `processChildren` — data-driven: non-transparent elements whose content
+   model admits sc children), then `resolveRuntime()`. A parent collects
+   ALL its children into the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
    shadowing on name lookups.
@@ -412,11 +414,12 @@ further `sc-*` element:
    (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
    no-sc-children rule for choice-less content models, and the runtime-prop
    rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
-   stray `bind:` attrs, foreign-prefix rejection); overrides of `validate()`
-   are only for genuinely cross-attribute/semantic rules. `process` calls
-   both before resolving and a violation fails the whole plugin. This is the
-   _real_ gate — fastxml does not enforce XSD attribute requirements at
-   upload.
+   stray `bind:` attrs, foreign-prefix rejection). The base `validate(ctx)`
+   runs it and then recurses into the sc children; overrides add genuinely
+   cross-attribute/semantic rules around `super.validate(ctx)` (before =
+   pre-children, after = post-children). A violation fails the whole
+   plugin. This is the _real_ gate — fastxml does not enforce XSD attribute
+   requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;
@@ -438,14 +441,14 @@ further `sc-*` element:
 5. **Runtime resolution**: the parse engine
    (`process`/`processChildren`/`walkScElements`) is inherited from
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
-   need no component code: the base resolves them through
-   `resolveRuntimeProps` → `resolveStateBind` from the element spec. Override
-   the void `resolveRuntime(ctx)` hook only when an element has additional
-   structural runtime data (for example node ownership or synthdef
-   references), mutating the element directly (`super.resolveRuntime(ctx)`
-   where the parent's recursion should follow); `process(ctx)` assigns the
-   shared core (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL
-   state ({rootNode, nodes, scope, parentNode, path, index}) shared by all
+   need no component code: the base `resolveRuntime(ctx)` resolves them
+   through `resolveStateBind` from the element spec. Override it only when
+   an element has additional resolution (references, graph collection,
+   resolved-state rules), mutating the element directly and ALWAYS calling
+   `super.resolveRuntime(ctx)` — the children are already parsed (the base
+   `validate(ctx)` recursed); `process(ctx)` assigns the shared core
+   (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL state
+   ({rootNode, nodes, scope, parentNode, path, index}) shared by all
    siblings. The default is the self-contained no-op leaf. Extend
    `lib/utils/guards.ts` if the element joins a category
    (state/node/parent). Add the element's examples to the unit suite's
@@ -472,7 +475,7 @@ further `sc-*` element:
 | sc-if                                                      | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none)                                                                                                                     |
 | sc-text, sc-flex, sc-row, sc-col                           | functional visual/layout wrappers over ui-components; row/col use a native 24-track CSS Grid, with the slotted sc-col host adopting the shared static span/offset/order rules for WebKit/Tauri compatibility                                                                                                                                                                                                                                                                                                                                                      |
 | sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                                                                                        |
-| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                                   |
+| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (its resolveRuntime override); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                                   |
 | sc-console                                                 | functional leaf (the OSC console; no attributes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split), `range` (bipolar\|unipolar — envelopes/control taps fill the lane) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel                                                 | functional + parametrized: `value` = initial pattern code; plain-path `bind:value` is two-way per keystroke, expression binds are read-only, and attribute `\\n` escapes decode to newlines; `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                   |
@@ -515,7 +518,7 @@ when `process()` succeeds — reload never retries them).
 accepts a `bind:`-namespaced sibling holding a bind expression
 (`xmlns:bind="urn:sc-app:bind"` declared on the entry root; qualified-name
 matching, canonical prefix enforced), resolved in `process()`
-(`resolveRuntimeProps` → `resolveStateBind`, per prop) into
+(the base `resolveRuntime` → `resolveStateBind`, per prop) into
 `runtimeProps[name] = {targets, expression}`, wired in `load()`'s
 synchronous prefix (drop-first re-entrancy: initial recompute + recompute on
 each target's statechange), and written through `updateRuntimeValue(name,

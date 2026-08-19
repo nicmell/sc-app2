@@ -8,16 +8,18 @@
 //
 // Buttons are WRITE-ONLY, so unlike the other inputs (where an expression or
 // static `value` is a legitimate read-only meter) a button without a
-// writable target is dead weight — validateRuntimeProps rejects it.
+// writable target is dead weight — resolveRuntime rejects it.
 
 import { html } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
+import type { RuntimeContext } from "@/types/runtime";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import { failValidation } from "@/sc-elements/internal/validation";
 import "@sc-app/ui-components/lit";
 
 export class ScButton extends ScInput {
-  protected validateRuntimeProps(): void {
+  protected resolveRuntime(ctx: RuntimeContext): void {
+    super.resolveRuntime(ctx);
     // Requires a plain single-path bind:value resolving to WRITABLE state —
     // an expression bind, a static `value`, or a DERIVED target (whose
     // setValue is inert) all leave nothing to click into. The bind-order

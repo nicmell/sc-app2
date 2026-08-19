@@ -28,7 +28,7 @@ function collectControlParams(children: readonly ScElement[]): Record<string, nu
 /** Collect an element's <sc-control> children into name → ref-or-literal
  *  strings — the shape consumed by the synthdef graph compiler. The
  *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc.1"`) is read raw
- *  (never resolved on the state graph; resolveRuntimeProps skips these
+ *  (never resolved on the state graph; the base resolveRuntime skips these
  *  children); an empty reference counts as absent — the parse-time error beats
  *  a junk "" reaching the compiler at /d_recv time. */
 function collectControlEntries(children: readonly ScElement[]): Record<string, string> {
@@ -72,7 +72,8 @@ export class ScSynthDef extends ScElement {
   }
 
   protected resolveRuntime(ctx: RuntimeContext): void {
-    const children = this.processChildren(ctx);
+    super.resolveRuntime(ctx);
+    const children = this._scChildren ?? [];
     // The synthdef PLANE is compile-time data — this class owns its rules:
     // a param (direct sc-control child) carrying a bind:value would be
     // silently dropped from the def, so reject it loudly here (ugen INPUTS

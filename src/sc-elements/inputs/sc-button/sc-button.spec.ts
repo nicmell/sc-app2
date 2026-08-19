@@ -2,7 +2,7 @@ import type { ElementSpec } from "@/sc-elements/internal/xsd/types";
 
 // A click commits `set` when given (a fixed-value trigger), else toggles
 // the bound state 0 ↔ 1. Buttons are write-only, so `bind:value` must be a
-// plain writable path (validateRuntimeProps).
+// plain writable path (the resolveRuntime override rejects the rest).
 export const spec: ElementSpec = {
   tag: "sc-button",
   category: "input",

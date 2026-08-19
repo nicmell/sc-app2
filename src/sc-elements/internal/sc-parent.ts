@@ -6,7 +6,7 @@
 // parse-scope walker, `processChildren`, and the load/unload child walks.
 
 import { isNodeType } from "@/lib/utils/guards";
-import { checkDuplicateNames, isTransparent, nameOf } from "@/sc-elements/internal/validation";
+import { checkDuplicateNames, isTransparent, nameOf } from "@/sc-elements/internal/resolution";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { RuntimeContext } from "@/types/runtime";
 

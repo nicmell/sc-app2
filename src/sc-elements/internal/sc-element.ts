@@ -44,12 +44,12 @@ import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
+import { resolveBind } from "@/sc-elements/internal/resolution";
 import {
   coerceBoolean,
   coerceScalar,
   coerceVector,
   coerceStatic,
-  resolveBind,
   validateProps,
 } from "@/sc-elements/internal/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";

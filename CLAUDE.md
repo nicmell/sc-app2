@@ -90,7 +90,8 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          ScElement base carries the parse engine (process/
                          processChildren) + the common runtime fields;
                          validation.ts holds the parse-time validation/static-
-                         coercion + bind-resolution helpers as plain functions;
+                         coercion and resolution.ts the name/scope/bind-
+                         resolution helpers, both as plain functions;
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
@@ -315,7 +316,8 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    value like the rest — plus bind/reference resolution), both mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
-   helpers are plain functions in `internal/validation.ts`, taking the
+   helpers are plain functions in `internal/validation.ts` +
+   `internal/resolution.ts`, taking the
    element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
@@ -594,7 +596,7 @@ numeric prop falls back to the widget default). Native inputs bind with Lit's `l
 directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
-sc-select, sc-radio-group — `isTransparent`, internal/validation.ts) open
+sc-select, sc-radio-group — `isTransparent`, internal/resolution.ts) open
 NO sibling scope and NO path segment — the parse walks through them
 (`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails

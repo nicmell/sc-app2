@@ -44,10 +44,11 @@ internal/   ScElement (parse engine — process — the common runtime fields,
             "statechange" on the `value` slot — the value seam everything
             reads); sc-parent.ts (ScParent — the level openers' base:
             `_scChildren`, the parse-scope walker, processChildren, the
-            load/unload child walks); validation.ts (the parse-time
-            validateProps/coerceStatic
-            helpers, failValidation/duplicate-name primitives + the
-            bind-resolution machinery, as plain functions over the elements);
+            load/unload child walks); validation.ts (STEP 1's toolbox: the
+            spec-driven validateProps gate, failValidation, static coercion);
+            resolution.ts (STEP 2's toolbox: name/transparency semantics,
+            duplicate-name integrity, name-path + bind-expression resolution
+            — all plain functions over the elements);
             the category bases ScNode (run + nodeId/loaded),
             ScState (`_state` = the `value` runtime slot + the plugin root's
             instance-store backing for LITERAL state, reached via

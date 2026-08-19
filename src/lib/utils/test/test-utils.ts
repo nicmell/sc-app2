@@ -31,8 +31,7 @@ export function wrapXml(xml: string): string {
  *  parsed root), exactly like production. */
 export function parsePlugin(xml: string): { host: ScPlugin; nodes: Set<ScElement> } {
   const host = parseEntry(xml);
-  const nodes = new Set<ScElement>();
-  host.process({ rootNode: host, nodes, scope: [host], path: [] });
+  const nodes = host.processRoot();
   return { host, nodes };
 }
 

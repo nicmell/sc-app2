@@ -1,9 +1,10 @@
 // <sc-control> — a named parameter: a literal `value` or a `bind:value`
 // expression (mutually exclusive; the store seam and the statechange
-// propagation live on the ScState/ScElement bases). Enabled when the parent
-// is a node (plugin/group/synth); a pure graph input inside ugens — where
-// the SAME spelling means a graph-input REFERENCE (`bind:value="lfo"`) the
-// synthdef collectors consume raw.
+// propagation live on the ScState/ScElement bases). LIVE when the parent is
+// a node (plugin/group/synth); inside the synthdef plane it is pure graph
+// data — a param default, or a ugen input where the SAME spelling means a
+// graph REFERENCE (`bind:value="lfo"`) the synthdef collectors consume raw
+// (the plane never loads; sc-synthdef owns its rules).
 //
 // The only control-specific behavior is the OSC side of a value change,
 // /n_set on the owning node when it is live, fired from exactly two places:
@@ -20,7 +21,7 @@
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { BaseRuntime, RuntimeContext, StateValue } from "@/types/runtime";
+import type { StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
@@ -39,19 +40,15 @@ export class ScControl extends ScState {
     }
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return this.stateRuntime(ctx, ctx.parentNode != null && isNodeRuntime(ctx.parentNode));
-  }
-
   /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is
    *  live (the load-pass initial lands before the parent's /s_new and rides
    *  it via getControls / the array seed instead; the ack-window catch-up in
-   *  ScSynth.load covers the send→/n_go gap). The owner is the nearest
-   *  NON-TRANSPARENT ancestor: a control wrapped in an sc-if under a group
+   *  ScSynth.load covers the send→/n_go gap). `_parentScNode` IS the nearest
+   *  non-transparent ancestor: a control wrapped in an sc-if under a group
    *  still writes the group's node — and a GROUP-level array write fans to
    *  every synth inside that carries the named control array. */
   private sendControl(next: StateValue): void {
-    const parent = this.namedScParent;
+    const parent = this._parentScNode;
     if (!(parent && isNodeRuntime(parent) && parent.loaded && parent.nodeId !== 0)) return;
     const name = this.getProp("name") as string;
     if (Array.isArray(next)) {

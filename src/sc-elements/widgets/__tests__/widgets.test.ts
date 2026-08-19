@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
+import { validateProps } from "@/sc-elements/internal/validation";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
@@ -99,14 +100,14 @@ describe("sc-scope", () => {
     const host = await mountXml(
       '<sc-var name="scopeGain" value="2"/><sc-scope bind:gain="scopeGain"/>',
     );
-    const scope = host.querySelector("sc-scope") as unknown as { _gain: number };
+    const scope = host.querySelector("sc-scope") as ScScope;
     const gain = host.querySelector("sc-var") as HTMLElement & {
       setValue(value: number): void;
     };
 
-    expect(scope._gain).toBe(2);
+    expect(scope.getProp("gain") as number).toBe(2);
     gain.setValue(3);
-    expect(scope._gain).toBe(3);
+    expect(scope.getProp("gain") as number).toBe(3);
   });
 
   it("releases a late tap and its scope slot when load was invalidated", async () => {
@@ -211,15 +212,15 @@ describe("sc-scope", () => {
 
   it("rejects invalid bus/channels at parse", async () => {
     await expect(mountXml('<sc-scope channels="0"/>')).rejects.toThrow(
-      '"channels" attribute must be a positive integer (got "0")',
+      '"channels" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope bus="-1"/>')).rejects.toThrow(
-      '"bus" attribute must be a non-negative integer (got "-1")',
+      '"bus" attribute must be ≥ 0 (got "-1")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope frames="0"/>')).rejects.toThrow(
-      '"frames" attribute must be a positive integer (got "0")',
+      '"frames" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope frames="32768"/>')).rejects.toThrow(
@@ -232,33 +233,26 @@ describe("sc-scope", () => {
       '<sc-scope channels="1" trigger="normal" slope="falling" level="0.1" gain="2" layout="split"/>',
     );
     // The display props are declarative — read (coerced + defaulted) through
-    // the element's private getters over `getProp`.
-    type Display = {
-      _trigger: string;
-      _slope: string;
-      _level: number;
-      _gain: number;
-      _layout: string;
-    };
-    const scope = host.querySelector("sc-scope") as unknown as Display;
-    expect([scope._trigger, scope._slope, scope._level, scope._gain, scope._layout]).toEqual([
-      "normal",
-      "falling",
-      0.1,
-      2,
-      "split",
-    ]);
+    // the spec-backed getProp path.
+    const scope = host.querySelector("sc-scope") as ScScope;
+    expect([
+      scope.getProp("trigger") as string,
+      scope.getProp("slope") as string,
+      scope.getProp("level") as number,
+      scope.getProp("gain") as number,
+      scope.getProp("layout") as string,
+    ]).toEqual(["normal", "falling", 0.1, 2, "split"]);
 
     document.body.replaceChildren();
     const bare = await mountXml("<sc-scope/>");
-    const def = bare.querySelector("sc-scope") as unknown as Display;
-    expect([def._trigger, def._slope, def._level, def._gain, def._layout]).toEqual([
-      "auto",
-      "rising",
-      0,
-      1,
-      "overlay",
-    ]);
+    const def = bare.querySelector("sc-scope") as ScScope;
+    expect([
+      def.getProp("trigger") as string,
+      def.getProp("slope") as string,
+      def.getProp("level") as number,
+      def.getProp("gain") as number,
+      def.getProp("layout") as string,
+    ]).toEqual(["auto", "rising", 0, 1, "overlay"]);
   });
 
   it("rejects invalid display props at parse", async () => {
@@ -271,7 +265,7 @@ describe("sc-scope", () => {
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope gain="0"/>')).rejects.toThrow(
-      '"gain" attribute must be a positive number (got "0")',
+      '"gain" attribute must be > 0 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml('<sc-scope layout="stack"/>')).rejects.toThrow(
@@ -358,7 +352,9 @@ describe("sc-strudel", () => {
   });
 
   it("syncs external writes with a same-code loop guard", async () => {
-    const host = await mountXml(`<sc-var name="code" value="first"/><sc-strudel bind:value="code"/>`);
+    const host = await mountXml(
+      `<sc-var name="code" value="first"/><sc-strudel bind:value="code"/>`,
+    );
     await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
     const mirror = strudelMirrors[0];
     mirror.setCode.mockClear();
@@ -393,7 +389,7 @@ describe("sc-strudel", () => {
     const strudel = document.createElement("sc-strudel") as ScStrudel;
     strudel.setAttribute("value", "a");
     strudel.setAttribute("bind:value", "code");
-    expect(() => strudel.validateProps()).toThrow(
+    expect(() => validateProps(strudel)).toThrow(
       '<sc-strudel>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -429,7 +425,7 @@ describe("sc-strudel", () => {
 
   it("rejects a negative orbit at parse", async () => {
     await expect(mountXml('<sc-strudel orbit="-1"></sc-strudel>')).rejects.toThrow(
-      '"orbit" attribute must be a non-negative integer (got "-1")',
+      '"orbit" attribute must be ≥ 0 (got "-1")',
     );
   });
 });
@@ -594,11 +590,11 @@ describe("sc-keyboard", () => {
 
   it("rejects an invalid range at parse", async () => {
     await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" octaves="0"/>`)).rejects.toThrow(
-      '"octaves" attribute must be a positive integer (got "0")',
+      '"octaves" attribute must be ≥ 1 (got "0")',
     );
     document.body.replaceChildren();
     await expect(mountXml(`${KBD}<sc-keyboard synthdef="kbd" start="200"/>`)).rejects.toThrow(
-      '"start" attribute must be a MIDI note 0–127 (got "200")',
+      '"start" attribute must be ≤ 127 (got "200")',
     );
   });
 });

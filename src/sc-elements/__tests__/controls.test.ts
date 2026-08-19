@@ -13,6 +13,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { type OscMessage } from "@sc-app/server-commands";
+import { isParentRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import type { StateValue } from "@/types/runtime";
@@ -28,6 +29,7 @@ import {
   type ScVar,
 } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
+import { validateProps } from "@/sc-elements/internal/validation";
 import {
   autoRespond,
   FIRST_NODE_ID,
@@ -829,7 +831,7 @@ describe("selection inputs (select + radio-group)", () => {
   });
 });
 
-describe("name syntax (requireName)", () => {
+describe("name syntax (spec type)", () => {
   const NAME_ERROR = (tag: string, name: string) =>
     `<${tag}>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "${name}")`;
 
@@ -884,10 +886,12 @@ describe("sc-if transparency", () => {
 
     expect(host.runtime.get()).toEqual({ gate: 1 }); // literal only, root path
     expect(mirror._state).toBe(2);
-    // The tree stays truthful; the OWNER is recovered through transparency.
-    expect(mirror._parentScNode).toBe(scIf);
-    expect(mirror.namedScParent).toBe(host);
-    expect(scIf._scChildren).toContain(mirror);
+    // Transparency is walked through at attach: the sc-if stays a
+    // runtime-tree leaf (not a ScParent — no _scChildren at all) and its
+    // contents belong directly to the owner.
+    expect(mirror._parentScNode).toBe(host);
+    expect(isParentRuntime(scIf)).toBe(false);
+    expect(host._scChildren).toContain(mirror);
     await display.updateComplete;
     expect(display.textContent).toBe("2");
   });
@@ -986,9 +990,8 @@ describe("sc-group", () => {
     expect(nSets()[0].args).toEqual([g.nodeId, "vol", 0.8]);
 
     const mix = groupControl(host, "mix"); // declared inside <sc-if> under the group
-    expect(mix.enabled).toBe(true);
     expect(host.runtime.get()["g.mix"]).toBe(0); // group-pathed key
-    expect(mix.namedScParent).toBe(g);
+    expect(mix._parentScNode).toBe(g);
     mix.setValue(0.3);
     expect(nSets()[1].args).toEqual([g.nodeId, "mix", 0.3]);
   });
@@ -1102,7 +1105,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "a");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "b");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-var>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -1272,7 +1275,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "freq");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "freq");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-control>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -1305,7 +1308,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "s1");
     el.setAttribute("synthdef", "sine");
     el.setAttribute("bind:synthdef", "sine");
-    expect(() => el.validateProps()).toThrow(
+    expect(() => validateProps(el)).toThrow(
       '<sc-synth>: unknown runtime attribute "bind:synthdef"',
     );
   });

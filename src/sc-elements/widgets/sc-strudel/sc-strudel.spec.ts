@@ -5,6 +5,6 @@ export const spec: ElementSpec = {
   category: "widget",
   attrs: {
     value: { type: "string" },
-    orbit: { type: "integer", runtime: false },
+    orbit: { type: "integer", min: 0, runtime: false },
   },
 };

@@ -1,13 +1,17 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — `process()`
-// attaches the element to its parent's `_scChildren`, validates it, then
-// resolves the runtime values and assigns them onto the component (declared
-// here and on the category bases: internal/sc-node, sc-state, sc-input),
-// recursing into the children (`processChildren`) where the per-element
-// `resolveRuntime` says so. Bind targets must be declared BEFORE their
-// references in the DOM (see CLAUDE.md — processing is headed for strict
-// DOM order). The validation and bind-resolution helpers the `validate()`/
-// `resolveRuntime` overrides build on live in internal/validation.ts.
+// assigns the identity + shared core (the parent collects the element into
+// its `_scChildren`), then runs the TWO conceptual steps every component can extend
+// through `super`: `validate()` (purely STATIC — the spec gate; no ctx, so
+// it can resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
+// bind/reference resolution AND the recursion into sc children: the
+// runtime tree `_scChildren` is a runtime value like the rest, built by the
+// level-opening overrides via `processChildren`; all plain fields declared
+// here and on the category bases: internal/sc-node, sc-state, sc-input).
+// Bind targets must be declared BEFORE their references in the DOM (see
+// CLAUDE.md — processing is strict DOM order). The validation and
+// bind-resolution helpers the two steps build on live in
+// internal/validation.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
 // also generates the XSD); only the handful of genuinely-reactive fields (a
@@ -37,59 +41,21 @@
 // (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides.
 
 import { LitElement } from "lit";
-import { ELEMENTS } from "@/constants/sc-elements";
-import { evalExpr, tryEvalCallLiteral } from "@/lib/expression";
-import { isNodeType, isStateRuntime, typeOf } from "@/lib/utils/guards";
-import { randomId } from "@/lib/utils/randomId";
+import { evalExpr } from "@/lib/expression";
+import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
+import { contentHash } from "@/sc-elements/internal/contentHash";
+import { resolveBind } from "@/sc-elements/internal/resolution";
 import {
-  baseRuntime,
-  checkDuplicateNames,
-  failValidation,
-  isTransparent,
-  nameOf,
-  resolveStateBind,
+  coerceBoolean,
+  coerceScalar,
+  coerceVector,
+  coerceStatic,
+  validateProps,
 } from "@/sc-elements/internal/validation";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import {
-  bindAttr,
-  COMMON_ATTRS,
-  type AttrSpec,
-  type ElementSpec,
-} from "@/sc-elements/internal/xsd/types";
-import type { BaseRuntime, RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
-
-// XML Schema lexical spaces for the primitive attribute types we coerce.
-// Number() is deliberately not used for validation: it accepts empty strings,
-// whitespace, exponents for decimals, and fractional integers.
-const XSD_DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
-const XSD_INTEGER = /^[+-]?\d+$/;
-const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
-
-/** Vector coercion: an already-array value passes through; a STATIC string
- *  may be an envelope-constructor call (`pad(adsr(0.02, 0.15, 0.6, 0.3), 36)`
- *  — evaluated to number[] through lib/expression, memoized per raw string;
- *  a KNOWN function head with bad args throws loud at parse, an unknown head
- *  keeps the string semantics); a comma-list of numerics becomes number[];
- *  anything else keeps the scalar semantics (number-if-numeric-else-string —
- *  string vars keep working, commas in non-numeric strings included).
- *  EVALUATED values are never call-evaluated: a bind-computed string that
- *  happens to look like a call must not turn into an array. */
-function coerceVector(
-  value: number | string | number[],
-  evaluated: boolean,
-): string | number | number[] {
-  if (typeof value !== "string") return value;
-  if (!evaluated) {
-    const call = tryEvalCallLiteral(value);
-    if (call) return call;
-  }
-  const tokens = value.split(",").map((s) => s.trim());
-  if (tokens.length >= 2 && tokens.every((t) => t !== "" && !Number.isNaN(Number(t)))) {
-    return tokens.map(Number);
-  }
-  const n = Number(value);
-  return value.trim() !== "" && !Number.isNaN(n) ? n : value;
-}
+import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
+import type { RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
  *  names cannot start with a digit, so the tail is unambiguous. */
@@ -98,30 +64,19 @@ export function slotIndexOf(path: string): number | null {
   return path.includes(".") && /^\d+$/.test(tail) ? Number(tail) : null;
 }
 
-/** A parent element — its parsed sc-* children live in `_scChildren`. */
-export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
-export abstract class ScElement extends LitElement implements BaseRuntime {
+export abstract class ScElement extends LitElement {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
-  /** The hydrated identity — the native DOM id; `process` assigns one where
-   *  none exists yet (the browser reflects it to the attribute). */
+  /** The parsed identity — the native DOM id; `process` mints the
+   *  path-chained hash (the browser reflects it to the attribute). */
   declare id: string;
   /** The plugin root element this element was parsed under. */
-  _rootScNode!: ScElement;
+  _rootScNode!: ScParent;
   /** The parsed parent element (unset at the root). */
-  _parentScNode?: ScParentElement;
-  /** The parsed sc-* child elements — parents only (NOT the DOM children:
-   *  sc-* descendants reached through plain HTML wrappers). */
-  _scChildren?: ScElement[];
+  _parentScNode?: ScParent;
   /** The named ancestor path (scope names, outermost first). */
-  path: string[] = [];
-  enabled = true;
-  /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
-   *  root's unload()/reload(), it invalidates a suspended load pass: the
-   *  sequential walk re-checks it after every awaited child and aborts when
-   *  it moved (disconnect unload, or a newer pass superseding this one). */
-  loadEpoch = 0;
+  basePath: string[] = [];
   /** The resolved runtime props (`bind:min="vars.lo"` → key "min"): live bind
    *  targets + parsed expression per prop, assigned in `process()`. */
   runtimeProps?: Record<string, RuntimeProp>;
@@ -151,21 +106,33 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
   }
 
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
-   *  call site (`this.getProp("min") as number`). Absent → undefined; a
-   *  forwarded prop then falls back to the base widget's own default. When the
-   *  attr is runtime-flagged and its `bind:` form is present, this returns the LIVE
-   *  evaluated value instead (undefined until the targets settle) — reads from
-   *  render() re-run on every recompute. The genuinely-reactive fields (a
-   *  widget's `value`, `_checked`, …) are NOT declarative attributes and stay
-   *  as reactive class fields. */
+   *  call site (`this.getProp("min") as number`). A declared spec `default` is
+   *  returned, with the same coercion as a static value, when neither the
+   *  static attr nor a settled `bind:` value is present; undeclared attrs stay
+   *  undefined, so a forwarded prop then falls back to the base widget's own
+   *  default. When the attr is runtime-flagged and its `bind:` form is present,
+   *  this returns the LIVE evaluated value instead (undefined until the targets
+   *  settle) — reads from render() re-run on every recompute. The genuinely-
+   *  reactive fields (a widget's `value`, `_checked`, …) are NOT declarative
+   *  attributes and stay as reactive class fields. */
   getProp(name: string): string | number | boolean | number[] | undefined {
     const attr = this.spec?.attrs?.[name];
     if (attr && attr.runtime !== false && this.hasAttribute(bindAttr(name))) {
-      return this.coerceProp(attr, name, this.#runtime[name], true);
+      return this.coerceProp(attr, name, this.#runtime[name]) ?? this.coerceDefault(attr);
     }
     const raw = this.getAttribute(name);
-    if (raw === null) return undefined;
-    return this.coerceProp(attr, name, raw, false);
+    if (raw === null) return this.coerceDefault(attr);
+    return coerceStatic(attr, raw);
+  }
+
+  /** Apply static lexical coercion to a spec default. Stringifying first keeps
+   *  defaults authored as numbers/booleans on their native shapes while still
+   *  making a string default on (for example) an integer attr numeric. */
+  private coerceDefault(
+    attr: AttrSpec | undefined,
+  ): string | number | boolean | number[] | undefined {
+    if (attr?.default === undefined) return undefined;
+    return coerceStatic(attr, String(attr.default));
   }
 
   /** Once-per-element+prop warning bookkeeping for evaluated-value type
@@ -179,29 +146,22 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     console.warn(`<${this.tagName.toLowerCase()}>: ${message}`);
   }
 
-  /** Coerce a raw attribute string or an evaluated runtime value per the spec
-   *  type: decimal/integer → Number, boolean → `!== "false"` for the static
-   *  attribute (run/disabled) and plain truthiness for evaluated values (an
-   *  evaluated `''`/0 is falsy), scalar → number-if-numeric-else-string,
-   *  string/enum → String. Evaluated values that miss their spec type warn
-   *  once per element+prop (the static forms fail at parse in validateProps;
-   *  evaluated ones can only be checked live): a non-numeric on a numeric
-   *  prop returns undefined so the reader falls back to its default instead
-   *  of receiving NaN; an enum miss returns the string (graceful). */
+  /** Coerce an evaluated runtime value per the spec, keeping live warning
+   *  bookkeeping on the element. Static values use the pure `coerceStatic`
+   *  function in internal/validation.ts. */
   private coerceProp(
     attr: AttrSpec | undefined,
     name: string,
     value: StateValue | undefined,
-    evaluated: boolean,
   ): string | number | boolean | number[] | undefined {
     if (value === undefined) return undefined;
-    if (attr?.type === "vector") return coerceVector(value, evaluated);
+    if (attr?.type === "vector") return coerceVector(value);
     // Array values have no scalar coercion outside vector attrs — getProp
     // readers fall back to their defaults; the value rides `_state` instead.
     if (typeof value === "object") return undefined;
     if (attr?.type === "decimal" || attr?.type === "integer") {
       const n = Number(value);
-      if (evaluated && Number.isNaN(n)) {
+      if (Number.isNaN(n)) {
         this.#warnOnce(
           name,
           `"${bindAttr(name)}" evaluated to non-numeric ${JSON.stringify(value)} — falling back`,
@@ -211,15 +171,16 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
       return n;
     }
     if (attr?.type === "boolean") {
-      return evaluated ? Boolean(value) : value === "true" || value === "1";
+      // The SAME HTML-flavored reading as the static form — a bound string
+      // "false" disables like the attribute would.
+      return coerceBoolean(value);
     }
     if (attr?.type === "scalar") {
       if (typeof value === "number") return value;
-      const n = Number(value);
-      return value.trim() !== "" && !Number.isNaN(n) ? n : value;
+      return coerceScalar(value);
     }
     const s = String(value);
-    if (evaluated && attr?.type === "enum" && !attr.values.includes(s)) {
+    if (attr?.type === "enum" && !attr.values.includes(s)) {
       this.#warnOnce(
         name,
         `"${bindAttr(name)}" evaluated to "${s}" — not one of ${attr.values.join("|")}`,
@@ -228,163 +189,70 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     return s; // string / enum
   }
 
-  /** Spec-driven attribute validation, run before `validate()`: required
-   *  present (a runtime attr satisfies it with either form), static/`bind:`
-   *  mutual exclusion, numeric non-NaN, enum membership (static form only —
-   *  evaluated values are unvalidated, an accepted limitation), and the
-   *  attribute-name hygiene: only the canonical `bind:` prefix carries
-   *  runtime props (the XSD admits the NAMESPACE, the runtime matches the
-   *  QUALIFIED NAME — a foreign prefix would silently no-op, so it fails
-   *  loudly), and only spec attrs not opted out have a `bind:` form. Element-specific
-   *  semantic and range rules (name syntax, positive/≤max, no-sc-children)
-   *  stay in the per-element `validate()` override. */
-  validateProps(): void {
-    const attrs = this.spec?.attrs ?? {};
-    for (const [name, attr] of Object.entries(attrs)) {
-      const raw = this.getAttribute(name);
-      const dynamic = attr.runtime !== false ? this.getAttribute(bindAttr(name)) : null;
-      if (raw !== null && dynamic !== null) {
-        failValidation(this, `"${name}" and "${bindAttr(name)}" are mutually exclusive`);
-      }
-      if (raw === null) {
-        if (attr.required && dynamic === null) {
-          failValidation(this, `missing required "${name}" attribute`);
-        }
-        continue;
-      }
-      if (attr.type === "decimal" && !XSD_DECIMAL.test(raw)) {
-        failValidation(this, `"${name}" attribute must be a decimal number`);
-      }
-      if (attr.type === "integer" && !XSD_INTEGER.test(raw)) {
-        failValidation(this, `"${name}" attribute must be an integer`);
-      }
-      if (attr.type === "boolean" && !XSD_BOOLEAN.has(raw)) {
-        failValidation(this, `"${name}" attribute must be one of true|false|1|0 (got "${raw}")`);
-      }
-      if (attr.type === "enum" && !attr.values.includes(raw)) {
-        failValidation(
-          this,
-          `"${name}" attribute must be one of ${attr.values.join("|")} (got "${raw}")`,
-        );
-      }
-      // (`vector` has no lexical gate: an all-numeric comma-list is an array,
-      // anything else keeps the scalar semantics — string vars included. The
-      // numeric-only elements enforce it semantically: ScControl.validate.)
-    }
-    for (const { name } of Array.from(this.attributes)) {
-      // Namespace declarations are XML plumbing, not contract attributes.
-      if (name === "xmlns") continue;
-      const colon = name.indexOf(":");
-      if (colon === -1) {
-        if (attrs[name] === undefined && !COMMON_ATTRS.has(name)) {
-          failValidation(this, `unknown attribute "${name}"`);
-        }
-        continue;
-      }
-      const prefix = name.slice(0, colon);
-      if (prefix === "xmlns") continue;
-      if (prefix !== "bind") {
-        failValidation(this, `unknown attribute namespace prefix "${prefix}:" (use "bind:")`);
-      }
-      const base = attrs[name.slice(colon + 1)];
-      if (base === undefined || base.runtime === false) {
-        failValidation(this, `unknown runtime attribute "${name}"`);
-      }
-    }
+  /** STEP 1 — STATIC validation: the spec-driven attribute gate. Takes no
+   *  ctx by design — this step can resolve nothing. Overrides add their
+   *  SEMANTIC rules (cross-attribute, positional) and MUST call
+   *  `super.validate()`. A violation fails the whole plugin parse. */
+  validate(): void {
+    validateProps(this);
   }
-
-  /** Per-element SEMANTIC validation (value-XOR-bind, name syntax, ranges, …),
-   *  run after `validateProps`. A violation fails the whole plugin parse. */
-  validate(): void {}
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Hydrate this element: assign the parsed identity (the DOM id). */
-  hydrate(id: string): this {
-    this.id = id;
-    return this;
-  }
-
-  /** Process this hydrated element: pre-register it (so re-entrant resolves
-   *  of a mid-processing ancestor return it), attach it to its TRUE parse
-   *  parent's `_scChildren` (the transparent container — sc-if/sc-select/… —
-   *  for elements inside one; the level owner otherwise), run the element's
-   *  own `validate()`, then resolve the runtime values and assign them onto
-   *  the element. `ctx.parentNode` stays the level OWNER throughout
-   *  resolution (enablement/path/bindless defaults read the named parent);
-   *  `_parentScNode` is corrected to the parse parent afterwards, keeping
-   *  the runtime tree truthful. Idempotent — an already-processed element is
-   *  returned as-is. */
+  /** Process this element: pre-register it (so re-entrant resolves of a
+   *  mid-processing ancestor return it), assign the identity + shared
+   *  runtime core (the path-chained hash id minted from the level owner's
+   *  id + the level's document-order counter, `_rootScNode`/`basePath`/
+   *  `_parentScNode` — the level owner; the OWNER pushes this element onto
+   *  its `_scChildren` once processing completes, see
+   *  ScParent.processChildren), then run the TWO conceptual steps —
+   *  `validate()` (static: the spec gate; ctx-free) and
+   *  `resolveRuntime(ctx)` (runtime construction: the recursion into sc
+   *  children where the element opens a level, bind/reference resolution) —
+   *  both extendable per element THROUGH `super`. Library throws get the
+   *  canonical `<tag>:` prefix; already-shaped errors pass through.
+   *  Idempotent — an already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
     }
     ctx.nodes.add(this);
-    if (!this.id) this.id = randomId();
-    const parent = ctx.parentNode && this.parseParentOf(ctx.parentNode);
-    if (parent) {
-      ((parent as ScElement)._scChildren ??= []).push(this);
+    try {
+      this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.index++);
+      this._rootScNode = ctx.rootNode;
+      this.basePath = ctx.path;
+      this._parentScNode = ctx.parentNode;
+      this.validate();
+      this.resolveRuntime(ctx);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (e instanceof Error && message.startsWith("<")) throw e;
+      throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`, { cause: e });
     }
-    this.validateProps();
-    this.validate();
-    Object.assign(this, this.resolveRuntime(ctx));
-    this.resolveRuntimeProps(ctx);
-    this.validateRuntimeProps();
-    if (parent) this._parentScNode = parent;
     return this;
   }
 
-  /** Post-resolution validation hook — for rules that need the RESOLVED
-   *  runtime props (sc-button: the bind:value must be a writable target). */
-  protected validateRuntimeProps(): void {}
 
-  /** Resolve every present `bind:attr` into live targets + expression — the
-   *  same machinery state binds use, so the bind-order constraint applies.
-   *  Runs AFTER `resolveRuntime` (enablement is known). DISABLED elements
-   *  split by position: inside an sc-ugen, `bind:value` is a GRAPH-INPUT
-   *  reference the synthdef collectors consume raw (skip — never resolved on
-   *  the state graph); on a direct sc-synthdef child (a param), a `bind:` is
-   *  rejected loudly — the param collector reads static values only and
-   *  would silently drop it from the def. */
-  private resolveRuntimeProps(ctx: RuntimeContext): void {
+  /** STEP 2 — runtime construction: every present `bind:attr` becomes live
+   *  targets + expression (the same machinery state binds use, so the
+   *  bind-order constraint applies). The SYNTHDEF PLANE is skipped wholesale
+   *  (a non-node level exists only inside sc-synthdef/sc-ugen): there a
+   *  `bind:value` is a raw GRAPH reference the synthdef collectors consume —
+   *  never resolved on the state graph; the loud on-a-param rejection is
+   *  ScSynthDef's. Overrides add their element-specific construction — the
+   *  level-opening elements build the runtime tree via `processChildren`
+   *  (`_scChildren` is a runtime value like the rest), then references,
+   *  graph collection, resolved-state rules — and MUST call
+   *  `super.resolveRuntime(ctx)`. */
+  protected resolveRuntime(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
+    if (ctx.parentNode && !isNodeRuntime(ctx.parentNode)) return;
     for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {
       if (attr.runtime === false) continue;
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
-      if (!this.enabled) {
-        // A graph-input reference: left raw for the synthdef collector (ugen
-        // inputs), never resolved on the state graph.
-        if (ctx.parentNode && typeOf(ctx.parentNode) === ELEMENTS.SC_UGEN) continue;
-        failValidation(this, `"${bindAttr(name)}" is not allowed on a synthdef param`);
-      }
-      (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
+      (this.runtimeProps ??= {})[name] = resolveBind(this, ctx, expr, bindAttr(name));
     }
-  }
-
-  /** The element's true parse parent: its nearest sc ancestor within the
-   *  level. Direct and HTML-wrapped children resolve to the level owner;
-   *  elements inside a transparent container resolve to that container. */
-  private parseParentOf(level: ScParentElement): ScParentElement {
-    for (let p = this.parentElement; p && p !== level; p = p.parentElement) {
-      if (isNodeType(p.tagName.toLowerCase())) return p as ScElement as ScParentElement;
-    }
-    return level;
-  }
-
-  /** The nearest non-transparent sc ancestor — the element's effective owner
-   *  (an element inside an sc-if belongs to the enclosing node). */
-  get namedScParent(): ScParentElement | undefined {
-    let p = this._parentScNode;
-    while (p && isTransparent(p)) p = p._parentScNode;
-    return p;
-  }
-
-  /** Resolve this element's runtime values — bind resolution lives here, on
-   *  each component (over the internal/validation machinery). The default is
-   *  the self-contained leaf (sc-console / sc-scope / sc-strudel). */
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
-    return baseRuntime(ctx);
   }
 
   // ── Runtime values (the live evaluated props / the state seam) ──────────
@@ -401,7 +269,7 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
    *  notifying, so an element's own effect — e.g. ScControl's /n_set —
    *  precedes its dependents' recomputes), then, for a STATE element's
    *  `value` prop, dispatches the non-bubbling "statechange". The gate is
-   *  sound because only named state is targetable — `resolveControlBind`
+   *  sound because only named state is targetable — `resolveStatePath`
    *  matches `isStateRuntime` children exclusively — so an input's or
    *  visual's `value` recompute has no possible subscriber. Never call from
    *  willUpdate/render (it schedules an update). */
@@ -460,22 +328,24 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     this.#offs = [];
   }
 
-  /** The async load pass, run AFTER the sync parse, in strict DOM order: a
-   *  parent awaits each child fully before the next starts — no concurrency,
-   *  no reactive gates. The bind-order constraint (targets declared before
-   *  their references) makes DOM order a valid dependency order, so a
-   *  synthdef's /d_recv is acknowledged before its synth's /s_new is sent.
-   *  Overrides sequence their own OSC and call `super.load()` where the
-   *  children follow.
-   *
-   *  The SYNCHRONOUS prefix wires the runtime props: drop stale
-   *  subscriptions first (re-entrant reconnect reload — or it would
-   *  double-register), then per prop compute the initial value (the targets
-   *  are earlier in DOM order, so their `_state` has settled) and re-compute
-   *  on every target statechange. Subclasses that park their own
-   *  subscriptions rely on this prefix running before their wiring — they
-   *  start `super.load()` FIRST and await it last (see ScState/ScInput). */
-  async load(): Promise<void> {
+  /** Capture the current load epoch; the returned probe is true while this
+   *  load pass is still current (no unload/reload superseded it). */
+  protected loadGuard(): () => boolean {
+    const epoch = this._rootScNode.loadEpoch;
+    return () => this._rootScNode.loadEpoch === epoch;
+  }
+
+  /** The element's own load step — the SYNCHRONOUS prefix wiring the
+   *  runtime props: drop stale subscriptions first (re-entrant reconnect
+   *  reload — or it would double-register), then per prop compute the
+   *  initial value (the targets are earlier in DOM order, so their `_state`
+   *  has settled) and re-compute on every target statechange. Subclasses
+   *  that park their own subscriptions rely on this prefix running before
+   *  their wiring — they start `super.load()` FIRST and await it last (see
+   *  ScState/ScInput); ScParent adds the sequential walk over the parsed
+   *  children. Synchronous at this level — Promise-typed for the overrides
+   *  that genuinely await. */
+  load(): Promise<void> {
     this.#dropRuntimeSubscriptions();
     for (const [name, prop] of Object.entries(this.runtimeProps ?? {})) {
       const recompute = () => {
@@ -487,20 +357,12 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
         this.#offs.push(target.onStateChange(recompute));
       }
     }
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
-    for (const child of this._scChildren ?? []) {
-      await child.load();
-      if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return; // pass invalidated mid-await
-    }
+    return Promise.resolve();
   }
 
-  /** Undo the load pass (plugin unmount). Sends are fire-and-forget — no
-   *  replies awaited; children unload in REVERSE DOM order so dependents go
-   *  before their targets. */
+  /** Undo the load pass (plugin unmount): drop the runtime-prop
+   *  subscriptions. ScParent prepends the reverse child walk. */
   unload(): void {
-    for (const child of [...(this._scChildren ?? [])].reverse()) {
-      child.unload();
-    }
     this.#dropRuntimeSubscriptions();
   }
 
@@ -509,49 +371,4 @@ export abstract class ScElement extends LitElement implements BaseRuntime {
     this.#dropRuntimeSubscriptions();
   }
 
-  /** This element's sc-* descendants, recursing through plain HTML wrappers
-   *  AND through transparent (nameless) sc containers — those are yielded
-   *  too, before their contents, so ONE flat level covers an sc-if's whole
-   *  subtree (its contents live in the enclosing scope: same duplicate
-   *  check, same bind scope, same store paths — unconditionally, since
-   *  sc-if only hides visually). Nameless leaves have no sc children at
-   *  parse time, so descending into them is a no-op. */
-  *walkScElements(el: Element = this): Generator<ScElement> {
-    for (const child of Array.from(el.children)) {
-      if (isNodeType(child.tagName.toLowerCase())) {
-        yield child as ScElement;
-        if (isTransparent(child)) yield* this.walkScElements(child);
-      } else {
-        yield* this.walkScElements(child);
-      }
-    }
-  }
-
-  /** Recurse into this parent's children: hydrate EVERY child first — the
-   *  full sibling scope (including transparent containers' contents) goes
-   *  into the level context BEFORE any child processes, and duplicate names
-   *  are checked across the whole scope up front — then reset this parent's
-   *  `_scChildren` and process each child in document order (each attaches
-   *  itself to its true parse parent). All siblings share ONE level context;
-   *  `process` recurses per child. Only naming containers (and the root) run
-   *  this — transparent containers never open a level. */
-  protected processChildren(ctx: RuntimeContext): void {
-    const name = nameOf(this);
-    const path = name ? [...ctx.path, name] : ctx.path;
-
-    const scope = [...this.walkScElements()].map((el) => el.hydrate(randomId()));
-
-    checkDuplicateNames(scope);
-
-    this._scChildren = [];
-    const childCtx: RuntimeContext = {
-      ...ctx,
-      scope: [...scope, ...ctx.scope],
-      parentNode: this as ScElement as ScParentElement,
-      path,
-    };
-    for (const child of scope) {
-      child.process(childCtx);
-    }
-  }
 }

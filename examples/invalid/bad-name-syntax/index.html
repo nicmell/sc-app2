@@ -2,10 +2,10 @@
 <sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
   <!-- INTENTIONAL: a dotted name forges the path separator — "s1.freq" here
        would alias the store key of synth s1's freq control (silent
-       cross-wiring the per-scope duplicate check cannot see). requireName must
-       reject it at parse: names are ONE bind-path segment (letters, digits,
-       "_", "-"). The XSD carries a matching scName pattern, but fastxml does
-       not enforce pattern facets — the runtime is the gate. -->
+       cross-wiring the per-scope duplicate check cannot see). The name spec
+       type must reject it at parse: names are ONE bind-path segment (letters,
+       digits, "_", "-"). The XSD carries the matching pattern facet, but
+       fastxml does not enforce pattern facets — the runtime is the gate. -->
   <sc-synthdef name="sine">
       <sc-control name="freq" value="440"/>
       <sc-ugen name="osc" type="SinOsc">

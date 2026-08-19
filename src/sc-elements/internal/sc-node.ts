@@ -1,78 +1,28 @@
 // Base for the node-owning elements (sc-plugin / sc-group / sc-synth): the
 // shared `run` attribute plus the node runtime values — `nodeId` (the scsynth
-// node, assigned when it goes live) and `loaded`. The default runtime parses
-// the children and resolves the node core; subclasses extend it (sc-synth
-// checks its synthdef bind first, sc-plugin wraps it in the root rollback).
+// node, assigned when it goes live) and `loaded`. Nodes open a level:
+// resolveRuntime recurses via ScParent's processChildren; sc-synth adds its
+// synthdef reference on top.
 
-import { isControlRuntime, isNodeRuntime } from "@/lib/utils/guards";
+import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { NodeRuntime, RuntimeContext } from "@/types/runtime";
-import { baseRuntime } from "@/sc-elements/internal/validation";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScParent } from "@/sc-elements/internal/sc-parent";
 
-export abstract class ScNode extends ScElement {
+export abstract class ScNode extends ScParent {
   /** The scsynth node id — 0 until the node goes live. */
   nodeId = 0;
   loaded = false;
 
-  protected resolveRuntime(ctx: RuntimeContext): NodeRuntime {
-    this.processChildren(ctx);
-    return this.nodeRuntime(ctx);
-  }
-
-  /** The node-owning elements' runtime core. */
-  protected nodeRuntime(ctx: RuntimeContext): NodeRuntime {
-    return { ...baseRuntime(ctx), loaded: false, nodeId: 0 };
-  }
-
-  /** This node's SCALAR control params as /s_new name-value pairs — the
-   *  enabled sc-control children's live `_state` (settled by the time a
-   *  synth collects them: children load first — literal from the store sync,
-   *  derived from the initial recompute), falling back to the declarative
-   *  attribute mirror. scsynth controls are floats: a string value skips
-   *  the pair (the synthdef default applies) with a console warning. ARRAY
-   *  controls are excluded — they are seeded post-/n_go with /n_setn (see
-   *  getArrayControls / ScSynth.load). */
-  protected getControls(): Record<string, number> {
-    const controls: Record<string, number> = {};
-    for (const child of this._scChildren ?? []) {
-      if (isControlRuntime(child) && child.enabled) {
-        const name = child.getProp("name") as string;
-        const state = child._state ?? child.getProp("value") ?? 0;
-        if (Array.isArray(state)) continue; // array controls seed via /n_setn
-        const value = Number(state);
-        if (Number.isNaN(value)) {
-          console.warn(`<sc-control name="${name}">: non-numeric value — control pair skipped`);
-          continue;
-        }
-        controls[name] = value;
-      }
-    }
-    return controls;
-  }
-
-  /** This node's ARRAY control params — seeded onto the fresh node with one
-   *  /n_setn each after its /n_go (the def's declared array defaults only
-   *  capture the markup values; the live state may have moved). */
-  protected getArrayControls(): Record<string, number[]> {
-    const controls: Record<string, number[]> = {};
-    for (const child of this._scChildren ?? []) {
-      if (isControlRuntime(child) && child.enabled) {
-        const state = child._state ?? child.getProp("value");
-        if (Array.isArray(state)) controls[child.getProp("name") as string] = state;
-      }
-    }
-    return controls;
-  }
-
   /** The scsynth group this node's create targets: the nearest LOADED node
    *  ancestor — the enclosing sc-group's node, or the plugin group (the walk
-   *  skips transparent otcontainers and not-yet-live nodes naturally). */
+   *  skips transparent containers and not-yet-live nodes naturally). */
   protected get targetGroupId(): number {
     for (let el = this._parentScNode; el; el = el._parentScNode) {
       if (isNodeRuntime(el) && el.nodeId !== 0) return el.nodeId;
     }
-    throw new Error(`<${this.tagName.toLowerCase()}>: no loaded ancestor group`);
+    // A LOAD-pass invariant (groups load before their contents), not a parse
+    // error — deliberately outside the `<tag>: message` validation shape.
+    throw new Error(`no loaded ancestor group for <${this.tagName.toLowerCase()}> at load time`);
   }
 
   /** Pause (false) / resume (true) the live node (/n_run); a no-op until the
@@ -80,5 +30,12 @@ export abstract class ScNode extends ScElement {
   setRunning(running: boolean): void {
     if (!this.loaded || this.nodeId === 0) return;
     oscClient.setNodeRun(this.nodeId, running ? 1 : 0);
+  }
+
+  /** Undo the node load after all descendants have unloaded. */
+  unload(): void {
+    super.unload();
+    this.nodeId = 0;
+    this.loaded = false;
   }
 }

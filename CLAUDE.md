@@ -87,14 +87,16 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (hydrate/
-                         process/processChildren) + the common runtime fields;
-                         validation.ts holds the validation + bind-resolution
-                         helpers as plain functions; the category bases
+                         ScElement base carries the parse engine (process/
+                         processChildren) + the common runtime fields;
+                         validation.ts holds the parse-time validation/static-
+                         coercion and resolution.ts the name/scope/bind-
+                         resolution helpers, both as plain functions;
+                         the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
-                         component overrides resolveRuntime(), whose result
-                         process() assigns onto the element itself
+                         component overrides the void resolveRuntime() hook,
+                         mutating the element itself
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
@@ -107,7 +109,7 @@ stores/                  the single app store + slices and React hooks
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
-                         runtime.d.ts (engine types: runtime mixins + RuntimeContext)
+                         runtime.d.ts (engine types: RuntimeContext + store/prop shapes)
   constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (timeouts/limits, scope tap),
                          session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
@@ -305,11 +307,17 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `process()` lives on `ScElement` — it attaches the element to its
-   parent, validates it, then assigns `resolveRuntime()`'s values onto the
+   `process()` lives on `ScElement` — it assigns the identity + shared
+   runtime core (the parent collects the element into `_scChildren` as it
+   completes), then runs the TWO extendable
+   steps: `validate()` (the ctx-free static spec gate) and
+   `resolveRuntime(ctx)` (runtime construction: the recursion into the sc
+   children where the element opens a level — `_scChildren` is a runtime
+   value like the rest — plus bind/reference resolution), both mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
-   helpers are plain functions in `internal/validation.ts`, taking the
+   helpers are plain functions in `internal/validation.ts` +
+   `internal/resolution.ts`, taking the
    element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
@@ -347,19 +355,21 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
-   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path}` —
-   one shared object per sibling scope; it attaches the element to its
-   parent's `_scChildren`, runs `validate()`, then `resolveRuntime()`
-   (which recurses via `processChildren` where the element parses
-   children). A parent hydrates (assigns ids to) ALL its children into the
-   level scope and checks duplicate names BEFORE any child processes, with
-   inner-scope shadowing on name lookups.
+   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
+   one shared object per sibling scope; it runs `validate()` (spec gate +
+   semantic rules), then `resolveRuntime(ctx)` (bind/reference resolution;
+   the level-opening elements — nodes/synthdef/ugen — recurse via
+   `processChildren` there, each collecting a child into `_scChildren` as
+   it completes). A parent collects ALL its children into the level scope and
+   checks duplicate names BEFORE any child processes (each child mints its
+   deterministic path-chained hash id as it processes), with inner-scope
+   shadowing on name lookups.
 7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE
    their references in DOM order.** Elements that have not yet been
    processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
 referenced before it is declared` when a bind names an in-scope element
    that hasn't processed yet (a name matching nothing keeps the
-   does-not-match errors), and `resolveControlBind` gives the same honest
+   does-not-match errors), and `resolveStatePath` gives the same honest
    error when a same-scope state is bound before its declaration (it checks
    the target's full DOM children for the error text only — the partial
    `_scChildren` stays the gate). `bad-forward-ref` and
@@ -370,9 +380,10 @@ referenced before it is declared` when a bind names an in-scope element
    before its children run), so group-scoped binds to earlier siblings work.
    Consequence: references point strictly backward, the bind graph is a DAG
    by construction, and `checkCircularBind`'s graph walk is gone — reduced
-   to the self-reference guard in `resolveStateBind` (`target === el`; an
-   element can still name itself through its mid-processing parent —
-   `bad-circular-bind` pins it).
+   to the self-reference rejection in `resolveStatePath` (a
+   mid-processing element is not yet in its parent's `_scChildren`, so a
+   self-reference surfaces in the lexical fallback / DOM probe —
+   `bad-circular-bind` pins the message).
 8. **Two validation gates** keep all of this honest: `yarn test` (the
    examples through the engine in happy-dom, exact error messages pinned)
    and the CDP harness (upload/XSD path + real browser) — see "Validating
@@ -390,25 +401,30 @@ further `sc-*` element:
 2. **Attributes live in the colocated spec — the spec IS the attribute
    contract.** Ship a `<tag>.spec.ts` exporting a pure-JSON `ElementSpec`
    (`internal/xsd/types.ts`: attrs typed
-   `string|decimal|integer|boolean|scalar|enum`, `required`,
+   `string|name|decimal|integer|boolean|scalar|enum`, `required`,
    `runtime: false` to opt attrs out of `bind:` bindability; category;
    content model),
    auto-globbed into the runtime `SPECS` registry. Run `yarn generate:xsd`
    (the snapshot test fails otherwise). Components read attributes on
    demand via `getProp(name)` (spec-coerced, untyped — cast at the call
    site; with the `bind:` form present it returns the LIVE evaluated
-   value); only
+   value); a declared `default` is applied by `getProp` (with the same
+   coercion as a static value) when neither form supplies a value, while
+   undeclared defaults stay `undefined` so forwarded props defer to the base
+   widget's own default; only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
-3. **Validation is layered**: `validateProps()` (ScElement, spec-driven)
-   enforces required/numeric/enum plus the runtime-prop rules (static-XOR-
-   `bind:` mutual exclusion, required-by-either-form, no stray `bind:` attrs,
-   foreign-prefix rejection); override
-   `validate()` only for SEMANTIC rules (name syntax via
-   `requireName(this)`, ranges, `requireNoScChildren(this)`,
-   `failValidation(this, …)`). `process` calls both before resolving and a
-   violation fails the whole plugin. This is the _real_ gate — fastxml does
-   not enforce XSD attribute requirements at upload.
+3. **Validation is layered**: `validateProps()` (the plain parse-time
+   function in `internal/validation.ts`, spec-driven) enforces
+   required/numeric/enum plus numeric range facets
+   (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
+   no-sc-children rule for choice-less content models, and the runtime-prop
+   rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
+   stray `bind:` attrs, foreign-prefix rejection). The ctx-free base
+   `validate()` runs it; overrides add genuinely cross-attribute/semantic
+   rules after `super.validate()`. A violation fails the whole plugin.
+   This is the _real_ gate — fastxml does not enforce XSD attribute
+   requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;
@@ -416,11 +432,14 @@ further `sc-*` element:
    backing for literal state; `internal/sc-input`: `targetScState` + the
    syncFromState/commit seam); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus path/enabled, `_scChildren` for parents, and the runtime-prop
+   plus `basePath` and the runtime-prop
    machinery: `runtimeProps`, `getProp`/`runtimeValue`,
    `updateRuntimeValue` → `runtimeValueChanged` hook → "statechange",
-   `onStateChange`, the load-prefix subscription wiring) is on `ScElement`.
-   The mixin contracts (`BaseRuntime`/`NodeRuntime`/`RuntimeProp`/…) live in
+   `onStateChange`, the load-prefix subscription wiring) is on `ScElement`;
+   the CHILDREN machinery (`_scChildren` — non-optional — plus
+   `processChildren` and the load/unload child walks) lives on `ScParent`,
+   the base only the level openers (nodes/synthdef/ugen) extend.
+   The shared engine types (`RuntimeContext`/`RuntimeProp`/…) live in
    `src/types/runtime.d.ts`. Values that duplicate a declarative prop are
    unified with it, never copied (no runtime `name`/`run`; `value` stays the
    plain attribute mirror — the LIVE value is `_state`, see "Runtime
@@ -430,14 +449,17 @@ further `sc-*` element:
 5. **Runtime resolution**: the parse engine
    (`process`/`processChildren`/`walkScElements`) is inherited from
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
-   need no component code: the base resolves them through
-   `resolveRuntimeProps` → `resolveStateBind` from the element spec. Override
-   `resolveRuntime(ctx)` only when an element has additional structural
-   runtime data (for example node ownership or synthdef references), building
-   over `baseRuntime(ctx)` or ScNode's `this.nodeRuntime(ctx)`. The base
-   `process(ctx)` assigns that result onto the element. `ctx` is
-   the per-LEVEL state ({rootNode, nodes, scope, parentNode, path}) shared
-   by all siblings. The default is the self-contained leaf. Extend
+   need no component code: the base `resolveRuntime(ctx)` resolves them
+   through `resolveBind` from the element spec. Extending `ScParent`
+   IS opening a level (its base resolution recurses via `processChildren`
+   before the bind pass — `_scChildren` and the children machinery live
+   there). Override `resolveRuntime` only when an element has additional
+   resolution (references, graph collection,
+   resolved-state rules), mutating the element directly and ALWAYS calling
+   `super.resolveRuntime(ctx)`; `process(ctx)` assigns the shared core
+   (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL state
+   ({rootNode, nodes, scope, parentNode, path, index}) shared by all
+   siblings. The default is the self-contained no-op leaf. Extend
    `lib/utils/guards.ts` if the element joins a category
    (state/node/parent). Add the element's examples to the unit suite's
    expectations (`src/sc-elements/__tests__/examples.test.ts`) if it ships
@@ -452,21 +474,21 @@ further `sc-*` element:
 
 | element                                                    | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; React's shared PluginHost imports, offline-parses, and mounts the authored root; that host owns the plugin scsynth group (its `nodeId`) and orchestrates the load pass                                                                                                                                                                                                                                                    |
+| sc-plugin                                                  | functional authored/runtime root: `title`/`description` live in `metadata.json` / `PluginInfo`; React's shared PluginHost imports, offline-parses, and mounts the authored root; that host owns the plugin scsynth group (its `nodeId`) and orchestrates the load pass                                                                                                                                                                                                                                                                                            |
 | sc-synthdef, sc-ugen                                       | functional: params + ugen specs collected at parse, compiled to SCgf (lib/synthdef) at /d_recv time in the load pass (oscClient.sendSynthDef awaits the embedded /sync ack), freeSynthDef on unmount                                                                                                                                                                                                                                                                                                                                                              |
 | sc-synth, sc-control                                       | functional: sc-synth's required `synthdef` attribute resolves its definition; oscClient.createSynth bakes controls in (a DERIVED control bakes its computed value), gates on /n_go, and sends a post-ack catch-up /n_set for writes landing in the send→/n_go window; setValue → runtime store + setControl (/n_set); derived (`bind:value`) controls re-/n_set on recompute, coercing at the OSC boundary (strings skip the send with a warning). `run="false"` is not honored yet                                                                               |
 | sc-slider, sc-knob                                         | functional: render the ui-components `<sc-base-slider>`/`<sc-base-knob>` (all base props forwarded), bound via `bind:value` on the shared `ScInput` seam — the generic runtime-prop machinery carries the read side (a plain path is WRITABLE via `commit()` on the widget's composed `input`; an EXPRESSION makes a read-only live meter; a static `value` a fixed inert widget); inert writes snap back. sc-knob is the rotary sibling (no `orientation`)                                                                                                       |
 | sc-checkbox, sc-switch                                     | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput `bind:value` seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`)                                                                                                                                                                                                                                                                                                                                                                              |
-| sc-select, sc-option, sc-radio-group, sc-radio             | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never enabled)                                                                                                                                                                                      |
+| sc-select, sc-option, sc-radio-group, sc-radio             | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never live)                                                                                                                                                                                      |
 | sc-display                                                 | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable)                                                                                                                                                                                                                                                                                                                                                                                                    |
 | sc-var                                                     | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange                                                                                                                                                                                                                                                                                                               |
 | sc-if                                                      | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none)                                                                                                                     |
 | sc-text, sc-flex, sc-row, sc-col                           | functional visual/layout wrappers over ui-components; row/col use a native 24-track CSS Grid, with the slotted sc-col host adopting the shared static span/offset/order rules for WebKit/Tauri compatibility                                                                                                                                                                                                                                                                                                                                                      |
 | sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                                                                                        |
-| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (validateRuntimeProps); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                                   |
+| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (its resolveRuntime override); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                                   |
 | sc-console                                                 | functional leaf (the OSC console; no attributes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split), `range` (bipolar\|unipolar — envelopes/control taps fill the lane) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
-| sc-strudel                                                 | functional + parametrized: `value` = initial pattern code; plain-path `bind:value` is two-way per keystroke, expression binds are read-only, and attribute `\\n` escapes decode to newlines; `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                     |
+| sc-strudel                                                 | functional + parametrized: `value` = initial pattern code; plain-path `bind:value` is two-way per keystroke, expression binds are read-only, and attribute `\\n` escapes decode to newlines; `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                   |
 | sc-keyboard                                                | NEW (no old-app counterpart): on-screen/tracker-row/Web MIDI piano spawning a transient voice per key from a referenced synthdef (`/s_new` into the plugin group, gate-0 release, ack-window race handling, focusout release-all); `bind:envelope` latches an Env.asArray value into each voice on the def's single array param; `freq`/`amp`/`gate` remap param names                                                                                                                                                                                            |
 | sc-envelope                                                | NEW: the draggable-breakpoint envelope editor over an ordinary ARRAY-valued control/var (`bind:value` — writable plain path; Env.asArray codec in lib/synthdef/envValue.ts); gesture-frozen scale + edge pinning (no runaway feedback), `minbreakpoints`/`maxbreakpoints` lock the structure (positions stay draggable — stable `env.N` slot-lens binds), drag readout, double-click curve reset                                                                                                                                                                  |
 | sc-buffer, sc-waveform, sc-test, old buffer-bound sc-scope | **not migrated** (buffer-family step)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -506,7 +528,7 @@ when `process()` succeeds — reload never retries them).
 accepts a `bind:`-namespaced sibling holding a bind expression
 (`xmlns:bind="urn:sc-app:bind"` declared on the entry root; qualified-name
 matching, canonical prefix enforced), resolved in `process()`
-(`resolveRuntimeProps` → `resolveStateBind`, per prop) into
+(the base `resolveRuntime` → `resolveBind`, per prop) into
 `runtimeProps[name] = {targets, expression}`, wired in `load()`'s
 synchronous prefix (drop-first re-entrancy: initial recompute + recompute on
 each target's statechange), and written through `updateRuntimeValue(name,
@@ -542,10 +564,11 @@ the bind-order constraint makes the target graph a DAG resolved in DOM
 order, so it settles in one pass and terminates (diamond deps can
 transiently double-dispatch before converging — accepted). Derived state is
 read-only: `setValue()` on it is inert, and the inputs re-read after writing
-so they snap back. Writes split as `setValue()` (public, enabled+underived
-only) over `dispatchValue()` (Object.is-vs-store guard + store write;
-ScControl's override adds the /n*set — the user-gesture WRITE path), while a
-derived control's recompute /n_set lives in the `runtimeValueChanged` hook
+so they snap back. Writes split as `setValue()` (public, underived only —
+the synthdef plane never loads, so no live writer can reach it) over
+`dispatchValue()` (Object.is-vs-store guard + store write;
+ScControl's override adds the /n\*set — the user-gesture WRITE path), while a
+derived control's recompute /n*set lives in the `runtimeValueChanged` hook
 (guarded on `runtimeProps.value` + the live-node gate, so external store
 writes stay UI-only and two inputs on one control converge with one /n_set
 per gesture). The inputs bind via `bind:value` like
@@ -573,22 +596,22 @@ numeric prop falls back to the widget default). Native inputs bind with Lit's `l
 directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
-sc-select, sc-radio-group — `isTransparent`, internal/validation.ts) open
+sc-select, sc-radio-group — `isTransparent`, internal/resolution.ts) open
 NO sibling scope and NO path segment — the parse walks through them
-(`walkScElements`), so their contents hydrate into the ENCLOSING level,
+(`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails
-flat, `bad-if-shadow`), its bind scope, and its store paths. The tree stays
-truthful — `_parentScNode` is the true parse parent (the sc-if), while
-`namedScParent` recovers the effective owner (the nearest non-transparent
-ancestor) wherever a node is needed (ScControl's /n_set); named-child
-lookups see through transparency too (`scChildrenThrough` in
-walkPath/resolveControlBind). sc-if contents are therefore UNCONDITIONALLY
+flat, `bad-if-shadow`), its bind scope, and its store paths. Attachment
+walks through transparency too: `_parentScNode` IS the
+nearest non-transparent ancestor (the level owner) — the owner every consumer needs
+(ScControl's /n_set, name lookups over `_scChildren`) — and transparent
+containers stay runtime-tree leaves (sc-select reads its option children
+from the DOM). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
-are syntax-validated as ONE bind-path segment (`requireName` — letters,
+are syntax-validated as ONE bind-path segment (the spec `name` type — letters,
 digits, `*`, `-`; no dots): a dotted name would forge another scope's store
-key (`bad-name-syntax`; the XSD cannot express the grammar — fastxml
-ignores pattern facets, the runtime is the gate). The old app's name-based
+key (`bad-name-syntax`; the XSD carries the same pattern facet, while the
+runtime remains the authoritative gate). The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
 group-level control's /n_set on the group node is the server-side
 replacement (scsynth fans it out), plus explicit `bind:value="group.ctl"`.
@@ -622,8 +645,7 @@ scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
 tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
 `src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
 mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
-and runs `host.process({rootNode: host, nodes, scope:
-[host], path:[]})`. Functional examples must parse clean, and every parsed
+and runs `host.processRoot()`. Functional examples must parse clean, and every parsed
 synthdef's collected params/specs must compile (a dedicated describe — the
 load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
 registry is plain data, happy-dom-safe); the
@@ -657,8 +679,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
    require an authored `<sc-plugin>` root, `importNode` that whole root through
    the main document, explicitly upgrade it while disconnected, then
-   `host.process({rootNode: host, nodes: new Set(), scope: [host],
-path: []})` — the host's own parse-engine methods; nothing to import.
+   `host.processRoot()` — the host's own parse-engine methods; nothing to import.
    PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
    with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration
@@ -684,10 +705,10 @@ steps, each independently shippable:
    compiled at /d_recv time).
 3. **`types/` + `constants/` + `lib/utils`** — parser types, guards, the bind
    expression parser.
-4. **`lib/html` + `lib/runtime`** — element-tree hydration (cumulative scopes)
-   and runtime processing (bind resolution, expressions, overrides). Grow the
-   current innerHTML plugin loading into the two-phase pipeline; the Rust XSD
-   validation stays as-is.
+4. **`lib/html` + `lib/runtime`** — DONE, absorbed into `sc-elements`:
+   element-tree parsing (cumulative scopes) and runtime processing (bind
+   resolution, expressions, overrides) live on `ScElement`; these directories
+   never materialized as separate layers.
 5. **Core `sc-elements`** — DONE for the synth path AND the state layer:
    `OscClient.once(address, match)` reply matching (waiters in
    `handleReply`) + the scsynth command methods (the elements' whole OSC

@@ -1,7 +1,7 @@
 import type { Expr } from "@/lib/expression";
-import type { UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import type { Store } from "@/lib/utils/reactiveStore";
-import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
 // The engine's type system. There are NO item structures and NO parallel
@@ -9,8 +9,8 @@ import type { ScState } from "@/sc-elements/internal/sc-state";
 // runtime values and assigns them onto the component, where they're declared
 // as plain fields (ScElement base + the internal/ category bases) next to the
 // HTML attributes' decorated reactive properties (the component class IS the
-// attribute contract). The runtime registry maps ids straight to the live
-// elements.
+// attribute contract). Outside-the-DOM access goes through the mounted
+// plugin root's `_scChildren` tree and `walkPath` name paths.
 
 // ── Bind expressions (lib/expression) ─────────────────────────────────────
 
@@ -35,27 +35,13 @@ export type PluginRuntimeValues = Record<string, StateValue>;
 /** The bind-expression AST — defined by the language module. */
 export type { Expr } from "@/lib/expression";
 
-// ── Runtime value mixins ──────────────────────────────────────────────────
-//
-// What `resolveRuntime` returns and `process()` assigns onto the element;
-// the bases declare the matching properties. Values that would duplicate a
-// reactive property are unified with it instead: there is no runtime `name`
-// or `run` (read the props), and a state element's resolved value lives in
-// its `value` prop.
-
-export interface BaseRuntime {
-  /** The plugin root element this element was parsed under. */
-  _rootScNode: ScElement;
-  /** The parsed parent element (unset at the root). */
-  _parentScNode?: ScParentElement;
-  path: string[];
-  enabled: boolean;
-}
-
-export interface NodeRuntime extends BaseRuntime {
-  loaded: boolean;
-  nodeId: number;
-}
+// The runtime values live as plain fields declared on the element classes
+// (ScElement: `_rootScNode`/`_parentScNode`/`basePath`; the bases add their
+// category fields — ScNode: nodeId/loaded, ScSynthDef: params/specs),
+// assigned by `process()` and the per-element `resolveRuntime` hooks. Values
+// that would duplicate a reactive property are unified with it instead:
+// there is no runtime `name` or `run` (read the props), and a state
+// element's resolved value lives in its `value` prop.
 
 /** The plugin root's per-instance runtime store: this instance's literal
  *  state map (path → value), reached by descendants via `_rootScNode`. Lives
@@ -79,33 +65,22 @@ export interface RuntimeProp {
   expression?: Expr;
 }
 
-export interface SynthDefRuntime extends BaseRuntime {
-  loaded: boolean;
-  /** The param defaults (scalars or control-array comma-lists) + DOM-ordered
-   *  ugen specs (collected at parse) — compiled to SCgf right at /d_recv
-   *  time in the load pass. */
-  params: Record<string, number | number[]>;
-  specs: UgenSpec[];
-}
-
-export interface InputRuntime extends BaseRuntime {
-  /** The live bound target state element. */
-  _targetScNode?: ScElement;
-}
-
 /** The per-LEVEL parse state threaded through the elements' `process(ctx)`
  *  recursion (sc-elements/internal ScElement) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
- *  idempotence/forward-ref guard; the registry adopts the tree from the root
- *  on success), `scope` the cumulative bind-resolution scope. Store-key
- *  uniqueness needs no global map: enabled state must be declared on a node
- *  (vars validate it; controls encode it in their enablement), and sc-if
- *  rejects node descendants — so path-transparent containers can never
- *  smuggle in a colliding key. */
+ *  idempotence/forward-ref guard), `scope` the cumulative bind-resolution
+ *  scope. Store-key
+ *  uniqueness needs no global map: live state must be declared on a node
+ *  (vars validate it; a control off a node is synthdef-plane data that
+ *  never loads), and sc-if rejects node descendants — so path-transparent
+ *  containers can never smuggle in a colliding key. */
 export interface RuntimeContext {
-  rootNode: ScElement;
+  rootNode: ScParent;
   nodes: Set<ScElement>;
   scope: ScElement[];
-  parentNode?: ScParentElement;
+  parentNode?: ScParent;
   path: string[];
+  /** The level's mutable document-order counter — each `process` mints its
+   *  path-chained hash id from it. 0 at the entry call and per child level. */
+  index: number;
 }

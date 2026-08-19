@@ -32,7 +32,7 @@ import {
   type EnvBreakpoints,
   type EnvSegment,
 } from "@/lib/synthdef/envValue";
-import type { StateValue } from "@/types/runtime";
+import type { RuntimeContext, StateValue } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import styles from "./sc-envelope.module.scss";
@@ -91,30 +91,21 @@ export class ScEnvelope extends ScInput {
   /** Breakpoint-count bounds (start point included; segments + 1). Insert
    *  blocks at max, removal at min — equal bounds LOCK the structure while
    *  positions stay draggable (stable slots for `env.N` lens binds). */
-  private get _minBreakpoints(): number {
-    return (this.getProp("minbreakpoints") as number) ?? 2;
-  }
-  private get _maxBreakpoints(): number | undefined {
-    return this.getProp("maxbreakpoints") as number | undefined;
-  }
-
   validate(): void {
     super.validate();
-    const min = this._minBreakpoints;
-    const max = this._maxBreakpoints;
-    if (!Number.isInteger(min) || min < 2) {
-      failValidation(this, `"minbreakpoints" must be an integer ≥ 2 (got "${min}")`);
-    }
-    if (max !== undefined && (!Number.isInteger(max) || max < min)) {
+    const min = this.getProp("minbreakpoints") as number;
+    const max = this.getProp("maxbreakpoints") as number | undefined;
+    if (max !== undefined && max < min) {
       failValidation(this, `"maxbreakpoints" must be an integer ≥ minbreakpoints (got "${max}")`);
     }
   }
 
-  protected validateRuntimeProps(): void {
+  protected resolveRuntime(ctx: RuntimeContext): void {
+    super.resolveRuntime(ctx);
     // Like sc-button: write-capable, so it needs a plain writable path — and
     // specifically an envelope state (a scalar control has no shape to drag).
     const target = this.targetScState;
-    if (!target || target.runtimeProps?.value !== undefined) {
+    if (!target || target.derived) {
       failValidation(this, `"bind:value" must reference a single writable envelope state`);
     }
     const declared = target.getProp("value");
@@ -305,7 +296,9 @@ export class ScEnvelope extends ScInput {
     // Breakpoint count = segments + 1 (the start point).
     const count = this.value.segments.length + 1;
     if (point !== null && point > 0 && this.value.segments.length > 1) {
-      if (count <= this._minBreakpoints) return; // structure locked at min
+      if (count <= (this.getProp("minbreakpoints") as number)) {
+        return; // structure locked at min
+      }
       this.applyEdit((v) => removePoint(v, point));
       return;
     }
@@ -322,9 +315,11 @@ export class ScEnvelope extends ScInput {
       }
       const budget = Math.floor((this.width - 4) / 4);
       if (this.value.segments.length >= budget) return;
-      const max = this._maxBreakpoints;
+      const max = this.getProp("maxbreakpoints") as number | undefined;
       if (max !== undefined && count >= max) return; // structure locked at max
-      this.applyEdit((v) => insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))));
+      this.applyEdit((v) =>
+        insertPoint(v, this.segmentAt(x), this.fromX(x), clampLevel(this.fromY(y))),
+      );
     }
   };
 
@@ -485,9 +480,7 @@ export class ScEnvelope extends ScInput {
       if (this.drag.kind === "point") {
         const i = this.drag.index;
         label =
-          i === 0
-            ? levels[0].toFixed(2)
-            : `${levels[i].toFixed(2)} @ ${times[i].toFixed(3)}s`;
+          i === 0 ? levels[0].toFixed(2) : `${levels[i].toFixed(2)} @ ${times[i].toFixed(3)}s`;
         px = this.toX(times[i]);
         py = this.toY(levels[i]);
       } else {
@@ -547,7 +540,12 @@ export function removePoint(value: EnvBreakpoints, index: number): EnvBreakpoint
 /** Split segment `index` at time `t` (absolute) with the new point at
  *  `level`: the first half is a new lin-ish segment, the second keeps the
  *  original's target/curve/flags. */
-export function insertPoint(value: EnvBreakpoints, index: number, t: number, level: number): EnvBreakpoints {
+export function insertPoint(
+  value: EnvBreakpoints,
+  index: number,
+  t: number,
+  level: number,
+): EnvBreakpoints {
   const starts: number[] = [0];
   for (const s of value.segments) starts.push(starts[starts.length - 1] + s.time);
   const original = value.segments[index];

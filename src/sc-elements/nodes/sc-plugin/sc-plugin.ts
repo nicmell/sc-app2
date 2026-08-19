@@ -68,6 +68,13 @@ export class ScPlugin extends ScNode {
     return el;
   }
 
+  /** Process this authored root with a fresh root parse context. */
+  processRoot(): Set<ScElement> {
+    const nodes = new Set<ScElement>();
+    this.process({ rootNode: this, nodes, scope: [this], path: [], index: 0 });
+    return nodes;
+  }
+
   /** Create the plugin's scsynth group — the group all of this plugin's
    *  synths live in, freed wholesale on unmount. The plugin's `nodeId` IS
    *  the group id, so children target `targetGroupId` uniformly. */
@@ -85,9 +92,9 @@ export class ScPlugin extends ScNode {
   /** Perform one load pass; load() coalesces callers around this operation. */
   private async loadTree(): Promise<void> {
     if (!this.isConnected || this.loaded) return; // unmounted mid-load / already live
-    const epoch = this.loadEpoch;
+    const live = this.loadGuard();
     const nodeId = await oscClient.createGroup(oscClient.sessionGroupId);
-    if (!this.isConnected || this.loadEpoch !== epoch) {
+    if (!this.isConnected || !live()) {
       // unload() could not free a group whose id had not arrived yet.
       oscClient.freeGroup(nodeId);
       return;
@@ -104,12 +111,11 @@ export class ScPlugin extends ScNode {
    *  already freed the whole session group server-side). */
   unload(): void {
     this.loadEpoch++;
+    const nodeId = this.nodeId;
     super.unload();
-    if (this.nodeId !== 0) {
-      oscClient.freeGroup(this.nodeId);
+    if (nodeId !== 0) {
+      oscClient.freeGroup(nodeId);
     }
-    this.nodeId = 0;
-    this.loaded = false;
   }
 
   /** Re-run the load pass once the connection is reestablished. Nothing to

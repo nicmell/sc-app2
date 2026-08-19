@@ -2,7 +2,7 @@
 // group of their own, nested inside the nearest loaded ancestor group (the
 // plugin group, or an outer sc-group). The load pass creates the group node
 // FIRST — the inverse of sc-synth's children-first order — so the children's
-// `targetGroupId` walk finds it live; group-level enabled controls /n_set the
+// `targetGroupId` walk finds it live; group-level controls /n_set the
 // group node (scsynth applies a group /n_set to every node inside — the
 // server-side replacement for the old app's name-based propagation).
 //
@@ -11,31 +11,20 @@
 // would only add double-free /fail noise).
 
 import { oscClient } from "@/stores/osc";
-import { requireName } from "@/sc-elements/internal/validation";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScGroup extends ScNode {
-  validate(): void {
-    requireName(this);
-  }
-
   /** Own node first (children target it), then the children in DOM order. */
   async load(): Promise<void> {
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     if (this.isConnected && !this.loaded) {
       const nodeId = await oscClient.createGroup(this.targetGroupId);
       // The pass was invalidated while the /n_go was pending — don't adopt a
       // node the new connection knows nothing about.
-      if ((this._rootScNode?.loadEpoch ?? 0) !== epoch) return;
+      if (!live()) return;
       this.nodeId = nodeId;
       this.loaded = true;
     }
     await super.load();
-  }
-
-  unload(): void {
-    super.unload();
-    this.nodeId = 0;
-    this.loaded = false;
   }
 }

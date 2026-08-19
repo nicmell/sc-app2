@@ -5,6 +5,7 @@
 // exist; per-tag guards return on demand.
 
 import { ELEMENTS } from "@/constants/sc-elements";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScPlugin } from "@/sc-elements/nodes/sc-plugin/sc-plugin";
 import type { ScState } from "@/sc-elements/internal/sc-state";
@@ -35,6 +36,19 @@ export function isControlRuntime(el: Element): el is ScControl {
 export function isStateRuntime(el: Element): el is ScState {
   const t = typeOf(el);
   return t === ELEMENTS.SC_CONTROL || t === ELEMENTS.SC_VAR;
+}
+
+/** The LEVEL-OPENING elements — the only ones owning parsed sc children
+ *  (`_scChildren` lives on ScParent, not ScElement). */
+export function isParentRuntime(el: Element): el is ScParent {
+  const t = typeOf(el);
+  return (
+    t === ELEMENTS.SC_PLUGIN ||
+    t === ELEMENTS.SC_GROUP ||
+    t === ELEMENTS.SC_SYNTH ||
+    t === ELEMENTS.SC_SYNTHDEF ||
+    t === ELEMENTS.SC_UGEN
+  );
 }
 
 /** Elements that can own running scsynth nodes. */

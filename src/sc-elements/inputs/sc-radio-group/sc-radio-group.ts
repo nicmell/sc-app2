@@ -2,7 +2,7 @@
 // control/var (`bind:value` on the ScInput base). Renders the
 // ui-components <sc-base-radio-group>, projecting each sc-radio's collected
 // {value,label} into an <sc-base-radio>. The sc-radio children are pure data
-// (consumed at parse, never enabled); the shared ScInput seam syncs the
+// (consumed at parse, never live); the shared ScInput seam syncs the
 // selection from the target's `_state` and dispatches the chosen value.
 
 import { html } from "lit";
@@ -17,13 +17,14 @@ import "@sc-app/ui-components/lit";
 export class ScRadioGroup extends ScInput {
   @state() accessor _value = 0;
 
-  /** The declarative choices — read lazily from the parsed children: the
-   *  radio-group is a transparent container, so its sc-radio children are
-   *  processed by the ENCLOSING level (after this element) and attach here
-   *  as their parse parent. Lit's first update runs after the synchronous
-   *  parse, so render always sees them. */
+  /** The declarative choices — read lazily from the authored DOM children:
+   *  the radio-group is a transparent container, so its sc-radio children
+   *  belong to the ENCLOSING node's runtime tree (`_parentScNode` walks
+   *  through transparency) — the DOM is the one place they stay this
+   *  element's. Lit's first update runs after the synchronous parse, so
+   *  render sees them upgraded. */
   get _options(): Array<{ value: number; label: string }> {
-    return (this._scChildren ?? [])
+    return Array.from(this.children)
       .filter((c): c is ScRadio => c.tagName.toLowerCase() === "sc-radio")
       .map((r) => ({ value: r.getProp("value") as number, label: r.getProp("label") as string }));
   }

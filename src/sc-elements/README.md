@@ -5,20 +5,28 @@ root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
 in each element's colocated `<tag>.spec.ts` (the spec IS the attribute
 contract — it also generates the backend XSD) and are read on demand via
 `getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
-properties). Every spec attr (unless flagged `runtime: false`) accepts a
+properties). A spec-declared `default` is applied by `getProp` when neither
+the static attr nor a settled bind supplies a value; undeclared attrs remain
+`undefined`, so forwarded props defer to the base widget's own default. Every
+spec attr (unless flagged `runtime: false`) accepts a
 `bind:`-namespaced sibling holding a bind expression (`bind:min="vars.lo"`,
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. Validation is layered — the spec-driven `validateProps()`
-(required/numeric/enum + the runtime-prop rules) before the component's own
-SEMANTIC `validate()` (both called by `process` during parse — the real
+returns the evaluated value. `process()` runs TWO extendable steps:
+`validate()` — ctx-free STATIC validation (the spec-driven `validateProps()`
+plain function in `internal/validation.ts`: required/numeric/enum, numeric
+range facets, `name` syntax, choice-less no-sc-children, runtime-prop rules;
+overrides add semantic rules after `super`) and `resolveRuntime(ctx)` —
+runtime construction: the recursion into the sc children where the element
+opens a level (`processChildren`) plus bind/reference resolution (the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
-element IS the runtime**: `resolveRuntime()` resolves the runtime values and
-`process()` assigns them onto the component itself (declared as plain fields
+element IS the runtime**: both steps mutate the component itself (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
-references, not ids) + `path`/`enabled` + `_scChildren` for parents + the
-runtime-prop machinery on `ScElement`, the category values on
+references, not ids) + `basePath` + the
+runtime-prop machinery on `ScElement`; `_scChildren` + `processChildren` +
+the load/unload child walks on `ScParent`, extended only by the level
+openers; the category values on
 `ScNode`/`ScState`/`ScInput`). There is no global element registry — the
 parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
 
@@ -29,14 +37,19 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (parse engine — hydrate/process/
-            processChildren — the common runtime fields, AND the runtime-prop
+internal/   ScElement (parse engine — process — the common runtime fields,
+            AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything
-            reads); validation.ts (the require*/failValidation primitives +
-            the bind-resolution machinery, as plain functions over the
-            elements); the category bases ScNode (run + nodeId/loaded),
+            reads); sc-parent.ts (ScParent — the level openers' base:
+            `_scChildren`, the parse-scope walker, processChildren, the
+            load/unload child walks); validation.ts (STEP 1's toolbox: the
+            spec-driven validateProps gate, failValidation, static coercion);
+            resolution.ts (STEP 2's toolbox: name/transparency semantics,
+            duplicate-name integrity, name-path + bind-expression resolution
+            — all plain functions over the elements);
+            the category bases ScNode (run + nodeId/loaded),
             ScState (`_state` = the `value` runtime slot + the plugin root's
             instance-store backing for LITERAL state, reached via
             `_rootScNode`), ScInput (targetScState + commit — the writing
@@ -65,7 +78,8 @@ See the root CLAUDE.md implementation plan.
 The authored entry root is the runtime host. PluginHost mounts one per dashboard
 box; the loader imports and upgrades the whole authored root through the main
 document. Display `title` and `description` live in `metadata.json` /
-`PluginInfo`. It then runs `process()` (validation inside) and owns the
+`PluginInfo`. It then runs `process()` (validation inside; each element mints
+its deterministic path-chained hash id) and owns the
 plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.
@@ -76,7 +90,7 @@ Prop: `run` (boolean attribute, `run="false"` is the only falsy spelling).
 A named container node. Props: `name` (required), `run` (parsed but not yet honored).
 The load pass `/g_new`s its own group node FIRST — the
 inverse of sc-synth's children-first order — so its children's
-`targetGroupId` walk finds it live; nested groups nest. Group-level enabled
+`targetGroupId` walk finds it live; nested groups nest. Group-level
 `sc-control` children key under the group path and `/n_set` the GROUP node
 on writes (scsynth fans a group `/n_set` out to every node inside — the
 server-side replacement for the old app's name-based propagation). Unload
@@ -133,7 +147,7 @@ with a console warning.
 
 ### `<sc-var>`
 
-A state variable: like `sc-control` but always enabled and never sent over
+A state variable: like `sc-control` but always live and never sent over
 OSC. Props: `name` (required), `value` xor `bind:value` (expressions allowed;
 `value` is a SCALAR — a string literal like `value="lin"` is legal state).
 Its live value is `_state` on the shared state machinery: a literal var is
@@ -197,7 +211,7 @@ target's `_state` and a choice dispatches through `commit()`.
 ### `<sc-option>` — data element
 
 One declarative choice. Props: `value` (number, required by the XSD),
-`label` (required). Never enabled — consumed by the parent select at parse.
+`label` (required). Pure data — consumed by the parent select at parse.
 
 ### `<sc-radio-group>` / `<sc-radio>` — functional (ui-components `<sc-base-radio-group>`)
 
@@ -211,7 +225,7 @@ collected and projected as `<sc-base-radio>`s exactly like select/option.
 
 A push button over the ScInput seam — WRITE-ONLY: `bind:value` must be a
 plain writable path (an expression or static value fails at parse,
-validateRuntimeProps). Props: `value` (required, the binding slot), `set`
+the resolveRuntime override). Props: `value` (required, the binding slot), `set`
 (a fixed value to write on click, runtime-capable as `bind:set`; ABSENT =
 the click TOGGLES the target 0 ↔ 1 on the live value's truthiness),
 `label`, `icon`, `disabled` (all three runtime-capable —
@@ -259,10 +273,10 @@ the children show when the value is truthy (non-zero, non-empty string).
 Props: `when` (required — in practice always the `bind:when` form).
 Hidden = the `hidden` attribute + sc-if.scss (`display: contents` /
 `[hidden] display: none`). sc-if is a TRANSPARENT container: it opens no
-sibling scope and no path segment — its contents are hydrated,
+sibling scope and no path segment — its contents are collected,
 duplicate-checked (`bad-if-shadow`), and processed by the ENCLOSING level
-(they attach to the sc-if as their true parse parent, and belong to the
-enclosing node as their effective owner). Full block content is allowed and
+(they attach DIRECTLY to the enclosing node — `_parentScNode` walks through
+transparency, the sc-if stays a runtime-tree leaf). Full block content is allowed and
 is UNCONDITIONALLY live — a synth inside a hidden sc-if keeps playing, a var
 keys at the enclosing path, an outer sibling can bind to elements inside —
 only visibility follows the condition.

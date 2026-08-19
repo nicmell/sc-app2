@@ -4,7 +4,8 @@
 // adapted to our reactiveStores (no redux/runtime/clock):
 //   • layout/geometry  → state/layout (reactiveStore + localStorage)
 //   • installed plugins → state/plugins (mirrored from the Rust router)
-//   • panel content     → PluginHost (fetch entry XHTML, merge root; sc-* upgrade)
+//   • panel content     → PluginHost (fetch entry XHTML, offline parse/upgrade,
+//     process + mount)
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { Layout } from "react-grid-layout";
 import { GridLayout, noCompactor, useContainerWidth } from "react-grid-layout";

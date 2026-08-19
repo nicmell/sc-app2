@@ -21,45 +21,35 @@
 // A state element must be declared ON A NODE: its store key/path derives
 // from the named ancestors, and a path-transparent container (sc-if,
 // sc-select, sc-radio-group — no path segment of their own) would let a
-// same-named element silently share an outer key. Controls encode the rule
-// in their enablement; vars enforce it as a parse error.
+// same-named element silently share an outer key. A control off a node is
+// legal synthdef-plane data (its subtree never loads); vars enforce the
+// rule as a parse error.
 
 import type { Store } from "@/lib/utils/reactiveStore";
 import { isPluginRuntime } from "@/lib/utils/guards";
-import type { BaseRuntime, PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
-import { baseRuntime, requireName } from "@/sc-elements/internal/validation";
+import type { PluginRuntimeValues, StateValue } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
-  validate(): void {
-    requireName(this);
-    // value XOR bind:value is the generic validateProps mutual exclusion.
-  }
-
   /** The element's live value — the derived `value` runtime prop, or the
    *  store-backed value for literal state. */
   get _state(): StateValue | undefined {
     return this.runtimeValue("value");
   }
 
-  /** Derived state (a `bind:value` expression): read-only, no store key. */
-  protected get derived(): boolean {
+  /** Derived state (a `bind:value` expression): read-only, no store key.
+   *  Public — the write-capable inputs (sc-button/sc-envelope) gate their
+   *  writable-target rules on it. */
+  get derived(): boolean {
     return this.runtimeProps?.value !== undefined;
   }
 
-  /** Resolve the state runtime — just the enablement: the `bind:value` (when
-   *  present) is resolved by the base's generic runtime-prop pass. Disabled
-   *  state (a pure graph input inside synthdefs/ugens) stays a plain
-   *  attribute mirror the graph collection reads. */
-  protected stateRuntime(ctx: RuntimeContext, enabled: boolean): BaseRuntime {
-    return { ...baseRuntime(ctx), enabled };
-  }
 
   /** The element's key in the plugin's store map: the named ancestor path
    *  plus its own name (the plugin root contributes no segment). Literal
    *  state only — derived state has no store key. */
   protected get key(): string {
-    return [...this.path, this.getProp("name") as string].join(".");
+    return [...this.basePath, this.getProp("name") as string].join(".");
   }
 
   /** The plugin root's per-instance runtime store — _rootScNode IS the
@@ -80,16 +70,13 @@ export abstract class ScState extends ScElement {
   }
 
   /** The public write path (what inputs call). Derived state is read-only —
-   *  the write is silently inert, like the old app's. */
+   *  the write is silently inert, like the old app's. Graph-plane state
+   *  (synthdef params, ugen inputs) is NOT writable: nothing legitimate
+   *  reaches it (binds cannot target it, its subtree never loads) — callers
+   *  going out of their way via walkPath get an orphan store key. */
   setValue(next: StateValue): void {
-    if (!this.enabled || this.derived) return;
+    if (this.derived) return;
     this.dispatchValue(next);
-  }
-
-  /** The declarative default seeded into the store on load. Scalar state
-   *  reads its `value` attribute; sc-env builds its structured EnvValue. */
-  protected defaultStateValue(): StateValue {
-    return (this.getProp("value") as StateValue) ?? 0;
   }
 
   /** Literal state wires its store key: seed the declarative default, sync
@@ -102,9 +89,11 @@ export abstract class ScState extends ScElement {
     // (re-entrant reload) — state elements are leaves, so nothing awaits
     // before the store wiring below registers; no write can slip the gap.
     const loading = super.load();
+    // No graph-plane guard needed: ScSynthDef.load never recurses into its
+    // subtree, so only node-parented state ever reaches this wiring.
     const store = this.#pluginRuntime;
-    if (store && this.enabled && this.isConnected && !this.derived) {
-      const seed = this.defaultStateValue();
+    if (store && this.isConnected && !this.derived) {
+      const seed = (this.getProp("value") as StateValue) ?? 0;
       store.update((s) => (s[this.key] !== undefined ? s : { ...s, [this.key]: seed }));
       const view = store.select((s) => s[this.key]);
       const v = view.get();

@@ -21,15 +21,11 @@
 
 import { html } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { isNodeRuntime, isSynthDefRuntime } from "@/lib/utils/guards";
+import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { BaseRuntime, RuntimeContext } from "@/types/runtime";
-import {
-  baseRuntime,
-  failValidation,
-  requireNoScChildren,
-  resolveNode,
-} from "@/sc-elements/internal/validation";
+import type { RuntimeContext } from "@/types/runtime";
+import { resolveSynthDefRef } from "@/sc-elements/internal/resolution";
+import { failValidation } from "@/sc-elements/internal/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import styles from "./sc-keyboard.module.scss";
@@ -62,30 +58,13 @@ interface Voice {
   releaseWhenReady: boolean;
 }
 
-const clamp01 = (n: number): number => Math.min(1, Math.max(0.05, n));
+const clampVel = (n: number): number => Math.min(1, Math.max(0.05, n));
 
 export class ScKeyboard extends ScElement {
-  // Declarative attributes, coerced via the spec. `synthdef` is required
-  // (enforced by validateProps); the param-name attrs default to the SC-idiomatic
-  // names, so a synthdef using `freq`/`amp`/`gate` needs no mapping.
-  private get _synthdef(): string {
-    return this.getProp("synthdef") as string;
-  }
-  private get _freqParam(): string {
-    return (this.getProp("freq") as string) ?? "freq";
-  }
-  private get _ampParam(): string {
-    return (this.getProp("amp") as string) ?? "amp";
-  }
-  private get _gateParam(): string {
-    return (this.getProp("gate") as string) ?? "gate";
-  }
-  private get _octaves(): number {
-    return (this.getProp("octaves") as number) ?? 2;
-  }
-  private get _start(): number {
-    return (this.getProp("start") as number) ?? 60;
-  }
+  // Declarative attributes are coerced and defaulted by getProp. `synthdef`
+  // is required (enforced by validateProps); the param-name attrs default to
+  // the SC-idiomatic names, so a synthdef using `freq`/`amp`/`gate` needs no
+  // mapping.
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** note → its live voice. Cleared on unload (the ids die with the group). */
@@ -96,19 +75,9 @@ export class ScKeyboard extends ScElement {
   private onKeyDown = (e: KeyboardEvent): void => this.handleKeyDown(e);
   private onKeyUp = (e: KeyboardEvent): void => this.handleKeyUp(e);
 
-  validate(): void {
-    requireNoScChildren(this);
-    if (!Number.isInteger(this._octaves) || this._octaves < 1) {
-      failValidation(this, `"octaves" attribute must be a positive integer (got "${this._octaves}")`);
-    }
-    if (!Number.isInteger(this._start) || this._start < 0 || this._start > 127) {
-      failValidation(this, `"start" attribute must be a MIDI note 0–127 (got "${this._start}")`);
-    }
-  }
-
   /** The resolved definition element (set at parse) — each voice latches the
    *  keyboard's live `envelope` value onto `envParam` inside its /s_new. */
-  private defElement?: ScSynthDef;
+  private defElement!: ScSynthDef;
   /** The def's single array param the `envelope` value targets (resolved at
    *  parse; unset when the keyboard carries no envelope). */
   private envParam?: string;
@@ -117,12 +86,10 @@ export class ScKeyboard extends ScElement {
    *  <sc-synthdef> in scope — and, when an `envelope` is given, declare
    *  exactly ONE array param to latch it onto. A leaf otherwise — no
    *  children, no node. */
-  protected resolveRuntime(ctx: RuntimeContext): BaseRuntime {
+  protected resolveRuntime(ctx: RuntimeContext): void {
+    super.resolveRuntime(ctx);
     const synthdef = this.getProp("synthdef") as string;
-    const target = resolveNode(this, ctx, [synthdef]);
-    if (!target || !isSynthDefRuntime(target)) {
-      throw new Error(`<sc-keyboard synthdef="${synthdef}">: does not match any <sc-synthdef>`);
-    }
+    const target = resolveSynthDefRef(this, ctx, synthdef);
     if (this.hasAttribute("envelope") || this.hasAttribute("bind:envelope")) {
       const arrayParams = Object.entries(target.params)
         .filter(([, v]) => Array.isArray(v))
@@ -138,7 +105,6 @@ export class ScKeyboard extends ScElement {
       this.envParam = arrayParams[0];
     }
     this.defElement = target;
-    return baseRuntime(ctx);
   }
 
   /** The plugin group a voice spawns into (the root's own nodeId), or 0 when
@@ -164,7 +130,7 @@ export class ScKeyboard extends ScElement {
     this.active.add(note);
     this.requestUpdate();
 
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
+    const live = this.loadGuard();
     try {
       // The live `envelope` value (typically bind:envelope to a var an
       // editor edits) is latched onto the def's array param INSIDE the
@@ -172,28 +138,28 @@ export class ScKeyboard extends ScElement {
       // CURRENT shape from sample zero (no post-create seed, no race).
       const arrays: Array<{ index: number; values: readonly number[] }> = [];
       const envelope = this.getProp("envelope");
-      const index = this.envParam ? this.defElement?.paramIndexOf(this.envParam) : undefined;
+      const index = this.envParam ? this.defElement.paramIndexOf(this.envParam) : undefined;
       if (Array.isArray(envelope) && index !== undefined) {
         arrays.push({ index, values: envelope });
       }
       const nodeId = await oscClient.createSynth(
-        this._synthdef,
+        this.getProp("synthdef") as string,
         groupId,
         {
-          [this._freqParam]: ScKeyboard.midicps(note),
-          [this._ampParam]: velocity,
+          [this.getProp("freq") as string]: ScKeyboard.midicps(note),
+          [this.getProp("amp") as string]: velocity,
         },
         arrays,
       );
       // Superseded/disconnected while awaiting /n_go, or released mid-flight.
       if (this.held.get(note) !== voice) return;
-      if (!this.isConnected || (this._rootScNode?.loadEpoch ?? 0) !== epoch) {
+      if (!this.isConnected || !live()) {
         this.held.delete(note);
         return;
       }
       voice.nodeId = nodeId;
       if (voice.releaseWhenReady) {
-        oscClient.setControl(nodeId, this._gateParam, 0);
+        oscClient.setControl(nodeId, this.getProp("gate") as string, 0);
         this.held.delete(note);
       }
     } catch {
@@ -212,7 +178,7 @@ export class ScKeyboard extends ScElement {
     this.requestUpdate();
     if (!voice) return;
     if (voice.nodeId !== null) {
-      oscClient.setControl(voice.nodeId, this._gateParam, 0);
+      oscClient.setControl(voice.nodeId, this.getProp("gate") as string, 0);
       this.held.delete(note);
     } else {
       voice.releaseWhenReady = true;
@@ -285,13 +251,13 @@ export class ScKeyboard extends ScElement {
     const offset = KEY_OFFSETS[e.key.toLowerCase()];
     if (offset === undefined) return;
     e.preventDefault();
-    void this.noteOn(this._start + offset, 0.7);
+    void this.noteOn((this.getProp("start") as number) + offset, 0.7);
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
     const offset = KEY_OFFSETS[e.key.toLowerCase()];
     if (offset === undefined) return;
-    this.noteOff(this._start + offset);
+    this.noteOff((this.getProp("start") as number) + offset);
   }
 
   /** velocity from the vertical click position: top of a key = quiet, bottom =
@@ -301,7 +267,7 @@ export class ScKeyboard extends ScElement {
     const el = e.currentTarget as HTMLElement;
     const h = el.clientHeight || 0;
     if (!h || Number.isNaN(e.offsetY)) return 0.7;
-    return clamp01(e.offsetY / h);
+    return clampVel(e.offsetY / h);
   }
 
   private pressKey(note: number, e: PointerEvent): void {
@@ -317,8 +283,8 @@ export class ScKeyboard extends ScElement {
   }
 
   render() {
-    const startNote = this._start;
-    const count = this._octaves * 12;
+    const startNote = this.getProp("start") as number;
+    const count = (this.getProp("octaves") as number) * 12;
     const notes: number[] = [];
     for (let i = 0; i < count; i++) notes.push(startNote + i);
 
@@ -355,7 +321,10 @@ export class ScKeyboard extends ScElement {
           ${blacks.map(
             (b) => html`
               <div
-                class=${classMap({ [styles.black]: true, [styles.active]: this.active.has(b.note) })}
+                class=${classMap({
+                  [styles.black]: true,
+                  [styles.active]: this.active.has(b.note),
+                })}
                 data-note=${b.note}
                 style="left:${b.leftPct}%;width:${blackWidthPct}%"
                 @pointerdown=${(e: PointerEvent) => this.pressKey(b.note, e)}

@@ -2,7 +2,7 @@
 // control/var (`bind:value` on the ScInput base). Renders the
 // ui-components <sc-base-radio-group>, projecting each sc-radio's collected
 // {value,label} into an <sc-base-radio>. The sc-radio children are pure data
-// (consumed at parse, never enabled); the shared ScInput seam syncs the
+// (consumed at parse, never live); the shared ScInput seam syncs the
 // selection from the target's `_state` and dispatches the chosen value.
 
 import { html } from "lit";

@@ -21,8 +21,9 @@
 // A state element must be declared ON A NODE: its store key/path derives
 // from the named ancestors, and a path-transparent container (sc-if,
 // sc-select, sc-radio-group — no path segment of their own) would let a
-// same-named element silently share an outer key. Controls encode the rule
-// in their enablement; vars enforce it as a parse error.
+// same-named element silently share an outer key. A control off a node is
+// legal synthdef-plane data (its subtree never loads); vars enforce the
+// rule as a parse error.
 
 import type { Store } from "@/lib/utils/reactiveStore";
 import { isPluginRuntime } from "@/lib/utils/guards";
@@ -36,8 +37,10 @@ export abstract class ScState extends ScElement {
     return this.runtimeValue("value");
   }
 
-  /** Derived state (a `bind:value` expression): read-only, no store key. */
-  protected get derived(): boolean {
+  /** Derived state (a `bind:value` expression): read-only, no store key.
+   *  Public — the write-capable inputs (sc-button/sc-envelope) gate their
+   *  writable-target rules on it. */
+  get derived(): boolean {
     return this.runtimeProps?.value !== undefined;
   }
 

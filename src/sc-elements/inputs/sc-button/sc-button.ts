@@ -26,7 +26,7 @@ export class ScButton extends ScInput {
     // constraint guarantees the target processed first, so its own
     // runtimeProps are settled here.
     const target = this.targetScState;
-    if (!target || target.runtimeProps?.value !== undefined) {
+    if (!target || target.derived) {
       failValidation(this, `"bind:value" must reference a single writable control/var`);
     }
   }

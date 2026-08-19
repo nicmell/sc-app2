@@ -76,7 +76,7 @@ export class ScKeyboard extends ScElement {
 
   /** The resolved definition element (set at parse) — each voice latches the
    *  keyboard's live `envelope` value onto `envParam` inside its /s_new. */
-  private defElement?: ScSynthDef;
+  private defElement!: ScSynthDef;
   /** The def's single array param the `envelope` value targets (resolved at
    *  parse; unset when the keyboard carries no envelope). */
   private envParam?: string;
@@ -137,7 +137,7 @@ export class ScKeyboard extends ScElement {
       // CURRENT shape from sample zero (no post-create seed, no race).
       const arrays: Array<{ index: number; values: readonly number[] }> = [];
       const envelope = this.getProp("envelope");
-      const index = this.envParam ? this.defElement?.paramIndexOf(this.envParam) : undefined;
+      const index = this.envParam ? this.defElement.paramIndexOf(this.envParam) : undefined;
       if (Array.isArray(envelope) && index !== undefined) {
         arrays.push({ index, values: envelope });
       }

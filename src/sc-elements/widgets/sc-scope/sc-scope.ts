@@ -187,10 +187,13 @@ export class ScScope extends ScElement {
    *  trace starts at the same phase; signals whose period exceeds the
    *  headroom (or never cross the level) fall back per the mode. */
   private resolveWindow(chunk: DecodedScopeChunk): DrawWindow | null {
+    // Hoisted once per call — getProp re-reads spec + attribute per access,
+    // too heavy for the per-repaint path.
+    const trigger = this.getProp("trigger") as string;
     const perChannel = (chunk.data.length / chunk.channels) | 0;
     if (perChannel < 2) return null;
     const headroom = perChannel >> 2;
-    if ((this.getProp("trigger") as string) === "off" || headroom === 0) {
+    if (trigger === "off" || headroom === 0) {
       return { chunk, offset: 0, span: perChannel };
     }
     const offset = findTriggerOffset(
@@ -204,11 +207,7 @@ export class ScScope extends ScElement {
       this.held = { chunk, offset, span };
       return this.held;
     }
-    if (
-      (this.getProp("trigger") as string) === "normal" &&
-      this.held &&
-      this.held.chunk.channels === chunk.channels
-    ) {
+    if (trigger === "normal" && this.held && this.held.chunk.channels === chunk.channels) {
       return this.held; // hold the last triggered trace
     }
     return { chunk, offset: 0, span }; // auto fallback: free-run this chunk
@@ -237,8 +236,13 @@ export class ScScope extends ScElement {
       canvas.height = bh;
     }
 
+    // Display props hoisted once per frame — getProp re-reads spec +
+    // attribute per access, too heavy inside the RAF repaint loop.
+    const split = (this.getProp("layout") as string) === "split";
+    const gain = this.getProp("gain") as number;
+
     const win = chunk && chunk.data.length >= 2 ? this.resolveWindow(chunk) : null;
-    const bands = win && (this.getProp("layout") as string) === "split" ? win.chunk.channels : 1;
+    const bands = win && split ? win.chunk.channels : 1;
     const bandH = h / bands;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -267,10 +271,10 @@ export class ScScope extends ScElement {
     const xStep = w / (win.span - 1);
     ctx.lineWidth = 1.25;
     for (let c = 0; c < channels; c++) {
-      const mid = zeroOf((this.getProp("layout") as string) === "split" ? c : 0);
-      const yScale = (this.getProp("gain") as number) * PAD * (unipolar ? bandH : bandH / 2);
+      const mid = zeroOf(split ? c : 0);
+      const yScale = gain * PAD * (unipolar ? bandH : bandH / 2);
       ctx.save();
-      if ((this.getProp("layout") as string) === "split") {
+      if (split) {
         // Keep an over-gained lane inside its own band.
         ctx.beginPath();
         ctx.rect(0, c * bandH, w, bandH);

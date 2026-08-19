@@ -17,14 +17,15 @@ export class ScSynth extends ScNode {
    *  consecutive INTEGER-index pairs (the encoder has no OSC `[ ]` array
    *  tags, and a post-create /n_setn would race the first control block),
    *  and the index is the def's param layout — `paramIndexOf`. */
-  private defElement?: ScSynthDef;
+  private defElement!: ScSynthDef;
 
   protected resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
   }
 
-  /** Read the enabled control children once in DOM order. Scalar controls
+  /** Read the control children once in DOM order (a synth is a node — its
+   *  controls are live by construction). Scalar controls
    *  become /s_new pairs; array controls are sent as indexed pairs. A string
    *  scalar is skipped with the same warning the old scalar collector used. */
   private getControlSnapshots(): {
@@ -72,7 +73,7 @@ export class ScSynth extends ScNode {
     );
     const arrays: Array<{ index: number; values: readonly number[] }> = [];
     for (const [name, values] of Object.entries(arraySnapshot)) {
-      const index = this.defElement?.paramIndexOf(name);
+      const index = this.defElement.paramIndexOf(name);
       if (index !== undefined) arrays.push({ index, values });
     }
     const nodeId = await oscClient.createSynth(synthdef, this.targetGroupId, snapshot, arrays);

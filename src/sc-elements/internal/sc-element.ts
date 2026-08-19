@@ -45,6 +45,7 @@ import { evalExpr } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
+  coerceBoolean,
   coerceScalar,
   coerceVector,
   coerceStatic,
@@ -71,16 +72,11 @@ export abstract class ScElement extends LitElement {
    *  path-chained hash (the browser reflects it to the attribute). */
   declare id: string;
   /** The plugin root element this element was parsed under. */
-  _rootScNode!: ScElement;
+  _rootScNode!: ScParent;
   /** The parsed parent element (unset at the root). */
   _parentScNode?: ScParent;
   /** The named ancestor path (scope names, outermost first). */
   basePath: string[] = [];
-  /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
-   *  root's unload()/reload(), it invalidates a suspended load pass: the
-   *  sequential walk re-checks it after every awaited child and aborts when
-   *  it moved (disconnect unload, or a newer pass superseding this one). */
-  loadEpoch = 0;
   /** The resolved runtime props (`bind:min="vars.lo"` → key "min"): live bind
    *  targets + parsed expression per prop, assigned in `process()`. */
   runtimeProps?: Record<string, RuntimeProp>;
@@ -175,7 +171,9 @@ export abstract class ScElement extends LitElement {
       return n;
     }
     if (attr?.type === "boolean") {
-      return Boolean(value);
+      // The SAME HTML-flavored reading as the static form — a bound string
+      // "false" disables like the attribute would.
+      return coerceBoolean(value);
     }
     if (attr?.type === "scalar") {
       if (typeof value === "number") return value;
@@ -348,8 +346,8 @@ export abstract class ScElement extends LitElement {
   /** Capture the current load epoch; the returned probe is true while this
    *  load pass is still current (no unload/reload superseded it). */
   protected loadGuard(): () => boolean {
-    const epoch = this._rootScNode?.loadEpoch ?? 0;
-    return () => (this._rootScNode?.loadEpoch ?? 0) === epoch;
+    const epoch = this._rootScNode.loadEpoch;
+    return () => this._rootScNode.loadEpoch === epoch;
   }
 
   /** The element's own load step — the SYNCHRONOUS prefix wiring the

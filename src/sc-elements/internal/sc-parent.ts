@@ -15,6 +15,12 @@ export abstract class ScParent extends ScElement {
    *  reached through plain HTML wrappers, with transparent containers'
    *  contents flattened in). */
   _scChildren: ScElement[] = [];
+  /** The load-pass epoch — only the plugin ROOT's counts (`loadGuard` reads
+   *  it through `_rootScNode`). Bumped by the root's unload()/reload(), it
+   *  invalidates a suspended load pass: the sequential walk re-checks it
+   *  after every awaited child and aborts when it moved (disconnect unload,
+   *  or a newer pass superseding this one). */
+  loadEpoch = 0;
 
   /** This element's sc-* descendants, recursing through plain HTML wrappers
    *  AND through transparent (nameless) sc containers — those are yielded

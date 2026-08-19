@@ -35,6 +35,15 @@ const XSD_BOOLEAN = new Set(["true", "false", "1", "0"]);
 const NAME_SEGMENT = /^[A-Za-z_]\w*(?:-[A-Za-z_]\w*)*$/;
 const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 
+/** Boolean coercion shared by the static and evaluated forms — HTML-flavored:
+ *  everything is true except the explicit falsy spellings (`"false"`, `"0"`,
+ *  the empty string, the number 0). The static form is pre-gated by
+ *  validateProps' true|false|1|0 lexical check; evaluated values get the
+ *  same reading, so a bound string `"false"` disables like the attribute. */
+export function coerceBoolean(value: string | number): boolean {
+  return value !== "" && value !== "false" && value !== "0" && value !== 0;
+}
+
 /** Coerce a scalar string to a number when it is numeric, preserving strings
  *  (including empty/whitespace strings) otherwise. */
 export function coerceScalar(value: string): string | number {
@@ -65,7 +74,7 @@ export function coerceStatic(
   raw: string,
 ): string | number | boolean | number[] {
   if (attr?.type === "decimal" || attr?.type === "integer") return Number(raw);
-  if (attr?.type === "boolean") return raw === "true" || raw === "1";
+  if (attr?.type === "boolean") return coerceBoolean(raw);
   if (attr?.type === "scalar") return coerceScalar(raw);
   if (attr?.type === "vector") return tryEvalCallLiteral(raw) ?? coerceVector(raw);
   return String(raw); // string / name / enum / untyped

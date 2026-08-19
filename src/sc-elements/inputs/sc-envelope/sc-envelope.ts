@@ -105,7 +105,7 @@ export class ScEnvelope extends ScInput {
     // Like sc-button: write-capable, so it needs a plain writable path — and
     // specifically an envelope state (a scalar control has no shape to drag).
     const target = this.targetScState;
-    if (!target || target.runtimeProps?.value !== undefined) {
+    if (!target || target.derived) {
       failValidation(this, `"bind:value" must reference a single writable envelope state`);
     }
     const declared = target.getProp("value");

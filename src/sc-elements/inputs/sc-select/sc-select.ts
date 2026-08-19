@@ -2,7 +2,7 @@
 // (`bind:value` on the ScInput base). Renders the ui-components
 // <sc-base-select>, projecting each sc-option's collected {value,label} into an
 // <sc-base-option>. The sc-option children are pure data (consumed at parse,
-// never enabled); the shared ScInput seam syncs the selection from the target's
+// never live); the shared ScInput seam syncs the selection from the target's
 // `_state` and dispatches the chosen value through commit().
 
 import { html } from "lit";

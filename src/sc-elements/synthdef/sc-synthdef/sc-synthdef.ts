@@ -55,8 +55,8 @@ export class ScSynthDef extends ScParent {
   loaded = false;
   /** The param defaults + DOM-ordered ugen specs, collected at parse —
    *  compiled to SCgf at /d_recv time in the load pass. */
-  params!: Record<string, number | number[]>;
-  specs!: UgenSpec[];
+  params: Record<string, number | number[]> = {};
+  specs: UgenSpec[] = [];
 
   /** The param's base slot index in the compiled def's flat control space —
    *  params occupy consecutive slots in declaration order, arrays spanning
@@ -101,7 +101,9 @@ export class ScSynthDef extends ScParent {
   /** Compile the collected specs and install the def: the /d_recv's
    *  embedded /sync completion guarantees it exists in scsynth before any
    *  later sibling's /s_new. A graph error fails the load like any other
-   *  pipeline failure (surfaced in the plugin's error box). */
+   *  pipeline failure (surfaced in the plugin's error box).
+   *  DELIBERATELY no `super.load()`: the synthdef plane has no runtime
+   *  lifecycle — ScParent's child walk would store-wire the params. */
   async load(): Promise<void> {
     if (!this.isConnected || this.loaded) return;
     const live = this.loadGuard();
@@ -115,7 +117,8 @@ export class ScSynthDef extends ScParent {
   /** Free the def on unmount — defs otherwise leak in scsynth. Known
    *  limitation (old-app parity): def names are global to scsynth, so two
    *  plugins declaring the same name overwrite each other and this d_free
-   *  can break the survivor. */
+   *  can break the survivor. DELIBERATELY no `super.unload()` — the
+   *  subtree never loaded, there is nothing to walk or unsubscribe. */
   unload(): void {
     if (this.loaded) oscClient.freeSynthDef(this.getProp("name") as string);
     this.loaded = false;

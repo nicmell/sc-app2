@@ -2,7 +2,7 @@
 // group of their own, nested inside the nearest loaded ancestor group (the
 // plugin group, or an outer sc-group). The load pass creates the group node
 // FIRST — the inverse of sc-synth's children-first order — so the children's
-// `targetGroupId` walk finds it live; group-level enabled controls /n_set the
+// `targetGroupId` walk finds it live; group-level controls /n_set the
 // group node (scsynth applies a group /n_set to every node inside — the
 // server-side replacement for the old app's name-based propagation).
 //

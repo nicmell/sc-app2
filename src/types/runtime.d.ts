@@ -1,6 +1,7 @@
 import type { Expr } from "@/lib/expression";
 import type { Store } from "@/lib/utils/reactiveStore";
-import type { ScElement, ScParent } from "@/sc-elements/internal/sc-element";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
 // The engine's type system. There are NO item structures and NO parallel

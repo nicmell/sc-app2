@@ -1,0 +1,90 @@
+// Base for the LEVEL-OPENING elements — the only ones owning parsed sc
+// children (`ScNode`'s plugin/group/synth, `ScSynthDef`, `ScUgen`).
+// Transparent containers and leaves never extend it: they have no
+// `_scChildren` at all (reading the property off them yields undefined).
+// Carries the whole children machinery: the runtime-tree field, the
+// parse-scope walker, `processChildren`, and the load/unload child walks.
+
+import { isNodeType } from "@/lib/utils/guards";
+import { checkDuplicateNames, isTransparent, nameOf } from "@/sc-elements/internal/validation";
+import { ScElement } from "@/sc-elements/internal/sc-element";
+import type { RuntimeContext } from "@/types/runtime";
+
+export abstract class ScParent extends ScElement {
+  /** The parsed sc-* child elements (NOT the DOM children: sc-* descendants
+   *  reached through plain HTML wrappers, with transparent containers'
+   *  contents flattened in). */
+  _scChildren: ScElement[] = [];
+
+  /** This element's sc-* descendants, recursing through plain HTML wrappers
+   *  AND through transparent (nameless) sc containers — those are yielded
+   *  too, before their contents, so ONE flat level covers an sc-if's whole
+   *  subtree (its contents live in the enclosing scope: same duplicate
+   *  check, same bind scope, same store paths — unconditionally, since
+   *  sc-if only hides visually). Nameless leaves have no sc children at
+   *  parse time, so descending into them is a no-op. */
+  *walkScElements(el: Element = this): Generator<ScElement> {
+    for (const child of Array.from(el.children)) {
+      if (isNodeType(child.tagName.toLowerCase())) {
+        yield child as ScElement;
+        if (isTransparent(child)) yield* this.walkScElements(child);
+      } else {
+        yield* this.walkScElements(child);
+      }
+    }
+  }
+
+  /** Recurse into this parent's children: collect the full sibling scope
+   *  (including transparent containers' contents) into the level context and
+   *  check duplicate names across it BEFORE any child processes — then reset
+   *  `_scChildren` and process each child in document order (each mints its
+   *  id and attaches itself to its owning parent). All siblings share ONE
+   *  level context; `process` recurses per child. Called by the
+   *  `resolveRuntime` overrides. Returns the parsed children. */
+  protected processChildren(ctx: RuntimeContext): ScElement[] {
+    const name = nameOf(this);
+    const path = name ? [...ctx.path, name] : ctx.path;
+
+    const scope = [...this.walkScElements()];
+
+    checkDuplicateNames(scope);
+
+    const children: ScElement[] = (this._scChildren = []);
+    const childCtx: RuntimeContext = {
+      ...ctx,
+      scope: [...scope, ...ctx.scope],
+      parentNode: this,
+      path,
+      index: 0,
+    };
+    for (const child of scope) {
+      child.process(childCtx);
+    }
+    return children;
+  }
+
+  /** The async load pass, in strict DOM order: own wiring first (the base
+   *  prefix), then each child fully awaited before the next — no
+   *  concurrency, no reactive gates. The bind-order constraint (targets
+   *  declared before their references) makes DOM order a valid dependency
+   *  order, so a synthdef's /d_recv is acknowledged before its synth's
+   *  /s_new is sent. Overrides sequence their own OSC and call
+   *  `super.load()` where the children should follow. */
+  async load(): Promise<void> {
+    await super.load();
+    const live = this.loadGuard();
+    for (const child of this._scChildren) {
+      await child.load();
+      if (!live()) return; // pass invalidated mid-await
+    }
+  }
+
+  /** Children unload in REVERSE DOM order so dependents go before their
+   *  targets; sends are fire-and-forget — no replies awaited. */
+  unload(): void {
+    for (const child of [...this._scChildren].reverse()) {
+      child.unload();
+    }
+    super.unload();
+  }
+}

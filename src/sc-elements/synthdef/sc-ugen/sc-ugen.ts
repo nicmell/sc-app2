@@ -6,7 +6,7 @@ import { parseBind, splitTopLevel } from "@/lib/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
 import { resolveNode } from "@/sc-elements/internal/validation";
-import { ScParent } from "@/sc-elements/internal/sc-element";
+import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export class ScUgen extends ScParent {
   protected resolveRuntime(ctx: RuntimeContext): void {

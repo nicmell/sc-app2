@@ -1,13 +1,13 @@
 // Base for the node-owning elements (sc-plugin / sc-group / sc-synth): the
 // shared `run` attribute plus the node runtime values — `nodeId` (the scsynth
-// node, assigned when it goes live) and `loaded`. The children recurse via
-// the base validate step (their content models admit sc children); sc-synth
-// adds its synthdef reference in resolveRuntime.
+// node, assigned when it goes live) and `loaded`. Nodes open a level:
+// resolveRuntime recurses via ScParent's processChildren; sc-synth adds its
+// synthdef reference on top.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { RuntimeContext } from "@/types/runtime";
-import { ScParent } from "@/sc-elements/internal/sc-element";
+import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export abstract class ScNode extends ScParent {
   /** The scsynth node id — 0 until the node goes live. */

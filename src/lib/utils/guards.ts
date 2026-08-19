@@ -5,7 +5,7 @@
 // exist; per-tag guards return on demand.
 
 import { ELEMENTS } from "@/constants/sc-elements";
-import type { ScParent } from "@/sc-elements/internal/sc-element";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScPlugin } from "@/sc-elements/nodes/sc-plugin/sc-plugin";
 import type { ScState } from "@/sc-elements/internal/sc-state";

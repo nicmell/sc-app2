@@ -17,7 +17,8 @@ import {
   isSynthDefRuntime,
   typeOf,
 } from "@/lib/utils/guards";
-import type { ScElement, ScParent } from "@/sc-elements/internal/sc-element";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
+import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";

@@ -9,7 +9,8 @@ import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
-import { ScParent, type ScElement } from "@/sc-elements/internal/sc-element";
+import { ScParent } from "@/sc-elements/internal/sc-parent";
+import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
 /** Param defaults: a scalar per param, or a numeric ARRAY (a comma-list

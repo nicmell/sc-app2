@@ -37,12 +37,15 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (parse engine — process/
-            processChildren — the common runtime fields, AND the runtime-prop
+internal/   ScElement (parse engine — process — the common runtime fields,
+            AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything
-            reads); validation.ts (the parse-time validateProps/coerceStatic
+            reads); sc-parent.ts (ScParent — the level openers' base:
+            `_scChildren`, the parse-scope walker, processChildren, the
+            load/unload child walks); validation.ts (the parse-time
+            validateProps/coerceStatic
             helpers, failValidation/duplicate-name primitives + the
             bind-resolution machinery, as plain functions over the elements);
             the category bases ScNode (run + nodeId/loaded),

@@ -52,9 +52,10 @@ export abstract class ScParent extends ScElement {
   /** Recurse into this parent's children: collect the full sibling scope
    *  (including transparent containers' contents) into the level context and
    *  check duplicate names across it BEFORE any child processes — then reset
-   *  `_scChildren` and process each child in document order (each mints its
-   *  id and attaches itself to its owning parent). All siblings share ONE
-   *  level context; `process` recurses per child. */
+   *  `_scChildren` and process each child in document order, COLLECTING it
+   *  as it completes (a mid-processing element is not yet a child — the
+   *  circular-bind rejection in resolveControlBind relies on that). All
+   *  siblings share ONE level context; `process` recurses per child. */
   private processChildren(ctx: RuntimeContext): void {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
@@ -73,6 +74,7 @@ export abstract class ScParent extends ScElement {
     };
     for (const child of scope) {
       child.process(childCtx);
+      this._scChildren.push(child);
     }
   }
 

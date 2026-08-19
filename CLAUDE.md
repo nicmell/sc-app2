@@ -306,8 +306,9 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `process()` lives on `ScElement` — it attaches the element to its
-   parent, assigns the shared runtime core, then runs the TWO extendable
+   `process()` lives on `ScElement` — it assigns the identity + shared
+   runtime core (the parent collects the element into `_scChildren` as it
+   completes), then runs the TWO extendable
    steps: `validate()` (the ctx-free static spec gate) and
    `resolveRuntime(ctx)` (runtime construction: the recursion into the sc
    children where the element opens a level — `_scChildren` is a runtime
@@ -353,11 +354,11 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    a pointed error in the plugin box.
 6. **The parse context is per-level and `process` recurses**: `process(ctx)`
    threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
-   one shared object per sibling scope; it attaches the element to its
-   parent's `_scChildren`, runs `validate()` (spec gate + semantic rules),
-   then `resolveRuntime(ctx)` (bind/reference resolution; the level-opening
-   elements — nodes/synthdef/ugen — recurse via `processChildren` there).
-   A parent collects ALL its children into the level scope and
+   one shared object per sibling scope; it runs `validate()` (spec gate +
+   semantic rules), then `resolveRuntime(ctx)` (bind/reference resolution;
+   the level-opening elements — nodes/synthdef/ugen — recurse via
+   `processChildren` there, each collecting a child into `_scChildren` as
+   it completes). A parent collects ALL its children into the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
    shadowing on name lookups.
@@ -377,9 +378,10 @@ referenced before it is declared` when a bind names an in-scope element
    before its children run), so group-scoped binds to earlier siblings work.
    Consequence: references point strictly backward, the bind graph is a DAG
    by construction, and `checkCircularBind`'s graph walk is gone — reduced
-   to the self-reference guard in `resolveStateBind` (`target === el`; an
-   element can still name itself through its mid-processing parent —
-   `bad-circular-bind` pins it).
+   to the self-reference rejection in `resolveControlBind` (a
+   mid-processing element is not yet in its parent's `_scChildren`, so a
+   self-reference surfaces in the lexical fallback / DOM probe —
+   `bad-circular-bind` pins the message).
 8. **Two validation gates** keep all of this honest: `yarn test` (the
    examples through the engine in happy-dom, exact error messages pinned)
    and the CDP harness (upload/XSD path + real browser) — see "Validating
@@ -597,8 +599,8 @@ NO sibling scope and NO path segment — the parse walks through them
 (`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails
 flat, `bad-if-shadow`), its bind scope, and its store paths. Attachment
-walks through transparency too (`processParent`): `_parentScNode` IS the
-nearest non-transparent ancestor — the owner every consumer needs
+walks through transparency too: `_parentScNode` IS the
+nearest non-transparent ancestor (the level owner) — the owner every consumer needs
 (ScControl's /n_set, name lookups over `_scChildren`) — and transparent
 containers stay runtime-tree leaves (sc-select reads its option children
 from the DOM). sc-if contents are therefore UNCONDITIONALLY

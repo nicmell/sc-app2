@@ -284,9 +284,17 @@ export function resolveControlBind(
   if (!target._scChildren.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // Lexical fallback for the bare-name form: the name may address a STATE
     // element in an enclosing scope (declared before, per resolveNode's
-    // bind-order gate). Its owner carries the control lookup.
+    // bind-order gate). Its owner carries the control lookup. Resolving to
+    // the MID-PROCESSING element itself is the one cycle left (an element
+    // attaches to its parent only after it finishes processing, so the
+    // children lookups above can't see it) — reject it here.
     if (segments.length === 0) {
       const scoped = resolveNode(el, ctx, [controlName]);
+      if (scoped === el) {
+        throw new Error(
+          `<${tag} name="${nameOf(el)}">: circular bind reference detected`,
+        );
+      }
       if (scoped && isStateRuntime(scoped)) {
         const owner = scoped._parentScNode ?? ctx.rootNode;
         return { target: owner, controlName };
@@ -294,9 +302,13 @@ export function resolveControlBind(
     }
     // When the state IS declared on the target but only later in the
     // document (not yet processed), give the honest bind-order error
-    // instead of "not declared".
+    // instead of "not declared" — unless the DOM probe finds the element
+    // ITSELF (the dotted self-reference, e.g. `g.x` from x inside g).
     for (const c of target.walkScElements()) {
       if (isStateRuntime(c) && nameOf(c) === controlName) {
+        if (c === el) {
+          throw new Error(`<${tag} name="${nameOf(el)}">: circular bind reference detected`);
+        }
         throw new Error(`<${tag}>: "${controlName}" is referenced before it is declared`);
       }
     }
@@ -327,17 +339,11 @@ export function resolveStateBind(
       (c): c is ScState => isStateRuntime(c) && nameOf(c) === controlName,
     );
     if (!targetState) {
-      // Unreachable: resolveControlBind just proved the state child exists.
+      // Unreachable: resolveControlBind just proved the state child exists
+      // (and rejected the self-reference — with references restricted to
+      // already-processed elements, processing order strictly decreases
+      // along any bind chain, so the targets graph is a DAG by construction).
       throw new Error(`<${el.tagName.toLowerCase()}>: "${controlName}" lost its state target`);
-    }
-    // With references restricted to already-processed elements, processing
-    // order strictly decreases along any bind chain — the targets graph is a
-    // DAG by construction. The only cycle left is the self-reference (an
-    // element can still name itself through its mid-processing parent).
-    if (targetState === el) {
-      throw new Error(
-        `<${el.tagName.toLowerCase()} name="${nameOf(el)}">: circular bind reference detected`,
-      );
     }
     targets[path] = targetState;
   }

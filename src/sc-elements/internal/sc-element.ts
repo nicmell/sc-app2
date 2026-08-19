@@ -1,7 +1,7 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — `process()`
-// attaches the element to its parent's `_scChildren`, assigns the shared
-// core, then runs the TWO conceptual steps every component can extend
+// assigns the identity + shared core (the parent collects the element into
+// its `_scChildren`), then runs the TWO conceptual steps every component can extend
 // through `super`: `validate()` (purely STATIC — the spec gate; no ctx, so
 // it can resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
 // bind/reference resolution AND the recursion into sc children: the
@@ -199,30 +199,29 @@ export abstract class ScElement extends LitElement {
 
   // ── The parse engine ────────────────────────────────────────────────────
 
-  /** Process this element: mint its path-chained hash DOM identity (the
-   *  level owner's id + the level's document-order counter), pre-register it
-   *  (so re-entrant resolves of a mid-processing ancestor return it), attach
-   *  to its owning parent (`processParent`), assign the shared runtime core
-   *  (`_rootScNode`/`basePath`), then run the TWO conceptual steps —
+  /** Process this element: pre-register it (so re-entrant resolves of a
+   *  mid-processing ancestor return it), assign the identity + shared
+   *  runtime core (the path-chained hash id minted from the level owner's
+   *  id + the level's document-order counter, `_rootScNode`/`basePath`/
+   *  `_parentScNode` — the level owner; the OWNER pushes this element onto
+   *  its `_scChildren` once processing completes, see
+   *  ScParent.processChildren), then run the TWO conceptual steps —
    *  `validate()` (static: the spec gate; ctx-free) and
    *  `resolveRuntime(ctx)` (runtime construction: the recursion into sc
    *  children where the element opens a level, bind/reference resolution) —
-   *  both extendable per element THROUGH `super`. `ctx.parentNode` stays the
-   *  level OWNER throughout (path/bindless defaults read the named parent) —
-   *  `_parentScNode` carries the parse parent, keeping the runtime tree
-   *  truthful. Library throws get the canonical `<tag>:` prefix;
-   *  already-shaped errors pass through. Idempotent — an already-processed
-   *  element is returned as-is. */
+   *  both extendable per element THROUGH `super`. Library throws get the
+   *  canonical `<tag>:` prefix; already-shaped errors pass through.
+   *  Idempotent — an already-processed element is returned as-is. */
   process(ctx: RuntimeContext): ScElement {
     if (ctx.nodes.has(this)) {
       return this;
     }
     ctx.nodes.add(this);
-    this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.index++);
-    this.processParent(ctx);
     try {
+      this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.index++);
       this._rootScNode = ctx.rootNode;
       this.basePath = ctx.path;
+      this._parentScNode = ctx.parentNode;
       this.validate();
       this.resolveRuntime(ctx);
     } catch (e) {
@@ -233,20 +232,6 @@ export abstract class ScElement extends LitElement {
     return this;
   }
 
-  /** Attach this element to its parent — ALWAYS the level owner: scope
-   *  membership comes from `walkScElements`, which never descends past a
-   *  non-transparent sc element, so every sc ancestor strictly between a
-   *  scope member and its level owner is transparent by construction
-   *  (transparent containers stay runtime-tree leaves; their contents belong
-   *  directly to the enclosing node). Pushes onto the owner's `_scChildren`
-   *  and sets `_parentScNode` (owned HERE — resolution never touches it).
-   *  The root has no parent and skips both. */
-  private processParent(ctx: RuntimeContext): void {
-    const level = ctx.parentNode;
-    if (!level) return;
-    level._scChildren.push(this);
-    this._parentScNode = level;
-  }
 
   /** STEP 2 — runtime construction: every present `bind:attr` becomes live
    *  targets + expression (the same machinery state binds use, so the

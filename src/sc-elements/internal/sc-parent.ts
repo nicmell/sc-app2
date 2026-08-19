@@ -7,7 +7,7 @@
 
 import { isNodeType } from "@/lib/utils/guards";
 import { processChildren } from "@/sc-elements/internal/engine";
-import { isTransparent } from "@/sc-elements/internal/resolution";
+import { isTransparent } from "@/sc-elements/internal/engine/resolution";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { RuntimeContext } from "@/types/runtime";
 

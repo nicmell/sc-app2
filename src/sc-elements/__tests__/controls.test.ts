@@ -29,7 +29,7 @@ import {
   type ScVar,
 } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
-import { validateProps } from "@/sc-elements/internal/validation";
+import { validateProps } from "@/sc-elements/internal/engine/validation";
 import {
   autoRespond,
   FIRST_NODE_ID,

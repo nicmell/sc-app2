@@ -15,7 +15,7 @@ spec attr (unless flagged `runtime: false`) accepts a
 static form, evaluated live and reactive on its sources; `getProp` then
 returns the evaluated value. `process()` runs TWO extendable steps:
 `validate()` — ctx-free STATIC validation (the spec-driven `validateProps()`
-plain function in `internal/validation.ts`: required/numeric/enum, numeric
+plain function in `internal/engine/validation.ts`: required/numeric/enum, numeric
 range facets, `name` syntax, choice-less no-sc-children, runtime-prop rules;
 overrides add semantic rules after `super`) and `resolveRuntime(ctx)` —
 runtime construction: the recursion into the sc children where the element
@@ -37,8 +37,9 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   engine.ts (the parse ENGINE: free process/processChildren/
-            processRoot over a cursor ctx — identity, core, error shape);
+internal/   engine/ (the parse ENGINE — index.ts: free process/
+            processChildren over a cursor ctx — identity, core, error
+            shape; plus its validation.ts, resolution.ts, contentHash.ts);
             ScElement (the common runtime fields, the validate/resolveRuntime
             hooks, AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
@@ -46,11 +47,12 @@ internal/   engine.ts (the parse ENGINE: free process/processChildren/
             "statechange" on the `value` slot — the value seam everything
             reads); sc-parent.ts (ScParent — the level openers' base:
             `_scChildren`, the parse-scope walker, processChildren, the
-            load/unload child walks); validation.ts (STEP 1's toolbox: the
-            spec-driven validateProps gate, failValidation, static coercion);
-            resolution.ts (STEP 2's toolbox: name/transparency semantics,
-            duplicate-name integrity, name-path + bind-expression resolution
-            — all plain functions over the elements);
+            load/unload child walks); engine/validation.ts (STEP 1's
+            toolbox: the spec-driven validateProps gate, failValidation,
+            static coercion); engine/resolution.ts (STEP 2's toolbox:
+            name/transparency semantics, duplicate-name integrity,
+            name-path + bind-expression resolution — all plain functions
+            over the elements);
             the category bases ScNode (run + nodeId/loaded),
             ScState (`_state` = the `value` runtime slot + the plugin root's
             instance-store backing for LITERAL state, reached via

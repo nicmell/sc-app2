@@ -5,7 +5,7 @@
 // attribute reads share. The error messages are the runtime gate's
 // contract — pinned verbatim by src/sc-elements/examples.test.ts and the
 // CDP harness. STEP 2's toolbox (name/scope/bind resolution) lives in
-// internal/resolution.ts.
+// the sibling resolution.ts.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { tryEvalCallLiteral } from "@/lib/expression";

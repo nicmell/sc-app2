@@ -12,7 +12,7 @@
 // synthdef-plane data; vars enforce the rule as a parse error.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScVar extends ScState {

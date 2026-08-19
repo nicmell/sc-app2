@@ -6,7 +6,7 @@
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
-import { resolveSynthDefRef } from "@/sc-elements/internal/resolution";
+import { resolveSynthDefRef } from "@/sc-elements/internal/engine/resolution";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 

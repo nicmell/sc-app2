@@ -1,6 +1,6 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — the parse ENGINE
-// (internal/engine.ts) drives it, assigning the identity + shared core and
+// (internal/engine/) drives it, assigning the identity + shared core and
 // running the TWO conceptual steps every component can extend through
 // `super`: `validate()` (purely STATIC — the spec gate; no ctx, so it can
 // resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
@@ -10,8 +10,8 @@
 // declared here and on the category bases: internal/sc-node, sc-state,
 // sc-input). Bind targets must be declared BEFORE their references in the
 // DOM (see CLAUDE.md — processing is strict DOM order). The static gate
-// lives in internal/validation.ts, the resolution machinery in
-// internal/resolution.ts.
+// lives in internal/engine/validation.ts, the resolution machinery in
+// internal/engine/resolution.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
 // also generates the XSD); only the handful of genuinely-reactive fields (a
@@ -43,14 +43,14 @@
 import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
-import { resolveBind } from "@/sc-elements/internal/resolution";
+import { resolveBind } from "@/sc-elements/internal/engine/resolution";
 import {
   coerceBoolean,
   coerceScalar,
   coerceVector,
   coerceStatic,
   validateProps,
-} from "@/sc-elements/internal/validation";
+} from "@/sc-elements/internal/engine/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
 import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
@@ -147,7 +147,7 @@ export abstract class ScElement extends LitElement {
 
   /** Coerce an evaluated runtime value per the spec, keeping live warning
    *  bookkeeping on the element. Static values use the pure `coerceStatic`
-   *  function in internal/validation.ts. */
+   *  function in internal/engine/validation.ts. */
   private coerceProp(
     attr: AttrSpec | undefined,
     name: string,
@@ -207,7 +207,7 @@ export abstract class ScElement extends LitElement {
    *  (`_scChildren` is a runtime value like the rest), then references,
    *  graph collection, resolved-state rules — and MUST call
    *  `super.resolveRuntime(ctx)`. PUBLIC because the ENGINE
-   *  (internal/engine.ts) drives it — element code never calls it. */
+   *  (internal/engine/) drives it — element code never calls it. */
   resolveRuntime(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
     if (ctx.parentNode && !isNodeRuntime(ctx.parentNode)) return;

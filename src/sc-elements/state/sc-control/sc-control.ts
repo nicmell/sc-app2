@@ -22,7 +22,7 @@
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { StateValue } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {

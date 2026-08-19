@@ -87,13 +87,14 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
                          the element IS the runtime — no item structures.
-                         engine.ts is the parse ENGINE (free functions
-                         process/processChildren/processRoot over a cursor
-                         ctx); the ScElement base carries the common runtime
-                         fields + the two hooks;
-                         validation.ts holds the parse-time validation/static-
-                         coercion and resolution.ts the name/scope/bind-
-                         resolution helpers, both as plain functions;
+                         engine/ is the parse ENGINE (index.ts: free
+                         process/processChildren over a cursor ctx —
+                         ScPlugin.processRoot builds the entry ctx); the
+                         ScElement base carries the common runtime fields +
+                         the two hooks; engine/validation.ts holds the
+                         parse-time validation/static-coercion and
+                         engine/resolution.ts the name/scope/bind-resolution
+                         helpers, both as plain functions;
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
@@ -318,8 +319,8 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    value like the rest — plus bind/reference resolution), both mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
-   helpers are plain functions in `internal/validation.ts` +
-   `internal/resolution.ts`, taking the
+   helpers are plain functions in `internal/engine/validation.ts` +
+   `internal/engine/resolution.ts`, taking the
    element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
@@ -357,7 +358,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
 6. **The parse context is a CURSOR and the engine recurses**: the free
-   `process(ctx)` (internal/engine.ts) works on `ctx.siblings[ctx.index]`,
+   `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
    threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
    parentNode, path}` — one shared object per sibling scope, the driver
    setting `index`; it runs `validate()` (spec gate + semantic rules), then
@@ -419,7 +420,7 @@ further `sc-*` element:
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
 3. **Validation is layered**: `validateProps()` (the plain parse-time
-   function in `internal/validation.ts`, spec-driven) enforces
+   function in `internal/engine/validation.ts`, spec-driven) enforces
    required/numeric/enum plus numeric range facets
    (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
    no-sc-children rule for choice-less content models, and the runtime-prop
@@ -451,8 +452,9 @@ further `sc-*` element:
    (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
    component classes via type-only imports.
 5. **Runtime resolution**: the parse engine is the free-function
-   interpreter in `internal/engine.ts`
-   (`process`/`processChildren`/`processRoot` over the cursor ctx); the
+   interpreter in `internal/engine/`
+   (`process`/`processChildren` over the cursor ctx;
+   `ScPlugin.processRoot` builds the entry ctx); the
    elements provide the hooks. Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
    through `resolveBind` from the element spec. Extending `ScParent`
@@ -601,7 +603,7 @@ numeric prop falls back to the widget default). Native inputs bind with Lit's `l
 directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
-sc-select, sc-radio-group — `isTransparent`, internal/resolution.ts) open
+sc-select, sc-radio-group — `isTransparent`, internal/engine/resolution.ts) open
 NO sibling scope and NO path segment — the parse walks through them
 (`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails

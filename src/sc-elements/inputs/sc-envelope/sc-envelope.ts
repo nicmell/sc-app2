@@ -33,7 +33,7 @@ import {
   type EnvSegment,
 } from "@/lib/synthdef/envValue";
 import type { RuntimeContext, StateValue } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import styles from "./sc-envelope.module.scss";
 

@@ -10,8 +10,8 @@
 // `resolveRuntime(ctx)`) and ScParent calls back into `processChildren`
 // where it opens a level.
 
-import { contentHash } from "@/sc-elements/internal/contentHash";
-import { checkDuplicateNames, nameOf } from "@/sc-elements/internal/resolution";
+import { contentHash } from "./contentHash";
+import { checkDuplicateNames, nameOf } from "./resolution";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { RuntimeContext } from "@/types/runtime";
@@ -78,13 +78,4 @@ export function processChildren(parent: ScParent, ctx: RuntimeContext): void {
     process(childCtx);
     parent._scChildren.push(siblings[i]);
   }
-}
-
-/** Entry: process an authored root — the single sibling of a virtual top
- *  level (so it mints from an empty parent id at position 0, like any other
- *  element). Returns the per-parse `nodes` set. */
-export function processRoot(host: ScParent): Set<ScElement> {
-  const nodes = new Set<ScElement>();
-  process({ rootNode: host, nodes, siblings: [host], scope: [host], path: [], index: 0 });
-  return nodes;
 }

@@ -9,7 +9,7 @@ import { resolveNode } from "@/sc-elements/internal/resolution";
 import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export class ScUgen extends ScParent {
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
     // synthdef param. A comma-token may be a plain ref, a `name.idx`

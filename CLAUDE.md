@@ -86,9 +86,11 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          (display/if/text/flex/row/col), widgets/ (strudel/
                          scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
-                         the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (process/
-                         processChildren) + the common runtime fields;
+                         the element IS the runtime — no item structures.
+                         engine.ts is the parse ENGINE (free functions
+                         process/processChildren/processRoot over a cursor
+                         ctx); the ScElement base carries the common runtime
+                         fields + the two hooks;
                          validation.ts holds the parse-time validation/static-
                          coercion and resolution.ts the name/scope/bind-
                          resolution helpers, both as plain functions;
@@ -354,13 +356,15 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    rules bite only under libxml2 in dev; `validateProps` at parse is the
    authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
-6. **The parse context is per-level and `process` recurses**: `process(ctx)`
-   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
-   one shared object per sibling scope; it runs `validate()` (spec gate +
-   semantic rules), then `resolveRuntime(ctx)` (bind/reference resolution;
-   the level-opening elements — nodes/synthdef/ugen — recurse via
-   `processChildren` there, each collecting a child into `_scChildren` as
-   it completes). A parent collects ALL its children into the level scope and
+6. **The parse context is a CURSOR and the engine recurses**: the free
+   `process(ctx)` (internal/engine.ts) works on `ctx.siblings[ctx.index]`,
+   threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
+   parentNode, path}` — one shared object per sibling scope, the driver
+   setting `index`; it runs `validate()` (spec gate + semantic rules), then
+   `resolveRuntime(ctx)` (bind/reference resolution; ScParent recurses via
+   the engine's `processChildren` there, collecting each child into
+   `_scChildren` as it completes). A parent collects ALL its children into
+   the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
    shadowing on name lookups.
@@ -446,9 +450,10 @@ further `sc-*` element:
    values"). There is **no `type` field**: the discriminant is the tag
    (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
    component classes via type-only imports.
-5. **Runtime resolution**: the parse engine
-   (`process`/`processChildren`/`walkScElements`) is inherited from
-   `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
+5. **Runtime resolution**: the parse engine is the free-function
+   interpreter in `internal/engine.ts`
+   (`process`/`processChildren`/`processRoot` over the cursor ctx); the
+   elements provide the hooks. Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
    through `resolveBind` from the element spec. Extending `ScParent`
    IS opening a level (its base resolution recurses via `processChildren`

@@ -18,7 +18,7 @@ import { failValidation } from "@/sc-elements/internal/validation";
 import "@sc-app/ui-components/lit";
 
 export class ScButton extends ScInput {
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     // Requires a plain single-path bind:value resolving to WRITABLE state —
     // an expression bind, a static `value`, or a DERIVED target (whose

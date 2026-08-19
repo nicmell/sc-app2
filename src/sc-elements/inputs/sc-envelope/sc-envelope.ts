@@ -100,7 +100,7 @@ export class ScEnvelope extends ScInput {
     }
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     // Like sc-button: write-capable, so it needs a plain writable path — and
     // specifically an envelope state (a scalar control has no shape to drag).

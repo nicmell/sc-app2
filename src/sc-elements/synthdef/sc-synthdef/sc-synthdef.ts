@@ -72,7 +72,7 @@ export class ScSynthDef extends ScParent {
     return undefined;
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     const children = this._scChildren;
     // The synthdef PLANE is compile-time data — this class owns its rules:

@@ -19,7 +19,7 @@ export class ScSynth extends ScNode {
    *  and the index is the def's param layout — `paramIndexOf`. */
   private defElement!: ScSynthDef;
 
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
   }

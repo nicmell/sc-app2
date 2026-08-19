@@ -37,8 +37,10 @@ kept in sync with the backend XSD.
 Folders mirror the old sc-app's class/guard taxonomy:
 
 ```
-internal/   ScElement (parse engine — process — the common runtime fields,
-            AND the runtime-prop
+internal/   engine.ts (the parse ENGINE: free process/processChildren/
+            processRoot over a cursor ctx — identity, core, error shape);
+            ScElement (the common runtime fields, the validate/resolveRuntime
+            hooks, AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything

@@ -1,17 +1,17 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
-// no separate item structure. The element IS the runtime — `process()`
-// assigns the identity + shared core (the parent collects the element into
-// its `_scChildren`), then runs the TWO conceptual steps every component can extend
-// through `super`: `validate()` (purely STATIC — the spec gate; no ctx, so
-// it can resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
+// no separate item structure. The element IS the runtime — the parse ENGINE
+// (internal/engine.ts) drives it, assigning the identity + shared core and
+// running the TWO conceptual steps every component can extend through
+// `super`: `validate()` (purely STATIC — the spec gate; no ctx, so it can
+// resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
 // bind/reference resolution AND the recursion into sc children: the
 // runtime tree `_scChildren` is a runtime value like the rest, built by the
-// level-opening overrides via `processChildren`; all plain fields declared
-// here and on the category bases: internal/sc-node, sc-state, sc-input).
-// Bind targets must be declared BEFORE their references in the DOM (see
-// CLAUDE.md — processing is strict DOM order). The validation and
-// bind-resolution helpers the two steps build on live in
-// internal/validation.ts.
+// engine's `processChildren` where ScParent opens a level; all plain fields
+// declared here and on the category bases: internal/sc-node, sc-state,
+// sc-input). Bind targets must be declared BEFORE their references in the
+// DOM (see CLAUDE.md — processing is strict DOM order). The static gate
+// lives in internal/validation.ts, the resolution machinery in
+// internal/resolution.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
 // also generates the XSD); only the handful of genuinely-reactive fields (a
@@ -43,7 +43,6 @@
 import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";
 import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
-import { contentHash } from "@/sc-elements/internal/contentHash";
 import { resolveBind } from "@/sc-elements/internal/resolution";
 import {
   coerceBoolean,
@@ -197,42 +196,6 @@ export abstract class ScElement extends LitElement {
     validateProps(this);
   }
 
-  // ── The parse engine ────────────────────────────────────────────────────
-
-  /** Process this element: pre-register it (so re-entrant resolves of a
-   *  mid-processing ancestor return it), assign the identity + shared
-   *  runtime core (the path-chained hash id minted from the level owner's
-   *  id + the level's document-order counter, `_rootScNode`/`basePath`/
-   *  `_parentScNode` — the level owner; the OWNER pushes this element onto
-   *  its `_scChildren` once processing completes, see
-   *  ScParent.processChildren), then run the TWO conceptual steps —
-   *  `validate()` (static: the spec gate; ctx-free) and
-   *  `resolveRuntime(ctx)` (runtime construction: the recursion into sc
-   *  children where the element opens a level, bind/reference resolution) —
-   *  both extendable per element THROUGH `super`. Library throws get the
-   *  canonical `<tag>:` prefix; already-shaped errors pass through.
-   *  Idempotent — an already-processed element is returned as-is. */
-  process(ctx: RuntimeContext): ScElement {
-    if (ctx.nodes.has(this)) {
-      return this;
-    }
-    ctx.nodes.add(this);
-    try {
-      this.id = contentHash(this, ctx.parentNode?.id ?? "", ctx.index++);
-      this._rootScNode = ctx.rootNode;
-      this.basePath = ctx.path;
-      this._parentScNode = ctx.parentNode;
-      this.validate();
-      this.resolveRuntime(ctx);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (e instanceof Error && message.startsWith("<")) throw e;
-      throw new Error(`<${this.tagName.toLowerCase()}>: ${message}`, { cause: e });
-    }
-    return this;
-  }
-
-
   /** STEP 2 — runtime construction: every present `bind:attr` becomes live
    *  targets + expression (the same machinery state binds use, so the
    *  bind-order constraint applies). The SYNTHDEF PLANE is skipped wholesale
@@ -243,8 +206,9 @@ export abstract class ScElement extends LitElement {
    *  level-opening elements build the runtime tree via `processChildren`
    *  (`_scChildren` is a runtime value like the rest), then references,
    *  graph collection, resolved-state rules — and MUST call
-   *  `super.resolveRuntime(ctx)`. */
-  protected resolveRuntime(ctx: RuntimeContext): void {
+   *  `super.resolveRuntime(ctx)`. PUBLIC because the ENGINE
+   *  (internal/engine.ts) drives it — element code never calls it. */
+  resolveRuntime(ctx: RuntimeContext): void {
     this.runtimeProps = undefined; // a re-process must not keep stale binds
     if (ctx.parentNode && !isNodeRuntime(ctx.parentNode)) return;
     for (const [name, attr] of Object.entries(this.spec?.attrs ?? {})) {

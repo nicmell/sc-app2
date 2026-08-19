@@ -6,7 +6,8 @@
 // parse-scope walker, `processChildren`, and the load/unload child walks.
 
 import { isNodeType } from "@/lib/utils/guards";
-import { checkDuplicateNames, isTransparent, nameOf } from "@/sc-elements/internal/resolution";
+import { processChildren } from "@/sc-elements/internal/engine";
+import { isTransparent } from "@/sc-elements/internal/resolution";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { RuntimeContext } from "@/types/runtime";
 
@@ -41,41 +42,13 @@ export abstract class ScParent extends ScElement {
   }
 
   /** Extending ScParent IS opening a level: the base resolution recurses
-   *  into the children first, then runs ScElement's generic bind pass —
-   *  overrides layer their own resolution over `super.resolveRuntime(ctx)`
-   *  with `this._scChildren` already parsed. */
-  protected resolveRuntime(ctx: RuntimeContext): void {
-    this.processChildren(ctx);
+   *  into the children first (the engine's `processChildren` drives the
+   *  cursor and collects them into `_scChildren`), then runs ScElement's
+   *  generic bind pass — overrides layer their own resolution over
+   *  `super.resolveRuntime(ctx)` with `this._scChildren` already parsed. */
+  resolveRuntime(ctx: RuntimeContext): void {
+    processChildren(this, ctx);
     super.resolveRuntime(ctx);
-  }
-
-  /** Recurse into this parent's children: collect the full sibling scope
-   *  (including transparent containers' contents) into the level context and
-   *  check duplicate names across it BEFORE any child processes — then reset
-   *  `_scChildren` and process each child in document order, COLLECTING it
-   *  as it completes (a mid-processing element is not yet a child — the
-   *  circular-bind rejection in resolveStatePath relies on that). All
-   *  siblings share ONE level context; `process` recurses per child. */
-  private processChildren(ctx: RuntimeContext): void {
-    const name = nameOf(this);
-    const path = name ? [...ctx.path, name] : ctx.path;
-
-    const scope = [...this.walkScElements()];
-
-    checkDuplicateNames(scope);
-
-    this._scChildren = [];
-    const childCtx: RuntimeContext = {
-      ...ctx,
-      scope: [...scope, ...ctx.scope],
-      parentNode: this,
-      path,
-      index: 0,
-    };
-    for (const child of scope) {
-      child.process(childCtx);
-      this._scChildren.push(child);
-    }
   }
 
   /** The async load pass, in strict DOM order: own wiring first (the base

@@ -86,7 +86,7 @@ export class ScKeyboard extends ScElement {
    *  <sc-synthdef> in scope — and, when an `envelope` is given, declare
    *  exactly ONE array param to latch it onto. A leaf otherwise — no
    *  children, no node. */
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     const synthdef = this.getProp("synthdef") as string;
     const target = resolveSynthDefRef(this, ctx, synthdef);

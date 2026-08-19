@@ -1,9 +1,10 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — the parse ENGINE
 // (internal/engine/) drives it, assigning the identity + shared core and
-// running the TWO conceptual steps every component can extend through
-// `super`: `validate()` (purely STATIC — the spec gate; no ctx, so it can
-// resolve nothing) and `resolveRuntime(ctx)` (runtime construction —
+// running the TWO conceptual steps: step 1 is the engine's own pure spec
+// gate (`validate` — no element hook: static rules are spec vocabulary),
+// step 2 the ONE extension hook `resolveRuntime(ctx)` (runtime
+// construction, extendable through `super` —
 // bind/reference resolution AND the recursion into sc children: the
 // runtime tree `_scChildren` is a runtime value like the rest, built by the
 // engine's `processChildren` where ScParent opens a level; all plain fields
@@ -26,8 +27,8 @@
 // on the entry root) makes the markup namespace-well-formed; the runtime
 // matches by QUALIFIED NAME (`getAttribute("bind:min")` — the one attribute
 // API portable across happy-dom and Chrome; getAttributeNS is NOT). The
-// canonical `bind` prefix is enforced (validateProps rejects foreign
-// prefixes — the XSD admits by namespace, the runtime by name).
+// canonical `bind` prefix is enforced (the engine's validate rejects
+// foreign prefixes — the XSD admits by namespace, the runtime by name).
 // `process()` resolves each into live targets (+ parsed expression);
 // `load()` computes the initial value and recomputes on every target's
 // statechange, feeding `getProp` (and, for the `value` prop, the state
@@ -49,7 +50,6 @@ import {
   coerceScalar,
   coerceVector,
   coerceStatic,
-  validateProps,
 } from "@/sc-elements/internal/engine/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import { SPECS } from "@/sc-elements/internal/xsd/registry";
@@ -99,7 +99,8 @@ export abstract class ScElement extends LitElement {
   }
 
   /** This element's spec (its colocated `<tag>.spec.ts`) — the single source
-   *  for its declarative attribute contract. `getProp`/`validateProps` read it. */
+   *  for its declarative attribute contract. `getProp` and the engine's
+   *  `validate` read it. */
   get spec(): ElementSpec | undefined {
     return SPECS.get(this.tagName.toLowerCase());
   }
@@ -186,14 +187,6 @@ export abstract class ScElement extends LitElement {
       );
     }
     return s; // string / enum
-  }
-
-  /** STEP 1 — STATIC validation: the spec-driven attribute gate. Takes no
-   *  ctx by design — this step can resolve nothing. Overrides add their
-   *  SEMANTIC rules (cross-attribute, positional) and MUST call
-   *  `super.validate()`. A violation fails the whole plugin parse. */
-  validate(): void {
-    validateProps(this);
   }
 
   /** STEP 2 — runtime construction: every present `bind:attr` becomes live

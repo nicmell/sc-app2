@@ -5,13 +5,15 @@
 // prefix coincides with `siblings`, but nothing contracts on that). The
 // engine owns everything positional and unconditional — identity (the
 // path-chained hash id), the shared runtime core, the re-entrancy guard,
-// the duplicate-name integrity, the canonical error shape — while the
-// elements provide the two extension hooks (`validate()` /
-// `resolveRuntime(ctx)`) and ScParent calls back into `processChildren`
-// where it opens a level.
+// the duplicate-name integrity, the canonical error shape, AND step 1
+// itself (the pure spec-driven `validate` — static rules are spec
+// vocabulary, never element code) — while the elements provide the ONE
+// extension hook (`resolveRuntime(ctx)`) and ScParent calls back into
+// `processChildren` where it opens a level.
 
 import { contentHash } from "./contentHash";
 import { checkDuplicateNames, nameOf } from "./resolution";
+import { validate } from "./validation";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { RuntimeContext } from "@/types/runtime";
@@ -37,7 +39,7 @@ export function process(ctx: RuntimeContext): ScElement {
     el._rootScNode = ctx.rootNode;
     el.basePath = ctx.path;
     el._parentScNode = ctx.parentNode;
-    el.validate();
+    validate(el);
     el.resolveRuntime(ctx);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

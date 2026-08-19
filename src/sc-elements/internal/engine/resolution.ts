@@ -5,7 +5,7 @@
 // the bind-expression resolver feeding the runtime-prop machinery. The error
 // messages are the runtime gate's contract — pinned verbatim by
 // src/sc-elements/examples.test.ts and the CDP harness. The STATIC gate
-// (validateProps + coercion) lives in internal/validation.ts.
+// (the pure validate + coercion) lives in the sibling validation.ts.
 
 import { parseBind } from "@/lib/expression";
 import {

@@ -62,7 +62,7 @@ const clampVel = (n: number): number => Math.min(1, Math.max(0.05, n));
 
 export class ScKeyboard extends ScElement {
   // Declarative attributes are coerced and defaulted by getProp. `synthdef`
-  // is required (enforced by validateProps); the param-name attrs default to
+  // is required (enforced by the engine validate); the param-name attrs default to
   // the SC-idiomatic names, so a synthdef using `freq`/`amp`/`gate` needs no
   // mapping.
 

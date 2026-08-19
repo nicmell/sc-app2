@@ -13,15 +13,16 @@ spec attr (unless flagged `runtime: false`) accepts a
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. `process()` runs TWO extendable steps:
-`validate()` — ctx-free STATIC validation (the spec-driven `validateProps()`
-plain function in `internal/engine/validation.ts`: required/numeric/enum, numeric
-range facets, `name` syntax, choice-less no-sc-children, runtime-prop rules;
-overrides add semantic rules after `super`) and `resolveRuntime(ctx)` —
-runtime construction: the recursion into the sc children where the element
-opens a level (`processChildren`) plus bind/reference resolution (the real
-gate, since the upload-time XSD doesn't enforce attribute rules). **The
-element IS the runtime**: both steps mutate the component itself (all plain fields
+returns the evaluated value. The engine runs TWO conceptual steps: its own
+pure `validate` (the spec-driven plain function in
+`internal/engine/validation.ts`: required/numeric/enum, numeric range
+facets, numeric-STRICT vectors, `name` syntax, choice-less no-sc-children,
+runtime-prop rules — NO element hook: static rules are spec vocabulary) and
+the ONE extension hook `resolveRuntime(ctx)` — runtime construction: the
+recursion into the sc children where the element opens a level
+(`processChildren`) plus bind/reference resolution (the real gate, since
+the upload-time XSD doesn't enforce attribute rules). **The element IS the
+runtime**: the runtime values are plain fields mutated in place (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `basePath` + the
 runtime-prop machinery on `ScElement`; `_scChildren` + `processChildren` +
@@ -48,7 +49,7 @@ internal/   engine/ (the parse ENGINE — index.ts: free process/
             reads); sc-parent.ts (ScParent — the level openers' base:
             `_scChildren`, the parse-scope walker, processChildren, the
             load/unload child walks); engine/validation.ts (STEP 1's
-            toolbox: the spec-driven validateProps gate, failValidation,
+            toolbox: the spec-driven pure validate gate, failValidation,
             static coercion); engine/resolution.ts (STEP 2's toolbox:
             name/transparency semantics, duplicate-name integrity,
             name-path + bind-expression resolution — all plain functions

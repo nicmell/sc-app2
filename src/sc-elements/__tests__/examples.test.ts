@@ -43,7 +43,7 @@ const UPLOAD_FIXTURES = new Set([
 /** CDP-harness-only fixtures: happy-dom's XML parser DROPS the later of two
  *  attributes whose LOCAL names collide (`value` + `bind:value`), so the
  *  conflict is unrepresentable here — Chrome keeps both, and the mutual
- *  exclusion is pinned by controls.test.ts (direct validateProps) plus the
+ *  exclusion is pinned by controls.test.ts (direct engine validate) plus the
  *  harness (validate-examples.mjs EXPECT_RUNTIME_FAIL). */
 const HARNESS_ONLY = new Set(["bad-runtime-conflict"]);
 

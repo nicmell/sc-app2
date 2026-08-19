@@ -312,11 +312,12 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    flat), **and finally their existence**: the element IS the runtime.
    `process()` lives on `ScElement` — it assigns the identity + shared
    runtime core (the parent collects the element into `_scChildren` as it
-   completes), then runs the TWO extendable
-   steps: `validate()` (the ctx-free static spec gate) and
-   `resolveRuntime(ctx)` (runtime construction: the recursion into the sc
-   children where the element opens a level — `_scChildren` is a runtime
-   value like the rest — plus bind/reference resolution), both mutating the
+   completes), then runs the TWO conceptual
+   steps: the engine's own pure `validate` (the static spec gate — no
+   element hook, static rules are spec vocabulary) and the ONE extension
+   hook `resolveRuntime(ctx)` (runtime construction: the recursion into the
+   sc children where the element opens a level — `_scChildren` is a runtime
+   value like the rest — plus bind/reference resolution), mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
    the engine lives on the base, and the validation + bind-resolution
    helpers are plain functions in `internal/engine/validation.ts` +
@@ -354,8 +355,8 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    impossible — not namespace-well-formed XML, not an XSD NCName; a
    DECLARED prefix is). Upload-gate honesty: fastxml 0.8.0 validates NO
    attributes (`validate_attributes` is a stub) — the schema's attribute
-   rules bite only under libxml2 in dev; `validateProps` at parse is the
-   authoritative gate, so a wrong plugin usually uploads 201 and dies with
+   rules bite only under libxml2 in dev; the engine's `validate` at parse
+   is the authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
 6. **The parse context is a CURSOR and the engine recurses**: the free
    `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
@@ -419,17 +420,18 @@ further `sc-*` element:
    widget's own default; only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
-3. **Validation is layered**: `validateProps()` (the plain parse-time
-   function in `internal/engine/validation.ts`, spec-driven) enforces
-   required/numeric/enum plus numeric range facets
-   (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
-   no-sc-children rule for choice-less content models, and the runtime-prop
-   rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
-   stray `bind:` attrs, foreign-prefix rejection). The ctx-free base
-   `validate()` runs it; overrides add genuinely cross-attribute/semantic
-   rules after `super.validate()`. A violation fails the whole plugin.
-   This is the _real_ gate — fastxml does not enforce XSD attribute
-   requirements at upload.
+3. **Validation is spec-only**: the engine's pure `validate` (the plain
+   parse-time function in `internal/engine/validation.ts`, spec-driven)
+   enforces required/numeric/enum plus numeric range facets
+   (`min`/`max`/`exclusiveMin`), numeric-STRICT vectors (`numeric: true`),
+   the `name` type's identifier grammar, the no-sc-children rule for
+   choice-less content models, and the runtime-prop rules
+   (static-XOR-`bind:` mutual exclusion, required-by-either-form, no stray
+   `bind:` attrs, foreign-prefix rejection). There is NO element validation
+   hook: a static rule is spec vocabulary or it does not exist; positional
+   and resolved-state rules live in `resolveRuntime`. A violation fails the
+   whole plugin. This is the _real_ gate — fastxml does not enforce XSD
+   attribute requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;

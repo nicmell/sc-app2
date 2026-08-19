@@ -446,10 +446,10 @@ further `sc-*` element:
    (`process`/`processChildren`/`walkScElements`) is inherited from
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
-   through `resolveStateBind` from the element spec. Override it when an
-   element opens a level (`const children = this.processChildren(ctx)` —
-   the element must extend `ScParent`, which owns `_scChildren` and the
-   children machinery; ScNode does it for the nodes) or has additional
+   through `resolveStateBind` from the element spec. Extending `ScParent`
+   IS opening a level (its base resolution recurses via `processChildren`
+   before the bind pass — `_scChildren` and the children machinery live
+   there). Override `resolveRuntime` only when an element has additional
    resolution (references, graph collection,
    resolved-state rules), mutating the element directly and ALWAYS calling
    `super.resolveRuntime(ctx)`; `process(ctx)` assigns the shared core

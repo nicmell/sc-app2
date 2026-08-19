@@ -42,13 +42,12 @@
 
 import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";
-import { isNodeRuntime, isNodeType, isStateRuntime } from "@/lib/utils/guards";
+import { isNodeRuntime, isStateRuntime } from "@/lib/utils/guards";
 import { contentHash } from "@/sc-elements/internal/contentHash";
 import {
   coerceScalar,
   coerceVector,
   coerceStatic,
-  isTransparent,
   resolveStateBind,
   validateProps,
 } from "@/sc-elements/internal/validation";
@@ -236,29 +235,19 @@ export abstract class ScElement extends LitElement {
     return this;
   }
 
-  /** Attach this element to its parent — the nearest NON-TRANSPARENT sc
-   *  ancestor within the level (transparent containers — sc-if/sc-select/… —
-   *  are walked through, so their contents belong directly to the enclosing
-   *  node; transparent containers themselves stay runtime-tree leaves) —
-   *  pushing it onto the parent's `_scChildren` and setting `_parentScNode`
-   *  (owned HERE — resolution never touches it). The root has no parent and
-   *  skips both. */
+  /** Attach this element to its parent — ALWAYS the level owner: scope
+   *  membership comes from `walkScElements`, which never descends past a
+   *  non-transparent sc element, so every sc ancestor strictly between a
+   *  scope member and its level owner is transparent by construction
+   *  (transparent containers stay runtime-tree leaves; their contents belong
+   *  directly to the enclosing node). Pushes onto the owner's `_scChildren`
+   *  and sets `_parentScNode` (owned HERE — resolution never touches it).
+   *  The root has no parent and skips both. */
   private processParent(ctx: RuntimeContext): void {
     const level = ctx.parentNode;
     if (!level) return;
-    let parent = level;
-    for (let p = this.parentElement; p && p !== level; p = p.parentElement) {
-      if (isNodeType(p.tagName.toLowerCase()) && !isTransparent(p)) {
-        // Sound by construction: a non-transparent sc ancestor wrapping sc
-        // content is necessarily a level opener (a named LEAF with sc
-        // content dies in validateProps before its content ever enters a
-        // scope).
-        parent = p as ScElement as ScParent;
-        break;
-      }
-    }
-    parent._scChildren.push(this);
-    this._parentScNode = parent;
+    level._scChildren.push(this);
+    this._parentScNode = level;
   }
 
   /** STEP 2 — runtime construction: every present `bind:attr` becomes live

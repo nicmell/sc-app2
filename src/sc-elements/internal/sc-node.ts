@@ -6,20 +6,12 @@
 
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
-import type { RuntimeContext } from "@/types/runtime";
 import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export abstract class ScNode extends ScParent {
   /** The scsynth node id — 0 until the node goes live. */
   nodeId = 0;
   loaded = false;
-
-  /** Nodes open a level: build the runtime tree first, then the base's
-   *  generic bind pass. */
-  protected resolveRuntime(ctx: RuntimeContext): void {
-    this.processChildren(ctx);
-    super.resolveRuntime(ctx);
-  }
 
   /** The scsynth group this node's create targets: the nearest LOADED node
    *  ancestor — the enclosing sc-group's node, or the plugin group (the walk

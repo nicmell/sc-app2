@@ -10,7 +10,6 @@ import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export class ScUgen extends ScParent {
   protected resolveRuntime(ctx: RuntimeContext): void {
-    const children = this.processChildren(ctx);
     super.resolveRuntime(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
     // synthdef param. A comma-token may be a plain ref, a `name.idx`
@@ -18,7 +17,7 @@ export class ScUgen extends ScParent {
     // operand var it names (parseBind collects them into `paths`; a bare
     // number contributes none) with any numeric selector stripped off.
     const name = this.getProp("name") as string;
-    for (const child of children) {
+    for (const child of this._scChildren) {
       const childBind = child.getAttribute("bind:value");
       if (!isControlRuntime(child) || !childBind) continue;
       const input = child.getProp("name") as string;

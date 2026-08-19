@@ -65,8 +65,6 @@ export function slotIndexOf(path: string): number | null {
   return path.includes(".") && /^\d+$/.test(tail) ? Number(tail) : null;
 }
 
-/** A parent element — its parsed sc-* children live in `_scChildren`. */
-export type ScParentElement = ScElement & { _scChildren: ScElement[] };
 
 export abstract class ScElement extends LitElement {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
@@ -77,10 +75,7 @@ export abstract class ScElement extends LitElement {
   /** The plugin root element this element was parsed under. */
   _rootScNode!: ScElement;
   /** The parsed parent element (unset at the root). */
-  _parentScNode?: ScParentElement;
-  /** The parsed sc-* child elements — parents only (NOT the DOM children:
-   *  sc-* descendants reached through plain HTML wrappers). */
-  _scChildren?: ScElement[];
+  _parentScNode?: ScParent;
   /** The named ancestor path (scope names, outermost first). */
   basePath: string[] = [];
   /** The load-pass epoch — only the plugin ROOT's counts. Bumped by the
@@ -255,11 +250,15 @@ export abstract class ScElement extends LitElement {
     let parent = level;
     for (let p = this.parentElement; p && p !== level; p = p.parentElement) {
       if (isNodeType(p.tagName.toLowerCase()) && !isTransparent(p)) {
-        parent = p as ScElement as ScParentElement;
+        // Sound by construction: a non-transparent sc ancestor wrapping sc
+        // content is necessarily a level opener (a named LEAF with sc
+        // content dies in validateProps before its content ever enters a
+        // scope).
+        parent = p as ScElement as ScParent;
         break;
       }
     }
-    (parent._scChildren ??= []).push(this);
+    parent._scChildren.push(this);
     this._parentScNode = parent;
   }
 
@@ -365,22 +364,17 @@ export abstract class ScElement extends LitElement {
     return () => (this._rootScNode?.loadEpoch ?? 0) === epoch;
   }
 
-  /** The async load pass, run AFTER the sync parse, in strict DOM order: a
-   *  parent awaits each child fully before the next starts — no concurrency,
-   *  no reactive gates. The bind-order constraint (targets declared before
-   *  their references) makes DOM order a valid dependency order, so a
-   *  synthdef's /d_recv is acknowledged before its synth's /s_new is sent.
-   *  Overrides sequence their own OSC and call `super.load()` where the
-   *  children follow.
-   *
-   *  The SYNCHRONOUS prefix wires the runtime props: drop stale
-   *  subscriptions first (re-entrant reconnect reload — or it would
-   *  double-register), then per prop compute the initial value (the targets
-   *  are earlier in DOM order, so their `_state` has settled) and re-compute
-   *  on every target statechange. Subclasses that park their own
-   *  subscriptions rely on this prefix running before their wiring — they
-   *  start `super.load()` FIRST and await it last (see ScState/ScInput). */
-  async load(): Promise<void> {
+  /** The element's own load step — the SYNCHRONOUS prefix wiring the
+   *  runtime props: drop stale subscriptions first (re-entrant reconnect
+   *  reload — or it would double-register), then per prop compute the
+   *  initial value (the targets are earlier in DOM order, so their `_state`
+   *  has settled) and re-compute on every target statechange. Subclasses
+   *  that park their own subscriptions rely on this prefix running before
+   *  their wiring — they start `super.load()` FIRST and await it last (see
+   *  ScState/ScInput); ScParent adds the sequential walk over the parsed
+   *  children. Synchronous at this level — Promise-typed for the overrides
+   *  that genuinely await. */
+  load(): Promise<void> {
     this.#dropRuntimeSubscriptions();
     for (const [name, prop] of Object.entries(this.runtimeProps ?? {})) {
       const recompute = () => {
@@ -392,20 +386,12 @@ export abstract class ScElement extends LitElement {
         this.#offs.push(target.onStateChange(recompute));
       }
     }
-    const live = this.loadGuard();
-    for (const child of this._scChildren ?? []) {
-      await child.load();
-      if (!live()) return; // pass invalidated mid-await
-    }
+    return Promise.resolve();
   }
 
-  /** Undo the load pass (plugin unmount). Sends are fire-and-forget — no
-   *  replies awaited; children unload in REVERSE DOM order so dependents go
-   *  before their targets. */
+  /** Undo the load pass (plugin unmount): drop the runtime-prop
+   *  subscriptions. ScParent prepends the reverse child walk. */
   unload(): void {
-    for (const child of [...(this._scChildren ?? [])].reverse()) {
-      child.unload();
-    }
     this.#dropRuntimeSubscriptions();
   }
 
@@ -432,15 +418,27 @@ export abstract class ScElement extends LitElement {
     }
   }
 
+}
+
+/** Base for the LEVEL-OPENING elements — the only ones owning parsed sc
+ *  children (`ScNode`'s plugin/group/synth, `ScSynthDef`, `ScUgen`).
+ *  Transparent containers and leaves never extend it: they have no
+ *  `_scChildren` at all (reading the property off them yields undefined).
+ *  Carries the whole children machinery: the runtime-tree field,
+ *  `processChildren`, and the load/unload child walks. */
+export abstract class ScParent extends ScElement {
+  /** The parsed sc-* child elements (NOT the DOM children: sc-* descendants
+   *  reached through plain HTML wrappers, with transparent containers'
+   *  contents flattened in). */
+  _scChildren: ScElement[] = [];
+
   /** Recurse into this parent's children: collect the full sibling scope
    *  (including transparent containers' contents) into the level context and
    *  check duplicate names across it BEFORE any child processes — then reset
-   *  this parent's `_scChildren` and process each child in document order
-   *  (each mints its id and attaches itself to its owning parent). All
-   *  siblings share ONE level context; `process` recurses per child. Called
-   *  by the level-opening elements' `resolveRuntime` overrides only —
-   *  transparent containers and leaves never open a level. Returns the
-   *  parsed `_scChildren`, so callers need no non-null assertion. */
+   *  `_scChildren` and process each child in document order (each mints its
+   *  id and attaches itself to its owning parent). All siblings share ONE
+   *  level context; `process` recurses per child. Called by the
+   *  `resolveRuntime` overrides. Returns the parsed children. */
   protected processChildren(ctx: RuntimeContext): ScElement[] {
     const name = nameOf(this);
     const path = name ? [...ctx.path, name] : ctx.path;
@@ -453,7 +451,7 @@ export abstract class ScElement extends LitElement {
     const childCtx: RuntimeContext = {
       ...ctx,
       scope: [...scope, ...ctx.scope],
-      parentNode: this as ScElement as ScParentElement,
+      parentNode: this,
       path,
       index: 0,
     };
@@ -461,5 +459,30 @@ export abstract class ScElement extends LitElement {
       child.process(childCtx);
     }
     return children;
+  }
+
+  /** The async load pass, in strict DOM order: own wiring first (the base
+   *  prefix), then each child fully awaited before the next — no
+   *  concurrency, no reactive gates. The bind-order constraint (targets
+   *  declared before their references) makes DOM order a valid dependency
+   *  order, so a synthdef's /d_recv is acknowledged before its synth's
+   *  /s_new is sent. Overrides sequence their own OSC and call
+   *  `super.load()` where the children should follow. */
+  async load(): Promise<void> {
+    await super.load();
+    const live = this.loadGuard();
+    for (const child of this._scChildren) {
+      await child.load();
+      if (!live()) return; // pass invalidated mid-await
+    }
+  }
+
+  /** Children unload in REVERSE DOM order so dependents go before their
+   *  targets; sends are fire-and-forget — no replies awaited. */
+  unload(): void {
+    for (const child of [...this._scChildren].reverse()) {
+      child.unload();
+    }
+    super.unload();
   }
 }

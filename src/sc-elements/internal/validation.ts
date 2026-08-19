@@ -10,8 +10,14 @@
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { parseBind, tryEvalCallLiteral } from "@/lib/expression";
-import { isNodeRuntime, isStateRuntime, isSynthDefRuntime, typeOf } from "@/lib/utils/guards";
-import type { ScElement } from "@/sc-elements/internal/sc-element";
+import {
+  isNodeRuntime,
+  isParentRuntime,
+  isStateRuntime,
+  isSynthDefRuntime,
+  typeOf,
+} from "@/lib/utils/guards";
+import type { ScElement, ScParent } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";
@@ -194,7 +200,7 @@ export function isTransparent(el: Element): boolean {
 
 function walkPath(node: ScElement, path: string[]): ScElement | undefined {
   if (path.length === 0) return node;
-  if (node._scChildren) {
+  if (isParentRuntime(node)) {
     const [name, ...rest] = path;
     for (const child of node._scChildren) {
       if (nameOf(child) === name) return walkPath(child, rest);
@@ -250,7 +256,7 @@ export function resolveControlBind(
   ctx: RuntimeContext,
   bind: string,
   attr = "bind",
-): { target: ScElement; controlName: string } {
+): { target: ScParent; controlName: string } {
   const tag = el.tagName.toLowerCase();
   const segments = bind.split(".");
   let controlName = segments.pop()!;
@@ -265,7 +271,7 @@ export function resolveControlBind(
   if (!target || !isNodeRuntime(target)) {
     throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
   }
-  if (!(target._scChildren ?? []).some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
+  if (!target._scChildren.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
     // Lexical fallback for the bare-name form: the name may address a STATE
     // element in an enclosing scope (declared before, per resolveNode's
     // bind-order gate). Its owner carries the control lookup.
@@ -307,7 +313,7 @@ export function resolveStateBind(
 
   for (const path of parsed.paths) {
     const { target, controlName } = resolveControlBind(el, ctx, path, attr);
-    const targetState = (target._scChildren ?? []).find(
+    const targetState = target._scChildren.find(
       (c): c is ScState => isStateRuntime(c) && nameOf(c) === controlName,
     );
     if (!targetState) {

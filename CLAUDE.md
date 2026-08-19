@@ -428,10 +428,13 @@ further `sc-*` element:
    backing for literal state; `internal/sc-input`: `targetScState` + the
    syncFromState/commit seam); the common core
    (`_rootScNode`/`_parentScNode` — live element references, not ids —
-   plus `basePath`, `_scChildren` for parents, and the runtime-prop
+   plus `basePath` and the runtime-prop
    machinery: `runtimeProps`, `getProp`/`runtimeValue`,
    `updateRuntimeValue` → `runtimeValueChanged` hook → "statechange",
-   `onStateChange`, the load-prefix subscription wiring) is on `ScElement`.
+   `onStateChange`, the load-prefix subscription wiring) is on `ScElement`;
+   the CHILDREN machinery (`_scChildren` — non-optional — plus
+   `processChildren` and the load/unload child walks) lives on `ScParent`,
+   the base only the level openers (nodes/synthdef/ugen) extend.
    The shared engine types (`RuntimeContext`/`RuntimeProp`/…) live in
    `src/types/runtime.d.ts`. Values that duplicate a declarative prop are
    unified with it, never copied (no runtime `name`/`run`; `value` stays the
@@ -445,8 +448,9 @@ further `sc-*` element:
    need no component code: the base `resolveRuntime(ctx)` resolves them
    through `resolveStateBind` from the element spec. Override it when an
    element opens a level (`const children = this.processChildren(ctx)` —
-   ScNode does it for the nodes; `_scChildren` is a runtime value built
-   HERE) or has additional resolution (references, graph collection,
+   the element must extend `ScParent`, which owns `_scChildren` and the
+   children machinery; ScNode does it for the nodes) or has additional
+   resolution (references, graph collection,
    resolved-state rules), mutating the element directly and ALWAYS calling
    `super.resolveRuntime(ctx)`; `process(ctx)` assigns the shared core
    (`_rootScNode`/`basePath`) itself. `ctx` is the per-LEVEL state

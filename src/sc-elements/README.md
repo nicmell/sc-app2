@@ -23,8 +23,10 @@ opens a level (`processChildren`) plus bind/reference resolution (the real
 gate, since the upload-time XSD doesn't enforce attribute rules). **The
 element IS the runtime**: both steps mutate the component itself (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
-references, not ids) + `basePath` + `_scChildren` for parents + the
-runtime-prop machinery on `ScElement`, the category values on
+references, not ids) + `basePath` + the
+runtime-prop machinery on `ScElement`; `_scChildren` + `processChildren` +
+the load/unload child walks on `ScParent`, extended only by the level
+openers; the category values on
 `ScNode`/`ScState`/`ScInput`). There is no global element registry — the
 parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
 

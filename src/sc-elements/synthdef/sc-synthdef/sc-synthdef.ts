@@ -9,7 +9,7 @@ import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/validation";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScParent, type ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
 
 /** Param defaults: a scalar per param, or a numeric ARRAY (a comma-list
@@ -50,7 +50,7 @@ function collectControlEntries(children: readonly ScElement[]): Record<string, s
   return entries;
 }
 
-export class ScSynthDef extends ScElement {
+export class ScSynthDef extends ScParent {
   loaded = false;
   /** The param defaults + DOM-ordered ugen specs, collected at parse —
    *  compiled to SCgf at /d_recv time in the load pass. */
@@ -93,7 +93,7 @@ export class ScSynthDef extends ScElement {
       type: c.getProp("type") as string,
       rate: c.getProp("rate") as string,
       op: c.getProp("op") as string | undefined,
-      inputs: collectControlEntries(c._scChildren ?? []),
+      inputs: collectControlEntries(c._scChildren),
     }));
   }
 

@@ -146,7 +146,7 @@ describe("example-plugin structure", () => {
     const { host, nodes } = parseExample(cases.find((c) => c.name === "example-plugin")!.xml);
     expect(host._rootScNode).toBe(host);
     expect(host._parentScNode).toBeUndefined();
-    expect(host._scChildren!.length).toBeGreaterThan(0);
+    expect(host._scChildren.length).toBeGreaterThan(0);
     for (const el of nodes) {
       expect(el._rootScNode).toBe(host);
       if (el !== host) {

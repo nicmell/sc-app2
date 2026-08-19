@@ -35,7 +35,7 @@ import { ScKeyboard } from "./widgets/sc-keyboard";
 import { ScScope } from "./widgets/sc-scope";
 import { ScStrudel } from "./widgets/sc-strudel";
 
-export { ScElement, type ScParentElement } from "./internal/sc-element";
+export { ScElement, ScParent } from "./internal/sc-element";
 export { ScNode } from "./internal/sc-node";
 export { ScState } from "./internal/sc-state";
 export { ScInput } from "./internal/sc-input";

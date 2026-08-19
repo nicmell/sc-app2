@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { isParentRuntime } from "@/lib/utils/guards";
 import { parsePlugin, wrapXml } from "@/lib/utils/test/test-utils";
 import { registerScElements, type ScElement, type ScPlugin } from "@/sc-elements";
 
@@ -10,7 +11,7 @@ function orderedIds(host: ScPlugin): string[] {
   const ids: string[] = [];
   const visit = (el: ScElement): void => {
     ids.push(el.id);
-    for (const child of el._scChildren ?? []) visit(child);
+    if (isParentRuntime(el)) for (const child of el._scChildren) visit(child);
   };
   visit(host);
   return ids;

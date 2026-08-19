@@ -7,9 +7,9 @@
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { RuntimeContext } from "@/types/runtime";
-import { ScElement } from "@/sc-elements/internal/sc-element";
+import { ScParent } from "@/sc-elements/internal/sc-element";
 
-export abstract class ScNode extends ScElement {
+export abstract class ScNode extends ScParent {
   /** The scsynth node id — 0 until the node goes live. */
   nodeId = 0;
   loaded = false;

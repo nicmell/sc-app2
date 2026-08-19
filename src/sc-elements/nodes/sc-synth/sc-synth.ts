@@ -33,7 +33,7 @@ export class ScSynth extends ScNode {
   } {
     const scalars: Array<[string, number]> = [];
     const arrays: Array<{ name: string; values: readonly number[] }> = [];
-    for (const child of this._scChildren ?? []) {
+    for (const child of this._scChildren) {
       if (!isControlRuntime(child)) continue;
       const name = child.getProp("name") as string;
       const state = child._state ?? child.getProp("value");

@@ -13,6 +13,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { type OscMessage } from "@sc-app/server-commands";
+import { isParentRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
 import type { StateValue } from "@/types/runtime";
@@ -886,9 +887,10 @@ describe("sc-if transparency", () => {
     expect(host.runtime.get()).toEqual({ gate: 1 }); // literal only, root path
     expect(mirror._state).toBe(2);
     // Transparency is walked through at attach: the sc-if stays a
-    // runtime-tree leaf and its contents belong directly to the owner.
+    // runtime-tree leaf (not a ScParent — no _scChildren at all) and its
+    // contents belong directly to the owner.
     expect(mirror._parentScNode).toBe(host);
-    expect(scIf._scChildren).toBeUndefined();
+    expect(isParentRuntime(scIf)).toBe(false);
     expect(host._scChildren).toContain(mirror);
     await display.updateComplete;
     expect(display.textContent).toBe("2");

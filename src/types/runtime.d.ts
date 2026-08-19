@@ -1,6 +1,6 @@
 import type { Expr } from "@/lib/expression";
 import type { Store } from "@/lib/utils/reactiveStore";
-import type { ScElement, ScParentElement } from "@/sc-elements/internal/sc-element";
+import type { ScElement, ScParent } from "@/sc-elements/internal/sc-element";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 
 // The engine's type system. There are NO item structures and NO parallel
@@ -74,10 +74,10 @@ export interface RuntimeProp {
  *  never loads), and sc-if rejects node descendants — so path-transparent
  *  containers can never smuggle in a colliding key. */
 export interface RuntimeContext {
-  rootNode: ScElement;
+  rootNode: ScParent;
   nodes: Set<ScElement>;
   scope: ScElement[];
-  parentNode?: ScParentElement;
+  parentNode?: ScParent;
   path: string[];
   /** The level's mutable document-order counter — each `process` mints its
    *  path-chained hash id from it. 0 at the entry call and per child level. */

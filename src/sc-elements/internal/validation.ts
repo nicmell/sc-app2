@@ -18,7 +18,6 @@ import {
   typeOf,
 } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
-import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScState } from "@/sc-elements/internal/sc-state";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import { bindAttr, COMMON_ATTRS, type AttrSpec } from "@/sc-elements/internal/xsd/types";
@@ -253,22 +252,16 @@ export function resolveSynthDefRef(el: ScElement, ctx: RuntimeContext, name: str
   return target;
 }
 
-/** Resolve `el`'s bind into its node + control-name pair: the leading
- *  segments name a node in scope (none targets the parent node), the last
- *  segment a state child declared on it. A BARE name that matches no state
- *  on the parent falls back LEXICALLY: a named state element anywhere in
- *  the enclosing scope chain (a root-level var, an outer group's control) —
- *  so a synth's instance control can derive from a plugin-level var. `attr`
- *  names the attribute the expression came from in the error messages
- *  (`bind` for inputs, `bind:min`/`bind:value`/… for runtime props). */
-export function resolveControlBind(
-  el: Element,
-  ctx: RuntimeContext,
-  bind: string,
-  attr = "bind",
-): { target: ScParent; controlName: string } {
+/** Resolve ONE dot-path to its live STATE element: the leading segments name
+ *  a node in scope (none targets the parent node), the last segment a state
+ *  child declared on it. A BARE name that matches no state on the parent
+ *  falls back LEXICALLY: a named state element anywhere in the enclosing
+ *  scope chain (a root-level var, an outer group's control) — so a synth's
+ *  instance control can derive from a plugin-level var. `attr` names the
+ *  attribute the expression came from in the error messages. */
+function resolveStatePath(el: Element, ctx: RuntimeContext, path: string, attr: string): ScState {
   const tag = el.tagName.toLowerCase();
-  const segments = bind.split(".");
+  const segments = path.split(".");
   let controlName = segments.pop()!;
   // A numeric TAIL is an array-SLOT selector, not a control name — names
   // cannot start with a digit (mirroring the graph plane's `name.idx`).
@@ -279,52 +272,50 @@ export function resolveControlBind(
   }
   const target = segments.length > 0 ? resolveNode(el, ctx, segments) : ctx.parentNode;
   if (!target || !isNodeRuntime(target)) {
-    throw new Error(`<${tag} ${attr}="${bind}">: does not match any node in scope`);
+    throw new Error(`<${tag} ${attr}="${path}">: does not match any node in scope`);
   }
-  if (!target._scChildren.some((c) => isStateRuntime(c) && nameOf(c) === controlName)) {
-    // Lexical fallback for the bare-name form: the name may address a STATE
-    // element in an enclosing scope (declared before, per resolveNode's
-    // bind-order gate). Its owner carries the control lookup. Resolving to
-    // the MID-PROCESSING element itself is the one cycle left (an element
-    // attaches to its parent only after it finishes processing, so the
-    // children lookups above can't see it) — reject it here.
-    if (segments.length === 0) {
-      const scoped = resolveNode(el, ctx, [controlName]);
-      if (scoped === el) {
-        throw new Error(
-          `<${tag} name="${nameOf(el)}">: circular bind reference detected`,
-        );
-      }
-      if (scoped && isStateRuntime(scoped)) {
-        const owner = scoped._parentScNode ?? ctx.rootNode;
-        return { target: owner, controlName };
-      }
+  const state = target._scChildren.find(
+    (c): c is ScState => isStateRuntime(c) && nameOf(c) === controlName,
+  );
+  if (state) return state;
+
+  // Lexical fallback for the bare-name form: the name may address a STATE
+  // element in an enclosing scope (declared before, per resolveNode's
+  // bind-order gate). Resolving to the MID-PROCESSING element itself is the
+  // one cycle left (an element joins its parent's `_scChildren` only after
+  // it finishes processing, so the children lookups can't see it) — reject.
+  if (segments.length === 0) {
+    const scoped = resolveNode(el, ctx, [controlName]);
+    if (scoped === el) {
+      throw new Error(`<${tag} name="${nameOf(el)}">: circular bind reference detected`);
     }
-    // When the state IS declared on the target but only later in the
-    // document (not yet processed), give the honest bind-order error
-    // instead of "not declared" — unless the DOM probe finds the element
-    // ITSELF (the dotted self-reference, e.g. `g.x` from x inside g).
-    for (const c of target.walkScElements()) {
-      if (isStateRuntime(c) && nameOf(c) === controlName) {
-        if (c === el) {
-          throw new Error(`<${tag} name="${nameOf(el)}">: circular bind reference detected`);
-        }
-        throw new Error(`<${tag}>: "${controlName}" is referenced before it is declared`);
-      }
-    }
-    const targetName = nameOf(target) ?? target.id;
-    throw new Error(
-      `<${tag} ${attr}="${bind}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
-    );
+    if (scoped && isStateRuntime(scoped)) return scoped;
   }
-  return { target, controlName };
+  // When the state IS declared on the target but only later in the
+  // document (not yet processed), give the honest bind-order error
+  // instead of "not declared" — unless the DOM probe finds the element
+  // ITSELF (the dotted self-reference, e.g. `g.x` from x inside g).
+  for (const c of target.walkScElements()) {
+    if (isStateRuntime(c) && nameOf(c) === controlName) {
+      if (c === el) {
+        throw new Error(`<${tag} name="${nameOf(el)}">: circular bind reference detected`);
+      }
+      throw new Error(`<${tag}>: "${controlName}" is referenced before it is declared`);
+    }
+  }
+  const targetName = nameOf(target) ?? target.id;
+  throw new Error(
+    `<${tag} ${attr}="${path}">: control "${controlName}" is not declared on <${typeOf(target)} name="${targetName}">`,
+  );
 }
 
-/** Resolve a stateful bind expression (a runtime prop — `bind:value` on
- *  state, `bind:min`/`bind:label`/… anywhere): plain dot-paths or an arithmetic/
- *  ternary expression over them. `attr` names the source attribute in the
- *  error messages. */
-export function resolveStateBind(
+/** Resolve a bind expression (a runtime prop — `bind:value` on state,
+ *  `bind:min`/`bind:label`/… anywhere): plain dot-paths or an arithmetic/
+ *  ternary expression over them, each path resolved to its live state
+ *  element (`resolveStatePath` — with references restricted to
+ *  already-processed elements the targets graph is a DAG by construction).
+ *  `attr` names the source attribute in the error messages. */
+export function resolveBind(
   el: ScElement,
   ctx: RuntimeContext,
   bind: string,
@@ -332,21 +323,8 @@ export function resolveStateBind(
 ): { targets: Record<string, ScState>; expression?: Expr } {
   const parsed = parseBind(bind);
   const targets: Record<string, ScState> = {};
-
   for (const path of parsed.paths) {
-    const { target, controlName } = resolveControlBind(el, ctx, path, attr);
-    const targetState = target._scChildren.find(
-      (c): c is ScState => isStateRuntime(c) && nameOf(c) === controlName,
-    );
-    if (!targetState) {
-      // Unreachable: resolveControlBind just proved the state child exists
-      // (and rejected the self-reference — with references restricted to
-      // already-processed elements, processing order strictly decreases
-      // along any bind chain, so the targets graph is a DAG by construction).
-      throw new Error(`<${el.tagName.toLowerCase()}>: "${controlName}" lost its state target`);
-    }
-    targets[path] = targetState;
+    targets[path] = resolveStatePath(el, ctx, path, attr);
   }
-
   return { targets, expression: parsed.expression };
 }

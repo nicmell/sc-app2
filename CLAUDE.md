@@ -367,7 +367,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    processed cannot be referenced — `resolveNode` throws `<tag>: "name" is
 referenced before it is declared` when a bind names an in-scope element
    that hasn't processed yet (a name matching nothing keeps the
-   does-not-match errors), and `resolveControlBind` gives the same honest
+   does-not-match errors), and `resolveStatePath` gives the same honest
    error when a same-scope state is bound before its declaration (it checks
    the target's full DOM children for the error text only — the partial
    `_scChildren` stays the gate). `bad-forward-ref` and
@@ -378,7 +378,7 @@ referenced before it is declared` when a bind names an in-scope element
    before its children run), so group-scoped binds to earlier siblings work.
    Consequence: references point strictly backward, the bind graph is a DAG
    by construction, and `checkCircularBind`'s graph walk is gone — reduced
-   to the self-reference rejection in `resolveControlBind` (a
+   to the self-reference rejection in `resolveStatePath` (a
    mid-processing element is not yet in its parent's `_scChildren`, so a
    self-reference surfaces in the lexical fallback / DOM probe —
    `bad-circular-bind` pins the message).
@@ -448,7 +448,7 @@ further `sc-*` element:
    (`process`/`processChildren`/`walkScElements`) is inherited from
    `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
-   through `resolveStateBind` from the element spec. Extending `ScParent`
+   through `resolveBind` from the element spec. Extending `ScParent`
    IS opening a level (its base resolution recurses via `processChildren`
    before the bind pass — `_scChildren` and the children machinery live
    there). Override `resolveRuntime` only when an element has additional
@@ -526,7 +526,7 @@ when `process()` succeeds — reload never retries them).
 accepts a `bind:`-namespaced sibling holding a bind expression
 (`xmlns:bind="urn:sc-app:bind"` declared on the entry root; qualified-name
 matching, canonical prefix enforced), resolved in `process()`
-(the base `resolveRuntime` → `resolveStateBind`, per prop) into
+(the base `resolveRuntime` → `resolveBind`, per prop) into
 `runtimeProps[name] = {targets, expression}`, wired in `load()`'s
 synchronous prefix (drop-first re-entrancy: initial recompute + recompute on
 each target's statechange), and written through `updateRuntimeValue(name,

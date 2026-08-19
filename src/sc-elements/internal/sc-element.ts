@@ -49,7 +49,7 @@ import {
   coerceScalar,
   coerceVector,
   coerceStatic,
-  resolveStateBind,
+  resolveBind,
   validateProps,
 } from "@/sc-elements/internal/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
@@ -251,7 +251,7 @@ export abstract class ScElement extends LitElement {
       if (attr.runtime === false) continue;
       const expr = this.getAttribute(bindAttr(name));
       if (expr === null) continue;
-      (this.runtimeProps ??= {})[name] = resolveStateBind(this, ctx, expr, bindAttr(name));
+      (this.runtimeProps ??= {})[name] = resolveBind(this, ctx, expr, bindAttr(name));
     }
   }
 
@@ -269,7 +269,7 @@ export abstract class ScElement extends LitElement {
    *  notifying, so an element's own effect — e.g. ScControl's /n_set —
    *  precedes its dependents' recomputes), then, for a STATE element's
    *  `value` prop, dispatches the non-bubbling "statechange". The gate is
-   *  sound because only named state is targetable — `resolveControlBind`
+   *  sound because only named state is targetable — `resolveStatePath`
    *  matches `isStateRuntime` children exclusively — so an input's or
    *  visual's `value` recompute has no possible subscriber. Never call from
    *  willUpdate/render (it schedules an update). */

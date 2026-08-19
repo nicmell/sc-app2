@@ -54,7 +54,7 @@ export abstract class ScParent extends ScElement {
    *  check duplicate names across it BEFORE any child processes — then reset
    *  `_scChildren` and process each child in document order, COLLECTING it
    *  as it completes (a mid-processing element is not yet a child — the
-   *  circular-bind rejection in resolveControlBind relies on that). All
+   *  circular-bind rejection in resolveStatePath relies on that). All
    *  siblings share ONE level context; `process` recurses per child. */
   private processChildren(ctx: RuntimeContext): void {
     const name = nameOf(this);

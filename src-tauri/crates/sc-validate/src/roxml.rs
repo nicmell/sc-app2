@@ -30,8 +30,13 @@ impl<'a, 'input: 'a> XmlNode for RoXmlNode<'a, 'input> {
         self.node
             .attributes()
             .map(|attribute| {
-                let range = attribute.range_qname();
-                let name = &self.source[range];
+                // The qname range comes from roxmltree's own parse of this
+                // source; .get keeps a hypothetical range bug a wrong NAME
+                // instead of a panic on an untrusted upload.
+                let name = self
+                    .source
+                    .get(attribute.range_qname())
+                    .unwrap_or_else(|| attribute.name());
                 (name.to_string(), attribute.value().to_string())
             })
             .collect()

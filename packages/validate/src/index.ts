@@ -52,9 +52,17 @@ let specs: Record<string, ElementSpec> | undefined;
  *  pkg/sc_validate_bg.wasm relative to its own URL (the Vite asset path);
  *  tests pass the bytes directly. */
 export function initValidator(input?: BufferSource): Promise<void> {
-  ready ??= (input === undefined ? init() : init({ module_or_path: input })).then(() => {
-    specs = JSON.parse(element_specs()) as Record<string, ElementSpec>;
-  });
+  ready ??= (input === undefined ? init() : init({ module_or_path: input })).then(
+    () => {
+      specs = JSON.parse(element_specs()) as Record<string, ElementSpec>;
+    },
+    (e: unknown) => {
+      // Don't cache the rejection: a later call (a plugin reload after a
+      // transient fetch failure) retries the instantiation.
+      ready = undefined;
+      throw e;
+    },
+  );
   return ready;
 }
 

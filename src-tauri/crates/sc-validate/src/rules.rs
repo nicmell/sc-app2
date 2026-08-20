@@ -31,11 +31,18 @@ pub fn validate_root<N: XmlNode>(root: &N) -> Vec<Violation> {
     }
 
     let mut violations = Vec::new();
-    validate_element(root, &mut violations);
+    validate_element(root, 0, &mut violations);
     violations
 }
 
-fn validate_element<N: XmlNode>(node: &N, violations: &mut Vec<Violation>) {
+fn validate_element<N: XmlNode>(node: &N, depth: usize, violations: &mut Vec<Violation>) {
+    // Defense in depth: validate_entry's pre-parse scan already rejects deep
+    // documents; this guard keeps the recursive walk safe for any future
+    // caller that skips it.
+    if depth >= crate::MAX_DEPTH {
+        push_violation(node.tag(), messages::too_deep(crate::MAX_DEPTH), violations);
+        return;
+    }
     // Namespace first: every element (known or not) must live in XHTML —
     // the old schema's targetNamespace, now checked directly.
     if node.namespace() != Some(XHTML_NS) {
@@ -59,7 +66,7 @@ fn validate_element<N: XmlNode>(node: &N, violations: &mut Vec<Violation>) {
     // gate reports the unknown child, while known descendants can report
     // their own independent static failures.
     for child in &children {
-        validate_element(child, violations);
+        validate_element(child, depth + 1, violations);
     }
 }
 
@@ -239,11 +246,13 @@ fn validate_content<N: XmlNode>(
         push_violation(node.tag(), messages::unexpected_text(), violations);
     }
     if content.require_child && children.is_empty() {
-        push_violation(
-            node.tag(),
-            messages::missing_required_child(&content.children[0]),
-            violations,
-        );
+        if let Some(required) = content.children.first() {
+            push_violation(
+                node.tag(),
+                messages::missing_required_child(required),
+                violations,
+            );
+        }
     }
 }
 
@@ -413,6 +422,35 @@ mod tests {
         assert_eq!(
             crate::validate_entry(root).expect("root XML should parse"),
             vec![r#"<div>: plugin entry root must be <sc-plugin> (got <div>)"#]
+        );
+    }
+
+    #[test]
+    fn empty_attribute_values_hit_their_lexical_gates() {
+        // Empty strings: fine for string types, rejected by the numeric,
+        // boolean, and enum gates.
+        assert!(messages(r#"<sc-slider value="1" label=""/>"#).is_empty());
+        assert_eq!(
+            messages(r#"<sc-slider value=""/>"#),
+            vec![r#"<sc-slider>: "value" attribute must be a decimal number"#]
+        );
+        assert_eq!(
+            messages(r#"<sc-scope frames=""/>"#),
+            vec![r#"<sc-scope>: "frames" attribute must be an integer"#]
+        );
+        assert_eq!(
+            messages(r#"<sc-slider value="1" disabled=""/>"#),
+            vec![r#"<sc-slider>: "disabled" attribute must be one of true|false|1|0 (got "")"#]
+        );
+        assert_eq!(
+            messages(r#"<sc-slider value="1" size=""/>"#),
+            vec![r#"<sc-slider>: "size" attribute must be one of sm|md|lg (got "")"#]
+        );
+        assert_eq!(
+            messages(r#"<sc-control name="x" value=""/>"#),
+            vec![
+                r#"<sc-control>: "value" attribute must be a number or a comma-list of numbers (got "")"#
+            ]
         );
     }
 

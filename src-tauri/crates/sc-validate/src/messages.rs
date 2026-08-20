@@ -96,6 +96,11 @@ pub fn unexpected_text() -> String {
     "unexpected text content".to_string()
 }
 
+/// Message for an element past the nesting ceiling (its subtree is skipped).
+pub fn too_deep(limit: usize) -> String {
+    format!("nested deeper than {limit} levels")
+}
+
 /// Message for an entry whose document element is not `sc-plugin`.
 pub fn wrong_root(tag: &str) -> String {
     format!("plugin entry root must be <sc-plugin> (got <{tag}>)")

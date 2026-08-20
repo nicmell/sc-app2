@@ -5,6 +5,9 @@ description = "Desktop/browser controller for SuperCollider (scsynth) and Strude
 authors = ["Nicola Melloni (https://github.com/nicmell)"]
 edition = "2021"
 
+[workspace]
+members = ["crates/sc-validate"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]

@@ -36,7 +36,7 @@ export function parseEntry(text: string): ScPlugin {
       `plugin entry root must be <sc-plugin> (got <${doc.documentElement.localName}>)`,
     );
   }
-  const root = document.importNode(doc.documentElement, true) as ScPlugin;
+  const root = document.importNode(doc.documentElement as ScPlugin, true);
   customElements.upgrade(root);
   return root;
 }

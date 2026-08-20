@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- INTENTIONAL: every attribute rule violated once, one element per rule —
+       the static gate (sc-validate, native at upload + wasm at parseEntry)
+       collects ALL of them and reports one line per violation. The one
+       sc-scope with three bad facets also proves the per-attribute cascade:
+       one violation per attribute, never a bail-out. -->
+  <sc-slider/>
+  <sc-knob value="1" min="abc"/>
+  <sc-scope frames="1.5"/>
+  <sc-switch value="1" disabled="yes"/>
+  <sc-flex gap="huge"/>
+  <sc-scope channels="0" frames="99999" gain="0"/>
+  <sc-control name="c" value="foo bar"/>
+  <sc-display value="1" foo="x"/>
+  <div xmlns:data="urn:data" data:x="1"/>
+  <sc-keyboard synthdef="sine" bind:octaves="3"/>
+</sc-plugin>

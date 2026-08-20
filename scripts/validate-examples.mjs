@@ -21,6 +21,9 @@ const EXPECT_UPLOAD_FAIL = new Set([
   "bad-asset-mismatch",
   "bad-name-syntax", // a dotted name forging another scope's store key (spec gate)
   "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive (spec gate)
+  "bad-attr-multierror", // every attribute rule violated once — multi-error, one line each (spec gate)
+  "bad-content-multierror", // strict-empty leaves, list min-occurs, membership (spec gate)
+  "bad-namespace", // elements outside the XHTML namespace (spec gate)
 ]);
 const EXPECT_RUNTIME_FAIL = new Set([
   "bad-bindings", // duplicate name in scope (first of its several errors)

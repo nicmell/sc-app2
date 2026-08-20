@@ -1,11 +1,12 @@
 // Unit tests over the example plugins — the frontend static wasm gate and
 // runtime parse engine (the CDP harness, scripts/validate-examples.mjs, remains
-// the full-stack acceptance covering the backend upload/XSD path too). Every
+// the full-stack acceptance covering the backend upload path too). Every
 // examples/<category>/<name>/index.html runs through parseEntry, then the
 // sc-elements runtime engine on a disconnected <sc-plugin> host in happy-dom.
-// Functional examples must parse clean; each bad-* fixture must fail with its
-// exact intentional error (the examples/README.md table). The five upload-time
-// fixtures are backend (zip/XSD) validation and stay harness-only.
+// Functional examples must parse clean; each STATIC fixture must throw its
+// exact (possibly multi-line) message from parseEntry, each RUNTIME fixture
+// its exact resolveRuntime error from processRoot (the examples/README.md
+// tables). The five zip/metadata/asset fixtures stay harness-only.
 
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
@@ -31,7 +32,9 @@ const ENTRIES = import.meta.glob<string>("/examples/*/*/{index,entry}.html", {
   eager: true,
 });
 
-/** Backend (zip/XSD) fixtures — no runtime expectation here. */
+/** Backend zip/metadata/asset fixtures (plus the malformed-XML one whose
+ *  message the wasm gate wraps differently than the pinned strings below) —
+ *  no expectation here, the CDP harness covers their 400s. */
 const UPLOAD_FIXTURES = new Set([
   "bad-metadata",
   "bad-entry-xhtml",
@@ -39,6 +42,38 @@ const UPLOAD_FIXTURES = new Set([
   "bad-asset-type",
   "bad-asset-mismatch",
 ]);
+
+/** The STATIC fixtures' exact message — thrown by parseEntry (the wasm gate),
+ *  every violation newline-joined. */
+const STATIC_FAILURES: Record<string, string> = {
+  "bad-name-syntax":
+    '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
+  "bad-runtime-conflict": '<sc-var>: "value" and "bind:value" are mutually exclusive',
+  "bad-attr-multierror": [
+    '<sc-slider>: missing required "value" attribute',
+    '<sc-knob>: "min" attribute must be a decimal number',
+    '<sc-scope>: "frames" attribute must be an integer',
+    '<sc-switch>: "disabled" attribute must be one of true|false|1|0 (got "yes")',
+    '<sc-flex>: "gap" attribute must be one of none|xs|sm|md|lg (got "huge")',
+    '<sc-scope>: "channels" attribute must be \u2265 1 (got "0")',
+    '<sc-scope>: "frames" attribute must be \u2264 16384 (got "99999")',
+    '<sc-scope>: "gain" attribute must be > 0 (got "0")',
+    '<sc-control>: "value" attribute must be a number or a comma-list of numbers (got "foo bar")',
+    '<sc-display>: unknown attribute "foo"',
+    '<div>: unknown attribute namespace prefix "data:" (use "bind:")',
+    '<sc-keyboard>: unknown runtime attribute "bind:octaves"',
+  ].join("\n"),
+  "bad-content-multierror": [
+    "<sc-plugin>: unexpected child <sc-option>",
+    "<sc-slider>: unexpected child <div>",
+    "<sc-display>: unexpected text content",
+    "<ul>: must contain at least one <li>",
+  ].join("\n"),
+  "bad-namespace": [
+    '<sc-plugin>: must be in the XHTML namespace (xmlns="http://www.w3.org/1999/xhtml")',
+    '<div>: must be in the XHTML namespace (xmlns="http://www.w3.org/1999/xhtml")',
+  ].join("\n"),
+};
 
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
@@ -55,11 +90,10 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-ugen-input": '<sc-control name="freq">: requires either a value or bind:value attribute',
   "bad-ugen-ref": '<sc-ugen name="osc">: input "freq" references unknown "lfo"',
   "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
-  "bad-name-syntax":
-    '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
-  "bad-runtime-conflict": '<sc-var>: "value" and "bind:value" are mutually exclusive',
   "bad-param-bind": '<sc-control>: "bind:value" is not allowed on a synthdef param',
 };
+
+const FAILURES: Record<string, string> = { ...STATIC_FAILURES, ...RUNTIME_FAILURES };
 
 interface ExampleCase {
   category: string;
@@ -75,8 +109,8 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
   .filter((c) => !UPLOAD_FIXTURES.has(c.name))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-const passing = cases.filter((c) => !(c.name in RUNTIME_FAILURES));
-const failing = cases.filter((c) => c.name in RUNTIME_FAILURES);
+const passing = cases.filter((c) => !(c.name in FAILURES));
+const failing = cases.filter((c) => c.name in FAILURES);
 
 beforeAll(() => {
   registerScElements();
@@ -92,9 +126,9 @@ afterEach(() => {
 });
 
 describe("example discovery", () => {
-  it("finds every functional example and every runtime fixture", () => {
+  it("finds every functional example and every static/runtime fixture", () => {
     expect(passing.length).toBeGreaterThanOrEqual(10);
-    expect(failing.map((c) => c.name).sort()).toEqual(Object.keys(RUNTIME_FAILURES).sort());
+    expect(failing.map((c) => c.name).sort()).toEqual(Object.keys(FAILURES).sort());
   });
 });
 
@@ -126,7 +160,7 @@ describe("every example synthdef compiles", () => {
   }
 });
 
-describe("runtime fixtures fail with their exact intentional error", () => {
+describe("static/runtime fixtures fail with their exact intentional error", () => {
   for (const c of failing) {
     it(`${c.category}/${c.name}`, () => {
       let error: Error | null = null;
@@ -135,7 +169,7 @@ describe("runtime fixtures fail with their exact intentional error", () => {
       } catch (e) {
         error = e as Error;
       }
-      expect(error?.message).toBe(RUNTIME_FAILURES[c.name]);
+      expect(error?.message).toBe(FAILURES[c.name]);
     });
   }
 });

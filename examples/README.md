@@ -78,6 +78,9 @@ Upload-time fixtures (rejected by the backend zip/spec validation):
 | `bad-asset-mismatch`   | asset content (jpeg) ≠ declared type (png)                          |
 | `bad-name-syntax`      | spec gate (sc-validate): a dotted `name` fails the identifier grammar |
 | `bad-runtime-conflict` | spec gate (sc-validate): static `value` + `bind:value` are exclusive  |
+| `bad-attr-multierror`  | spec gate: EVERY attribute rule violated once (required, decimal/integer/boolean/enum lexical, the three range facets on one element, numeric vector, unknown attr, foreign prefix, `bind:` on an opted-out attr) — 12 violations reported together, one per line |
+| `bad-content-multierror` | spec gate: every content rule — strict-empty leaves (child + text), `<ul>` without an `<li>`, and a child-only `sc-option` escaping its `sc-select` |
+| `bad-namespace`        | spec gate: elements outside the XHTML namespace (a root missing `xmlns`) — one violation per element |
 
 Runtime fixtures (upload fine; the parse engine must reject them — each one
 targets a single error path in the sc-elements runtime
@@ -99,10 +102,10 @@ targets a single error path in the sc-elements runtime
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
 
-(`bad-name-syntax` and `bad-runtime-conflict` moved to the upload table: the
-static spec gate — the sc-validate crate at upload, the same rules the engine
-enforces at parse — rejects them before any runtime processing. The unit suite
-still pins their exact messages.)
+(The five `spec gate` rows are STATIC fixtures: the sc-validate crate rejects
+them at upload (400, every violation one per line) AND at frontend
+`parseEntry` — the unit suite pins their exact, possibly multi-line,
+messages; the golden cargo test pins the same vectors from the native side.)
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

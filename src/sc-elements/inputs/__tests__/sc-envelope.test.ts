@@ -66,7 +66,7 @@ describe("sc-envelope", () => {
     ).rejects.toThrow("envelope array needs at least 8 slots");
   });
 
-  it("validates the breakpoint-count bounds (min ≥ 2, max ≥ min)", async () => {
+  it("validates the per-attr breakpoint-count facets (each ≥ 2)", async () => {
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>
@@ -77,10 +77,13 @@ describe("sc-envelope", () => {
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>
-          <sc-envelope bind:value="env" minbreakpoints="4" maxbreakpoints="3"/>`),
+          <sc-envelope bind:value="env" maxbreakpoints="1"/>`),
       ),
-    ).rejects.toThrow('"maxbreakpoints" must be an integer ≥ minbreakpoints');
+    ).rejects.toThrow('"maxbreakpoints" attribute must be ≥ 2');
     document.body.replaceChildren();
+    // max < min is deliberately UNVALIDATED (the cross-attr relation is the
+    // author's contract): the structure just locks — insert blocked at max,
+    // removal at min — visibly unusable, never crashing.
     await expect(
       mountPlugin(
         wrapXml(`<sc-control name="env" value="${ENV}"/>

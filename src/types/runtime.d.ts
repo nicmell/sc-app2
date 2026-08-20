@@ -65,8 +65,8 @@ export interface RuntimeProp {
   expression?: Expr;
 }
 
-/** The per-LEVEL parse state threaded through the elements' `process(ctx)`
- *  recursion (sc-elements/internal ScElement) — all siblings share one
+/** The per-LEVEL parse state threaded through the engine's `process(ctx)`
+ *  recursion (sc-elements/internal/engine) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard), `scope` the cumulative bind-resolution
  *  scope. Store-key
@@ -77,10 +77,15 @@ export interface RuntimeProp {
 export interface RuntimeContext {
   rootNode: ScParent;
   nodes: Set<ScElement>;
+  /** The level's flattened sibling walk — the CURSOR's domain: the engine's
+   *  driver sets `index` and processes `siblings[index]`. */
+  siblings: ScElement[];
+  /** The driver-set cursor into `siblings` — also the position the
+   *  path-chained hash id is minted from. */
+  index: number;
+  /** The cumulative name-lookup chain (the level's siblings prefixed onto
+   *  the enclosing scopes) — lookup only, unrelated to the cursor. */
   scope: ScElement[];
   parentNode?: ScParent;
   path: string[];
-  /** The level's mutable document-order counter — each `process` mints its
-   *  path-chained hash id from it. 0 at the entry call and per child level. */
-  index: number;
 }

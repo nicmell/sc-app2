@@ -11,7 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
-import { validateProps } from "@/sc-elements/internal/validation";
+import { validate } from "@/sc-elements/internal/engine/validation";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
 import type { ScScope } from "@/sc-elements/widgets/sc-scope";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel";
@@ -389,7 +389,7 @@ describe("sc-strudel", () => {
     const strudel = document.createElement("sc-strudel") as ScStrudel;
     strudel.setAttribute("value", "a");
     strudel.setAttribute("bind:value", "code");
-    expect(() => validateProps(strudel)).toThrow(
+    expect(() => validate(strudel)).toThrow(
       '<sc-strudel>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -463,9 +463,9 @@ describe("sc-keyboard", () => {
     expect(host.nodeId).not.toBe(0);
   });
 
-  it("never reflects a foreign attribute onto the host (validateProps rejects it)", async () => {
+  it("never reflects a foreign attribute onto the host (the engine validate rejects it)", async () => {
     // The focusable tabindex lives on the inner container — a reflected host
-    // attribute would fail validateProps when render precedes process (the
+    // attribute would fail the engine validate when render precedes process (the
     // real-app load order).
     const { kbd } = await mountKeyboard();
     await kbd.updateComplete;

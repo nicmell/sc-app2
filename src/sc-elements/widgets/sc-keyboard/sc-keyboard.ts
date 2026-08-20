@@ -24,8 +24,8 @@ import { classMap } from "lit/directives/class-map.js";
 import { isNodeRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/stores/osc";
 import type { RuntimeContext } from "@/types/runtime";
-import { resolveSynthDefRef } from "@/sc-elements/internal/resolution";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { resolveSynthDefRef } from "@/sc-elements/internal/engine/resolution";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 import styles from "./sc-keyboard.module.scss";
@@ -62,7 +62,7 @@ const clampVel = (n: number): number => Math.min(1, Math.max(0.05, n));
 
 export class ScKeyboard extends ScElement {
   // Declarative attributes are coerced and defaulted by getProp. `synthdef`
-  // is required (enforced by validateProps); the param-name attrs default to
+  // is required (enforced by the engine validate); the param-name attrs default to
   // the SC-idiomatic names, so a synthdef using `freq`/`amp`/`gate` needs no
   // mapping.
 
@@ -86,7 +86,7 @@ export class ScKeyboard extends ScElement {
    *  <sc-synthdef> in scope — and, when an `envelope` is given, declare
    *  exactly ONE array param to latch it onto. A leaf otherwise — no
    *  children, no node. */
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     const synthdef = this.getProp("synthdef") as string;
     const target = resolveSynthDefRef(this, ctx, synthdef);

@@ -5,11 +5,11 @@
 import { parseBind, splitTopLevel } from "@/lib/expression";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
-import { resolveNode } from "@/sc-elements/internal/resolution";
+import { resolveNode } from "@/sc-elements/internal/engine/resolution";
 import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export class ScUgen extends ScParent {
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     // Every input reference (bind:value) must name a sibling ugen or a
     // synthdef param. A comma-token may be a plain ref, a `name.idx`

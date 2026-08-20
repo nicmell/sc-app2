@@ -8,7 +8,7 @@ import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScUgen } from "@/sc-elements/synthdef/sc-ugen";
@@ -72,7 +72,7 @@ export class ScSynthDef extends ScParent {
     return undefined;
   }
 
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     const children = this._scChildren;
     // The synthdef PLANE is compile-time data — this class owns its rules:

@@ -6,7 +6,7 @@
 //
 // Light DOM: hiding is the `hidden` attribute + stylesheet (display: contents
 // / [hidden] display: none). sc-if is a TRANSPARENT container (nameless — see
-// internal/validation isTransparent): it opens no sibling scope and no store
+// internal/engine/resolution isTransparent): it opens no sibling scope and no store
 // path segment; its contents are collected, duplicate-checked, and processed
 // by the ENCLOSING level (the parse walks through it) and attach DIRECTLY to
 // the enclosing node (`processParent` walks through transparency — the sc-if

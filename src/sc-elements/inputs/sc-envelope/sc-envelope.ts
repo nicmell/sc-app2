@@ -33,7 +33,7 @@ import {
   type EnvSegment,
 } from "@/lib/synthdef/envValue";
 import type { RuntimeContext, StateValue } from "@/types/runtime";
-import { failValidation } from "@/sc-elements/internal/validation";
+import { failValidation } from "@/sc-elements/internal/engine/validation";
 import { ScInput } from "@/sc-elements/internal/sc-input";
 import styles from "./sc-envelope.module.scss";
 
@@ -88,19 +88,7 @@ type Drag =
   | { kind: "curve"; index: number; startY: number; startCurve: number };
 
 export class ScEnvelope extends ScInput {
-  /** Breakpoint-count bounds (start point included; segments + 1). Insert
-   *  blocks at max, removal at min — equal bounds LOCK the structure while
-   *  positions stay draggable (stable slots for `env.N` lens binds). */
-  validate(): void {
-    super.validate();
-    const min = this.getProp("minbreakpoints") as number;
-    const max = this.getProp("maxbreakpoints") as number | undefined;
-    if (max !== undefined && max < min) {
-      failValidation(this, `"maxbreakpoints" must be an integer ≥ minbreakpoints (got "${max}")`);
-    }
-  }
-
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     // Like sc-button: write-capable, so it needs a plain writable path — and
     // specifically an envelope state (a scalar control has no shape to drag).

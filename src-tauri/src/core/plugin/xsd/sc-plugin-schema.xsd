@@ -9,7 +9,7 @@
        To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
        fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
        `name` syntax (one bind-path segment, no dots) is carried as an XSD
-       pattern facet and enforced again by the runtime's validateProps().
+       pattern facet and enforced again by the runtime's the engine validate().
        XSD 1.0 permits any global element as the document root; the runtime
        loader requires sc-plugin. -->
 
@@ -344,7 +344,13 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
-    <xs:attribute name="maxbreakpoints" type="xs:integer"/>
+    <xs:attribute name="maxbreakpoints">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="2"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attributeGroup ref="commonAttrs"/>
     <xs:anyAttribute namespace="urn:sc-app:bind" processContents="skip"/>
   </xs:complexType>

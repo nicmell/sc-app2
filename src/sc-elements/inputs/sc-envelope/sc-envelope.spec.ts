@@ -14,6 +14,6 @@ export const spec: ElementSpec = {
     // slot lenses (`bind:value="env.5"` knobs) keep stable meanings.
     // The former _minBreakpoints getter default.
     minbreakpoints: { type: "integer", min: 2, default: 2, runtime: false },
-    maxbreakpoints: { type: "integer", runtime: false },
+    maxbreakpoints: { type: "integer", min: 2, runtime: false },
   },
 };

@@ -29,7 +29,7 @@ import {
   type ScVar,
 } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
-import { validateProps } from "@/sc-elements/internal/validation";
+import { validate } from "@/sc-elements/internal/engine/validation";
 import {
   autoRespond,
   FIRST_NODE_ID,
@@ -1096,7 +1096,7 @@ describe("runtime props (bind:)", () => {
     expect(widgetOf(range).getAttribute("min")).toBe("25"); // one fresh subscription
   });
 
-  it("the static and bind: forms are mutually exclusive (direct validateProps)", () => {
+  it("the static and bind: forms are mutually exclusive (direct engine validate)", () => {
     // happy-dom's XML parser DROPS the later of two attributes whose LOCAL
     // names collide (`value` + `bind:value`) — Chrome keeps both, so the
     // conflict is pinned here on a constructed element (and end-to-end by
@@ -1105,9 +1105,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "a");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "b");
-    expect(() => validateProps(el)).toThrow(
-      '<sc-var>: "value" and "bind:value" are mutually exclusive',
-    );
+    expect(() => validate(el)).toThrow('<sc-var>: "value" and "bind:value" are mutually exclusive');
   });
 
   it("a required runtime attr is satisfied by either form — but not by neither", () => {
@@ -1275,7 +1273,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "freq");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "freq");
-    expect(() => validateProps(el)).toThrow(
+    expect(() => validate(el)).toThrow(
       '<sc-control>: "value" and "bind:value" are mutually exclusive',
     );
   });
@@ -1302,15 +1300,13 @@ describe("runtime props (bind:)", () => {
     ).toThrow('<sc-var>: unknown attribute namespace prefix "x:" (use "bind:")');
   });
 
-  it("rejects bind:attrs on runtime-opted-out attributes (direct validateProps)", () => {
+  it("rejects bind:attrs on runtime-opted-out attributes (direct engine validate)", () => {
     // `synthdef` is runtime-opted-out: a dynamic form must be rejected.
     const el = document.createElement("sc-synth") as ScElement;
     el.setAttribute("name", "s1");
     el.setAttribute("synthdef", "sine");
     el.setAttribute("bind:synthdef", "sine");
-    expect(() => validateProps(el)).toThrow(
-      '<sc-synth>: unknown runtime attribute "bind:synthdef"',
-    );
+    expect(() => validate(el)).toThrow('<sc-synth>: unknown runtime attribute "bind:synthdef"');
   });
 
   it("requires sc-synth.synthdef", () => {

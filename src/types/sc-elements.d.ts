@@ -9,7 +9,7 @@ interface ScElementHTMLAttributes extends React.HTMLAttributes<HTMLElement> {
 
 /** The host-only plugin-id property (a JS property, not an attribute) exists
  *  solely on <sc-plugin> — typing it on every sc-* tag would let a stray
- *  `plugin` attribute typecheck and then die in validateProps at parse. */
+ *  `plugin` attribute typecheck and then die in the engine's validate at parse. */
 interface ScPluginHTMLAttributes extends ScElementHTMLAttributes {
   plugin?: string;
 }

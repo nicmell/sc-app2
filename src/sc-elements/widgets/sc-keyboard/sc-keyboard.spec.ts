@@ -14,7 +14,7 @@ export const spec: ElementSpec = {
     // The per-voice envelope VALUE (an Env.asArray encoding) — typically
     // `bind:envelope` to a var an editor edits, or a fixed comma-list —
     // latched into each voice's /s_new on the def's single array param.
-    envelope: { type: "vector" },
+    envelope: { type: "vector", numeric: true },
     // The drawn range: `octaves` keys' worth from the leftmost MIDI note `start`.
     // The former _octaves getter default.
     octaves: { type: "integer", min: 1, default: 2, runtime: false },

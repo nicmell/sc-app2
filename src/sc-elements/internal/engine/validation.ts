@@ -1,11 +1,12 @@
-// STEP 1's toolbox — the STATIC parse-time gate, as plain functions taking
-// the element explicitly where the error messages need it: the spec-driven
-// attribute validation (`validateProps`, what the base `validate()` runs),
+// STEP 1 — the STATIC parse-time gate, as plain functions taking the
+// element explicitly where the error messages need it: the spec-driven
+// `validate` (pure — attributes + spec in, throw or nothing out; the ENGINE
+// calls it, elements never extend it: static rules are spec vocabulary),
 // the canonical `failValidation` shape, and the static coercion `getProp`'s
 // attribute reads share. The error messages are the runtime gate's
 // contract — pinned verbatim by src/sc-elements/examples.test.ts and the
 // CDP harness. STEP 2's toolbox (name/scope/bind resolution) lives in
-// internal/resolution.ts.
+// the sibling resolution.ts.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { tryEvalCallLiteral } from "@/lib/expression";
@@ -24,7 +25,7 @@ const SC_ELEMENT_SELECTOR = Object.values(ELEMENTS).join(", ");
 /** Boolean coercion shared by the static and evaluated forms — HTML-flavored:
  *  everything is true except the explicit falsy spellings (`"false"`, `"0"`,
  *  the empty string, the number 0). The static form is pre-gated by
- *  validateProps' true|false|1|0 lexical check; evaluated values get the
+ *  validate's true|false|1|0 lexical check; evaluated values get the
  *  same reading, so a bound string `"false"` disables like the attribute. */
 export function coerceBoolean(value: string | number): boolean {
   return value !== "" && value !== "false" && value !== "0" && value !== 0;
@@ -71,7 +72,9 @@ export function failValidation(el: Element, message: string): never {
   throw new Error(`<${el.tagName.toLowerCase()}>: ${message}`);
 }
 
-/** Spec-driven attribute validation, run before the component's `validate()`:
+/** STEP 1 — spec-driven attribute validation, PURE and engine-called (no
+ *  element hook: static rules are expressed in the spec — types, facets,
+ *  `numeric`, defaults):
  *  required present (a runtime attr satisfies it with either form),
  *  static/`bind:` mutual exclusion, numeric lexical/range gates, enum
  *  membership, name syntax, and the attribute-name hygiene: only the
@@ -80,7 +83,7 @@ export function failValidation(el: Element, message: string): never {
  *  silently no-op, so it fails loudly), and only spec attrs not opted out have
  *  a `bind:` form. Choice-less content models also reject nested sc-* elements
  *  here; evaluated values remain unvalidated. */
-export function validateProps(el: ScElement): void {
+export function validate(el: ScElement): void {
   const attrs = el.spec?.attrs ?? {};
   for (const [name, attr] of Object.entries(attrs)) {
     const raw = el.getAttribute(name);
@@ -132,9 +135,15 @@ export function validateProps(el: ScElement): void {
         failValidation(el, `"${name}" attribute must be ≤ ${attr.max} (got "${raw}")`);
       }
     }
-    // (`vector` has no lexical gate: an all-numeric comma-list is an array,
-    // anything else keeps the scalar semantics — string vars included. The
-    // numeric-only elements enforce it semantically: ScControl.validate.)
+    // A numeric-STRICT vector (spec `numeric: true` — OSC/compiler-bound
+    // values) rejects a static value whose coercion stays a string; plain
+    // vectors keep the string fallback (legal state — sc-var).
+    if (attr.type === "vector" && attr.numeric && typeof coerceStatic(attr, raw) === "string") {
+      failValidation(
+        el,
+        `"${name}" attribute must be a number or a comma-list of numbers (got "${raw}")`,
+      );
+    }
   }
   for (const { name } of Array.from(el.attributes)) {
     // Namespace declarations are XML plumbing, not contract attributes.

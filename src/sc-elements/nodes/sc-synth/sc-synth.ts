@@ -6,7 +6,7 @@
 import { oscClient } from "@/stores/osc";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
-import { resolveSynthDefRef } from "@/sc-elements/internal/resolution";
+import { resolveSynthDefRef } from "@/sc-elements/internal/engine/resolution";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 import type { ScSynthDef } from "@/sc-elements/synthdef/sc-synthdef";
 
@@ -19,7 +19,7 @@ export class ScSynth extends ScNode {
    *  and the index is the def's param layout — `paramIndexOf`. */
   private defElement!: ScSynthDef;
 
-  protected resolveRuntime(ctx: RuntimeContext): void {
+  resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
     this.defElement = resolveSynthDefRef(this, ctx, this.getProp("synthdef") as string);
   }

@@ -86,12 +86,15 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          (display/if/text/flex/row/col), widgets/ (strudel/
                          scope/console/keyboard). index.ts is the barrel +
                          registerScElements(). internal/ is ALSO the runtime:
-                         the element IS the runtime — no item structures. The
-                         ScElement base carries the parse engine (process/
-                         processChildren) + the common runtime fields;
-                         validation.ts holds the parse-time validation/static-
-                         coercion and resolution.ts the name/scope/bind-
-                         resolution helpers, both as plain functions;
+                         the element IS the runtime — no item structures.
+                         engine/ is the parse ENGINE (index.ts: free
+                         process/processChildren over a cursor ctx —
+                         ScPlugin.processRoot builds the entry ctx); the
+                         ScElement base carries the common runtime fields +
+                         the two hooks; engine/validation.ts holds the
+                         parse-time validation/static-coercion and
+                         engine/resolution.ts the name/scope/bind-resolution
+                         helpers, both as plain functions;
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
@@ -307,22 +310,24 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `process()` lives on `ScElement` — it assigns the identity + shared
+   The free `process(ctx)` (internal/engine/) assigns the identity + shared
    runtime core (the parent collects the element into `_scChildren` as it
-   completes), then runs the TWO extendable
-   steps: `validate()` (the ctx-free static spec gate) and
-   `resolveRuntime(ctx)` (runtime construction: the recursion into the sc
-   children where the element opens a level — `_scChildren` is a runtime
-   value like the rest — plus bind/reference resolution), both mutating the
+   completes), then runs the TWO conceptual
+   steps: the engine's own pure `validate` (the static spec gate — no
+   element hook, static rules are spec vocabulary) and the ONE extension
+   hook `resolveRuntime(ctx)` (runtime construction: the recursion into the
+   sc children where the element opens a level — `_scChildren` is a runtime
+   value like the rest — plus bind/reference resolution), mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
-   the engine lives on the base, and the validation + bind-resolution
-   helpers are plain functions in `internal/validation.ts` +
-   `internal/resolution.ts`, taking the
+   the engine is the free-function interpreter in `internal/engine/`, and
+   the validation + bind-resolution
+   helpers are plain functions in `internal/engine/validation.ts` +
+   `internal/engine/resolution.ts`, taking the
    element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
-   fields once; concrete elements are mostly `validate()` + a small
-   `resolveRuntime()` override composed via `super`.
+   fields once; concrete elements are mostly a small `resolveRuntime()`
+   override composed via `super` (static rules live in the spec).
 4. **Runtime values are live element references, not string ids**:
    `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
    `children` is taken), `targetScState` on inputs, and each runtime prop's
@@ -351,16 +356,18 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    impossible — not namespace-well-formed XML, not an XSD NCName; a
    DECLARED prefix is). Upload-gate honesty: fastxml 0.8.0 validates NO
    attributes (`validate_attributes` is a stub) — the schema's attribute
-   rules bite only under libxml2 in dev; `validateProps` at parse is the
-   authoritative gate, so a wrong plugin usually uploads 201 and dies with
+   rules bite only under libxml2 in dev; the engine's `validate` at parse
+   is the authoritative gate, so a wrong plugin usually uploads 201 and dies with
    a pointed error in the plugin box.
-6. **The parse context is per-level and `process` recurses**: `process(ctx)`
-   threads `{rootNode, nodes: Set<ScElement>, scope, parentNode, path, index}` —
-   one shared object per sibling scope; it runs `validate()` (spec gate +
-   semantic rules), then `resolveRuntime(ctx)` (bind/reference resolution;
-   the level-opening elements — nodes/synthdef/ugen — recurse via
-   `processChildren` there, each collecting a child into `_scChildren` as
-   it completes). A parent collects ALL its children into the level scope and
+6. **The parse context is a CURSOR and the engine recurses**: the free
+   `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
+   threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
+   parentNode, path}` — one shared object per sibling scope, the driver
+   setting `index`; it runs the pure `validate` (the spec gate), then
+   `resolveRuntime(ctx)` (bind/reference resolution; ScParent recurses via
+   the engine's `processChildren` there, collecting each child into
+   `_scChildren` as it completes). A parent collects ALL its children into
+   the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
    shadowing on name lookups.
@@ -414,17 +421,18 @@ further `sc-*` element:
    widget's own default; only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
-3. **Validation is layered**: `validateProps()` (the plain parse-time
-   function in `internal/validation.ts`, spec-driven) enforces
-   required/numeric/enum plus numeric range facets
-   (`min`/`max`/`exclusiveMin`), the `name` type's identifier grammar, the
-   no-sc-children rule for choice-less content models, and the runtime-prop
-   rules (static-XOR-`bind:` mutual exclusion, required-by-either-form, no
-   stray `bind:` attrs, foreign-prefix rejection). The ctx-free base
-   `validate()` runs it; overrides add genuinely cross-attribute/semantic
-   rules after `super.validate()`. A violation fails the whole plugin.
-   This is the _real_ gate — fastxml does not enforce XSD attribute
-   requirements at upload.
+3. **Validation is spec-only**: the engine's pure `validate` (the plain
+   parse-time function in `internal/engine/validation.ts`, spec-driven)
+   enforces required/numeric/enum plus numeric range facets
+   (`min`/`max`/`exclusiveMin`), numeric-STRICT vectors (`numeric: true`),
+   the `name` type's identifier grammar, the no-sc-children rule for
+   choice-less content models, and the runtime-prop rules
+   (static-XOR-`bind:` mutual exclusion, required-by-either-form, no stray
+   `bind:` attrs, foreign-prefix rejection). There is NO element validation
+   hook: a static rule is spec vocabulary or it does not exist; positional
+   and resolved-state rules live in `resolveRuntime`. A violation fails the
+   whole plugin. This is the _real_ gate — fastxml does not enforce XSD
+   attribute requirements at upload.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;
@@ -446,9 +454,11 @@ further `sc-*` element:
    values"). There is **no `type` field**: the discriminant is the tag
    (`typeOf(el)`, `lib/utils/guards`), and the guards narrow to the
    component classes via type-only imports.
-5. **Runtime resolution**: the parse engine
-   (`process`/`processChildren`/`walkScElements`) is inherited from
-   `ScElement` (`internal/sc-element.ts`). Generic `bind:attr` expressions
+5. **Runtime resolution**: the parse engine is the free-function
+   interpreter in `internal/engine/`
+   (`process`/`processChildren` over the cursor ctx;
+   `ScPlugin.processRoot` builds the entry ctx); the
+   elements provide the hooks. Generic `bind:attr` expressions
    need no component code: the base `resolveRuntime(ctx)` resolves them
    through `resolveBind` from the element spec. Extending `ScParent`
    IS opening a level (its base resolution recurses via `processChildren`
@@ -481,7 +491,7 @@ further `sc-*` element:
 | sc-checkbox, sc-switch                                     | functional: render the ui-components `<sc-base-checkbox>`/`<sc-base-switch>` over the shared ScInput `bind:value` seam (checked ↔ 1/0); sc-switch is the toggle sibling (no `label`)                                                                                                                                                                                                                                                                                                                                                                              |
 | sc-select, sc-option, sc-radio-group, sc-radio             | functional: sc-select/sc-radio-group render the ui-components `<sc-base-select>`/`<sc-base-radio-group>`, projecting each option/radio child's collected `{value,label}` into the base widgets; the shared ScInput `bind:value` seam syncs the selection and dispatches the chosen value via `commit()`. sc-option/sc-radio are pure data (consumed at parse, never live)                                                                                                                                                                                      |
 | sc-display                                                 | functional: the read-only value visual — static `value` or dynamic `bind:value` expression (string ternaries included), printf `format` (also runtime-capable)                                                                                                                                                                                                                                                                                                                                                                                                    |
-| sc-var                                                     | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a SCALAR: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange                                                                                                                                                                                                                                                                                                               |
+| sc-var                                                     | functional: live `_state` on the ScElement runtime-prop machinery (no OSC) — literal vars store-backed like controls (`value` is a non-strict vector: strings allowed), derived vars (`bind:value`) recompute element-to-element on their targets' statechange                                                                                                                                                                                                                                                                                                               |
 | sc-if                                                      | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none)                                                                                                                     |
 | sc-text, sc-flex, sc-row, sc-col                           | functional visual/layout wrappers over ui-components; row/col use a native 24-track CSS Grid, with the slotted sc-col host adopting the shared static span/offset/order rules for WebKit/Tauri compatibility                                                                                                                                                                                                                                                                                                                                                      |
 | sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                                                                                        |
@@ -596,7 +606,7 @@ numeric prop falls back to the widget default). Native inputs bind with Lit's `l
 directly); everything unsubscribes in `disconnectedCallback`.
 Unmount drops the plugin's store map. Store-key uniqueness is enforced
 structurally by TRANSPARENCY: nameless non-node sc elements (sc-if,
-sc-select, sc-radio-group — `isTransparent`, internal/resolution.ts) open
+sc-select, sc-radio-group — `isTransparent`, internal/engine/resolution.ts) open
 NO sibling scope and NO path segment — the parse walks through them
 (`walkScElements`), so their contents parse into the ENCLOSING level,
 share its duplicate-name check (a same-named var inside an sc-if fails

@@ -16,9 +16,10 @@ import { html } from "lit";
 import { state } from "lit/decorators.js";
 import { oscClient } from "@/stores/osc";
 import { createStore, type Store } from "@/lib/utils/reactiveStore";
+import { process } from "@/sc-elements/internal/engine";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
-import type { PluginRuntimeValues, RuntimeContext } from "@/types/runtime";
+import type { PluginRuntimeValues } from "@/types/runtime";
 import "./sc-plugin.scss";
 
 export class ScPlugin extends ScNode {
@@ -62,16 +63,13 @@ export class ScPlugin extends ScNode {
     void this.reload();
   }
 
-  process(ctx: RuntimeContext): ScElement {
-    const el = super.process(ctx);
-    this.parsed = true; // only reached when the whole tree parsed clean
-    return el;
-  }
-
-  /** Process this authored root with a fresh root parse context. */
+  /** Process this authored root: the root is the single sibling of a
+   *  virtual top level, so it mints from an empty parent id at position 0,
+   *  like any other element. Returns the per-parse `nodes` set. */
   processRoot(): Set<ScElement> {
     const nodes = new Set<ScElement>();
-    this.process({ rootNode: this, nodes, scope: [this], path: [], index: 0 });
+    process({ rootNode: this, nodes, siblings: [this], scope: [this], path: [], index: 0 });
+    this.parsed = true; // only reached when the whole tree parsed clean
     return nodes;
   }
 

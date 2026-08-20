@@ -8,6 +8,9 @@ pub mod rules;
 pub mod spec;
 #[cfg(feature = "wasm")]
 pub mod wasm;
+// The generator ships with the native build only — the browser just validates.
+#[cfg(not(feature = "wasm"))]
+pub mod xsdgen;
 
 pub use rules::{validate_root, Violation};
 

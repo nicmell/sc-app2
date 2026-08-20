@@ -172,6 +172,8 @@ pub struct ElementDef {
 pub struct ContentDef {
     /// Whether non-whitespace direct text is allowed.
     pub mixed: bool,
+    /// The AUTHORED choice (tags and/or group refs), as the XSD emits it.
+    pub choice: Vec<String>,
     /// Allowed direct child element tags (groups resolved), possibly empty
     /// (strictly-empty content).
     pub children: Vec<String>,
@@ -451,10 +453,10 @@ fn build() -> Specs {
         .map(|r| {
             let content = r.content.map(|(choice, mixed)| {
                 let mut children: Vec<String> = Vec::new();
-                for reference in choice {
-                    match groups.get(&reference) {
+                for reference in &choice {
+                    match groups.get(reference) {
                         Some(members) => children.extend(members.iter().cloned()),
-                        None => children.push(reference),
+                        None => children.push(reference.clone()),
                     }
                 }
                 let mut seen = std::collections::BTreeSet::new();
@@ -466,7 +468,11 @@ fn build() -> Specs {
                         );
                     }
                 }
-                ContentDef { mixed, children }
+                ContentDef {
+                    mixed,
+                    choice,
+                    children,
+                }
             });
             ElementDef {
                 tag: r.tag,

@@ -1,14 +1,12 @@
-// The XSD spec contract. Each sc-* component ships a colocated `<tag>.spec.ts`
-// exporting a plain-data `ElementSpec` describing its schema surface (attributes
-// + content model + category); `scripts/generate-xsd.ts` reads every spec and
-// emits `sc-plugin-schema.xsd`. Pure JSON — no Lit, no runtime — so the
-// generator runs standalone; at runtime the SAME spec drives getProp coercion
-// and the shared Rust validator, and the xsd-generate snapshot test pins the schema.
+// The TRANSITIONAL spec contract. Each sc-* component still ships a colocated
+// `<tag>.spec.ts` the frontend registry reads (getProp coercion, runtime
+// props); the AUTHORED source of truth is the sc-validate crate's
+// specs/<tag>.spec.json files (spec-parity.test.ts pins the two equal), which
+// also drive the Rust XSD generator (`yarn generate:xsd`) and validation.
 
-/** An element's placement class. Feeds the per-category content-model groups
- *  (internal/xsd/groups.ts): `input`/`visual`/`widget`/`state`/`node`/`synthdef`
- *  each become an `<xs:group>` that `blockContent` composes; `root`/`ugen`/`option`
- *  are reached solely through explicit placement, never a category group. */
+/** An element's placement class. Categories become per-category content-model
+ *  `<xs:group>`s that `blockContent` composes; `root`/`ugen`/`option` are
+ *  reached solely through explicit placement, never a category group. */
 export type Category =
   | "root"
   | "input"

@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:full": "concurrently --names vite,server --prefix-colors auto --kill-others-on-fail \"yarn dev\" \"yarn serve\"",
     "build": "tsc && vite build",
-    "generate:xsd": "tsx scripts/generate-xsd.ts",
+    "generate:xsd": "cargo run --manifest-path src-tauri/Cargo.toml -p sc-validate --bin generate-xsd",
     "generate:wasm": "wasm-pack build src-tauri/crates/sc-validate --release --target web --out-name sc_validate --out-dir ../../../packages/validate/pkg -- --features wasm && rm -f packages/validate/pkg/package.json packages/validate/pkg/.gitignore packages/validate/pkg/README.md",
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",

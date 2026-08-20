@@ -1,0 +1,16 @@
+{
+  "$comment": [
+    "Transparent container: full block content, contents unconditionally live —",
+    "transparency is a runtime property, not encoded in the schema."
+  ],
+  "tag": "sc-if",
+  "category": "visual",
+  "attrs": {
+    "when": {
+      "$comment": "scalar (NOT string): an evaluated 0 must stay falsy for the truthiness.",
+      "type": "scalar",
+      "required": true
+    }
+  },
+  "content": { "choice": ["blockContent"], "mixed": true }
+}

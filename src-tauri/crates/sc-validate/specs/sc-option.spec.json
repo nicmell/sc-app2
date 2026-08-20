@@ -1,0 +1,8 @@
+{
+  "tag": "sc-option",
+  "category": "option",
+  "attrs": {
+    "value": { "type": "decimal", "required": true, "runtime": false },
+    "label": { "type": "string", "required": true, "runtime": false }
+  }
+}

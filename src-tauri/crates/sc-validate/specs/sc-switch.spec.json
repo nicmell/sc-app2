@@ -1,0 +1,9 @@
+{
+  "tag": "sc-switch",
+  "category": "input",
+  "attrs": {
+    "value": { "type": "decimal", "required": true },
+    "size": { "type": "enum", "values": ["sm", "md", "lg"] },
+    "disabled": { "type": "boolean" }
+  }
+}

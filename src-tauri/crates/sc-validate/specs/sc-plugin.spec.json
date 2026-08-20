@@ -1,0 +1,6 @@
+{
+  "$comment": "The authored entry root. PluginHost mounts it directly; the runtime loader requires it as the document element.",
+  "tag": "sc-plugin",
+  "category": "root",
+  "content": { "choice": ["blockContent"] }
+}

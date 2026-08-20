@@ -1,0 +1,11 @@
+{
+  "tag": "sc-select",
+  "category": "input",
+  "attrs": {
+    "value": { "type": "decimal", "required": true },
+    "placeholder": { "type": "string" },
+    "size": { "type": "enum", "values": ["sm", "md", "lg"] },
+    "disabled": { "type": "boolean" }
+  },
+  "content": { "choice": ["sc-option"] }
+}

@@ -95,8 +95,11 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          static-coercion toolbox + failValidation and
                          engine/resolution.ts the name/scope/bind-resolution
                          helpers, both as plain functions; static validation
-                         lives in the shared Rust sc-validate crate (specs.json
-                         is generated from *.spec.ts by yarn generate:specs);
+                         lives in the shared Rust sc-validate crate (authored
+                         per-element specs/<tag>.spec.json files — the spec.ts
+                         registry is transitional, pinned equal by
+                         spec-parity.test.ts until the frontend reads the
+                         crate's map);
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
@@ -426,9 +429,12 @@ further `sc-*` element:
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
 3. **Validation is spec-only**: the per-element spec drives BOTH the shared
-   Rust `sc-validate` gate and `getProp` coercion. `yarn generate:specs`
-   regenerates `src-tauri/crates/sc-validate/specs.json` from the `*.spec.ts`
-   files, and `yarn generate:wasm` rebuilds the committed frontend package.
+   Rust `sc-validate` gate and `getProp` coercion. The AUTHORED source is
+   `src-tauri/crates/sc-validate/specs/<tag>.spec.json` (one file per element,
+   registered in spec.rs's `SPEC_SOURCES`; `$comment` fields carry the docs);
+   `yarn generate:wasm` rebuilds the committed frontend package. The colocated
+   `*.spec.ts` registry is TRANSITIONAL (frontend getProp still reads it),
+   pinned byte-equal to the crate files by `spec-parity.test.ts`.
    The Rust gate enforces required/numeric/enum plus numeric range facets,
    numeric-STRICT vectors, name syntax, content-model membership, and the
    runtime-prop rules (static-XOR-`bind:` mutual exclusion,

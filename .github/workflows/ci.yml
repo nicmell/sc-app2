@@ -88,7 +88,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-      - run: yarn generate:specs
       - run: yarn generate:wasm
-      - name: Committed artifacts must match the generators
-        run: git diff --exit-code -- packages/validate/pkg src-tauri/crates/sc-validate/specs.json
+      - name: Committed artifact must match the generator
+        run: git diff --exit-code -- packages/validate/pkg

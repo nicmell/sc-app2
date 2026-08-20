@@ -20,6 +20,8 @@ const EXPECT_UPLOAD_FAIL = new Set([
   "bad-entry-schema",
   "bad-asset-type",
   "bad-asset-mismatch",
+  "bad-name-syntax", // a dotted name forging another scope's store key (spec gate)
+  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive (spec gate)
 ]);
 const EXPECT_RUNTIME_FAIL = new Set([
   "bad-bindings", // duplicate name in scope (first of its several errors)
@@ -34,8 +36,6 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
   "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope
-  "bad-name-syntax", // a dotted name forging another scope's store key
-  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive
   "bad-param-bind", // runtime prop on a synthdef param position
 ]);
 

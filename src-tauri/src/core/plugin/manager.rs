@@ -176,6 +176,22 @@ fn validate_entry_xhtml(entry_content: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Validate the entry against the generated element spec (the sc-validate
+/// crate) — the attribute + content-model gate fastxml 0.8.0 does not enforce
+/// (its attribute validation is a stub). Multi-error: every violation is
+/// reported, one per line.
+fn validate_entry_spec(entry_content: &str) -> Result<(), String> {
+    let violations = sc_validate::validate_entry(entry_content)
+        .map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
+    if !violations.is_empty() {
+        return Err(format!(
+            "entry file does not conform to the sc-plugin spec:\n{}",
+            violations.join("\n")
+        ));
+    }
+    Ok(())
+}
+
 fn validate_asset_image(data: &[u8], declared_type: &str) -> Result<(), String> {
     let format =
         image::guess_format(data).map_err(|e| format!("failed to detect image format: {e}"))?;
@@ -221,6 +237,7 @@ pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
         content
     };
     validate_entry_xhtml(&entry_content)?;
+    validate_entry_spec(&entry_content)?;
 
     for asset in &info.assets {
         let mut asset_file = archive
@@ -387,6 +404,25 @@ mod tests {
         assert!(is_safe_path("assets/logo.png"));
         assert!(!is_safe_path("../secret"));
         assert!(!is_safe_path("/etc/passwd"));
+    }
+
+    #[test]
+    fn entry_spec_gate_reports_every_violation_one_per_line() {
+        let ok = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope/></sc-plugin>"#;
+        assert!(validate_entry_spec(ok).is_ok());
+        // Two independent violations — both reported, newline-joined.
+        let bad = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-var name="a.b" value="1"/><div foo="x"/></sc-plugin>"#;
+        assert_eq!(
+            validate_entry_spec(bad).err().unwrap(),
+            "entry file does not conform to the sc-plugin spec:\n\
+             <sc-var>: \"name\" attribute must be a plain identifier — letters, digits, \"_\", \"-\" (got \"a.b\")\n\
+             <div>: unknown attribute \"foo\""
+        );
+        let malformed = "<sc-plugin><div></sc-plugin>";
+        assert!(validate_entry_spec(malformed)
+            .err()
+            .unwrap()
+            .starts_with("entry file is not valid XHTML:"));
     }
 
     #[test]

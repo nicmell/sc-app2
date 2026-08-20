@@ -64,6 +64,9 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 # (text-only <span>… fails "requires one of …, found: none"); 0.8.0 is the
 # version the old sc-app validated the example plugins with.
 fastxml = "=0.8.0"
+# The shared static spec gate (attributes + content-model membership) fastxml
+# 0.8.0 does not enforce; also compiled to wasm for the frontend parse.
+sc-validate = { path = "crates/sc-validate" }
 image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
 
 # Native NSWindow access (already in the tree via tauri): cli/gui.rs clears

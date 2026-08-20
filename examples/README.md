@@ -67,15 +67,17 @@ fixed-value payload uses `set`, with runtime-capable `bind:set`.
 
 ## `invalid/` — intentional failures (the negative fixtures)
 
-Upload-time fixtures (rejected by the backend zip/XSD validation):
+Upload-time fixtures (rejected by the backend zip/XSD/spec validation):
 
-| plugin               | fails with                                 |
-| -------------------- | ------------------------------------------ |
-| `bad-metadata`       | `"author" must be a non-empty string`      |
-| `bad-entry-xhtml`    | ill-formed XML                             |
-| `bad-entry-schema`   | entry doesn't conform to the XSD           |
-| `bad-asset-type`     | `svg` is not a supported asset type        |
-| `bad-asset-mismatch` | asset content (jpeg) ≠ declared type (png) |
+| plugin                 | fails with                                                          |
+| ---------------------- | ------------------------------------------------------------------- |
+| `bad-metadata`         | `"author" must be a non-empty string`                               |
+| `bad-entry-xhtml`      | ill-formed XML                                                      |
+| `bad-entry-schema`     | entry doesn't conform to the XSD                                    |
+| `bad-asset-type`       | `svg` is not a supported asset type                                 |
+| `bad-asset-mismatch`   | asset content (jpeg) ≠ declared type (png)                          |
+| `bad-name-syntax`      | spec gate (sc-validate): a dotted `name` fails the identifier grammar |
+| `bad-runtime-conflict` | spec gate (sc-validate): static `value` + `bind:value` are exclusive  |
 
 Runtime fixtures (upload fine; the parse engine must reject them — each one
 targets a single error path in the sc-elements runtime
@@ -95,9 +97,12 @@ targets a single error path in the sc-elements runtime
 | `bad-ugen-input`         | `sc-synthdef collectUgenInputs`           | a ugen `sc-control` with neither `bind` nor `value`                                                                                                                                                                                                                                                          |
 | `bad-ugen-ref`           | `sc-ugen resolveRuntime`                  | a ugen input bound to `lfo`, which names no sibling ugen / param                                                                                                                                                                                                                                             |
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
-| `bad-name-syntax`        | `name` spec type / engine `validate`       | a dotted `name` (`s1.freq`) — dots are the path separator, so the name would FORGE synth `s1`'s `freq` store key (silent cross-wiring no per-scope check can see); names must be one bind-path segment (the XSD carries the pattern facet, and the runtime is the authoritative gate) |
-| `bad-runtime-conflict`   | engine `validate`                         | static `value` and dynamic `bind:value` on the same `sc-var` are mutually exclusive                                                                                                                                                                                                                          |
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
+
+(`bad-name-syntax` and `bad-runtime-conflict` moved to the upload table: the
+static spec gate — the sc-validate crate at upload, the same rules the engine
+enforces at parse — rejects them before any runtime processing. The unit suite
+still pins their exact messages.)
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

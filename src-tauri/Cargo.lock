@@ -3258,6 +3258,7 @@ dependencies = [
  "objc2-app-kit",
  "regex",
  "rosc",
+ "sc-validate",
  "serde",
  "serde_json",
  "tauri",

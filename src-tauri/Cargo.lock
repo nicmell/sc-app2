@@ -3280,6 +3280,7 @@ dependencies = [
  "roxmltree",
  "serde",
  "serde_json",
+ "wasm-bindgen",
 ]
 
 [[package]]

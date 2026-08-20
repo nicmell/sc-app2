@@ -8,7 +8,8 @@ import eslintConfigPrettier from "eslint-config-prettier";
 export default tseslint.config(
   // `yarn lint` targets `src packages` (see package.json), so only build output
   // under those needs ignoring — node_modules is ignored by default.
-  { ignores: ["**/dist"] },
+  // packages/validate/pkg is the committed wasm-pack output (generated glue).
+  { ignores: ["**/dist", "packages/validate/pkg"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

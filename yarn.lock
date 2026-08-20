@@ -1704,6 +1704,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@sc-app/validate@workspace:packages/validate":
+  version: 0.0.0-use.local
+  resolution: "@sc-app/validate@workspace:packages/validate"
+  dependencies:
+    typescript: "npm:~5.6.2"
+  languageName: unknown
+  linkType: soft
+
 "@standard-schema/spec@npm:^1.1.0":
   version: 1.1.0
   resolution: "@standard-schema/spec@npm:1.1.0"

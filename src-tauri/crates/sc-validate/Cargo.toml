@@ -6,7 +6,18 @@ edition = "2021"
 [lib]
 crate-type = ["rlib", "cdylib"]
 
+[features]
+# The browser build: `yarn generate:wasm` (wasm-pack --target web) compiles the
+# same rules to packages/validate/pkg for the frontend parse gate.
+wasm = ["dep:wasm-bindgen"]
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 roxmltree = "0.21"
+wasm-bindgen = { version = "0.2", optional = true }
+
+# The crate is tiny — skip wasm-opt so the committed artifact only depends on
+# the pinned rustc + wasm-bindgen, not on a binaryen version.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

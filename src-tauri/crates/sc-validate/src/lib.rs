@@ -6,6 +6,8 @@ pub mod node;
 pub mod roxml;
 pub mod rules;
 pub mod spec;
+#[cfg(feature = "wasm")]
+pub mod wasm;
 
 pub use rules::{validate_root, Violation};
 

@@ -13,6 +13,7 @@
     "build": "tsc && vite build",
     "generate:xsd": "tsx scripts/generate-xsd.ts",
     "generate:specs": "tsx scripts/generate-specs.ts",
+    "generate:wasm": "wasm-pack build src-tauri/crates/sc-validate --release --target web --out-name sc_validate --out-dir ../../../packages/validate/pkg -- --features wasm && rm -f packages/validate/pkg/package.json packages/validate/pkg/.gitignore packages/validate/pkg/README.md",
     "scdoc:env": "node scripts/scdoc/extract-env.mjs",
     "scdoc:ugens": "node scripts/scdoc/extract-ugens.mjs",
     "scdoc:diff": "tsx scripts/scdoc/diff-ugens.ts",

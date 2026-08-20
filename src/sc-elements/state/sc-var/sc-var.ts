@@ -2,7 +2,7 @@
 // seam/propagation live on the ScState/ScElement bases) but always LIVE
 // and never sent over OSC — a literal var is a store-backed key writes reach
 // through the base's plain store dispatch (and may hold a STRING: its `value`
-// is a scalar); a derived var (`bind:value`) computes its `_state` from its
+// is a non-strict vector); a derived var (`bind:value`) computes its `_state` from its
 // targets (no store key) and is read-only.
 //
 // A var must be declared ON A NODE (plugin/group/synth): its store key is its

@@ -25,7 +25,6 @@ import type { StateValue } from "@/types/runtime";
 import { ScState } from "@/sc-elements/internal/sc-state";
 
 export class ScControl extends ScState {
-
   /** /n_set (scalar) or /n_setn (array) on the owning node — only when it is
    *  live (the load-pass initial lands before the parent's /s_new and rides
    *  it via getControls / the array seed instead; the ack-window catch-up in

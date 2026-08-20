@@ -310,7 +310,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
-   `process()` lives on `ScElement` — it assigns the identity + shared
+   The free `process(ctx)` (internal/engine/) assigns the identity + shared
    runtime core (the parent collects the element into `_scChildren` as it
    completes), then runs the TWO conceptual
    steps: the engine's own pure `validate` (the static spec gate — no
@@ -319,14 +319,15 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    sc children where the element opens a level — `_scChildren` is a runtime
    value like the rest — plus bind/reference resolution), mutating the
    component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
-   the engine lives on the base, and the validation + bind-resolution
+   the engine is the free-function interpreter in `internal/engine/`, and
+   the validation + bind-resolution
    helpers are plain functions in `internal/engine/validation.ts` +
    `internal/engine/resolution.ts`, taking the
    element explicitly where the error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
-   fields once; concrete elements are mostly `validate()` + a small
-   `resolveRuntime()` override composed via `super`.
+   fields once; concrete elements are mostly a small `resolveRuntime()`
+   override composed via `super` (static rules live in the spec).
 4. **Runtime values are live element references, not string ids**:
    `_rootScNode`/`_parentScNode`/`_scChildren` (named so because DOM
    `children` is taken), `targetScState` on inputs, and each runtime prop's
@@ -362,7 +363,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
    threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
    parentNode, path}` — one shared object per sibling scope, the driver
-   setting `index`; it runs `validate()` (spec gate + semantic rules), then
+   setting `index`; it runs the pure `validate` (the spec gate), then
    `resolveRuntime(ctx)` (bind/reference resolution; ScParent recurses via
    the engine's `processChildren` there, collecting each child into
    `_scChildren` as it completes). A parent collects ALL its children into

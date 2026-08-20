@@ -63,7 +63,6 @@ export function slotIndexOf(path: string): number | null {
   return path.includes(".") && /^\d+$/.test(tail) ? Number(tail) : null;
 }
 
-
 export abstract class ScElement extends LitElement {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
@@ -327,5 +326,4 @@ export abstract class ScElement extends LitElement {
     super.disconnectedCallback();
     this.#dropRuntimeSubscriptions();
   }
-
 }

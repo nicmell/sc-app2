@@ -1,7 +1,7 @@
 // Base for the node-owning elements (sc-plugin / sc-group / sc-synth): the
 // shared `run` attribute plus the node runtime values — `nodeId` (the scsynth
 // node, assigned when it goes live) and `loaded`. Nodes open a level:
-// resolveRuntime recurses via ScParent's processChildren; sc-synth adds its
+// resolveRuntime recurses via the engine's processChildren; sc-synth adds its
 // synthdef reference on top.
 
 import { isNodeRuntime } from "@/lib/utils/guards";

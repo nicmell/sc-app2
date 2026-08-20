@@ -1105,9 +1105,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "a");
     el.setAttribute("value", "1");
     el.setAttribute("bind:value", "b");
-    expect(() => validate(el)).toThrow(
-      '<sc-var>: "value" and "bind:value" are mutually exclusive',
-    );
+    expect(() => validate(el)).toThrow('<sc-var>: "value" and "bind:value" are mutually exclusive');
   });
 
   it("a required runtime attr is satisfied by either form — but not by neither", () => {
@@ -1308,9 +1306,7 @@ describe("runtime props (bind:)", () => {
     el.setAttribute("name", "s1");
     el.setAttribute("synthdef", "sine");
     el.setAttribute("bind:synthdef", "sine");
-    expect(() => validate(el)).toThrow(
-      '<sc-synth>: unknown runtime attribute "bind:synthdef"',
-    );
+    expect(() => validate(el)).toThrow('<sc-synth>: unknown runtime attribute "bind:synthdef"');
   });
 
   it("requires sc-synth.synthdef", () => {

@@ -35,6 +35,19 @@ describe("content-hash element ids", () => {
     expect(first).toEqual(second);
   });
 
+  it("pins the id scheme itself — exact ids for a known fixture", () => {
+    // Cross-VERSION stability gate: these literals are the contract. An
+    // engine change that shifts ANY minted id (hash input, cursor position,
+    // chaining) must fail here and consciously update the pins.
+    const ids = idsOf(`
+      <sc-group name="voice">
+        <sc-display value="440"/>
+      </sc-group>
+      <sc-display value="440"/>
+    `);
+    expect(ids).toEqual(["1bc7d76dafaf04", "15a4cac0dc1f24", "1bc3a18fcf53d1", "126a1257cba237"]);
+  });
+
   it("gives identical twin siblings different ids", () => {
     const { host } = parsePlugin(wrapXml(`<sc-display value="a"/><sc-display value="a"/>`));
     const [first, second] = Array.from(host.querySelectorAll("sc-display"));

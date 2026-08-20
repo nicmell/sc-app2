@@ -41,8 +41,8 @@ Folders mirror the old sc-app's class/guard taxonomy:
 internal/   engine/ (the parse ENGINE — index.ts: free process/
             processChildren over a cursor ctx — identity, core, error
             shape; plus its validation.ts, resolution.ts, contentHash.ts);
-            ScElement (the common runtime fields, the validate/resolveRuntime
-            hooks, AND the runtime-prop
+            ScElement (the common runtime fields, the resolveRuntime
+            hook, AND the runtime-prop
             machinery: `bind:attr` → runtimeProps (targets/expression), the live
             evaluated values behind `getProp`, `updateRuntimeValue` +
             "statechange" on the `value` slot — the value seam everything

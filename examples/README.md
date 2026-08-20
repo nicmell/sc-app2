@@ -79,7 +79,7 @@ Upload-time fixtures (rejected by the backend zip/XSD validation):
 
 Runtime fixtures (upload fine; the parse engine must reject them — each one
 targets a single error path in the sc-elements runtime
-(`internal/validation.ts` + the `resolveRuntime` overrides)):
+(`internal/engine/validation.ts` + the `resolveRuntime` overrides)):
 
 | plugin                   | error path                                | fails with                                                                                                                                                                                                                                                                                                   |
 | ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -97,7 +97,7 @@ targets a single error path in the sc-elements runtime
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
 | `bad-name-syntax`        | `name` spec type / engine `validate`       | a dotted `name` (`s1.freq`) — dots are the path separator, so the name would FORGE synth `s1`'s `freq` store key (silent cross-wiring no per-scope check can see); names must be one bind-path segment (the XSD carries the pattern facet, and the runtime is the authoritative gate) |
 | `bad-runtime-conflict`   | engine `validate`                         | static `value` and dynamic `bind:value` on the same `sc-var` are mutually exclusive                                                                                                                                                                                                                          |
-| `bad-param-bind`         | `sc-control validate`                     | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
+| `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

@@ -65,8 +65,8 @@ export interface RuntimeProp {
   expression?: Expr;
 }
 
-/** The per-LEVEL parse state threaded through the elements' `process(ctx)`
- *  recursion (sc-elements/internal ScElement) — all siblings share one
+/** The per-LEVEL parse state threaded through the engine's `process(ctx)`
+ *  recursion (sc-elements/internal/engine) — all siblings share one
  *  context. `nodes` is the per-parse set of processed elements (the
  *  idempotence/forward-ref guard), `scope` the cumulative bind-resolution
  *  scope. Store-key

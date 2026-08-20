@@ -64,28 +64,13 @@ the price of one registry entry. Highest-value additions:
   element with N props on one source recomputes N times per change. Fine at
   this scale; batch per (element, target) when it isn't.
 
-## Upload-gate strictness (carried from the XSD work)
-
-fastxml 0.8.0 validates NO attributes (`validate_attributes` is a stub) —
-the runtime `validateProps` is the authoritative gate, so wrong plugins
-upload 201 and die at parse (documented in CLAUDE.md). Two escalation
-paths, in preference order:
-
-1. **Rust-side spec table**: generate an attribute-rules table from the
-   same `*.spec.ts` files and enforce it in `manager.rs` — required attrs,
-   types, enums, static-XOR-`bind:` — no validator swap.
-2. **XSD 1.1 swap** (`xs:assert` expresses mutual exclusion,
-   required-one-of, wildcard constraints, ugen/param position rules) —
-   blocked on a viable Rust XSD 1.1 validator; a bet, not a plan.
-
 ## Accepted quirks (documented so nobody re-discovers them)
 
 - Evaluated `bind:` values get type/enum warnings but NO range checks
   (`bind:gain` going non-positive degrades silently).
 - happy-dom's XML parser drops the later of two attributes whose LOCAL
-  names collide (`value` + `bind:value`) — the mutual-exclusion conflict is
-  pinned by direct `validateProps` tests + the CDP-harness-only
-  `bad-runtime-conflict` fixture. Worth reporting upstream.
+  names collide (`value` + `bind:value`) — irrelevant to the gate since the
+  Rust validator (roxmltree) sees both, but worth reporting upstream.
 - `getProp` is untyped by design (`as number` casts at call sites); typed
   helpers if the noise grows.
 - Static-value widgets show their Lit default until their sequential load

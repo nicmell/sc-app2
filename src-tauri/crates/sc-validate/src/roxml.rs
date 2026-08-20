@@ -22,6 +22,10 @@ impl<'a, 'input: 'a> XmlNode for RoXmlNode<'a, 'input> {
         self.node.tag_name().name()
     }
 
+    fn namespace(&self) -> Option<&str> {
+        self.node.tag_name().namespace()
+    }
+
     fn attributes(&self) -> Vec<(String, String)> {
         self.node
             .attributes()

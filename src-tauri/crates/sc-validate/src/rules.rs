@@ -3,7 +3,7 @@
 use crate::lexical;
 use crate::messages;
 use crate::node::XmlNode;
-use crate::spec::{element, specs, AttrDef, AttrType, ContentDef, ElementDef};
+use crate::spec::{element, specs, AttrDef, AttrType, ContentDef, ElementDef, XHTML_NS};
 
 /// One static validation failure attached to the element that produced it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,6 +36,12 @@ pub fn validate_root<N: XmlNode>(root: &N) -> Vec<Violation> {
 }
 
 fn validate_element<N: XmlNode>(node: &N, violations: &mut Vec<Violation>) {
+    // Namespace first: every element (known or not) must live in XHTML —
+    // the old schema's targetNamespace, now checked directly.
+    if node.namespace() != Some(XHTML_NS) {
+        push_violation(node.tag(), messages::xhtml_namespace(), violations);
+    }
+
     let authored_attributes = node.attributes();
     let definition = element(node.tag());
 
@@ -46,7 +52,7 @@ fn validate_element<N: XmlNode>(node: &N, violations: &mut Vec<Violation>) {
 
     let children = node.children();
     if let Some(definition) = definition {
-        validate_content(node, definition.content.as_ref(), &children, violations);
+        validate_content(node, &definition.content, &children, violations);
     }
 
     // Unknown elements deliberately still recurse: their parent membership
@@ -214,34 +220,30 @@ fn validate_attribute_hygiene(
 
 fn validate_content<N: XmlNode>(
     node: &N,
-    content: Option<&ContentDef>,
+    content: &ContentDef,
     children: &[N],
     violations: &mut Vec<Violation>,
 ) {
-    match content {
-        None => {
-            if node.has_sc_descendant() {
-                push_violation(
-                    node.tag(),
-                    messages::must_not_contain_sc_elements(),
-                    violations,
-                );
-            }
+    // Membership over the flattened children — an EMPTY list is the strict
+    // empty model (content-absent specs, hr/br): every child is unexpected.
+    for child in children {
+        if !content.children.iter().any(|tag| tag == child.tag()) {
+            push_violation(
+                node.tag(),
+                messages::unexpected_child(child.tag()),
+                violations,
+            );
         }
-        Some(content) => {
-            for child in children {
-                if !content.children.iter().any(|tag| tag == child.tag()) {
-                    push_violation(
-                        node.tag(),
-                        messages::unexpected_child(child.tag()),
-                        violations,
-                    );
-                }
-            }
-            if !content.mixed && node.has_text() {
-                push_violation(node.tag(), messages::unexpected_text(), violations);
-            }
-        }
+    }
+    if !content.mixed && node.has_text() {
+        push_violation(node.tag(), messages::unexpected_text(), violations);
+    }
+    if content.require_child && children.is_empty() {
+        push_violation(
+            node.tag(),
+            messages::missing_required_child(&content.children[0]),
+            violations,
+        );
     }
 }
 
@@ -388,13 +390,53 @@ mod tests {
         );
         assert_eq!(
             messages(r#"<sc-control name="x"><sc-unknown/></sc-control>"#),
-            vec![r#"<sc-control>: must not contain sc-* elements"#]
+            vec![r#"<sc-control>: unexpected child <sc-unknown>"#]
         );
+        // Strict empty bites non-sc content in leaves too (the old XSD's
+        // empty complex types): children AND text.
+        assert_eq!(
+            messages(r#"<sc-slider value="1"><div/></sc-slider>"#),
+            vec![r#"<sc-slider>: unexpected child <div>"#]
+        );
+        assert_eq!(
+            messages(r#"<sc-display value="1">boo</sc-display>"#),
+            vec![r#"<sc-display>: unexpected text content"#]
+        );
+        // Lists keep the XSD sequence semantics: at least one li.
+        assert_eq!(
+            messages(r#"<ul></ul>"#),
+            vec![r#"<ul>: must contain at least one <li>"#]
+        );
+        assert!(messages(r#"<ul><li/></ul>"#).is_empty());
 
         let root = r#"<div xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind"/>"#;
         assert_eq!(
             crate::validate_entry(root).expect("root XML should parse"),
             vec![r#"<div>: plugin entry root must be <sc-plugin> (got <div>)"#]
+        );
+    }
+
+    #[test]
+    fn every_element_must_be_in_the_xhtml_namespace() {
+        // The old schema's targetNamespace, enforced directly: a root without
+        // xmlns flags every element, the walk continues (multi-error).
+        let xml = r#"<sc-plugin><div/></sc-plugin>"#;
+        assert_eq!(
+            crate::validate_entry(xml).expect("parses"),
+            vec![
+                r#"<sc-plugin>: must be in the XHTML namespace (xmlns="http://www.w3.org/1999/xhtml")"#,
+                r#"<div>: must be in the XHTML namespace (xmlns="http://www.w3.org/1999/xhtml")"#,
+            ]
+        );
+        // A foreign-namespace element reports the namespace FIRST, then its
+        // other violations (intra-element order: namespace, attrs, hygiene,
+        // content).
+        assert_eq!(
+            messages(r#"<x:div xmlns:x="urn:x" foo="1"/>"#),
+            vec![
+                r#"<div>: must be in the XHTML namespace (xmlns="http://www.w3.org/1999/xhtml")"#,
+                r#"<div>: unknown attribute "foo""#,
+            ]
         );
     }
 

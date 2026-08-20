@@ -1210,7 +1210,7 @@ describe("runtime props (bind:)", () => {
     expect(() => parsePlugin(XML)).toThrow('<sc-slider>: unknown runtime attribute "bind:foo"');
   });
 
-  it("rejects unknown static attributes but accepts the XSD common attributes", () => {
+  it("rejects unknown static attributes but accepts the common attributes", () => {
     expect(() =>
       parsePlugin(
         wrapXml(
@@ -1223,7 +1223,7 @@ describe("runtime props (bind:)", () => {
     );
   });
 
-  it("enforces the XSD lexical forms for decimal, integer, and boolean attributes", () => {
+  it("enforces the lexical forms for decimal, integer, and boolean attributes", () => {
     for (const value of ["", " ", "1e2"]) {
       expect(() => parsePlugin(wrapXml(`<sc-slider value="${value}"/>`))).toThrow(
         '<sc-slider>: "value" attribute must be a decimal number',

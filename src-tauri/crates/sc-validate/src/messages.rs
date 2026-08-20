@@ -75,9 +75,15 @@ pub fn unknown_runtime_attribute(name: &str) -> String {
     format!("unknown runtime attribute \"{name}\"")
 }
 
-/// Message for a relaxed element containing an `sc-*` descendant.
-pub fn must_not_contain_sc_elements() -> String {
-    "must not contain sc-* elements".to_string()
+/// Message for an element outside the XHTML namespace.
+pub fn xhtml_namespace() -> String {
+    "must be in the XHTML namespace (xmlns=\"http://www.w3.org/1999/xhtml\")".to_string()
+}
+
+/// Message for a content model requiring at least one child (listType's
+/// sequence semantics — `<ul>`/`<ol>` need an `<li>`).
+pub fn missing_required_child(tag: &str) -> String {
+    format!("must contain at least one <{tag}>")
 }
 
 /// Message for a direct child excluded by a content model.

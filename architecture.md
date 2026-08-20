@@ -154,11 +154,12 @@ on distinct buffers.
 
 `manager.rs` is the single validation + storage path used by both the HTTP
 routes and the CLI: zip → `metadata.json` (name/version/entry/assets rules)
-→ entry XHTML validated against the embedded XSD (`fastxml`, pinned =0.8.0)
-→ asset image sniffing (declared type must match content). Stored as
-`plugins/<name>-<version>.<id>.zip` + a `plugins.json` registry. **The XSD is
-the only schema gate** — the frontend re-validates semantics (binds, names)
-at parse time, but tag/attribute shape is enforced here at install.
+→ entry validated by the shared `sc-validate` crate (well-formedness, XHTML
+namespace, attributes, content-model membership — the same rules the
+frontend runs as wasm at `parseEntry`) → asset image sniffing (declared type
+must match content). Stored as `plugins/<name>-<version>.<id>.zip` + a
+`plugins.json` registry. The frontend re-validates semantics (binds, names)
+at parse time.
 
 ### `config/`, `saved_sessions.rs`, `logger.rs`
 
@@ -314,7 +315,7 @@ scsynth dies → replies stop → backend supervisor enters reconnect loop;
 
 ```
 zip → POST /api/plugins (or `sc-app2 plugin add`) → manager validation
-  (metadata rules → XSD on entry XHTML → image sniffing) → zip stored +
+  (metadata rules → sc-validate spec gate on the entry → image sniffing) → zip stored +
   registry → frontend refreshPlugins → plugins slice → picker
   → box assigned → PluginHost fetches entry → `parseEntry` parses/upgrades the
     authored `<sc-plugin>` root while disconnected

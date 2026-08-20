@@ -13,7 +13,7 @@
 // machinery lives in internal/engine/resolution.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
-// also generates the XSD); only the handful of genuinely-reactive fields (a
+// drives the shared validator); only the handful of genuinely-reactive fields (a
 // widget's `value`/`_checked`/…) stay as Lit properties. Runtime values are
 // plain fields.
 //
@@ -25,8 +25,8 @@
 // on the entry root) makes the markup namespace-well-formed; the runtime
 // matches by QUALIFIED NAME (`getAttribute("bind:min")` — the one attribute
 // API portable across happy-dom and Chrome; getAttributeNS is NOT). The
-// canonical `bind` prefix is enforced by the shared static validator (the XSD
-// admits by namespace, the runtime matches by name).
+// canonical `bind` prefix is enforced by the shared static validator; the
+// runtime matches by qualified name.
 // `process()` resolves each into live targets (+ parsed expression);
 // `load()` computes the initial value and recomputes on every target's
 // statechange, feeding `getProp` (and, for the `value` prop, the state

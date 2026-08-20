@@ -1,5 +1,5 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
-// for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
+// for each example dir — zip → POST /api/plugins (the upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
 // pass it through the Vite-served parseEntry (the frontend wasm gate), and run
 // its own processRoot() — the runtime validation.

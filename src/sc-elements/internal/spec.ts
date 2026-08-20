@@ -9,13 +9,11 @@ export { getSpec, type AttrSpec, type ElementSpec } from "@sc-app/validate";
  *  dynamic sibling of `min`. Entries declare `xmlns:bind="urn:sc-app:bind"`
  *  once on the root (required for Chrome's namespace-strict text/xml parse);
  *  the RUNTIME matches by QUALIFIED NAME (`bind:` prefix, canonical — the
- *  portable API across happy-dom and the browser), while the XSD admits the
- *  whole namespace via xs:anyAttribute. */
+ *  portable API across happy-dom and the browser); WHICH bind:* names are
+ *  legal is the shared static validator's job. */
 export const bindAttr = (name: string): string => `bind:${name}`;
 
-/** The attributes every element accepts without declaring them: the XSD's
- *  hand-authored `commonAttrs` attributeGroup (the crate's preamble.xml —
- *  pinned by its html-preamble test), the shared static validator's
- *  unknown-attribute allowance, and the content-hash skip-list. ONE set,
- *  three gates. */
+/** The attributes every element accepts without declaring them: the shared
+ *  static validator's unknown-attribute allowance (the crate's COMMON_ATTRS)
+ *  and the content-hash skip-list. ONE set, two gates. */
 export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);

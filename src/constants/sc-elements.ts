@@ -1,8 +1,8 @@
 // The custom-element tags plugin HTML may use (plus sc-plugin, the authored
 // entry root mounted directly by PluginHost).
-// Keep in sync with the backend XSD (src-tauri/src/plugin/xsd/
-// sc-plugin-schema.xsd); sc-elements/index.ts registers one constructor per
-// entry, and the parse engine (sc-elements/internal ScElement) accepts exactly these types.
+// Keep in sync with the sc-validate crate's spec registry (specs/<tag>.spec.json
+// + SPEC_SOURCES — the wasm-specs vitest pins the bijection); sc-elements/index.ts
+// registers one constructor per entry.
 export const ELEMENTS = {
   SC_PLUGIN: "sc-plugin",
   SC_GROUP: "sc-group",

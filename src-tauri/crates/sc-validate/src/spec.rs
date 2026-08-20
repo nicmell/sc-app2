@@ -16,8 +16,8 @@ use serde::{Deserialize, Deserializer};
 use serde_json::{Number, Value};
 
 /// The sc element sources, in the frontend ELEMENTS order (canonical for the
-/// generated XSD and the per-category groups). Adding an element = add the
-/// file + one line here (the same registration gesture as ELEMENTS/REGISTRY).
+/// per-category content groups). Adding an element = add the file + one line
+/// here (the same registration gesture as ELEMENTS/REGISTRY).
 static SPEC_SOURCES: &[&str] = &[
     include_str!("../specs/sc-plugin.spec.json"),
     include_str!("../specs/sc-group.spec.json"),
@@ -52,13 +52,13 @@ static SPEC_SOURCES: &[&str] = &[
 /// `commonAttrs` attributeGroup).
 pub const COMMON_ATTRS: [&str; 4] = ["id", "class", "title", "style"];
 
-/// The runtime-prop attribute namespace declared by plugin entries.
-pub const BIND_NS: &str = "urn:sc-app:bind";
+/// The namespace every entry element must live in.
+pub const XHTML_NS: &str = "http://www.w3.org/1999/xhtml";
 
-/// The fixed HTML vocabulary from the hand-authored XSD preamble, in
-/// DECLARATION order. `kind` maps the XSD type: blockType → Block, inlineType
-/// → Inline, listType → List, no type (hr/br) → Empty. Pinned against
-/// preamble.xml by the html-preamble cargo test.
+/// The fixed HTML vocabulary (the old XSD preamble's declarations, now the
+/// source of truth), in declaration order. `kind`: Block/Inline are mixed
+/// containers, List is li-only (at least one), Empty is strictly empty
+/// (hr/br).
 pub const HTML_ELEMENTS: [(&str, HtmlKind); 17] = [
     ("div", HtmlKind::Block),
     ("p", HtmlKind::Inline),
@@ -79,14 +79,14 @@ pub const HTML_ELEMENTS: [(&str, HtmlKind); 17] = [
     ("br", HtmlKind::Empty),
 ];
 
-/// The preamble's `htmlElements` xs:group members, in GROUP order (li is
+/// The `htmlElements` group members, in group order (li is
 /// child-only — reached through listType, never the group).
 pub const HTML_ELEMENTS_GROUP: [&str; 16] = [
     "div", "p", "label", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "span", "strong", "em",
     "hr", "br",
 ];
 
-/// The preamble's `inlineContent` xs:group members, in GROUP order.
+/// The `inlineContent` group members, in group order.
 pub const INLINE_CONTENT: [&str; 7] = [
     "span",
     "strong",
@@ -123,10 +123,10 @@ pub enum HtmlKind {
     Empty,
 }
 
-/// An element's placement class. Categories in [`BLOCK_GROUPS`] become
-/// per-category XSD groups; `root`/`ugen`/`option` are reached only through
-/// explicit placement; `html` marks the fixed vocabulary (validated, never
-/// emitted into the generated XSD — the preamble declares it).
+/// An element's placement class. Categories in [`BLOCK_GROUPS`] become the
+/// per-category content-model groups `blockContent` composes;
+/// `root`/`ugen`/`option` are reached only through explicit placement;
+/// `html` marks the fixed vocabulary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Category {
@@ -142,7 +142,7 @@ pub enum Category {
     Html,
 }
 
-/// The assembled specification consumed by the validator and the XSD generator.
+/// The assembled specification the validator consumes.
 #[derive(Debug)]
 pub struct Specs {
     /// Attribute names permitted on every known element.
@@ -163,20 +163,24 @@ pub struct ElementDef {
     pub category: Category,
     /// Attributes in authored order (the validation cascade order).
     pub attrs: Vec<AttrDef>,
-    /// The FLATTENED content model, or `None` for the relaxed gate.
-    pub content: Option<ContentDef>,
+    /// The FLATTENED content model (strictly empty when the spec authored
+    /// none).
+    pub content: ContentDef,
 }
 
-/// The direct-child and text policy for an element.
+/// The direct-child and text policy for an element. Every element HAS one:
+/// an authored spec without `content` is STRICTLY EMPTY (no children, no
+/// non-whitespace text — the old XSD's empty complex types).
 #[derive(Debug)]
 pub struct ContentDef {
     /// Whether non-whitespace direct text is allowed.
     pub mixed: bool,
-    /// The AUTHORED choice (tags and/or group refs), as the XSD emits it.
-    pub choice: Vec<String>,
     /// Allowed direct child element tags (groups resolved), possibly empty
     /// (strictly-empty content).
     pub children: Vec<String>,
+    /// Whether at least one child is required (listType's sequence — ul/ol
+    /// need an li).
+    pub require_child: bool,
 }
 
 /// One attribute definition.
@@ -343,12 +347,13 @@ fn attr_record<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<AttrDef
 
 // ── assembly ─────────────────────────────────────────────────────
 
-fn html_content(kind: HtmlKind) -> (Vec<String>, bool) {
+fn html_content(kind: HtmlKind) -> (Vec<String>, bool, bool) {
     match kind {
-        HtmlKind::Block => (vec![BLOCK_CONTENT.to_string()], true),
-        HtmlKind::Inline => (vec!["inlineContent".to_string()], true),
-        HtmlKind::List => (vec!["li".to_string()], false),
-        HtmlKind::Empty => (Vec::new(), false),
+        HtmlKind::Block => (vec![BLOCK_CONTENT.to_string()], true, false),
+        HtmlKind::Inline => (vec!["inlineContent".to_string()], true, false),
+        // listType's XSD sequence requires at least one li.
+        HtmlKind::List => (vec!["li".to_string()], false, true),
+        HtmlKind::Empty => (Vec::new(), false, false),
     }
 }
 
@@ -386,7 +391,7 @@ fn build() -> Specs {
         tag: String,
         category: Category,
         attrs: Vec<AttrDef>,
-        content: Option<(Vec<String>, bool)>,
+        content: (Vec<String>, bool, bool),
     }
     let mut raw: Vec<Raw> = HTML_ELEMENTS
         .iter()
@@ -394,7 +399,7 @@ fn build() -> Specs {
             tag: tag.to_string(),
             category: Category::Html,
             attrs: Vec::new(),
-            content: Some(html_content(kind)),
+            content: html_content(kind),
         })
         .collect();
     for source in SPEC_SOURCES {
@@ -416,9 +421,13 @@ fn build() -> Specs {
             tag: file.tag,
             category: file.category,
             attrs: file.attrs,
-            // Present content — even an empty choice — is a strict model;
-            // ABSENT content is the relaxed no-sc-descendants gate.
-            content: file.content.map(|c| (c.choice, c.mixed)),
+            // ABSENT content means STRICTLY EMPTY (the XSD's empty complex
+            // types): no element children, no non-whitespace text.
+            content: file.content.map(|c| (c.choice, c.mixed, false)).unwrap_or((
+                Vec::new(),
+                false,
+                false,
+            )),
         });
     }
 
@@ -451,34 +460,32 @@ fn build() -> Specs {
     let elements = raw
         .into_iter()
         .map(|r| {
-            let content = r.content.map(|(choice, mixed)| {
-                let mut children: Vec<String> = Vec::new();
-                for reference in &choice {
-                    match groups.get(reference) {
-                        Some(members) => children.extend(members.iter().cloned()),
-                        None => children.push(reference.clone()),
-                    }
+            let (choice, mixed, require_child) = r.content;
+            let mut children: Vec<String> = Vec::new();
+            for reference in &choice {
+                match groups.get(reference) {
+                    Some(members) => children.extend(members.iter().cloned()),
+                    None => children.push(reference.clone()),
                 }
-                let mut seen = std::collections::BTreeSet::new();
-                for child in &children {
-                    if !seen.insert(child.clone()) {
-                        panic!(
-                            "sc-validate: duplicate content member \"{child}\" in <{}>",
-                            r.tag
-                        );
-                    }
+            }
+            let mut seen = std::collections::BTreeSet::new();
+            for child in &children {
+                if !seen.insert(child.clone()) {
+                    panic!(
+                        "sc-validate: duplicate content member \"{child}\" in <{}>",
+                        r.tag
+                    );
                 }
-                ContentDef {
-                    mixed,
-                    choice,
-                    children,
-                }
-            });
+            }
             ElementDef {
                 tag: r.tag,
                 category: r.category,
                 attrs: r.attrs,
-                content,
+                content: ContentDef {
+                    mixed,
+                    children,
+                    require_child,
+                },
             }
         })
         .collect::<Vec<_>>();
@@ -486,14 +493,12 @@ fn build() -> Specs {
     // Every non-group content member must name a known element.
     let tags: std::collections::BTreeSet<&str> = elements.iter().map(|e| e.tag.as_str()).collect();
     for element in &elements {
-        if let Some(content) = &element.content {
-            for child in &content.children {
-                if !tags.contains(child.as_str()) {
-                    panic!(
-                        "sc-validate: <{}> content references unknown element <{child}>",
-                        element.tag
-                    );
-                }
+        for child in &element.content.children {
+            if !tags.contains(child.as_str()) {
+                panic!(
+                    "sc-validate: <{}> content references unknown element <{child}>",
+                    element.tag
+                );
             }
         }
     }
@@ -539,13 +544,15 @@ mod tests {
         assert_eq!(specs.elements[0].tag, "div");
         assert_eq!(specs.elements[17].tag, "sc-plugin");
         assert_eq!(specs.elements.last().unwrap().tag, "sc-keyboard");
-        // Strict-vs-relaxed content: hr is strictly empty, sc-control relaxed.
-        let hr = element("hr").unwrap();
-        assert!(hr.content.as_ref().unwrap().children.is_empty());
-        assert!(element("sc-control").unwrap().content.is_none());
+        // Content-absent specs are STRICTLY EMPTY, like hr's explicit form.
+        assert!(element("hr").unwrap().content.children.is_empty());
+        let control = &element("sc-control").unwrap().content;
+        assert!(control.children.is_empty() && !control.mixed && !control.require_child);
+        // Lists require a child (the old listType sequence).
+        assert!(element("ul").unwrap().content.require_child);
         // Group flattening: sc-plugin's blockContent covers html + categories.
         let plugin = element("sc-plugin").unwrap();
-        let children = &plugin.content.as_ref().unwrap().children;
+        let children = &plugin.content.children;
         assert!(children.iter().any(|t| t == "div"));
         assert!(children.iter().any(|t| t == "sc-slider"));
         assert!(!children.iter().any(|t| t == "sc-option")); // child-only category

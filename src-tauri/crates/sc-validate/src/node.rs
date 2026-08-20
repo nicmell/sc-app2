@@ -5,6 +5,10 @@ pub trait XmlNode {
     /// Element tag as authored, using its local name.
     fn tag(&self) -> &str;
 
+    /// The element's namespace URI, if any (entries must place every element
+    /// in the XHTML namespace).
+    fn namespace(&self) -> Option<&str>;
+
     /// Attributes in document order as authored qualified names and values.
     fn attributes(&self) -> Vec<(String, String)>;
 
@@ -15,14 +19,4 @@ pub trait XmlNode {
 
     /// Whether a direct text or CDATA child contains non-whitespace content.
     fn has_text(&self) -> bool;
-
-    /// Whether any descendant at any depth has an `sc-`-prefixed local tag.
-    fn has_sc_descendant(&self) -> bool
-    where
-        Self: Sized,
-    {
-        self.children()
-            .into_iter()
-            .any(|child| child.tag().starts_with("sc-") || child.has_sc_descendant())
-    }
 }

@@ -263,8 +263,8 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
   config.rs       config.json (port, peers, connect_timeout, log_dir) +
                   app-data-dir paths
   logger.rs       tracing to stderr + optional rotated JSON file
-  plugin/         zip validation (metadata, XSD entry, assets) + plugins.json
-                  registry (manager.rs + xsd/)
+  plugin/         zip validation (metadata, spec-gated entry, assets) +
+                  plugins.json registry (manager.rs)
   scope/          scsynth SHM scope buffers → /scope/chunk frames over the
                   WS, one file per layer: mmap.rs (read-only mapping +
                   acquire reads), layout.rs (scope_buffer layout +
@@ -360,12 +360,12 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    `xmlns:bind="urn:sc-app:bind"` on the root; the runtime matches by
    QUALIFIED NAME — getAttribute("bind:min"), never getAttributeNS (the one
    portable API across happy-dom and Chrome; a bare `:value` sigil is
-   impossible — not namespace-well-formed XML, not an XSD NCName; a
-   DECLARED prefix is). Upload-gate honesty: fastxml 0.8.0 validates NO
-   attributes (`validate_attributes` is a stub) — the shared Rust
-   `sc-validate` gate closes that attribute gap at native upload time and also
-   enforces content-model membership; the same gate runs as wasm in the
-   frontend at `parseEntry`, with multi-error messages joined one per line.
+   impossible — not namespace-well-formed XML; a DECLARED prefix is).
+   The shared Rust `sc-validate` gate is the WHOLE static contract —
+   well-formedness, the XHTML namespace, attributes, content-model
+   membership (leaves are strictly empty; ul/ol need an li) — at native
+   upload time and as wasm in the frontend at `parseEntry`, with multi-error
+   messages joined one per line.
 6. **The parse context is a CURSOR and the engine recurses**: the free
    `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
    threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
@@ -401,7 +401,7 @@ referenced before it is declared` when a bind names an in-scope element
 8. **Two validation gates** keep all of this honest: the shared Rust
    `sc-validate` crate runs natively at upload and as wasm at frontend
    `parseEntry` (multi-error, one per line), while `yarn vitest run` and the
-   CDP harness pin the frontend runtime and full upload/XSD path in happy-dom
+   CDP harness pin the frontend runtime and the full upload path in happy-dom
    and a real browser — see "Validating example plugins" below.
 
 ## Migrating an sc-element (the recipe)
@@ -411,16 +411,14 @@ further `sc-*` element:
 
 1. **Tag**: add it to `ELEMENTS` (`src/constants/sc-elements.ts`) and the
    constructor `REGISTRY` (`src/sc-elements/index.ts`). The JSX augmentation
-   grows automatically; the backend XSD is GENERATED (next step) — never
-   hand-edited.
+   grows automatically.
 2. **Attributes live in the spec — the spec IS the attribute contract.**
    Author `src-tauri/crates/sc-validate/specs/<tag>.spec.json` (attrs typed
    `string|name|decimal|integer|boolean|scalar|vector|enum`, `required`,
    `runtime: false` to opt attrs out of `bind:` bindability; category;
    unflattened content model; `$comment` fields carry docs) and register it
-   in spec.rs's `SPEC_SOURCES` (ELEMENTS order). Run `yarn generate:xsd`
-   (the cargo xsd_drift test fails otherwise) and `yarn generate:wasm` (the
-   CI drift job pins the committed pkg; the wasm-specs vitest pins the
+   in spec.rs's `SPEC_SOURCES` (ELEMENTS order). Run `yarn generate:wasm`
+   (the CI drift job pins the committed pkg; the wasm-specs vitest pins the
    ELEMENTS ↔ spec-map bijection). Components read attributes on
    demand via `getProp(name)` (spec-coerced, untyped — cast at the call
    site; with the `bind:` form present it returns the LIVE evaluated
@@ -629,7 +627,7 @@ live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
 are syntax-validated as ONE bind-path segment (the spec `name` type — letters,
 digits, `*`, `-`; no dots): a dotted name would forge another scope's store
-key (`bad-name-syntax`; the XSD carries the same pattern facet, while the
+key (`bad-name-syntax`; the
 shared Rust gate enforces it natively at upload and as wasm at parseEntry).
 The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
@@ -646,10 +644,6 @@ subtraction) except buffers and presets/overrides. Examples: every old example
 without a buffer-family element lives in `examples/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
-
-**fastxml is pinned to =0.8.0** (src-tauri/Cargo.toml): 0.8.1+ rejects
-mixed-content models whose choices have minOccurs="0" (a text-only `<span>`
-fails), which the old app never hit because it locked 0.8.0.
 
 ## Validating example plugins (the two gates)
 
@@ -710,7 +704,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
 ## Migration plan (old `sc-app/` → here)
 
 The old app (see `sc-app/CLAUDE.md` for its full docs) is a declarative
-SuperCollider control surface: plugin zips of XSD-validated XHTML rooted at an
+SuperCollider control surface: plugin zips of spec-validated XHTML rooted at an
 authored `<sc-plugin>` and built from `sc-*` elements, parsed into a typed element tree, bound to live scsynth node
 graphs, with in-browser SynthDef compilation. The directory layout here was
 already reshaped to mirror it (`lib/*` infrastructure, `@/` alias). Migration

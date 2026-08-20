@@ -67,13 +67,13 @@ fixed-value payload uses `set`, with runtime-capable `bind:set`.
 
 ## `invalid/` — intentional failures (the negative fixtures)
 
-Upload-time fixtures (rejected by the backend zip/XSD/spec validation):
+Upload-time fixtures (rejected by the backend zip/spec validation):
 
 | plugin                 | fails with                                                          |
 | ---------------------- | ------------------------------------------------------------------- |
 | `bad-metadata`         | `"author" must be a non-empty string`                               |
 | `bad-entry-xhtml`      | ill-formed XML                                                      |
-| `bad-entry-schema`     | entry doesn't conform to the XSD                                    |
+| `bad-entry-schema`     | spec gate (sc-validate): `<script>` is not sc-plugin content        |
 | `bad-asset-type`       | `svg` is not a supported asset type                                 |
 | `bad-asset-mismatch`   | asset content (jpeg) ≠ declared type (png)                          |
 | `bad-name-syntax`      | spec gate (sc-validate): a dotted `name` fails the identifier grammar |

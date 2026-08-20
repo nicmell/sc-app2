@@ -8,9 +8,6 @@ pub mod rules;
 pub mod spec;
 #[cfg(feature = "wasm")]
 pub mod wasm;
-// The generator ships with the native build only — the browser just validates.
-#[cfg(not(feature = "wasm"))]
-pub mod xsdgen;
 
 pub use rules::{validate_root, Violation};
 
@@ -48,7 +45,13 @@ mod edge_case_tests {
     fn text_in_element_only_content_fails() {
         let xml = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind"><ul> text </ul></sc-plugin>"#;
         let result = validate_entry(xml).expect("should parse");
-        assert_eq!(result.len(), 1);
-        assert!(result[0].contains("unexpected text content"));
+        // Text in a non-mixed model, and the list's required li is missing.
+        assert_eq!(
+            result,
+            vec![
+                "<ul>: unexpected text content",
+                "<ul>: must contain at least one <li>",
+            ]
+        );
     }
 }

@@ -1,6 +1,26 @@
 /* @ts-self-types="./sc_validate.d.ts" */
 
 /**
+ * The sc elements' spec map as JSON: `tag → { attrs: { name → def } }`.
+ * Serialized by hand-rolled impls because attr ORDER is contractual (the
+ * frontend's runtime-prop resolution iterates it) and serde_json's default
+ * map would alphabetize. Only what the frontend consumes: attrs.
+ * @returns {string}
+ */
+export function element_specs() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.element_specs();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
  * Validate a plugin entry document. See [`crate::validate_entry`].
  * @param {string} xml
  * @returns {string[]}

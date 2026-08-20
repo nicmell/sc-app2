@@ -4,7 +4,7 @@
 // runtime-resolution overrides' canonical `<tag>:` errors.
 
 import { tryEvalCallLiteral } from "@/lib/expression";
-import type { AttrSpec } from "@/sc-elements/internal/xsd/types";
+import type { AttrSpec } from "@/sc-elements/internal/spec";
 
 /** Boolean coercion shared by the static and evaluated forms — HTML-flavored:
  *  everything is true except the explicit falsy spellings (`"false"`, `"0"`,

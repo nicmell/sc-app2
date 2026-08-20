@@ -2,6 +2,14 @@
 /* eslint-disable */
 
 /**
+ * The sc elements' spec map as JSON: `tag → { attrs: { name → def } }`.
+ * Serialized by hand-rolled impls because attr ORDER is contractual (the
+ * frontend's runtime-prop resolution iterates it) and serde_json's default
+ * map would alphabetize. Only what the frontend consumes: attrs.
+ */
+export function element_specs(): string;
+
+/**
  * Validate a plugin entry document. See [`crate::validate_entry`].
  */
 export function validate_entry(xml: string): string[];
@@ -10,13 +18,14 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly element_specs: () => [number, number];
     readonly validate_entry: (a: number, b: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
+    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;
     readonly __externref_drop_slice: (a: number, b: number) => void;
-    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_start: () => void;
 }
 

@@ -2,8 +2,10 @@
 
 The Lit web components plugin HTML is built from. They follow the recipe in the
 root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
-in each element's colocated `<tag>.spec.ts` (the spec IS the attribute
-contract — it also generates the backend XSD) and are read on demand via
+in the sc-validate crate's authored `specs/<tag>.spec.json` (the spec IS the
+attribute contract — it also drives the shared validator and generates the
+backend XSD; the frontend reads the map from the wasm module) and are read on
+demand via
 `getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
 properties). A spec-declared `default` is applied by `getProp` when neither
 the static attr nor a settled bind supplies a value; undeclared attrs remain
@@ -56,8 +58,8 @@ internal/   engine/ (the parse ENGINE — index.ts: free process/
             ScState (`_state` = the `value` runtime slot + the plugin root's
             instance-store backing for LITERAL state, reached via
             `_rootScNode`), ScInput (targetScState + commit — the writing
-            half of inputs); xsd/ (the spec types + the runtime SPECS registry +
-            the generator preamble)
+            half of inputs); spec.ts (bindAttr/COMMON_ATTRS + the
+            @sc-app/validate getSpec re-export — the wasm-served spec map)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)

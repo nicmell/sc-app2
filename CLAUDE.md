@@ -95,11 +95,12 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          static-coercion toolbox + failValidation and
                          engine/resolution.ts the name/scope/bind-resolution
                          helpers, both as plain functions; static validation
-                         lives in the shared Rust sc-validate crate (authored
-                         per-element specs/<tag>.spec.json files — the spec.ts
-                         registry is transitional, pinned equal by
-                         spec-parity.test.ts until the frontend reads the
-                         crate's map);
+                         AND the spec data live in the shared Rust sc-validate
+                         crate (authored per-element specs/<tag>.spec.json
+                         files) — the frontend reads the spec map out of the
+                         wasm module (@sc-app/validate getSpec, parsed at
+                         initValidator; internal/spec.ts re-exports it +
+                         bindAttr/COMMON_ATTRS);
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
@@ -412,14 +413,15 @@ further `sc-*` element:
    constructor `REGISTRY` (`src/sc-elements/index.ts`). The JSX augmentation
    grows automatically; the backend XSD is GENERATED (next step) — never
    hand-edited.
-2. **Attributes live in the colocated spec — the spec IS the attribute
-   contract.** Ship a `<tag>.spec.ts` exporting a pure-JSON `ElementSpec`
-   (`internal/xsd/types.ts`: attrs typed
-   `string|name|decimal|integer|boolean|scalar|enum`, `required`,
+2. **Attributes live in the spec — the spec IS the attribute contract.**
+   Author `src-tauri/crates/sc-validate/specs/<tag>.spec.json` (attrs typed
+   `string|name|decimal|integer|boolean|scalar|vector|enum`, `required`,
    `runtime: false` to opt attrs out of `bind:` bindability; category;
-   content model),
-   auto-globbed into the runtime `SPECS` registry. Run `yarn generate:xsd`
-   (the snapshot test fails otherwise). Components read attributes on
+   unflattened content model; `$comment` fields carry docs) and register it
+   in spec.rs's `SPEC_SOURCES` (ELEMENTS order). Run `yarn generate:xsd`
+   (the cargo xsd_drift test fails otherwise) and `yarn generate:wasm` (the
+   CI drift job pins the committed pkg; the wasm-specs vitest pins the
+   ELEMENTS ↔ spec-map bijection). Components read attributes on
    demand via `getProp(name)` (spec-coerced, untyped — cast at the call
    site; with the `bind:` form present it returns the LIVE evaluated
    value); a declared `default` is applied by `getProp` (with the same
@@ -429,12 +431,10 @@ further `sc-*` element:
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
 3. **Validation is spec-only**: the per-element spec drives BOTH the shared
-   Rust `sc-validate` gate and `getProp` coercion. The AUTHORED source is
-   `src-tauri/crates/sc-validate/specs/<tag>.spec.json` (one file per element,
-   registered in spec.rs's `SPEC_SOURCES`; `$comment` fields carry the docs);
-   `yarn generate:wasm` rebuilds the committed frontend package. The colocated
-   `*.spec.ts` registry is TRANSITIONAL (frontend getProp still reads it),
-   pinned byte-equal to the crate files by `spec-parity.test.ts`.
+   Rust `sc-validate` gate and `getProp` coercion — the frontend reads the
+   SAME data as the validator, exported by the wasm module
+   (`element_specs()` → `@sc-app/validate`'s `getSpec`, attr order
+   preserved).
    The Rust gate enforces required/numeric/enum plus numeric range facets,
    numeric-STRICT vectors, name syntax, content-model membership, and the
    runtime-prop rules (static-XOR-`bind:` mutual exclusion,

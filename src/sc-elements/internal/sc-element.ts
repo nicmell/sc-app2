@@ -50,8 +50,7 @@ import {
   coerceStatic,
 } from "@/sc-elements/internal/engine/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
-import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
+import { bindAttr, getSpec, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/spec";
 import type { RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
@@ -95,11 +94,11 @@ export abstract class ScElement extends LitElement {
     return super.createRenderRoot();
   }
 
-  /** This element's spec (its colocated `<tag>.spec.ts`) — the single source
-   *  for its declarative attribute contract. `getProp` reads it; the shared
-   *  Rust validator uses the generated spec data. */
+  /** This element's spec — the crate's authored `specs/<tag>.spec.json`, read
+   *  out of the wasm module's map (the single source for the declarative
+   *  attribute contract; `getProp` reads it). */
   get spec(): ElementSpec | undefined {
-    return SPECS.get(this.tagName.toLowerCase());
+    return getSpec(this.tagName.toLowerCase());
   }
 
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the

@@ -4,14 +4,14 @@
     xmlns="http://www.w3.org/1999/xhtml"
     elementFormDefault="qualified">
 
-  <!-- GENERATED FILE — DO NOT EDIT BY HAND. Produced by scripts/generate-xsd.ts
-       from the per-component *.spec.ts files (src/sc-elements/**/<tag>.spec.ts).
-       To change the sc-* elements, edit a spec and run `yarn generate:xsd`. The
-       fixed HTML declarations below are src/sc-elements/internal/xsd/preamble.xml.
-       `name` syntax (one bind-path segment, no dots) is carried as an XSD
-       pattern facet and enforced again by the runtime's the engine validate().
-       XSD 1.0 permits any global element as the document root; the runtime
-       loader requires sc-plugin. -->
+  <!-- GENERATED FILE — DO NOT EDIT BY HAND. Produced by the sc-validate
+       crate's generate-xsd bin from the per-element spec files
+       (src-tauri/crates/sc-validate/specs/<tag>.spec.json). To change the
+       sc-* elements, edit a spec and run `yarn generate:xsd`. The fixed HTML
+       declarations below are the crate's preamble.xml. `name` syntax (one
+       bind-path segment, no dots) is carried as an XSD pattern facet and
+       enforced again by the shared static validator. XSD 1.0 permits any
+       global element as the document root; the validator requires sc-plugin. -->
 
   <xs:attributeGroup name="commonAttrs">
     <xs:attribute name="id" type="xs:string" use="optional"/>

@@ -42,7 +42,7 @@ export interface UgenSpec {
   name: string;
   /** The SuperCollider UGen class (the element's `type` attribute). */
   type: string;
-  rate: string; // "ar" | "kr" | "ir" (the sc-ugen SPEC enum, enforced by the engine's validate)
+  rate: string; // "ar" | "kr" | "ir" (the sc-ugen SPEC enum, enforced by the shared validator)
   op?: string;
   /** Input name → bind reference ("osc", "osc.1", "env.5", "a,b",
    *  "freq * 2") or literal string (a comma-list literal is an array). */

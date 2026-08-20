@@ -2,7 +2,7 @@
 // per-component *.spec.ts files. Run: `yarn generate:xsd`. The schema is
 // single-sourced on the specs + the hand-authored preamble; the xsd-generate
 // snapshot test fails if the committed schema drifts from the specs (at runtime
-// the components read the same specs through getProp/the engine validate).
+// the components read the same specs through getProp and the Rust validator).
 //
 // Pure Node (fs + dynamic import) — no Lit/DOM — so it runs under tsx and inside
 // vitest alike. Paths resolve from the repo root (this file lives in scripts/).
@@ -143,7 +143,7 @@ function complexType(spec: ElementSpec): string[] {
   lines.push(`    <xs:attributeGroup ref="commonAttrs"/>`);
   // Any runtime attr admits its whole `bind:` namespace here (fastxml doesn't
   // validate attributes; libxml2/CI enforces the namespace boundary) — WHICH
-  // bind:* names are legal is the runtime the engine validate' job.
+  // bind:* names are legal is the shared static validator's job.
   if (attrs.some(([, a]) => a.runtime !== false)) {
     lines.push(`    <xs:anyAttribute namespace="${BIND_NS}" processContents="skip"/>`);
   }

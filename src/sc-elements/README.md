@@ -13,15 +13,13 @@ spec attr (unless flagged `runtime: false`) accepts a
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
 static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. The engine runs TWO conceptual steps: its own
-pure `validate` (the spec-driven plain function in
-`internal/engine/validation.ts`: required/numeric/enum, numeric range
-facets, numeric-STRICT vectors, `name` syntax, choice-less no-sc-children,
-runtime-prop rules — NO element hook: static rules are spec vocabulary) and
-the ONE extension hook `resolveRuntime(ctx)` — runtime construction: the
-recursion into the sc children where the element opens a level
-(`processChildren`) plus bind/reference resolution (the real gate, since
-the upload-time XSD doesn't enforce attribute rules). **The element IS the
+returns the evaluated value. Static validation lives in the shared Rust
+`src-tauri/crates/sc-validate` crate (native at upload, wasm via
+`@sc-app/validate` at `parseEntry`); the spec drives both that gate and
+`getProp` coercion. The engine now runs identity + the ONE extension hook
+`resolveRuntime(ctx)` — runtime construction: the recursion into the sc
+children where the element opens a level (`processChildren`) plus
+bind/reference resolution. **The element IS the
 runtime**: the runtime values are plain fields mutated in place (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `basePath` + the
@@ -48,9 +46,9 @@ internal/   engine/ (the parse ENGINE — index.ts: free process/
             "statechange" on the `value` slot — the value seam everything
             reads); sc-parent.ts (ScParent — the level openers' base:
             `_scChildren`, the parse-scope walker, processChildren, the
-            load/unload child walks); engine/validation.ts (STEP 1's
-            toolbox: the spec-driven pure validate gate, failValidation,
-            static coercion); engine/resolution.ts (STEP 2's toolbox:
+            load/unload child walks); engine/validation.ts (static coercion
+            toolbox + failValidation); engine/resolution.ts (runtime
+            resolution toolbox:
             name/transparency semantics, duplicate-name integrity,
             name-path + bind-expression resolution — all plain functions
             over the elements);
@@ -81,10 +79,11 @@ See the root CLAUDE.md implementation plan.
 ### `<sc-plugin>` — functional
 
 The authored entry root is the runtime host. PluginHost mounts one per dashboard
-box; the loader imports and upgrades the whole authored root through the main
-document. Display `title` and `description` live in `metadata.json` /
-`PluginInfo`. It then runs `process()` (validation inside; each element mints
-its deterministic path-chained hash id) and owns the
+box; the loader validates, imports, and upgrades the whole authored root
+through the main document. Display `title` and `description` live in
+`metadata.json` / `PluginInfo`. It then runs `process()` (static validation
+happened in `parseEntry`; each element mints its deterministic path-chained
+hash id) and owns the
 plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
 unmount. Renders a `<slot>` plus the parse error, if any.

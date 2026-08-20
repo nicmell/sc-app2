@@ -1,9 +1,8 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
 // for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// XML-parse + import the whole authored <sc-plugin> root through the main
-// document, upgrade it disconnected, and run its own process() — the runtime
-// validation, mirroring lib/plugins' parseEntry.
+// pass it through the Vite-served parseEntry (the frontend wasm gate), and run
+// its own processRoot() — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
 // each — see examples/README.md). Anything else failing is a migration bug.
@@ -77,15 +76,10 @@ await new Promise((r) => setTimeout(r, 3000)); // app boot
 const probeRuntime = (pluginId, entry) =>
   evaluate(`(async () => {
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
-  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+  const text = await res.text();
   try {
-    const parseError = doc.querySelector("parsererror");
-    if (parseError) throw new Error(\`plugin entry is not valid XHTML: \${parseError.textContent}\`);
-    const root = doc.documentElement;
-    if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
-    const host = document.importNode(root, true);
-    customElements.upgrade(host);
-
+    const { parseEntry } = await import("/src/lib/plugins/PluginManager.ts");
+    const host = parseEntry(text);
     host.processRoot();
     return "PASS";
   } catch (e) {

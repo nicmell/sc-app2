@@ -13,6 +13,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { type OscMessage } from "@sc-app/server-commands";
+import { validateEntry } from "@sc-app/validate";
 import { isParentRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";
@@ -29,7 +30,6 @@ import {
   type ScVar,
 } from "@/sc-elements";
 import { formatValue } from "@/sc-elements/visuals/sc-display";
-import { validate } from "@/sc-elements/internal/engine/validation";
 import {
   autoRespond,
   FIRST_NODE_ID,
@@ -1096,16 +1096,10 @@ describe("runtime props (bind:)", () => {
     expect(widgetOf(range).getAttribute("min")).toBe("25"); // one fresh subscription
   });
 
-  it("the static and bind: forms are mutually exclusive (direct engine validate)", () => {
-    // happy-dom's XML parser DROPS the later of two attributes whose LOCAL
-    // names collide (`value` + `bind:value`) — Chrome keeps both, so the
-    // conflict is pinned here on a constructed element (and end-to-end by
-    // the bad-runtime-conflict fixture through the CDP harness).
-    const el = document.createElement("sc-var") as ScVar;
-    el.setAttribute("name", "a");
-    el.setAttribute("value", "1");
-    el.setAttribute("bind:value", "b");
-    expect(() => validate(el)).toThrow('<sc-var>: "value" and "bind:value" are mutually exclusive');
+  it("the static and bind: forms are mutually exclusive", () => {
+    expect(() => validateEntry(wrapXml(`<sc-var name="a" value="1" bind:value="b"/>`))).toThrow(
+      '<sc-var>: "value" and "bind:value" are mutually exclusive',
+    );
   });
 
   it("a required runtime attr is satisfied by either form — but not by neither", () => {
@@ -1269,13 +1263,9 @@ describe("runtime props (bind:)", () => {
   });
 
   it("the exclusion applies to graph inputs too (same generic check)", () => {
-    const el = document.createElement("sc-control") as ScControl;
-    el.setAttribute("name", "freq");
-    el.setAttribute("value", "1");
-    el.setAttribute("bind:value", "freq");
-    expect(() => validate(el)).toThrow(
-      '<sc-control>: "value" and "bind:value" are mutually exclusive',
-    );
+    expect(() =>
+      validateEntry(wrapXml(`<sc-control name="freq" value="1" bind:value="freq"/>`)),
+    ).toThrow('<sc-control>: "value" and "bind:value" are mutually exclusive');
   });
 
   it("rejects a bind: on a synthdef PARAM (the collector reads static values only)", () => {
@@ -1300,13 +1290,10 @@ describe("runtime props (bind:)", () => {
     ).toThrow('<sc-var>: unknown attribute namespace prefix "x:" (use "bind:")');
   });
 
-  it("rejects bind:attrs on runtime-opted-out attributes (direct engine validate)", () => {
-    // `synthdef` is runtime-opted-out: a dynamic form must be rejected.
-    const el = document.createElement("sc-synth") as ScElement;
-    el.setAttribute("name", "s1");
-    el.setAttribute("synthdef", "sine");
-    el.setAttribute("bind:synthdef", "sine");
-    expect(() => validate(el)).toThrow('<sc-synth>: unknown runtime attribute "bind:synthdef"');
+  it("rejects bind:attrs on runtime-opted-out attributes", () => {
+    expect(() =>
+      validateEntry(wrapXml(`<sc-synth name="s1" synthdef="sine" bind:synthdef="sine"/>`)),
+    ).toThrow('<sc-synth>: unknown runtime attribute "bind:synthdef"');
   });
 
   it("requires sc-synth.synthdef", () => {

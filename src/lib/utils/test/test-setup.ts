@@ -2,7 +2,20 @@
 // Worker at import time, and happy-dom ships no Worker — the suites never
 // open a connection, so an inert stub is enough.
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { initValidator } from "@sc-app/validate";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
+
+// happy-dom provides no fetch for the glue's URL path — hand it the bytes.
+const wasmUrl = new URL("../../../../packages/validate/pkg/sc_validate_bg.wasm", import.meta.url);
+await initValidator(
+  readFileSync(
+    wasmUrl.protocol === "file:"
+      ? wasmUrl
+      : resolve(process.cwd(), "packages/validate/pkg/sc_validate_bg.wasm"),
+  ),
+);
 
 class WorkerStub {
   onmessage: ((ev: MessageEvent) => void) | null = null;

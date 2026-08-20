@@ -1,12 +1,11 @@
-// Unit tests over the example plugins — the fast runtime gate (the CDP
-// harness, scripts/validate-examples.mjs, remains the full-stack acceptance
-// covering the backend upload/XSD path too). Every examples/<category>/
-// <name>/index.html runs through the sc-elements parse engine —
-// process on a connected <sc-plugin> host in a simulated DOM. Functional
-// examples must parse clean; the runtime bad-* fixtures must fail with their
-// exact resolveRuntime error (one per error path — the examples/README.md
-// table). The five upload-time fixtures are backend (zip/XSD) validation and
-// stay harness-only.
+// Unit tests over the example plugins — the frontend static wasm gate and
+// runtime parse engine (the CDP harness, scripts/validate-examples.mjs, remains
+// the full-stack acceptance covering the backend upload/XSD path too). Every
+// examples/<category>/<name>/index.html runs through parseEntry, then the
+// sc-elements runtime engine on a disconnected <sc-plugin> host in happy-dom.
+// Functional examples must parse clean; each bad-* fixture must fail with its
+// exact intentional error (the examples/README.md table). The five upload-time
+// fixtures are backend (zip/XSD) validation and stay harness-only.
 
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
@@ -18,11 +17,12 @@ import {
   type ScControl,
   type ScElement,
   type ScKnob,
+  type ScPlugin,
   type ScSlider,
   type ScSynthDef,
 } from "@/sc-elements";
 import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
-import { parsePlugin as parseExample } from "@/lib/utils/test/test-utils";
+import { parseEntry } from "@/lib/plugins/PluginManager";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
 const ENTRIES = import.meta.glob<string>("/examples/*/*/{index,entry}.html", {
@@ -39,13 +39,6 @@ const UPLOAD_FIXTURES = new Set([
   "bad-asset-type",
   "bad-asset-mismatch",
 ]);
-
-/** CDP-harness-only fixtures: happy-dom's XML parser DROPS the later of two
- *  attributes whose LOCAL names collide (`value` + `bind:value`), so the
- *  conflict is unrepresentable here — Chrome keeps both, and the mutual
- *  exclusion is pinned by controls.test.ts (direct engine validate) plus the
- *  harness (validate-examples.mjs EXPECT_RUNTIME_FAIL). */
-const HARNESS_ONLY = new Set(["bad-runtime-conflict"]);
 
 /** The runtime fixtures' exact first error (the examples/README.md table). */
 const RUNTIME_FAILURES: Record<string, string> = {
@@ -64,6 +57,7 @@ const RUNTIME_FAILURES: Record<string, string> = {
   "bad-if-shadow": '<sc-var name="x">: duplicate name in scope',
   "bad-name-syntax":
     '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
+  "bad-runtime-conflict": '<sc-var>: "value" and "bind:value" are mutually exclusive',
   "bad-param-bind": '<sc-control>: "bind:value" is not allowed on a synthdef param',
 };
 
@@ -78,7 +72,7 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
     const m = path.match(/^\/examples\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
     return { category: m[1], name: m[2], xml };
   })
-  .filter((c) => !UPLOAD_FIXTURES.has(c.name) && !HARNESS_ONLY.has(c.name))
+  .filter((c) => !UPLOAD_FIXTURES.has(c.name))
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const passing = cases.filter((c) => !(c.name in RUNTIME_FAILURES));
@@ -87,6 +81,11 @@ const failing = cases.filter((c) => c.name in RUNTIME_FAILURES);
 beforeAll(() => {
   registerScElements();
 });
+
+function parseExample(xml: string): { host: ScPlugin; nodes: Set<ScElement> } {
+  const host = parseEntry(xml);
+  return { host, nodes: host.processRoot() };
+}
 
 afterEach(() => {
   document.body.replaceChildren();

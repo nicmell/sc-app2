@@ -3,7 +3,7 @@
 // + content model + category); `scripts/generate-xsd.ts` reads every spec and
 // emits `sc-plugin-schema.xsd`. Pure JSON — no Lit, no runtime — so the
 // generator runs standalone; at runtime the SAME spec drives getProp coercion
-// and the engine's validate, and the xsd-generate snapshot test pins the schema.
+// and the shared Rust validator, and the xsd-generate snapshot test pins the schema.
 
 /** An element's placement class. Feeds the per-category content-model groups
  *  (internal/xsd/groups.ts): `input`/`visual`/`widget`/`state`/`node`/`synthdef`
@@ -31,7 +31,7 @@ export const bindAttr = (name: string): string => `bind:${name}`;
 
 /** The attributes every element accepts without declaring them: the XSD's
  *  hand-authored `commonAttrs` attributeGroup (xsd/preamble.xml — keep that in
- *  step), the runtime's unknown-attribute allowance (the engine's validate), and the
+ *  step), the runtime's unknown-attribute allowance (the shared static validator), and the
  *  generator's skip-list (a spec attr with one of these names is already
  *  admitted by the group and must not be re-declared). ONE set, three gates. */
 export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
@@ -40,7 +40,7 @@ export const COMMON_ATTRS = new Set(["id", "class", "title", "style"]);
  *  `runtime` (DEFAULT TRUE — set `false` to opt out) marks the attr as
  *  bindable: the runtime evaluates its `bind:`-prefixed sibling live
  *  (ScElement's runtime-prop machinery), the two forms are mutually exclusive
- *  (the engine's validate), and a `required` runtime attr is satisfied by either form
+ *  (the shared static validator), and a `required` runtime attr is satisfied by either form
  *  — so it emits `use="optional"` in the XSD (one-of waits for XSD 1.1
  *  asserts). Opt out for target references (`bind`), parse-time-only data,
  *  and genuinely-reactive widget props. */
@@ -72,7 +72,7 @@ export type AttrSpec =
   // token or a non-numeric list keeps the scalar semantics (string vars).
   // xs:string in the schema; the runtime is the gate.
   // `numeric: true` makes the attr numeric-STRICT: a static value whose
-  // coercion stays a string fails the engine's validate (sc-control's value,
+  // coercion stays a string fails the shared validator (sc-control's value,
   // sc-keyboard's envelope — OSC/compiler-bound floats); without it the
   // string fallback is legal state (sc-var's string values).
   | (AttrCommon & { type: "vector"; numeric?: boolean })

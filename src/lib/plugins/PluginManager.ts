@@ -1,11 +1,13 @@
 // Plugin CRUD against the Rust HTTP router (`/api/plugins…`). Always HTTP — even
 // under Tauri we go through the bundled server (never Tauri IPC), via the
-// `src/http` helpers (which resolve against the injected HTTP_BASE_URL). A
-// plugin's entry is a validated XHTML doc rooted at `sc-plugin`; PluginHost loads
-// that authored root through the main document, processes it while disconnected,
-// then mounts it. Display metadata lives in PluginInfo.
+// `src/http` helpers (which resolve against the injected HTTP_BASE_URL). Static
+// entry validation is the shared Rust gate compiled to wasm for the frontend;
+// `parseEntry` validates, imports, and upgrades the authored XHTML root while
+// disconnected, then PluginHost processes and mounts it. Display metadata lives
+// in PluginInfo.
 
 import { get, post, del } from "@/lib/http";
+import { validateEntry } from "@sc-app/validate";
 import type { ScPlugin } from "@/sc-elements";
 import type { PluginInfo } from "@/types/api";
 
@@ -26,17 +28,8 @@ export async function removePlugin(id: string): Promise<void> {
 
 /** Parse, import, and explicitly upgrade an authored plugin root while disconnected. */
 export function parseEntry(text: string): ScPlugin {
-  const doc = new DOMParser().parseFromString(text, "text/xml");
-  const parseError = doc.querySelector("parsererror");
-  if (parseError) {
-    throw new Error(`plugin entry is not valid XHTML: ${parseError.textContent}`);
-  }
-  if (doc.documentElement.localName !== "sc-plugin") {
-    throw new Error(
-      `plugin entry root must be <sc-plugin> (got <${doc.documentElement.localName}>)`,
-    );
-  }
-  const root = document.importNode(doc.documentElement as ScPlugin, true);
+  const el = validateEntry(text);
+  const root = document.importNode(el as ScPlugin, true);
   customElements.upgrade(root);
   return root;
 }

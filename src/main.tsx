@@ -9,6 +9,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router/dom";
 import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
+import { initValidator } from "@sc-app/validate";
 import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
 // Activate the OSC packet observers and status watchdog at the application composition root.
@@ -44,8 +45,12 @@ if (import.meta.env.DEV) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
-);
+void initValidator()
+  .catch((e) => console.error("sc-validate init failed", e))
+  .finally(() => {
+    ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+      <React.StrictMode>
+        <RouterProvider router={router} />
+      </React.StrictMode>,
+    );
+  });

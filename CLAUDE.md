@@ -58,6 +58,10 @@ cd src-tauri && cargo check && cargo test
 ```
 main.tsx                 boot: register sc-* elements, render <RouterProvider/>
 routes/                  the react-router DATA-MODE tree (router.tsx):
+                         a pathless BOOT root whose loader awaits
+                         initValidator() (wasm spec map ready before any
+                         element renders; init failures hit SessionBootError,
+                         Retry re-runs the loader) wrapping
                          "/" (rootLoader: stored-or-minted id, replace-redirect)
                          → "/:sessionId" (sessionLoader → SessionLayout, which
                          owns connect()/disconnect() on the loader's

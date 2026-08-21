@@ -9,7 +9,6 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router/dom";
 import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
-import { initValidator } from "@sc-app/validate";
 import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
 // Activate the OSC packet observers and status watchdog at the application composition root.
@@ -29,28 +28,25 @@ if (import.meta.env.DEV) {
     import("@/stores/store"),
     import("@/stores/osc"),
     import("@sc-app/server-commands"),
-  ]).then(
-    ([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, commands]) => {
-      (window as unknown as Record<string, unknown>).__scDebug = {
-        appStore,
-        oscClient,
-        osc: { log, errors, scsynthStatus, clock },
-        session,
-        // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
-        // (e.g. a /s_getn readback of a live node's control array) and watch
-        // the reply land in the rx log.
-        commands,
-      };
-    },
-  );
+  ]).then(([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, commands]) => {
+    (window as unknown as Record<string, unknown>).__scDebug = {
+      appStore,
+      oscClient,
+      osc: { log, errors, scsynthStatus, clock },
+      session,
+      // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
+      // (e.g. a /s_getn readback of a live node's control array) and watch
+      // the reply land in the rx log.
+      commands,
+    };
+  });
 }
 
-void initValidator()
-  .catch((e) => console.error("sc-validate init failed", e))
-  .finally(() => {
-    ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-      <React.StrictMode>
-        <RouterProvider router={router} />
-      </React.StrictMode>,
-    );
-  });
+// The wasm validator is a route concern: the router's pathless boot root
+// awaits initValidator() alongside the session loaders (routes/router.tsx),
+// so rendering starts immediately under the connecting fallback.
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+);

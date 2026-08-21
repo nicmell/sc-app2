@@ -1,9 +1,9 @@
 // Barrel for the sc-* custom elements (see README.md for the per-element
 // docs). Re-exports every component plus `registerScElements`, which defines
 // one constructor per tag in the `ELEMENTS` constant (`@/constants/
-// sc-elements`, kept in sync with the backend XSD: src-tauri/src/plugin/xsd/
-// sc-plugin-schema.xsd). Imported once at app boot (main.tsx) so injected
-// plugin HTML upgrades.
+// sc-elements`, kept in a pinned bijection with the sc-validate crate's
+// specs/<tag>.spec.json registry — the wasm-specs suite). Imported once at
+// app boot (main.tsx) so injected plugin HTML upgrades.
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import type { ScElementTagNames } from "@/types/sc-elements";

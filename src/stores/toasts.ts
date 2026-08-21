@@ -2,7 +2,7 @@
 // (OSC error middleware, future plugin/preset failures). Repeats with the
 // same `key` coalesce into one entry with a bumped `count` — the ToastStack
 // countdown deliberately does NOT re-arm on a coalesced repeat (see its
-// header note on modal inertness), so `ts` refreshes only the display.
+// header note on modal inertness).
 
 import { useSyncExternalStore } from "react";
 import { MAX_TOASTS } from "@/constants/toasts";
@@ -24,12 +24,10 @@ export function pushToast(toast: { message: string; variant: ToastVariant; key?:
     const existing = toast.key && entries.find((entry) => entry.key === toast.key);
     if (existing) {
       return entries.map((entry) =>
-        entry === existing ? { ...entry, count: entry.count + 1, ts: Date.now() } : entry,
+        entry === existing ? { ...entry, count: entry.count + 1 } : entry,
       );
     }
-    return [...entries, { ...toast, id: nextToastId++, count: 1, ts: Date.now() }].slice(
-      -MAX_TOASTS,
-    );
+    return [...entries, { ...toast, id: nextToastId++, count: 1 }].slice(-MAX_TOASTS);
   });
 }
 

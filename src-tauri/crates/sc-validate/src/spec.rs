@@ -79,14 +79,7 @@ pub const HTML_ELEMENTS: [(&str, HtmlKind); 17] = [
     ("br", HtmlKind::Empty),
 ];
 
-/// The `htmlElements` group members, in group order (li is
-/// child-only — reached through listType, never the group).
-pub const HTML_ELEMENTS_GROUP: [&str; 16] = [
-    "div", "p", "label", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6", "span", "strong", "em",
-    "hr", "br",
-];
-
-/// The `inlineContent` group members, in group order.
+/// The `inlineContent` members, in composition order.
 pub const INLINE_CONTENT: [&str; 7] = [
     "span",
     "strong",
@@ -97,18 +90,17 @@ pub const INLINE_CONTENT: [&str; 7] = [
     "sc-text",
 ];
 
-/// The per-category content-model groups, in `blockContent` composition order.
-pub const BLOCK_GROUPS: [(Category, &str); 6] = [
-    (Category::Input, "scInputs"),
-    (Category::Visual, "scVisuals"),
-    (Category::Widget, "scWidgets"),
-    (Category::State, "scState"),
-    (Category::Node, "scNodes"),
-    (Category::Synthdef, "scSynthDefs"),
+/// The categories `blockContent` composes (after the html vocabulary), in
+/// composition order. `root`/`ugen`/`option` elements are reached only
+/// through explicit placement.
+pub const BLOCK_CATEGORIES: [Category; 6] = [
+    Category::Input,
+    Category::Visual,
+    Category::Widget,
+    Category::State,
+    Category::Node,
+    Category::Synthdef,
 ];
-
-/// The composite group every block container uses.
-pub const BLOCK_CONTENT: &str = "blockContent";
 
 /// The content kind of a fixed HTML element.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -123,10 +115,8 @@ pub enum HtmlKind {
     Empty,
 }
 
-/// An element's placement class. Categories in [`BLOCK_GROUPS`] become the
-/// per-category content-model groups `blockContent` composes;
-/// `root`/`ugen`/`option` are reached only through explicit placement;
-/// `html` marks the fixed vocabulary.
+/// An element's placement class. Categories in [`BLOCK_CATEGORIES`] are the
+/// members `blockContent` resolves to; `html` marks the fixed vocabulary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Category {
@@ -145,12 +135,8 @@ pub enum Category {
 /// The assembled specification the validator consumes.
 #[derive(Debug)]
 pub struct Specs {
-    /// Attribute names permitted on every known element.
-    pub common_attrs: Vec<String>,
-    /// Resolved content-model groups (flattened tag lists), kept for tooling.
-    pub groups: BTreeMap<String, Vec<String>>,
-    /// Element definitions: the 17 html elements (preamble order), then the
-    /// sc elements in `SPEC_SOURCES` (= ELEMENTS) order.
+    /// Element definitions: the 17 html elements (declaration order), then
+    /// the sc elements in `SPEC_SOURCES` (= ELEMENTS) order.
     pub elements: Vec<ElementDef>,
 }
 
@@ -159,7 +145,9 @@ pub struct Specs {
 pub struct ElementDef {
     /// The element's local tag name.
     pub tag: String,
-    /// The element's placement class.
+    /// The element's placement class (read by the wasm export's sc-only
+    /// filter; native validation resolves categories at build time).
+    #[cfg_attr(not(feature = "wasm"), allow(dead_code))]
     pub category: Category,
     /// Attributes in authored order (the validation cascade order).
     pub attrs: Vec<AttrDef>,
@@ -183,29 +171,49 @@ pub struct ContentDef {
     pub require_child: bool,
 }
 
-/// One attribute definition.
-#[derive(Debug)]
+/// One attribute definition — deserialized directly from the authored body
+/// (the record KEY becomes `name` via the `attr_record` visitor).
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AttrDef {
-    /// The unqualified authored attribute name.
+    /// The unqualified authored attribute name (the record key; never in the
+    /// body).
+    #[serde(skip)]
     pub name: String,
+    /// Authored doc line(s) — parsed so malformed comments fail loudly, then
+    /// never read.
+    #[serde(rename = "$comment", default)]
+    #[allow(dead_code)]
+    pub(crate) comment: Option<Comment>,
     /// The lexical type used by static validation.
+    #[serde(rename = "type")]
     pub r#type: AttrType,
     /// Whether the static form is required (a runtime attr satisfies it with
     /// either form).
+    #[serde(default)]
     pub required: bool,
-    /// Whether a `bind:` form is accepted and can satisfy `required`.
+    /// Whether a `bind:` form is accepted and can satisfy `required`. Absent
+    /// means BINDABLE — a bare #[serde(default)] (false) would silently flip
+    /// every attribute non-bindable.
+    #[serde(default = "default_true")]
     pub runtime: bool,
     /// The declared default value (applied by the frontend's getProp).
+    #[serde(default)]
     pub default: Option<Value>,
     /// Inclusive lower bound for numeric attributes.
+    #[serde(default)]
     pub min: Option<Number>,
     /// Inclusive upper bound for numeric attributes.
+    #[serde(default)]
     pub max: Option<Number>,
     /// Exclusive lower bound for numeric attributes.
+    #[serde(rename = "exclusiveMin", default)]
     pub exclusive_min: Option<Number>,
     /// Whether vector values must be numerically coercible.
+    #[serde(default)]
     pub numeric: bool,
     /// Allowed values for enum attributes.
+    #[serde(default)]
     pub values: Option<Vec<String>>,
 }
 
@@ -233,11 +241,12 @@ pub enum AttrType {
 
 // ── authored-file shapes (private) ───────────────────────────────
 
-/// A `$comment` — a string or an array of lines. Parsed and discarded.
-#[derive(Deserialize)]
+/// A `$comment` — a string or an array of lines. Parsed for shape (the one
+/// authoring gate on doc comments) and discarded.
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 #[allow(dead_code)]
-enum Comment {
+pub(crate) enum Comment {
     Line(String),
     Block(Vec<String>),
 }
@@ -270,33 +279,6 @@ struct FileContent {
     mixed: bool,
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct AttrBody {
-    #[serde(rename = "$comment", default)]
-    _comment: Option<Comment>,
-    #[serde(rename = "type")]
-    r#type: AttrType,
-    #[serde(default)]
-    required: bool,
-    // Absent means BINDABLE — a bare #[serde(default)] (false) would silently
-    // flip every attribute non-bindable.
-    #[serde(default = "default_true")]
-    runtime: bool,
-    #[serde(default)]
-    default: Option<Value>,
-    #[serde(default)]
-    min: Option<Number>,
-    #[serde(default)]
-    max: Option<Number>,
-    #[serde(rename = "exclusiveMin", default)]
-    exclusive_min: Option<Number>,
-    #[serde(default)]
-    numeric: bool,
-    #[serde(default)]
-    values: Option<Vec<String>>,
-}
-
 /// Deserialize the authored attrs RECORD into a Vec preserving authored order.
 /// A plain serde map would silently keep only the LAST duplicate key — this
 /// visitor rejects duplicates instead (and a stray `$comment` key, which
@@ -324,19 +306,9 @@ fn attr_record<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<AttrDef
                         "duplicate attribute \"{name}\""
                     )));
                 }
-                let body: AttrBody = map.next_value()?;
-                attrs.push(AttrDef {
-                    name,
-                    r#type: body.r#type,
-                    required: body.required,
-                    runtime: body.runtime,
-                    default: body.default,
-                    min: body.min,
-                    max: body.max,
-                    exclusive_min: body.exclusive_min,
-                    numeric: body.numeric,
-                    values: body.values,
-                });
+                let mut attr: AttrDef = map.next_value()?;
+                attr.name = name;
+                attrs.push(attr);
             }
             Ok(attrs)
         }
@@ -349,7 +321,7 @@ fn attr_record<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<AttrDef
 
 fn html_content(kind: HtmlKind) -> (Vec<String>, bool, bool) {
     match kind {
-        HtmlKind::Block => (vec![BLOCK_CONTENT.to_string()], true, false),
+        HtmlKind::Block => (vec!["blockContent".to_string()], true, false),
         HtmlKind::Inline => (vec!["inlineContent".to_string()], true, false),
         // listType's XSD sequence requires at least one li.
         HtmlKind::List => (vec!["li".to_string()], false, true),
@@ -431,41 +403,36 @@ fn build() -> Specs {
         });
     }
 
-    // Resolve the content-model groups (generate-xsd's buildGroups).
-    let mut groups: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    groups.insert(
-        "htmlElements".to_string(),
-        HTML_ELEMENTS_GROUP.iter().map(|t| t.to_string()).collect(),
-    );
-    groups.insert(
-        "inlineContent".to_string(),
-        INLINE_CONTENT.iter().map(|t| t.to_string()).collect(),
-    );
-    for (category, group) in BLOCK_GROUPS {
-        groups.insert(
-            group.to_string(),
+    // The two composite references the authored specs (and the html table)
+    // use: `blockContent` = every html element (li is child-only) plus the
+    // members of the block categories; `inlineContent` = the fixed inline
+    // list. Anything else in a choice is a direct tag.
+    let mut block_content: Vec<String> = HTML_ELEMENTS
+        .iter()
+        .filter(|&&(tag, _)| tag != "li")
+        .map(|&(tag, _)| tag.to_string())
+        .collect();
+    for category in BLOCK_CATEGORIES {
+        block_content.extend(
             raw.iter()
                 .filter(|r| r.category == category)
-                .map(|r| r.tag.clone())
-                .collect(),
+                .map(|r| r.tag.clone()),
         );
     }
-    let mut block_content: Vec<String> = groups["htmlElements"].clone();
-    for (_, group) in BLOCK_GROUPS {
-        block_content.extend(groups[group].iter().cloned());
-    }
-    groups.insert(BLOCK_CONTENT.to_string(), block_content);
 
-    // Flatten each element's choice (group refs → member tags, in place).
+    // Flatten each element's choice (composite refs → member tags, in place).
     let elements = raw
         .into_iter()
         .map(|r| {
             let (choice, mixed, require_child) = r.content;
             let mut children: Vec<String> = Vec::new();
             for reference in &choice {
-                match groups.get(reference) {
-                    Some(members) => children.extend(members.iter().cloned()),
-                    None => children.push(reference.clone()),
+                match reference.as_str() {
+                    "blockContent" => children.extend(block_content.iter().cloned()),
+                    "inlineContent" => {
+                        children.extend(INLINE_CONTENT.iter().map(|t| t.to_string()));
+                    }
+                    tag => children.push(tag.to_string()),
                 }
             }
             let mut seen = std::collections::BTreeSet::new();
@@ -503,11 +470,7 @@ fn build() -> Specs {
         }
     }
 
-    Specs {
-        common_attrs: COMMON_ATTRS.iter().map(|a| a.to_string()).collect(),
-        groups,
-        elements,
-    }
+    Specs { elements }
 }
 
 /// Return the assembled specification, built once for the process.

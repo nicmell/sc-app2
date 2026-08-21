@@ -2,10 +2,19 @@
 /* eslint-disable */
 
 /**
+ * The attributes every element accepts without declaring them, as a JSON
+ * array — exported so the frontend's hand copy (internal/spec.ts) can be
+ * PINNED against the crate (a drift would silently change contentHash ids).
+ */
+export function common_attrs(): string;
+
+/**
  * The sc elements' spec map as JSON: `tag → { attrs: { name → def } }`.
  * Serialized by hand-rolled impls because attr ORDER is contractual (the
  * frontend's runtime-prop resolution iterates it) and serde_json's default
- * map would alphabetize. Only what the frontend consumes: attrs.
+ * map would alphabetize. Only what the frontend actually consumes: per attr
+ * `type`/`runtime`/`default`/`values` — the required flag and numeric
+ * facets are static-gate-only and stay crate-side.
  */
 export function element_specs(): string;
 
@@ -18,6 +27,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly common_attrs: () => [number, number];
     readonly element_specs: () => [number, number];
     readonly validate_entry: (a: number, b: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;

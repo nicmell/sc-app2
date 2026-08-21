@@ -59,7 +59,6 @@ export interface ToastEntry {
   message: string;
   variant: ToastVariant;
   count: number;
-  ts: number;
 }
 
 /** The session slice of the app store: the UI-facing connection lifecycle. */

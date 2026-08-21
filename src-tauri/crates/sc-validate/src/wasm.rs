@@ -10,7 +10,7 @@ use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
-use crate::spec::{specs, AttrDef, AttrType, Category};
+use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
 
 /// Validate a plugin entry document. See [`crate::validate_entry`].
 #[wasm_bindgen]
@@ -18,10 +18,20 @@ pub fn validate_entry(xml: &str) -> Result<Vec<String>, String> {
     crate::validate_entry(xml)
 }
 
+/// The attributes every element accepts without declaring them, as a JSON
+/// array — exported so the frontend's hand copy (internal/spec.ts) can be
+/// PINNED against the crate (a drift would silently change contentHash ids).
+#[wasm_bindgen]
+pub fn common_attrs() -> String {
+    serde_json::to_string(&COMMON_ATTRS).expect("sc-validate: common attrs serialize")
+}
+
 /// The sc elements' spec map as JSON: `tag → { attrs: { name → def } }`.
 /// Serialized by hand-rolled impls because attr ORDER is contractual (the
 /// frontend's runtime-prop resolution iterates it) and serde_json's default
-/// map would alphabetize. Only what the frontend consumes: attrs.
+/// map would alphabetize. Only what the frontend actually consumes: per attr
+/// `type`/`runtime`/`default`/`values` — the required flag and numeric
+/// facets are static-gate-only and stay crate-side.
 #[wasm_bindgen]
 pub fn element_specs() -> String {
     serde_json::to_string(&SpecsExport).expect("sc-validate: specs serialize")
@@ -83,22 +93,9 @@ impl Serialize for AttrExport<'_> {
         };
         let mut map = serializer.serialize_map(None)?;
         map.serialize_entry("type", type_name)?;
-        map.serialize_entry("required", &attr.required)?;
         map.serialize_entry("runtime", &attr.runtime)?;
         if let Some(default) = &attr.default {
             map.serialize_entry("default", default)?;
-        }
-        if let Some(min) = &attr.min {
-            map.serialize_entry("min", min)?;
-        }
-        if let Some(max) = &attr.max {
-            map.serialize_entry("max", max)?;
-        }
-        if let Some(exclusive_min) = &attr.exclusive_min {
-            map.serialize_entry("exclusiveMin", exclusive_min)?;
-        }
-        if attr.r#type == AttrType::Vector {
-            map.serialize_entry("numeric", &attr.numeric)?;
         }
         if let Some(values) = &attr.values {
             map.serialize_entry("values", values)?;

@@ -1,15 +1,11 @@
 //! Shared static XML validation for plugin entry documents.
 
-pub mod lexical;
-pub mod messages;
-pub mod node;
-pub mod roxml;
-pub mod rules;
-pub mod spec;
+mod lexical;
+mod messages;
+mod rules;
+mod spec;
 #[cfg(feature = "wasm")]
 pub mod wasm;
-
-pub use rules::{validate_root, Violation};
 
 /// The element-nesting ceiling. Entries never legitimately approach it;
 /// without the pre-parse gate a ~500-deep document overflows the stack
@@ -84,9 +80,8 @@ pub fn validate_entry(xml: &str) -> Result<Vec<String>, String> {
     if nesting_depth_exceeds(xml, MAX_DEPTH) {
         return Err(format!("document nested deeper than {MAX_DEPTH} levels"));
     }
-    let document = roxml::parse(xml)?;
-    let root = roxml::RoXmlNode::new(document.root_element(), xml);
-    Ok(validate_root(&root)
+    let document = roxmltree::Document::parse(xml).map_err(|error| error.to_string())?;
+    Ok(rules::validate_root(document.root_element(), xml)
         .into_iter()
         .map(|violation| violation.render())
         .collect())

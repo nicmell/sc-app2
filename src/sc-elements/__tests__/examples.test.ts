@@ -1,12 +1,15 @@
-// Unit tests over the example plugins — the frontend static wasm gate and
-// runtime parse engine (the CDP harness, scripts/validate-examples.mjs, remains
-// the full-stack acceptance covering the backend upload path too). Every
-// examples/<category>/<name>/index.html runs through parseEntry, then the
-// sc-elements runtime engine on a disconnected <sc-plugin> host in happy-dom.
-// Functional examples must parse clean; each STATIC fixture must throw its
-// exact (possibly multi-line) message from parseEntry, each RUNTIME fixture
-// its exact resolveRuntime error from processRoot (the examples/README.md
-// tables). The five zip/metadata/asset fixtures stay harness-only.
+// Unit tests over the example plugins — THE fixture-contract owner: the
+// static wasm gate and the runtime parse engine (the CDP harness,
+// scripts/validate-examples.mjs, remains the full-stack acceptance covering
+// the backend upload 400s; native and wasm share the sc-validate crate, so
+// these pins cover both builds). Every examples/<category>/<name> entry runs
+// through parseEntry, then the sc-elements runtime engine on a disconnected
+// <sc-plugin> host in happy-dom. Functional examples must parse clean; each
+// STATIC fixture must throw its exact (possibly multi-line) message from
+// parseEntry, each RUNTIME fixture its exact resolveRuntime error from
+// processRoot (the examples/README.md tables); the zip/metadata/asset
+// fixtures' entries still pass the static gate (their failure is
+// upload-side), and bad-entry-xhtml pins the parse-failure shape.
 
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
@@ -32,20 +35,19 @@ const ENTRIES = import.meta.glob<string>("/examples/*/*/{index,entry}.html", {
   eager: true,
 });
 
-/** Backend zip/metadata/asset fixtures (plus the malformed-XML one whose
- *  message the wasm gate wraps differently than the pinned strings below) —
- *  no expectation here, the CDP harness covers their 400s. */
-const UPLOAD_FIXTURES = new Set([
-  "bad-metadata",
-  "bad-entry-xhtml",
-  "bad-entry-schema",
-  "bad-asset-type",
-  "bad-asset-mismatch",
-]);
+/** Backend zip/metadata/asset fixtures: their 400s are harness-only, but
+ *  their ENTRIES must be statically clean (asserted below — the runtime is
+ *  not exercised, the intentional failure is upload-side). */
+const UPLOAD_FIXTURES = new Set(["bad-metadata", "bad-asset-type", "bad-asset-mismatch"]);
+
+/** The malformed-XML fixture: parseEntry must fail the parse itself (the
+ *  canonical wrapped shape, not a violation list). */
+const MALFORMED_FIXTURE = "bad-entry-xhtml";
 
 /** The STATIC fixtures' exact message — thrown by parseEntry (the wasm gate),
  *  every violation newline-joined. */
 const STATIC_FAILURES: Record<string, string> = {
+  "bad-entry-schema": "<sc-plugin>: unexpected child <script>",
   "bad-name-syntax":
     '<sc-var>: "name" attribute must be a plain identifier — letters, digits, "_", "-" (got "s1.freq")',
   "bad-runtime-conflict": '<sc-var>: "value" and "bind:value" are mutually exclusive',
@@ -106,7 +108,7 @@ const cases: ExampleCase[] = Object.entries(ENTRIES)
     const m = path.match(/^\/examples\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
     return { category: m[1], name: m[2], xml };
   })
-  .filter((c) => !UPLOAD_FIXTURES.has(c.name))
+  .filter((c) => !UPLOAD_FIXTURES.has(c.name) && c.name !== MALFORMED_FIXTURE)
   .sort((a, b) => a.name.localeCompare(b.name));
 
 const passing = cases.filter((c) => !(c.name in FAILURES));
@@ -156,6 +158,24 @@ describe("every example synthdef compiles", () => {
           compileSynthDef(def.getProp("name") as string, def.params, def.specs),
         ).not.toThrow();
       }
+    });
+  }
+});
+
+describe("upload fixtures through the static gate", () => {
+  it("bad-entry-xhtml fails the XML parse with the canonical shape", () => {
+    const xml = ENTRIES[`/examples/invalid/${MALFORMED_FIXTURE}/index.html`];
+    expect(xml).toBeDefined();
+    expect(() => parseEntry(xml)).toThrow(/^plugin entry is not valid XHTML: /);
+  });
+
+  for (const name of [...UPLOAD_FIXTURES].sort()) {
+    it(`${name}'s entry is statically clean`, () => {
+      const [xml] = Object.entries(ENTRIES)
+        .filter(([path]) => path.includes(`/${name}/`))
+        .map(([, raw]) => raw);
+      expect(xml).toBeDefined();
+      expect(() => parseEntry(xml)).not.toThrow();
     });
   }
 });

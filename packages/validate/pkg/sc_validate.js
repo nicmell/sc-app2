@@ -1,10 +1,31 @@
 /* @ts-self-types="./sc_validate.d.ts" */
 
 /**
+ * The attributes every element accepts without declaring them, as a JSON
+ * array — exported so the frontend's hand copy (internal/spec.ts) can be
+ * PINNED against the crate (a drift would silently change contentHash ids).
+ * @returns {string}
+ */
+export function common_attrs() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.common_attrs();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
  * The sc elements' spec map as JSON: `tag → { attrs: { name → def } }`.
  * Serialized by hand-rolled impls because attr ORDER is contractual (the
  * frontend's runtime-prop resolution iterates it) and serde_json's default
- * map would alphabetize. Only what the frontend consumes: attrs.
+ * map would alphabetize. Only what the frontend actually consumes: per attr
+ * `type`/`runtime`/`default`/`values` — the required flag and numeric
+ * facets are static-gate-only and stay crate-side.
  * @returns {string}
  */
 export function element_specs() {

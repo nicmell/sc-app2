@@ -91,9 +91,9 @@ pub fn js_number(input: &str) -> Option<f64> {
         .strip_prefix('+')
         .or_else(|| trimmed.strip_prefix('-'))
         .unwrap_or(trimmed);
-    if matches_ignore_ascii_case(unsigned, "inf")
-        || matches_ignore_ascii_case(unsigned, "infinity")
-        || matches_ignore_ascii_case(unsigned, "nan")
+    if unsigned.eq_ignore_ascii_case("inf")
+        || unsigned.eq_ignore_ascii_case("infinity")
+        || unsigned.eq_ignore_ascii_case("nan")
     {
         return None;
     }
@@ -156,10 +156,6 @@ fn is_name_start(byte: u8) -> bool {
 
 fn is_word(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || byte == b'_'
-}
-
-fn matches_ignore_ascii_case(input: &str, expected: &str) -> bool {
-    input.eq_ignore_ascii_case(expected)
 }
 
 fn parse_unsigned_radix(digits: &str, radix: u32) -> Option<f64> {

@@ -7,9 +7,9 @@
 // centred — no overlap; note a modal <dialog> still renders above popovers in
 // the top layer, so this isn't a way to cover it). Each toast auto-dismisses
 // after a timeout and can be closed manually; the countdown deliberately does
-// NOT re-arm when a coalesced repeat refreshes the entry's `ts` — while a
-// modal <dialog> is open the whole document (top-layer popovers included) is
-// inert, so a repeating error must not pin an unclickable toast forever.
+// NOT re-arm on a coalesced repeat — while a modal <dialog> is open the whole
+// document (top-layer popovers included) is inert, so a repeating error must
+// not pin an unclickable toast forever.
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Toast as BaseToast } from "@/components/ui";

@@ -8,26 +8,21 @@
 // are the ONE spec source, consumed here by getProp coercion and the
 // runtime-prop machinery. Bind/reference resolution stays in the parse engine.
 
-import init, { element_specs, validate_entry } from "../pkg/sc_validate";
+import init, { common_attrs, element_specs, validate_entry } from "../pkg/sc_validate";
 
-/** Shared to every attribute: `required` is satisfied by either form when the
- *  attr is `runtime` (bindable via its `bind:` sibling — the default; the
- *  crate emits both flags explicitly). `default` is applied by getProp when
- *  neither form supplies a value; the numeric range facets are validated by
- *  the crate, not read at runtime. */
+/** Shared to every attribute — exactly what the runtime reads: `runtime`
+ *  gates the `bind:` sibling (contentHash + runtime-prop resolution),
+ *  `default` is applied by getProp when neither form supplies a value. The
+ *  required flag and the numeric facets are static-gate-only and stay
+ *  crate-side. */
 interface AttrCommon {
-  required: boolean;
   runtime: boolean;
   default?: string | number | boolean;
-  min?: number;
-  max?: number;
-  exclusiveMin?: number;
 }
 
 /** One attribute, discriminated on `type` — the crate's AttrDef as the wasm
  *  map serializes it. `scalar` and `vector` are strings in the schema but
- *  have richer runtime coercion; `numeric: true` marks a numeric-STRICT
- *  vector. */
+ *  have richer runtime coercion. */
 export type AttrSpec =
   | (AttrCommon & { type: "string" })
   | (AttrCommon & { type: "name" })
@@ -35,7 +30,7 @@ export type AttrSpec =
   | (AttrCommon & { type: "integer" })
   | (AttrCommon & { type: "boolean" })
   | (AttrCommon & { type: "scalar" })
-  | (AttrCommon & { type: "vector"; numeric: boolean })
+  | (AttrCommon & { type: "vector" })
   | (AttrCommon & { type: "enum"; values: readonly string[] });
 
 /** One element's runtime spec surface: the attribute contract in AUTHORED
@@ -83,6 +78,13 @@ export function getSpec(tag: string): ElementSpec | undefined {
 /** Every sc tag carrying a spec (the crate registry's key set). */
 export function getSpecTags(): string[] {
   return Object.keys(requireSpecs());
+}
+
+/** The crate's COMMON_ATTRS (attributes every element accepts undeclared) —
+ *  exported so the frontend's own set can be pinned against the crate. */
+export function getCommonAttrs(): string[] {
+  requireSpecs();
+  return JSON.parse(common_attrs()) as string[];
 }
 
 /** Validate + parse a plugin entry document. Throws the canonical shapes:

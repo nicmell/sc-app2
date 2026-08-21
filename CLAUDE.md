@@ -411,8 +411,9 @@ referenced before it is declared` when a bind names an in-scope element
    `bad-circular-bind` pins the message).
 8. **Two validation gates** keep all of this honest: the shared Rust
    `sc-validate` crate runs natively at upload and as wasm at frontend
-   `parseEntry` (multi-error, one per line), while `yarn vitest run` and the
-   CDP harness pin the frontend runtime and the full upload path in happy-dom
+   `parseEntry` (multi-error, one per line), while `yarn vitest run` (the ONE
+   owner of the fixtures' exact messages — examples.test.ts) and the CDP
+   harness pin the frontend runtime and the full upload path in happy-dom
    and a real browser — see "Validating example plugins" below.
 
 ## Migrating an sc-element (the recipe)

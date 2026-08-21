@@ -102,10 +102,11 @@ targets a single error path in the sc-elements runtime
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
 
-(The five `spec gate` rows are STATIC fixtures: the sc-validate crate rejects
+(The `spec gate` rows are STATIC fixtures: the sc-validate crate rejects
 them at upload (400, every violation one per line) AND at frontend
-`parseEntry` — the unit suite pins their exact, possibly multi-line,
-messages; the golden cargo test pins the same vectors from the native side.)
+`parseEntry` — the unit suite (`examples.test.ts`) is the ONE owner of their
+exact, possibly multi-line, messages; native and wasm share the crate, so
+those pins cover both builds.)
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

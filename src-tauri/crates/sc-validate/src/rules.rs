@@ -1,13 +1,15 @@
-//! Ordered static validation rules over the generic XML node abstraction.
+//! Ordered static validation rules, walked directly over the `roxmltree` DOM
+//! (the crate's one parser — native and wasm builds both go through it).
+
+use roxmltree::Node;
 
 use crate::lexical;
 use crate::messages;
-use crate::node::XmlNode;
-use crate::spec::{element, specs, AttrDef, AttrType, ContentDef, ElementDef, XHTML_NS};
+use crate::spec::{element, AttrDef, AttrType, ContentDef, ElementDef, COMMON_ATTRS, XHTML_NS};
 
 /// One static validation failure attached to the element that produced it.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Violation {
+pub(crate) struct Violation {
     /// The authored local tag of the offending element.
     pub tag: String,
     /// The canonical message without the `<tag>:` prefix.
@@ -21,66 +23,70 @@ impl Violation {
     }
 }
 
-/// Validate a document element using the generated specification.
-pub fn validate_root<N: XmlNode>(root: &N) -> Vec<Violation> {
-    if root.tag() != "sc-plugin" {
+/// Validate a document element using the generated specification. `source` is
+/// the document text the node was parsed from — needed to recover AUTHORED
+/// attribute qnames (`bind:min`), matching DOM getAttribute semantics.
+pub(crate) fn validate_root(root: Node, source: &str) -> Vec<Violation> {
+    let tag = root.tag_name().name();
+    if tag != "sc-plugin" {
         return vec![Violation {
-            tag: root.tag().to_string(),
-            message: messages::wrong_root(root.tag()),
+            tag: tag.to_string(),
+            message: messages::wrong_root(tag),
         }];
     }
 
     let mut violations = Vec::new();
-    validate_element(root, 0, &mut violations);
+    validate_element(root, source, &mut violations);
     violations
 }
 
-fn validate_element<N: XmlNode>(node: &N, depth: usize, violations: &mut Vec<Violation>) {
-    // Defense in depth: validate_entry's pre-parse scan already rejects deep
-    // documents; this guard keeps the recursive walk safe for any future
-    // caller that skips it.
-    if depth >= crate::MAX_DEPTH {
-        push_violation(node.tag(), messages::too_deep(crate::MAX_DEPTH), violations);
-        return;
-    }
+fn validate_element(node: Node, source: &str, violations: &mut Vec<Violation>) {
+    let tag = node.tag_name().name();
+
     // Namespace first: every element (known or not) must live in XHTML —
     // the old schema's targetNamespace, now checked directly.
-    if node.namespace() != Some(XHTML_NS) {
-        push_violation(node.tag(), messages::xhtml_namespace(), violations);
+    if node.tag_name().namespace() != Some(XHTML_NS) {
+        push_violation(tag, messages::xhtml_namespace(), violations);
     }
 
-    let authored_attributes = node.attributes();
-    let definition = element(node.tag());
+    // Authored qnames + values, borrowed straight from the source (the qname
+    // range comes from roxmltree's own parse of this source; .get keeps a
+    // hypothetical range bug a wrong NAME instead of a panic on an untrusted
+    // upload).
+    let authored_attributes: Vec<(&str, &str)> = node
+        .attributes()
+        .map(|attribute| {
+            let name = source
+                .get(attribute.range_qname())
+                .unwrap_or_else(|| attribute.name());
+            (name, attribute.value())
+        })
+        .collect();
 
-    if let Some(definition) = definition {
-        validate_spec_attributes(node.tag(), definition, &authored_attributes, violations);
-        validate_attribute_hygiene(node.tag(), definition, &authored_attributes, violations);
-    }
-
-    let children = node.children();
-    if let Some(definition) = definition {
-        validate_content(node, &definition.content, &children, violations);
+    if let Some(definition) = element(tag) {
+        validate_spec_attributes(tag, definition, &authored_attributes, violations);
+        validate_attribute_hygiene(tag, definition, &authored_attributes, violations);
+        validate_content(node, &definition.content, violations);
     }
 
     // Unknown elements deliberately still recurse: their parent membership
     // gate reports the unknown child, while known descendants can report
     // their own independent static failures.
-    for child in &children {
-        validate_element(child, depth + 1, violations);
+    for child in node.children().filter(Node::is_element) {
+        validate_element(child, source, violations);
     }
 }
 
 fn validate_spec_attributes(
     tag: &str,
     definition: &ElementDef,
-    authored_attributes: &[(String, String)],
+    authored_attributes: &[(&str, &str)],
     violations: &mut Vec<Violation>,
 ) {
     for attribute in &definition.attrs {
         let static_value = authored_value(authored_attributes, &attribute.name);
-        let dynamic_name = format!("bind:{}", attribute.name);
         let dynamic_value = if attribute.runtime {
-            authored_value(authored_attributes, &dynamic_name)
+            authored_bind_value(authored_attributes, &attribute.name)
         } else {
             None
         };
@@ -184,10 +190,10 @@ fn numeric_vector_passes(raw: &str) -> bool {
 fn validate_attribute_hygiene(
     tag: &str,
     definition: &ElementDef,
-    authored_attributes: &[(String, String)],
+    authored_attributes: &[(&str, &str)],
     violations: &mut Vec<Violation>,
 ) {
-    for (name, _) in authored_attributes {
+    for &(name, _) in authored_attributes {
         if name == "xmlns" {
             continue;
         }
@@ -196,8 +202,8 @@ fn validate_attribute_hygiene(
             let known_spec_attribute = definition
                 .attrs
                 .iter()
-                .any(|attribute| attribute.name.as_str() == name);
-            let common_attribute = specs().common_attrs.iter().any(|common| common == name);
+                .any(|attribute| attribute.name == name);
+            let common_attribute = COMMON_ATTRS.contains(&name);
             if !known_spec_attribute && !common_attribute {
                 push_violation(tag, messages::unknown_attribute(name), violations);
             }
@@ -225,42 +231,54 @@ fn validate_attribute_hygiene(
     }
 }
 
-fn validate_content<N: XmlNode>(
-    node: &N,
-    content: &ContentDef,
-    children: &[N],
-    violations: &mut Vec<Violation>,
-) {
+fn validate_content(node: Node, content: &ContentDef, violations: &mut Vec<Violation>) {
+    let tag = node.tag_name().name();
     // Membership over the flattened children — an EMPTY list is the strict
     // empty model (content-absent specs, hr/br): every child is unexpected.
-    for child in children {
-        if !content.children.iter().any(|tag| tag == child.tag()) {
-            push_violation(
-                node.tag(),
-                messages::unexpected_child(child.tag()),
-                violations,
-            );
+    let mut child_count = 0usize;
+    for child in node.children().filter(Node::is_element) {
+        child_count += 1;
+        let child_tag = child.tag_name().name();
+        if !content.children.iter().any(|allowed| allowed == child_tag) {
+            push_violation(tag, messages::unexpected_child(child_tag), violations);
         }
     }
-    if !content.mixed && node.has_text() {
-        push_violation(node.tag(), messages::unexpected_text(), violations);
+    if !content.mixed && has_text(node) {
+        push_violation(tag, messages::unexpected_text(), violations);
     }
-    if content.require_child && children.is_empty() {
+    if content.require_child && child_count == 0 {
         if let Some(required) = content.children.first() {
-            push_violation(
-                node.tag(),
-                messages::missing_required_child(required),
-                violations,
-            );
+            push_violation(tag, messages::missing_required_child(required), violations);
         }
     }
 }
 
-fn authored_value<'a>(attributes: &'a [(String, String)], name: &str) -> Option<&'a str> {
+/// Whether a direct text or CDATA child contains non-whitespace content.
+fn has_text(node: Node) -> bool {
+    node.children()
+        .filter(|child| child.is_text())
+        .filter_map(|child| child.text())
+        .any(|text| !text.trim().is_empty())
+}
+
+fn authored_value<'a>(attributes: &[(&'a str, &'a str)], name: &str) -> Option<&'a str> {
     attributes
         .iter()
-        .find(|(attribute_name, _)| attribute_name == name)
-        .map(|(_, value)| value.as_str())
+        .find(|(attribute_name, _)| *attribute_name == name)
+        .map(|&(_, value)| value)
+}
+
+/// The `bind:`-prefixed sibling's value, matched without allocating the
+/// qualified name.
+fn authored_bind_value<'a>(attributes: &[(&'a str, &'a str)], base: &str) -> Option<&'a str> {
+    attributes
+        .iter()
+        .find(|(attribute_name, _)| {
+            attribute_name
+                .strip_prefix("bind:")
+                .is_some_and(|attribute_base| attribute_base == base)
+        })
+        .map(|&(_, value)| value)
 }
 
 fn number_value(number: &serde_json::Number) -> f64 {
@@ -319,6 +337,7 @@ mod tests {
     fn facet_echo_preserves_json_number_display() {
         let min_half = AttrDef {
             name: "value".to_string(),
+            comment: None,
             r#type: AttrType::Decimal,
             required: false,
             runtime: false,

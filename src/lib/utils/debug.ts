@@ -6,25 +6,32 @@
 // (main.tsx); the dynamic imports keep every debug-only dependency out of
 // the production graph.
 
-import { session } from "@/lib/session/SessionManager";
-
 if (import.meta.env.DEV) {
   void Promise.all([
     import("@/stores/store"),
     import("@/stores/osc"),
     import("@/stores/toasts"),
+    import("@/lib/session/SessionManager"),
     import("@sc-app/server-commands"),
-  ]).then(([{ appStore }, { oscClient, log, scsynthStatus, clock }, { toasts }, commands]) => {
-    (window as unknown as Record<string, unknown>).__scDebug = {
-      appStore,
-      oscClient,
-      osc: { log, scsynthStatus, clock },
-      toasts,
-      session,
-      // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
-      // (e.g. a /s_getn readback of a live node's control array) and watch
-      // the reply land in the rx log.
+  ]).then(
+    ([
+      { appStore },
+      { oscClient, log, scsynthStatus, clock },
+      { toasts },
+      { session },
       commands,
-    };
-  });
+    ]) => {
+      (window as unknown as Record<string, unknown>).__scDebug = {
+        appStore,
+        oscClient,
+        osc: { log, scsynthStatus, clock },
+        toasts,
+        session,
+        // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
+        // (e.g. a /s_getn readback of a live node's control array) and watch
+        // the reply land in the rx log.
+        commands,
+      };
+    },
+  );
 }

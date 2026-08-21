@@ -11,12 +11,11 @@ import { createMemoryRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConnectionOverlay } from "@/components/ConnectionOverlay";
-import { modalStyles } from "@/components/ui/Modal";
+import loadingStyles from "@/components/ui/LoadingOverlay/LoadingOverlay.module.scss";
 import { ROUTES } from "@/constants/routes";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { ConnStatus } from "@/types/stores";
-import connStyles from "../ConnectionOverlay.module.scss";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -53,30 +52,28 @@ afterEach(() => {
 
 describe("ConnectionOverlay", () => {
   it("shows the connecting loader", () => {
-    expect(container.querySelector(`.${connStyles.backdrop}`)).not.toBeNull();
+    expect(container.querySelector(`.${loadingStyles.backdrop}`)).not.toBeNull();
     expect(container.querySelector("sc-base-progress")).not.toBeNull();
     expect(container.querySelector("sc-base-modal")).toBeNull();
   });
 
   it("renders nothing once connected", () => {
     setStatus("connected");
-    expect(container.querySelector(`.${connStyles.backdrop}`)).toBeNull();
+    expect(container.querySelector(`.${loadingStyles.backdrop}`)).toBeNull();
   });
 
   it("shows the connection error modal", () => {
     setStatus("error");
     const modal = container.querySelector("sc-base-modal");
     expect(modal).not.toBeNull();
-    expect(modal!.querySelector(`.${modalStyles.title}`)?.textContent).toMatch(
-      /connection failed/i,
-    );
-    expect(modal!.querySelector(`.${modalStyles.actions} sc-base-button`)).not.toBeNull();
+    expect(modal!.querySelector("h2")?.textContent).toMatch(/connection failed/i);
+    expect(modal!.querySelector("sc-base-flex sc-base-button")).not.toBeNull();
   });
 
   it("revalidates the route loaders in place when Retry is clicked", async () => {
     setStatus("error");
     expect(loader).toHaveBeenCalledTimes(1); // the initial navigation
-    const button = container.querySelector(`.${modalStyles.actions} sc-base-button`);
+    const button = container.querySelector("sc-base-flex sc-base-button");
     await act(async () => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await new Promise((resolve) => setTimeout(resolve, 0));

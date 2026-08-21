@@ -60,7 +60,7 @@ main.tsx                 boot: register sc-* elements, render <RouterProvider/>
 routes/                  the react-router DATA-MODE tree (router.tsx):
                          a pathless BOOT root whose loader awaits
                          initValidator() (wasm spec map ready before any
-                         element renders; init failures hit SessionBootError,
+                         element renders; init failures hit RouteError,
                          Retry re-runs the loader) wrapping
                          "/" (rootLoader: stored-or-minted id, replace-redirect)
                          → "/:sessionId" (sessionLoader → SessionLayout, which
@@ -73,14 +73,17 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          and PluginPage (/:sessionId/plugins/:pluginId — a
                          full-screen STANDALONE <sc-plugin> instance with its
                          own runtime map + scsynth group);
-                         SessionBootError is the loader-failure modal (Retry =
-                         same-path replace navigation, re-runs loaders)
+                         RouteError is the loader-failure modal — copy derived
+                         from the error (HttpError = session wording, else the
+                         error's own message; Retry = same-path replace
+                         navigation, re-runs loaders)
 components/              React shell: Dashboard grid, shared PluginHost (offline
-                         fetch/parse/process/mount), plugin picker/list, toasts,
-                         the connection overlay (connecting scrim + retry modal
-                         over the session status; Retry revalidates the route
-                         loaders in place), ui/ (Modal — the first of the
-                         planned components/ui primitives)
+                         fetch/parse/process/mount), plugin picker/list,
+                         ToastStack (renders the generic toasts slice), the
+                         connection overlay (thin status switch over the ui
+                         primitives; Retry revalidates the route loaders in
+                         place), ui/ (the generic primitives: Modal with
+                         title/description/actions slots, LoadingOverlay)
 sc-elements/             Lit elements used inside plugin HTML, classified by the
                          old app's taxonomy (see sc-elements/README.md for the
                          per-element docs): nodes/ (plugin/group/synth),
@@ -111,14 +114,14 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          component overrides the void resolveRuntime() hook,
                          mutating the element itself
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, osc, layout, plugins })
+  store.ts               createStore({ session, osc, toasts, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
                          from @/types (type-only by construction), so no
                          runtime cycle with the singletons. Plugin runtime
                          state is NOT a slice: each mounted <sc-plugin>
                          instance owns a per-instance createStore (see
                          "Runtime values")
-  layout.ts / plugins.ts / session.ts / osc.ts / useStore.ts
+  layout.ts / plugins.ts / session.ts / osc.ts / toasts.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
@@ -146,8 +149,9 @@ lib/                     non-React infrastructure
                          the `connected` signal, and closes itself on critical
                          transport failures; middleware.ts and middlewares/
                          observe WorkerClient commands/events to own the osc
-                         store slice (tx/rx console log, /fail–/late banners,
-                         /status.reply load, clock status), while watchdog.ts
+                         store slice (tx/rx console log, /status.reply load,
+                         clock status) and push /fail–/late failures into the
+                         global toasts slice (stores/toasts), while watchdog.ts
                          owns heartbeat expiry and exposes its status observer;
                          AND the elements' scsynth command methods — every
                          sequenced send + reply wait: createGroup/createSynth
@@ -217,7 +221,7 @@ The URL is the session's source of truth (`/:sessionId`); the route loaders
    scsynth is unregistered the server answers 503 (it binds without waiting
    for scsynth, so the GUI window opens regardless) and the loaders retry
    quietly under the connecting fallback within the SCSYNTH_RETRY_LIMIT
-   budget (~5 s); exhaustion throws into SessionBootError, whose Retry is a
+   budget (~5 s); exhaustion throws into RouteError, whose Retry is a
    same-path replace navigation (re-runs the loaders, fresh budget).
 2. Connection: SessionLayout's effect hands the loader's SessionInfo to
    `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS

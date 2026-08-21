@@ -27,12 +27,14 @@ if (import.meta.env.DEV) {
   void Promise.all([
     import("@/stores/store"),
     import("@/stores/osc"),
+    import("@/stores/toasts"),
     import("@sc-app/server-commands"),
-  ]).then(([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, commands]) => {
+  ]).then(([{ appStore }, { oscClient, log, scsynthStatus, clock }, { toasts }, commands]) => {
     (window as unknown as Record<string, unknown>).__scDebug = {
       appStore,
       oscClient,
-      osc: { log, errors, scsynthStatus, clock },
+      osc: { log, scsynthStatus, clock },
+      toasts,
       session,
       // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
       // (e.g. a /s_getn readback of a live node's control array) and watch

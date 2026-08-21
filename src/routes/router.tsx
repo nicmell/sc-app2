@@ -1,11 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import { initValidator } from "@sc-app/validate";
-import { ConnectingScreen } from "@/components/ConnectionOverlay";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { ROUTES } from "@/constants/routes";
 import { rootLoader, sessionLoader } from "@/lib/session/resolveSession";
 import { DashboardRoute } from "./DashboardRoute";
 import { PluginPage } from "./PluginPage";
-import { SessionBootError } from "./SessionBootError";
+import { RouteError } from "./RouteError";
 import { SessionLayout } from "./SessionLayout";
 import { SettingsRoute } from "./SettingsRoute";
 
@@ -27,21 +27,21 @@ export const router = createBrowserRouter([
       await initValidator();
       return null;
     },
-    errorElement: <SessionBootError />,
-    hydrateFallbackElement: <ConnectingScreen />,
+    errorElement: <RouteError />,
+    hydrateFallbackElement: <LoadingOverlay label="Loading…" />,
     children: [
       {
         path: ROUTES.ROOT,
         loader: rootLoader,
-        errorElement: <SessionBootError />,
-        hydrateFallbackElement: <ConnectingScreen />,
+        errorElement: <RouteError />,
+        hydrateFallbackElement: <LoadingOverlay label="Loading…" />,
       },
       {
         path: ROUTES.SESSION,
         loader: sessionLoader,
         element: <SessionLayout />,
-        errorElement: <SessionBootError />,
-        hydrateFallbackElement: <ConnectingScreen />,
+        errorElement: <RouteError />,
+        hydrateFallbackElement: <LoadingOverlay label="Loading…" />,
         children: [
           {
             element: <DashboardRoute />,

@@ -45,15 +45,19 @@ export interface ClockStatus {
   rtt: number;
 }
 
-/** A scsynth command failure (`/fail`) or late-bundle warning (`/late`),
- *  surfaced to the user as a toast banner. Repeated identical failures coalesce
- *  into one entry with a bumped `count`. */
-export interface ScsynthError {
+/** The sc-base-toast accent variants a toast entry can carry. */
+export type ToastVariant = "default" | "info" | "success" | "warn" | "error";
+
+/** One entry in the global toast stack. Any producer pushes via
+ *  `stores/toasts`; repeats with the same `key` coalesce into one entry with a
+ *  bumped `count` instead of stacking. */
+export interface ToastEntry {
+  /** Coalescing identity (producers namespace their own, e.g. `osc:/s_new:…`);
+   *  omitted = never coalesced. Also the handle for a producer's bulk clear. */
+  key?: string;
   id: number;
-  /** The failed command address (e.g. `/s_new`) — empty for `/late`. */
-  address: string;
   message: string;
-  variant: "error" | "warn";
+  variant: ToastVariant;
   count: number;
   ts: number;
 }
@@ -74,17 +78,18 @@ export interface OscState {
   log: LoggedEntry[];
   scsynthStatus: ScsynthStatus | null;
   clock: ClockStatus | null;
-  errors: ScsynthError[];
 }
 
 /** The single app store's root state — one slice per domain. */
 export interface AppState {
   session: SessionState;
-  /** OSC transport observations (console log, banners, scsynth load). */
+  /** OSC transport observations (console log, scsynth load, clock). */
   osc: OscState;
   /** Dashboard grid placement. Restored from / periodically saved to the
    *  backend's saved-session storage by the SessionManager. */
   layout: BoxItem[];
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
+  /** The global toast stack — any module pushes via `stores/toasts`. */
+  toasts: ToastEntry[];
 }

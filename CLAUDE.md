@@ -62,10 +62,13 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          initValidator() (wasm spec map ready before any
                          element renders; init failures hit RouteError,
                          Retry re-runs the loader) wrapping
-                         "/" (rootLoader: stored-or-minted id, replace-redirect)
-                         → "/:sessionId" (sessionLoader → SessionLayout, which
-                         owns connect()/disconnect() on the loader's
-                         SessionInfo and hosts ToastStack/ConnectionOverlay)
+                         the ONE session route "/:sessionId?" (OPTIONAL param
+                         — sessionLoader resolves stored/minted/revived ids
+                         and keeps the URL truthful; RouteId.SESSION). The
+                         boot root's element is Layout: the app frame hosting
+                         ToastStack/ConnectionOverlay + the router-loading
+                         scrim, and owning connect()/disconnect() over the
+                         session route's loader data (useRouteLoaderData)
                          → DashboardRoute (dashboard + <Outlet/>; the settings
                          child SettingsRoute at /:sessionId/settings renders
                          the drawer, open only once the session is connected —
@@ -209,12 +212,13 @@ type-checked + `react-hooks`) via `yarn lint`; Prettier (`printWidth` 100) via
 A **live session lives exactly as long as its WebSocket**; its **identity and
 dashboard layout persist** server-side:
 
-The URL is the session's source of truth (`/:sessionId`); the route loaders
-(`lib/session/resolveSession.ts`) own resolution and every localStorage write:
+The URL is the session's source of truth (`/:sessionId?`); the ONE route
+loader (`lib/session/resolveSession.ts` sessionLoader) owns resolution and
+every localStorage write:
 
-1. Resolution: `"/"` replace-redirects to the stored `localStorage["sc.session"]`
-   id (or mints one via `POST /api/session` when nothing is stored); the
-   `/:sessionId` loader `GET`s that id — **reviving** the saved session under
+1. Resolution: a param-less URL replace-redirects to the stored
+   `localStorage["sc.session"]` id (or mints one via `POST /api/session` when
+   nothing is stored); with the param the loader `GET`s that id — **reviving** the saved session under
    the same UUID (fresh node-id block, saved layout) — and a dead/unknown id
    mints a fresh session and replace-redirects again (the minted info rides a
    module-level handoff to the redirect target's loader, no re-GET). While
@@ -223,7 +227,7 @@ The URL is the session's source of truth (`/:sessionId`); the route loaders
    quietly under the connecting fallback within the SCSYNTH_RETRY_LIMIT
    budget (~5 s); exhaustion throws into RouteError, whose Retry is a
    same-path replace navigation (re-runs the loaders, fresh budget).
-2. Connection: SessionLayout's effect hands the loader's SessionInfo to
+2. Connection: Layout's effect hands the loader's SessionInfo to
    `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS
    (in the worker) and sends `/g_new` — the session group lives **at the tail
    of scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`

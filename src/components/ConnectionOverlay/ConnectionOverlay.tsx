@@ -8,7 +8,7 @@ import { useStatus } from "@/stores/session";
  *  not up: the loading scrim while the session boots, a Retry modal when the
  *  connection fails. Retry revalidates the route loaders in place: the session
  *  loader re-resolves (reviving the session or minting + redirecting to a
- *  fresh one, with a fresh 503 budget) and hands SessionLayout a new info
+ *  fresh one, with a fresh 503 budget) and hands Layout a new info
  *  object, whose effect reconnects — without navigating away from the current
  *  page. Renders nothing once connected. Deliberately not dismissable —
  *  nothing behind it is usable without a session. */

@@ -1,4 +1,5 @@
-// Loader unit tests: the mint/revive resolution, the localStorage ownership,
+// Loader unit tests: the ONE optional-param loader — mint/revive resolution,
+// the localStorage ownership,
 // the mint → redirect handoff (no re-GET, no redirect loop), and the bounded
 // quiet 503 retry ("scsynth not registered yet") whose exhaustion throws into
 // the route errorElement. The http layer is mocked; no router is involved —
@@ -23,7 +24,7 @@ vi.mock("@/stores/plugins", () => ({
 
 import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { HttpError } from "@/lib/http";
-import { rootLoader, sessionLoader } from "@/lib/session/resolveSession";
+import { sessionLoader } from "@/lib/session/resolveSession";
 
 function info(sessionId: string): SessionInfo {
   return {
@@ -42,7 +43,7 @@ function jsonResponse(value: unknown): { json: () => Promise<unknown> } {
   return { json: () => Promise.resolve(value) };
 }
 
-function loadSession(sessionId: string): Promise<unknown> {
+function loadSession(sessionId?: string): Promise<unknown> {
   return sessionLoader({ params: { sessionId } } as unknown as LoaderFunctionArgs);
 }
 
@@ -62,17 +63,17 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("rootLoader", () => {
+describe("sessionLoader without a session param", () => {
   it("replace-redirects to the stored session id without touching the network", async () => {
     localStorage.setItem(SESSION_KEY, "stored-1");
-    expectReplaceTo(await rootLoader(), "/stored-1");
+    expectReplaceTo(await loadSession(), "/stored-1");
     expect(http.post).not.toHaveBeenCalled();
     expect(http.get).not.toHaveBeenCalled();
   });
 
   it("mints a session when nothing is stored, persists the id, and redirects", async () => {
     http.post.mockResolvedValue(jsonResponse(info("fresh-1")));
-    expectReplaceTo(await rootLoader(), "/fresh-1");
+    expectReplaceTo(await loadSession(), "/fresh-1");
     expect(localStorage.getItem(SESSION_KEY)).toBe("fresh-1");
     // The minted session rides the handoff to the redirect target's loader —
     // no re-GET for the id we just created.
@@ -82,7 +83,7 @@ describe("rootLoader", () => {
   });
 });
 
-describe("sessionLoader", () => {
+describe("sessionLoader with a session param", () => {
   it("revives the URL's session and persists its id", async () => {
     http.get.mockResolvedValue(jsonResponse(info("url-1")));
     const result = await loadSession("url-1");

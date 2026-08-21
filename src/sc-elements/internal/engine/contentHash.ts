@@ -39,6 +39,8 @@ export function contentHash(el: Element, parentId: string, index: number): strin
     }
   }
   attrs.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-  const serializedAttrs = attrs.map(([name, value]) => `${name}=${JSON.stringify(value)}`).join(",");
+  const serializedAttrs = attrs
+    .map(([name, value]) => `${name}=${JSON.stringify(value)}`)
+    .join(",");
   return cyrb53(`${parentId}/${tag}[${index}](${serializedAttrs})`);
 }

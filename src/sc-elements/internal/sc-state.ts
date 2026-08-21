@@ -44,7 +44,6 @@ export abstract class ScState extends ScElement {
     return this.runtimeProps?.value !== undefined;
   }
 
-
   /** The element's key in the plugin's store map: the named ancestor path
    *  plus its own name (the plugin root contributes no segment). Literal
    *  state only — derived state has no store key. */

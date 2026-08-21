@@ -42,9 +42,9 @@ describe("validateEntry", () => {
   });
 
   it("pins the root check", () => {
-    expect(() =>
-      validateEntry(`<div xmlns="http://www.w3.org/1999/xhtml"/>`),
-    ).toThrow("<div>: plugin entry root must be <sc-plugin> (got <div>)");
+    expect(() => validateEntry(`<div xmlns="http://www.w3.org/1999/xhtml"/>`)).toThrow(
+      "<div>: plugin entry root must be <sc-plugin> (got <div>)",
+    );
   });
 });
 

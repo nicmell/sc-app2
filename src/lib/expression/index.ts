@@ -6,10 +6,7 @@
 
 export type { BinaryOp, Expr } from "./ast";
 export { evalExpr } from "./evaluate";
-export {
-  lookupFunction,
-  type LoweredArg,
-} from "./functions";
+export { lookupFunction, type LoweredArg } from "./functions";
 export { tryEvalCallLiteral } from "./literal";
 export { parseBind } from "./parser";
 export { splitTopLevel } from "./split";

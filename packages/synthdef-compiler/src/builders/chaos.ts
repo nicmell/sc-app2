@@ -30,7 +30,6 @@ export class CuspL {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -93,7 +92,6 @@ export class CuspN {
     b._xi = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -165,7 +163,6 @@ export class FBSineC {
     b._yi = { tag: "constant", val: 0.1 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -259,7 +256,6 @@ export class FBSineL {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -351,7 +347,6 @@ export class FBSineN {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -434,7 +429,6 @@ export class GbmanL {
     return b;
   }
 
-
   /** iteration frequency in Hz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -488,7 +482,6 @@ export class GbmanN {
     b._yi = { tag: "constant", val: 2.1 };
     return b;
   }
-
 
   /** iteration frequency in Hz */
   freq(v: UGenInputLike): this {
@@ -549,7 +542,6 @@ export class HenonC {
     b._x1 = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -625,7 +617,6 @@ export class HenonL {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -699,7 +690,6 @@ export class HenonN {
     b._x1 = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -779,7 +769,6 @@ export class LatoocarfianC {
     b._yi = { tag: "constant", val: 0.5 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -874,7 +863,6 @@ export class LatoocarfianL {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -968,7 +956,6 @@ export class LatoocarfianN {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1055,7 +1042,6 @@ export class LinCongC {
     return b;
   }
 
-
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1128,7 +1114,6 @@ export class LinCongL {
     return b;
   }
 
-
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1200,7 +1185,6 @@ export class LinCongN {
     b._xi = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz. */
   freq(v: UGenInputLike): this {
@@ -1282,7 +1266,6 @@ export class LorenzL {
     b._zi = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1377,7 +1360,6 @@ export class QuadC {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1449,7 +1431,6 @@ export class QuadL {
     b._xi = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
@@ -1523,7 +1504,6 @@ export class QuadN {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1595,7 +1575,6 @@ export class StandardL {
     return b;
   }
 
-
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {
     this._freq = toUGenInput(v);
@@ -1658,7 +1637,6 @@ export class StandardN {
     b._yi = { tag: "constant", val: 0 };
     return b;
   }
-
 
   /** iteration frequency in Hertz */
   freq(v: UGenInputLike): this {

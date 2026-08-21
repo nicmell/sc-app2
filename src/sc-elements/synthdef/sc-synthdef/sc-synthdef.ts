@@ -89,13 +89,15 @@ export class ScSynthDef extends ScParent {
     // constraint makes that a valid build order); collecting validates that
     // every ugen input has a bind or value. Compilation waits for load.
     this.params = collectControlParams(children);
-    this.specs = children.filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN).map((c) => ({
-      name: c.getProp("name") as string,
-      type: c.getProp("type") as string,
-      rate: c.getProp("rate") as string,
-      op: c.getProp("op") as string | undefined,
-      inputs: collectControlEntries(c._scChildren),
-    }));
+    this.specs = children
+      .filter((c): c is ScUgen => typeOf(c) === ELEMENTS.SC_UGEN)
+      .map((c) => ({
+        name: c.getProp("name") as string,
+        type: c.getProp("type") as string,
+        rate: c.getProp("rate") as string,
+        op: c.getProp("op") as string | undefined,
+        inputs: collectControlEntries(c._scChildren),
+      }));
   }
 
   /** Compile the collected specs and install the def: the /d_recv's

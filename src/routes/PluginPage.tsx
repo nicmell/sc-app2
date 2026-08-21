@@ -31,9 +31,7 @@ export function PluginPage() {
         <h1>{info?.name ?? "Plugin not found"}</h1>
       </header>
       <div className={styles.content}>
-        {info && pluginId && (
-          <PluginHost key={pluginId} pluginId={pluginId} />
-        )}
+        {info && pluginId && <PluginHost key={pluginId} pluginId={pluginId} />}
       </div>
     </main>
   );

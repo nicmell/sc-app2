@@ -18,9 +18,7 @@ function zipWrap(l: Value, r: Value, apply: (a: Scalar, b: Scalar) => Scalar): V
   const la = Array.isArray(l) ? l : [l];
   const ra = Array.isArray(r) ? r : [r];
   const n = Math.max(la.length, ra.length);
-  return Array.from({ length: n }, (_, i) =>
-    Number(apply(la[i % la.length], ra[i % ra.length])),
-  );
+  return Array.from({ length: n }, (_, i) => Number(apply(la[i % la.length], ra[i % ra.length])));
 }
 
 type BinaryOp = Extract<Expr, { type: "binary" }>["op"];
@@ -70,10 +68,7 @@ function warnOnce(message: string): void {
  *  broadcast) branches. Array results are numeric. Returns `undefined` when
  *  a function call fails on the current values (warned once) — callers keep
  *  their previous value. */
-export function evalExpr(
-  expr: Expr,
-  values: Record<string, Value>,
-): Value | undefined {
+export function evalExpr(expr: Expr, values: Record<string, Value>): Value | undefined {
   switch (expr.type) {
     case "number":
     case "string":

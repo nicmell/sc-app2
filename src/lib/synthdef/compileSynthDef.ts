@@ -121,7 +121,9 @@ class UGenGraphBuilder {
         const inputs = fixed.map((signal) =>
           Array.isArray(signal) ? signal[i % signal.length] : signal,
         );
-        indices.push(this.def.addUgen(spec.type, rate, [...inputs, ...tail], numOutputs, specialIndex));
+        indices.push(
+          this.def.addUgen(spec.type, rate, [...inputs, ...tail], numOutputs, specialIndex),
+        );
       }
       this.ugenIndices.set(spec.name, indices);
     }
@@ -202,9 +204,7 @@ class UGenGraphBuilder {
       const ctrl = this.controlInputs.get(dotRef[1]);
       if (Array.isArray(ctrl)) {
         if (idx >= ctrl.length) {
-          throw new Error(
-            `"${value}": control array "${dotRef[1]}" has only ${ctrl.length} slots`,
-          );
+          throw new Error(`"${value}": control array "${dotRef[1]}" has only ${ctrl.length} slots`);
         }
         return ctrl[idx];
       }
@@ -222,7 +222,10 @@ class UGenGraphBuilder {
     // var token must not re-enter itself (parseBind hands back `name.5.2`
     // and friends as one var) — both fall through to the error.
     const parsed = parseBind(value);
-    if (parsed.expression && !(parsed.expression.type === "var" && parsed.expression.name === value)) {
+    if (
+      parsed.expression &&
+      !(parsed.expression.type === "var" && parsed.expression.name === value)
+    ) {
       return this.lowerExpr(parsed.expression);
     }
 
@@ -254,13 +257,7 @@ class UGenGraphBuilder {
 
   private emitBinary(left: UGenInput, right: UGenInput, special: number): UGenInput {
     return u(
-      this.def.addUgen(
-        "BinaryOpUGen",
-        this.combinedRate([left, right]),
-        [left, right],
-        1,
-        special,
-      ),
+      this.def.addUgen("BinaryOpUGen", this.combinedRate([left, right]), [left, right], 1, special),
     );
   }
 
@@ -361,9 +358,7 @@ class UGenGraphBuilder {
 /** A comparison node's output is exactly 1/0 — no truthiness binarization
  *  needed when it feeds a Select's `which`. */
 function isComparison(expr: Expr): boolean {
-  return (
-    expr.type === "binary" && [">", "<", ">=", "<=", "==", "!="].includes(expr.op)
-  );
+  return expr.type === "binary" && [">", "<", ">=", "<=", "==", "!="].includes(expr.op);
 }
 
 function resolveSpecialIndex(spec: UgenSpec): number {

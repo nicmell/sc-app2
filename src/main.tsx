@@ -9,41 +9,20 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router/dom";
 import { registerScElements } from "./sc-elements";
 import { registerUiComponents } from "@sc-app/ui-components/lit";
-import { session } from "@/lib/session/SessionManager";
 import { router } from "@/routes/router";
 // Activate the OSC packet observers and status watchdog at the application composition root.
 import "@/lib/osc/middlewares";
+// DEV-only __scDebug hook for CDP-driven live debugging (no-op in production).
+import "@/lib/utils/debug";
 
 // Define the plugin custom elements + the ui-components `-base` widgets before
 // the router renders any route that can mount them.
 registerScElements();
 registerUiComponents();
 
-// DEV-only debug hook: expose the module singletons for CDP-driven live
-// debugging — stable handles onto the store, the OSC client (tx/rx log,
-// command methods), and the session, so live probes read state instead of
-// spelunking the DOM (parsed trees hang off the mounted <sc-plugin> hosts).
-if (import.meta.env.DEV) {
-  void Promise.all([
-    import("@/stores/store"),
-    import("@/stores/osc"),
-    import("@sc-app/server-commands"),
-  ]).then(
-    ([{ appStore }, { oscClient, log, errors, scsynthStatus, clock }, commands]) => {
-      (window as unknown as Record<string, unknown>).__scDebug = {
-        appStore,
-        oscClient,
-        osc: { log, errors, scsynthStatus, clock },
-        session,
-        // The OSC constructors (sGetn, nSetn, …) — probes can send raw queries
-        // (e.g. a /s_getn readback of a live node's control array) and watch
-        // the reply land in the rx log.
-        commands,
-      };
-    },
-  );
-}
-
+// The wasm validator is a route concern: the layout route's loader awaits
+// initValidator() concurrently with the session resolution (routes/Layout),
+// so rendering starts immediately under the loading fallback.
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />

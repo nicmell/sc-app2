@@ -42,7 +42,7 @@ interface DrawWindow {
 export class ScScope extends ScElement {
   // Declarative attributes are coerced and defaulted by getProp; enum
   // membership, numeric lexical gates, and the static range facets are
-  // enforced by the engine's validate.
+  // enforced by the shared static validator.
 
   // ── Runtime values (the element IS the runtime) ─────────────────────────
   /** Latest decoded chunk; the RAF loop reads it. */

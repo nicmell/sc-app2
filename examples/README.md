@@ -67,15 +67,20 @@ fixed-value payload uses `set`, with runtime-capable `bind:set`.
 
 ## `invalid/` — intentional failures (the negative fixtures)
 
-Upload-time fixtures (rejected by the backend zip/XSD validation):
+Upload-time fixtures (rejected by the backend zip/spec validation):
 
-| plugin               | fails with                                 |
-| -------------------- | ------------------------------------------ |
-| `bad-metadata`       | `"author" must be a non-empty string`      |
-| `bad-entry-xhtml`    | ill-formed XML                             |
-| `bad-entry-schema`   | entry doesn't conform to the XSD           |
-| `bad-asset-type`     | `svg` is not a supported asset type        |
-| `bad-asset-mismatch` | asset content (jpeg) ≠ declared type (png) |
+| plugin                 | fails with                                                          |
+| ---------------------- | ------------------------------------------------------------------- |
+| `bad-metadata`         | `"author" must be a non-empty string`                               |
+| `bad-entry-xhtml`      | ill-formed XML                                                      |
+| `bad-entry-schema`     | spec gate (sc-validate): `<script>` is not sc-plugin content        |
+| `bad-asset-type`       | `svg` is not a supported asset type                                 |
+| `bad-asset-mismatch`   | asset content (jpeg) ≠ declared type (png)                          |
+| `bad-name-syntax`      | spec gate (sc-validate): a dotted `name` fails the identifier grammar |
+| `bad-runtime-conflict` | spec gate (sc-validate): static `value` + `bind:value` are exclusive  |
+| `bad-attr-multierror`  | spec gate: EVERY attribute rule violated once (required, decimal/integer/boolean/enum lexical, the three range facets on one element, numeric vector, unknown attr, foreign prefix, `bind:` on an opted-out attr) — 12 violations reported together, one per line |
+| `bad-content-multierror` | spec gate: every content rule — strict-empty leaves (child + text), `<ul>` without an `<li>`, and a child-only `sc-option` escaping its `sc-select` |
+| `bad-namespace`        | spec gate: elements outside the XHTML namespace (a root missing `xmlns`) — one violation per element |
 
 Runtime fixtures (upload fine; the parse engine must reject them — each one
 targets a single error path in the sc-elements runtime
@@ -95,9 +100,13 @@ targets a single error path in the sc-elements runtime
 | `bad-ugen-input`         | `sc-synthdef collectUgenInputs`           | a ugen `sc-control` with neither `bind` nor `value`                                                                                                                                                                                                                                                          |
 | `bad-ugen-ref`           | `sc-ugen resolveRuntime`                  | a ugen input bound to `lfo`, which names no sibling ugen / param                                                                                                                                                                                                                                             |
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
-| `bad-name-syntax`        | `name` spec type / engine `validate`       | a dotted `name` (`s1.freq`) — dots are the path separator, so the name would FORGE synth `s1`'s `freq` store key (silent cross-wiring no per-scope check can see); names must be one bind-path segment (the XSD carries the pattern facet, and the runtime is the authoritative gate) |
-| `bad-runtime-conflict`   | engine `validate`                         | static `value` and dynamic `bind:value` on the same `sc-var` are mutually exclusive                                                                                                                                                                                                                          |
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
+
+(The `spec gate` rows are STATIC fixtures: the sc-validate crate rejects
+them at upload (400, every violation one per line) AND at frontend
+`parseEntry` — the unit suite (`examples.test.ts`) is the ONE owner of their
+exact, possibly multi-line, messages; native and wasm share the crate, so
+those pins cover both builds.)
 
 Not yet ported from the old app (buffer-family migration step):
 `scope-plugin`, `waveform-plugin`, `test-plugin`.

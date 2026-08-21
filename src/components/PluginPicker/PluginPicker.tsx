@@ -1,5 +1,5 @@
-import { Button, Flex } from "@/components/ui";
-import { Modal, modalStyles } from "@/components/ui/Modal";
+import { Button } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 import { PluginList } from "@/components/PluginList";
 import type { PluginInfo } from "@/types/api";
 
@@ -12,12 +12,12 @@ export function PluginPicker({
   onClose: () => void;
 }) {
   return (
-    <Modal onClose={onClose} label="Select plugin">
-      <header>Select plugin</header>
+    <Modal
+      onClose={onClose}
+      title="Select plugin"
+      actions={<Button variant="ghost" label="Cancel" onClick={onClose} />}
+    >
       <PluginList onSelect={onSelect} />
-      <Flex wrap align="center" gap="xs" className={modalStyles.actions}>
-        <Button variant="ghost" label="Cancel" onClick={onClose} />
-      </Flex>
     </Modal>
   );
 }

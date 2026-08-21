@@ -2,3 +2,4 @@ dist
 **/dist
 # generated codepoint maps (single-line JSON output from generate-icon-codepoints.mjs)
 packages/ui-components/src/components/sc-icon/codepoints.ts
+packages/validate/pkg

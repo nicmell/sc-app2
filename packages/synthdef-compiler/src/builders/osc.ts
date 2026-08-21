@@ -160,7 +160,6 @@ export class DetectIndex {
     return b;
   }
 
-
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
     return this;
@@ -325,7 +324,6 @@ export class Index {
     return b;
   }
 
-
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
     return this;
@@ -376,7 +374,6 @@ export class IndexInBetween {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -928,7 +925,6 @@ export class Shaper {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);
@@ -1529,7 +1525,6 @@ export class WrapIndex {
     b._in = { tag: "constant", val: 0 };
     return b;
   }
-
 
   bufnum(v: UGenInputLike): this {
     this._bufnum = toUGenInput(v);

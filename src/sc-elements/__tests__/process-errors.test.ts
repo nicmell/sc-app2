@@ -8,8 +8,8 @@ beforeAll(() => {
 
 describe("process error prefixes", () => {
   it("wraps expression-library throws with the current element tag", () => {
-    expect(() =>
-      parsePlugin(wrapXml(`<sc-var name="a" bind:value="pad(1)"/>`)),
-    ).toThrow(/^<sc-var/);
+    expect(() => parsePlugin(wrapXml(`<sc-var name="a" bind:value="pad(1)"/>`))).toThrow(
+      /^<sc-var/,
+    );
   });
 });

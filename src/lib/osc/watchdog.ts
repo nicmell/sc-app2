@@ -7,7 +7,7 @@ import { ADDR_STATUS_REPLY, walkPacket } from "@sc-app/server-commands";
 import { CLOCK_WATCHDOG_INTERVAL_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportMiddleware } from "./middleware";
 import { oscClient } from "./OscClient";
-import { pushError } from "./middlewares/errors";
+import { pushOscToast } from "./middlewares/errors";
 
 export class StatusWatchdog {
   private lastStatusAt = 0;
@@ -42,7 +42,7 @@ export class StatusWatchdog {
       }
       const message = `no ${ADDR_STATUS_REPLY} for ${STATUS_REPLY_TIMEOUT_MS / 1000}s — connection closed`;
       console.error(`[osc] ${message}`);
-      pushError(ADDR_STATUS_REPLY, message, "error");
+      pushOscToast(ADDR_STATUS_REPLY, message, "error");
       oscClient.close();
     }).off;
   }

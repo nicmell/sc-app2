@@ -59,6 +59,35 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
-      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --all --check
+      - run: cargo clippy --workspace --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --workspace --manifest-path src-tauri/Cargo.toml
+
+  wasm:
+    name: Wasm artifact (drift check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - name: Cache Yarn downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.yarn/berry/cache
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
+      - run: yarn install --immutable
+      # src-tauri/rust-toolchain.toml pins the exact rustc + the wasm32 target,
+      # so the rebuilt artifact is byte-comparable to the committed one.
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.15.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: yarn generate:wasm
+      - name: Committed artifact must match the generator
+        run: git diff --exit-code -- packages/validate/pkg

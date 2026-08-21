@@ -20,7 +20,7 @@ export class ScVar extends ScState {
   resolveRuntime(ctx: RuntimeContext): void {
     // A POSITIONAL rule, so it lives in the runtime step: a var on a
     // non-node level (inside a synthdef) has no store path to key under —
-    // the runtime gate the XSD content model only mirrors at upload.
+    // the runtime half of the gate (the spec content model is static).
     if (!ctx.parentNode || !isNodeRuntime(ctx.parentNode)) {
       failValidation(this, "must be declared on a node");
     }

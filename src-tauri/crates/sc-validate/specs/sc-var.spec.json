@@ -1,0 +1,14 @@
+{
+  "tag": "sc-var",
+  "category": "state",
+  "attrs": {
+    "name": { "type": "name", "required": true, "runtime": false },
+    "value": {
+      "$comment": [
+        "vector: a literal var may hold a string (feeds displays/ternaries) or",
+        "a numeric ARRAY (comma-list; non-numeric comma strings stay strings)."
+      ],
+      "type": "vector"
+    }
+  }
+}

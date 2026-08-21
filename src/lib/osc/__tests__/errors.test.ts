@@ -2,19 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { TransportEvent } from "@/types/osc";
+import { pushToast, toasts } from "@/stores/toasts";
 import { oscClient } from "../OscClient";
 import "../middlewares";
-import { errors, errorsMiddleware } from "../middlewares/errors";
+import { errorsMiddleware } from "../middlewares/errors";
 import { workerClient } from "../worker/WorkerClient";
 
 const next = (): void => {};
 beforeEach(() => {
   vi.restoreAllMocks();
-  appStore.slice(SliceName.OSC).update((value) => ({ ...value, errors: [] }));
+  appStore.slice(SliceName.TOASTS).set([]);
 });
 
 describe("errors middleware", () => {
-  it("coalesces /fail banners and ignores respawn", () => {
+  it("coalesces /fail toasts and ignores respawn", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const event: TransportEvent = {
       type: "osc",
@@ -23,17 +24,21 @@ describe("errors middleware", () => {
     errorsMiddleware.event!(event, next);
     errorsMiddleware.event!(event, next);
     errorsMiddleware.event!({ type: "respawn" }, next);
-    expect(errors.get()[0]).toMatchObject({ address: "/s_new", message: "missing", count: 2 });
-    expect(errors.get()).toHaveLength(1);
+    expect(toasts.get()[0]).toMatchObject({ message: "/s_new: missing", count: 2 });
+    expect(toasts.get()).toHaveLength(1);
   });
 
-  it("resets banners on open", () => {
+  it("resets its own toasts on open, leaving foreign toasts alone", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     errorsMiddleware.event!({ type: "error", message: "bad" }, next);
+    pushToast({ message: "plugin upload failed", variant: "error" });
     errorsMiddleware.command!({ type: "open", url: "ws://test" }, next);
-    expect(errors.get()).toEqual([]);
+    expect(toasts.get()).toHaveLength(1);
+    expect(toasts.get()[0]).toMatchObject({ message: "plugin upload failed" });
   });
 
-  it("resets banners through connect's real open-command chain", async () => {
+  it("resets toasts through connect's real open-command chain", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     errorsMiddleware.event!({ type: "error", message: "old" }, next);
     const post = vi
       .spyOn(workerClient as unknown as { post(command: unknown): void }, "post")
@@ -46,7 +51,7 @@ describe("errors middleware", () => {
       scopeIndexCount: 8,
     });
     expect(post).toHaveBeenCalledWith({ type: "open", url: "ws://test" });
-    expect(errors.get()).toEqual([]);
+    expect(toasts.get()).toEqual([]);
     (
       oscClient as unknown as { handleTransportEvent(event: { type: "close" }): void }
     ).handleTransportEvent({ type: "close" });

@@ -140,14 +140,7 @@ export class ScPlugin extends ScNode {
 
   render() {
     return html`
-      ${this._error
-        ? html`<div
-            class="sc-plugin-error"
-            style="color:var(--color-log-error);font-size:var(--font-size-sm);padding:var(--space-xs) 0"
-          >
-            ${this._error}
-          </div>`
-        : ""}
+      ${this._error ? html`<div class="sc-plugin-error">${this._error}</div>` : ""}
       <slot></slot>
     `;
   }

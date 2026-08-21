@@ -1,6 +1,6 @@
 //! Plugin validation + storage. A plugin is a zip bundle containing a
-//! `metadata.json`, an entry XHTML file (validated against the embedded XSD
-//! schema), and optional png/jpeg assets. Validated bundles are stored under
+//! `metadata.json`, an entry XHTML file (validated by the shared sc-validate
+//! static gate), and optional png/jpeg assets. Validated bundles are stored under
 //! [`config::plugins_dir`] and tracked in a [`config::plugins_registry_path`]
 //! JSON registry. Ported from upstream sc-app, adapted to our config paths +
 //! a dedicated registry file (rather than mixing into the typed `config.json`).
@@ -33,7 +33,6 @@ pub struct PluginInfo {
     pub assets: Vec<AssetInfo>,
 }
 
-const XSD_SCHEMA: &str = include_str!("xsd/sc-plugin-schema.xsd");
 const SUPPORTED_ASSET_TYPES: &[&str] = &["png", "jpeg"];
 
 fn is_valid_name(s: &str) -> bool {
@@ -158,19 +157,21 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
     })
 }
 
-/// Validate the entry XHTML against the embedded XSD schema.
-fn validate_entry_xhtml(entry_content: &str) -> Result<(), String> {
-    let ctx = fastxml::create_xml_schema_validation_context_from_buffer(XSD_SCHEMA.as_bytes())
-        .map_err(|e| format!("failed to parse XSD schema: {e}"))?;
-    let doc =
-        fastxml::parse(entry_content).map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
-    let errors = fastxml::validate_document_by_schema_context(&doc, &ctx)
-        .map_err(|e| format!("entry file validation failed: {e}"))?;
-    if !errors.is_empty() {
-        let msgs: Vec<String> = errors.iter().map(|e| e.to_string()).collect();
+/// Validate the entry against the element specs (the sc-validate crate): the
+/// whole static gate — well-formedness, XHTML namespace, attributes, and
+/// content-model membership. Multi-error: every violation is reported, one
+/// per line.
+fn validate_entry_spec(entry_content: &str) -> Result<(), String> {
+    let violations = sc_validate::validate_entry(entry_content)
+        .map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
+    if !violations.is_empty() {
         return Err(format!(
-            "entry file does not conform to the sc-plugin schema:\n{}",
-            msgs.join("\n")
+            "entry file does not conform to the sc-plugin spec:\n{}",
+            violations
+                .iter()
+                .map(sc_validate::Violation::render)
+                .collect::<Vec<_>>()
+                .join("\n")
         ));
     }
     Ok(())
@@ -192,7 +193,7 @@ fn validate_asset_image(data: &[u8], declared_type: &str) -> Result<(), String> 
     Ok(())
 }
 
-/// Validate a plugin zip end to end: metadata, entry XSD, and asset formats.
+/// Validate a plugin zip end to end: metadata, entry spec, and asset formats.
 pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(data))
         .map_err(|_| "file is not a valid zip archive".to_string())?;
@@ -220,7 +221,7 @@ pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
             .map_err(|e| format!("failed to read entry file \"{}\": {e}", info.entry))?;
         content
     };
-    validate_entry_xhtml(&entry_content)?;
+    validate_entry_spec(&entry_content)?;
 
     for asset in &info.assets {
         let mut asset_file = archive
@@ -390,12 +391,31 @@ mod tests {
     }
 
     #[test]
-    fn entry_xsd_accepts_minimal_plugin_and_rejects_unknown_element() {
+    fn entry_spec_gate_reports_every_violation_one_per_line() {
+        let ok = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope/></sc-plugin>"#;
+        assert!(validate_entry_spec(ok).is_ok());
+        // Two independent violations — both reported, newline-joined.
+        let bad = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-var name="a.b" value="1"/><div foo="x"/></sc-plugin>"#;
+        assert_eq!(
+            validate_entry_spec(bad).err().unwrap(),
+            "entry file does not conform to the sc-plugin spec:\n\
+             <sc-var>: \"name\" attribute must be a plain identifier — letters, digits, \"_\", \"-\" (got \"a.b\") (1:57)\n\
+             <div>: unknown attribute \"foo\" (1:84)"
+        );
+        let malformed = "<sc-plugin><div></sc-plugin>";
+        assert!(validate_entry_spec(malformed)
+            .err()
+            .unwrap()
+            .starts_with("entry file is not valid XHTML:"));
+    }
+
+    #[test]
+    fn entry_spec_accepts_minimal_plugin_and_rejects_unknown_element() {
         let ok =
             r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope></sc-scope></sc-plugin>"#;
-        assert!(validate_entry_xhtml(ok).is_ok());
+        assert!(validate_entry_spec(ok).is_ok());
         let bad =
             r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-bogus></sc-bogus></sc-plugin>"#;
-        assert!(validate_entry_xhtml(bad).is_err());
+        assert!(validate_entry_spec(bad).is_err());
     }
 }

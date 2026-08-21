@@ -2,7 +2,7 @@
 // state: connect the global `oscClient` to a resolved session, track the
 // connection status, and autosave the dashboard layout. Session RESOLUTION —
 // localStorage identity, mint/revive over HTTP, the 503 retry budget — lives
-// in the route loaders (`@/lib/session/resolveSession`); SessionLayout hands
+// in the route loaders (`@/lib/session/resolveSession`); Layout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
 // OSC telemetry and the heartbeat watchdog observe OscClient's public seams;
 // the client itself (`@/lib/osc/OscClient`) also
@@ -97,7 +97,7 @@ export class SessionManager {
     }
   }
 
-  /** End the live connection (SessionLayout's effect cleanup). Deferred one
+  /** End the live connection (Layout's effect cleanup). Deferred one
    *  tick: React StrictMode runs cleanup + re-effect back to back, and an
    *  immediate teardown would close and reopen the WebSocket — the reopen
    *  races the server's processing of the close and gets rejected (409). The

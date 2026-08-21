@@ -88,14 +88,24 @@ describe("compileSynthDef", () => {
   });
 
   describe("multichannel expansion", () => {
-    const OUT = (channels: string): UgenSpec =>
-      ({ name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: channels } });
+    const OUT = (channels: string): UgenSpec => ({
+      name: "out",
+      type: "Out",
+      rate: "ar",
+      inputs: { bus: "0", channelsarray: channels },
+    });
 
     it("an array literal on a scalar input expands the ugen (and it propagates)", () => {
       const json = parseScgf(
         compileSynthDef("x", { amp: 0.2 }, [
           { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440, 443" } },
-          { name: "sig", type: "BinaryOpUGen", rate: "ar", op: "*", inputs: { a: "osc", b: "amp" } },
+          {
+            name: "sig",
+            type: "BinaryOpUGen",
+            rate: "ar",
+            op: "*",
+            inputs: { a: "osc", b: "amp" },
+          },
           OUT("sig"),
         ]),
       );
@@ -114,7 +124,12 @@ describe("compileSynthDef", () => {
     it("wraps the shorter operand array (SC's cycle rule)", () => {
       const json = parseScgf(
         compileSynthDef("x", {}, [
-          { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440, 550, 660", phase: "0, 1" } },
+          {
+            name: "osc",
+            type: "SinOsc",
+            rate: "ar",
+            inputs: { freq: "440, 550, 660", phase: "0, 1" },
+          },
           OUT("osc"),
         ]),
       );
@@ -185,7 +200,13 @@ describe("compileSynthDef", () => {
         compileSynthDef("x", { env }, [
           // env.5 = seg 0's time; the expression form must resolve too.
           { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "env.5" } },
-          { name: "sum", type: "BinaryOpUGen", rate: "kr", op: "+", inputs: { a: "env.5 + env.9", b: "osc" } },
+          {
+            name: "sum",
+            type: "BinaryOpUGen",
+            rate: "kr",
+            op: "+",
+            inputs: { a: "env.5 + env.9", b: "osc" },
+          },
           { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "sum" } },
         ]),
       );
@@ -296,7 +317,12 @@ describe("compileSynthDef", () => {
     it("a ternary over array branches expands element-wise, sharing the cond", () => {
       const json = parseScgf(
         compileSynthDef("x", { gate: 1, a: [1, 2], b: [3, 4] }, [
-          { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "gate ? a : b" } },
+          {
+            name: "out",
+            type: "Out",
+            rate: "kr",
+            inputs: { bus: "0", channelsarray: "gate ? a : b" },
+          },
         ]),
       );
       // One shared binarize node, one Select per channel.
@@ -324,7 +350,12 @@ describe("compileSynthDef", () => {
     it("lowers a nested expression `(a + b) * 2` into two op nodes in order", () => {
       const json = parseScgf(
         compileSynthDef("x", { a: 1, b: 2 }, [
-          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "(a + b) * 2" } },
+          {
+            name: "out",
+            type: "Out",
+            rate: "ar",
+            inputs: { bus: "0", channelsarray: "(a + b) * 2" },
+          },
         ]),
       );
       const ops = json.ugens.filter((u) => u.className === "BinaryOpUGen");
@@ -339,7 +370,12 @@ describe("compileSynthDef", () => {
       const json = parseScgf(
         compileSynthDef("x", {}, [
           { name: "osc", type: "SinOsc", rate: "ar", inputs: { freq: "440" } },
-          { name: "out", type: "Out", rate: "ar", inputs: { bus: "0", channelsarray: "osc * 0.5" } },
+          {
+            name: "out",
+            type: "Out",
+            rate: "ar",
+            inputs: { bus: "0", channelsarray: "osc * 0.5" },
+          },
         ]),
       );
       const mul = json.ugens.find((u) => u.className === "BinaryOpUGen")!;
@@ -418,7 +454,7 @@ describe("compileSynthDef", () => {
           { name: "osc", type: "SinOsc", rate: "kr", inputs: { freq: "adsr(0.01)" } },
           { name: "out", type: "Out", rate: "kr", inputs: { bus: "0", channelsarray: "osc" } },
         ]),
-      ).toThrow('array-producing calls only feed variadic inputs');
+      ).toThrow("array-producing calls only feed variadic inputs");
     });
 
     it("rejects a string literal in a graph expression", () => {

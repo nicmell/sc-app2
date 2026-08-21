@@ -1,44 +1,42 @@
-// scsynth error/warning banners, rendered with the ui-components <sc-base-toast>
-// primitive: a bottom-right stack, portaled to <body> and shown as a top-layer
-// `popover="manual"` — the same layer the modals/popovers use, so the stack is
-// never clipped and coexists with an open <sc-base-modal> (the toasts sit
-// bottom-right, the modal centred — no overlap; note a modal <dialog> still
-// renders above popovers in the top layer, so this isn't a way to cover it).
-// Each banner auto-dismisses after a timeout and can be closed manually; the
-// countdown deliberately does NOT re-arm when a coalesced repeat refreshes the
-// entry's `ts` — while a modal <dialog> is open the whole document (top-layer
-// popovers included) is inert, so a repeating error must not pin an
-// unclickable toast forever. Driven by the OSC error middleware store.
+// The global toast stack, rendered with the ui-components <sc-base-toast>
+// primitive over the app-store toasts slice (stores/toasts — any producer
+// pushes there; the OSC error middleware is one). A bottom-right stack,
+// portaled to <body> and shown as a top-layer `popover="manual"` — the same
+// layer the modals/popovers use, so the stack is never clipped and coexists
+// with an open <sc-base-modal> (the toasts sit bottom-right, the modal
+// centred — no overlap; note a modal <dialog> still renders above popovers in
+// the top layer, so this isn't a way to cover it). Each toast auto-dismisses
+// after a timeout and can be closed manually; the countdown deliberately does
+// NOT re-arm on a coalesced repeat — while a modal <dialog> is open the whole
+// document (top-layer popovers included) is inert, so a repeating error must
+// not pin an unclickable toast forever.
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Toast as BaseToast } from "@/components/ui";
-import { dismissError, useScsynthErrors } from "@/stores/osc";
-import type { ScsynthError } from "@/types/stores";
+import { TOAST_DISMISS_MS } from "@/constants/toasts";
+import { dismissToast, useToasts } from "@/stores/toasts";
+import type { ToastEntry } from "@/types/stores";
 import styles from "./ToastStack.module.scss";
-
-/** How long a banner lingers before auto-dismissing. */
-const DISMISS_MS = 8000;
 
 const POPOVER_SUPPORTED = typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
 
-function Toast({ error }: { error: ScsynthError }) {
+function Toast({ toast }: { toast: ToastEntry }) {
   // One countdown per entry, from its first appearance — coalesced repeats bump
   // the ×count display but don't extend the toast's life (see the header note on
   // modal inertness). A recurrence after dismissal mints a new entry/toast.
   useEffect(() => {
-    const t = setTimeout(() => dismissError(error.id), DISMISS_MS);
+    const t = setTimeout(() => dismissToast(toast.id), TOAST_DISMISS_MS);
     return () => clearTimeout(t);
-  }, [error.id]);
+  }, [toast.id]);
 
-  const label = error.address ? `${error.address}: ${error.message}` : error.message;
-  const message = error.count > 1 ? `${label} ×${error.count}` : label;
+  const message = toast.count > 1 ? `${toast.message} ×${toast.count}` : toast.message;
   return (
-    <BaseToast variant={error.variant} message={message} onDismiss={() => dismissError(error.id)} />
+    <BaseToast variant={toast.variant} message={message} onDismiss={() => dismissToast(toast.id)} />
   );
 }
 
 export function ToastStack() {
-  const errors = useScsynthErrors();
+  const toasts = useToasts();
   const ref = useRef<HTMLDivElement>(null);
 
   // Promote the stack into the top layer once it's mounted (so it's never
@@ -47,20 +45,20 @@ export function ToastStack() {
   // API is absent.
   useEffect(() => {
     const el = ref.current;
-    if (!el || !POPOVER_SUPPORTED || errors.length === 0) return;
+    if (!el || !POPOVER_SUPPORTED || toasts.length === 0) return;
     try {
       if (el.popover !== "manual") el.popover = "manual";
       if (!el.matches(":popover-open")) el.showPopover();
     } catch {
       /* top layer unavailable */
     }
-  }, [errors]);
+  }, [toasts]);
 
-  if (errors.length === 0) return null;
+  if (toasts.length === 0) return null;
   return createPortal(
     <div ref={ref} className={styles.stack} aria-live="polite">
-      {errors.map((e) => (
-        <Toast key={e.id} error={e} />
+      {toasts.map((toast) => (
+        <Toast key={toast.id} toast={toast} />
       ))}
     </div>,
     document.body,

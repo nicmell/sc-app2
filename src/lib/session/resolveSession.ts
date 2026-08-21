@@ -1,8 +1,9 @@
-// Session RESOLUTION for the route loaders: mint/revive over HTTP and keep the
-// URL truthful — "/" replace-redirects to the stored /:sessionId (or a freshly
+// Session RESOLUTION for the route loader: mint/revive over HTTP and keep the
+// URL truthful — the session param is optional, so ONE loader owns every
+// shape: no param replace-redirects to the stored /:sessionId (or a freshly
 // minted one), and a dead or unknown /:sessionId mints a fresh session and
-// replace-redirects again. The loaders own every localStorage write; the live
-// connection is SessionLayout's job (`SessionManager.connect` on the loader's
+// replace-redirects again. The loader owns every localStorage write; the live
+// connection is Layout's job (`SessionManager.connect` on the loader's
 // SessionInfo). A live session still dies with its WebSocket — the id is
 // persisted identity only.
 
@@ -33,7 +34,7 @@ async function fetchSession(id: string): Promise<SessionInfo | null> {
 }
 
 /** Retry 503s quietly ("scsynth not registered yet" — the user simply hasn't
- *  started it) within the bounded budget; the router shows the connecting
+ *  started it) within the bounded budget; the router shows the loading
  *  fallback meanwhile. Exhaustion (or any other failure) throws into the route
  *  errorElement, whose Retry re-navigates with a fresh budget. */
 async function with503Retry<T>(fn: () => Promise<T>): Promise<T> {
@@ -60,12 +61,8 @@ async function with503Retry<T>(fn: () => Promise<T>): Promise<T> {
  *  /:freshId hop can never re-enter the revive-failure path. */
 let handoff: SessionInfo | null = null;
 
-export async function rootLoader() {
-  const stored = localStorage.getItem(SESSION_KEY);
-  if (stored) {
-    return replace(generatePath(ROUTES.SESSION, { sessionId: stored }));
-  }
-
+/** Mint a session and replace-redirect to its truthful URL. */
+async function mintAndRedirect() {
   const info = await with503Retry(createSession);
   localStorage.setItem(SESSION_KEY, info.sessionId);
   handoff = info;
@@ -73,14 +70,22 @@ export async function rootLoader() {
 }
 
 export async function sessionLoader({ params }: LoaderFunctionArgs) {
+  const sessionId = params.sessionId;
+
+  // No id in the URL: point it at the stored session (its loader pass
+  // resolves the id for real), or mint one.
+  if (!sessionId) {
+    const stored = localStorage.getItem(SESSION_KEY);
+    if (stored) return replace(generatePath(ROUTES.SESSION, { sessionId: stored }));
+    return mintAndRedirect();
+  }
+
   // The plugin registry must be in the store before PluginHost resolves an
   // assignment. Failure degrades to an empty list (boxes show "no plugin
   // assigned"), never a dead session.
   await refreshPlugins().catch((error: unknown) => {
     console.warn("[session] plugin registry load failed:", error);
   });
-  const sessionId = params.sessionId;
-  if (!sessionId) return replace(ROUTES.ROOT);
 
   if (handoff?.sessionId === sessionId) {
     const info = handoff;
@@ -94,8 +99,5 @@ export async function sessionLoader({ params }: LoaderFunctionArgs) {
     return info;
   }
 
-  const fresh = await with503Retry(createSession);
-  localStorage.setItem(SESSION_KEY, fresh.sessionId);
-  handoff = fresh;
-  return replace(generatePath(ROUTES.SESSION, { sessionId: fresh.sessionId }));
+  return mintAndRedirect();
 }

@@ -52,7 +52,12 @@ function scalar(args: Record<string, EnvArgValue>, name: string, def: number): U
 }
 
 /** A constant-only scalar (feeds arithmetic) — throws on a ref. */
-function constant(shape: string, args: Record<string, EnvArgValue>, name: string, def: number): number {
+function constant(
+  shape: string,
+  args: Record<string, EnvArgValue>,
+  name: string,
+  def: number,
+): number {
   const v = args[name];
   if (v === undefined) return def;
   if (typeof v !== "number") throw new Error(`${shape}: "${name}" is not modulatable`);
@@ -60,7 +65,11 @@ function constant(shape: string, args: Record<string, EnvArgValue>, name: string
 }
 
 /** A modulatable array (levels/times of new/step) — refs pass through. */
-function likeArray(args: Record<string, EnvArgValue>, name: string, def: number[]): UGenInputLike[] {
+function likeArray(
+  args: Record<string, EnvArgValue>,
+  name: string,
+  def: number[],
+): UGenInputLike[] {
   const v = args[name];
   if (v === undefined) return def;
   return Array.isArray(v) ? v : [v];
@@ -220,7 +229,11 @@ const ENTRIES: EnvShapeEntry[] = [
     ],
     build(a, o = {}) {
       const half = constant("triangle", a, "dur", 1) / 2;
-      return { levels: [0, scalar(a, "level", 1), 0], times: [half, half], curves: o.curve ?? "lin" };
+      return {
+        levels: [0, scalar(a, "level", 1), 0],
+        times: [half, half],
+        curves: o.curve ?? "lin",
+      };
     },
   },
   {
@@ -233,7 +246,11 @@ const ENTRIES: EnvShapeEntry[] = [
     ],
     build(a, o = {}) {
       const half = constant("sine", a, "dur", 1) / 2;
-      return { levels: [0, scalar(a, "level", 1), 0], times: [half, half], curves: o.curve ?? "sin" };
+      return {
+        levels: [0, scalar(a, "level", 1), 0],
+        times: [half, half],
+        curves: o.curve ?? "sin",
+      };
     },
   },
   {

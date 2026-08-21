@@ -1,0 +1,8 @@
+{
+  "tag": "sc-strudel",
+  "category": "widget",
+  "attrs": {
+    "value": { "type": "string" },
+    "orbit": { "type": "integer", "min": 0, "runtime": false }
+  }
+}

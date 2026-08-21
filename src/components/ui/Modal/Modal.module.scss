@@ -1,7 +1,7 @@
-/* Modal content chrome. These style the LIGHT-DOM markup callers author inside a
-   <Modal> (the <sc-base-modal> shadow component doesn't own them) — the title,
-   body copy, and the trailing action cluster. Shared by every modal caller
-   (ConnectionOverlay, PluginPicker): they import this module for the class names. */
+/* Modal content chrome: the LIGHT-DOM markup <Modal> renders for its
+   structured props (the <sc-base-modal> shadow component doesn't own it) —
+   `title` the heading, `description` the body copy, `actions` the trailing
+   cluster. Private to the Modal component. */
 .title {
   margin: 0;
   font-size: var(--font-size-md);

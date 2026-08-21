@@ -1,21 +1,19 @@
 // The base of the parsed plugin elements — and the runtime itself: there is
 // no separate item structure. The element IS the runtime — the parse ENGINE
 // (internal/engine/) drives it, assigning the identity + shared core and
-// running the TWO conceptual steps: step 1 is the engine's own pure spec
-// gate (`validate` — no element hook: static rules are spec vocabulary),
-// step 2 the ONE extension hook `resolveRuntime(ctx)` (runtime
+// running the ONE extension hook `resolveRuntime(ctx)` (runtime
 // construction, extendable through `super` —
 // bind/reference resolution AND the recursion into sc children: the
 // runtime tree `_scChildren` is a runtime value like the rest, built by the
 // engine's `processChildren` where ScParent opens a level; all plain fields
 // declared here and on the category bases: internal/sc-node, sc-state,
 // sc-input). Bind targets must be declared BEFORE their references in the
-// DOM (see CLAUDE.md — processing is strict DOM order). The static gate
-// lives in internal/engine/validation.ts, the resolution machinery in
-// internal/engine/resolution.ts.
+// DOM (see CLAUDE.md — processing is strict DOM order). Static validation
+// happens in the shared Rust validator at `parseEntry`/upload; the resolution
+// machinery lives in internal/engine/resolution.ts.
 // Declarative HTML attributes are NOT reactive properties — they are read on
 // demand via `getProp`, coerced by the element's spec (the single source that
-// also generates the XSD); only the handful of genuinely-reactive fields (a
+// drives the shared validator); only the handful of genuinely-reactive fields (a
 // widget's `value`/`_checked`/…) stay as Lit properties. Runtime values are
 // plain fields.
 //
@@ -27,8 +25,8 @@
 // on the entry root) makes the markup namespace-well-formed; the runtime
 // matches by QUALIFIED NAME (`getAttribute("bind:min")` — the one attribute
 // API portable across happy-dom and Chrome; getAttributeNS is NOT). The
-// canonical `bind` prefix is enforced (the engine's validate rejects
-// foreign prefixes — the XSD admits by namespace, the runtime by name).
+// canonical `bind` prefix is enforced by the shared static validator; the
+// runtime matches by qualified name.
 // `process()` resolves each into live targets (+ parsed expression);
 // `load()` computes the initial value and recomputes on every target's
 // statechange, feeding `getProp` (and, for the `value` prop, the state
@@ -52,8 +50,7 @@ import {
   coerceStatic,
 } from "@/sc-elements/internal/engine/validation";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
-import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import { bindAttr, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/xsd/types";
+import { bindAttr, getSpec, type AttrSpec, type ElementSpec } from "@/sc-elements/internal/spec";
 import type { RuntimeContext, RuntimeProp, StateValue } from "@/types/runtime";
 
 /** A bind path's numeric SLOT tail (`env.5` → 5), or null for plain paths —
@@ -97,11 +94,11 @@ export abstract class ScElement extends LitElement {
     return super.createRenderRoot();
   }
 
-  /** This element's spec (its colocated `<tag>.spec.ts`) — the single source
-   *  for its declarative attribute contract. `getProp` and the engine's
-   *  `validate` read it. */
+  /** This element's spec — the crate's authored `specs/<tag>.spec.json`, read
+   *  out of the wasm module's map (the single source for the declarative
+   *  attribute contract; `getProp` reads it). */
   get spec(): ElementSpec | undefined {
-    return SPECS.get(this.tagName.toLowerCase());
+    return getSpec(this.tagName.toLowerCase());
   }
 
   /** Read a declarative attribute, coerced per the spec. UNTYPED — cast at the
@@ -188,7 +185,7 @@ export abstract class ScElement extends LitElement {
     return s; // string / enum
   }
 
-  /** STEP 2 — runtime construction: every present `bind:attr` becomes live
+  /** Runtime construction: every present `bind:attr` becomes live
    *  targets + expression (the same machinery state binds use, so the
    *  bind-order constraint applies). The SYNTHDEF PLANE is skipped wholesale
    *  (a non-node level exists only inside sc-synthdef/sc-ugen): there a

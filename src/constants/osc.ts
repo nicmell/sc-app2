@@ -1,9 +1,6 @@
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
-/** Max coalesced error banners kept (oldest dropped). */
-export const MAX_ERRORS = 20;
-
 /** How long the client waits for a `/status.reply` before treating the
  *  connection as dead and closing it. The Rust bridge heartbeats scsynth at
  *  1 s and fans every reply out to us, so 5 s of silence mirrors its own

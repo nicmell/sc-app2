@@ -1,9 +1,8 @@
 // Example-plugin validation harness (documented in CLAUDE.md):
-// for each example dir — zip → POST /api/plugins (the XSD/upload gate), then,
+// for each example dir — zip → POST /api/plugins (the upload gate), then,
 // if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// XML-parse + import the whole authored <sc-plugin> root through the main
-// document, upgrade it disconnected, and run its own process() — the runtime
-// validation, mirroring lib/plugins' parseEntry.
+// pass it through the Vite-served parseEntry (the frontend wasm gate), and run
+// its own processRoot() — the runtime validation.
 // Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
 // the remaining bad-* fixtures at runtime (one resolveRuntime error path
 // each — see examples/README.md). Anything else failing is a migration bug.
@@ -20,6 +19,11 @@ const EXPECT_UPLOAD_FAIL = new Set([
   "bad-entry-schema",
   "bad-asset-type",
   "bad-asset-mismatch",
+  "bad-name-syntax", // a dotted name forging another scope's store key (spec gate)
+  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive (spec gate)
+  "bad-attr-multierror", // every attribute rule violated once — multi-error, one line each (spec gate)
+  "bad-content-multierror", // strict-empty leaves, list min-occurs, membership (spec gate)
+  "bad-namespace", // elements outside the XHTML namespace (spec gate)
 ]);
 const EXPECT_RUNTIME_FAIL = new Set([
   "bad-bindings", // duplicate name in scope (first of its several errors)
@@ -34,8 +38,6 @@ const EXPECT_RUNTIME_FAIL = new Set([
   "bad-ugen-input", // ugen input with neither bind nor value
   "bad-ugen-ref", // ugen input references an unknown name
   "bad-if-shadow", // a name inside sc-if colliding with the enclosing scope
-  "bad-name-syntax", // a dotted name forging another scope's store key
-  "bad-runtime-conflict", // static and dynamic runtime props are mutually exclusive
   "bad-param-bind", // runtime prop on a synthdef param position
 ]);
 
@@ -77,15 +79,10 @@ await new Promise((r) => setTimeout(r, 3000)); // app boot
 const probeRuntime = (pluginId, entry) =>
   evaluate(`(async () => {
   const res = await fetch("/api/plugins/${pluginId}/${entry}");
-  const doc = new DOMParser().parseFromString(await res.text(), "text/xml");
+  const text = await res.text();
   try {
-    const parseError = doc.querySelector("parsererror");
-    if (parseError) throw new Error(\`plugin entry is not valid XHTML: \${parseError.textContent}\`);
-    const root = doc.documentElement;
-    if (root.localName !== "sc-plugin") throw new Error(\`plugin entry root must be <sc-plugin> (got <\${root.localName}>)\`);
-    const host = document.importNode(root, true);
-    customElements.upgrade(host);
-
+    const { parseEntry } = await import("/src/lib/plugins/PluginManager.ts");
+    const host = parseEntry(text);
     host.processRoot();
     return "PASS";
   } catch (e) {

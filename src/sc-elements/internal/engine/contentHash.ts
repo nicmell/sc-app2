@@ -8,8 +8,7 @@
 // significant (sc-strudel's `\n` escape hashes raw); two mounts of one plugin
 // repeat ids — accepted; nothing queries by id.
 
-import { SPECS } from "@/sc-elements/internal/xsd/registry";
-import { bindAttr, COMMON_ATTRS } from "@/sc-elements/internal/xsd/types";
+import { bindAttr, COMMON_ATTRS, getSpec } from "@/sc-elements/internal/spec";
 
 function cyrb53(value: string): string {
   let h1 = 0xdeadbeef;
@@ -29,7 +28,7 @@ function cyrb53(value: string): string {
 export function contentHash(el: Element, parentId: string, index: number): string {
   const tag = el.tagName.toLowerCase();
   const attrs: Array<[string, string]> = [];
-  for (const [name, spec] of Object.entries(SPECS.get(tag)?.attrs ?? {})) {
+  for (const [name, spec] of Object.entries(getSpec(tag)?.attrs ?? {})) {
     if (COMMON_ATTRS.has(name)) continue;
     const value = el.getAttribute(name);
     if (value !== null) attrs.push([name, value]);
@@ -40,6 +39,8 @@ export function contentHash(el: Element, parentId: string, index: number): strin
     }
   }
   attrs.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-  const serializedAttrs = attrs.map(([name, value]) => `${name}=${JSON.stringify(value)}`).join(",");
+  const serializedAttrs = attrs
+    .map(([name, value]) => `${name}=${JSON.stringify(value)}`)
+    .join(",");
   return cyrb53(`${parentId}/${tag}[${index}](${serializedAttrs})`);
 }

@@ -1,0 +1,8 @@
+{
+  "tag": "sc-synthdef",
+  "category": "synthdef",
+  "attrs": {
+    "name": { "type": "name", "required": true, "runtime": false }
+  },
+  "content": { "choice": ["sc-control", "sc-ugen"] }
+}

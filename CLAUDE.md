@@ -58,10 +58,16 @@ cd src-tauri && cargo check && cargo test
 ```
 main.tsx                 boot: register sc-* elements, render <RouterProvider/>
 routes/                  the react-router DATA-MODE tree (router.tsx):
-                         "/" (rootLoader: stored-or-minted id, replace-redirect)
-                         → "/:sessionId" (sessionLoader → SessionLayout, which
-                         owns connect()/disconnect() on the loader's
-                         SessionInfo and hosts ToastStack/ConnectionOverlay)
+                         ONE layout route "/:sessionId?" (OPTIONAL param)
+                         whose loader (routes/Layout layoutLoader) awaits
+                         initValidator() AND the session resolution
+                         concurrently (sessionLoader resolves stored/minted/
+                         revived ids and keeps the URL truthful; either
+                         failure hits RouteError, whose Retry re-runs the
+                         loader — init rejections aren't cached). Its element
+                         Layout is the app frame hosting ToastStack/
+                         ConnectionOverlay + the router-loading scrim, and
+                         owning connect()/disconnect() on its loader data
                          → DashboardRoute (dashboard + <Outlet/>; the settings
                          child SettingsRoute at /:sessionId/settings renders
                          the drawer, open only once the session is connected —
@@ -69,14 +75,17 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          and PluginPage (/:sessionId/plugins/:pluginId — a
                          full-screen STANDALONE <sc-plugin> instance with its
                          own runtime map + scsynth group);
-                         SessionBootError is the loader-failure modal (Retry =
-                         same-path replace navigation, re-runs loaders)
+                         RouteError is the loader-failure modal — copy derived
+                         from the error (HttpError = session wording, else the
+                         error's own message; Retry = same-path replace
+                         navigation, re-runs loaders)
 components/              React shell: Dashboard grid, shared PluginHost (offline
-                         fetch/parse/process/mount), plugin picker/list, toasts,
-                         the connection overlay (connecting scrim + retry modal
-                         over the session status; Retry revalidates the route
-                         loaders in place), ui/ (Modal — the first of the
-                         planned components/ui primitives)
+                         fetch/parse/process/mount), plugin picker/list,
+                         ToastStack (renders the generic toasts slice), the
+                         connection overlay (thin status switch over the ui
+                         primitives; Retry revalidates the route loaders in
+                         place), ui/ (the generic primitives: Modal with
+                         title/description/actions slots, LoadingOverlay)
 sc-elements/             Lit elements used inside plugin HTML, classified by the
                          old app's taxonomy (see sc-elements/README.md for the
                          per-element docs): nodes/ (plugin/group/synth),
@@ -92,23 +101,32 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          ScPlugin.processRoot builds the entry ctx); the
                          ScElement base carries the common runtime fields +
                          the two hooks; engine/validation.ts holds the
-                         parse-time validation/static-coercion and
+                         static-coercion toolbox + failValidation and
                          engine/resolution.ts the name/scope/bind-resolution
-                         helpers, both as plain functions;
+                         helpers, both as plain functions; static validation
+                         AND the spec data live in the shared Rust sc-validate
+                         crate (violations carry 1-based line:column
+                         positions — attribute-precise; the wasm wrapper
+                         exposes them structured on ValidationError for
+                         future editor diagnostics) (authored per-element specs/<tag>.spec.json
+                         files) — the frontend reads the spec map out of the
+                         wasm module (@sc-app/validate getSpec, parsed at
+                         initValidator; internal/spec.ts re-exports it +
+                         bindAttr/COMMON_ATTRS);
                          the category bases
                          (sc-node/sc-state/sc-input, the old app's names)
                          declare the category props + runtime values; each
                          component overrides the void resolveRuntime() hook,
                          mutating the element itself
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, osc, layout, plugins })
+  store.ts               createStore({ session, osc, toasts, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
                          from @/types (type-only by construction), so no
                          runtime cycle with the singletons. Plugin runtime
                          state is NOT a slice: each mounted <sc-plugin>
                          instance owns a per-instance createStore (see
                          "Runtime values")
-  layout.ts / plugins.ts / session.ts / osc.ts / useStore.ts
+  layout.ts / plugins.ts / session.ts / osc.ts / toasts.ts / useStore.ts
 types/                   .d.ts domain shapes (old sc-app convention):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
@@ -136,8 +154,9 @@ lib/                     non-React infrastructure
                          the `connected` signal, and closes itself on critical
                          transport failures; middleware.ts and middlewares/
                          observe WorkerClient commands/events to own the osc
-                         store slice (tx/rx console log, /fail–/late banners,
-                         /status.reply load, clock status), while watchdog.ts
+                         store slice (tx/rx console log, /status.reply load,
+                         clock status) and push /fail–/late failures into the
+                         global toasts slice (stores/toasts), while watchdog.ts
                          owns heartbeat expiry and exposes its status observer;
                          AND the elements' scsynth command methods — every
                          sequenced send + reply wait: createGroup/createSynth
@@ -195,21 +214,22 @@ type-checked + `react-hooks`) via `yarn lint`; Prettier (`printWidth` 100) via
 A **live session lives exactly as long as its WebSocket**; its **identity and
 dashboard layout persist** server-side:
 
-The URL is the session's source of truth (`/:sessionId`); the route loaders
-(`lib/session/resolveSession.ts`) own resolution and every localStorage write:
+The URL is the session's source of truth (`/:sessionId?`); the ONE route
+loader (`lib/session/resolveSession.ts` sessionLoader) owns resolution and
+every localStorage write:
 
-1. Resolution: `"/"` replace-redirects to the stored `localStorage["sc.session"]`
-   id (or mints one via `POST /api/session` when nothing is stored); the
-   `/:sessionId` loader `GET`s that id — **reviving** the saved session under
+1. Resolution: a param-less URL replace-redirects to the stored
+   `localStorage["sc.session"]` id (or mints one via `POST /api/session` when
+   nothing is stored); with the param the loader `GET`s that id — **reviving** the saved session under
    the same UUID (fresh node-id block, saved layout) — and a dead/unknown id
    mints a fresh session and replace-redirects again (the minted info rides a
    module-level handoff to the redirect target's loader, no re-GET). While
    scsynth is unregistered the server answers 503 (it binds without waiting
    for scsynth, so the GUI window opens regardless) and the loaders retry
    quietly under the connecting fallback within the SCSYNTH_RETRY_LIMIT
-   budget (~5 s); exhaustion throws into SessionBootError, whose Retry is a
+   budget (~5 s); exhaustion throws into RouteError, whose Retry is a
    same-path replace navigation (re-runs the loaders, fresh budget).
-2. Connection: SessionLayout's effect hands the loader's SessionInfo to
+2. Connection: Layout's effect hands the loader's SessionInfo to
    `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS
    (in the worker) and sends `/g_new` — the session group lives **at the tail
    of scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`
@@ -257,8 +277,8 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
   config.rs       config.json (port, peers, connect_timeout, log_dir) +
                   app-data-dir paths
   logger.rs       tracing to stderr + optional rotated JSON file
-  plugin/         zip validation (metadata, XSD entry, assets) + plugins.json
-                  registry (manager.rs + xsd/)
+  plugin/         zip validation (metadata, spec-gated entry, assets) +
+                  plugins.json registry (manager.rs)
   scope/          scsynth SHM scope buffers → /scope/chunk frames over the
                   WS, one file per layer: mmap.rs (read-only mapping +
                   acquire reads), layout.rs (scope_buffer layout +
@@ -306,24 +326,25 @@ parser-item design; each decision is load-bearing for the recipe below:
 
 1. **Attributes became reactive properties** on the components (`@property()
 accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
-   attribute copies on parser items — and `validate()` moved next to them.
+   attribute copies on parser items — while static validation moved to the
+   shared Rust spec gate.
 2. **The items lost their copied props, then their `type` field** (the tag is
    the discriminant), **then their nested `runtime` object** (values merged
    flat), **and finally their existence**: the element IS the runtime.
    The free `process(ctx)` (internal/engine/) assigns the identity + shared
    runtime core (the parent collects the element into `_scChildren` as it
-   completes), then runs the TWO conceptual
-   steps: the engine's own pure `validate` (the static spec gate — no
-   element hook, static rules are spec vocabulary) and the ONE extension
-   hook `resolveRuntime(ctx)` (runtime construction: the recursion into the
-   sc children where the element opens a level — `_scChildren` is a runtime
-   value like the rest — plus bind/reference resolution), mutating the
-   component itself. `lib/html` and `src/runtime/handlers.ts` are gone —
-   the engine is the free-function interpreter in `internal/engine/`, and
-   the validation + bind-resolution
+   completes), then runs the ONE extension hook `resolveRuntime(ctx)` (runtime
+   construction: the recursion into the sc children where the element opens a
+   level — `_scChildren` is a runtime value like the rest — plus bind/reference
+   resolution), mutating the component itself. Static validation happens before
+   the tree reaches the engine: the shared Rust `src-tauri/crates/sc-validate`
+   crate is enforced natively at upload and as wasm by `@sc-app/validate` at
+   `parseEntry` (multi-error, one per line). `lib/html` and
+   `src/runtime/handlers.ts` are gone — the engine is the free-function
+   interpreter in `internal/engine/`, and its coercion/failure + bind-resolution
    helpers are plain functions in `internal/engine/validation.ts` +
-   `internal/engine/resolution.ts`, taking the
-   element explicitly where the error messages need it.
+   `internal/engine/resolution.ts`, taking the element explicitly where the
+   error messages need it.
 3. **The old app's `internal/` category bases returned** (`sc-node`,
    `sc-state`, `sc-input`) to declare the per-category props + runtime
    fields once; concrete elements are mostly a small `resolveRuntime()`
@@ -353,20 +374,20 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    `xmlns:bind="urn:sc-app:bind"` on the root; the runtime matches by
    QUALIFIED NAME — getAttribute("bind:min"), never getAttributeNS (the one
    portable API across happy-dom and Chrome; a bare `:value` sigil is
-   impossible — not namespace-well-formed XML, not an XSD NCName; a
-   DECLARED prefix is). Upload-gate honesty: fastxml 0.8.0 validates NO
-   attributes (`validate_attributes` is a stub) — the schema's attribute
-   rules bite only under libxml2 in dev; the engine's `validate` at parse
-   is the authoritative gate, so a wrong plugin usually uploads 201 and dies with
-   a pointed error in the plugin box.
+   impossible — not namespace-well-formed XML; a DECLARED prefix is).
+   The shared Rust `sc-validate` gate is the WHOLE static contract —
+   well-formedness, the XHTML namespace, attributes, content-model
+   membership (leaves are strictly empty; ul/ol need an li) — at native
+   upload time and as wasm in the frontend at `parseEntry`, with multi-error
+   messages joined one per line.
 6. **The parse context is a CURSOR and the engine recurses**: the free
    `process(ctx)` (internal/engine/) works on `ctx.siblings[ctx.index]`,
    threading `{rootNode, nodes: Set<ScElement>, siblings, index, scope,
-   parentNode, path}` — one shared object per sibling scope, the driver
-   setting `index`; it runs the pure `validate` (the spec gate), then
-   `resolveRuntime(ctx)` (bind/reference resolution; ScParent recurses via
-   the engine's `processChildren` there, collecting each child into
-   `_scChildren` as it completes). A parent collects ALL its children into
+parentNode, path}` — one shared object per sibling scope, the driver
+   setting `index`; static validation already happened at parseEntry/upload, so
+   it assigns identity/core and runs `resolveRuntime(ctx)` (bind/reference
+   resolution; ScParent recurses via the engine's `processChildren` there,
+   collecting each child into `_scChildren` as it completes). A parent collects ALL its children into
    the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
    deterministic path-chained hash id as it processes), with inner-scope
@@ -391,10 +412,12 @@ referenced before it is declared` when a bind names an in-scope element
    mid-processing element is not yet in its parent's `_scChildren`, so a
    self-reference surfaces in the lexical fallback / DOM probe —
    `bad-circular-bind` pins the message).
-8. **Two validation gates** keep all of this honest: `yarn test` (the
-   examples through the engine in happy-dom, exact error messages pinned)
-   and the CDP harness (upload/XSD path + real browser) — see "Validating
-   example plugins" below.
+8. **Two validation gates** keep all of this honest: the shared Rust
+   `sc-validate` crate runs natively at upload and as wasm at frontend
+   `parseEntry` (multi-error, one per line), while `yarn vitest run` (the ONE
+   owner of the fixtures' exact messages — examples.test.ts) and the CDP
+   harness pin the frontend runtime and the full upload path in happy-dom
+   and a real browser — see "Validating example plugins" below.
 
 ## Migrating an sc-element (the recipe)
 
@@ -403,16 +426,15 @@ further `sc-*` element:
 
 1. **Tag**: add it to `ELEMENTS` (`src/constants/sc-elements.ts`) and the
    constructor `REGISTRY` (`src/sc-elements/index.ts`). The JSX augmentation
-   grows automatically; the backend XSD is GENERATED (next step) — never
-   hand-edited.
-2. **Attributes live in the colocated spec — the spec IS the attribute
-   contract.** Ship a `<tag>.spec.ts` exporting a pure-JSON `ElementSpec`
-   (`internal/xsd/types.ts`: attrs typed
-   `string|name|decimal|integer|boolean|scalar|enum`, `required`,
+   grows automatically.
+2. **Attributes live in the spec — the spec IS the attribute contract.**
+   Author `src-tauri/crates/sc-validate/specs/<tag>.spec.json` (attrs typed
+   `string|name|decimal|integer|boolean|scalar|vector|enum`, `required`,
    `runtime: false` to opt attrs out of `bind:` bindability; category;
-   content model),
-   auto-globbed into the runtime `SPECS` registry. Run `yarn generate:xsd`
-   (the snapshot test fails otherwise). Components read attributes on
+   unflattened content model; `$comment` fields carry docs) and register it
+   in spec.rs's `SPEC_SOURCES` (ELEMENTS order). Run `yarn generate:wasm`
+   (the CI drift job pins the committed pkg; the wasm-specs vitest pins the
+   ELEMENTS ↔ spec-map bijection). Components read attributes on
    demand via `getProp(name)` (spec-coerced, untyped — cast at the call
    site; with the `bind:` form present it returns the LIVE evaluated
    value); a declared `default` is applied by `getProp` (with the same
@@ -421,18 +443,18 @@ further `sc-*` element:
    widget's own default; only
    genuinely-reactive fields (a widget's `value`/`_checked`) stay as Lit
    properties.
-3. **Validation is spec-only**: the engine's pure `validate` (the plain
-   parse-time function in `internal/engine/validation.ts`, spec-driven)
-   enforces required/numeric/enum plus numeric range facets
-   (`min`/`max`/`exclusiveMin`), numeric-STRICT vectors (`numeric: true`),
-   the `name` type's identifier grammar, the no-sc-children rule for
-   choice-less content models, and the runtime-prop rules
-   (static-XOR-`bind:` mutual exclusion, required-by-either-form, no stray
-   `bind:` attrs, foreign-prefix rejection). There is NO element validation
-   hook: a static rule is spec vocabulary or it does not exist; positional
-   and resolved-state rules live in `resolveRuntime`. A violation fails the
-   whole plugin. This is the _real_ gate — fastxml does not enforce XSD
-   attribute requirements at upload.
+3. **Validation is spec-only**: the per-element spec drives BOTH the shared
+   Rust `sc-validate` gate and `getProp` coercion — the frontend reads the
+   SAME data as the validator, exported by the wasm module
+   (`element_specs()` → `@sc-app/validate`'s `getSpec`, attr order
+   preserved).
+   The Rust gate enforces required/numeric/enum plus numeric range facets,
+   numeric-STRICT vectors, name syntax, content-model membership, and the
+   runtime-prop rules (static-XOR-`bind:` mutual exclusion,
+   required-by-either-form, no stray `bind:` attrs, foreign-prefix rejection)
+   at native upload and wasm `parseEntry` time. `internal/engine/validation.ts`
+   now keeps only coercion helpers and the canonical `failValidation` shape;
+   positional and resolved-state rules live in `resolveRuntime`.
 4. **Runtime values live ON the element** — there are no item structures.
    Declare them as plain (non-reactive) fields on the component, or inherit
    them from the category base (`internal/sc-node`: nodeId/loaded;
@@ -495,7 +517,7 @@ further `sc-*` element:
 | sc-if                                                      | functional: conditional rendering on the TRUTHINESS of the `bind:when` expression (`bind:when="osc.gate"`, `bind:when="vars.freq > 440"` — the ScElement runtime-prop machinery); a TRANSPARENT container — its contents parse into the ENCLOSING scope and are UNCONDITIONALLY live (a hidden synth keeps playing; a var keys at the enclosing path); visibility via the `hidden` attribute + sc-if.scss (display: contents / [hidden] none)                                                                                                                     |
 | sc-text, sc-flex, sc-row, sc-col                           | functional visual/layout wrappers over ui-components; row/col use a native 24-track CSS Grid, with the slotted sc-col host adopting the shared static span/offset/order rules for WebKit/Tauri compatibility                                                                                                                                                                                                                                                                                                                                                      |
 | sc-group                                                   | functional: its own /g_new (created BEFORE its children, which target it via `targetGroupId`; nested groups nest); unload resets flags only — the subtree dies with the plugin group's wholesale teardown; a group-level control write /n_sets the group node (scsynth fans it out to every node inside). `run="false"` is not honored yet                                                                                                                                                                                                                        |
-| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (its resolveRuntime override); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                                   |
+| sc-button                                                  | functional: renders the ui-components `<sc-base-button>` over the ScInput seam; write-only — `bind:value` MUST be a plain writable path (its resolveRuntime override); a click commits `set` when given (fixed-value trigger, runtime-capable as `bind:set`) else toggles 0 ↔ 1; `label`/`icon`/`disabled` are runtime props (`bind:icon="s1.gate ? 'stop' : 'play'"`)                                                                                                                                                                                            |
 | sc-console                                                 | functional leaf (the OSC console; no attributes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | sc-scope                                                   | functional + parametrized: tap props `bus`/`channels`/`frames` (the visible window in samples — default 1024, ≤ 16384) + renderer-only display props `trigger` (auto\|normal\|off — edge trigger on lane 0, lib/scope/trigger.ts), `slope`, `level`, `gain`, `layout` (overlay\|split), `range` (bipolar\|unipolar — envelopes/control taps fill the lane) — see scope.md §5. The element owns its tap (def + synth at the session-group tail + a scope slot from the session's span) through load/unload. NOT the old buffer-bound sc-scope (buffer-family step) |
 | sc-strudel                                                 | functional + parametrized: `value` = initial pattern code; plain-path `bind:value` is two-way per keystroke, expression binds are read-only, and attribute `\\n` escapes decode to newlines; `orbit` stamps un-routed dirt events; editor mounts offline, unload stops playback                                                                                                                                                                                                                                                                                   |
@@ -620,8 +642,9 @@ live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
 are syntax-validated as ONE bind-path segment (the spec `name` type — letters,
 digits, `*`, `-`; no dots): a dotted name would forge another scope's store
-key (`bad-name-syntax`; the XSD carries the same pattern facet, while the
-runtime remains the authoritative gate). The old app's name-based
+key (`bad-name-syntax`; the
+shared Rust gate enforces it natively at upload and as wasm at parseEntry).
+The old app's name-based
 group→descendant SET_CONTROL propagation is deliberately NOT reproduced — a
 group-level control's /n_set on the group node is the server-side
 replacement (scsynth fans it out), plus explicit `bind:value="group.ctl"`.
@@ -636,10 +659,6 @@ subtraction) except buffers and presets/overrides. Examples: every old example
 without a buffer-family element lives in `examples/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
-
-**fastxml is pinned to =0.8.0** (src-tauri/Cargo.toml): 0.8.1+ rejects
-mixed-content models whose choices have minOccurs="0" (a text-only `<span>`
-fails), which the old app never hit because it locked 0.8.0.
 
 ## Validating example plugins (the two gates)
 
@@ -700,7 +719,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
 ## Migration plan (old `sc-app/` → here)
 
 The old app (see `sc-app/CLAUDE.md` for its full docs) is a declarative
-SuperCollider control surface: plugin zips of XSD-validated XHTML rooted at an
+SuperCollider control surface: plugin zips of spec-validated XHTML rooted at an
 authored `<sc-plugin>` and built from `sc-*` elements, parsed into a typed element tree, bound to live scsynth node
 graphs, with in-browser SynthDef compilation. The directory layout here was
 already reshaped to mirror it (`lib/*` infrastructure, `@/` alias). Migration

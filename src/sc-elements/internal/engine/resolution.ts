@@ -1,11 +1,12 @@
-// STEP 2's toolbox — the name/scope/bind machinery the `resolveRuntime`
+// The runtime-resolution toolbox — the name/scope/bind machinery the `resolveRuntime`
 // overrides build on, as plain functions over the live elements: name and
 // transparency semantics, duplicate-name integrity over a sibling scope,
 // name-path resolution against the parse context (bind-order enforced), and
 // the bind-expression resolver feeding the runtime-prop machinery. The error
 // messages are the runtime gate's contract — pinned verbatim by
-// src/sc-elements/examples.test.ts and the CDP harness. The STATIC gate
-// (the pure validate + coercion) lives in the sibling validation.ts.
+// src/sc-elements/examples.test.ts and the CDP harness. Static validation
+// lives in the shared Rust crate; coercion helpers used by getProp live in the
+// sibling validation.ts.
 
 import { parseBind } from "@/lib/expression";
 import {

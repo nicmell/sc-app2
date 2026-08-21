@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sc-plugin xmlns="http://www.w3.org/1999/xhtml" xmlns:bind="urn:sc-app:bind">
+  <!-- INTENTIONAL: every content-model rule violated once. Leaves are
+       STRICTLY EMPTY (no children, no text), lists need an li, and the
+       root's membership excludes child-only elements (sc-option lives
+       inside sc-select). The root's own gate reports before recursion, so
+       the sc-option line comes first. -->
+  <sc-slider value="1"><div/></sc-slider>
+  <sc-display value="1">boo</sc-display>
+  <ul></ul>
+  <sc-option value="1" label="a"/>
+</sc-plugin>

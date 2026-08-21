@@ -1,0 +1,7 @@
+# Pin the toolchain so the committed wasm artifact (packages/validate/pkg) is
+# byte-reproducible: the CI drift job rebuilds it and diffs against the
+# committed bytes, which only works when every builder compiles with the same
+# rustc. Bump deliberately, regenerating the artifact in the same commit.
+[toolchain]
+channel = "1.97.1"
+targets = ["wasm32-unknown-unknown"]

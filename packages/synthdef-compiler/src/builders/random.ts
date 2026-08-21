@@ -34,7 +34,6 @@ export class CoinGate {
     return b;
   }
 
-
   /** Value between 0 and 1 determines probability of either possibilities */
   prob(v: UGenInputLike): this {
     this._prob = toUGenInput(v);

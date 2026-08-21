@@ -42,7 +42,12 @@ describe("expression graph inputs", () => {
   it("rejects an operand referenced before it is declared", () => {
     // `osc` binds `later`, a ugen declared AFTER it — a forward reference.
     expect(() =>
-      parsePlugin(synthdef("later * 2", `<sc-ugen name="later" type="SinOsc"><sc-control name="freq" value="1"/></sc-ugen>`)),
+      parsePlugin(
+        synthdef(
+          "later * 2",
+          `<sc-ugen name="later" type="SinOsc"><sc-control name="freq" value="1"/></sc-ugen>`,
+        ),
+      ),
     ).toThrow(/"later" is referenced before it is declared/);
   });
 });

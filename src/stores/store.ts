@@ -25,7 +25,6 @@ const initialOscState: OscState = {
   scsynthStatus: null,
   clock: null,
   log: [],
-  errors: [],
 };
 
 export const appStore = createStore<AppState>({
@@ -33,4 +32,5 @@ export const appStore = createStore<AppState>({
   osc: initialOscState,
   layout: DEFAULT_LAYOUT,
   plugins: [],
+  toasts: [],
 });

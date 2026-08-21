@@ -1,0 +1,17 @@
+/* Loading overlay: a full-window scrim holding the indeterminate bar. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Caps the <sc-base-progress> bar (it's width: 100%) so it doesn't span the
+   whole window inside the flex backdrop. */
+.loader {
+  width: min(320px, 60vw);
+}

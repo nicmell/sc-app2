@@ -1,19 +1,17 @@
-// The parse ENGINE — the interpreter driving the two-step element pipeline
-// as free functions over a CURSOR context: `ctx.siblings` is the level's
+// The parse ENGINE — the interpreter driving element processing as free
+// functions over a CURSOR context: `ctx.siblings` is the level's
 // flattened walk and `ctx.index` the driver-set position of the current
 // element (`ctx.scope` stays the cumulative name-lookup chain — the level
 // prefix coincides with `siblings`, but nothing contracts on that). The
 // engine owns everything positional and unconditional — identity (the
 // path-chained hash id), the shared runtime core, the re-entrancy guard,
-// the duplicate-name integrity, the canonical error shape, AND step 1
-// itself (the pure spec-driven `validate` — static rules are spec
-// vocabulary, never element code) — while the elements provide the ONE
-// extension hook (`resolveRuntime(ctx)`) and ScParent calls back into
-// `processChildren` where it opens a level.
+// the duplicate-name integrity, and the canonical error shape. Static spec
+// validation happens in the shared Rust validator before the tree reaches the
+// engine; the elements provide the ONE extension hook (`resolveRuntime(ctx)`)
+// and ScParent calls back into `processChildren` where it opens a level.
 
 import { contentHash } from "./contentHash";
 import { checkDuplicateNames, nameOf } from "./resolution";
-import { validate } from "./validation";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { RuntimeContext } from "@/types/runtime";
@@ -24,10 +22,10 @@ import type { RuntimeContext } from "@/types/runtime";
  *  hash id minted from the level owner's id + the cursor position,
  *  `_rootScNode`/`basePath`/`_parentScNode` — the level owner; the OWNER
  *  collects the element into its `_scChildren` once processing completes,
- *  see `processChildren`), then run the element's two steps — `validate()`
- *  (static) and `resolveRuntime(ctx)` (runtime construction). Library
- *  throws get the canonical `<tag>:` prefix; already-shaped errors pass
- *  through. Idempotent — an already-processed element is returned as-is. */
+ *  see `processChildren`), then run the element's runtime step,
+ *  `resolveRuntime(ctx)` (static validation already happened at parseEntry).
+ *  Library throws get the canonical `<tag>:` prefix; already-shaped errors
+ *  pass through. Idempotent — an already-processed element is returned as-is. */
 export function process(ctx: RuntimeContext): ScElement {
   const el = ctx.siblings[ctx.index];
   if (ctx.nodes.has(el)) {
@@ -39,7 +37,6 @@ export function process(ctx: RuntimeContext): ScElement {
     el._rootScNode = ctx.rootNode;
     el.basePath = ctx.path;
     el._parentScNode = ctx.parentNode;
-    validate(el);
     el.resolveRuntime(ctx);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

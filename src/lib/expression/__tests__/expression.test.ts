@@ -159,7 +159,10 @@ describe("function calls (grammar)", () => {
 
   it("folds a negated number literal (constant-only env slots need raw numbers)", () => {
     const parsed = parseBind("perc(0.01, 1, -0.5)");
-    const call = parsed.expression as Extract<NonNullable<typeof parsed.expression>, { type: "call" }>;
+    const call = parsed.expression as Extract<
+      NonNullable<typeof parsed.expression>,
+      { type: "call" }
+    >;
     expect(call.args[2]).toEqual({ type: "number", value: -0.5 });
   });
 

@@ -19,9 +19,10 @@ export function common_attrs(): string;
 export function element_specs(): string;
 
 /**
- * Validate a plugin entry document. See [`crate::validate_entry`].
+ * Validate a plugin entry document. See [`crate::validate_entry`]. Returns
+ * the violations as a JSON array of `{tag, message, line, column}`.
  */
-export function validate_entry(xml: string): string[];
+export function validate_entry(xml: string): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -35,7 +36,6 @@ export interface InitOutput {
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;
-    readonly __externref_drop_slice: (a: number, b: number) => void;
     readonly __wbindgen_start: () => void;
 }
 

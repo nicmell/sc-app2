@@ -167,7 +167,11 @@ fn validate_entry_spec(entry_content: &str) -> Result<(), String> {
     if !violations.is_empty() {
         return Err(format!(
             "entry file does not conform to the sc-plugin spec:\n{}",
-            violations.join("\n")
+            violations
+                .iter()
+                .map(sc_validate::Violation::render)
+                .collect::<Vec<_>>()
+                .join("\n")
         ));
     }
     Ok(())
@@ -395,8 +399,8 @@ mod tests {
         assert_eq!(
             validate_entry_spec(bad).err().unwrap(),
             "entry file does not conform to the sc-plugin spec:\n\
-             <sc-var>: \"name\" attribute must be a plain identifier — letters, digits, \"_\", \"-\" (got \"a.b\")\n\
-             <div>: unknown attribute \"foo\""
+             <sc-var>: \"name\" attribute must be a plain identifier — letters, digits, \"_\", \"-\" (got \"a.b\") (1:57)\n\
+             <div>: unknown attribute \"foo\" (1:84)"
         );
         let malformed = "<sc-plugin><div></sc-plugin>";
         assert!(validate_entry_spec(malformed)

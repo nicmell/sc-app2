@@ -1,10 +1,12 @@
 //! The wasm-bindgen surface (feature `wasm`) — the browser build consumed by
-//! `@sc-app/validate` (packages/validate). Two exports: `validate_entry`
-//! mirrors [`crate::validate_entry`] (`Err` = parse-failure text, `Ok` =
-//! rendered violations, empty = valid), and `element_specs` serializes the sc
+//! `@sc-app/validate` (packages/validate). Exports: `validate_entry` mirrors
+//! [`crate::validate_entry`] (`Err` = parse-failure text, `Ok` = STRUCTURED
+//! violations as JSON `[{tag, message, line, column}]`, empty = valid — the
+//! structured shape feeds editor diagnostics; the JS wrapper renders the
+//! canonical display strings), and `element_specs` serializes the sc
 //! elements' attribute contracts for the frontend's getProp/runtime-prop
 //! machinery — the ONE spec copy, read out of the module the app already
-//! loads. The JS wrapper turns both into the canonical frontend shapes.
+//! loads.
 
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
@@ -12,10 +14,13 @@ use wasm_bindgen::prelude::*;
 
 use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
 
-/// Validate a plugin entry document. See [`crate::validate_entry`].
+/// Validate a plugin entry document. See [`crate::validate_entry`]. Returns
+/// the violations as a JSON array of `{tag, message, line, column}`.
 #[wasm_bindgen]
-pub fn validate_entry(xml: &str) -> Result<Vec<String>, String> {
-    crate::validate_entry(xml)
+pub fn validate_entry(xml: &str) -> Result<String, String> {
+    crate::validate_entry(xml).map(|violations| {
+        serde_json::to_string(&violations).expect("sc-validate: violations serialize")
+    })
 }
 
 /// The attributes every element accepts without declaring them, as a JSON

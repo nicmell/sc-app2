@@ -87,20 +87,49 @@ export function getCommonAttrs(): string[] {
   return JSON.parse(common_attrs()) as string[];
 }
 
+/** One structured violation from the static gate — `line`/`column` are
+ *  1-based source positions (the attribute's own qname for attribute rules,
+ *  the element start otherwise). The structured shape is what an in-app
+ *  editor consumes for diagnostics; `render` is the canonical display line. */
+export interface ValidationViolation {
+  tag: string;
+  message: string;
+  line: number;
+  column: number;
+}
+
+/** The canonical display line for one violation. */
+function render(violation: ValidationViolation): string {
+  return `<${violation.tag}>: ${violation.message} (${violation.line}:${violation.column})`;
+}
+
+/** Thrown by validateEntry when the entry violates the spec: `message` is
+ *  every violation newline-joined; `violations` keeps the structured list. */
+export class ValidationError extends Error {
+  readonly violations: readonly ValidationViolation[];
+
+  constructor(violations: readonly ValidationViolation[]) {
+    super(violations.map(render).join("\n"));
+    this.name = "ValidationError";
+    this.violations = violations;
+  }
+}
+
 /** Validate + parse a plugin entry document. Throws the canonical shapes:
- *  `plugin entry is not valid XHTML: …` on a parse failure, else every spec
- *  violation newline-joined (a single violation is byte-identical to the old
- *  per-element engine error). Returns the authored root element. */
+ *  `plugin entry is not valid XHTML: …` on a parse failure, else a
+ *  ValidationError with every spec violation newline-joined (structured
+ *  `{tag, message, line, column}` entries on `.violations`). Returns the
+ *  authored root element. */
 export function validateEntry(xml: string): Element {
   requireSpecs();
-  let violations: string[];
+  let violations: ValidationViolation[];
   try {
-    violations = validate_entry(xml);
+    violations = JSON.parse(validate_entry(xml)) as ValidationViolation[];
   } catch (e) {
     throw new Error(`plugin entry is not valid XHTML: ${String(e)}`, { cause: e });
   }
   if (violations.length > 0) {
-    throw new Error(violations.join("\n"));
+    throw new ValidationError(violations);
   }
   // The wasm side already proved well-formedness; this parse only exists to
   // produce the live Element (the parsererror probe is a defensive fallback

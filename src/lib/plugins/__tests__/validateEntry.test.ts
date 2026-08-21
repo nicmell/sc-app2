@@ -5,7 +5,7 @@
 // check, and the spec-map lookups.
 
 import { describe, expect, it } from "vitest";
-import { getSpec, validateEntry } from "@sc-app/validate";
+import { getSpec, validateEntry, ValidationError } from "@sc-app/validate";
 import { wrapXml } from "@/lib/utils/test/test-utils";
 
 describe("validateEntry", () => {
@@ -24,11 +24,11 @@ describe("validateEntry", () => {
   it("rejects deep documents before the parser", () => {
     const deep = wrapXml(`${"<div>".repeat(300)}${"</div>".repeat(300)}`);
     expect(() => validateEntry(deep)).toThrow(
-      "plugin entry is not valid XHTML: document nested deeper than 256 levels",
+      /^plugin entry is not valid XHTML: document nested deeper than 256 levels at 2:/,
     );
   });
 
-  it("joins every violation with a newline, in document order", () => {
+  it("joins every violation with a newline, in document order, with positions", () => {
     let error: Error | null = null;
     try {
       validateEntry(wrapXml(`<sc-slider/><sc-scope foo="1"/>`));
@@ -36,14 +36,25 @@ describe("validateEntry", () => {
       error = e as Error;
     }
     expect(error?.message.split("\n")).toEqual([
-      '<sc-slider>: missing required "value" attribute',
-      '<sc-scope>: unknown attribute "foo"',
+      '<sc-slider>: missing required "value" attribute (2:78)',
+      '<sc-scope>: unknown attribute "foo" (2:100)',
+    ]);
+    // The structured list rides the error for editor diagnostics.
+    expect(error).toBeInstanceOf(ValidationError);
+    expect((error as ValidationError).violations).toEqual([
+      {
+        tag: "sc-slider",
+        message: 'missing required "value" attribute',
+        line: 2,
+        column: 78,
+      },
+      { tag: "sc-scope", message: 'unknown attribute "foo"', line: 2, column: 100 },
     ]);
   });
 
   it("pins the root check", () => {
     expect(() => validateEntry(`<div xmlns="http://www.w3.org/1999/xhtml"/>`)).toThrow(
-      "<div>: plugin entry root must be <sc-plugin> (got <div>)",
+      "<div>: plugin entry root must be <sc-plugin> (got <div>) (1:1)",
     );
   });
 });

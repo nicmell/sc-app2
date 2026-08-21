@@ -12,6 +12,7 @@ pub use rules::{Violation, ViolationKind};
 /// The classification of a document-level failure — the input never reached
 /// (or survived) the XML parser, so there are no per-element violations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[serde(rename_all = "kebab-case")]
 pub enum ParseErrorCode {
     /// The XML itself failed to parse.
@@ -24,6 +25,7 @@ pub enum ParseErrorCode {
 /// the parser's own message (callers wrap it in the canonical
 /// "not valid XHTML" shape).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub struct ParseError {
     pub code: ParseErrorCode,
     pub message: String,

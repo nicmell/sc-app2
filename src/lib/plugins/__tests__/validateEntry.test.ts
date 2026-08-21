@@ -5,7 +5,29 @@
 // check, and the spec-map lookups.
 
 import { describe, expect, it } from "vitest";
-import { EntryParseError, getSpec, validateEntry, ValidationError } from "@sc-app/validate";
+import {
+  EntryParseError,
+  getSpec,
+  validateEntry,
+  ValidationError,
+  type ValidationViolation,
+} from "@sc-app/validate";
+
+// COMPILE-TIME pin: the tsify-generated union must narrow on `code` (payload
+// fields surface per variant, base fields stay reachable). A broken generated
+// shape fails `yarn build`'s type-check, not just this suite.
+export function narrows(violation: ValidationViolation): string {
+  switch (violation.kind.code) {
+    case "invalid-enum":
+      return violation.kind.allowed.join("|") + violation.kind.attr;
+    case "value-below-min":
+      return `${violation.kind.min} ${violation.kind.value} ${violation.tag}:${violation.line}`;
+    case "unexpected-child":
+      return violation.kind.child;
+    default:
+      return violation.message;
+  }
+}
 import { wrapXml } from "@/lib/utils/test/test-utils";
 
 describe("validateEntry", () => {
@@ -44,17 +66,15 @@ describe("validateEntry", () => {
     expect(error).toBeInstanceOf(ValidationError);
     expect((error as ValidationError).violations).toEqual([
       {
-        code: "missing-required-attr",
         tag: "sc-slider",
-        attr: "value",
+        kind: { code: "missing-required-attr", attr: "value" },
         line: 2,
         column: 78,
         message: '<sc-slider>: missing required "value" attribute (2:78)',
       },
       {
-        code: "unknown-attr",
         tag: "sc-scope",
-        attr: "foo",
+        kind: { code: "unknown-attr", attr: "foo" },
         line: 2,
         column: 100,
         message: '<sc-scope>: unknown attribute "foo" (2:100)',

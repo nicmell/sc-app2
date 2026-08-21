@@ -9,36 +9,65 @@
 
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
+use tsify::{Ts, Tsify};
 use wasm_bindgen::prelude::*;
 
 use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
+use crate::{ParseError, Violation, ViolationKind};
+
+/// The wire shape of one violation: the crate's Violation (tag, the typed
+/// `kind` with its `code` + payload — attr/value/allowed/… — and position)
+/// plus the pre-rendered display line, so the JS side never duplicates
+/// format logic. The TypeScript definition is GENERATED from this type
+/// (tsify) into the pkg d.ts — the one type source. `kind` is NESTED, not
+/// serde-flattened: tsify renders a flattened union as
+/// `interface … extends <union>` — invalid TS that skipLibCheck silently
+/// degrades into a type without the union members.
+#[derive(Serialize, Tsify)]
+pub struct ValidationViolation {
+    /// The authored local tag of the offending element.
+    pub tag: String,
+    /// The typed classification: `{code, …payload}`.
+    pub kind: ViolationKind,
+    /// 1-based source line.
+    pub line: u32,
+    /// 1-based source column.
+    pub column: u32,
+    /// The canonical display line: `<tag>: message (line:col)`.
+    pub message: String,
+}
+
+impl From<Violation> for ValidationViolation {
+    fn from(violation: Violation) -> Self {
+        let message = violation.render();
+        Self {
+            tag: violation.tag,
+            kind: violation.kind,
+            line: violation.line,
+            column: violation.column,
+            message,
+        }
+    }
+}
 
 /// Validate a plugin entry document. See [`crate::validate_entry`]. `Ok` is
-/// a JSON array of violations — `{code, tag, <payload…>, line, column,
-/// message}` (the payload fields are the kind's own: attr/value/allowed/…;
-/// `message` is the pre-rendered display line, so the JS side never
-/// duplicates format logic). `Err` (thrown) is the classified parse failure
-/// as JSON `{code, message, line, column}`.
+/// the typed violation list; `Err` (thrown) is the classified parse failure
+/// `{code, message, line, column}` — both cross the boundary as the
+/// tsify-generated shapes.
 #[wasm_bindgen]
-pub fn validate_entry(xml: &str) -> Result<String, String> {
+pub fn validate_entry(xml: &str) -> Result<Vec<Ts<ValidationViolation>>, Ts<ParseError>> {
+    // from_rust serializes INSIDE the function (the Ts design: the ABI
+    // boundary itself stays infallible); our own valid data can't fail it.
     match crate::validate_entry(xml) {
-        Ok(violations) => {
-            let list: Vec<serde_json::Value> = violations
-                .iter()
-                .map(|violation| {
-                    let mut value =
-                        serde_json::to_value(violation).expect("sc-validate: violation serialize");
-                    value
-                        .as_object_mut()
-                        .expect("violation serializes to an object")
-                        .insert("message".into(), violation.render().into());
-                    value
-                })
-                .collect();
-            Ok(serde_json::to_string(&list).expect("sc-validate: violations serialize"))
-        }
+        Ok(violations) => Ok(violations
+            .into_iter()
+            .map(|violation| {
+                Ts::from_rust(&ValidationViolation::from(violation))
+                    .expect("sc-validate: violation serialize")
+            })
+            .collect()),
         Err(parse_error) => {
-            Err(serde_json::to_string(&parse_error).expect("sc-validate: parse error serialize"))
+            Err(Ts::from_rust(&parse_error).expect("sc-validate: parse error serialize"))
         }
     }
 }

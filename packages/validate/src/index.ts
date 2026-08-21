@@ -9,6 +9,13 @@
 // runtime-prop machinery. Bind/reference resolution stays in the parse engine.
 
 import init, { common_attrs, element_specs, validate_entry } from "../pkg/sc_validate";
+import type { ParseError, ValidationViolation } from "../pkg/sc_validate";
+
+// The violation/parse-error TypeScript shapes are GENERATED from the crate's
+// Rust types (tsify) into the pkg d.ts — re-exported here as the wrapper's
+// public surface, so the union can never drift from ViolationKind.
+export type { ParseErrorCode, ValidationViolation, ViolationKind } from "../pkg/sc_validate";
+export type { ParseError as ValidationParseError } from "../pkg/sc_validate";
 
 /** Shared to every attribute — exactly what the runtime reads: `runtime`
  *  gates the `bind:` sibling (contentHash + runtime-prop resolution),
@@ -87,66 +94,26 @@ export function getCommonAttrs(): string[] {
   return JSON.parse(common_attrs()) as string[];
 }
 
-/** Shared by every violation: the offending element's tag, the 1-based
- *  source position (the attribute's own qname for attribute rules, the
- *  offending child/text for content rules, the element start otherwise), and
- *  the pre-rendered display line (`<tag>: … (line:col)` — rendered by the
- *  crate, never re-derived here). */
-interface ViolationBase {
-  tag: string;
-  line: number;
-  column: number;
-  message: string;
-}
-
-/** One structured violation from the static gate, discriminated on the
- *  STABLE `code` (the crate's ViolationKind serde tag) with the rule's own
- *  payload — the shape editor diagnostics switch on (quick-fixes read
- *  `allowed`, the violated bound, …). */
-export type ValidationViolation = ViolationBase &
-  (
-    | { code: "mutually-exclusive-attr"; attr: string }
-    | { code: "missing-required-attr"; attr: string }
-    | { code: "invalid-decimal"; attr: string; value: string }
-    | { code: "invalid-integer"; attr: string; value: string }
-    | { code: "invalid-boolean"; attr: string; value: string }
-    | { code: "invalid-enum"; attr: string; value: string; allowed: string[] }
-    | { code: "invalid-name"; attr: string; value: string }
-    | { code: "value-below-min"; attr: string; value: string; min: number }
-    | { code: "value-below-exclusive-min"; attr: string; value: string; min: number }
-    | { code: "value-above-max"; attr: string; value: string; max: number }
-    | { code: "invalid-numeric-vector"; attr: string; value: string }
-    | { code: "unknown-attr"; attr: string }
-    | { code: "unknown-attr-prefix"; prefix: string }
-    | { code: "unknown-runtime-attr"; attr: string }
-    | { code: "wrong-namespace" }
-    | { code: "unexpected-child"; child: string }
-    | { code: "unexpected-text" }
-    | { code: "missing-required-child"; child: string }
-    | { code: "wrong-root"; root: string }
-  );
-
-/** A classified document-level failure (the entry never survived the XML
- *  parser): carried on the thrown EntryParseError's `parseError`. */
-export interface ValidationParseError {
-  code: "not-well-formed" | "too-deep";
-  message: string;
-  line: number;
-  column: number;
-}
-
 /** Thrown by validateEntry on a parse failure: the canonical
  *  `plugin entry is not valid XHTML: …` message, with the classified
- *  ValidationParseError (code + position) on `parseError` when the wasm
- *  produced one (absent only for glue-level failures). */
+ *  ParseError (code + position) on `parseError` when the wasm produced one
+ *  (absent only for glue-level failures). */
 export class EntryParseError extends Error {
-  readonly parseError?: ValidationParseError;
+  readonly parseError?: ParseError;
 
-  constructor(message: string, cause: unknown, parseError?: ValidationParseError) {
+  constructor(message: string, cause: unknown, parseError?: ParseError) {
     super(message, { cause });
     this.name = "EntryParseError";
     this.parseError = parseError;
   }
+}
+
+/** The wasm Err side arrives as the thrown ParseError object; anything else
+ *  is a glue-level failure. */
+function asParseError(e: unknown): ParseError | undefined {
+  return typeof e === "object" && e !== null && "code" in e && "message" in e
+    ? (e as ParseError)
+    : undefined;
 }
 
 /** Thrown by validateEntry when the entry violates the spec: `message` is
@@ -171,16 +138,9 @@ export function validateEntry(xml: string): Element {
   requireSpecs();
   let violations: ValidationViolation[];
   try {
-    violations = JSON.parse(validate_entry(xml)) as ValidationViolation[];
+    violations = validate_entry(xml);
   } catch (e) {
-    // The wasm throws the classified parse failure as JSON; a non-JSON value
-    // (a glue-level failure) falls back to its string form.
-    let parseError: ValidationParseError | undefined;
-    try {
-      parseError = JSON.parse(String(e)) as ValidationParseError;
-    } catch {
-      parseError = undefined;
-    }
+    const parseError = asParseError(e);
     throw new EntryParseError(
       `plugin entry is not valid XHTML: ${parseError?.message ?? String(e)}`,
       e,

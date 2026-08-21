@@ -15,6 +15,7 @@ use crate::spec::{element, AttrDef, AttrType, ContentDef, ElementDef, COMMON_ATT
 /// canonical message is DERIVED from the payload (messages.rs), so code,
 /// payload, and text can never drift apart.
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[serde(tag = "code", rename_all = "kebab-case")]
 pub enum ViolationKind {
     /// Both the static and `bind:` forms of `attr` are authored.
@@ -39,18 +40,21 @@ pub enum ViolationKind {
     ValueBelowMin {
         attr: String,
         value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
         min: serde_json::Number,
     },
     /// The authored number is at or below the exclusive minimum.
     ValueBelowExclusiveMin {
         attr: String,
         value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
         min: serde_json::Number,
     },
     /// The authored number is above the inclusive maximum.
     ValueAboveMax {
         attr: String,
         value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
         max: serde_json::Number,
     },
     /// The authored value fails the numeric-STRICT vector gate.
@@ -81,8 +85,8 @@ pub enum ViolationKind {
 pub struct Violation {
     /// The authored local tag of the offending element.
     pub tag: String,
-    /// The typed classification (serialized flattened: `code` + payload).
-    #[serde(flatten)]
+    /// The typed classification (serialized nested: `{code, …payload}` —
+    /// the same shape the wasm export carries).
     pub kind: ViolationKind,
     /// 1-based source line.
     pub line: u32,
@@ -877,15 +881,18 @@ mod tests {
     }
 
     #[test]
-    fn violations_serialize_flat_with_code_payload_and_position() {
+    fn violations_serialize_with_nested_code_payload_and_position() {
         let violations = crate::validate_entry(&document(r#"<sc-slider value="1" size="xl"/>"#))
             .expect("parses");
         let value = serde_json::to_value(&violations[0]).expect("serializes");
-        assert_eq!(value["code"], "invalid-enum");
         assert_eq!(value["tag"], "sc-slider");
-        assert_eq!(value["attr"], "size");
-        assert_eq!(value["value"], "xl");
-        assert_eq!(value["allowed"], serde_json::json!(["sm", "md", "lg"]));
+        assert_eq!(value["kind"]["code"], "invalid-enum");
+        assert_eq!(value["kind"]["attr"], "size");
+        assert_eq!(value["kind"]["value"], "xl");
+        assert_eq!(
+            value["kind"]["allowed"],
+            serde_json::json!(["sm", "md", "lg"])
+        );
         assert!(value["line"].is_u64() && value["column"].is_u64());
     }
 

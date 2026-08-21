@@ -105,11 +105,14 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          engine/resolution.ts the name/scope/bind-resolution
                          helpers, both as plain functions; static validation
                          AND the spec data live in the shared Rust sc-validate
-                         crate (violations carry a STABLE kebab-case code
-                         + typed payload (attr/value/allowed/bound) + 1-based
-                         line:column positions — attribute-precise; the wasm
-                         wrapper exposes the discriminated union on
-                         ValidationError.violations and classified parse
+                         crate (violations carry a nested `kind` — a STABLE
+                         kebab-case code + typed payload
+                         (attr/value/allowed/bound) — plus 1-based
+                         line:column positions, attribute-precise; the TS
+                         shapes are GENERATED from the Rust types by tsify
+                         into the committed pkg d.ts, re-exported by
+                         @sc-app/validate: the discriminated union on
+                         ValidationError.violations, classified parse
                          failures on EntryParseError.parseError, for future
                          editor diagnostics) (authored per-element specs/<tag>.spec.json
                          files) — the frontend reads the spec map out of the

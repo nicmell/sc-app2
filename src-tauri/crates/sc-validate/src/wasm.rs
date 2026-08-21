@@ -1,12 +1,11 @@
 //! The wasm-bindgen surface (feature `wasm`) — the browser build consumed by
 //! `@sc-app/validate` (packages/validate). Exports: `validate_entry` mirrors
-//! [`crate::validate_entry`] (`Err` = parse-failure text, `Ok` = STRUCTURED
-//! violations as JSON `[{tag, message, line, column}]`, empty = valid — the
-//! structured shape feeds editor diagnostics; the JS wrapper renders the
-//! canonical display strings), and `element_specs` serializes the sc
-//! elements' attribute contracts for the frontend's getProp/runtime-prop
-//! machinery — the ONE spec copy, read out of the module the app already
-//! loads.
+//! [`crate::validate_entry`] (`Ok` = STRUCTURED violations as JSON, `Err` =
+//! the classified parse failure as JSON — both shapes feed editor
+//! diagnostics; the display lines are pre-rendered crate-side), and
+//! `element_specs` serializes the sc elements' attribute contracts for the
+//! frontend's getProp/runtime-prop machinery — the ONE spec copy, read out
+//! of the module the app already loads.
 
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
@@ -14,13 +13,34 @@ use wasm_bindgen::prelude::*;
 
 use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
 
-/// Validate a plugin entry document. See [`crate::validate_entry`]. Returns
-/// the violations as a JSON array of `{tag, message, line, column}`.
+/// Validate a plugin entry document. See [`crate::validate_entry`]. `Ok` is
+/// a JSON array of violations — `{code, tag, <payload…>, line, column,
+/// message}` (the payload fields are the kind's own: attr/value/allowed/…;
+/// `message` is the pre-rendered display line, so the JS side never
+/// duplicates format logic). `Err` (thrown) is the classified parse failure
+/// as JSON `{code, message, line, column}`.
 #[wasm_bindgen]
 pub fn validate_entry(xml: &str) -> Result<String, String> {
-    crate::validate_entry(xml).map(|violations| {
-        serde_json::to_string(&violations).expect("sc-validate: violations serialize")
-    })
+    match crate::validate_entry(xml) {
+        Ok(violations) => {
+            let list: Vec<serde_json::Value> = violations
+                .iter()
+                .map(|violation| {
+                    let mut value =
+                        serde_json::to_value(violation).expect("sc-validate: violation serialize");
+                    value
+                        .as_object_mut()
+                        .expect("violation serializes to an object")
+                        .insert("message".into(), violation.render().into());
+                    value
+                })
+                .collect();
+            Ok(serde_json::to_string(&list).expect("sc-validate: violations serialize"))
+        }
+        Err(parse_error) => {
+            Err(serde_json::to_string(&parse_error).expect("sc-validate: parse error serialize"))
+        }
+    }
 }
 
 /// The attributes every element accepts without declaring them, as a JSON

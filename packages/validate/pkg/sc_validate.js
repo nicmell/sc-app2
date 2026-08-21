@@ -42,8 +42,12 @@ export function element_specs() {
 }
 
 /**
- * Validate a plugin entry document. See [`crate::validate_entry`]. Returns
- * the violations as a JSON array of `{tag, message, line, column}`.
+ * Validate a plugin entry document. See [`crate::validate_entry`]. `Ok` is
+ * a JSON array of violations — `{code, tag, <payload…>, line, column,
+ * message}` (the payload fields are the kind's own: attr/value/allowed/…;
+ * `message` is the pre-rendered display line, so the JS side never
+ * duplicates format logic). `Err` (thrown) is the classified parse failure
+ * as JSON `{code, message, line, column}`.
  * @param {string} xml
  * @returns {string}
  */

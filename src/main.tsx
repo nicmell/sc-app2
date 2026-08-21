@@ -44,9 +44,9 @@ if (import.meta.env.DEV) {
   });
 }
 
-// The wasm validator is a route concern: the router's pathless boot root
-// awaits initValidator() alongside the session loaders (routes/router.tsx),
-// so rendering starts immediately under the connecting fallback.
+// The wasm validator is a route concern: the layout route's loader awaits
+// initValidator() concurrently with the session resolution (routes/Layout),
+// so rendering starts immediately under the loading fallback.
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />

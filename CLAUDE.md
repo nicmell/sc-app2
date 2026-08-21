@@ -58,17 +58,16 @@ cd src-tauri && cargo check && cargo test
 ```
 main.tsx                 boot: register sc-* elements, render <RouterProvider/>
 routes/                  the react-router DATA-MODE tree (router.tsx):
-                         a pathless BOOT root whose loader awaits
-                         initValidator() (wasm spec map ready before any
-                         element renders; init failures hit RouteError,
-                         Retry re-runs the loader) wrapping
-                         the ONE session route "/:sessionId?" (OPTIONAL param
-                         — sessionLoader resolves stored/minted/revived ids
-                         and keeps the URL truthful; RouteId.SESSION). The
-                         boot root's element is Layout: the app frame hosting
-                         ToastStack/ConnectionOverlay + the router-loading
-                         scrim, and owning connect()/disconnect() over the
-                         session route's loader data (useRouteLoaderData)
+                         ONE layout route "/:sessionId?" (OPTIONAL param)
+                         whose loader (routes/Layout layoutLoader) awaits
+                         initValidator() AND the session resolution
+                         concurrently (sessionLoader resolves stored/minted/
+                         revived ids and keeps the URL truthful; either
+                         failure hits RouteError, whose Retry re-runs the
+                         loader — init rejections aren't cached). Its element
+                         Layout is the app frame hosting ToastStack/
+                         ConnectionOverlay + the router-loading scrim, and
+                         owning connect()/disconnect() on its loader data
                          → DashboardRoute (dashboard + <Outlet/>; the settings
                          child SettingsRoute at /:sessionId/settings renders
                          the drawer, open only once the session is connected —

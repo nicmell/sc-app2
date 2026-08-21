@@ -7,8 +7,3 @@ export const ROUTES = {
   SESSION_SETTINGS: "/:sessionId/settings",
   SESSION_PLUGIN: "/:sessionId/plugins/:pluginId",
 } as const;
-
-/** Route ids for cross-route data access (useRouteLoaderData). */
-export const RouteId = {
-  SESSION: "session",
-} as const;

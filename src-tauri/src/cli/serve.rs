@@ -1,5 +1,5 @@
 //! `serve` — the headless run mode: boot the engine
-//! ([`core::start`](crate::core::start)) and serve the API + frontend on the
+//! ([`crate::core::start`]) and serve the API + frontend on the
 //! main thread until a shutdown signal. Errors (a failed bind, a serve-loop
 //! failure) report through the dispatcher's `exit_cli` like any other
 //! command's.

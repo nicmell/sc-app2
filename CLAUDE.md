@@ -37,7 +37,11 @@ implementation-adjacent READMEs / backlog). Maintenance rules:
   pre-release sweep policy explicitly includes prose.
 - **Mechanism-level docs live next to the code** (module headers, doc
   comments): they ride the diff when the file changes. READMEs describe
-  shape and intent, never parameter lists (those drift).
+  shape and intent, never parameter lists (those drift). Rust mechanism
+  docs are rustdoc — `//!` headers with intra-doc links, browsed via
+  `cargo doc --no-deps --document-private-items --open`; the backend narrative (boot composition,
+  server-side session lifecycle, plugin pipeline) is architecture.md's
+  "Backend runtime" section.
 - **Before closing a branch**, grep all docs and comments for every symbol
   the branch renamed or deleted — the cheap staleness sweep.
 
@@ -81,6 +85,10 @@ yarn e2e
 
 # Rust check / unit tests
 cd src-tauri && cargo check && cargo test
+
+# Browsable, linked backend reference (every module has a rustdoc header;
+# private items included — the app crate exposes no public API)
+cd src-tauri && cargo doc --no-deps --document-private-items --open
 ```
 
 ## Conventions

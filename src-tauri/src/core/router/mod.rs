@@ -1,6 +1,6 @@
 //! The HTTP layer: route assembly, listener binding, serving, and the
 //! per-WebSocket pump. Pure transport — all app logic lives on
-//! [`Server`](crate::core::server::Server), which this layer holds as axum `State`
+//! [`crate::core::server::Server`], which this layer holds as axum `State`
 //! and drives through its public API (`router → server → core`).
 //!
 //! Routes are assembled in [`router`] from per-feature sub-routers

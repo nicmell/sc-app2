@@ -23,12 +23,12 @@ struct Cli {
     /// Defaults to SC_APP_DIR, then the canonical platform dir.
     #[arg(long, global = true)]
     app_dir: Option<PathBuf>,
-    /// Path to config.json. Defaults to <app dir>/config.json.
+    /// Path to config.json. Defaults to the app dir's config.json.
     #[arg(long, global = true)]
     config: Option<PathBuf>,
     /// Directory for the rotated JSON log file, resolved against the cwd.
     /// Overrides config `log_dir` (which is app-dir-relative; default
-    /// <app dir>/logs).
+    /// the app dir's logs/).
     #[arg(long, global = true)]
     log_dir: Option<PathBuf>,
     #[command(subcommand)]

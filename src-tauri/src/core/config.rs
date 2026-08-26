@@ -111,7 +111,7 @@ pub fn set_root(root: PathBuf) {
 
 /// The app root. Falls back to a lazy env/canonical resolution for any path
 /// that runs before the dispatch installed it (one-off calls). Tests that
-/// touch persistence MUST call [`install_test_root`] first, or they write
+/// touch persistence MUST call `install_test_root` first, or they write
 /// into the developer's canonical dir.
 pub fn root() -> &'static std::path::Path {
     ROOT.get_or_init(|| resolve_root(None, std::env::var_os("SC_APP_DIR")))

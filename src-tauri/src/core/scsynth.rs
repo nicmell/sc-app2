@@ -2,9 +2,9 @@
 //! keeps the bridge registered with a live scsynth.
 //!
 //! The protocol half encodes `/notify` and `/status` (via the generic
-//! [`osc`](super::osc) helpers) and classifies the replies ([`classify_reply`]).
+//! [`super::osc`] helpers) and classifies the replies ([`classify_reply`]).
 //! The supervisor half ([`Scsynth`]) rides on a generic
-//! [`Bridge`](super::bridge::Bridge): it subscribes to inbound datagrams to
+//! [`super::bridge::Bridge`]: it subscribes to inbound datagrams to
 //! track scsynth's state, and sends commands via the bridge. It registers
 //! (`/notify`), polls `/status` as a heartbeat, reconnects when scsynth stops
 //! answering, and unregisters (`/notify 0`) on shutdown.
@@ -163,7 +163,7 @@ impl Scsynth {
     }
 
     /// The scsynth-assigned client id, once registered. The app turns it into
-    /// session blocks via [`session_block`].
+    /// session blocks via [`super::blocks::session_block`].
     pub fn client_id(&self) -> Option<i32> {
         *self.inner.client_id.borrow()
     }

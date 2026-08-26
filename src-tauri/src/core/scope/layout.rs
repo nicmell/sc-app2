@@ -25,7 +25,7 @@
 
 use super::mmap::MmapRegion;
 
-/// Byte offset of `_stage` (atomic<int>) within scope_buffer.
+/// Byte offset of `_stage` (`atomic<int>`) within scope_buffer.
 pub(super) const SB_OFF_STAGE: usize = 24;
 /// Byte offset of the `_state[3]` array within scope_buffer.
 pub(super) const SB_OFF_STATE_ARRAY: usize = 40;

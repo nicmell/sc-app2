@@ -4,7 +4,7 @@
 //! [`crate::core::server`] (a session ends when its WebSocket closes, or at
 //! shutdown when every live session is drained and freed one by one).
 //!
-//! Each session maps a [`Uuid`] to its [`SessionBlock`](super::blocks::SessionBlock)
+//! Each session maps a [`Uuid`] to its [`super::blocks::SessionBlock`]
 //! (minted by the [`blocks`](super::blocks) id scheme). Indices are handed
 //! out monotonically and recycled via a free list, so a session's node-id
 //! block is reused after it's reclaimed.

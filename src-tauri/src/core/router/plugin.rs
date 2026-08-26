@@ -1,7 +1,7 @@
 //! The `/api/plugins` HTTP routes: list / add / remove + serving plugin files
 //! out of their zip bundles. Thin axum wrappers over [`crate::core::plugin::manager`];
 //! the validation + storage logic is framework-agnostic and stateless w.r.t.
-//! [`Server`](crate::core::server::Server) (it reads the app data dir directly).
+//! [`crate::core::server::Server`] (it reads the app data dir directly).
 
 use axum::body::Bytes;
 use axum::extract::Path;
@@ -22,6 +22,7 @@ pub fn routes() -> Router<Server> {
         .route("/api/plugins/{id}/{*file}", get(serve_file))
 }
 
+/// `GET /api/plugins` → 200 the registry, as-is.
 async fn list() -> Response {
     match manager::list_plugins() {
         Ok(plugins) => Json(plugins).into_response(),
@@ -29,15 +30,18 @@ async fn list() -> Response {
     }
 }
 
+/// `POST /api/plugins` (raw zip body) → 201 PluginInfo; 400 envelope on a
+/// bad bundle (spec-gate failures carry structured `violations`), 500 on
+/// storage trouble.
 async fn add(body: Bytes) -> Response {
     match manager::add_plugin(&body) {
         Ok(info) => (StatusCode::CREATED, Json(info)).into_response(),
-        // The variant carries the status: a bad bundle → 400 (with the
-        // structured violations for the spec gate), storage trouble → 500.
+        // The PluginError variant carries the status.
         Err(e) => ApiError::from(e).into_response(),
     }
 }
 
+/// `DELETE /api/plugins/{id}` → 204; 404 envelope on an unknown id.
 async fn remove(Path(id): Path<String>) -> Response {
     match manager::remove_plugin(&id) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
@@ -45,6 +49,9 @@ async fn remove(Path(id): Path<String>) -> Response {
     }
 }
 
+/// `GET /api/plugins/{id}/{file}` → the file out of the zip (only the entry
+/// and declared assets; content type from the metadata declaration);
+/// 404/403 envelopes on undeclared/escaping paths.
 async fn serve_file(Path((id, file)): Path<(String, String)>) -> Response {
     match manager::read_plugin_file(&id, &file) {
         Ok((content_type, bytes)) => {

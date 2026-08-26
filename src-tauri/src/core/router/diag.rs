@@ -129,6 +129,10 @@ fn as_value(arg: Option<&OscType>) -> Value {
     }
 }
 
+/// One node at cursor `i` (advanced past everything consumed): a synth
+/// (`numChildren == -1`) with its def name + optional controls, or a group
+/// recursing into its inline depth-first children. Malformed args degrade
+/// per-field (MIN id, empty def, Null values) rather than failing the tree.
 fn parse_node(args: &[OscType], i: &mut usize, with_controls: bool) -> Value {
     let node_id = as_int(args, *i).unwrap_or(i64::MIN);
     *i += 1;
@@ -168,6 +172,8 @@ fn parse_node(args: &[OscType], i: &mut usize, with_controls: bool) -> Value {
     }
 }
 
+/// The reply's top level: `[flag, queriedGroupId, childCount, nodes…]` →
+/// `{rootGroup, withControls, children}`. Truncated replies stop early.
 fn parse_query_tree(args: &[OscType]) -> Value {
     let with_controls = as_int(args, 0).unwrap_or(0) == 1;
     let group_id = as_int(args, 1).unwrap_or(0);

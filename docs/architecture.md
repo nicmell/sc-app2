@@ -332,6 +332,44 @@ config). The global `--config` and `--log-dir` flags override the root's
 defaults (`<root>/config.json`; `--log-dir` > config `log_dir`,
 root-relative > `<root>/logs` — file logging is default-ON).
 
+### Backend runtime
+
+(The narrative; mechanism details live in the module headers — browse them
+linked with `cargo doc --no-deps --document-private-items --open`.)
+
+**Boot composition** — `core::start(config_path, log_dir)` is the ONE chain
+both run modes call: config load → logger init → `Bridge` (UDP peers +
+inbound broadcast fan-out; protocol-agnostic) → `Scsynth` supervisor riding
+on it (`/notify` registration for a clientID, 1 Hz `/status` heartbeat,
+re-registration after `MAX_STATUS_MISSES`, `/notify 0` on shutdown) →
+`Server` (the app-logic facade axum holds as State) → `router::listen`.
+The server binds WITHOUT waiting for scsynth — session routes answer 503
+(`scsynth-unregistered`) until the supervisor registers. A scsynth restart
+bumps the **registration generation**; per-generation caches (the scope SHM
+mapping) invalidate on it. The GUI mode runs the same chain, then builds the
+window with the bound port injected (`cli/gui.rs`).
+
+**Server-side session state machine** — a session id is CREATED
+(`POST /api/session`: uuid + a `blocks.rs` id-block; the layout only
+reaches `layouts.rs` once the client PUTs it) or REVIVED
+(`GET /api/session/{id}`: same uuid, FRESH block, saved layout); either
+way it is not yet live. The WS handshake
+(`/ws?session=<uuid>`) `attach`es it — unknown id → 404 envelope, already
+attached → 409 `session-busy` (one socket per session) — and from there the
+session lives exactly as long as the socket: close → `end_session` (free
+the scsynth group, recycle the block, forget the live entry; the SAVED
+layout survives). Shutdown drains all live sessions, freeing groups one by
+one, then unregisters.
+
+**Plugin pipeline** (`plugin/manager.rs`, shared by the HTTP route and the
+CLI): zip parse → `metadata.json` field validation → the entry through the
+sc-validate spec gate (typed violations, the same wire shape the wasm gate
+emits) → asset checks (declared type vs sniffed image content) → write
+`<id>.zip` + registry update, dropping any prior copy of the same
+name+version (upload = replace). Everything is stateless fs over the app
+root — the CLI needs no server (dev-only accepted race: both rewrite
+plugins.json unlocked).
+
 ### Key constants
 
 - HTTP server: `127.0.0.1:3000` (config.json `port`); Vite dev: `1420`.

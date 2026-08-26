@@ -6,11 +6,11 @@ gitignored `examples/dist/<name>.zip` (flat) by
 `scripts/package-plugins.sh`; `yarn examples:sync` packages AND bulk-imports
 them into the dev app root (`plugin add examples/dist` — the `invalid/`
 fixtures fail by design and are just logged). They double as the
-**acceptance suite** for the parser/runtime:
-`node scripts/validate-examples.mjs` (with the dev stack + headless Chrome
-running) uploads every one of them and runs the in-page parse-engine
-validation — see "Validating example plugins" in the root CLAUDE.md.
-Anything failing outside the `invalid/` fixtures is a bug.
+**acceptance suite** for the parser/runtime: `yarn e2e` (the scripts/e2e
+framework — one shot, throwaway app root; `--attach` for a running stack)
+uploads every one of them and runs the in-page parse-engine validation —
+see "Validating example plugins" in the root CLAUDE.md. Anything failing
+outside the `invalid/` fixtures is a bug.
 
 Entries are XHTML rooted at `<sc-plugin>`. Display metadata belongs in
 `metadata.json`: `title` and `description` are optional string fields. The loader

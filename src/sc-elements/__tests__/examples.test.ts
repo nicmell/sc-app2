@@ -1,6 +1,6 @@
 // Unit tests over the example plugins — THE fixture-contract owner: the
 // static wasm gate and the runtime parse engine (the CDP harness,
-// scripts/validate-examples.mjs, remains the full-stack acceptance covering
+// scripts/e2e (yarn e2e), remains the full-stack acceptance covering
 // the backend upload 400s; native and wasm share the sc-validate crate, so
 // these pins cover both builds). Every examples/plugins/<category>/<name> entry runs
 // through parseEntry, then the sc-elements runtime engine on a disconnected

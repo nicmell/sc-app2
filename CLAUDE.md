@@ -44,7 +44,9 @@ yarn build
 # Unit tests (the example plugins through the parse engine, happy-dom)
 yarn test
 
-# One-shot e2e: throwaway app root + full stack + the example harness
+# One-shot e2e: throwaway app root + full stack + every suite (boot smoke +
+# example gates); `yarn smoke` = the boot suite alone; `--attach` runs
+# against an already-running dev stack (fast iteration)
 yarn e2e
 
 # Rust check / unit tests
@@ -742,21 +744,33 @@ scsynth auto-responder through `handleReply`),
 cover protocol waiters, transport dispatch, per-concern observation, and
 heartbeat expiry.
 
-**End-to-end gate (the harness technique)**: when elements/parsers change,
-validate every example through the real stack: `yarn e2e` — one shot, no
-setup. scripts/e2e.mjs packages the examples, boots the WHOLE stack against
-a THROWAWAY app root (serve on a tempdir SC_APP_DIR + vite + scsynth via
-start-osc.sh + fresh-profile headless Chrome on :9222), runs
-scripts/validate-examples.mjs, and tears everything down — nothing touches
-appdir or the canonical root, and back-to-back runs are idempotent. (The
-harness stays runnable standalone against an already-running stack for
-iterating on one failing gate; it expects a SCRATCH root — uploads are not
-cleaned up.) What the harness does:
+**End-to-end gate**: `yarn e2e` — one shot, no setup. The scripts/e2e/
+framework (run.mjs entry + stack.mjs orchestration + cdp.mjs client +
+suites/) packages the examples, boots the WHOLE stack against a THROWAWAY
+app root (serve on a tempdir SC_APP_DIR + vite + scsynth via start-osc.sh +
+fresh-profile headless Chrome on :9222 — refusing to boot if UDP 57110 is
+already bound, so it can never adopt a developer's own scsynth), runs the
+suites, and tears down ONLY what it spawned (reverse-order process-group
+kills, no pkill). Back-to-back runs are idempotent; nothing touches appdir
+or the canonical root. Suites (selectable: `yarn e2e boot`; `yarn smoke` is
+the alias):
+- **boot** — the only real-browser coverage of the app's own story, four
+  coarse polls after a clean-slate tab (old tabs closed + localStorage
+  cleared, defeating the stale-session 409 revive race): the loading
+  fallback paints, the wasm validator initializes through the route loader,
+  a typed violation flows (kind.code + position), and the URL redirects to
+  /:uuid with LIVE scsynth status in the footer (the WS/OSC pipeline proof).
+- **examples** — the upload + runtime gates below.
+`--attach` runs the suites against an ALREADY-RUNNING dev stack (reusing a
+:9222 Chrome when present): fast iteration; uploads REPLACE same-named
+plugins in the attached root (add_plugin's name+version dedupe makes attach
+runs idempotent). What the examples suite does:
 
 1. **Upload gate** — POST each packaged `examples/dist/<name>.zip`
-   (`scripts/package-plugins.sh` is the ONE zipper): expect 201, except the
-   static fixtures (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec
-   ones) → 400 envelopes.
+   (`scripts/package-plugins.sh` is the ONE zipper; a fixture whose zip
+   failed to package fails loudly): expect 201, except the static fixtures
+   (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec ones) → 400
+   envelopes.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
    (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
    as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),

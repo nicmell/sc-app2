@@ -26,8 +26,8 @@
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --all",
     "fmt:rust:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --all --check",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "serve": "cargo run --manifest-path src-tauri/Cargo.toml -- serve --config ./config.json --log-dir ./logs",
+    "tauri": "SC_APP_DIR=$PWD/appdir tauri",
+    "serve": "SC_APP_DIR=$PWD/appdir cargo run --manifest-path src-tauri/Cargo.toml -- serve",
     "deps": "./scripts/setup-deps.sh",
     "osc": "./scripts/start-osc.sh",
     "strudeldirt": "./scripts/start-strudeldirt.sh"

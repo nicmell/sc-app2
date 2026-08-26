@@ -41,3 +41,8 @@ dist-ssr
 scripts/scdoc/.cache/
 /.agents
 /.skills
+
+# The repo-local app root (dev scripts point SC_APP_DIR here): runtime data
+# only — the versioned dev config stays.
+appdir/*
+!appdir/config.json

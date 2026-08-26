@@ -53,20 +53,29 @@ use scsynth::Scsynth;
 use server::Server;
 
 /// Boot the whole engine — the one composition root both run modes
-/// ([`crate::cli`]) call: resolve the config (an explicit path overrides the
-/// canonical location), initialize logging (the `log_dir` flag overrides the
-/// config's; the [`Server`] owns the flush guard), connect the OSC bridge,
-/// supervise scsynth, build the [`Server`], and bind the listener. `assets`
-/// (the per-mode input) is handed to [`router::serve`] by the caller, not
-/// stored here.
+/// ([`crate::cli`]) call: resolve the config (the global `--config` flag
+/// overrides `<root>/config.json`), initialize logging (the `--log-dir`
+/// flag > config `log_dir` (root-relative) > `<root>/logs` — file logging
+/// is default-ON, everything lives in the app root; the [`Server`] owns the
+/// flush guard), connect the OSC bridge, supervise scsynth, build the
+/// [`Server`], and bind the listener. `assets` (the per-mode input) is
+/// handed to [`router::serve`] by the caller, not stored here.
 pub async fn start(
     config_path: Option<PathBuf>,
     log_dir: Option<PathBuf>,
 ) -> std::io::Result<(Server, TcpListener)> {
     let config = config::load(config_path);
-    // Effective log dir: the --log-dir flag (serve only) > config `log_dir`.
-    let log_dir = log_dir.or_else(|| config.log_dir.clone());
-    let logger = logger::Logger::init(log_dir.as_deref());
+    let log_dir = log_dir
+        .or_else(|| config.log_dir.clone())
+        .map(|dir| {
+            if dir.is_absolute() {
+                dir
+            } else {
+                config::root().join(dir)
+            }
+        })
+        .unwrap_or_else(|| config::root().join("logs"));
+    let logger = logger::Logger::init(Some(&log_dir));
     let bridge = Bridge::connect(
         &config.peers,
         std::time::Duration::from_secs(config.connect_timeout),

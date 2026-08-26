@@ -22,6 +22,7 @@
 
 use tauri::Manager;
 
+use super::Overrides;
 use crate::core::server::Server;
 use crate::core::{self, router};
 
@@ -31,15 +32,16 @@ fn initialization_script(port: u16) -> String {
     format!("window.HTTP_BASE_URL = \"http://127.0.0.1:{port}\";")
 }
 
-pub fn run(context: tauri::Context) {
+pub fn run(overrides: Overrides, context: tauri::Context) {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
-            // Same boot as serve (core::start, canonical config location);
+            // Same boot as serve (core::start over the shared app root);
             // only the asset source differs.
             let assets = router::assets::from_app(app);
-            let (server, listener) = tauri::async_runtime::block_on(core::start(None, None))
-                .map_err(|e| format!("server bind: {e}"))?;
+            let (server, listener) =
+                tauri::async_runtime::block_on(core::start(overrides.config, overrides.log_dir))
+                    .map_err(|e| format!("server bind: {e}"))?;
             // Keep a handle for the exit hook (tear down scsynth state on close).
             app.manage(server.clone());
             // The window is built here — not auto-created from the config —

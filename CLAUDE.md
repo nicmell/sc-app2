@@ -23,7 +23,8 @@ yarn dev:full
 # Full native app (embedded server + webview)
 yarn tauri dev
 
-# Headless HTTP server only (browser mode, port 3000 from config.json)
+# Headless HTTP server only (browser mode, port 3000 from the app root's
+# config.json — dev scripts point SC_APP_DIR at <repo>/appdir)
 yarn serve
 
 # scsynth + sclang/StrudelDirt for local dev (pre-req: yarn deps, once)
@@ -266,10 +267,12 @@ by `core::start`); `lib.rs` is just the module tree + `run()`.
 
 ```
 lib.rs            module tree + pub fn run() → cli::run()
-cli/              mod.rs (clap definitions + the single exhaustive dispatch —
-                  every command but the GUI reports through exit_cli — and
-                  the ONE tauri generate_context! site);
-                  serve.rs (ServeArgs + the headless run mode),
+cli/              mod.rs (clap definitions incl. the GLOBAL --app-dir/
+                  --config/--log-dir args + the single exhaustive dispatch —
+                  resolves and installs the app root, every command but the
+                  GUI reports through exit_cli — and the ONE tauri
+                  generate_context! site);
+                  serve.rs (the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
                   plugin.rs (validate|add|remove|list, over core/plugin's
                   manager), config.rs (write|validate)
@@ -289,8 +292,9 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   sessions/<id>.json
   server.rs       the app-logic facade the router holds as axum State:
                   session mint/revive/end, the shared scope SHM handle
-  config.rs       config.json (port, peers, connect_timeout, log_dir) +
-                  app-data-dir paths
+  config.rs       the APP ROOT (resolve_root/set_root/root: --app-dir >
+                  SC_APP_DIR > canonical; every path derives from it) +
+                  config.json (port, peers, connect_timeout, log_dir)
   logger.rs       tracing to stderr + optional rotated JSON file
   plugin/         zip validation (metadata, spec-gated entry, assets) +
                   plugins.json registry (manager.rs)
@@ -313,8 +317,16 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   session on close), plugin.rs, diag.rs, assets.rs
 ```
 
-App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`,
-`plugins/` + `plugins.json`, `sessions/` + `sessions.json`.
+The APP ROOT — ONE directory owning `config.json`, `plugins/` +
+`plugins.json`, `sessions/` + `sessions.json`, and `logs/` — is shared by
+BOTH run modes. Resolution: global `--app-dir` > `SC_APP_DIR` env > the
+canonical platform dir (`~/Library/Application Support/com.nicmell.scapp/`,
+the installed binary's default). The repo's dev scripts (`yarn serve`,
+`yarn tauri`) set `SC_APP_DIR=$PWD/appdir`, so dev/tauri/harness all share
+the gitignored `<repo>/appdir` (its `config.json` is the versioned dev
+config). The global `--config` and `--log-dir` flags override the root's
+defaults (`<root>/config.json`; `--log-dir` > config `log_dir`,
+root-relative > `<root>/logs` — file logging is default-ON).
 
 ### Key constants
 

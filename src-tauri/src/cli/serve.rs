@@ -4,26 +4,18 @@
 //! failure) report through the dispatcher's `exit_cli` like any other
 //! command's.
 
-use std::path::PathBuf;
-
 use clap::Args;
 
+use super::Overrides;
 use crate::core::{self, router};
 
 #[derive(Args)]
-pub struct ServeArgs {
-    /// Path to config.json. Defaults to the canonical app config dir.
-    #[arg(long)]
-    pub config: Option<PathBuf>,
-    /// Directory for the rotated JSON log file. Overrides config `log_dir`.
-    #[arg(long)]
-    pub log_dir: Option<PathBuf>,
-}
+pub struct ServeArgs {}
 
-pub fn run(args: ServeArgs, context: tauri::Context) -> Result<(), String> {
+pub fn run(_args: ServeArgs, overrides: Overrides, context: tauri::Context) -> Result<(), String> {
     tauri::async_runtime::block_on(async move {
         let assets = router::assets::from_context(context);
-        let (server, listener) = core::start(args.config, args.log_dir)
+        let (server, listener) = core::start(overrides.config, overrides.log_dir)
             .await
             .map_err(|e| format!("server bind: {e}"))?;
         router::serve(server, listener, assets)

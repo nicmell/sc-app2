@@ -33,10 +33,10 @@ pub enum PluginCommand {
 pub fn run(cmd: PluginCommand) -> Result<(), String> {
     match cmd {
         PluginCommand::Validate { paths } => {
-            run_bundles(&paths, |bytes| manager::validate_plugin(bytes), "valid")
+            run_bundles(&paths, manager::validate_plugin, "valid")
         }
         PluginCommand::Add { paths } => {
-            run_bundles(&paths, |bytes| manager::add_plugin(bytes), "added")
+            run_bundles(&paths, manager::add_plugin, "added")
         }
         PluginCommand::Remove { name } => cmd_remove(&name),
         PluginCommand::List => cmd_list(),

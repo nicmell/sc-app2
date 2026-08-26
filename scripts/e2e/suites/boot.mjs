@@ -23,11 +23,14 @@ async function poll(probe, timeoutMs, everyMs = 250) {
 
 export async function run() {
   const rows = [];
-  const row = (name, ok, detail = "") => rows.push({ name, ok, detail });
+  // A probe result is `true` or a diagnostic string — fold that contract
+  // into the row shape once.
+  const row = (name, result) => rows.push({ name, ok: result === true, detail: result === true ? "" : String(result) });
 
   // Clean slate (closes stale tabs, clears the stored session id — the
   // fresh-mint guarantee), then boot the app for real.
   const tab = await freshTab();
+  try {
   await tab.navigate(`${APP}/`);
 
   // 1. The router renders under the loading fallback immediately.
@@ -35,7 +38,7 @@ export async function run() {
     () => tab.evaluate("(document.getElementById('root')?.innerHTML.length ?? 0) > 0"),
     10_000,
   );
-  row("root paints during boot", painted === true, painted === true ? "" : String(painted));
+  row("root paints during boot", painted);
 
   // 2. The wasm validator initialized through the boot loader.
   const validator = await poll(
@@ -47,7 +50,7 @@ export async function run() {
       })()`),
     30_000,
   );
-  row("validator initialized (getSpec live)", validator === true, validator === true ? "" : String(validator));
+  row("validator initialized (getSpec live)", validator);
 
   // 3. A typed violation flows end to end (code + position).
   const typed = await poll(
@@ -67,7 +70,7 @@ export async function run() {
       })()`),
     30_000,
   );
-  row("typed violations flow (kind.code + position)", typed === true, typed === true ? "" : String(typed));
+  row("typed violations flow (kind.code + position)", typed);
 
   // 4. The loaders settled: truthful /:uuid URL and a LIVE scsynth footer
   //    (the proof the whole WS/OSC/status pipeline works).
@@ -82,8 +85,9 @@ export async function run() {
     60_000,
     1000,
   );
-  row("session minted, connected, live status", connected === true, connected === true ? "" : String(connected));
-
-  tab.close();
+  row("session minted, connected, live status", connected);
+  } finally {
+    tab.close();
+  }
   return rows;
 }

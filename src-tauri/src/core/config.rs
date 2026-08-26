@@ -202,8 +202,11 @@ fn read(path: &std::path::Path, seed_when_missing: bool) -> AppConfig {
 }
 
 /// Point the WHOLE test process at a throwaway root (first caller wins —
-/// OnceLock semantics — so every persistence test shares one tempdir).
+/// OnceLock semantics — so every persistence test shares one tempdir; the
+/// pid-named path keeps all callers deterministic).
 /// Call it at the top of any test that writes through root-derived paths.
+/// NOTE: registry-writing tests share ONE unlocked plugins.json — keep them
+/// to a single test, or serialize, before adding more.
 #[cfg(test)]
 pub fn install_test_root() {
     let dir = std::env::temp_dir().join(format!("sc-app2-test-root-{}", std::process::id()));

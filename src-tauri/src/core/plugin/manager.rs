@@ -438,6 +438,7 @@ mod tests {
 
     #[test]
     fn registry_lifecycle_round_trips_on_the_test_root() {
+        use std::io::Write;
         crate::core::config::install_test_root();
         // A minimal valid bundle, built in memory.
         let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
@@ -455,7 +456,6 @@ mod tests {
         .unwrap();
         let bundle = zip.finish().unwrap().into_inner();
 
-        use std::io::Write;
         let info = add_plugin(&bundle).expect("adds");
         assert!(!info.id.is_empty());
         assert!(list_plugins()

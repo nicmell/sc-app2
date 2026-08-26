@@ -4,12 +4,13 @@
 //   yarn smoke          → the boot suite alone (alias for `e2e boot`).
 //   yarn e2e --attach   → run against an ALREADY-RUNNING stack (yarn serve +
 //                         yarn dev + yarn osc), reusing a :9222 Chrome when
-//                         present — fast iteration; uploads are cleaned up.
+//                         present — fast iteration; uploads REPLACE
+//                         same-named plugins in the attached root.
 // A suite exports `run(ctx) → [{name, ok, detail}]`; a thrown suite becomes
 // a failed row and the remaining suites still run (independent evidence).
 import { execSync } from "node:child_process";
 import { join } from "node:path";
-import { API, REPO, attachStack, bootStack, teardown } from "./stack.mjs";
+import { REPO, attachStack, bootStack, teardown } from "./stack.mjs";
 
 const SUITES = {
   boot: () => import("./suites/boot.mjs"),
@@ -27,16 +28,18 @@ for (const name of requested) {
 }
 const selection = requested.length ? requested : Object.keys(SUITES);
 
-// The packaged zips are the upload currency — always fresh (cheap, and the
-// guarantee that they match the sources being iterated on).
-execSync(join(REPO, "scripts", "package-plugins.sh"), { cwd: REPO, stdio: "inherit" });
+// The packaged zips are the upload currency — fresh whenever a selected
+// suite uploads (the guarantee they match the sources being iterated on).
+if (selection.includes("examples")) {
+  execSync(join(REPO, "scripts", "package-plugins.sh"), { cwd: REPO, stdio: "inherit" });
+}
 
 let failed = false;
 try {
   if (attach) await attachStack();
   else await bootStack();
 
-  const ctx = { api: API, repo: REPO, attach };
+  const ctx = { attach };
   for (const name of selection) {
     let rows;
     try {

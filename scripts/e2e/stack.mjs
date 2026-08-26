@@ -9,8 +9,9 @@ import { execSync, spawn } from "node:child_process";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const REPO = new URL("../..", import.meta.url).pathname;
+export const REPO = fileURLToPath(new URL("../..", import.meta.url));
 export const API = "http://127.0.0.1:3000";
 export const APP = "http://localhost:1420";
 export const CDP = "http://127.0.0.1:9222";
@@ -68,7 +69,7 @@ process.on("exit", teardown);
 process.on("SIGINT", () => process.exit(130));
 process.on("SIGTERM", () => process.exit(143));
 
-async function until(label, probe, timeoutMs = 180_000) {
+async function until(label, probe, timeoutMs = 300_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -102,19 +103,20 @@ function spawnChrome() {
  *  would silently register against that foreign scsynth, and teardown must
  *  never be in the position of having used (or killed) it. */
 export async function bootStack() {
+  let bound = "";
   try {
-    const out = execSync("lsof -nP -iUDP:57110", { stdio: ["ignore", "pipe", "ignore"] })
+    // lsof exits non-zero when nothing matches — that's the port-free case.
+    bound = execSync("lsof -nP -iUDP:57110", { stdio: ["ignore", "pipe", "ignore"] })
       .toString()
       .trim();
-    if (out) {
-      throw new Error(
-        "UDP 57110 is already bound (a scsynth is running — yarn osc?). " +
-          "Stop it, or use --attach to run against your own stack.",
-      );
-    }
-  } catch (e) {
-    if (e.message?.includes("already bound")) throw e;
-    /* lsof exits non-zero when nothing matches — the port is free */
+  } catch {
+    bound = "";
+  }
+  if (bound) {
+    throw new Error(
+      "UDP 57110 is already bound (a scsynth is running — yarn osc?). " +
+        "Stop it, or use --attach to run against your own stack.",
+    );
   }
 
   const appDir = mkdtempSync(join(tmpdir(), "sc-e2e-root-"));

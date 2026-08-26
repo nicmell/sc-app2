@@ -772,15 +772,13 @@ runs idempotent). What the examples suite does:
    (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec ones) → 400
    envelopes.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
-   as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
-   require an authored `<sc-plugin>` root, `importNode` that whole root through
-   the main document, explicitly upgrade it while disconnected, then
-   `host.processRoot()` — the host's own parse-engine methods; nothing to import.
-   PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
-   with its intentional resolveRuntime error (one per error path — see the
-   `invalid/` table in examples/README.md). Any other failure is a migration
-   bug — report it.
+   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>` and
+   run it through the Vite-served `parseEntry` (text/xml parse, authored-root
+   check, whole-root importNode + explicit upgrade while disconnected — ONE
+   shared implementation, PluginManager.ts) + `host.processRoot()`. PASS = no
+   throw; the runtime `bad-*` fixtures must FAIL, each with its intentional
+   resolveRuntime error (one per error path — see the `invalid/` table in
+   examples/README.md). Any other failure is a migration bug — report it.
 3. The root is throwaway — no cleanup pass exists.
 
 ## Migration plan (old `sc-app/` → here)

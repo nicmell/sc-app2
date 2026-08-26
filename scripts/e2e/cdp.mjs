@@ -20,6 +20,14 @@ class Tab {
         else resolve(message.result);
       }
     };
+    // A dying socket (Chrome crash, closed tab) must fail pending sends
+    // loudly, not hang the run forever.
+    const drain = (why) => () => {
+      for (const { reject } of this.pending.values()) reject(new Error(why));
+      this.pending.clear();
+    };
+    socket.onclose = drain("cdp socket closed");
+    socket.onerror = drain("cdp socket error");
   }
 
   send(method, params = {}) {
@@ -93,8 +101,18 @@ export async function freshTab() {
     await fetch(`${CDP}/json/new?${APP}/@vite/client`, { method: "PUT" })
   ).json();
   const tab = await openTab(created);
-  // Give the trivial navigation a beat, then wipe the origin's storage.
-  await new Promise((r) => setTimeout(r, 500));
+  // Wait for the trivial same-origin navigation to commit (a fixed sleep is
+  // flaky on slow machines and clearing an opaque origin throws).
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    try {
+      const origin = await tab.evaluate("location.origin", { awaitPromise: false });
+      if (origin === new URL(APP).origin) break;
+    } catch {
+      /* not committed yet */
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
   await tab.evaluate("localStorage.clear(); sessionStorage.clear(); true", {
     awaitPromise: false,
   });

@@ -74,6 +74,8 @@ export async function run({ attach }) {
   }
 
   const tab = await findOrCreateTab();
+  const rows = [];
+  try {
   // Own readiness gate, independent of the boot suite: initValidator is
   // idempotent and retries after a rejected init, so this poll converges
   // regardless of what the page is showing.
@@ -82,7 +84,6 @@ export async function run({ attach }) {
     await initValidator();
   })()`);
 
-  const rows = [];
   for (const name of names.sort()) {
     const zip = join(DIST, `${name}.zip`);
     if (!existsSync(zip)) {
@@ -130,6 +131,8 @@ export async function run({ attach }) {
     });
   }
 
-  tab.close();
+  } finally {
+    tab.close();
+  }
   return rows;
 }

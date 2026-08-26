@@ -17,12 +17,13 @@ yarn tauri dev       # or: the full native app
 
 ## Docs
 
-- `CLAUDE.md` — the architecture + working reference (start here)
-- `architecture.md` — backend deep-dive; `scope.md` — the SHM scope pipeline;
-  `CLOCK.md` — the bridge clock
+- `CLAUDE.md` — working directives, conventions, recipes (start here)
+- `docs/architecture.md` — the current architecture, end to end;
+  `docs/scope.md` — the SHM scope pipeline; `docs/clock.md` — the bridge clock
 - `src/sc-elements/README.md` — per-element docs;
   `src/lib/osc/README.md` — the OSC endpoint
 - `examples/README.md` — the example plugins (also the acceptance suite)
+- `TODO.md` — the backlog
 
 ## Testing
 

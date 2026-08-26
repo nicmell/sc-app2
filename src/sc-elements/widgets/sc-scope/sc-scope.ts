@@ -14,7 +14,7 @@
 // Display props (renderer-only — the tap/wire carry the same chunks):
 // `trigger` (auto|normal|off), `slope` (rising|falling) + `level` pin the
 // drawn window to a level crossing on lane 0 like a bench scope's edge
-// trigger (see lib/scope/trigger.ts and scope.md §5); `gain` scales the
+// trigger (see lib/scope/trigger.ts and docs/scope.md §5); `gain` scales the
 // vertical axis; `layout` (overlay|split) stacks the lanes into per-channel
 // bands instead of superimposing them.
 //

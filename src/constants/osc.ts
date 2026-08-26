@@ -12,7 +12,7 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
-// ── bridge clock (see CLOCK.md) ──────────────────────────────────────
+// ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
 /** Pings fired back-to-back on socket open so the offset estimator locks
  *  fast (~0.6 s) instead of waiting out the steady cadence. */

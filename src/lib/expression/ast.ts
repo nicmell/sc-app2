@@ -3,7 +3,7 @@
 // synthdef graph compiler (lib/synthdef lowers nodes to UGens), and the
 // static `value` coercion (functions.ts evaluates constant literals).
 
-export type BinaryOp = "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
+type BinaryOp = "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "!=";
 
 export type Expr =
   | { type: "number"; value: number }

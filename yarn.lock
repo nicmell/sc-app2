@@ -4714,7 +4714,6 @@ __metadata:
     "@types/react-dom": "npm:^19"
     "@types/react-grid-layout": "npm:^2.1.0"
     "@vitejs/plugin-react": "npm:^4.3.4"
-    classnames: "npm:^2.5.1"
     concurrently: "npm:^9.2.1"
     eslint: "npm:^10.0.0"
     eslint-config-prettier: "npm:^10.1.8"

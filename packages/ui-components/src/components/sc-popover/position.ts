@@ -28,7 +28,7 @@ export interface PositionOptions {
 }
 
 /** One positioning pass: writes fixed left/top onto `panel`, relative to `anchor`. */
-export function positionPanel(
+function positionPanel(
   anchor: HTMLElement,
   panel: HTMLElement,
   placement: PopoverPlacement,

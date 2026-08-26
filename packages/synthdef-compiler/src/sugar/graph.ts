@@ -1,6 +1,6 @@
 import { binaryOpIndex, unaryOpIndex } from "../operators.js";
 import { Rate } from "../rate.js";
-import { lookupUgen, UGenRegistryEntry, ugensByCategory } from "../registry.js";
+import { UGenRegistryEntry, ugensByCategory } from "../registry.js";
 import { SynthDef } from "../synthdef.js";
 import { UGenInput, UGenInputLike, toUGenInput } from "../ugen-input.js";
 import type { Graph, GraphOperators } from "./graph.types.js";
@@ -180,11 +180,3 @@ function makeOperators(def: SynthDef): GraphOperators {
     dbamp: unOp("dbamp"),
   };
 }
-
-// Hoist so the Graph-types module can reference the same arg sets without
-// re-declaring.
-export { VARIADIC_ARGS, NUM_OUTPUTS_ARGS };
-
-// Keep `lookupUgen` exported through this file so callers that only import
-// the sugar layer still have a registry handle.
-export { lookupUgen };

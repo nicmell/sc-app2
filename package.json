@@ -45,7 +45,6 @@
     "@strudel/mini": "^1.2.6",
     "@strudel/tonal": "^1.2.6",
     "@strudel/transpiler": "^1.2.6",
-    "classnames": "^2.5.1",
     "lit": "^3.3.3",
     "react": "^19",
     "react-dom": "^19",

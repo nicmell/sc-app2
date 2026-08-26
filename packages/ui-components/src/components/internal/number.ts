@@ -16,7 +16,7 @@ export function decimalsOf(n: number): number {
 }
 
 /** Round `n` to `decimals` places (float-tail cleanup after grid arithmetic). */
-export function roundTo(n: number, decimals: number): number {
+function roundTo(n: number, decimals: number): number {
   const factor = 10 ** Math.min(15, Math.max(0, decimals));
   return Math.round(n * factor) / factor;
 }

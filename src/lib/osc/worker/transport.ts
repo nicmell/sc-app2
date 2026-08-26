@@ -2,7 +2,7 @@
 // Worker and has one implementation: `createWsTransport`, consumed directly by
 // worker.ts. WorkerClient is the distinct main-thread plain-packet proxy.
 
-export type RawTransportEvent =
+type RawTransportEvent =
   | { type: "open" }
   | { type: "message"; data: ArrayBuffer }
   | { type: "error"; message: string }

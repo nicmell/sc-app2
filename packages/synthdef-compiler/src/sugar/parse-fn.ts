@@ -173,7 +173,7 @@ function stripTypeAnnotation(param: string): string {
 
 // ─── Low-level scanners ─────────────────────────────────────────────────
 
-export function splitTopLevelCommas(s: string): string[] {
+function splitTopLevelCommas(s: string): string[] {
   const out: string[] = [];
   let depth = 0;
   let start = 0;

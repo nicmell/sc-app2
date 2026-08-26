@@ -45,14 +45,14 @@ export type Curve = number | string;
 
 const NO_NODE = -99;
 
-export function curveType(curve: Curve): number {
+function curveType(curve: Curve): number {
   if (typeof curve === "number") return 5; // "custom"
   const n = CURVE_SHAPES[curve];
   if (n === undefined) throw new Error(`Unknown envelope curve: "${curve}"`);
   return n;
 }
 
-export function curveValue(curve: Curve): number {
+function curveValue(curve: Curve): number {
   return typeof curve === "number" ? curve : 0;
 }
 

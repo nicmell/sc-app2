@@ -1,4 +1,4 @@
-# CLOCK.md — bridge clock synchronization & the global scheduler
+# Bridge clock synchronization & the global scheduler
 
 How the app keeps ONE timebase across the webview, the OSC worker, the Rust
 bridge, and scsynth — and why the scheduler lives in the Web Worker. Companion
@@ -48,7 +48,7 @@ the timestamp) and answers inline on the same socket.
 ### Webview ⇄ worker (postMessage, same `{type:"osc"}` envelope)
 
 ```
-↓ /clock/subscribe    id:i  interval:d    start a tick stream
+↓ /clock/subscribe    id:i  intervalMs:d  start a tick stream
 ↓ /clock/unsubscribe  id:i
 ↑ /clock/tick         id:i  n:i           one tick of stream `id`
 ↑ /clock/status       offset:d  rtt:d     current estimate, for clockNow()

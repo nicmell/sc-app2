@@ -9,6 +9,14 @@
 // terminates the connection on critical failures; this manager only observes
 // the close.
 //
+// Reentrancy model (the subtle part): an `epoch` counter is bumped by every
+// connect()/disconnect(), and every async continuation checks it — a
+// superseded connect abandons itself WITHOUT touching the socket (the
+// successor owns the singleton now). disconnect() is deferred one tick so a
+// StrictMode cleanup + re-effect pair keeps the standing connection instead
+// of close-and-reopen (the reopen races the server's close handling → 409);
+// connect() with the SAME SessionInfo cancels the pending timer and no-ops.
+//
 // State lives in the single app store (`@/stores/store.ts`) under its `session`
 // slice; the public `status`/`scsynthAddress` are `select` views off that
 // slice, so each notifies independently and the React hooks read them via

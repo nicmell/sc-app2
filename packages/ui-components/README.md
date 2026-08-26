@@ -24,7 +24,7 @@ registerUiComponents(); // idempotent; defines every <sc-base-*> tag
 ```
 
 This package is framework-agnostic (pure Lit + CSS). The React binding lives in the host app
-(`src/components/ui.tsx`), which wraps these elements with `@lit/react`'s `createComponent`
+(`src/components/ui/index.tsx`), which wraps these elements with `@lit/react`'s `createComponent`
 (e.g. `import { Button } from "@/components/ui"`).
 
 **Events are composed, read off the host.** Form widgets re-emit `input`/`change` (containers
@@ -40,11 +40,11 @@ fire `change`) from the host — read `e.target.value` / `.checked`; the React w
 | `/tokens` · `/themes/dark` · `/themes/light` · `/reset` | individual CSS layers                      |
 
 The React wrappers are not published by this package — they live in the host app
-(`src/components/ui.tsx`).
+(`src/components/ui/index.tsx`).
 
 ## Components
 
-Tag `sc-base-<name>` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/components/ui.tsx`).
+Tag `sc-base-<name>` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/components/ui/index.tsx`).
 `size` is `sm | md | lg`
 (md default) wherever it appears.
 
@@ -105,6 +105,29 @@ accent — `size`/`disabled`/`name` via `ScControlBase`); `sc-button` `primary`(
   `:root` default; light under `[data-theme="light"]`, currently a placeholder).
 - **`-base` components are UI-only** — no OSC / store / bind logic; the host app's logical
   `sc-elements` wrap them to add behaviour.
+
+## Adding a component (the recipe)
+
+1. **Folder**: `src/components/sc-<name>/` with `sc-<name>.ts` (class
+   `Sc<Name>Base`, `static styles = [resetStyles, styles]`) and
+   `sc-<name>.scss`. Modifier props are `@property({ reflect: true })` —
+   the attribute is the style hook (`:host([attr])`), no wrapper classes.
+   Shared machinery lives in `internal/` (`sc-control` for form widgets:
+   `size`/`disabled`/`name`; `sc-range` adds the hidden-range + re-emit
+   plumbing; `sc-dialog` the native-`<dialog>` base).
+2. **Register**: add the tag to `REGISTRY` in `components/index.ts`
+   (`sc-base-<name>`) and export the class from the same barrel. Context
+   providers must precede their consumers in REGISTRY order (existing
+   markup upgrades in definition order).
+3. **Style with tokens only** — `--color-*`/`--space-*` custom properties
+   reach the shadow root by `:root` inheritance; new tokens go in
+   `tokens/` (+ both themes). Mixins: `foundations/_mixins.scss`.
+4. **React wrapper**: the host app wraps the element in
+   `src/components/ui/index.tsx` with `@lit/react`'s `createComponent`
+   (map `input`/`change`/custom events to `onX` props there).
+5. **Docs + tests**: a row in the Components table above, a structure/
+   state/events suite in `__tests__/` (happy-dom — no top layer/layout;
+   anything positional is e2e territory), and a demo entry (`yarn demo`).
 
 ## Build
 

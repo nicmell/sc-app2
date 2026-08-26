@@ -20,7 +20,26 @@ sweep every usage in the repo (examples, tests, docs) in the same commit.
 - `src/sc-elements/README.md` — per-element docs;
   `src/lib/osc/README.md` — the OSC endpoint stack.
 - `examples/README.md` — the example plugins (also the acceptance suite).
+- `scripts/e2e/README.md` — the e2e framework's design decisions.
 - `TODO.md` — the backlog (roadmap steps, follow-ups, accepted deferrals).
+
+## Documentation policy
+
+Structure is the four buckets above (LLM directives / developer docs /
+implementation-adjacent READMEs / backlog). Maintenance rules:
+
+- **One owner per fact; everything else points.** Attribute contracts →
+  the spec.json files. Constant rationale → the constant's doc comment.
+  Exact error messages → the tests that pin them. Pipeline reasoning →
+  `docs/*.md`. Directives and recipes → this file. Backlog → TODO.md.
+  Package/module shape and intent → the nearest README.
+- **Docs change in the SAME commit as the code they describe** — the
+  pre-release sweep policy explicitly includes prose.
+- **Mechanism-level docs live next to the code** (module headers, doc
+  comments): they ride the diff when the file changes. READMEs describe
+  shape and intent, never parameter lists (those drift).
+- **Before closing a branch**, grep all docs and comments for every symbol
+  the branch renamed or deleted — the cheap staleness sweep.
 
 ## Quick reference
 

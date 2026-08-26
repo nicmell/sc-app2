@@ -91,15 +91,15 @@ const probeRuntime = (pluginId, entry) =>
 })()`);
 
 const work = mkdtempSync(join(tmpdir(), "sc-examples-"));
-// Examples live one level deep (examples/<category>/<plugin>), each marked by
-// its metadata.json.
+// Example sources live at examples/plugins/<category>/<plugin>, each marked
+// by its metadata.json (examples/dist holds the packaged zips).
 const dirs = [];
-for (const cat of readdirSync(join(REPO, "examples"), { withFileTypes: true })
+const SOURCES = join(REPO, "examples", "plugins");
+for (const cat of readdirSync(SOURCES, { withFileTypes: true })
   .filter((d) => d.isDirectory() && !d.name.startsWith("."))
   .map((d) => d.name)) {
-  for (const plugin of readdirSync(join(REPO, "examples", cat)).filter((d) => !d.startsWith("."))) {
-    if (existsSync(join(REPO, "examples", cat, plugin, "metadata.json")))
-      dirs.push(join(cat, plugin));
+  for (const plugin of readdirSync(join(SOURCES, cat)).filter((d) => !d.startsWith("."))) {
+    if (existsSync(join(SOURCES, cat, plugin, "metadata.json"))) dirs.push(join(cat, plugin));
   }
 }
 const rows = [];
@@ -117,7 +117,7 @@ for (const dir of dirs.sort()) {
     uploadNote = "pre-installed";
   } else {
     const zip = join(work, `${dir.replaceAll("/", "-")}.zip`);
-    execSync(`cd ${REPO}/examples/${dir} && zip -q -r ${zip} .`);
+    execSync(`cd ${REPO}/examples/plugins/${dir} && zip -q -r ${zip} .`);
     const resp = await fetch(`${API}/api/plugins`, {
       method: "POST",
       body: await (await import("node:fs/promises")).readFile(zip),

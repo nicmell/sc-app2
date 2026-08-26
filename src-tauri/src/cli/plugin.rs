@@ -9,15 +9,17 @@ use crate::core::plugin::manager;
 
 #[derive(Subcommand)]
 pub enum PluginCommand {
-    /// Validate a plugin bundle
+    /// Validate plugin bundles
     Validate {
-        /// Path to a plugin zip or plugin directory
-        path: String,
+        /// Plugin zips, or directories scanned recursively for *.zip
+        #[arg(required = true)]
+        paths: Vec<String>,
     },
-    /// Validate and install a plugin
+    /// Validate and install plugin bundles
     Add {
-        /// Path to a plugin zip or plugin directory
-        path: String,
+        /// Plugin zips, or directories scanned recursively for *.zip
+        #[arg(required = true)]
+        paths: Vec<String>,
     },
     /// Remove a plugin by name or name-version
     Remove {
@@ -30,8 +32,12 @@ pub enum PluginCommand {
 
 pub fn run(cmd: PluginCommand) -> Result<(), String> {
     match cmd {
-        PluginCommand::Validate { path } => cmd_validate(&path),
-        PluginCommand::Add { path } => cmd_add(&path),
+        PluginCommand::Validate { paths } => {
+            run_bundles(&paths, |bytes| manager::validate_plugin(bytes), "valid")
+        }
+        PluginCommand::Add { paths } => {
+            run_bundles(&paths, |bytes| manager::add_plugin(bytes), "added")
+        }
         PluginCommand::Remove { name } => cmd_remove(&name),
         PluginCommand::List => cmd_list(),
     }
@@ -54,28 +60,83 @@ fn print_plugin_info(info: &manager::PluginInfo) {
     }
 }
 
-/// A bundle's bytes: a DIRECTORY is zipped in memory (manager's
-/// deterministic bundler — the identical validation/storage path), a file is
-/// read as the zip it is.
-fn read_bundle(path: &str) -> Result<Vec<u8>, String> {
+/// Expand one CLI path into plugin zips: a file is taken as the zip it is,
+/// a directory is scanned RECURSIVELY for `*.zip` (sorted — a stable report
+/// across filesystems). A directory with no zips, or a missing path, is an
+/// argument error.
+fn expand(path: &str) -> Result<Vec<std::path::PathBuf>, String> {
     let p = std::path::Path::new(path);
-    if p.is_dir() {
-        return Ok(manager::bundle_directory(p)?);
+    if p.is_file() {
+        return Ok(vec![p.to_path_buf()]);
     }
-    std::fs::read(p).map_err(|e| format!("Error reading \"{path}\": {e}"))
+    if p.is_dir() {
+        fn collect(
+            dir: &std::path::Path,
+            zips: &mut Vec<std::path::PathBuf>,
+        ) -> std::io::Result<()> {
+            for entry in std::fs::read_dir(dir)? {
+                let path = entry?.path();
+                if path.is_dir() {
+                    collect(&path, zips)?;
+                } else if path
+                    .extension()
+                    .is_some_and(|e| e.eq_ignore_ascii_case("zip"))
+                {
+                    zips.push(path);
+                }
+            }
+            Ok(())
+        }
+        let mut zips = Vec::new();
+        collect(p, &mut zips).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+        if zips.is_empty() {
+            return Err(format!("no plugin zips found under \"{path}\""));
+        }
+        zips.sort();
+        return Ok(zips);
+    }
+    Err(format!("\"{path}\" does not exist"))
 }
 
-fn cmd_validate(path: &str) -> Result<(), String> {
-    let info = manager::validate_plugin(&read_bundle(path)?)?;
-    println!("Plugin is valid.");
-    print_plugin_info(&info);
-    Ok(())
-}
-
-fn cmd_add(path: &str) -> Result<(), String> {
-    let info = manager::add_plugin(&read_bundle(path)?)?;
-    println!("Plugin added.");
-    print_plugin_info(&info);
+/// Run `op` over every zip the paths expand to. Per-zip validation failures
+/// are LOGGED and never block the rest (the intentional `invalid/` example
+/// fixtures fail by design when importing `examples/dist` wholesale); the
+/// command errors only when the arguments are bad or NOTHING succeeded.
+fn run_bundles(
+    paths: &[String],
+    op: impl Fn(&[u8]) -> Result<manager::PluginInfo, manager::PluginError>,
+    verb: &str,
+) -> Result<(), String> {
+    let mut zips = Vec::new();
+    for path in paths {
+        zips.extend(expand(path)?);
+    }
+    let single = zips.len() == 1;
+    let mut failed = 0usize;
+    for zip in &zips {
+        let shown = zip.display();
+        let result = std::fs::read(zip)
+            .map_err(|e| manager::PluginError::Io(format!("Error reading \"{shown}\": {e}")))
+            .and_then(|bytes| op(&bytes));
+        match result {
+            Ok(info) => {
+                println!("{verb} {} v{}", info.name, info.version);
+                if single {
+                    print_plugin_info(&info);
+                }
+            }
+            Err(e) => {
+                failed += 1;
+                let first = e.to_string();
+                let first = first.lines().next().unwrap_or_default().to_string();
+                println!("failed {shown}: {first}");
+            }
+        }
+    }
+    println!("{} {verb}, {failed} failed", zips.len() - failed);
+    if failed == zips.len() {
+        return Err("no bundle succeeded".to_string());
+    }
     Ok(())
 }
 

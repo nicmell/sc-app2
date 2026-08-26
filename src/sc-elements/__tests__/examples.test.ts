@@ -2,7 +2,7 @@
 // static wasm gate and the runtime parse engine (the CDP harness,
 // scripts/validate-examples.mjs, remains the full-stack acceptance covering
 // the backend upload 400s; native and wasm share the sc-validate crate, so
-// these pins cover both builds). Every examples/<category>/<name> entry runs
+// these pins cover both builds). Every examples/plugins/<category>/<name> entry runs
 // through parseEntry, then the sc-elements runtime engine on a disconnected
 // <sc-plugin> host in happy-dom. Functional examples must parse clean; each
 // STATIC fixture must throw its exact (possibly multi-line) message from
@@ -29,7 +29,7 @@ import { compileSynthDef } from "@/lib/synthdef/compileSynthDef";
 import { parseEntry } from "@/lib/plugins/PluginManager";
 
 // Entries are index.html by convention; default-plugin uses entry.html.
-const ENTRIES = import.meta.glob<string>("/examples/*/*/{index,entry}.html", {
+const ENTRIES = import.meta.glob<string>("/examples/plugins/*/*/{index,entry}.html", {
   query: "?raw",
   import: "default",
   eager: true,
@@ -105,7 +105,7 @@ interface ExampleCase {
 
 const cases: ExampleCase[] = Object.entries(ENTRIES)
   .map(([path, xml]) => {
-    const m = path.match(/^\/examples\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
+    const m = path.match(/^\/examples\/plugins\/([^/]+)\/([^/]+)\/(?:index|entry)\.html$/)!;
     return { category: m[1], name: m[2], xml };
   })
   .filter((c) => !UPLOAD_FIXTURES.has(c.name) && c.name !== MALFORMED_FIXTURE)
@@ -164,7 +164,7 @@ describe("every example synthdef compiles", () => {
 
 describe("upload fixtures through the static gate", () => {
   it("bad-entry-xhtml fails the XML parse with the canonical shape", () => {
-    const xml = ENTRIES[`/examples/invalid/${MALFORMED_FIXTURE}/index.html`];
+    const xml = ENTRIES[`/examples/plugins/invalid/${MALFORMED_FIXTURE}/index.html`];
     expect(xml).toBeDefined();
     expect(() => parseEntry(xml)).toThrow(/^plugin entry is not valid XHTML: /);
   });

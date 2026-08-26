@@ -232,75 +232,6 @@ fn validate_asset_image(data: &[u8], declared_type: &str) -> Result<(), String> 
     Ok(())
 }
 
-/// Bundle a plugin DIRECTORY into an in-memory zip — the same bytes shape an
-/// uploaded bundle has, so the one validation/storage path serves both. The
-/// walk is deterministic (entries sorted by their root-relative
-/// forward-slash path, Stored compression — bundling twice yields identical
-/// bytes) and skips dot-entries (.DS_Store, .git). Fails fast when the
-/// directory has no metadata.json (a clearer message than the zip-level
-/// one).
-pub fn bundle_directory(dir: &std::path::Path) -> Result<Vec<u8>, PluginError> {
-    if !dir.join("metadata.json").is_file() {
-        return Err(PluginError::Invalid(format!(
-            "directory \"{}\" has no metadata.json",
-            dir.display()
-        )));
-    }
-
-    fn collect(
-        root: &std::path::Path,
-        dir: &std::path::Path,
-        files: &mut Vec<(String, PathBuf)>,
-    ) -> Result<(), PluginError> {
-        let entries = std::fs::read_dir(dir)
-            .map_err(|e| PluginError::Io(format!("failed to read \"{}\": {e}", dir.display())))?;
-        for entry in entries {
-            let entry = entry.map_err(|e| {
-                PluginError::Io(format!("failed to read \"{}\": {e}", dir.display()))
-            })?;
-            let name = entry.file_name();
-            if name.to_string_lossy().starts_with('.') {
-                continue;
-            }
-            let path = entry.path();
-            if path.is_dir() {
-                collect(root, &path, files)?;
-            } else {
-                let relative = path
-                    .strip_prefix(root)
-                    .expect("walk stays under root")
-                    .components()
-                    .map(|c| c.as_os_str().to_string_lossy())
-                    .collect::<Vec<_>>()
-                    .join("/");
-                files.push((relative, path));
-            }
-        }
-        Ok(())
-    }
-
-    let mut files = Vec::new();
-    collect(dir, dir, &mut files)?;
-    files.sort_by(|a, b| a.0.cmp(&b.0));
-
-    let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
-    let options =
-        zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
-    for (relative, path) in files {
-        zip.start_file(&relative, options)
-            .map_err(|e| PluginError::Io(format!("failed to bundle \"{relative}\": {e}")))?;
-        let bytes = std::fs::read(&path)
-            .map_err(|e| PluginError::Io(format!("failed to read \"{}\": {e}", path.display())))?;
-        use std::io::Write;
-        zip.write_all(&bytes)
-            .map_err(|e| PluginError::Io(format!("failed to bundle \"{relative}\": {e}")))?;
-    }
-    let cursor = zip
-        .finish()
-        .map_err(|e| PluginError::Io(format!("failed to finish bundle: {e}")))?;
-    Ok(cursor.into_inner())
-}
-
 /// Validate a plugin zip end to end: metadata, entry spec, and asset formats.
 pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, PluginError> {
     let invalid = PluginError::Invalid;
@@ -503,52 +434,6 @@ mod tests {
         assert!(is_safe_path("assets/logo.png"));
         assert!(!is_safe_path("../secret"));
         assert!(!is_safe_path("/etc/passwd"));
-    }
-
-    #[test]
-    fn bundle_directory_round_trips_through_validation() {
-        let root = std::env::temp_dir().join("sc-app2-test-bundle-dir");
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(root.join("assets")).unwrap();
-        std::fs::write(
-            root.join("metadata.json"),
-            r#"{"name":"bundled","author":"t","version":"0.0.1","entry":"index.html"}"#,
-        )
-        .unwrap();
-        std::fs::write(
-            root.join("index.html"),
-            r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope/></sc-plugin>"#,
-        )
-        .unwrap();
-        std::fs::write(root.join("assets").join("notes.txt"), "extra").unwrap();
-        std::fs::write(root.join(".DS_Store"), "junk").unwrap();
-
-        let bundle = bundle_directory(&root).expect("bundles");
-        // Deterministic: bundling twice yields identical bytes.
-        assert_eq!(bundle, bundle_directory(&root).unwrap());
-
-        // Sorted entries, dot-entries skipped.
-        let mut archive = zip::ZipArchive::new(std::io::Cursor::new(&bundle)).unwrap();
-        let names: Vec<String> = (0..archive.len())
-            .map(|i| archive.by_index(i).unwrap().name().to_string())
-            .collect();
-        assert_eq!(names, ["assets/notes.txt", "index.html", "metadata.json"]);
-
-        // The SAME validation path an uploaded zip takes.
-        let info = validate_plugin(&bundle).expect("validates");
-        assert_eq!(info.name, "bundled");
-
-        let _ = std::fs::remove_dir_all(&root);
-    }
-
-    #[test]
-    fn bundle_directory_requires_metadata() {
-        let root = std::env::temp_dir().join("sc-app2-test-bundle-empty");
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(&root).unwrap();
-        let error = bundle_directory(&root).expect_err("must fail");
-        assert!(matches!(&error, PluginError::Invalid(m) if m.contains("no metadata.json")));
-        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

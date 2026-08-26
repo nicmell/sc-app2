@@ -39,7 +39,7 @@ import {
   SESSION_GROUP,
   wrapXml,
 } from "@/lib/utils/test/test-utils";
-import xml from "/examples/synths/example-plugin/index.html?raw";
+import xml from "/examples/plugins/synths/example-plugin/index.html?raw";
 
 const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
   address,

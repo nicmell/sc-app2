@@ -30,6 +30,13 @@ yarn serve
 # scsynth + sclang/StrudelDirt for local dev (pre-req: yarn deps, once)
 yarn osc
 
+# Package every example (examples/plugins/* → examples/dist/*, gitignored)
+# and bulk-import the zips into the dev app root (invalid fixtures fail by
+# design and are just logged; a RUNNING serve sees the result on its next
+# request — only the browser needs a reload). Known dev-only race: the CLI
+# and a running server both rewrite plugins.json unlocked.
+yarn examples:sync
+
 # Type-check + bundle the frontend
 yarn build
 
@@ -274,10 +281,10 @@ cli/              mod.rs (clap definitions incl. the GLOBAL --app-dir/
                   generate_context! site);
                   serve.rs (the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
-                  plugin.rs (validate|add|remove|list — validate/add take a
-                  zip OR a plugin DIRECTORY, bundled in memory by manager's
-                  deterministic bundle_directory through the identical
-                  validation/storage path), config.rs (write|validate)
+                  plugin.rs (validate|add|remove|list — validate/add take
+                  any mix of zips and directories scanned RECURSIVELY for
+                  *.zip (sorted): per-zip failures are logged without
+                  blocking the rest, erroring only when nothing succeeds), config.rs (write|validate)
 core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   composition root both run modes call: config load + logger
                   init (the Server owns the flush guard) + bridge → scsynth
@@ -691,7 +698,7 @@ right-associative ternary `? :`, and single-quoted string literals; a bare
 name-shaped bind is always a PATH, so hyphenated state names like
 `fm.mod-freq` stay addressable, while `-` inside real expressions means
 subtraction) except buffers and presets/overrides. Examples: every old example
-without a buffer-family element lives in `examples/<category>/` (see
+without a buffer-family element lives in `examples/plugins/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
 

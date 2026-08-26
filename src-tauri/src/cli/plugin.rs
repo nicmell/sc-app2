@@ -57,36 +57,28 @@ fn print_plugin_info(info: &manager::PluginInfo) {
 }
 
 /// Expand one CLI path into plugin zips: a file is taken as the zip it is,
-/// a directory is scanned RECURSIVELY for `*.zip` (sorted — a stable report
-/// across filesystems). A directory with no zips, or a missing path, is an
-/// argument error.
+/// a directory contributes its DIRECT `*.zip` children (flat, sorted — a
+/// stable report across filesystems; globs are the shell's job and arrive
+/// here as individual paths). A directory with no zips, or a missing path,
+/// is an argument error.
 fn expand(path: &str) -> Result<Vec<std::path::PathBuf>, String> {
     let p = std::path::Path::new(path);
     if p.is_file() {
         return Ok(vec![p.to_path_buf()]);
     }
     if p.is_dir() {
-        fn collect(
-            dir: &std::path::Path,
-            zips: &mut Vec<std::path::PathBuf>,
-        ) -> std::io::Result<()> {
-            for entry in std::fs::read_dir(dir)? {
-                let path = entry?.path();
-                if path.is_dir() {
-                    collect(&path, zips)?;
-                } else if path
-                    .extension()
-                    .is_some_and(|e| e.eq_ignore_ascii_case("zip"))
-                {
-                    zips.push(path);
-                }
-            }
-            Ok(())
-        }
-        let mut zips = Vec::new();
-        collect(p, &mut zips).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+        let entries = std::fs::read_dir(p).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+        let mut zips: Vec<std::path::PathBuf> = entries
+            .filter_map(|entry| entry.ok().map(|e| e.path()))
+            .filter(|candidate| {
+                candidate.is_file()
+                    && candidate
+                        .extension()
+                        .is_some_and(|e| e.eq_ignore_ascii_case("zip"))
+            })
+            .collect();
         if zips.is_empty() {
-            return Err(format!("no plugin zips found under \"{path}\""));
+            return Err(format!("no plugin zips found in \"{path}\""));
         }
         zips.sort();
         return Ok(zips);

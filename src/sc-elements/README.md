@@ -35,7 +35,7 @@ Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,
 kept in sync with the backend XSD.
 
-Folders mirror the old sc-app's class/guard taxonomy:
+Folders follow the element class/guard taxonomy:
 
 ```
 internal/   engine/ (the parse ENGINE — index.ts: free process/
@@ -65,7 +65,7 @@ synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)
 inputs/     interactive controls
 visuals/    read-only / conditional presentation
-widgets/    self-contained app panels (new-app features, not in the old app)
+widgets/    self-contained app panels (scope/console/strudel/keyboard)
 ```
 
 Within each category (except `internal/`) every element lives in its own folder
@@ -99,7 +99,7 @@ inverse of sc-synth's children-first order — so its children's
 `targetGroupId` walk finds it live; nested groups nest. Group-level
 `sc-control` children key under the group path and `/n_set` the GROUP node
 on writes (scsynth fans a group `/n_set` out to every node inside — the
-server-side replacement for the old app's name-based propagation). Unload
+server-side mechanism — scsynth fans a group /n_set to every node inside). Unload
 resets flags only: the subtree dies with the plugin group's wholesale
 teardown.
 
@@ -329,7 +329,7 @@ tap through the load pass: a ScopeOut2 tap synth at the session-group tail
 writing a scope slot allocated from the session's span, plus the bridge's
 `/scope/chunk` subscription (filtered by its own subId into `chunkRef`; the
 canvas draws in a RAF loop). Unload reverses it all, so taps re-arm across
-disconnects. NOT the old buffer-bound sc-scope — that returns with the
+disconnects. Bus-based only — the buffer-bound variant arrives with the
 buffer-family migration.
 
 ### `<sc-strudel>`

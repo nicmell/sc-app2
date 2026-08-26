@@ -2,8 +2,7 @@
 // forward the `ref`, `style` (absolute position/size) and `className`
 // (`react-grid-item`) the grid injects — that wiring is what makes the panel
 // draggable/resizable. The header is the drag handle (`.dashboard-panel-header`);
-// its buttons stop mousedown from starting a drag. Faithful to upstream minus the
-// run/log controls (we have no per-node runtime yet).
+// its buttons stop mousedown from starting a drag.
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Button, Text } from "@/components/ui";
 import styles from "./DashboardPanel.module.scss";

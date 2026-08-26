@@ -1,4 +1,4 @@
-// The app's HTTP layer (modeled on the old sc-app's src/lib/http): typed
+// The app's HTTP layer: typed
 // request helpers over fetch, all resolving against HTTP_BASE_URL.
 //
 // In a browser the API + WS are same-origin (production serve) or Vite-proxied,

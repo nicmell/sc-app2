@@ -1,8 +1,7 @@
 /**
  * Scope tap — reads an audio bus and writes it into one of scsynth's
  * shared-memory scope buffers via `ScopeOut2`. The bridge mmaps that segment
- * and reads slots in-process (no `/b_getn`). Ported from upstream sc-app's
- * `bufferTapSynthDef`.
+ * and reads slots in-process (no `/b_getn`).
  *
  * One scope_buffer slot = one chunk: `maxFrames = scopeFrames = chunkSize`, so
  * each triple-buffer slot holds exactly one chunk of audio. The bridge polls

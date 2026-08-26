@@ -87,7 +87,7 @@ export abstract class ScInput extends ScElement {
    *  reactive field, so the hook never fires (Object.is guard) and Lit alone
    *  would skip the render `live()` needs. The middle arm serves the
    *  static-value (unbound) case; the last arm is the never-settled-target
-   *  parity hole (the gesture value sticks — same as the old seam). */
+   *  case (the gesture value sticks). */
   protected commit(value: StateValue): void {
     const target = this.targetScState;
     const slot = this.targetSlot;

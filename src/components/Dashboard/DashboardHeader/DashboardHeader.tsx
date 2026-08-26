@@ -1,7 +1,5 @@
 // Dashboard top bar: app title, live connection status, and the button that
-// opens the plugin-management drawer. Adapted from upstream (dropped the
-// transport play/stop, clock indicator and settings drawer — we have no per-node
-// runtime or clock service here).
+// opens the plugin-management drawer.
 import { Button, Chip } from "@/components/ui";
 import { useStatus } from "@/stores/session";
 import type { ConnStatus } from "@/types/stores";

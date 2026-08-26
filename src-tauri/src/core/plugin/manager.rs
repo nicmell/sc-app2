@@ -2,8 +2,8 @@
 //! `metadata.json`, an entry XHTML file (validated by the shared sc-validate
 //! static gate), and optional png/jpeg assets. Validated bundles are stored under
 //! [`config::plugins_dir`] and tracked in a [`config::plugins_registry_path`]
-//! JSON registry. Ported from upstream sc-app, adapted to our config paths +
-//! a dedicated registry file (rather than mixing into the typed `config.json`).
+//! JSON registry (dedicated file, deliberately not mixed into the typed
+//! `config.json`).
 
 use std::io::Read;
 use std::path::PathBuf;

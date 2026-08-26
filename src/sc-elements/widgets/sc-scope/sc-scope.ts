@@ -6,8 +6,8 @@
 // through the load pass: load() installs the tap synthdef (ScopeOut2 into a
 // scope-buffer slot allocated from the session's span), creates the tap synth
 // at the tail of the SESSION group (it reads post-everything as of load time —
-// plugins mounted later append after it, the same ordering caveat the old
-// global controller had), and subscribes to the bridge's /scope/chunk stream
+// plugins mounted later append after it, an accepted ordering caveat), and
+// subscribes to the bridge's /scope/chunk stream
 // filtered by its own subId; unload() reverses all of it, so the connection
 // lifecycle (disconnect → unload, reconnect → reload) re-arms taps for free.
 //

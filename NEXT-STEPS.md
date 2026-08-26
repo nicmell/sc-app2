@@ -46,7 +46,7 @@ the price of one registry entry. Highest-value additions:
   are global to scsynth — two mounts of the same rig sum their traces
   (the debugging saga of this branch). Backend step, own branch.
 - **Honor `run="false"`** after node creation (`/n_run` — attribute parsed,
-  ignored; the old app's create-then-run sequence).
+  ignored; the create-then-/n_run sequence).
 - **sc-scope tap re-arm**: `bus`/`channels`/`frames` are `runtime: false`
   only because there's no re-tap machinery — lift by re-running the
   subscription on recompute.

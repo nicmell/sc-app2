@@ -6,8 +6,8 @@
 // every synth in it — on unmount. Title and description live in metadata.json /
 // PluginInfo.
 //
-// The plugin also lives with the OSC connection (`oscClient.connected`,
-// the old ScopeController's pattern): a drop unloads every element — flags and
+// The plugin also lives with the OSC connection (`oscClient.connected`):
+// a drop unloads every element — flags and
 // node ids reset, teardown sends harmlessly dropped on the dead socket —
 // while the per-plugin runtime map survives; reestablishment re-runs the
 // load pass, so the recreated synths carry the user's current values.

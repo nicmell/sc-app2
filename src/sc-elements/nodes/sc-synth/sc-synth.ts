@@ -27,7 +27,7 @@ export class ScSynth extends ScNode {
   /** Read the control children once in DOM order (a synth is a node — its
    *  controls are live by construction). Scalar controls
    *  become /s_new pairs; array controls are sent as indexed pairs. A string
-   *  scalar is skipped with the same warning the old scalar collector used. */
+   *  scalar is skipped with a console warning. */
   private getControlSnapshots(): {
     scalars: Array<[string, number]>;
     arrays: Array<{ name: string; values: readonly number[] }>;

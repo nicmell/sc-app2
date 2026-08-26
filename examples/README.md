@@ -114,5 +114,4 @@ them at upload (400 with the structured ApiError envelope — code
 exact, possibly multi-line, messages; native and wasm share the crate, so
 those pins cover both builds.)
 
-Not yet ported from the old app (buffer-family migration step):
-`scope-plugin`, `waveform-plugin`, `test-plugin`.
+Buffer-family examples arrive with the roadmap's buffer step.

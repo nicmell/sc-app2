@@ -1,4 +1,4 @@
-/* Dashboard shell + grid, restyled from upstream onto ui-components tokens.
+/* Dashboard shell + grid on the ui-components tokens.
    react-grid-layout owns positioning (inline styles + its own css); this file
    owns the shell + grid look. The header/footer/panel/placeholder pieces each
    live in their own sibling *.module.scss. */

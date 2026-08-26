@@ -11,12 +11,11 @@
 //     OSC (see ScControl: /n_set lives on the WRITE path only).
 //   - DERIVED state (a `bind:value` expression) is pure inherited runtime-prop
 //     behavior: `_state` derives from the targets, there is NO store key,
-//     and writes are inert (`setValue` on derived state is a no-op — the old
-//     app's writes to bound state were equally inert).
+//     and writes are inert (`setValue` on derived state is a no-op).
 //
 // The `value` prop itself is the plain declarative attribute mirror — the
-// live value is `_state` (the old app's exact value/_state split; the graph
-// collection relies on telling a missing `value` attribute apart).
+// live value is `_state` (the graph collection relies on telling a missing
+// `value` attribute apart).
 //
 // A state element must be declared ON A NODE: its store key/path derives
 // from the named ancestors, and a path-transparent container (sc-if,
@@ -69,7 +68,7 @@ export abstract class ScState extends ScElement {
   }
 
   /** The public write path (what inputs call). Derived state is read-only —
-   *  the write is silently inert, like the old app's. Graph-plane state
+   *  the write is silently inert. Graph-plane state
    *  (synthdef params, ugen inputs) is NOT writable: nothing legitimate
    *  reaches it (binds cannot target it, its subtree never loads) — callers
    *  going out of their way via walkPath get an orphan store key. */

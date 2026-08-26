@@ -30,9 +30,10 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
     try {
       await deletePlugin(p.id);
     } catch (err) {
-      // 5xx already toasted by the http observer; keep the local toast for
-      // 4xx and non-HttpError failures (fetch rejections never reach it).
-      if (err instanceof HttpError && err.status >= 500) return;
+      // 5xx already toasted by the http observer (which skips 503 — mirror
+      // that here); keep the local toast for everything else, including
+      // non-HttpError failures (fetch rejections never reach the observer).
+      if (err instanceof HttpError && err.status >= 500 && err.status !== 503) return;
       pushToast({
         variant: "error",
         message: `failed to remove ${p.name}: ${err instanceof Error ? err.message : String(err)}`,

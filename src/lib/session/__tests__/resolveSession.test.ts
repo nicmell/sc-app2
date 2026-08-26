@@ -172,5 +172,9 @@ describe("code-aware fallback precision", () => {
     );
     http.post.mockResolvedValue(jsonResponse(info("fresh-3")));
     expectReplaceTo(await loadSession("not-a-uuid"), "/fresh-3");
+    // Consume the module-level mint handoff so it cannot leak into another
+    // test (beforeEach can't reset it).
+    const handed = (await loadSession("fresh-3")) as SessionInfo;
+    expect(handed.sessionId).toBe("fresh-3");
   });
 });

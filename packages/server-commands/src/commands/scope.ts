@@ -25,10 +25,9 @@ export const SCOPE_UNSUBSCRIBE_ADDRESS = "/scope/unsubscribe";
 export const SCOPE_CHUNK_ADDRESS = "/scope/chunk";
 
 export interface ScopeSubscribeParams {
-  /** Worker-minted monotonic id; bridge echoes on chunk frames. */
+  /** Client-minted monotonic id (OscClient); bridge echoes on chunk frames. */
   subId: number;
-  /** Scope-buffer index (SHM mode) or bufnum (OSC fallback mode).
-   *  Bridge interprets per `Session::scope_mode`. */
+  /** Scope-buffer index — a slot in the session's server-assigned span. */
   scope: number;
   channels: number;
   chunkSize: number;

@@ -7,7 +7,7 @@
  *     s.set(1);      // logs 1
  *     off();
  *
- * The whole app shares ONE root store (see `src/state/store.ts`); every domain
+ * The whole app shares ONE root store (see `src/stores/store.ts`); every domain
  * reads/writes a slice of it. Two derivations make that ergonomic:
  *
  *   • `select(fn)` — a read-only view that notifies only when the selected value

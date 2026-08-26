@@ -10,7 +10,7 @@ compilation.
 
 ```bash
 yarn                 # install
-yarn osc             # scsynth + sclang/StrudelDirt (pre-req: setup-deps once)
+yarn osc             # scsynth + sclang/StrudelDirt (pre-req: `yarn deps`, once)
 yarn dev:full        # frontend (:1420) + headless Rust server (:3000)
 yarn tauri dev       # or: the full native app
 ```

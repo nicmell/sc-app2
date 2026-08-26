@@ -3,8 +3,8 @@ import { Rate, rateToI8, rateFromI8 } from "./rate.js";
 import { UGenInput, ugenIndex, outputIndex } from "./ugen-input.js";
 
 // ---------------------------------------------------------------------------
-// Structured JSON representation — mirrors Rust `SynthDefJson` field-for-field
-// (camelCase field names).
+// Structured JSON representation of a compiled SynthDef (camelCase field
+// names) — the `toJson`/`fromJson` interchange format.
 // ---------------------------------------------------------------------------
 
 export interface ParamNameEntry {

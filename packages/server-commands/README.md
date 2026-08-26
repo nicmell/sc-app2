@@ -31,6 +31,7 @@ The app imports that subpath only from its OSC worker (and codec tests), keeping
 the codec implementation out of the main-thread bundle.
 
 Command constructors are grouped under `commands/` (`node`, `group`,
-`synthdef`, `buffer`, `control`, `misc`, and `scope`). `replies.ts` provides
+`synthdef`, `buffer`, `control`, `misc`, `scope`, and `clock` — the
+bridge's `/clock/*` ping/pong/subscribe vocabulary). `replies.ts` provides
 common address constants and positional readers; `timetag.ts` provides
 `immediate`, `atDate`, `inFuture`, and `fromTick` / `tickToTimetag`.

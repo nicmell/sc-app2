@@ -207,7 +207,7 @@ to the client), and the shared `Arc<ScopeShm>`.
 ## 4. Wire protocol (the cross-language contract)
 
 Defined twice, kept in sync by a golden test
-(`scope/mod.rs::encode_scope_chunk_round_trips_with_be_blob` ↔
+(`scope/wire.rs::encode_scope_chunk_round_trips_with_be_blob` ↔
 `packages/server-commands/src/commands/scope.ts`):
 
 | message | args | direction | notes |
@@ -241,7 +241,7 @@ Conventions:
   skipped), an odd number as one. At a 5 ms poll vs ~21 ms push cadence
   that needs a ≥40 ms stall; harmless for a live view.
 
-## 5. The frontend (`src/lib/osc/OscClient.ts`, `src/sc-elements/widgets/sc-scope.ts`)
+## 5. The frontend (`src/lib/osc/OscClient.ts`, `src/sc-elements/widgets/sc-scope/sc-scope.ts`)
 
 `OscClient` is the elements' entire scope vocabulary:
 
@@ -269,7 +269,7 @@ Tap props (change what scsynth runs — the def is compiled per
 | `frames` | `1024` (≤ 16384) | samples per chunk = the visible window (`frames/sampleRate` seconds). The slot completes — and the view refreshes — at the inverse rate, so bigger windows page rather than flow; the SHM slot is allocated at this size, hence the ceiling |
 
 Display props (renderer-only — the tap, wire and bridge are untouched; all
-enforced by the element's `validate()`):
+enforced by the shared static validator via the element spec):
 
 | prop | default | meaning |
 |---|---|---|
@@ -278,6 +278,7 @@ enforced by the element's `validate()`):
 | `level` | `0` | trigger level: the threshold to cross (sample units, pre-`gain`) |
 | `gain` | `1` | vertical scale: sample × gain maps ±1 to the lane height (a 0.9 padding stays internal); over-gained lanes clip in `split`, overflow in `overlay` |
 | `layout` | `overlay` | `overlay` superimposes all lanes around one midline; `split` stacks per-channel bands, each with its own zero line and clip rect |
+| `range` | `bipolar` | `unipolar` maps 0…1 to the full lane (envelopes/control taps fill the lane instead of hugging the midline) |
 
 Trigger internals (`src/lib/scope/trigger.ts`, pure + unit-tested): the
 **source is lane 0** — all lanes draw at the found offset so they stay
@@ -293,14 +294,15 @@ jump between chunks.
 
 ### Lifecycle
 
-`<sc-scope>` owns the tap through the element load pass:
+`<sc-scope>` owns the tap through the element load pass (defaults shown —
+`frames` is a prop; the def is compiled per `(channels, frames)`):
 
 ```
 load():   slot = allocScopeIndex()
-          sendSynthDef(scopeTap<channels>ch_1024)        → awaits /synced
+          sendSynthDef(scopeTap<channels>ch_<frames>)    → awaits /synced
           tap = createSynth(def, sessionGroup tail,
                             { inBus: bus, scopeNum: slot }) → awaits /n_go
-          stream = subscribeScope(slot, channels, 1024,
+          stream = subscribeScope(slot, channels, frames,
                                   chunk → chunkRef.current)
 
 unload(): stream.off()   [drops the handler + /scope/unsubscribe]

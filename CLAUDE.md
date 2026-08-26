@@ -207,13 +207,14 @@ synthdef's collected params/specs must compile (a dedicated describe — the
 load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
 registry is plain data, happy-dom-safe); the
 runtime `bad-*` fixtures must fail with their **exact** message; plus
-structural assertions (flat runtime merge, range bind targets, `_element`
-identity). The strudel editor stack (browser-only deps that won't import under
+structural assertions (resolved bind targets, runtime fields on the
+elements). The strudel editor stack (browser-only deps that won't import under
 happy-dom — @strudel/codemirror, @strudel/transpiler, @strudel/core) is aliased
 to inert stubs globally (vite.config.ts `test.alias` → `src/lib/utils/test/
 stubs/`); the codemirror stub records constructed editors in `strudelMirrors`
-for widgets.test.ts. The five upload fixtures are backend validation and are
-excluded here.
+for widgets.test.ts. Three upload fixtures (bad-metadata, bad-asset-type,
+bad-asset-mismatch) are backend-only validation and excluded here; the
+malformed/schema entry fixtures run through the static gate describe.
 `src/sc-elements/__tests__/controls.test.ts` adds the lifecycle gate (load pass
 send order, store seeding, /n_set wiring, unmount cleanup — against a scripted
 scsynth auto-responder through `handleReply`),

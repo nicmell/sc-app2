@@ -57,7 +57,8 @@ the timestamp) and answers inline on the same socket.
 These never reach the WebSocket: `worker.ts` intercepts `/clock/*` commands
 before the encode path and consumes `/clock/pong` before the post-up path.
 `OscClient.handleReply` routes ticks/status ahead of everything else and keeps
-them out of the OSC console log (the `/scope/chunk` treatment).
+them out of the OSC console log (the logging middleware's skip set — the
+same `/scope/chunk` treatment).
 
 ## 3. Clock domains (the load-bearing rules)
 
@@ -97,17 +98,10 @@ only ever _adds_ to RTT, so the fastest exchange carries the least-biased
 offset. No smoothing/slew: consumers convert domains only at stamp time (§6),
 so an estimate change merely shifts not-yet-stamped events.
 
-Constant rationale (all in `src/constants/osc.ts`):
-
-- `CLOCK_PING_BURST_COUNT = 5` — enough samples for the min-RTT pick to dodge
-  an outlier; lock in ~0.6 s.
-- `CLOCK_PING_BURST_INTERVAL_MS = 150` — must exceed worst-case RTT so a ping
-  never queues behind its predecessor (queueing would inflate that RTT sample).
-- `CLOCK_PING_INTERVAL_MS = 2000` — sized for drift: a worst-case ~100 ppm
-  crystal needs a sample roughly every `1 ms / 100 ppm / 8` ≈ 1.25 s to hold
-  ms-level precision across the window.
-- `CLOCK_SAMPLE_WINDOW = 8` — NTP's clock-filter register size.
-- `CLOCK_WATCHDOG_INTERVAL_MS = STATUS_REPLY_TIMEOUT_MS / 5` — derived; see §6.
+Each `CLOCK_*` constant carries its own rationale where it is defined
+(`src/constants/osc.ts`, the "bridge clock" block) — burst size/spacing,
+steady cadence sized for crystal drift, the 8-sample NTP clock-filter
+window, and the derived watchdog cadence.
 
 ## 5. The tick scheduler
 
@@ -164,8 +158,9 @@ rather than silently mistiming events.
 - **Worker crash**: respawn + subscription replay (§5); the dead socket is
   detected by the watchdog within `STATUS_REPLY_TIMEOUT_MS + 1 s`.
 - **Wall-clock step (NTP adjust, suspend/resume)**: RTT and tick phase are
-  monotonic and unaffected; the offset estimate re-converges within a ping
-  or two, shifting only not-yet-stamped timetags.
+  monotonic and unaffected; the offset estimate re-converges within at most
+  the 8-sample window (~16 s — a pre-step min-RTT sample keeps winning until
+  it ages out), typically sooner, shifting only not-yet-stamped timetags.
 - **Remote scsynth (≠ bridge host)**: unsupported assumption — timetags are
   stamped in _bridge_ time; a remote scsynth would need its own offset. One
   comment marks this at the stamp site.

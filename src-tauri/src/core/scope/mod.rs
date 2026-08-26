@@ -1,7 +1,7 @@
 //! SHM scope streaming: `ScopeOut2` tap synths write scsynth's shared-memory
 //! scope buffers; the WS task polls them on a timer and streams completed
-//! slots to the browser as `/scope/chunk` OSC messages. See `docs/scope.md` at the
-//! repo root for the full pipeline (scsynth level → bridge → `<sc-scope>`).
+//! slots to the browser as `/scope/chunk` OSC messages. See `docs/scope.md`
+//! for the full pipeline (scsynth level → bridge → `<sc-scope>`).
 //!
 //! This module owns ALL the scope semantics; the WS pump only routes frames
 //! and ferries bytes (see [`crate::core::router::ws`]). One file per layer:

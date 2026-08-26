@@ -47,13 +47,3 @@ export const SCOPE_CHUNK_SIZE = 1024;
  *  from scsynth's finite SHM scope pool, and past this the page-flip refresh
  *  (sampleRate/frames) is too slow to read as motion anyway (~3 Hz at 48 kHz). */
 export const SCOPE_MAX_FRAMES = 16384;
-
-// ── live envelopes (<sc-env> state / per-synth control arrays) ────────
-
-/** Max segments a LIVE envelope may hold. Its def-side control array is
- *  4 + 4×maxSegments param slots (the flat Env encoding), written whole with
- *  /n_setn on the owning group. */
-export const ENV_MAX_SEGMENTS = 15;
-
-/** Default <sc-env max-segments> for a state envelope. */
-export const ENV_DEFAULT_MAX_SEGMENTS = 8;

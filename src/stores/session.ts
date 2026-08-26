@@ -1,7 +1,7 @@
 // React bindings for the session singleton (@/lib/session/SessionManager):
 // useSyncExternalStore hooks over its reactive views. The singleton itself is
 // re-exported so existing imports (the `sc-*` Lit elements) keep working; the
-// domain types live in @/types/stores. The OSC-side hooks (log, banners,
+// domain types live in @/types/stores. The OSC-side hooks (log, clock,
 // scsynth load) live in `@/stores/osc` over the OscClient.
 
 import { useSyncExternalStore } from "react";

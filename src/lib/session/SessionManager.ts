@@ -115,7 +115,7 @@ export class SessionManager {
   }
 
   /** Periodically PUT the dashboard layout to the session endpoint (the server
-   *  stores it next to the plugins, see src-tauri saved_sessions). Skips ticks
+   *  stores it next to the plugins, see src-tauri core/layouts.rs). Skips ticks
    *  where the layout hasn't changed since the last save; failures just retry
    *  on the next tick. */
   private startLayoutAutosave(sessionId: string): void {
@@ -134,7 +134,7 @@ export class SessionManager {
         (error: unknown) => {
           console.warn("[session] layout save failed:", error);
           // Coalesced (one toast, bumped count) — the autosave retries every
-          // tick, and a dead session/registry must not stack banners.
+          // tick, and a dead session/registry must not stack toasts.
           pushToast({
             variant: "warn",
             key: "session:layout-save",

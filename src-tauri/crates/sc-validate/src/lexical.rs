@@ -1,6 +1,10 @@
-//! Hand-rolled lexical gates for the static validator.
+//! Hand-rolled lexical gates for the static validator: the XSD lexical
+//! spaces the spec attribute types promise (decimal/integer/boolean) plus
+//! the one-bind-path-segment `name` syntax. Hand-rolled rather than regex
+//! so the wasm build stays dependency-light and the native and wasm gates
+//! share byte-identical acceptance.
 
-/// Match the XSD decimal lexical space used by the frontend validator.
+/// Match the XSD decimal lexical space the spec attribute types declare.
 pub fn xsd_decimal(input: &str) -> bool {
     let bytes = input.as_bytes();
     let mut index = 0;
@@ -20,7 +24,7 @@ pub fn xsd_decimal(input: &str) -> bool {
     index == bytes.len() && (before > 0 || after > 0)
 }
 
-/// Match the XSD integer lexical space used by the frontend validator.
+/// Match the XSD integer lexical space the spec attribute types declare.
 pub fn xsd_integer(input: &str) -> bool {
     let bytes = input.as_bytes();
     let mut index = 0;

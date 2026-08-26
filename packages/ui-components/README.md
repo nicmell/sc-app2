@@ -19,7 +19,7 @@ import "@sc-app/ui-components";
 
 // 2. As web components (Lit / plugin HTML)
 import { registerUiComponents } from "@sc-app/ui-components/lit";
-registerUiComponents(); // idempotent; defines every <sc-*-base> tag
+registerUiComponents(); // idempotent; defines every <sc-base-*> tag
 // <sc-base-button label="Run" variant="danger"></sc-base-button>
 ```
 
@@ -44,7 +44,7 @@ The React wrappers are not published by this package — they live in the host a
 
 ## Components
 
-Tag `sc-<name>-base` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/components/ui.tsx`).
+Tag `sc-base-<name>` ↔ class `Sc<Name>Base` ↔ React `<Name>` (host `src/components/ui.tsx`).
 `size` is `sm | md | lg`
 (md default) wherever it appears.
 

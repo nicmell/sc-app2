@@ -226,7 +226,11 @@ impl SessionScopes {
         }
     }
 
-    /// Take one staged chunk for sending.
+    /// Take one staged chunk for sending. Which subscription wins is
+    /// HashMap iteration order — arbitrary, no round-robin fairness. Fine
+    /// at the real rates: the pump drains one chunk per select pass, ~5 ms
+    /// apart, while pushes arrive ~21 ms apart per subscription, so the
+    /// map almost never holds more than one entry.
     pub fn next_chunk(&mut self) -> Option<Vec<u8>> {
         let sub_id = *self.pending.keys().next()?;
         self.pending.remove(&sub_id)

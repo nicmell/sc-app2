@@ -112,7 +112,7 @@ async function request(
     // The global backstop: UNEXPECTED server failures surface as a coalesced
     // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
     // form feedback). No code suffix in the key — different 5xx codes on
-    // one call should bump the same banner, not stack.
+    // one call should bump the same toast, not stack.
     if (resp.status >= 500 && resp.status !== 503 && notify !== false) {
       pushToast({
         variant: "error",

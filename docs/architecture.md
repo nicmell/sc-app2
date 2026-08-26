@@ -36,7 +36,6 @@ Two processes talk three protocols: **HTTP** (session + plugin + diag CRUD,
 with every API error as the structured `{code, message, violations?}`
 envelope), **WebSocket binary frames** (raw OSC packets, unmodified in both
 directions), and **UDP** (the same OSC bytes, to/from the audio peers).
-There is **no Tauri IPC** — the webview is just another browser.
 
 ## Architecture
 
@@ -80,9 +79,10 @@ routes/                  the react-router DATA-MODE tree (router.tsx):
                          navigation, re-runs loaders)
 components/              React shell: Dashboard grid, shared PluginHost (offline
                          fetch/parse/process/mount), plugin picker/list,
-                         ToastStack (renders the generic toasts slice), the
-                         connection overlay (thin status switch over the ui
-                         primitives; Retry revalidates the route loaders in
+                         ToastStack (renders the generic toasts slice),
+                         Drawer/ (the settings drawer SettingsRoute renders),
+                         the connection overlay (thin status switch over the
+                         ui primitives; Retry revalidates the route loaders in
                          place), ui/ (the generic primitives: Modal with
                          title/description/actions slots, LoadingOverlay)
 sc-elements/             Lit elements used inside plugin HTML (see
@@ -135,9 +135,10 @@ types/                   .d.ts domain shapes (type-only modules):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
                          runtime.d.ts (engine types: RuntimeContext + store/prop shapes)
-  constants/               per-domain constants (as-const maps + defaults):
+constants/               per-domain constants (as-const maps + defaults):
                          env (HTTP_BASE_URL), osc (timeouts/limits, scope tap),
-                         session, layout (grid), sc-elements (ELEMENTS), store (SliceName)
+                         session, layout (grid), routes (the ROUTES patterns),
+                         sc-elements (ELEMENTS), store (SliceName), toasts
 lib/                     non-React infrastructure
   expression/              the bind-expression LANGUAGE: ast (the Expr union),
                          parser (grammar: arithmetic, comparisons, ternary,
@@ -287,6 +288,8 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
   blocks.rs       the per-session id-partitioning scheme (pure math): node-id
                   sub-blocks (cid<<26 blocks, per-session SESSION_SPAN) +
                   scope-slot spans (SCOPE_SPAN of SCOPE_BUFFER_COUNT)
+  clock.rs        the /clock/* wire contract — ping/pong encode/parse,
+                  mirrored by server-commands' commands/clock.ts
   sessions.rs     LIVE-session store (Uuid → block, index recycling)
   layouts.rs      SAVED dashboard layouts: sessions.json registry +
                   sessions/<id>.json
@@ -306,7 +309,7 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   (the /scope/* contract), session.rs (per-slot cursors +
                   SessionScopes — one session's subscriptions, span gating,
                   latest-only chunk staging, owned by the WS task; ws.rs
-                  stays pure transport). See scope.md
+                  stays pure transport). See docs/scope.md
   router/         axum: error.rs (the STRUCTURED ApiError envelope —
                   {code, message, violations?} JSON with stable kebab-case
                   codes — spoken by EVERY server error: handlers, ws
@@ -495,7 +498,7 @@ playing; new /s_new — e.g. keyboard voices — fail until that instance
 reloads).
 
 **Connection lifecycle**: every mounted plugin lives with the connection —
-ScPlugin subscribes to `oscClient.connected` (the ScopeController's pattern).
+ScPlugin subscribes to `oscClient.connected`.
 A drop runs `unload()` (the exact inverse of the load pass: store
 subscriptions dropped, flags/node ids reset, teardown sends silently dropped
 on the dead socket) while the plugin instance's runtime store survives;
@@ -591,20 +594,19 @@ from the DOM). sc-if contents are therefore UNCONDITIONALLY
 live — hiding is visual-only. The var must-be-on-a-node rule survives as a
 defensive guard for genuinely non-node levels (inside a synthdef). Names
 are syntax-validated as ONE bind-path segment (the spec `name` type — letters,
-digits, `*`, `-`; no dots): a dotted name would forge another scope's store
+digits, `_`, `-`; no dots): a dotted name would forge another scope's store
 key (`bad-name-syntax`; the
 shared Rust gate enforces it natively at upload and as wasm at parseEntry).
 There is deliberately NO name-based group→descendant control propagation —
 a group-level control's /n_set on the group node is the server-side
 mechanism (scsynth fans it out), plus explicit `bind:value="group.ctl"`.
 
-Bind expressions (lib/expression parseBind/evalExpr): arithmetic, the
-non-associative comparisons `> < >= <= == !=` evaluating to 1/0, the
-right-associative ternary `? :`, and single-quoted string literals; a bare
-name-shaped bind is always a PATH, so hyphenated state names like
-`fm.mod-freq` stay addressable, while `-` inside real expressions means
-subtraction. Examples live in `examples/plugins/<category>/` (see
-examples/README.md — app/synths/bindings/inputs/widgets/invalid).
+Bind-expression fine print (lib/expression): a bare name-shaped bind is
+always a PATH, so hyphenated state names like `fm.mod-freq` stay
+addressable, while `-` inside real expressions means subtraction; the
+comparisons are non-associative and evaluate to 1/0. Examples live in
+`examples/plugins/<category>/` (see examples/README.md —
+app/synths/bindings/inputs/widgets/invalid).
 
 
 ## The wire, top to bottom

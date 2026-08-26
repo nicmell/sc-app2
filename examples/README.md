@@ -14,11 +14,11 @@ outside the `invalid/` fixtures is a bug.
 
 Entries are XHTML rooted at `<sc-plugin>`. Display metadata belongs in
 `metadata.json`: `title` and `description` are optional string fields. The loader
-parses XML and imports the root's children into its runtime host, so self-closing
-tags are safe. The root declares `xmlns="http://www.w3.org/1999/xhtml"` and
+parses XML and imports the whole authored root — the `<sc-plugin>` IS the
+runtime host — so self-closing tags are safe. The root declares `xmlns="http://www.w3.org/1999/xhtml"` and
 `xmlns:bind="urn:sc-app:bind"` so dynamic runtime props can use the `bind:` namespace.
 To install one by hand:
-`cd examples/<cat>/<plugin> && zip -r /tmp/p.zip . && curl -X POST
+`cd examples/plugins/<cat>/<plugin> && zip -r /tmp/p.zip . && curl -X POST
 --data-binary @/tmp/p.zip http://127.0.0.1:3000/api/plugins`.
 
 ## `app/` — the stock dashboard
@@ -89,7 +89,7 @@ Upload-time fixtures (rejected by the backend zip/spec validation):
 
 Runtime fixtures (upload fine; the parse engine must reject them — each one
 targets a single error path in the sc-elements runtime
-(`internal/engine/validation.ts` + the `resolveRuntime` overrides)):
+(`internal/engine/resolution.ts` + the `resolveRuntime` overrides)):
 
 | plugin                   | error path                                | fails with                                                                                                                                                                                                                                                                                                   |
 | ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -102,7 +102,7 @@ targets a single error path in the sc-elements runtime
 | `bad-forward-state-ref`  | `resolveStatePath`                        | a same-scope state `bind:value="vars.b"` before `b` is declared — the honest bind-order error, not "not declared"                                                                                                                                                                                            |
 | `bad-synth-target`       | `sc-synth resolveRuntime`                 | `<sc-synth synthdef="fx">` naming a _group_ — the reference must resolve to an actual `<sc-synthdef>`                                                                                                                                                                                                        |
 | `bad-unknown-synthdef`   | `sc-synth resolveRuntime`                 | `<sc-synth synthdef="missing">` matches no `<sc-synthdef>`                                                                                                                                                                                                                                                   |
-| `bad-ugen-input`         | `sc-synthdef collectUgenInputs`           | a ugen `sc-control` with neither `bind` nor `value`                                                                                                                                                                                                                                                          |
+| `bad-ugen-input`         | `sc-synthdef collectControlEntries`       | a ugen `sc-control` with neither `bind:value` nor `value`                                                                                                                                                                                                                                                          |
 | `bad-ugen-ref`           | `sc-ugen resolveRuntime`                  | a ugen input bound to `lfo`, which names no sibling ugen / param                                                                                                                                                                                                                                             |
 | `bad-if-shadow`          | `checkDuplicateNames`                     | a same-named var inside a TRANSPARENT `sc-if` — its contents parse into the enclosing sibling scope, so the collision fails the flat-scope duplicate check                                                                                                                                                 |
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |

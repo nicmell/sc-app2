@@ -7,7 +7,8 @@
 //! `Server` facade, and the axum `router` transport), composed by
 //! [`core::start`].
 //!
-//! * `serve [--config <path>]` → headless HTTP server ([`cli::serve`]).
+//! * `serve` → headless HTTP server ([`cli::serve`]). The global
+//!   `--app-dir`/`--config`/`--log-dir` flags apply to every command.
 //! * `plugin <validate|add|remove|list>` → manage plugin bundles
 //!   ([`cli::plugin`]).
 //! * `config <write|validate>` → write/validate `config.json`

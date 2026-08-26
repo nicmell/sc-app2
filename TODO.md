@@ -6,7 +6,8 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 ## Roadmap (the big steps)
 
 1. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
-   sequence after the create ack (the attribute is parsed but ignored today).
+   sequence after the create ack. The plumbing exists (`setRunning` on
+   sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.
 2. **Buffer family** — designed around the SHM transport (no `/b_getn`, no
    global-clock machinery; the bus-based sc-scope already covers live-signal
    viewing):
@@ -43,8 +44,8 @@ one registry entry:
    `explin`.
 4. `rand(lo, hi)` — GRAPH-ONLY (`Rand` UGen; per-voice randomization at
    /s_new time). Client/static planes reject it.
-5. Keyword args (`name: value` is reserved in the grammar): envelope
-   `curve:` overrides and `releaseNode:`/`loopNode:` on `new`/`step`.
+5. Keyword args (`name: value`): envelope `curve:` overrides and
+   `releaseNode:`/`loopNode:` on `new`/`step`.
 
 ## Engine / element follow-ups
 
@@ -86,4 +87,3 @@ one registry entry:
 - Button with icon: better centering; a loading button.
 - SCSS everywhere in the main app.
 - Strudel deps chunked (bundle size).
-- Rename `sc-*-base` widgets to `sc-base-*` (the remaining stragglers).

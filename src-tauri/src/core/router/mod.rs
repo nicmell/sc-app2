@@ -59,6 +59,9 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         .merge(ws::routes())
         .merge(plugin::routes())
         .merge(diag::routes())
+        // Unknown /api/* paths get the JSON envelope, not the page fallback
+        // (production) or axum's empty 404 (dev).
+        .route("/api/{*rest}", axum::routing::any(error::api_not_found))
         .with_state(server)
         // The GUI webview is ALWAYS cross-origin to this server
         // (`tauri://localhost` in prod, the Vite devUrl in dev — only a
@@ -66,7 +69,12 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         // every fetch from the webview is blocked. Permissive is fine here:
         // the listener binds 127.0.0.1 only and the API uses no
         // cookies/credentials.
-        .layer(CorsLayer::permissive());
+        .layer(CorsLayer::permissive())
+        // A handler panic becomes the envelope's opaque 500 instead of a
+        // connection reset / empty body.
+        .layer(tower_http::catch_panic::CatchPanicLayer::custom(
+            error::panic_response,
+        ));
     if let Some(assets) = assets {
         app = app.fallback(move |req: Request| assets::serve_static(req, assets.clone()));
     }

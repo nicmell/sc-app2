@@ -21,7 +21,7 @@ use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
 
-use super::error::ApiError;
+use super::error::{ApiError, ApiJson};
 use crate::core::blocks::SessionBlock;
 use crate::core::layouts;
 use crate::core::server::Server;
@@ -117,7 +117,7 @@ async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Resp
 async fn put_session(
     State(server): State<Server>,
     Path(id): Path<Uuid>,
-    Json(layout): Json<serde_json::Value>,
+    ApiJson(layout): ApiJson<serde_json::Value>,
 ) -> Response {
     if !server.sessions().contains(&id) {
         return ApiError::session_unknown(&id).into_response();

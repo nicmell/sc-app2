@@ -22,6 +22,7 @@ use serde::Deserialize;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
+use super::error::ApiError;
 use crate::core::blocks::SessionBlock;
 use crate::core::osc::peek_address;
 use crate::core::scope::{self, SessionScopes};
@@ -45,11 +46,12 @@ async fn ws_handler(
     Query(query): Query<WsQuery>,
 ) -> Response {
     let Some(id) = query.session else {
-        return (
+        return ApiError::new(
             StatusCode::BAD_REQUEST,
-            "WS upgrade requires ?session=<uuid> — POST /api/session first\n",
+            "ws-session-required",
+            "WS upgrade requires ?session=<uuid> — POST /api/session first",
         )
-            .into_response();
+        .into_response();
     };
     // A session is owned by exactly one socket: a second tab shares the same
     // localStorage id, and letting it attach would free the group under the
@@ -80,25 +82,27 @@ async fn ws_handler(
     //    tabs is ever wanted.
     match server.sessions().attach(&id) {
         Err(()) => {
-            return (
+            return ApiError::new(
                 StatusCode::NOT_FOUND,
-                format!("session {id} not found (expired or never created)\n"),
+                "session-unknown",
+                format!("session {id} not found (expired or never created)"),
             )
-                .into_response();
+            .into_response();
         }
         Ok(false) => {
-            return (
+            return ApiError::new(
                 StatusCode::CONFLICT,
-                format!("session {id} already has an active connection (another tab?)\n"),
+                "session-busy",
+                format!("session {id} already has an active connection (another tab?)"),
             )
-                .into_response();
+            .into_response();
         }
         Ok(true) => {}
     }
     // The block is fixed for the session's life (it ends with this socket):
     // fetch it once — subscribe validation gates scope slots on its span.
     let Some(block) = server.sessions().block(&id) else {
-        return (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response();
+        return ApiError::session_unknown(&id).into_response();
     };
     ws.on_upgrade(move |socket| async move {
         run_ws(&server, block, socket).await;

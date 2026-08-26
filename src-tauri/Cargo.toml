@@ -36,7 +36,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync",
 axum = { version = "0.8", features = ["ws"] }
 # CORS for the loopback API: the GUI webview is always cross-origin to the
 # embedded server (tauri://localhost in prod, the Vite devUrl in dev).
-tower-http = { version = "0.6", features = ["cors"] }
+tower-http = { version = "0.6", features = ["cors", "catch-panic"] }
 
 # Content-type guessing for served frontend assets.
 mime_guess = "2"

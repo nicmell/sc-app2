@@ -297,7 +297,13 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   SessionScopes — one session's subscriptions, span gating,
                   latest-only chunk staging, owned by the WS task; ws.rs
                   stays pure transport). See scope.md
-  router/         axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
+  router/         axum: error.rs (the STRUCTURED ApiError envelope —
+                  {code, message, violations?} JSON with stable kebab-case
+                  codes — spoken by EVERY server error: handlers, ws
+                  handshake rejections, unknown-/api/* fallback, malformed
+                  JSON bodies via ApiJson, handler panics via
+                  CatchPanicLayer; only the assets page fallback stays
+                  text), session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
 ```

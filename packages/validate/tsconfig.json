@@ -1,15 +1,9 @@
 {
-  /* Unlike the app tsconfig (which MUST skipLibCheck: the DOM + webworker
-     stdlibs conflict by design in a single project), this package is
-     DOM-only — so the tsify-GENERATED pkg d.ts is fully lib-checked here.
-     Invalid generated TypeScript fails `yarn build`, it cannot silently
-     degrade. */
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {},
-    "types": [],
-    "skipLibCheck": false
+    "types": []
   },
   "include": ["src", "pkg/*.d.ts"]
 }

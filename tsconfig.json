@@ -4,12 +4,6 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    /* Required at the APP level: the worker (lib/osc/worker) and the DOM app
-       share this one project, and TypeScript's own lib.dom.d.ts +
-       lib.webworker.d.ts conflict by design (duplicate globals, incompatible
-       self/location). Our OWN generated d.ts (packages/validate/pkg) is
-       still fully lib-checked — its package tsconfig sets
-       skipLibCheck: false and runs in `yarn build`. */
     "skipLibCheck": true,
 
     /* Bundler mode */

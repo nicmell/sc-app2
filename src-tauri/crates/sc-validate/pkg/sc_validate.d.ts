@@ -29,14 +29,10 @@ export type ParseErrorCode = "not-well-formed" | "too-deep";
 export type ViolationKind = { code: "mutually-exclusive-attr"; attr: string } | { code: "missing-required-attr"; attr: string } | { code: "invalid-decimal"; attr: string; value: string } | { code: "invalid-integer"; attr: string; value: string } | { code: "invalid-boolean"; attr: string; value: string } | { code: "invalid-enum"; attr: string; value: string; allowed: string[] } | { code: "invalid-name"; attr: string; value: string } | { code: "value-below-min"; attr: string; value: string; min: number } | { code: "value-below-exclusive-min"; attr: string; value: string; min: number } | { code: "value-above-max"; attr: string; value: string; max: number } | { code: "invalid-numeric-vector"; attr: string; value: string } | { code: "unknown-attr"; attr: string } | { code: "unknown-attr-prefix"; prefix: string } | { code: "unknown-runtime-attr"; attr: string } | { code: "wrong-namespace" } | { code: "unexpected-child"; child: string } | { code: "unexpected-text" } | { code: "missing-required-child"; child: string } | { code: "wrong-root"; root: string };
 
 /**
- * The wire shape of one violation: the crate's Violation (tag, the typed
- * `kind` with its `code` + payload — attr/value/allowed/… — and position)
- * plus the pre-rendered display line, so the JS side never duplicates
- * format logic. The TypeScript definition is GENERATED from this type
- * (tsify) into the pkg d.ts — the one type source. `kind` is NESTED, not
- * serde-flattened: tsify renders a flattened union as
- * `interface … extends <union>` — invalid TS that skipLibCheck silently
- * degrades into a type without the union members.
+ * The violation WIRE shape — [`Violation`] plus the pre-rendered display
+ * line — shared by every consumer boundary: the wasm gate returns it (typed
+ * by tsify into the pkg d.ts) and the HTTP ApiError envelope embeds it, so
+ * the frontend reads ONE generated type either way.
  */
 export interface ValidationViolation {
     /**

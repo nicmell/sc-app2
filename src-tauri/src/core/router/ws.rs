@@ -82,12 +82,8 @@ async fn ws_handler(
     //    tabs is ever wanted.
     match server.sessions().attach(&id) {
         Err(()) => {
-            return ApiError::new(
-                StatusCode::NOT_FOUND,
-                "session-unknown",
-                format!("session {id} not found (expired or never created)"),
-            )
-            .into_response();
+            return ApiError::session_unknown_because(&id, "expired or never created")
+                .into_response();
         }
         Ok(false) => {
             return ApiError::new(

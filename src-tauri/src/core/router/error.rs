@@ -55,6 +55,15 @@ impl ApiError {
         )
     }
 
+    /// The ws handshake's richer session-unknown wording — same code.
+    pub fn session_unknown_because(id: &Uuid, detail: &str) -> Self {
+        Self::new(
+            StatusCode::NOT_FOUND,
+            "session-unknown",
+            format!("session {id} not found ({detail})"),
+        )
+    }
+
     /// 503 while scsynth has not registered with the bridge yet — the
     /// frontend loaders quiet-retry on the status.
     pub fn scsynth_unavailable() -> Self {
@@ -112,6 +121,21 @@ pub async fn api_not_found(request: Request) -> Response {
         "not-found",
         format!(
             "no such API route: {} {}",
+            request.method(),
+            request.uri().path()
+        ),
+    )
+    .into_response()
+}
+
+/// The method-not-allowed fallback: a wrong METHOD on a registered path
+/// answers with the envelope's 405.
+pub async fn method_not_allowed(request: Request) -> Response {
+    ApiError::new(
+        StatusCode::METHOD_NOT_ALLOWED,
+        "method-not-allowed",
+        format!(
+            "method {} not allowed on {}",
             request.method(),
             request.uri().path()
         ),

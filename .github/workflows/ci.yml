@@ -90,4 +90,4 @@ jobs:
           workspaces: src-tauri
       - run: yarn generate:wasm
       - name: Committed artifact must match the generator
-        run: git diff --exit-code -- packages/validate/pkg
+        run: git diff --exit-code -- src-tauri/crates/sc-validate/pkg

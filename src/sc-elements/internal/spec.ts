@@ -1,9 +1,9 @@
 // The runtime spec surface. The AUTHORED source of truth is the sc-validate
 // crate's specs/<tag>.spec.json files; the frontend reads the map out of the
-// wasm module via @sc-app/validate's getSpec (parsed once at initValidator).
+// wasm module via lib/plugins/validate's getSpec (parsed once at initValidator).
 // This module keeps the two frontend-side constants and re-exports the types.
 
-export { getSpec, type AttrSpec, type ElementSpec } from "@sc-app/validate";
+export { getSpec, type AttrSpec, type ElementSpec } from "@/lib/plugins/validate";
 
 /** The runtime-prop attribute namespace prefix: `bind:min="vars.lo"` is the
  *  dynamic sibling of `min`. Entries declare `xmlns:bind="urn:sc-app:bind"`

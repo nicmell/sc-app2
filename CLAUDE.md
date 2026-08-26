@@ -111,12 +111,12 @@ sc-elements/             Lit elements used inside plugin HTML, classified by the
                          line:column positions, attribute-precise; the TS
                          shapes are GENERATED from the Rust types by tsify
                          into the committed pkg d.ts, re-exported by
-                         @sc-app/validate: the discriminated union on
+                         @/lib/plugins/validate: the discriminated union on
                          ValidationError.violations, classified parse
                          failures on EntryParseError.parseError, for future
                          editor diagnostics) (authored per-element specs/<tag>.spec.json
                          files) — the frontend reads the spec map out of the
-                         wasm module (@sc-app/validate getSpec, parsed at
+                         wasm module (@/lib/plugins/validate getSpec, parsed at
                          initValidator; internal/spec.ts re-exports it +
                          bindAttr/COMMON_ATTRS);
                          the category bases
@@ -344,7 +344,7 @@ accessor`, lowered by `esbuild.target: "es2022"`), replacing hand-parsed
    level — `_scChildren` is a runtime value like the rest — plus bind/reference
    resolution), mutating the component itself. Static validation happens before
    the tree reaches the engine: the shared Rust `src-tauri/crates/sc-validate`
-   crate is enforced natively at upload and as wasm by `@sc-app/validate` at
+   crate is enforced natively at upload and as wasm by `@/lib/plugins/validate` at
    `parseEntry` (multi-error, one per line). `lib/html` and
    `src/runtime/handlers.ts` are gone — the engine is the free-function
    interpreter in `internal/engine/`, and its coercion/failure + bind-resolution
@@ -452,7 +452,7 @@ further `sc-*` element:
 3. **Validation is spec-only**: the per-element spec drives BOTH the shared
    Rust `sc-validate` gate and `getProp` coercion — the frontend reads the
    SAME data as the validator, exported by the wasm module
-   (`element_specs()` → `@sc-app/validate`'s `getSpec`, attr order
+   (`element_specs()` → `lib/plugins/validate`'s `getSpec`, attr order
    preserved).
    The Rust gate enforces required/numeric/enum plus numeric range facets,
    numeric-STRICT vectors, name syntax, content-model membership, and the

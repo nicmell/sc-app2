@@ -8,7 +8,7 @@
 // ids).
 
 import { describe, expect, it } from "vitest";
-import { getCommonAttrs, getSpec, getSpecTags } from "@sc-app/validate";
+import { getCommonAttrs, getSpec, getSpecTags } from "@/lib/plugins/validate";
 import { ELEMENTS } from "@/constants/sc-elements";
 import { COMMON_ATTRS } from "@/sc-elements/internal/spec";
 

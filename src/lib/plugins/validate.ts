@@ -1,5 +1,6 @@
 // The frontend surface of the shared Rust static validator (the sc-validate
-// crate compiled by `yarn generate:wasm` into pkg/). Exports: the memoized
+// crate compiled by `yarn generate:wasm` into the crate's default pkg/,
+// resolved directly from there). Exports: the memoized
 // async `initValidator` (awaited once at boot / test setup), the sync
 // `validateEntry` — the whole static gate: wasm-validate the entry text
 // (multi-error, newline-joined), then DOMParser-parse it and return the live
@@ -8,14 +9,25 @@
 // are the ONE spec source, consumed here by getProp coercion and the
 // runtime-prop machinery. Bind/reference resolution stays in the parse engine.
 
-import init, { common_attrs, element_specs, validate_entry } from "../pkg/sc_validate";
-import type { ParseError, ValidationViolation } from "../pkg/sc_validate";
+import init, {
+  common_attrs,
+  element_specs,
+  validate_entry,
+} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
+import type {
+  ParseError,
+  ValidationViolation,
+} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
 
 // The violation/parse-error TypeScript shapes are GENERATED from the crate's
 // Rust types (tsify) into the pkg d.ts — re-exported here as the wrapper's
 // public surface, so the union can never drift from ViolationKind.
-export type { ParseErrorCode, ValidationViolation, ViolationKind } from "../pkg/sc_validate";
-export type { ParseError as ValidationParseError } from "../pkg/sc_validate";
+export type {
+  ParseErrorCode,
+  ValidationViolation,
+  ViolationKind,
+} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
+export type { ParseError as ValidationParseError } from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
 
 /** Shared to every attribute — exactly what the runtime reads: `runtime`
  *  gates the `bind:` sibling (contentHash + runtime-prop resolution),

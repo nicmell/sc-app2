@@ -7,7 +7,7 @@
 // in PluginInfo.
 
 import { get, post, del } from "@/lib/http";
-import { validateEntry } from "@sc-app/validate";
+import { validateEntry } from "@/lib/plugins/validate";
 import type { ScPlugin } from "@/sc-elements";
 import type { PluginInfo } from "@/types/api";
 

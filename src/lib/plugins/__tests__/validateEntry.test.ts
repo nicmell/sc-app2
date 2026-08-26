@@ -1,4 +1,4 @@
-// The @sc-app/validate wrapper contract (the wasm is initialized by the
+// The lib/plugins/validate wrapper contract (the wasm is initialized by the
 // global test setup): the canonical error shapes parseEntry relies on —
 // parse failures get the XHTML prefix, violations throw newline-joined
 // (multi-line — the pre-wrap error boxes render one per line), the root
@@ -11,7 +11,7 @@ import {
   validateEntry,
   ValidationError,
   type ValidationViolation,
-} from "@sc-app/validate";
+} from "@/lib/plugins/validate";
 
 // COMPILE-TIME pin: the tsify-generated union must narrow on `code` (payload
 // fields surface per variant, base fields stay reachable). A broken generated

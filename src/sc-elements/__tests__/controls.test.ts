@@ -13,7 +13,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 // @strudel/codemirror is browser-only (aliased to an inert stub globally in
 // vite.config.ts test.alias); the parse + load pass never drive the editor.
 import { type OscMessage } from "@sc-app/server-commands";
-import { validateEntry } from "@sc-app/validate";
+import { validateEntry } from "@/lib/plugins/validate";
 import { isParentRuntime } from "@/lib/utils/guards";
 import { oscClient } from "@/lib/osc/OscClient";
 import { appStore } from "@/stores/store";

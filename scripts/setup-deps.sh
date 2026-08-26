@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Fetch StrudelDirt's runtime dependencies into deps/.
 #
-# StrudelDirt (a SuperDirt fork) needs a few things the vendored
-# strudeldirt/ submodule doesn't carry. We fetch the minimum into a
+# StrudelDirt (a SuperDirt fork — installed as an sclang Quark, see
+# start-osc.sh) needs a few extra things. We fetch the minimum into a
 # single self-contained tree so we don't depend on a system-wide
 # SuperCollider quark folder:
 #

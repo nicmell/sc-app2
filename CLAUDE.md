@@ -2,8 +2,8 @@
 
 A desktop/browser app for controlling SuperCollider (scsynth) and Strudel through a
 Rust OSC bridge. Built with Tauri 2 (Rust backend) + React 19 + Lit 3 web components.
-It is the ground-up successor of the old `sc-app` project (checked out as the
-`sc-app/` submodule), whose features are being migrated here — see
+It is the ground-up successor of the old `sc-app` project
+(github.com/nicmell/sc-app), whose features are being migrated here — see
 **Migration plan** at the bottom.
 
 **Pre-release policy: nothing is deployed.** Breaking changes to any signature
@@ -783,7 +783,8 @@ runs idempotent). What the examples suite does:
 
 ## Migration plan (old `sc-app/` → here)
 
-The old app (see `sc-app/CLAUDE.md` for its full docs) is a declarative
+The old app (github.com/nicmell/sc-app — see its CLAUDE.md for full docs)
+is a declarative
 SuperCollider control surface: plugin zips of spec-validated XHTML rooted at an
 authored `<sc-plugin>` and built from `sc-*` elements, parsed into a typed element tree, bound to live scsynth node
 graphs, with in-browser SynthDef compilation. The directory layout here was

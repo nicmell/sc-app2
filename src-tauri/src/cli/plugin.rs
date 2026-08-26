@@ -9,14 +9,14 @@ use crate::core::plugin::manager;
 
 #[derive(Subcommand)]
 pub enum PluginCommand {
-    /// Validate a plugin zip file
+    /// Validate a plugin bundle
     Validate {
-        /// Path to plugin zip
+        /// Path to a plugin zip or plugin directory
         path: String,
     },
     /// Validate and install a plugin
     Add {
-        /// Path to plugin zip
+        /// Path to a plugin zip or plugin directory
         path: String,
     },
     /// Remove a plugin by name or name-version
@@ -54,19 +54,26 @@ fn print_plugin_info(info: &manager::PluginInfo) {
     }
 }
 
-fn read_zip(path: &str) -> Result<Vec<u8>, String> {
-    std::fs::read(path).map_err(|e| format!("Error reading \"{path}\": {e}"))
+/// A bundle's bytes: a DIRECTORY is zipped in memory (manager's
+/// deterministic bundler — the identical validation/storage path), a file is
+/// read as the zip it is.
+fn read_bundle(path: &str) -> Result<Vec<u8>, String> {
+    let p = std::path::Path::new(path);
+    if p.is_dir() {
+        return Ok(manager::bundle_directory(p)?);
+    }
+    std::fs::read(p).map_err(|e| format!("Error reading \"{path}\": {e}"))
 }
 
 fn cmd_validate(path: &str) -> Result<(), String> {
-    let info = manager::validate_plugin(&read_zip(path)?)?;
+    let info = manager::validate_plugin(&read_bundle(path)?)?;
     println!("Plugin is valid.");
     print_plugin_info(&info);
     Ok(())
 }
 
 fn cmd_add(path: &str) -> Result<(), String> {
-    let info = manager::add_plugin(&read_zip(path)?)?;
+    let info = manager::add_plugin(&read_bundle(path)?)?;
     println!("Plugin added.");
     print_plugin_info(&info);
     Ok(())

@@ -274,8 +274,10 @@ cli/              mod.rs (clap definitions incl. the GLOBAL --app-dir/
                   generate_context! site);
                   serve.rs (the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
-                  plugin.rs (validate|add|remove|list, over core/plugin's
-                  manager), config.rs (write|validate)
+                  plugin.rs (validate|add|remove|list — validate/add take a
+                  zip OR a plugin DIRECTORY, bundled in memory by manager's
+                  deterministic bundle_directory through the identical
+                  validation/storage path), config.rs (write|validate)
 core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   composition root both run modes call: config load + logger
                   init (the Server owns the flush guard) + bridge → scsynth

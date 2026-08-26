@@ -78,7 +78,7 @@ export default defineConfig(() => ({
 
   // Unit tests (`yarn test`): the example plugins through the sc-elements
   // parse engine in a simulated DOM — the fast runtime gate next to the full
-  // CDP harness (scripts/validate-examples.mjs) — plus React component tests
+  // CDP harness (scripts/e2e (yarn e2e)) — plus React component tests
   // (.tsx, e.g. the connection overlay). Each suite lives in a `__tests__/`
   // folder beside the unit under test. This config is the app suite; the
   // synthdef-compiler package runs its own (node) suite in a separate process

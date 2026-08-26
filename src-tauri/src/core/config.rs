@@ -1,12 +1,19 @@
-//! App configuration: the contents of `config.json`, read from an explicit
-//! path or the canonical app config dir (e.g. macOS
-//! `~/Library/Application Support/com.nicmell.scapp/config.json`).
+//! App configuration + the APP ROOT: the ONE directory owning every
+//! server-side artifact — `config.json`, `plugins/` + `plugins.json`,
+//! `sessions/` + `sessions.json`, `logs/`. Resolution (once per process, in
+//! the CLI dispatch): `--app-dir` > the `SC_APP_DIR` env var > the canonical
+//! platform dir (macOS `~/Library/Application Support/com.nicmell.scapp`).
+//! The repo's dev scripts point BOTH run modes at `<repo>/appdir` via
+//! `SC_APP_DIR`, so tauri and serve share one folder.
 //!
 //! `AppConfig` is server-side only: the listen `port` (which the GUI webview
 //! learns through the injected `window.HTTP_BASE_URL`), the `peers` the bridge
-//! connects to at startup, and an optional `log_dir`.
+//! connects to at startup, and an optional `log_dir` (relative values resolve
+//! against the root; default `<root>/logs`).
 
+use std::ffi::OsString;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
 
@@ -75,40 +82,66 @@ fn default_peers() -> Vec<PeerConfig> {
     ]
 }
 
-/// `<app config dir>/config.json`.
-fn canonical_path() -> Option<PathBuf> {
-    dirs::config_dir().map(|d| d.join(IDENTIFIER).join("config.json"))
-}
-
-/// The app's data directory (`<config dir>/com.nicmell.scapp`), where the
-/// plugin registry + zip bundles live. Falls back to `./<identifier>` if the
+/// The canonical platform root (`<config dir>/com.nicmell.scapp`) — the
+/// installed binary's default. Falls back to `./<identifier>` if the
 /// platform config dir can't be resolved (headless/CI).
-pub fn data_dir() -> PathBuf {
+fn canonical_root() -> PathBuf {
     dirs::config_dir()
         .map(|d| d.join(IDENTIFIER))
         .unwrap_or_else(|| PathBuf::from(IDENTIFIER))
 }
 
+/// The resolved app root, set once by the CLI dispatch.
+static ROOT: OnceLock<PathBuf> = OnceLock::new();
+
+/// Pure resolution: `--app-dir` > `SC_APP_DIR` > canonical, absolutized
+/// against the cwd at resolution time so a later cwd change (the tauri
+/// binary runs from src-tauri in dev) can never re-interpret it.
+pub fn resolve_root(cli: Option<PathBuf>, env: Option<OsString>) -> PathBuf {
+    let root = cli
+        .or_else(|| env.filter(|v| !v.is_empty()).map(PathBuf::from))
+        .unwrap_or_else(canonical_root);
+    std::path::absolute(&root).unwrap_or(root)
+}
+
+/// Install the resolved root (first caller wins — the CLI dispatch).
+pub fn set_root(root: PathBuf) {
+    let _ = ROOT.set(root);
+}
+
+/// The app root. Falls back to a lazy env/canonical resolution for any path
+/// that runs before the dispatch installed it (one-off calls). Tests that
+/// touch persistence MUST call [`install_test_root`] first, or they write
+/// into the developer's canonical dir.
+pub fn root() -> &'static std::path::Path {
+    ROOT.get_or_init(|| resolve_root(None, std::env::var_os("SC_APP_DIR")))
+}
+
+/// `<root>/config.json` — the default config location.
+pub fn config_path() -> PathBuf {
+    root().join("config.json")
+}
+
 /// Directory holding installed plugin zip bundles.
 pub fn plugins_dir() -> PathBuf {
-    data_dir().join("plugins")
+    root().join("plugins")
 }
 
 /// The plugin registry file (`PluginInfo[]` as JSON), kept separate from the
 /// typed `config.json` so the plugin system owns its own persistence.
 pub fn plugins_registry_path() -> PathBuf {
-    data_dir().join("plugins.json")
+    root().join("plugins.json")
 }
 
 /// Directory holding saved-session layout files (`<session id>.json`).
 pub fn sessions_dir() -> PathBuf {
-    data_dir().join("sessions")
+    root().join("sessions")
 }
 
 /// The saved-session registry file (`SavedSessionInfo[]` as JSON) — the
 /// session counterpart of the plugin registry.
 pub fn sessions_registry_path() -> PathBuf {
-    data_dir().join("sessions.json")
+    root().join("sessions.json")
 }
 
 /// Parse config JSON strictly — the shared core of [`load`] (which tolerates
@@ -135,18 +168,16 @@ pub fn write_default(path: &std::path::Path) -> Result<(), String> {
         .map_err(|e| format!("Error writing \"{}\": {e}", path.display()))
 }
 
-/// Load config from an explicit path (serve `--config`) or the canonical
-/// location, tolerating a missing or malformed file (logs and defaults).
-/// A missing CANONICAL file is seeded with the defaults (first run), so
-/// users have a config.json to find and edit; an explicit `--config` path is
+/// Load config from an explicit path (the `--config` override) or the
+/// root's `config.json`, tolerating a missing or malformed file (logs and
+/// defaults). A missing ROOT config is seeded with the defaults (first run
+/// of ANY root — canonical, the repo appdir, a harness tempdir), so there is
+/// always a config.json to find and edit; an explicit `--config` path is
 /// the user's own and is never created here (`config write` does that).
 pub fn load(path: Option<PathBuf>) -> AppConfig {
     match path {
         Some(path) => read(&path, false),
-        None => match canonical_path() {
-            Some(path) => read(&path, true),
-            None => AppConfig::default(),
-        },
+        None => read(&config_path(), true),
     }
 }
 
@@ -170,12 +201,40 @@ fn read(path: &std::path::Path, seed_when_missing: bool) -> AppConfig {
     }
 }
 
+/// Point the WHOLE test process at a throwaway root (first caller wins —
+/// OnceLock semantics — so every persistence test shares one tempdir; the
+/// pid-named path keeps all callers deterministic).
+/// Call it at the top of any test that writes through root-derived paths.
+/// NOTE: registry-writing tests share ONE unlocked plugins.json — keep them
+/// to a single test, or serialize, before adding more.
+#[cfg(test)]
+pub fn install_test_root() {
+    let dir = std::env::temp_dir().join(format!("sc-app2-test-root-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("test root");
+    set_root(dir);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn tmp(name: &str) -> PathBuf {
         std::env::temp_dir().join(format!("sc-app2-test-{name}.json"))
+    }
+
+    #[test]
+    fn root_resolution_precedence_and_absolutization() {
+        // cli beats env beats canonical; results are absolute.
+        let cli = resolve_root(Some(PathBuf::from("cli-dir")), Some("env-dir".into()));
+        assert!(cli.is_absolute());
+        assert!(cli.ends_with("cli-dir"));
+        let env = resolve_root(None, Some("env-dir".into()));
+        assert!(env.is_absolute());
+        assert!(env.ends_with("env-dir"));
+        // An empty env var is ignored, not treated as a root.
+        let canonical = resolve_root(None, Some("".into()));
+        assert_eq!(canonical, resolve_root(None, None));
+        assert!(canonical.is_absolute());
     }
 
     #[test]

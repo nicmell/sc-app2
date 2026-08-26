@@ -23,17 +23,31 @@ yarn dev:full
 # Full native app (embedded server + webview)
 yarn tauri dev
 
-# Headless HTTP server only (browser mode, port 3000 from config.json)
+# Headless HTTP server only (browser mode, port 3000 from the app root's
+# config.json — dev scripts point SC_APP_DIR at <repo>/appdir)
 yarn serve
 
 # scsynth + sclang/StrudelDirt for local dev (pre-req: yarn deps, once)
 yarn osc
+
+# Package every example (examples/plugins/*/* → examples/dist/<name>.zip,
+# flat, gitignored)
+# and bulk-import the zips into the dev app root (invalid fixtures fail by
+# design and are just logged; a RUNNING serve sees the result on its next
+# request — only the browser needs a reload). Known dev-only race: the CLI
+# and a running server both rewrite plugins.json unlocked.
+yarn examples:sync
 
 # Type-check + bundle the frontend
 yarn build
 
 # Unit tests (the example plugins through the parse engine, happy-dom)
 yarn test
+
+# One-shot e2e: throwaway app root + full stack + every suite (boot smoke +
+# example gates); `yarn smoke` = the boot suite alone; `--attach` runs
+# against an already-running dev stack (fast iteration)
+yarn e2e
 
 # Rust check / unit tests
 cd src-tauri && cargo check && cargo test
@@ -266,13 +280,18 @@ by `core::start`); `lib.rs` is just the module tree + `run()`.
 
 ```
 lib.rs            module tree + pub fn run() → cli::run()
-cli/              mod.rs (clap definitions + the single exhaustive dispatch —
-                  every command but the GUI reports through exit_cli — and
-                  the ONE tauri generate_context! site);
-                  serve.rs (ServeArgs + the headless run mode),
+cli/              mod.rs (clap definitions incl. the GLOBAL --app-dir/
+                  --config/--log-dir args + the single exhaustive dispatch —
+                  resolves and installs the app root, every command but the
+                  GUI reports through exit_cli — and the ONE tauri
+                  generate_context! site);
+                  serve.rs (the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
-                  plugin.rs (validate|add|remove|list, over core/plugin's
-                  manager), config.rs (write|validate)
+                  plugin.rs (validate|add|remove|list — validate/add take
+                  any mix of zips and directories holding *.zip (flat,
+                  sorted; globs via the shell): per-zip failures are logged
+                  without blocking the rest, erroring only when nothing
+                  succeeds), config.rs (write|validate)
 core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   composition root both run modes call: config load + logger
                   init (the Server owns the flush guard) + bridge → scsynth
@@ -289,9 +308,11 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   sessions/<id>.json
   server.rs       the app-logic facade the router holds as axum State:
                   session mint/revive/end, the shared scope SHM handle
-  config.rs       config.json (port, peers, connect_timeout, log_dir) +
-                  app-data-dir paths
-  logger.rs       tracing to stderr + optional rotated JSON file
+  config.rs       the APP ROOT (resolve_root/set_root/root: --app-dir >
+                  SC_APP_DIR > canonical; every path derives from it) +
+                  config.json (port, peers, connect_timeout, log_dir)
+  logger.rs       tracing to stderr + the rotated JSON file (default-ON at
+                  <root>/logs)
   plugin/         zip validation (metadata, spec-gated entry, assets) +
                   plugins.json registry (manager.rs)
   scope/          scsynth SHM scope buffers → /scope/chunk frames over the
@@ -313,8 +334,16 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   session on close), plugin.rs, diag.rs, assets.rs
 ```
 
-App data dir (`~/Library/Application Support/com.nicmell.scapp/`): `config.json`,
-`plugins/` + `plugins.json`, `sessions/` + `sessions.json`.
+The APP ROOT — ONE directory owning `config.json`, `plugins/` +
+`plugins.json`, `sessions/` + `sessions.json`, and `logs/` — is shared by
+BOTH run modes. Resolution: global `--app-dir` > `SC_APP_DIR` env > the
+canonical platform dir (`~/Library/Application Support/com.nicmell.scapp/`,
+the installed binary's default). The repo's dev scripts (`yarn serve`,
+`yarn tauri`) set `SC_APP_DIR=$PWD/appdir`, so dev/tauri/harness all share
+the gitignored `<repo>/appdir` (its `config.json` is the versioned dev
+config). The global `--config` and `--log-dir` flags override the root's
+defaults (`<root>/config.json`; `--log-dir` > config `log_dir`,
+root-relative > `<root>/logs` — file logging is default-ON).
 
 ### Key constants
 
@@ -677,7 +706,7 @@ right-associative ternary `? :`, and single-quoted string literals; a bare
 name-shaped bind is always a PATH, so hyphenated state names like
 `fm.mod-freq` stay addressable, while `-` inside real expressions means
 subtraction) except buffers and presets/overrides. Examples: every old example
-without a buffer-family element lives in `examples/<category>/` (see
+without a buffer-family element lives in `examples/plugins/<category>/` (see
 examples/README.md — app/synths/bindings/inputs/widgets/invalid);
 `scope-plugin`, `test-plugin`, `waveform-plugin` stay behind.
 
@@ -715,27 +744,42 @@ scsynth auto-responder through `handleReply`),
 cover protocol waiters, transport dispatch, per-concern observation, and
 heartbeat expiry.
 
-**End-to-end gate (the harness technique)**: when elements/parsers change,
-validate every example through the real stack: run
-`node scripts/validate-examples.mjs` against `yarn serve` + `yarn dev` +
-headless Chrome (`--remote-debugging-port=9222`). What it does:
+**End-to-end gate**: `yarn e2e` — one shot, no setup. The scripts/e2e/
+framework (run.mjs entry + stack.mjs orchestration + cdp.mjs client +
+suites/) packages the examples, boots the WHOLE stack against a THROWAWAY
+app root (serve on a tempdir SC_APP_DIR + vite + scsynth via start-osc.sh +
+fresh-profile headless Chrome on :9222 — refusing to boot if UDP 57110 is
+already bound, so it can never adopt a developer's own scsynth), runs the
+suites, and tears down ONLY what it spawned (reverse-order process-group
+kills, no pkill). Back-to-back runs are idempotent; nothing touches appdir
+or the canonical root. Suites (selectable: `yarn e2e boot`; `yarn smoke` is
+the alias):
+- **boot** — the only real-browser coverage of the app's own story, four
+  coarse polls after a clean-slate tab (old tabs closed + localStorage
+  cleared, defeating the stale-session 409 revive race): the loading
+  fallback paints, the wasm validator initializes through the route loader,
+  a typed violation flows (kind.code + position), and the URL redirects to
+  /:uuid with LIVE scsynth status in the footer (the WS/OSC pipeline proof).
+- **examples** — the upload + runtime gates below.
+`--attach` runs the suites against an ALREADY-RUNNING dev stack (reusing a
+:9222 Chrome when present): fast iteration; uploads REPLACE same-named
+plugins in the attached root (add_plugin's name+version dedupe makes attach
+runs idempotent). What the examples suite does:
 
-1. **Upload gate** — zip each `examples/<dir>` and `POST /api/plugins`:
-   expect 201, except the upload fixtures `bad-metadata`, `bad-entry-xhtml`,
-   `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
-   their specific messages.
+1. **Upload gate** — POST each packaged `examples/dist/<name>.zip`
+   (`scripts/package-plugins.sh` is the ONE zipper; a fixture whose zip
+   failed to package fails loudly): expect 201, except the static fixtures
+   (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec ones) → 400
+   envelopes.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
-   as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
-   require an authored `<sc-plugin>` root, `importNode` that whole root through
-   the main document, explicitly upgrade it while disconnected, then
-   `host.processRoot()` — the host's own parse-engine methods; nothing to import.
-   PASS = no throw; the runtime `bad-*` fixtures must FAIL, each
-   with its intentional resolveRuntime error (one per error path — see the
-   `invalid/` table in examples/README.md). Any other failure is a migration
-   bug — report it.
-3. **Cleanup** — DELETE the plugins the run uploaded, keeping the user's
-   registry as it was.
+   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>` and
+   run it through the Vite-served `parseEntry` (text/xml parse, authored-root
+   check, whole-root importNode + explicit upgrade while disconnected — ONE
+   shared implementation, PluginManager.ts) + `host.processRoot()`. PASS = no
+   throw; the runtime `bad-*` fixtures must FAIL, each with its intentional
+   resolveRuntime error (one per error path — see the `invalid/` table in
+   examples/README.md). Any other failure is a migration bug — report it.
+3. The root is throwaway — no cleanup pass exists.
 
 ## Migration plan (old `sc-app/` → here)
 

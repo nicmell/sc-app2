@@ -5,28 +5,35 @@
 //! regex must compile and its target must look like `host:port`, the same
 //! requirements the bridge enforces (by skipping the peer) at startup.
 
+use std::path::PathBuf;
+
 use clap::Subcommand;
 
+use super::Overrides;
 use crate::core::config;
 
 #[derive(Subcommand)]
 pub enum ConfigCommand {
-    /// Write the default config.json to the given path
+    /// Write the default config.json (default: <app dir>/config.json)
     Write {
         /// Destination path (must not exist yet)
-        path: String,
+        path: Option<String>,
     },
-    /// Validate a config.json file
+    /// Validate a config.json (default: <app dir>/config.json, or --config)
     Validate {
         /// Path to a config.json
-        path: String,
+        path: Option<String>,
     },
 }
 
-pub fn run(cmd: ConfigCommand) -> Result<(), String> {
+pub fn run(cmd: ConfigCommand, overrides: &Overrides) -> Result<(), String> {
+    // Explicit positional path > the global --config override > the root's.
+    let default = || overrides.config.clone().unwrap_or_else(config::config_path);
+    let resolve =
+        |path: Option<String>| -> PathBuf { path.map(PathBuf::from).unwrap_or_else(default) };
     match cmd {
-        ConfigCommand::Write { path } => cmd_write(&path),
-        ConfigCommand::Validate { path } => cmd_validate(&path),
+        ConfigCommand::Write { path } => cmd_write(&resolve(path)),
+        ConfigCommand::Validate { path } => cmd_validate(&resolve(path)),
     }
 }
 
@@ -42,13 +49,15 @@ fn print_config(config: &config::AppConfig) {
     }
 }
 
-fn cmd_write(path: &str) -> Result<(), String> {
-    let dest = std::path::Path::new(path);
-    if dest.exists() {
-        return Err(format!("\"{path}\" already exists; remove it first"));
+fn cmd_write(path: &std::path::Path) -> Result<(), String> {
+    if path.exists() {
+        return Err(format!(
+            "\"{}\" already exists; remove it first",
+            path.display()
+        ));
     }
-    config::write_default(dest)?;
-    println!("Default config written to \"{path}\".");
+    config::write_default(path)?;
+    println!("Default config written to \"{}\".", path.display());
     Ok(())
 }
 
@@ -65,11 +74,12 @@ fn is_valid_target(target: &str) -> bool {
     }
 }
 
-fn cmd_validate(path: &str) -> Result<(), String> {
+fn cmd_validate(path: &std::path::Path) -> Result<(), String> {
+    let shown = path.display();
     let text =
-        std::fs::read_to_string(path).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+        std::fs::read_to_string(path).map_err(|e| format!("Error reading \"{shown}\": {e}"))?;
     let config =
-        config::parse(&text).map_err(|e| format!("\"{path}\" is not a valid config: {e}"))?;
+        config::parse(&text).map_err(|e| format!("\"{shown}\" is not a valid config: {e}"))?;
 
     for peer in &config.peers {
         regex::Regex::new(&peer.pattern)
@@ -99,8 +109,8 @@ mod tests {
     fn write_then_validate_round_trips() {
         let path = tmp("roundtrip");
         std::fs::remove_file(&path).ok();
-        assert!(cmd_write(path.to_str().unwrap()).is_ok());
-        assert!(cmd_validate(path.to_str().unwrap()).is_ok());
+        assert!(cmd_write(&path).is_ok());
+        assert!(cmd_validate(&path).is_ok());
         std::fs::remove_file(path).ok();
     }
 
@@ -108,7 +118,7 @@ mod tests {
     fn write_refuses_existing_file() {
         let path = tmp("existing");
         std::fs::write(&path, "{}").unwrap();
-        assert!(cmd_write(path.to_str().unwrap()).is_err());
+        assert!(cmd_write(&path).is_err());
         std::fs::remove_file(path).ok();
     }
 
@@ -116,25 +126,21 @@ mod tests {
     fn validate_rejects_malformed_json_and_bad_peers() {
         let path = tmp("malformed");
         std::fs::write(&path, "not json").unwrap();
-        assert!(cmd_validate(path.to_str().unwrap()).is_err());
+        assert!(cmd_validate(&path).is_err());
 
         std::fs::write(
             &path,
             r#"{ "peers": [{ "name": "bad", "pattern": "(", "target": "127.0.0.1:1" }] }"#,
         )
         .unwrap();
-        assert!(cmd_validate(path.to_str().unwrap())
-            .unwrap_err()
-            .contains("pattern"));
+        assert!(cmd_validate(&path).unwrap_err().contains("pattern"));
 
         std::fs::write(
             &path,
             r#"{ "peers": [{ "name": "bad", "pattern": "^/x", "target": "nonsense" }] }"#,
         )
         .unwrap();
-        assert!(cmd_validate(path.to_str().unwrap())
-            .unwrap_err()
-            .contains("host:port"));
+        assert!(cmd_validate(&path).unwrap_err().contains("host:port"));
         std::fs::remove_file(path).ok();
     }
 

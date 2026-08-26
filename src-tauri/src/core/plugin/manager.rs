@@ -437,6 +437,46 @@ mod tests {
     }
 
     #[test]
+    fn registry_lifecycle_round_trips_on_the_test_root() {
+        use std::io::Write;
+        crate::core::config::install_test_root();
+        // A minimal valid bundle, built in memory.
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored);
+        zip.start_file("metadata.json", options).unwrap();
+        zip.write_all(
+            br#"{"name":"lifecycle","author":"t","version":"0.0.1","entry":"index.html"}"#,
+        )
+        .unwrap();
+        zip.start_file("index.html", options).unwrap();
+        zip.write_all(
+            br#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope/></sc-plugin>"#,
+        )
+        .unwrap();
+        let bundle = zip.finish().unwrap().into_inner();
+
+        let info = add_plugin(&bundle).expect("adds");
+        assert!(!info.id.is_empty());
+        assert!(list_plugins()
+            .expect("lists")
+            .iter()
+            .any(|p| p.id == info.id));
+        let (content_type, bytes) = read_plugin_file(&info.id, "index.html").expect("serves");
+        assert_eq!(content_type, "application/xhtml+xml");
+        assert!(bytes.starts_with(b"<sc-plugin"));
+        remove_plugin(&info.id).expect("removes");
+        assert!(!list_plugins()
+            .expect("lists")
+            .iter()
+            .any(|p| p.id == info.id));
+        assert!(matches!(
+            read_plugin_file(&info.id, "index.html"),
+            Err(PluginError::NotFound(_))
+        ));
+    }
+
+    #[test]
     fn entry_spec_gate_reports_every_violation_one_per_line() {
         let ok = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-scope/></sc-plugin>"#;
         assert!(validate_entry_spec(ok).is_ok());

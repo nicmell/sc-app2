@@ -9,15 +9,17 @@ use crate::core::plugin::manager;
 
 #[derive(Subcommand)]
 pub enum PluginCommand {
-    /// Validate a plugin zip file
+    /// Validate plugin bundles
     Validate {
-        /// Path to plugin zip
-        path: String,
+        /// Plugin zips, or directories containing *.zip (globs via the shell)
+        #[arg(required = true)]
+        paths: Vec<String>,
     },
-    /// Validate and install a plugin
+    /// Validate and install plugin bundles
     Add {
-        /// Path to plugin zip
-        path: String,
+        /// Plugin zips, or directories containing *.zip (globs via the shell)
+        #[arg(required = true)]
+        paths: Vec<String>,
     },
     /// Remove a plugin by name or name-version
     Remove {
@@ -30,8 +32,8 @@ pub enum PluginCommand {
 
 pub fn run(cmd: PluginCommand) -> Result<(), String> {
     match cmd {
-        PluginCommand::Validate { path } => cmd_validate(&path),
-        PluginCommand::Add { path } => cmd_add(&path),
+        PluginCommand::Validate { paths } => run_bundles(&paths, manager::validate_plugin, "valid"),
+        PluginCommand::Add { paths } => run_bundles(&paths, manager::add_plugin, "added"),
         PluginCommand::Remove { name } => cmd_remove(&name),
         PluginCommand::List => cmd_list(),
     }
@@ -54,21 +56,82 @@ fn print_plugin_info(info: &manager::PluginInfo) {
     }
 }
 
-fn read_zip(path: &str) -> Result<Vec<u8>, String> {
-    std::fs::read(path).map_err(|e| format!("Error reading \"{path}\": {e}"))
+/// Expand one CLI path into plugin zips: a file is taken as the zip it is,
+/// a directory contributes its DIRECT `*.zip` children (flat, sorted — a
+/// stable report across filesystems; globs are the shell's job and arrive
+/// here as individual paths). A directory with no zips, or a missing path,
+/// is an argument error.
+fn expand(path: &str) -> Result<Vec<std::path::PathBuf>, String> {
+    let p = std::path::Path::new(path);
+    if p.is_file() {
+        return Ok(vec![p.to_path_buf()]);
+    }
+    if p.is_dir() {
+        let entries = std::fs::read_dir(p).map_err(|e| format!("Error reading \"{path}\": {e}"))?;
+        let mut zips: Vec<std::path::PathBuf> = entries
+            .filter_map(|entry| entry.ok().map(|e| e.path()))
+            .filter(|candidate| {
+                candidate.is_file()
+                    && candidate
+                        .extension()
+                        .is_some_and(|e| e.eq_ignore_ascii_case("zip"))
+            })
+            .collect();
+        if zips.is_empty() {
+            return Err(format!("no plugin zips found in \"{path}\""));
+        }
+        zips.sort();
+        return Ok(zips);
+    }
+    Err(format!("\"{path}\" does not exist"))
 }
 
-fn cmd_validate(path: &str) -> Result<(), String> {
-    let info = manager::validate_plugin(&read_zip(path)?)?;
-    println!("Plugin is valid.");
-    print_plugin_info(&info);
-    Ok(())
-}
-
-fn cmd_add(path: &str) -> Result<(), String> {
-    let info = manager::add_plugin(&read_zip(path)?)?;
-    println!("Plugin added.");
-    print_plugin_info(&info);
+/// Run `op` over every zip the paths expand to. Per-zip validation failures
+/// are LOGGED and never block the rest (the intentional `invalid/` example
+/// fixtures fail by design when importing `examples/dist` wholesale); the
+/// command errors only when the arguments are bad or NOTHING succeeded.
+fn run_bundles(
+    paths: &[String],
+    op: impl Fn(&[u8]) -> Result<manager::PluginInfo, manager::PluginError>,
+    verb: &str,
+) -> Result<(), String> {
+    let mut zips = Vec::new();
+    for path in paths {
+        zips.extend(expand(path)?);
+    }
+    let single = zips.len() == 1;
+    let mut failed = 0usize;
+    for zip in &zips {
+        let shown = zip.display();
+        let result = std::fs::read(zip)
+            .map_err(|e| manager::PluginError::Io(format!("Error reading \"{shown}\": {e}")))
+            .and_then(|bytes| op(&bytes));
+        match result {
+            Ok(info) => {
+                println!("{verb} {} v{}", info.name, info.version);
+                if single {
+                    print_plugin_info(&info);
+                }
+            }
+            Err(e) => {
+                failed += 1;
+                if single {
+                    // The full multi-line error (the spec gate's whole
+                    // violation list) — a single explicit bundle deserves
+                    // the same detail the old single-path command gave.
+                    println!("failed {shown}: {e}");
+                } else {
+                    let text = e.to_string();
+                    let first = text.lines().next().unwrap_or_default();
+                    println!("failed {shown}: {first}");
+                }
+            }
+        }
+    }
+    println!("{} {verb}, {failed} failed", zips.len() - failed);
+    if failed == zips.len() {
+        return Err("no bundle succeeded".to_string());
+    }
     Ok(())
 }
 
@@ -111,6 +174,33 @@ fn cmd_list() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expand_takes_files_and_flat_zip_directories_only() {
+        let root = std::env::temp_dir().join("sc-app2-test-expand");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("nested")).unwrap();
+        std::fs::write(root.join("b.zip"), "x").unwrap();
+        std::fs::write(root.join("a.zip"), "x").unwrap();
+        std::fs::write(root.join("notes.txt"), "x").unwrap();
+        std::fs::write(root.join("nested").join("deep.zip"), "x").unwrap();
+
+        let zips = expand(root.to_str().unwrap()).unwrap();
+        let names: Vec<_> = zips
+            .iter()
+            .map(|z| z.file_name().unwrap().to_string_lossy().to_string())
+            .collect();
+        // Flat + sorted: nested/deep.zip and notes.txt are NOT picked up.
+        assert_eq!(names, ["a.zip", "b.zip"]);
+
+        assert!(expand(root.join("nested").join("missing").to_str().unwrap()).is_err());
+        let empty = root.join("empty");
+        std::fs::create_dir_all(&empty).unwrap();
+        assert!(expand(empty.to_str().unwrap())
+            .unwrap_err()
+            .contains("no plugin zips"));
+        let _ = std::fs::remove_dir_all(&root);
+    }
 
     #[test]
     fn query_splits_name_and_version() {

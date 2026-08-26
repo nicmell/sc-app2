@@ -1,5 +1,5 @@
 //! The wasm-bindgen surface (feature `wasm`) — the browser build consumed by
-//! `@sc-app/validate` (packages/validate). Exports: `validate_entry` mirrors
+//! the frontend's validate module (src/lib/plugins/validate). Exports: `validate_entry` mirrors
 //! [`crate::validate_entry`] (`Ok` = STRUCTURED violations as JSON, `Err` =
 //! the classified parse failure as JSON — both shapes feed editor
 //! diagnostics; the display lines are pre-rendered crate-side), and

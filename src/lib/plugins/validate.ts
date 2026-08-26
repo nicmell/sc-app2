@@ -9,25 +9,14 @@
 // are the ONE spec source, consumed here by getProp coercion and the
 // runtime-prop machinery. Bind/reference resolution stays in the parse engine.
 
-import init, {
-  common_attrs,
-  element_specs,
-  validate_entry,
-} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
-import type {
-  ParseError,
-  ValidationViolation,
-} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
+import init, { common_attrs, element_specs, validate_entry } from "@sc-validate";
+import type { ParseError, ValidationViolation } from "@sc-validate";
 
 // The violation/parse-error TypeScript shapes are GENERATED from the crate's
 // Rust types (tsify) into the pkg d.ts — re-exported here as the wrapper's
 // public surface, so the union can never drift from ViolationKind.
-export type {
-  ParseErrorCode,
-  ValidationViolation,
-  ViolationKind,
-} from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
-export type { ParseError as ValidationParseError } from "../../../src-tauri/crates/sc-validate/pkg/sc_validate";
+export type { ParseErrorCode, ValidationViolation, ViolationKind } from "@sc-validate";
+export type { ParseError as ValidationParseError } from "@sc-validate";
 
 /** Shared to every attribute — exactly what the runtime reads: `runtime`
  *  gates the `bind:` sibling (contentHash + runtime-prop resolution),
@@ -121,11 +110,12 @@ export class EntryParseError extends Error {
 }
 
 /** The wasm Err side arrives as the thrown ParseError object; anything else
- *  is a glue-level failure. */
+ *  (glue-level failures, or standard-library objects that happen to carry a
+ *  `code` — e.g. DOMException) must not be stamped as one. */
 function asParseError(e: unknown): ParseError | undefined {
-  return typeof e === "object" && e !== null && "code" in e && "message" in e
-    ? (e as ParseError)
-    : undefined;
+  if (typeof e !== "object" || e === null || !("code" in e)) return undefined;
+  const code = e.code;
+  return code === "not-well-formed" || code === "too-deep" ? (e as ParseError) : undefined;
 }
 
 /** Thrown by validateEntry when the entry violates the spec: `message` is
@@ -142,10 +132,11 @@ export class ValidationError extends Error {
 }
 
 /** Validate + parse a plugin entry document. Throws the canonical shapes:
- *  `plugin entry is not valid XHTML: …` on a parse failure (the classified
- *  ValidationParseError rides `cause`), else a ValidationError with every
- *  spec violation newline-joined and the structured list on `.violations`.
- *  Returns the authored root element. */
+ *  `plugin entry is not valid XHTML: …` on a parse failure (an
+ *  EntryParseError — the classified failure on `.parseError`, the raw thrown
+ *  value on `cause`), else a ValidationError with every spec violation
+ *  newline-joined and the structured list on `.violations`. Returns the
+ *  authored root element. */
 export function validateEntry(xml: string): Element {
   requireSpecs();
   let violations: ValidationViolation[];

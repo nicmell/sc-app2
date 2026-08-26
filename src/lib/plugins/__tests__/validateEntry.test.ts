@@ -12,6 +12,7 @@ import {
   ValidationError,
   type ValidationViolation,
 } from "@/lib/plugins/validate";
+import { wrapXml } from "@/lib/utils/test/test-utils";
 
 // COMPILE-TIME pin: the tsify-generated union must narrow on `code` (payload
 // fields surface per variant, base fields stay reachable). A broken generated
@@ -28,7 +29,6 @@ export function narrows(violation: ValidationViolation): string {
       return violation.message;
   }
 }
-import { wrapXml } from "@/lib/utils/test/test-utils";
 
 describe("validateEntry", () => {
   it("returns the live document element for a valid entry", () => {

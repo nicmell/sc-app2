@@ -8,7 +8,8 @@ crate-type = ["rlib", "cdylib"]
 
 [features]
 # The browser build: `yarn generate:wasm` (wasm-pack --target web) compiles the
-# same rules to packages/validate/pkg for the frontend parse gate. tsify
+# same rules to the default pkg/ here for the frontend parse gate
+# (src/lib/plugins/validate imports it via the @sc-validate alias). tsify
 # generates the TypeScript definitions for the exported shapes (violations,
 # parse errors) straight from the Rust types into the pkg d.ts — the ONE
 # type source; its default `json` feature crosses the boundary via

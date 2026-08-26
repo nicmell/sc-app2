@@ -24,7 +24,8 @@
        the matching resolve.alias) */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@sc-validate": ["src-tauri/crates/sc-validate/pkg/sc_validate"]
     }
   },
   /* The whole src tree — incl. the co-located __tests__ and the shared test

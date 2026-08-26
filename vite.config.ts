@@ -62,6 +62,12 @@ export default defineConfig(() => ({
     // TS source — no build step; Vite compiles them with full HMR. `@/` → `src/`.
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // The committed wasm-pack output at the crate's default location — the
+      // static-validation module (lib/plugins/validate) imports its glue +
+      // generated types through this alias.
+      "@sc-validate": fileURLToPath(
+        new URL("./src-tauri/crates/sc-validate/pkg/sc_validate", import.meta.url),
+      ),
     },
   },
 

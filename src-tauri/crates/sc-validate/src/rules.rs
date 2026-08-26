@@ -875,7 +875,34 @@ mod tests {
             ),
             (ViolationKind::WrongRoot { root: s() }, "wrong-root"),
         ];
+        // Compile-forcing exhaustiveness: a NEW variant fails this match until
+        // it lands in the table above with its pinned code.
+        fn pinned(kind: &ViolationKind) {
+            match kind {
+                ViolationKind::MutuallyExclusiveAttr { .. }
+                | ViolationKind::MissingRequiredAttr { .. }
+                | ViolationKind::InvalidDecimal { .. }
+                | ViolationKind::InvalidInteger { .. }
+                | ViolationKind::InvalidBoolean { .. }
+                | ViolationKind::InvalidEnum { .. }
+                | ViolationKind::InvalidName { .. }
+                | ViolationKind::ValueBelowMin { .. }
+                | ViolationKind::ValueBelowExclusiveMin { .. }
+                | ViolationKind::ValueAboveMax { .. }
+                | ViolationKind::InvalidNumericVector { .. }
+                | ViolationKind::UnknownAttr { .. }
+                | ViolationKind::UnknownAttrPrefix { .. }
+                | ViolationKind::UnknownRuntimeAttr { .. }
+                | ViolationKind::WrongNamespace
+                | ViolationKind::UnexpectedChild { .. }
+                | ViolationKind::UnexpectedText
+                | ViolationKind::MissingRequiredChild { .. }
+                | ViolationKind::WrongRoot { .. } => {}
+            }
+        }
+        assert_eq!(kinds.len(), 19, "every variant must appear in the table");
         for (kind, code) in kinds {
+            pinned(&kind);
             assert_eq!(serde_json::to_value(&kind).unwrap()["code"], code);
         }
     }

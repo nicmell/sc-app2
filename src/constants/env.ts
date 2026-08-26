@@ -1,5 +1,3 @@
-export const _DEV_ = import.meta.env.DEV;
-
 declare global {
   interface Window {
     /** Injected by the Tauri webview's initialization script; absent in a browser. */

@@ -136,7 +136,7 @@ lib/                     non-React infrastructure
                          literal (the STRICT static-`value` evaluator,
                          memoized), split (the paren-aware top-level comma
                          splitter every comma consumer uses)
-  http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL,
+  http/                  get/post/put/del prefixed with HTTP_BASE_URL,
                          wsUrl(), HttpError (parses the ApiError envelope —
                          {code: ApiErrorCode, message, violations?}, the
                          violations typed by the same generated shape as the

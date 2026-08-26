@@ -30,20 +30,3 @@ export const CLOCK_SAMPLE_WINDOW = 8;
 /** Watchdog poll cadence, derived: detection latency is the reply timeout
  *  plus at most one poll interval, so a fifth keeps it tight. */
 export const CLOCK_WATCHDOG_INTERVAL_MS = STATUS_REPLY_TIMEOUT_MS / 5;
-
-// ── scope taps (<sc-scope> defaults) ──────────────────────────────────
-
-/** Default tap input: SuperDirt sums all orbits to the stereo master out
- *  (bus 0/1). */
-export const SCOPE_INPUT_BUS = 0;
-
-export const SCOPE_CHANNELS = 2;
-
-/** Default frames per scope slot = one chunk = the visible window
- *  (~21 ms at 48 kHz); <sc-scope frames="…"> overrides per element. */
-export const SCOPE_CHUNK_SIZE = 1024;
-
-/** Ceiling for <sc-scope frames>: ScopeOut2 allocates the slot at maxFrames
- *  from scsynth's finite SHM scope pool, and past this the page-flip refresh
- *  (sampleRate/frames) is too slow to read as motion anyway (~3 Hz at 48 kHz). */
-export const SCOPE_MAX_FRAMES = 16384;

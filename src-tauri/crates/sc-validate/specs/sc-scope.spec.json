@@ -5,7 +5,7 @@
     "bus": {
       "$comment": [
         "the tap trio is the SUBSCRIPTION identity — no re-tap machinery yet",
-        "SCOPE_INPUT_BUS is 0; specs stay pure JSON, so keep the literal here."
+        "default 0: SuperDirt sums all orbits to the stereo master out (bus 0/1)"
       ],
       "type": "integer",
       "min": 0,
@@ -13,7 +13,7 @@
       "runtime": false
     },
     "channels": {
-      "$comment": "SCOPE_CHANNELS is 2; specs stay pure JSON, so keep the literal here.",
+      "$comment": "default 2: the stereo master",
       "type": "integer",
       "min": 1,
       "default": 2,
@@ -21,8 +21,8 @@
     },
     "frames": {
       "$comment": [
-        "SCOPE_CHUNK_SIZE is 1024; specs stay pure JSON, so keep the literal here.",
-        "16384 is SCOPE_MAX_FRAMES; specs stay pure JSON, so keep the literal here."
+        "default 1024 frames = one chunk = the visible window (~21 ms at 48 kHz)",
+        "max 16384: ScopeOut2 allocates the slot at maxFrames from scsynth's finite SHM pool, and past this the page-flip refresh (sampleRate/frames) is too slow to read as motion (~3 Hz at 48 kHz)"
       ],
       "type": "integer",
       "min": 1,

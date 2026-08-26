@@ -4,7 +4,7 @@
 // evaluator (literal), and the paren-aware comma splitter every consumer of
 // comma-separated bind strings must use (split).
 
-export type { BinaryOp, Expr } from "./ast";
+export type { Expr } from "./ast";
 export { evalExpr } from "./evaluate";
 export { lookupFunction, type LoweredArg } from "./functions";
 export { tryEvalCallLiteral } from "./literal";

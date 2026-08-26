@@ -145,7 +145,7 @@ export async function pool(items, limit, fn) {
   return results;
 }
 
-export const OUT = resolve(HERE, "out");
+const OUT = resolve(HERE, "out");
 export function writeJson(name, data) {
   mkdirSync(OUT, { recursive: true });
   const file = resolve(OUT, name);

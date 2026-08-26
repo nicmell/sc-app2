@@ -145,14 +145,6 @@ export function put(
   return request(path, "PUT", body, options);
 }
 
-export function patch(
-  path: string,
-  body?: BodyInit | null,
-  options?: RequestOptions,
-): Promise<Response> {
-  return request(path, "PATCH", body, options);
-}
-
 export function del(path: string, options?: RequestOptions): Promise<Response> {
   return request(path, "DELETE", null, options);
 }

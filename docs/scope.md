@@ -93,8 +93,8 @@ controls:  inBus (first bus to read), scopeNum (the SHM slot index)
 
 Two conventions are load-bearing:
 
-- **One slot = one chunk**: `maxFrames = scopeFrames = chunkSize` (1024, from
-  `SCOPE_CHUNK_SIZE` in `src/constants/osc.ts`), so every push completes
+- **One slot = one chunk**: `maxFrames = scopeFrames = chunkSize` (1024,
+  the spec default for `<sc-scope frames>`), so every push completes
   exactly one displayable chunk (~21 ms at 48 kHz → ~47 pushes/s).
 - **Channels are baked into the def** (the `In.ar` width and the ScopeOut2
   input array), while `inBus`/`scopeNum` stay synth controls — one def per

@@ -75,7 +75,7 @@ pub async fn start(
             }
         })
         .unwrap_or_else(|| config::root().join("logs"));
-    let logger = logger::Logger::init(Some(&log_dir));
+    let logger = logger::Logger::init(&log_dir);
     let bridge = Bridge::connect(
         &config.peers,
         std::time::Duration::from_secs(config.connect_timeout),

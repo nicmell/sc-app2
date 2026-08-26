@@ -306,7 +306,8 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
   config.rs       the APP ROOT (resolve_root/set_root/root: --app-dir >
                   SC_APP_DIR > canonical; every path derives from it) +
                   config.json (port, peers, connect_timeout, log_dir)
-  logger.rs       tracing to stderr + optional rotated JSON file
+  logger.rs       tracing to stderr + the rotated JSON file (default-ON at
+                  <root>/logs)
   plugin/         zip validation (metadata, spec-gated entry, assets) +
                   plugins.json registry (manager.rs)
   scope/          scsynth SHM scope buffers → /scope/chunk frames over the

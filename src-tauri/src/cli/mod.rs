@@ -21,13 +21,14 @@ use crate::core::config as core_config;
 struct Cli {
     /// The app root owning config.json, plugins, sessions, and logs.
     /// Defaults to SC_APP_DIR, then the canonical platform dir.
-    #[arg(long, global = true, env = "SC_APP_DIR")]
+    #[arg(long, global = true)]
     app_dir: Option<PathBuf>,
     /// Path to config.json. Defaults to <app dir>/config.json.
     #[arg(long, global = true)]
     config: Option<PathBuf>,
-    /// Directory for the rotated JSON log file. Overrides config `log_dir`
-    /// (default <app dir>/logs).
+    /// Directory for the rotated JSON log file, resolved against the cwd.
+    /// Overrides config `log_dir` (which is app-dir-relative; default
+    /// <app dir>/logs).
     #[arg(long, global = true)]
     log_dir: Option<PathBuf>,
     #[command(subcommand)]
@@ -37,7 +38,7 @@ struct Cli {
 #[derive(Subcommand)]
 pub enum Command {
     /// Run the HTTP server headlessly on localhost (no GUI).
-    Serve(serve::ServeArgs),
+    Serve,
     /// Manage plugin bundles (validate / add / remove / list).
     #[command(subcommand)]
     Plugin(plugin::PluginCommand),
@@ -52,16 +53,24 @@ pub enum Command {
 /// [`exit_cli`] (the GUI owns the process until its window closes).
 pub fn run() {
     let cli = Cli::parse();
-    // clap's env fallback already folded SC_APP_DIR into app_dir.
-    core_config::set_root(core_config::resolve_root(cli.app_dir, None));
+    // ONE code path owns the whole precedence chain (an empty SC_APP_DIR is
+    // ignored there, which clap's own env fallback would reject).
+    core_config::set_root(core_config::resolve_root(
+        cli.app_dir,
+        std::env::var_os("SC_APP_DIR"),
+    ));
     let overrides = Overrides {
         config: cli.config,
-        log_dir: cli.log_dir,
+        // Absolutized here: the flag is cwd-relative by CLI convention,
+        // while config `log_dir` stays app-dir-relative (core::start).
+        log_dir: cli
+            .log_dir
+            .map(|dir| std::path::absolute(&dir).unwrap_or(dir)),
     };
     match cli.command {
         Some(Command::Plugin(cmd)) => exit_cli(plugin::run(cmd)),
         Some(Command::Config(cmd)) => exit_cli(config::run(cmd, &overrides)),
-        Some(Command::Serve(args)) => exit_cli(serve::run(args, overrides, context())),
+        Some(Command::Serve) => exit_cli(serve::run(overrides, context())),
         None => gui::run(overrides, context()),
     }
 }

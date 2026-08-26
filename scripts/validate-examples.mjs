@@ -117,7 +117,7 @@ for (const dir of dirs.sort()) {
     uploadNote = "pre-installed";
   } else {
     const zip = join(work, `${dir.replaceAll("/", "-")}.zip`);
-    execSync(`cd ${REPO}/examples/plugins/${dir} && zip -q -r ${zip} .`);
+    execSync(`cd ${REPO}/examples/plugins/${dir} && zip -q -r ${zip} . -x '.*' '*/.*'`);
     const resp = await fetch(`${API}/api/plugins`, {
       method: "POST",
       body: await (await import("node:fs/promises")).readFile(zip),

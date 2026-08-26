@@ -111,6 +111,10 @@ pub fn set_root(root: PathBuf) {
 
 /// The app root. Falls back to a lazy env/canonical resolution for any path
 /// that runs before the dispatch installed it (unit tests, one-off calls).
+/// FOOTGUN for future persistence tests: a Rust test writing through a
+/// root-derived path without set_root lands in the CANONICAL dir — install
+/// a tempdir root first (planned as the shared test harness in the
+/// hermetic-tests step).
 pub fn root() -> &'static std::path::Path {
     ROOT.get_or_init(|| resolve_root(None, std::env::var_os("SC_APP_DIR")))
 }
@@ -120,32 +124,26 @@ pub fn config_path() -> PathBuf {
     root().join("config.json")
 }
 
-/// The app's data directory — the root itself (kept as a named accessor for
-/// the plugin/session path derivations below).
-pub fn data_dir() -> PathBuf {
-    root().to_path_buf()
-}
-
 /// Directory holding installed plugin zip bundles.
 pub fn plugins_dir() -> PathBuf {
-    data_dir().join("plugins")
+    root().join("plugins")
 }
 
 /// The plugin registry file (`PluginInfo[]` as JSON), kept separate from the
 /// typed `config.json` so the plugin system owns its own persistence.
 pub fn plugins_registry_path() -> PathBuf {
-    data_dir().join("plugins.json")
+    root().join("plugins.json")
 }
 
 /// Directory holding saved-session layout files (`<session id>.json`).
 pub fn sessions_dir() -> PathBuf {
-    data_dir().join("sessions")
+    root().join("sessions")
 }
 
 /// The saved-session registry file (`SavedSessionInfo[]` as JSON) — the
 /// session counterpart of the plugin registry.
 pub fn sessions_registry_path() -> PathBuf {
-    data_dir().join("sessions.json")
+    root().join("sessions.json")
 }
 
 /// Parse config JSON strictly — the shared core of [`load`] (which tolerates

@@ -115,9 +115,16 @@ fn run_bundles(
             }
             Err(e) => {
                 failed += 1;
-                let first = e.to_string();
-                let first = first.lines().next().unwrap_or_default().to_string();
-                println!("failed {shown}: {first}");
+                if single {
+                    // The full multi-line error (the spec gate's whole
+                    // violation list) — a single explicit bundle deserves
+                    // the same detail the old single-path command gave.
+                    println!("failed {shown}: {e}");
+                } else {
+                    let text = e.to_string();
+                    let first = text.lines().next().unwrap_or_default();
+                    println!("failed {shown}: {first}");
+                }
             }
         }
     }

@@ -20,37 +20,30 @@ pub struct Logger {
 
 impl Logger {
     /// Initialize the global tracing subscriber once and return the logger.
-    pub fn init(log_dir: Option<&Path>) -> Arc<Logger> {
+    /// File logging is default-ON (`<app root>/logs` unless overridden); a
+    /// dir that cannot be created degrades to stderr-only.
+    pub fn init(log_dir: &Path) -> Arc<Logger> {
         Arc::new(Logger {
             _guard: init_tracing(log_dir),
         })
     }
 }
 
-/// Set the global subscriber. stderr at INFO+ always; a daily-rotated JSON
-/// file in `log_dir` when given (returning its `WorkerGuard`). `RUST_LOG`
+/// Set the global subscriber. stderr at INFO+ always, plus a daily-rotated
+/// JSON file in `log_dir` (returning its `WorkerGuard`). `RUST_LOG`
 /// overrides the default filter.
-fn init_tracing(log_dir: Option<&Path>) -> Option<WorkerGuard> {
+fn init_tracing(log_dir: &Path) -> Option<WorkerGuard> {
     use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,sc_app2_lib=info"));
     let stderr_layer = fmt::layer().with_writer(std::io::stderr).with_target(true);
 
-    // Stderr-only path: no log dir, or the dir can't be created.
-    let dir = match log_dir {
-        Some(dir) => match std::fs::create_dir_all(dir) {
-            Ok(()) => dir,
-            Err(e) => {
-                eprintln!("[logger] could not create {}: {e}", dir.display());
-                tracing_subscriber::registry()
-                    .with(env_filter)
-                    .with(stderr_layer)
-                    .init();
-                return None;
-            }
-        },
-        None => {
+    // Stderr-only fallback: the dir can't be created.
+    let dir = match std::fs::create_dir_all(log_dir) {
+        Ok(()) => log_dir,
+        Err(e) => {
+            eprintln!("[logger] could not create {}: {e}", log_dir.display());
             tracing_subscriber::registry()
                 .with(env_filter)
                 .with(stderr_layer)

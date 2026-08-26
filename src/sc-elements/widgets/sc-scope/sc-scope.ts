@@ -6,15 +6,15 @@
 // through the load pass: load() installs the tap synthdef (ScopeOut2 into a
 // scope-buffer slot allocated from the session's span), creates the tap synth
 // at the tail of the SESSION group (it reads post-everything as of load time —
-// plugins mounted later append after it, the same ordering caveat the old
-// global controller had), and subscribes to the bridge's /scope/chunk stream
+// plugins mounted later append after it, an accepted ordering caveat), and
+// subscribes to the bridge's /scope/chunk stream
 // filtered by its own subId; unload() reverses all of it, so the connection
 // lifecycle (disconnect → unload, reconnect → reload) re-arms taps for free.
 //
 // Display props (renderer-only — the tap/wire carry the same chunks):
 // `trigger` (auto|normal|off), `slope` (rising|falling) + `level` pin the
 // drawn window to a level crossing on lane 0 like a bench scope's edge
-// trigger (see lib/scope/trigger.ts and scope.md §5); `gain` scales the
+// trigger (see lib/scope/trigger.ts and docs/scope.md §5); `gain` scales the
 // vertical axis; `layout` (overlay|split) stacks the lanes into per-channel
 // bands instead of superimposing them.
 //

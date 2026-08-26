@@ -1,7 +1,9 @@
 //! The `/clock/*` wire protocol — the cross-language contract.
 //!
-//! These addresses and argument layouts must match
-//! `packages/server-commands/src/commands/clock.ts`. Keep the two in sync.
+//! Addresses and argument layouts must match
+//! `packages/server-commands/src/commands/clock.ts`. Only ping/pong reach
+//! the bridge (answered inline by the WS pump, never touching UDP); the
+//! subscribe/tick/status family stays frontend-internal.
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -12,14 +14,18 @@ use crate::core::osc::{self, int_arg};
 pub const CLOCK_PING: &str = "/clock/ping";
 pub const CLOCK_PONG: &str = "/clock/pong";
 
+/// `/clock/ping seq:i` → the seq to echo; `None` on a malformed message.
 pub fn parse_ping(msg: &OscMessage) -> Option<i32> {
     int_arg(msg.args.first()?)
 }
 
+/// `/clock/pong seq:i srv:d` — seq echoed, srv from [`unix_ms`].
 pub fn encode_pong(seq: i32, srv: f64) -> Vec<u8> {
     osc::encode(CLOCK_PONG, vec![OscType::Int(seq), OscType::Double(srv)])
 }
 
+/// The pong timestamp: Unix wall-clock ms as f64 (fractional ms carry
+/// the precision).
 pub fn unix_ms() -> f64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)

@@ -1,5 +1,5 @@
 // Compiles a parsed <sc-synthdef> — params + <sc-ugen> specs in DOM order —
-// into SCgf bytes. This is the markup-shaped half of the old app's
+// into SCgf bytes. This is the markup-shaped half of the
 // SynthDefCompiler: the registry, operator tables, UGenInput algebra, graph
 // validation and SCgf encoding all come from @sc-app/synthdef-compiler; only
 // the string-spec → SynthDef translation lives here, because its input shape

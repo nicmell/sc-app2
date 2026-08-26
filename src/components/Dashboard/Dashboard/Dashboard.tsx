@@ -1,9 +1,9 @@
 // The dashboard: a draggable/resizable react-grid-layout of plugin panels, with
-// the empty space carved into clickable "add a panel here" placeholders. Faithful
-// to upstream `sc-app/components/Dashboard`, restyled with ui-components and
-// adapted to our reactiveStores (no redux/runtime/clock):
-//   • layout/geometry  → state/layout (reactiveStore + localStorage)
-//   • installed plugins → state/plugins (mirrored from the Rust router)
+// the empty space carved into clickable "add a panel here" placeholders.
+// Built on the reactiveStores:
+//   • layout/geometry  → stores/layout (app-store slice, autosaved to the
+//     backend session by the SessionManager)
+//   • installed plugins → stores/plugins (mirrored from the Rust router)
 //   • panel content     → PluginHost (fetch entry XHTML, offline parse/upgrade,
 //     process + mount)
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";

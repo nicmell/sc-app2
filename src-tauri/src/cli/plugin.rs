@@ -1,4 +1,4 @@
-//! The `plugin` CLI subcommands (ported from upstream sc-app): validate a
+//! The `plugin` CLI subcommands: validate a
 //! bundle, validate + install it, remove one, list the installed ones. Thin
 //! wrappers over [`manager`] — the same validation/storage the HTTP routes
 //! use, so a bundle that passes here uploads clean and vice versa.
@@ -118,7 +118,7 @@ fn run_bundles(
                 if single {
                     // The full multi-line error (the spec gate's whole
                     // violation list) — a single explicit bundle deserves
-                    // the same detail the old single-path command gave.
+                    // full detail.
                     println!("failed {shown}: {e}");
                 } else {
                     let text = e.to_string();

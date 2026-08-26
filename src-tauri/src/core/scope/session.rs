@@ -226,7 +226,10 @@ impl SessionScopes {
         }
     }
 
-    /// Take one staged chunk for sending.
+    /// Take one staged chunk for sending. Winner is HashMap iteration
+    /// order — no round-robin fairness, fine at real rates (drain every
+    /// ~5 ms, pushes ~21 ms apart per subscription: the map almost never
+    /// holds more than one entry).
     pub fn next_chunk(&mut self) -> Option<Vec<u8>> {
         let sub_id = *self.pending.keys().next()?;
         self.pending.remove(&sub_id)

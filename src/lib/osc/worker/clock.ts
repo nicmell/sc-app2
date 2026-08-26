@@ -1,3 +1,11 @@
+// The in-worker bridge-clock endpoint (docs/clock.md): the offset
+// estimator (chained ping loop → 8-sample min-RTT window, NTP's
+// clock-filter rule, published as /clock/status) and the tick scheduler
+// behind subscribeClock. Ticks fire at `phase0 + n × intervalMs` — each
+// timer re-aims at the absolute target, so setTimeout jitter never
+// accumulates. In the worker so both survive main-thread jank; a socket
+// close resets the estimator but tick streams keep running (subscriptions
+// survive reconnect).
 import {
   CLOCK_PONG_ADDRESS,
   CLOCK_SUBSCRIBE_ADDRESS,
@@ -39,6 +47,8 @@ export class WorkerClock {
   private readonly monotonicNow: () => number;
   private samples: ClockSample[] = [];
   private sequence = 0;
+  /** seq → send time. Lost pongs linger until the next open/close reset —
+   *  bounded by the ping cadence, accepted. */
   private pending = new Map<number, number>();
   private pingTimer: ReturnType<typeof setTimeout> | null = null;
   private pingsSent = 0;
@@ -93,6 +103,8 @@ export class WorkerClock {
       const intervalMs = Number(message.args[1]);
       if (!Number.isInteger(id) || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
       this.unsubscribe(id);
+      // n=1: first tick one full interval after subscribe (tick 0 = phase0,
+      // the subscribe instant).
       const stream: TickStream = { phase0: this.monotonicNow(), intervalMs, n: 1 };
       this.ticks.set(id, stream);
       this.schedule(id, stream);

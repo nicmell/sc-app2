@@ -1,3 +1,6 @@
+// The UGen catalogue: SuperCollider's class metadata (rates, input names,
+// defaults, docs) in per-category slices under specs/, exposed via
+// lookupUgen/ugensByCategory. Plain data — no DOM, no I/O — loads anywhere.
 import { Rate } from "./rate.js";
 import { ALL_SLICES } from "./specs/index.js";
 

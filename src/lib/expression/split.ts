@@ -4,7 +4,7 @@
 // string must split at paren depth 0 only.
 
 /** Split `value` on commas OUTSIDE parentheses; tokens trimmed, empties
- *  dropped (matching the old split-map-filter chains). */
+ *  dropped. */
 export function splitTopLevel(value: string): string[] {
   const tokens: string[] = [];
   let depth = 0;

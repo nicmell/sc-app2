@@ -1,8 +1,15 @@
 /**
- * Bridge clock protocol. Keep in sync with src-tauri/src/core/clock.rs.
+ * Bridge clock protocol (see docs/clock.md). Keep in sync with
+ * src-tauri/src/core/clock.rs — the bridge answers pings; everything else
+ * stays inside the frontend (worker ⇄ webview, never on the wire).
  *
- * Worker/bridge: `/clock/ping seq:i`, `/clock/pong seq:i srv:d`.
- * Webview/worker: subscribe/unsubscribe commands and tick/status replies.
+ * Worker ⇄ bridge:
+ *   `/clock/ping  seq:i`        — seq echoes back; send time kept worker-side
+ *   `/clock/pong  seq:i srv:d`  — srv = bridge Unix wall-clock ms
+ * Webview ⇄ worker:
+ *   `/clock/subscribe   id:i intervalMs:d` / `/clock/unsubscribe id:i`
+ *   `/clock/tick    id:i n:i`      — n = tick index on the absolute phase grid
+ *   `/clock/status  offset:d rtt:d` — the current min-RTT estimate (0,0 = unlocked)
  */
 
 import type { OscArg, OscMessage } from "../types";

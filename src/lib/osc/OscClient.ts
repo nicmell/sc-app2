@@ -3,9 +3,9 @@
 // (open/close/send/on/off/status), plus a promise-returning
 // `connect(url, session)`.
 //
-// One global instance (`oscClient`) serves the whole frontend — the
-// SessionManager starts the connection once `POST /api/session` yields the WS
-// URL + session block, and consumers (the sc-elements, …) subscribe to
+// One global instance (`oscClient`) serves the whole frontend — the Layout
+// route hands the loader-resolved SessionInfo to the SessionManager, which
+// starts the connection here, and consumers (the sc-elements, …) subscribe to
 // addresses directly. On connect the client creates the session's scsynth group itself
 // (`/g_new` at the tail of scsynth's root group — sessions always start
 // fresh; the bridge ends them when the WebSocket closes) and owns node-id
@@ -212,7 +212,9 @@ export class OscClient {
     return this.scopeBase + this.scopeUsed++;
   }
 
-  /** Return a slot to the allocator (scope tap torn down). */
+  /** Return a slot to the allocator (scope tap torn down). Out-of-span and
+   *  double frees are ignored — unload can race a reconnect's fresh span,
+   *  and a stale index must not poison the free list. */
   freeScopeIndex(index: number): void {
     if (index < this.scopeBase || index >= this.scopeBase + this.scopeCount) return;
     if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);

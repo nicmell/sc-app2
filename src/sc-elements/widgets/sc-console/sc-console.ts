@@ -1,4 +1,4 @@
-// <sc-console> — the OSC message log. Ports the old OscConsole: subscribes to
+// <sc-console> — the OSC message log: subscribes to
 // the logging middleware's bounded tx/rx store and renders it as a scrolling list,
 // pinned to the newest row. Light DOM so ui-components .osc-* styles apply.
 

@@ -25,7 +25,7 @@
 
 use super::mmap::MmapRegion;
 
-/// Byte offset of `_stage` (atomic<int>) within scope_buffer.
+/// Byte offset of `_stage` (`atomic<int>`) within scope_buffer.
 pub(super) const SB_OFF_STAGE: usize = 24;
 /// Byte offset of the `_state[3]` array within scope_buffer.
 pub(super) const SB_OFF_STATE_ARRAY: usize = 40;
@@ -137,6 +137,7 @@ pub fn find_scope_buffer_array(region: &MmapRegion) -> Result<ScopeBufferLayout,
 
 /// Find every scope_buffer-shaped structure: `_status` ∈ {0,1} and the
 /// `(_stage,_in,_out)` triple at +24/+28/+32 a permutation of {0,1,2}.
+/// 4-byte scan stride — boost's segment allocator aligns to at least 4.
 fn find_scope_buffer_candidates(bytes: &[u8]) -> Vec<usize> {
     let mut out = Vec::new();
     if bytes.len() < SB_OFF_STAGE + 12 {

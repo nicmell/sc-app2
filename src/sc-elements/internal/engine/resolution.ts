@@ -4,7 +4,8 @@
 // name-path resolution against the parse context (bind-order enforced), and
 // the bind-expression resolver feeding the runtime-prop machinery. The error
 // messages are the runtime gate's contract — pinned verbatim by
-// src/sc-elements/examples.test.ts and the CDP harness. Static validation
+// src/sc-elements/__tests__/examples.test.ts and the e2e examples suite
+// (yarn e2e examples). Static validation
 // lives in the shared Rust crate; coercion helpers used by getProp live in the
 // sibling validation.ts.
 

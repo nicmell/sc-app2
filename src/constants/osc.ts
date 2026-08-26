@@ -12,7 +12,7 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
-// ── bridge clock (see CLOCK.md) ──────────────────────────────────────
+// ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
 /** Pings fired back-to-back on socket open so the offset estimator locks
  *  fast (~0.6 s) instead of waiting out the steady cadence. */
@@ -47,13 +47,3 @@ export const SCOPE_CHUNK_SIZE = 1024;
  *  from scsynth's finite SHM scope pool, and past this the page-flip refresh
  *  (sampleRate/frames) is too slow to read as motion anyway (~3 Hz at 48 kHz). */
 export const SCOPE_MAX_FRAMES = 16384;
-
-// ── live envelopes (<sc-env> state / per-synth control arrays) ────────
-
-/** Max segments a LIVE envelope may hold. Its def-side control array is
- *  4 + 4×maxSegments param slots (the flat Env encoding), written whole with
- *  /n_setn on the owning group. */
-export const ENV_MAX_SEGMENTS = 15;
-
-/** Default <sc-env max-segments> for a state envelope. */
-export const ENV_DEFAULT_MAX_SEGMENTS = 8;

@@ -1,6 +1,6 @@
 //! The `config` CLI subcommands (the `plugin` family's sibling): write the
 //! default `config.json` to a path, and validate an existing one — the strict
-//! counterpart of [`config::load`](crate::core::config::load), which silently falls back to defaults on a
+//! counterpart of [`crate::core::config::load`], which silently falls back to defaults on a
 //! malformed file. Validation goes beyond JSON shape: every peer's routing
 //! regex must compile and its target must look like `host:port`, the same
 //! requirements the bridge enforces (by skipping the peer) at startup.
@@ -14,12 +14,12 @@ use crate::core::config;
 
 #[derive(Subcommand)]
 pub enum ConfigCommand {
-    /// Write the default config.json (default: <app dir>/config.json)
+    /// Write the default config.json (default: the app dir's config.json)
     Write {
         /// Destination path (must not exist yet)
         path: Option<String>,
     },
-    /// Validate a config.json (default: <app dir>/config.json, or --config)
+    /// Validate a config.json (default: the app dir's config.json, or --config)
     Validate {
         /// Path to a config.json
         path: Option<String>,

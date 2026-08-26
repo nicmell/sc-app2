@@ -1,4 +1,4 @@
-// The app's HTTP layer (modeled on the old sc-app's src/lib/http): typed
+// The app's HTTP layer: typed
 // request helpers over fetch, all resolving against HTTP_BASE_URL.
 //
 // In a browser the API + WS are same-origin (production serve) or Vite-proxied,
@@ -112,7 +112,7 @@ async function request(
     // The global backstop: UNEXPECTED server failures surface as a coalesced
     // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
     // form feedback). No code suffix in the key — different 5xx codes on
-    // one call should bump the same banner, not stack.
+    // one call should bump the same toast, not stack.
     if (resp.status >= 500 && resp.status !== 503 && notify !== false) {
       pushToast({
         variant: "error",

@@ -36,8 +36,8 @@
 // one pass; diamond dependencies can transiently dispatch once per
 // intermediate before converging — accepted, each hop is Object.is-guarded.
 //
-// Still unported (return with their migration steps): the buffer family
-// (sc-buffer/waveform/test + the old buffer-bound scope), presets/overrides.
+// Not yet implemented (see the roadmap): the buffer family
+// (sc-buffer/sc-waveform), presets/overrides.
 
 import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";

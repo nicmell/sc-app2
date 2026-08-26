@@ -101,6 +101,14 @@ For callers who prefer the stringly-typed low-level API, `SynthDef`
 exposes `addUgen(className, rate, inputs, numOutputs, specialIndex)`
 and `addControl(name, default, rate)` directly.
 
+### Envelope registry
+
+The env registry (`ENV_SHAPES`, `lookupEnv`, `encodeEnv`) carries the SC
+envelope constructors (`adsr`, `perc`, `linen`, …) and the flat
+`Env.asArray` encoding. The app's expression language bridges its function
+calls (`adsr(0.01, 0.1, 0.7, 0.3)`) from this registry, in all three
+evaluation planes (static values, runtime binds, synthdef graphs).
+
 ## Tests
 
 ```bash

@@ -1,27 +1,26 @@
 # `src/sc-elements` — the plugin custom elements
 
-The Lit web components plugin HTML is built from. They follow the recipe in the
-root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
-in the sc-validate crate's authored `specs/<tag>.spec.json` (the spec IS the
-attribute contract — it also drives the shared validator and generates the
-backend XSD; the frontend reads the map from the wasm module) and are read on
-demand via
-`getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
-properties). A spec-declared `default` is applied by `getProp` when neither
-the static attr nor a settled bind supplies a value; undeclared attrs remain
-`undefined`, so forwarded props defer to the base widget's own default. Every
-spec attr (unless flagged `runtime: false`) accepts a
+The Lit web components plugin HTML is built from; the migration recipe is
+in the root CLAUDE.md. Declarative attributes live in the sc-validate
+crate's authored `specs/<tag>.spec.json` — the spec IS the attribute
+contract, driving both the shared Rust gate (native at upload, wasm at
+`parseEntry`) and `getProp` coercion; the frontend reads the same map from
+the wasm module. `getProp` reads attrs on demand (spec-coerced; only
+genuinely-reactive widget fields stay Lit properties), applies a
+spec-declared `default` when neither form supplies a value, and leaves
+undeclared attrs `undefined` so forwarded props defer to the base widget's
+own default. Every spec attr (unless `runtime: false`) accepts a
 `bind:`-namespaced sibling holding a bind expression (`bind:min="vars.lo"`,
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
-static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. Static validation lives in the shared Rust
-`src-tauri/crates/sc-validate` crate (native at upload, wasm via
-`lib/plugins/validate` at `parseEntry`); the spec drives both that gate and
-`getProp` coercion. The engine now runs identity + the ONE extension hook
-`resolveRuntime(ctx)` — runtime construction: the recursion into the sc
-children where the element opens a level (`processChildren`) plus
-bind/reference resolution. **The element IS the
+static form, evaluated live; `getProp` then returns the evaluated value.
+Violations are TYPED: a nested `kind` (stable kebab-case code + structured
+payload) plus a 1-based attribute-precise line:column; TS shapes are
+tsify-generated from the Rust types, re-exported by `lib/plugins/validate`
+(`ViolationKind`, `ParseErrorCode`). The engine runs identity + the ONE
+extension hook `resolveRuntime(ctx)` — recursion into the sc children
+where the element opens a level (`processChildren`) plus bind/reference
+resolution. **The element IS the
 runtime**: the runtime values are plain fields mutated in place (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `basePath` + the
@@ -33,9 +32,10 @@ parsed tree hangs off the mounted `<sc-plugin>` root (`_scChildren`).
 
 Everything is exported from the barrel (`index.ts`), which also owns
 `registerScElements()` — one constructor per tag in `@/constants/sc-elements`,
-kept in sync with the backend XSD.
+kept in sync with the spec map by the wasm-specs vitest (the ELEMENTS ↔
+spec bijection).
 
-Folders mirror the old sc-app's class/guard taxonomy:
+Folders follow the element class/guard taxonomy:
 
 ```
 internal/   engine/ (the parse ENGINE — index.ts: free process/
@@ -54,7 +54,7 @@ internal/   engine/ (the parse ENGINE — index.ts: free process/
             name/transparency semantics, duplicate-name integrity,
             name-path + bind-expression resolution — all plain functions
             over the elements);
-            the category bases ScNode (run + nodeId/loaded),
+            the category bases ScNode (nodeId/loaded + setRunning),
             ScState (`_state` = the `value` runtime slot + the plugin root's
             instance-store backing for LITERAL state, reached via
             `_rootScNode`), ScInput (targetScState + commit — the writing
@@ -65,11 +65,11 @@ synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)
 inputs/     interactive controls
 visuals/    read-only / conditional presentation
-widgets/    self-contained app panels (new-app features, not in the old app)
+widgets/    self-contained app panels (scope/console/strudel/keyboard)
 ```
 
 Within each category (except `internal/`) every element lives in its own folder
-— `<category>/<sc-name>/<sc-name>.ts` (+ its `.module.scss`, if any) with an
+— `<category>/<sc-name>/<sc-name>.ts` (+ its `.scss`/`.module.scss`, if any) with an
 `index.ts` re-export, so `@/sc-elements/<category>/<sc-name>` resolves unchanged.
 
 Status: every registered element is **functional**; the buffer family remains
@@ -88,8 +88,7 @@ happened in `parseEntry`; each element mints its deterministic path-chained
 hash id) and owns the
 plugin's scsynth group:
 `/g_new` inside the session group on mount, `/g_freeAll` + `/n_free` on
-unmount. Renders a `<slot>` plus the parse error, if any.
-Prop: `run` (boolean attribute, `run="false"` is the only falsy spelling).
+unmount. Renders a `<slot>` plus the parse error, if any. No attributes.
 
 ### `<sc-group>` — functional
 
@@ -99,7 +98,7 @@ inverse of sc-synth's children-first order — so its children's
 `targetGroupId` walk finds it live; nested groups nest. Group-level
 `sc-control` children key under the group path and `/n_set` the GROUP node
 on writes (scsynth fans a group `/n_set` out to every node inside — the
-server-side replacement for the old app's name-based propagation). Unload
+server-side mechanism). Unload
 resets flags only: the subtree dies with the plugin group's wholesale
 teardown.
 
@@ -120,25 +119,25 @@ group's `/g_freeAll` (no per-synth `/n_free`).
 
 Declares a synth graph. Props: `name` (required). Children: `sc-control`
 (params) + `sc-ugen` (nodes). The parse collects params and per-ugen inputs
-(validating each input has a `bind` or `value`); the load pass compiles to
+(validating each input has a `bind:value` or `value`); the load pass compiles to
 SCgf (`lib/synthdef/compileSynthDef`) and `/d_recv`s it, awaiting the
 embedded `/sync` ack; `/d_free` on unmount. Known old-app-parity
 limitation: synthdef names are global to scsynth.
 
 ### `<sc-ugen>` — functional (parse-time)
 
-One UGen node inside a synthdef. Props: `name` (required), `ugen` (the
-**`type` attribute** — the SuperCollider UGen class; required), `rate`
-(`ar|kr|ir`, default `ar`), `op` (operator for Binary/UnaryOpUGen). Children:
-`sc-control` inputs; each input's `bind` must reference a sibling ugen or a
-synthdef param (runtime-validated).
+One UGen node inside a synthdef. Props: `name` (required), `type` (the
+SuperCollider UGen class; required), `rate` (`ar|kr|ir`, default `ar`),
+`op` (operator for Binary/UnaryOpUGen). Children: `sc-control` inputs; each
+input's `bind:value` must reference a sibling ugen or a synthdef param
+(runtime-validated).
 
 ## `state/`
 
 ### `<sc-control>`
 
 A named parameter. Props: `name` (required), and exactly one of `value`
-(number) or `bind:value` (a dot-path to another control/var, or an expression
+(a numeric scalar or array) or `bind:value` (a dot-path to another control/var, or an expression
 over paths — arithmetic, comparisons evaluating to 1/0, the ternary,
 string literals: `vars.freq * 2`, `vars.amp > 0.9`; a bare name-shaped
 expression is always a PATH, so hyphenated names like `fm.mod-freq` stay
@@ -216,7 +215,7 @@ target's `_state` and a choice dispatches through `commit()`.
 
 ### `<sc-option>` — data element
 
-One declarative choice. Props: `value` (number, required by the XSD),
+One declarative choice. Props: `value` (number, required by the spec),
 `label` (required). Pure data — consumed by the parent select at parse.
 
 ### `<sc-radio-group>` / `<sc-radio>` — functional (ui-components `<sc-base-radio-group>`)
@@ -224,8 +223,8 @@ One declarative choice. Props: `value` (number, required by the XSD),
 Radio set over `<sc-radio>` children. Group props: `value` (required,
 usually `bind:value`), `orientation` (`horizontal|vertical`), `label`,
 `size`, `disabled`. Radio
-props: `value` (number), `label` (+ XSD-allowed width/height/src/colors) —
-collected and projected as `<sc-base-radio>`s exactly like select/option.
+props: `value` (number, required), `label` (required) — collected and
+projected as `<sc-base-radio>`s exactly like select/option.
 
 ### `<sc-button>` — functional (ui-components `<sc-base-button>`)
 
@@ -256,8 +255,8 @@ plane: `value="pad(adsr(0.02, 0.15, 0.6, 0.3), 36)"`.
 
 ## `visuals/`
 
-Both visuals are read-only SINKS on the state graph, running entirely on
-the ScElement runtime-prop machinery — their condition/value is a full
+sc-display and sc-if are read-only SINKS on the state graph, running
+entirely on the ScElement runtime-prop machinery — their condition/value is a full
 evaluable expression (plain paths, arithmetic, comparisons, ternaries,
 string literals), resolved like `bind:value` binds and recomputed on every
 source statechange; the render reads it back through `getProp`.
@@ -329,7 +328,7 @@ tap through the load pass: a ScopeOut2 tap synth at the session-group tail
 writing a scope slot allocated from the session's span, plus the bridge's
 `/scope/chunk` subscription (filtered by its own subId into `chunkRef`; the
 canvas draws in a RAF loop). Unload reverses it all, so taps re-arm across
-disconnects. NOT the old buffer-bound sc-scope — that returns with the
+disconnects. Bus-based only — the buffer-bound variant arrives with the
 buffer-family migration.
 
 ### `<sc-strudel>`

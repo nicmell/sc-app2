@@ -8,8 +8,8 @@
 // Interactions:
 //   drag a breakpoint      → level (y) + the segment's time (x, clamped > 0;
 //                            the start point moves level-only)
-//   double-click a segment → insert a breakpoint (within the target env's
-//                            max-segments budget and `maxbreakpoints`;
+//   double-click a segment → insert a breakpoint (within the bound array's
+//                            segment budget and `maxbreakpoints`;
 //                            removal stops at `minbreakpoints` — equal
 //                            bounds lock the structure, positions stay
 //                            draggable)

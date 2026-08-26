@@ -4,10 +4,16 @@
 // localStorage identity, mint/revive over HTTP, the 503 retry budget — lives
 // in the route loaders (`@/lib/session/resolveSession`); Layout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
-// OSC telemetry and the heartbeat watchdog observe OscClient's public seams;
-// the client itself (`@/lib/osc/OscClient`) also
-// terminates the connection on critical failures; this manager only observes
-// the close.
+// OSC telemetry and the heartbeat watchdog observe OscClient's public
+// seams; the client closes itself on critical failures — this manager only
+// observes the close.
+//
+// Reentrancy: every connect()/disconnect() bumps `epoch`; async
+// continuations check it and a superseded connect abandons itself WITHOUT
+// touching the socket (the successor owns the singleton). disconnect() is
+// deferred one tick so a StrictMode cleanup + re-effect keeps the standing
+// connection (close-and-reopen races the server's close handling → 409);
+// connect() with the SAME SessionInfo cancels the timer and no-ops.
 //
 // State lives in the single app store (`@/stores/store.ts`) under its `session`
 // slice; the public `status`/`scsynthAddress` are `select` views off that
@@ -35,8 +41,7 @@ export class SessionManager {
   /** The layout-autosave worker-clock subscription + last saved reference. */
   private saveOff: (() => void) | null = null;
   private lastSavedLayout: BoxItem[] | null = null;
-  /** Bumped by every connect()/disconnect(): a stale async connect abandons
-   *  itself when the epoch moved under it (a session switch mid-await). */
+  /** The reentrancy guard — see the header. */
   private epoch = 0;
   /** The info of the current (pending or live) connection — connect() with
    *  the same object is a no-op, see the StrictMode note on disconnect(). */
@@ -52,9 +57,8 @@ export class SessionManager {
     if (this.disconnectTimer !== null) {
       clearTimeout(this.disconnectTimer);
       this.disconnectTimer = null;
-      // StrictMode remount with the same loader data: the standing connection
-      // is the right one — reopening it would race the server's processing of
-      // the close (a 409 on the second WS).
+      // StrictMode remount with the same loader data: keep the standing
+      // connection (see the header).
       if (this.currentInfo === info) return;
     }
     this.currentInfo = info;
@@ -72,10 +76,8 @@ export class SessionManager {
         scopeIndexBase: info.scopeIndexBase,
         scopeIndexCount: info.scopeIndexCount,
       });
-      // Superseded mid-await: nothing to clean up here — the superseding
-      // connect()/disconnect() already tore the old socket down (the worker
-      // transport disposes a replaced socket), and the singleton now belongs
-      // to the successor. Closing it here would kill the NEW connection.
+      // Superseded mid-await: nothing to clean up — the successor already
+      // tore the old socket down; closing here would kill the NEW connection.
       if (this.epoch !== epoch) return;
 
       // Restore the saved layout only once connected: mounting a panel mounts
@@ -98,13 +100,10 @@ export class SessionManager {
     }
   }
 
-  /** End the live connection (Layout's effect cleanup). Deferred one
-   *  tick: React StrictMode runs cleanup + re-effect back to back, and an
-   *  immediate teardown would close and reopen the WebSocket — the reopen
-   *  races the server's processing of the close and gets rejected (409). The
-   *  remount's connect() cancels the timer and keeps the connection; a real
-   *  unmount fires it. The session identity persists either way — a later
-   *  connect() with the same info revives it. */
+  /** End the live connection (Layout's effect cleanup), deferred one tick
+   *  for StrictMode (see the header) — a remount's connect() cancels the
+   *  timer, a real unmount fires it. Session identity persists either way;
+   *  a later connect() with the same info revives it. */
   disconnect(): void {
     this.disconnectTimer = setTimeout(() => {
       this.disconnectTimer = null;
@@ -115,7 +114,7 @@ export class SessionManager {
   }
 
   /** Periodically PUT the dashboard layout to the session endpoint (the server
-   *  stores it next to the plugins, see src-tauri saved_sessions). Skips ticks
+   *  stores it next to the plugins, see src-tauri core/layouts.rs). Skips ticks
    *  where the layout hasn't changed since the last save; failures just retry
    *  on the next tick. */
   private startLayoutAutosave(sessionId: string): void {
@@ -134,7 +133,7 @@ export class SessionManager {
         (error: unknown) => {
           console.warn("[session] layout save failed:", error);
           // Coalesced (one toast, bumped count) — the autosave retries every
-          // tick, and a dead session/registry must not stack banners.
+          // tick, and a dead session/registry must not stack toasts.
           pushToast({
             variant: "warn",
             key: "session:layout-save",

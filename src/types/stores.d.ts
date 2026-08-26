@@ -1,4 +1,4 @@
-// The app-store domain shapes, gathered here (old sc-app convention) so the
+// The app-store domain shapes, gathered here so the
 // store and its slice modules only ever exchange types — `.d.ts` modules can't
 // carry runtime values, which makes the "no runtime imports into store.ts"
 // invariant structural.

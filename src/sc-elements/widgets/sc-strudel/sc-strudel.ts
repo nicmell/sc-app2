@@ -1,4 +1,4 @@
-// <sc-strudel> — the Strudel REPL. Ports the old StrudelConsole: mounts a
+// <sc-strudel> — the Strudel REPL: mounts a
 // StrudelMirror editor whose Hap onsets are emitted as `/dirt/play` bundles via
 // the session, with a status pill + Play/Stop controls. Light DOM so the
 // ui-components .strudel styles + <sc-base-chip>/<sc-base-button> + CodeMirror apply directly.

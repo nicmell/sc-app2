@@ -4,7 +4,7 @@
 // FIRST — the inverse of sc-synth's children-first order — so the children's
 // `targetGroupId` walk finds it live; group-level controls /n_set the
 // group node (scsynth applies a group /n_set to every node inside — the
-// server-side replacement for the old app's name-based propagation).
+// server-side propagation — scsynth fans a group /n_set to every node inside).
 //
 // unload() resets the flags only: the node subtree dies with the plugin
 // group's wholesale /g_freeAll (the sc-synth precedent — a per-group free

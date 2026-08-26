@@ -33,6 +33,52 @@ pub struct PluginInfo {
     pub assets: Vec<AssetInfo>,
 }
 
+/// Manager failures, typed for the HTTP envelope (the router maps variants to
+/// status + code) while `Display` keeps the CLI's exact plain-text output.
+#[derive(Debug)]
+pub enum PluginError {
+    /// The entry violates the sc-plugin spec — the STRUCTURED violations
+    /// (the router ships them as the ApiError `violations` payload).
+    Spec(Vec<sc_validate::Violation>),
+    /// A validation failure in the bundle (zip shape, metadata, entry parse,
+    /// asset content) — a 400.
+    Invalid(String),
+    /// A plugin id / declared file that does not exist — a 404.
+    NotFound(String),
+    /// A path-traversal attempt on the file endpoint — a 403.
+    Forbidden,
+    /// Registry / filesystem trouble — a 500.
+    Io(String),
+}
+
+impl std::fmt::Display for PluginError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            PluginError::Spec(violations) => write!(
+                f,
+                "entry file does not conform to the sc-plugin spec:\n{}",
+                violations
+                    .iter()
+                    .map(sc_validate::Violation::render)
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ),
+            PluginError::Invalid(message)
+            | PluginError::NotFound(message)
+            | PluginError::Io(message) => f.write_str(message),
+            PluginError::Forbidden => f.write_str("forbidden path"),
+        }
+    }
+}
+
+/// The CLI consumes manager errors as plain strings (`?` into
+/// `Result<_, String>`) — Display keeps that output byte-identical.
+impl From<PluginError> for String {
+    fn from(error: PluginError) -> Self {
+        error.to_string()
+    }
+}
+
 const SUPPORTED_ASSET_TYPES: &[&str] = &["png", "jpeg"];
 
 fn is_valid_name(s: &str) -> bool {
@@ -159,20 +205,13 @@ fn validate_metadata(raw: &serde_json::Value) -> Result<PluginInfo, String> {
 
 /// Validate the entry against the element specs (the sc-validate crate): the
 /// whole static gate — well-formedness, XHTML namespace, attributes, and
-/// content-model membership. Multi-error: every violation is reported, one
-/// per line.
-fn validate_entry_spec(entry_content: &str) -> Result<(), String> {
+/// content-model membership. Multi-error: every violation is kept STRUCTURED
+/// ([`PluginError::Spec`]); Display renders them one per line.
+fn validate_entry_spec(entry_content: &str) -> Result<(), PluginError> {
     let violations = sc_validate::validate_entry(entry_content)
-        .map_err(|e| format!("entry file is not valid XHTML: {e}"))?;
+        .map_err(|e| PluginError::Invalid(format!("entry file is not valid XHTML: {e}")))?;
     if !violations.is_empty() {
-        return Err(format!(
-            "entry file does not conform to the sc-plugin spec:\n{}",
-            violations
-                .iter()
-                .map(sc_validate::Violation::render)
-                .collect::<Vec<_>>()
-                .join("\n")
-        ));
+        return Err(PluginError::Spec(violations));
     }
     Ok(())
 }
@@ -194,31 +233,32 @@ fn validate_asset_image(data: &[u8], declared_type: &str) -> Result<(), String> 
 }
 
 /// Validate a plugin zip end to end: metadata, entry spec, and asset formats.
-pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
+pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, PluginError> {
+    let invalid = PluginError::Invalid;
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(data))
-        .map_err(|_| "file is not a valid zip archive".to_string())?;
+        .map_err(|_| invalid("file is not a valid zip archive".to_string()))?;
 
     let metadata_text = {
         let mut file = archive
             .by_name("metadata.json")
-            .map_err(|_| "zip must contain a metadata.json at its root".to_string())?;
+            .map_err(|_| invalid("zip must contain a metadata.json at its root".to_string()))?;
         let mut text = String::new();
         file.read_to_string(&mut text)
-            .map_err(|e| format!("failed to read metadata.json: {e}"))?;
+            .map_err(|e| invalid(format!("failed to read metadata.json: {e}")))?;
         text
     };
     let meta_value: serde_json::Value = serde_json::from_str(&metadata_text)
-        .map_err(|_| "metadata.json is not valid JSON".to_string())?;
-    let info = validate_metadata(&meta_value)?;
+        .map_err(|_| invalid("metadata.json is not valid JSON".to_string()))?;
+    let info = validate_metadata(&meta_value).map_err(invalid)?;
 
     let entry_content = {
         let mut entry_file = archive
             .by_name(&info.entry)
-            .map_err(|_| format!("entry file \"{}\" not found in zip", info.entry))?;
+            .map_err(|_| invalid(format!("entry file \"{}\" not found in zip", info.entry)))?;
         let mut content = String::new();
         entry_file
             .read_to_string(&mut content)
-            .map_err(|e| format!("failed to read entry file \"{}\": {e}", info.entry))?;
+            .map_err(|e| invalid(format!("failed to read entry file \"{}\": {e}", info.entry)))?;
         content
     };
     validate_entry_spec(&entry_content)?;
@@ -226,13 +266,13 @@ pub fn validate_plugin(data: &[u8]) -> Result<PluginInfo, String> {
     for asset in &info.assets {
         let mut asset_file = archive
             .by_name(&asset.path)
-            .map_err(|_| format!("asset file \"{}\" not found in zip", asset.path))?;
+            .map_err(|_| invalid(format!("asset file \"{}\" not found in zip", asset.path)))?;
         let mut bytes = Vec::new();
         asset_file
             .read_to_end(&mut bytes)
-            .map_err(|e| format!("failed to read asset \"{}\": {e}", asset.path))?;
+            .map_err(|e| invalid(format!("failed to read asset \"{}\": {e}", asset.path)))?;
         validate_asset_image(&bytes, &asset.mime_type)
-            .map_err(|e| format!("asset \"{}\": {e}", asset.path))?;
+            .map_err(|e| invalid(format!("asset \"{}\": {e}", asset.path)))?;
     }
 
     Ok(info)
@@ -264,15 +304,15 @@ fn zip_filename(info: &PluginInfo) -> PathBuf {
 /// Validate + store a plugin bundle, replacing any existing entry with the same
 /// name+version. Mints the registry id here (validation stays pure) and
 /// returns the stored [`PluginInfo`].
-pub fn add_plugin(data: &[u8]) -> Result<PluginInfo, String> {
+pub fn add_plugin(data: &[u8]) -> Result<PluginInfo, PluginError> {
     let mut info = validate_plugin(data)?;
     info.id = uuid::Uuid::new_v4().simple().to_string();
 
     let plugins_dir = config::plugins_dir();
-    std::fs::create_dir_all(&plugins_dir).map_err(|e| e.to_string())?;
-    std::fs::write(zip_filename(&info), data).map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&plugins_dir).map_err(|e| PluginError::Io(e.to_string()))?;
+    std::fs::write(zip_filename(&info), data).map_err(|e| PluginError::Io(e.to_string()))?;
 
-    let mut registry = read_registry()?;
+    let mut registry = read_registry().map_err(PluginError::Io)?;
     // Drop any prior copy of the same name+version (and its zip).
     registry.retain(|p| {
         let same = p.name == info.name && p.version == info.version;
@@ -282,38 +322,39 @@ pub fn add_plugin(data: &[u8]) -> Result<PluginInfo, String> {
         !same
     });
     registry.push(info.clone());
-    write_registry(&registry)?;
+    write_registry(&registry).map_err(PluginError::Io)?;
 
     Ok(info)
 }
 
 /// Remove a plugin (registry entry + its zip) by id.
-pub fn remove_plugin(id: &str) -> Result<(), String> {
-    let mut registry = read_registry()?;
+pub fn remove_plugin(id: &str) -> Result<(), PluginError> {
+    let mut registry = read_registry().map_err(PluginError::Io)?;
     let idx = registry
         .iter()
         .position(|p| p.id == id)
-        .ok_or_else(|| format!("plugin with id \"{id}\" not found"))?;
+        .ok_or_else(|| PluginError::NotFound(format!("plugin with id \"{id}\" not found")))?;
     let info = registry.remove(idx);
-    write_registry(&registry)?;
+    write_registry(&registry).map_err(PluginError::Io)?;
     let _ = std::fs::remove_file(zip_filename(&info));
     Ok(())
 }
 
-pub fn list_plugins() -> Result<Vec<PluginInfo>, String> {
-    read_registry()
+pub fn list_plugins() -> Result<Vec<PluginInfo>, PluginError> {
+    read_registry().map_err(PluginError::Io)
 }
 
 /// Read a file (the entry or a declared asset) out of a plugin's zip, returning
 /// its bytes + content type. Rejects undeclared files and unsafe paths.
-pub fn read_plugin_file(id: &str, file_path: &str) -> Result<(String, Vec<u8>), String> {
+pub fn read_plugin_file(id: &str, file_path: &str) -> Result<(String, Vec<u8>), PluginError> {
     if !is_safe_path(file_path) {
-        return Err("forbidden path".to_string());
+        return Err(PluginError::Forbidden);
     }
-    let info = read_registry()?
+    let info = read_registry()
+        .map_err(PluginError::Io)?
         .into_iter()
         .find(|p| p.id == id)
-        .ok_or_else(|| "plugin not found".to_string())?;
+        .ok_or_else(|| PluginError::NotFound("plugin not found".to_string()))?;
 
     // Only the entry file and declared assets are served.
     let content_type = if file_path == info.entry {
@@ -321,19 +362,24 @@ pub fn read_plugin_file(id: &str, file_path: &str) -> Result<(String, Vec<u8>), 
     } else {
         match info.assets.iter().find(|a| a.path == file_path) {
             Some(a) => asset_type_to_mime(&a.mime_type).to_string(),
-            None => return Err("file not declared in plugin metadata".to_string()),
+            None => {
+                return Err(PluginError::NotFound(
+                    "file not declared in plugin metadata".to_string(),
+                ))
+            }
         }
     };
 
-    let data =
-        std::fs::read(zip_filename(&info)).map_err(|_| "plugin archive missing".to_string())?;
+    let data = std::fs::read(zip_filename(&info))
+        .map_err(|_| PluginError::Io("plugin archive missing".to_string()))?;
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(data))
-        .map_err(|_| "failed to read plugin archive".to_string())?;
+        .map_err(|_| PluginError::Io("failed to read plugin archive".to_string()))?;
     let mut file = archive
         .by_name(file_path)
-        .map_err(|_| "file not found in plugin".to_string())?;
+        .map_err(|_| PluginError::NotFound("file not found in plugin".to_string()))?;
     let mut bytes = Vec::new();
-    file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+    file.read_to_end(&mut bytes)
+        .map_err(|e| PluginError::Io(e.to_string()))?;
     Ok((content_type, bytes))
 }
 
@@ -396,8 +442,12 @@ mod tests {
         assert!(validate_entry_spec(ok).is_ok());
         // Two independent violations — both reported, newline-joined.
         let bad = r#"<sc-plugin xmlns="http://www.w3.org/1999/xhtml"><sc-var name="a.b" value="1"/><div foo="x"/></sc-plugin>"#;
+        // The variant carries the STRUCTURED violations; Display keeps the
+        // exact CLI/native text (the newline-joined blob).
+        let error = validate_entry_spec(bad).err().unwrap();
+        assert!(matches!(&error, PluginError::Spec(v) if v.len() == 2));
         assert_eq!(
-            validate_entry_spec(bad).err().unwrap(),
+            error.to_string(),
             "entry file does not conform to the sc-plugin spec:\n\
              <sc-var>: \"name\" attribute must be a plain identifier — letters, digits, \"_\", \"-\" (got \"a.b\") (1:57)\n\
              <div>: unknown attribute \"foo\" (1:84)"
@@ -406,6 +456,7 @@ mod tests {
         assert!(validate_entry_spec(malformed)
             .err()
             .unwrap()
+            .to_string()
             .starts_with("entry file is not valid XHTML:"));
     }
 

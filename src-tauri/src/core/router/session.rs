@@ -21,6 +21,7 @@ use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
 
+use super::error::ApiError;
 use crate::core::blocks::SessionBlock;
 use crate::core::layouts;
 use crate::core::server::Server;
@@ -79,11 +80,6 @@ impl SessionInfo {
     }
 }
 
-const SCSYNTH_UNAVAILABLE: (StatusCode, &str) = (
-    StatusCode::SERVICE_UNAVAILABLE,
-    "scsynth not registered yet; retry\n",
-);
-
 async fn post_session(State(server): State<Server>) -> Response {
     match server.create_session().await {
         Some((id, block)) => {
@@ -94,7 +90,7 @@ async fn post_session(State(server): State<Server>) -> Response {
             )
                 .into_response()
         }
-        None => SCSYNTH_UNAVAILABLE.into_response(),
+        None => ApiError::scsynth_unavailable().into_response(),
     }
 }
 
@@ -106,14 +102,14 @@ async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Resp
         return Json(SessionInfo::new(&server, id, block, layout)).into_response();
     }
     if layout.is_none() {
-        return (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response();
+        return ApiError::session_unknown(&id).into_response();
     }
     match server.create_session_with_id(id).await {
         Some(block) => {
             tracing::info!(session = %id, group = block.group_id, "session revived");
             Json(SessionInfo::new(&server, id, block, layout)).into_response()
         }
-        None => SCSYNTH_UNAVAILABLE.into_response(),
+        None => ApiError::scsynth_unavailable().into_response(),
     }
 }
 
@@ -124,17 +120,17 @@ async fn put_session(
     Json(layout): Json<serde_json::Value>,
 ) -> Response {
     if !server.sessions().contains(&id) {
-        return (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response();
+        return ApiError::session_unknown(&id).into_response();
     }
     match layouts::save_layout(&id, &layout) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        Err(e) => ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal", e).into_response(),
     }
 }
 
 async fn delete_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
     if !server.sessions().contains(&id) {
-        return (StatusCode::NOT_FOUND, format!("session {id} not found\n")).into_response();
+        return ApiError::session_unknown(&id).into_response();
     }
     server.end_session(&id).await;
     StatusCode::NO_CONTENT.into_response()

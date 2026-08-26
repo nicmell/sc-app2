@@ -9,6 +9,7 @@
 
 pub mod assets;
 mod diag;
+mod error;
 mod plugin;
 mod session;
 mod ws;

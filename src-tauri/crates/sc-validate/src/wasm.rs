@@ -9,46 +9,11 @@
 
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
-use tsify::{Ts, Tsify};
+use tsify::Ts;
 use wasm_bindgen::prelude::*;
 
 use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
-use crate::{ParseError, Violation, ViolationKind};
-
-/// The wire shape of one violation: the crate's Violation (tag, the typed
-/// `kind` with its `code` + payload — attr/value/allowed/… — and position)
-/// plus the pre-rendered display line, so the JS side never duplicates
-/// format logic. The TypeScript definition is GENERATED from this type
-/// (tsify) into the pkg d.ts — the one type source. `kind` is NESTED, not
-/// serde-flattened: tsify renders a flattened union as
-/// `interface … extends <union>` — invalid TS that skipLibCheck silently
-/// degrades into a type without the union members.
-#[derive(Serialize, Tsify)]
-pub struct ValidationViolation {
-    /// The authored local tag of the offending element.
-    pub tag: String,
-    /// The typed classification: `{code, …payload}`.
-    pub kind: ViolationKind,
-    /// 1-based source line.
-    pub line: u32,
-    /// 1-based source column.
-    pub column: u32,
-    /// The canonical display line: `<tag>: message (line:col)`.
-    pub message: String,
-}
-
-impl From<Violation> for ValidationViolation {
-    fn from(violation: Violation) -> Self {
-        let message = violation.render();
-        Self {
-            tag: violation.tag,
-            kind: violation.kind,
-            line: violation.line,
-            column: violation.column,
-            message,
-        }
-    }
-}
+use crate::{ParseError, ValidationViolation};
 
 /// Validate a plugin entry document. See [`crate::validate_entry`]. `Ok` is
 /// the typed violation list; `Err` (thrown) is the classified parse failure

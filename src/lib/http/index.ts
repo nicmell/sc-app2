@@ -8,6 +8,7 @@
 // script before any frontend code runs (see src-tauri lib.rs run_gui and
 // @/constants/env, which reads it).
 
+import type { ValidationViolation } from "@sc-validate";
 import { HTTP_BASE_URL } from "@/constants/env";
 
 /** A `ws(s)://…` URL for a server path (e.g. `/ws?session=<id>`), derived from
@@ -21,16 +22,52 @@ export function wsUrl(path: string): string {
 
 type RequestOptions = Omit<RequestInit, "method" | "body">;
 
-/** A non-2xx response, thrown by every request helper. `message` is the
- *  response body when the server sent one (e.g. plugin validation errors),
- *  else `"<status> <statusText>"`. */
+/** The backend's structured error envelope (router/error.rs): a stable
+ *  kebab-case `code`, the human headline, and — for the plugin spec gate —
+ *  the SAME tsify-generated violations the wasm gate returns. */
+interface ApiErrorBody {
+  code: string;
+  message: string;
+  violations?: ValidationViolation[];
+}
+
+/** The envelope is JSON with string code+message; anything else (ws/assets
+ *  text responses, proxy pages, panics) falls back to the raw-text path. */
+function parseApiError(body: string | undefined): ApiErrorBody | undefined {
+  if (!body) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(body);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      typeof (parsed as ApiErrorBody).code === "string" &&
+      typeof (parsed as ApiErrorBody).message === "string"
+    ) {
+      return parsed as ApiErrorBody;
+    }
+  } catch {
+    /* not JSON — the text fallback below */
+  }
+  return undefined;
+}
+
+/** A non-2xx response, thrown by every request helper. The constructor parses
+ *  the structured envelope out of the body: `message` is the headline (or the
+ *  raw text body, or `"<status> <statusText>"`), `code` the stable backend
+ *  identifier, `violations` the spec gate's structured list. */
 export class HttpError extends Error {
+  readonly code?: string;
+  readonly violations?: ValidationViolation[];
+
   constructor(
     public status: number,
     public statusText: string,
     body?: string,
   ) {
-    super(body || `${status} ${statusText}`);
+    const parsed = parseApiError(body);
+    super(parsed?.message ?? (body || `${status} ${statusText}`));
+    this.code = parsed?.code;
+    this.violations = parsed?.violations;
   }
 }
 

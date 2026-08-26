@@ -153,7 +153,11 @@ lib/                     non-React infrastructure
                          memoized), split (the paren-aware top-level comma
                          splitter every comma consumer uses)
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
-                         HttpError (carries the response body, e.g. plugin validation errors)
+                         HttpError (parses the backend's structured ApiError
+                         envelope — {code, message, violations?}, the
+                         violations typed by the SAME generated
+                         ValidationViolation shape as the wasm gate; raw-text
+                         bodies fall back verbatim)
   osc/                   the OSC endpoint (see lib/osc/README.md):
                          OscClient (global `oscClient`, plain-packet main-thread client,
                          owns /g_new of the session group + nextNodeId allocation,

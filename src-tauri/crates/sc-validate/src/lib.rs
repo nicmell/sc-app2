@@ -7,7 +7,37 @@ mod spec;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 
-pub use rules::Violation;
+pub use rules::{Violation, ViolationKind};
+
+/// The classification of a document-level failure — the input never reached
+/// (or survived) the XML parser, so there are no per-element violations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+#[serde(rename_all = "kebab-case")]
+pub enum ParseErrorCode {
+    /// The XML itself failed to parse.
+    NotWellFormed,
+    /// The pre-parse nesting gate rejected the document.
+    TooDeep,
+}
+
+/// A document-level failure with its 1-based source position. `Display` is
+/// the parser's own message (callers wrap it in the canonical
+/// "not valid XHTML" shape).
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+pub struct ParseError {
+    pub code: ParseErrorCode,
+    pub message: String,
+    pub line: u32,
+    pub column: u32,
+}
+
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
 
 /// The element-nesting ceiling. Entries never legitimately approach it;
 /// without the pre-parse gate a ~500-deep document overflows the stack
@@ -93,16 +123,28 @@ fn text_pos(xml: &str, offset: usize) -> (usize, usize) {
 }
 
 /// Parse and validate a plugin entry, returning structured violations in
-/// document order (`Err` = the document itself failed to parse). Callers
-/// render the canonical string via [`Violation::render`].
-pub fn validate_entry(xml: &str) -> Result<Vec<Violation>, String> {
+/// document order (`Err` = the document itself failed to parse, classified
+/// with its position). Callers render the canonical per-violation string via
+/// [`Violation::render`].
+pub fn validate_entry(xml: &str) -> Result<Vec<Violation>, ParseError> {
     if let Some(offset) = nesting_depth_exceeds(xml, MAX_DEPTH) {
         let (line, column) = text_pos(xml, offset);
-        return Err(format!(
-            "document nested deeper than {MAX_DEPTH} levels at {line}:{column}"
-        ));
+        return Err(ParseError {
+            code: ParseErrorCode::TooDeep,
+            message: format!("document nested deeper than {MAX_DEPTH} levels at {line}:{column}"),
+            line: line as u32,
+            column: column as u32,
+        });
     }
-    let document = roxmltree::Document::parse(xml).map_err(|error| error.to_string())?;
+    let document = roxmltree::Document::parse(xml).map_err(|error| {
+        let position = error.pos();
+        ParseError {
+            code: ParseErrorCode::NotWellFormed,
+            message: error.to_string(),
+            line: position.row,
+            column: position.col,
+        }
+    })?;
     Ok(rules::validate_root(document.root_element(), xml))
 }
 
@@ -143,9 +185,24 @@ mod edge_case_tests {
         }
         xml.push_str("</sc-plugin>");
         let error = validate_entry(&xml).unwrap_err();
+        assert_eq!(error.code, crate::ParseErrorCode::TooDeep);
         assert!(
-            error.starts_with("document nested deeper than 256 levels at 1:"),
-            "{error}"
+            error
+                .message
+                .starts_with("document nested deeper than 256 levels at 1:"),
+            "{}",
+            error.message
+        );
+    }
+
+    #[test]
+    fn parse_failures_are_classified_with_their_position() {
+        let error = validate_entry("<sc-plugin><div></sc-plugin>").unwrap_err();
+        assert_eq!(error.code, crate::ParseErrorCode::NotWellFormed);
+        assert!(error.line >= 1 && error.column >= 1);
+        assert_eq!(
+            serde_json::to_value(&error).expect("serializes")["code"],
+            "not-well-formed"
         );
     }
 

@@ -1,26 +1,75 @@
 //! The wasm-bindgen surface (feature `wasm`) — the browser build consumed by
-//! `@sc-app/validate` (packages/validate). Exports: `validate_entry` mirrors
-//! [`crate::validate_entry`] (`Err` = parse-failure text, `Ok` = STRUCTURED
-//! violations as JSON `[{tag, message, line, column}]`, empty = valid — the
-//! structured shape feeds editor diagnostics; the JS wrapper renders the
-//! canonical display strings), and `element_specs` serializes the sc
-//! elements' attribute contracts for the frontend's getProp/runtime-prop
-//! machinery — the ONE spec copy, read out of the module the app already
-//! loads.
+//! the frontend's validate module (src/lib/plugins/validate). Exports: `validate_entry` mirrors
+//! [`crate::validate_entry`] (`Ok` = STRUCTURED violations as JSON, `Err` =
+//! the classified parse failure as JSON — both shapes feed editor
+//! diagnostics; the display lines are pre-rendered crate-side), and
+//! `element_specs` serializes the sc elements' attribute contracts for the
+//! frontend's getProp/runtime-prop machinery — the ONE spec copy, read out
+//! of the module the app already loads.
 
 use serde::ser::{SerializeMap, Serializer};
 use serde::Serialize;
+use tsify::{Ts, Tsify};
 use wasm_bindgen::prelude::*;
 
 use crate::spec::{specs, AttrDef, AttrType, Category, COMMON_ATTRS};
+use crate::{ParseError, Violation, ViolationKind};
 
-/// Validate a plugin entry document. See [`crate::validate_entry`]. Returns
-/// the violations as a JSON array of `{tag, message, line, column}`.
+/// The wire shape of one violation: the crate's Violation (tag, the typed
+/// `kind` with its `code` + payload — attr/value/allowed/… — and position)
+/// plus the pre-rendered display line, so the JS side never duplicates
+/// format logic. The TypeScript definition is GENERATED from this type
+/// (tsify) into the pkg d.ts — the one type source. `kind` is NESTED, not
+/// serde-flattened: tsify renders a flattened union as
+/// `interface … extends <union>` — invalid TS that skipLibCheck silently
+/// degrades into a type without the union members.
+#[derive(Serialize, Tsify)]
+pub struct ValidationViolation {
+    /// The authored local tag of the offending element.
+    pub tag: String,
+    /// The typed classification: `{code, …payload}`.
+    pub kind: ViolationKind,
+    /// 1-based source line.
+    pub line: u32,
+    /// 1-based source column.
+    pub column: u32,
+    /// The canonical display line: `<tag>: message (line:col)`.
+    pub message: String,
+}
+
+impl From<Violation> for ValidationViolation {
+    fn from(violation: Violation) -> Self {
+        let message = violation.render();
+        Self {
+            tag: violation.tag,
+            kind: violation.kind,
+            line: violation.line,
+            column: violation.column,
+            message,
+        }
+    }
+}
+
+/// Validate a plugin entry document. See [`crate::validate_entry`]. `Ok` is
+/// the typed violation list; `Err` (thrown) is the classified parse failure
+/// `{code, message, line, column}` — both cross the boundary as the
+/// tsify-generated shapes.
 #[wasm_bindgen]
-pub fn validate_entry(xml: &str) -> Result<String, String> {
-    crate::validate_entry(xml).map(|violations| {
-        serde_json::to_string(&violations).expect("sc-validate: violations serialize")
-    })
+pub fn validate_entry(xml: &str) -> Result<Vec<Ts<ValidationViolation>>, Ts<ParseError>> {
+    // from_rust serializes INSIDE the function (the Ts design: the ABI
+    // boundary itself stays infallible); our own valid data can't fail it.
+    match crate::validate_entry(xml) {
+        Ok(violations) => Ok(violations
+            .into_iter()
+            .map(|violation| {
+                Ts::from_rust(&ValidationViolation::from(violation))
+                    .expect("sc-validate: violation serialize")
+            })
+            .collect()),
+        Err(parse_error) => {
+            Err(Ts::from_rust(&parse_error).expect("sc-validate: parse error serialize"))
+        }
+    }
 }
 
 /// The attributes every element accepts without declaring them, as a JSON

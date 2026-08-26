@@ -1,5 +1,6 @@
 // The frontend surface of the shared Rust static validator (the sc-validate
-// crate compiled by `yarn generate:wasm` into pkg/). Exports: the memoized
+// crate compiled by `yarn generate:wasm` into the crate's default pkg/,
+// resolved directly from there). Exports: the memoized
 // async `initValidator` (awaited once at boot / test setup), the sync
 // `validateEntry` — the whole static gate: wasm-validate the entry text
 // (multi-error, newline-joined), then DOMParser-parse it and return the live
@@ -8,7 +9,14 @@
 // are the ONE spec source, consumed here by getProp coercion and the
 // runtime-prop machinery. Bind/reference resolution stays in the parse engine.
 
-import init, { common_attrs, element_specs, validate_entry } from "../pkg/sc_validate";
+import init, { common_attrs, element_specs, validate_entry } from "@sc-validate";
+import type { ParseError, ValidationViolation } from "@sc-validate";
+
+// The violation/parse-error TypeScript shapes are GENERATED from the crate's
+// Rust types (tsify) into the pkg d.ts — re-exported here as the wrapper's
+// public surface, so the union can never drift from ViolationKind.
+export type { ParseErrorCode, ValidationViolation, ViolationKind } from "@sc-validate";
+export type { ParseError as ValidationParseError } from "@sc-validate";
 
 /** Shared to every attribute — exactly what the runtime reads: `runtime`
  *  gates the `bind:` sibling (contentHash + runtime-prop resolution),
@@ -87,46 +95,60 @@ export function getCommonAttrs(): string[] {
   return JSON.parse(common_attrs()) as string[];
 }
 
-/** One structured violation from the static gate — `line`/`column` are
- *  1-based source positions (the attribute's own qname for attribute rules,
- *  the element start otherwise). The structured shape is what an in-app
- *  editor consumes for diagnostics; `render` is the canonical display line. */
-export interface ValidationViolation {
-  tag: string;
-  message: string;
-  line: number;
-  column: number;
+/** Thrown by validateEntry on a parse failure: the canonical
+ *  `plugin entry is not valid XHTML: …` message, with the classified
+ *  ParseError (code + position) on `parseError` when the wasm produced one
+ *  (absent only for glue-level failures). */
+export class EntryParseError extends Error {
+  readonly parseError?: ParseError;
+
+  constructor(message: string, cause: unknown, parseError?: ParseError) {
+    super(message, { cause });
+    this.name = "EntryParseError";
+    this.parseError = parseError;
+  }
 }
 
-/** The canonical display line for one violation. */
-function render(violation: ValidationViolation): string {
-  return `<${violation.tag}>: ${violation.message} (${violation.line}:${violation.column})`;
+/** The wasm Err side arrives as the thrown ParseError object; anything else
+ *  (glue-level failures, or standard-library objects that happen to carry a
+ *  `code` — e.g. DOMException) must not be stamped as one. */
+function asParseError(e: unknown): ParseError | undefined {
+  if (typeof e !== "object" || e === null || !("code" in e)) return undefined;
+  const code = e.code;
+  return code === "not-well-formed" || code === "too-deep" ? (e as ParseError) : undefined;
 }
 
 /** Thrown by validateEntry when the entry violates the spec: `message` is
- *  every violation newline-joined; `violations` keeps the structured list. */
+ *  every violation's display line newline-joined; `violations` keeps the
+ *  structured list. */
 export class ValidationError extends Error {
   readonly violations: readonly ValidationViolation[];
 
   constructor(violations: readonly ValidationViolation[]) {
-    super(violations.map(render).join("\n"));
+    super(violations.map((violation) => violation.message).join("\n"));
     this.name = "ValidationError";
     this.violations = violations;
   }
 }
 
 /** Validate + parse a plugin entry document. Throws the canonical shapes:
- *  `plugin entry is not valid XHTML: …` on a parse failure, else a
- *  ValidationError with every spec violation newline-joined (structured
- *  `{tag, message, line, column}` entries on `.violations`). Returns the
+ *  `plugin entry is not valid XHTML: …` on a parse failure (an
+ *  EntryParseError — the classified failure on `.parseError`, the raw thrown
+ *  value on `cause`), else a ValidationError with every spec violation
+ *  newline-joined and the structured list on `.violations`. Returns the
  *  authored root element. */
 export function validateEntry(xml: string): Element {
   requireSpecs();
   let violations: ValidationViolation[];
   try {
-    violations = JSON.parse(validate_entry(xml)) as ValidationViolation[];
+    violations = validate_entry(xml);
   } catch (e) {
-    throw new Error(`plugin entry is not valid XHTML: ${String(e)}`, { cause: e });
+    const parseError = asParseError(e);
+    throw new EntryParseError(
+      `plugin entry is not valid XHTML: ${parseError?.message ?? String(e)}`,
+      e,
+      parseError,
+    );
   }
   if (violations.length > 0) {
     throw new ValidationError(violations);

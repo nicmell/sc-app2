@@ -19,7 +19,7 @@ import {
   useRevalidator,
   type LoaderFunctionArgs,
 } from "react-router";
-import { initValidator } from "@sc-app/validate";
+import { initValidator } from "@/lib/plugins/validate";
 import { ConnectionOverlay } from "@/components/ConnectionOverlay";
 import { ToastStack } from "@/components/ToastStack";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";

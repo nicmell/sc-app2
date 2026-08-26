@@ -8,8 +8,9 @@ import eslintConfigPrettier from "eslint-config-prettier";
 export default tseslint.config(
   // `yarn lint` targets `src packages` (see package.json), so only build output
   // under those needs ignoring — node_modules is ignored by default.
-  // packages/validate/pkg is the committed wasm-pack output (generated glue).
-  { ignores: ["**/dist", "packages/validate/pkg"] },
+  // src-tauri/crates/sc-validate/pkg is the committed wasm-pack output
+  // (generated glue) — ignored so editor-integrated tooling never touches it.
+  { ignores: ["**/dist", "src-tauri/crates/sc-validate/pkg"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

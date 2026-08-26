@@ -1,12 +1,34 @@
-// The @sc-app/validate wrapper contract (the wasm is initialized by the
+// The lib/plugins/validate wrapper contract (the wasm is initialized by the
 // global test setup): the canonical error shapes parseEntry relies on —
 // parse failures get the XHTML prefix, violations throw newline-joined
 // (multi-line — the pre-wrap error boxes render one per line), the root
 // check, and the spec-map lookups.
 
 import { describe, expect, it } from "vitest";
-import { getSpec, validateEntry, ValidationError } from "@sc-app/validate";
+import {
+  EntryParseError,
+  getSpec,
+  validateEntry,
+  ValidationError,
+  type ValidationViolation,
+} from "@/lib/plugins/validate";
 import { wrapXml } from "@/lib/utils/test/test-utils";
+
+// COMPILE-TIME pin: the tsify-generated union must narrow on `code` (payload
+// fields surface per variant, base fields stay reachable). A broken generated
+// shape fails `yarn build`'s type-check, not just this suite.
+export function narrows(violation: ValidationViolation): string {
+  switch (violation.kind.code) {
+    case "invalid-enum":
+      return violation.kind.allowed.join("|") + violation.kind.attr;
+    case "value-below-min":
+      return `${violation.kind.min} ${violation.kind.value} ${violation.tag}:${violation.line}`;
+    case "unexpected-child":
+      return violation.kind.child;
+    default:
+      return violation.message;
+  }
+}
 
 describe("validateEntry", () => {
   it("returns the live document element for a valid entry", () => {
@@ -39,17 +61,39 @@ describe("validateEntry", () => {
       '<sc-slider>: missing required "value" attribute (2:78)',
       '<sc-scope>: unknown attribute "foo" (2:100)',
     ]);
-    // The structured list rides the error for editor diagnostics.
+    // The structured list rides the error for editor diagnostics: stable
+    // code + the rule's own payload + position + the pre-rendered line.
     expect(error).toBeInstanceOf(ValidationError);
     expect((error as ValidationError).violations).toEqual([
       {
         tag: "sc-slider",
-        message: 'missing required "value" attribute',
+        kind: { code: "missing-required-attr", attr: "value" },
         line: 2,
         column: 78,
+        message: '<sc-slider>: missing required "value" attribute (2:78)',
       },
-      { tag: "sc-scope", message: 'unknown attribute "foo"', line: 2, column: 100 },
+      {
+        tag: "sc-scope",
+        kind: { code: "unknown-attr", attr: "foo" },
+        line: 2,
+        column: 100,
+        message: '<sc-scope>: unknown attribute "foo" (2:100)',
+      },
     ]);
+  });
+
+  it("classifies parse failures on the thrown EntryParseError", () => {
+    let error: EntryParseError | null = null;
+    try {
+      validateEntry("<sc-plugin><div></sc-plugin>");
+    } catch (e) {
+      error = e as EntryParseError;
+    }
+    expect(error).toBeInstanceOf(EntryParseError);
+    expect(error?.message).toMatch(/^plugin entry is not valid XHTML: /);
+    expect(error?.parseError).toMatchObject({ code: "not-well-formed" });
+    expect(error?.parseError?.line).toBeGreaterThanOrEqual(1);
+    expect(error?.parseError?.column).toBeGreaterThanOrEqual(1);
   });
 
   it("pins the root check", () => {

@@ -8,15 +8,86 @@ use crate::lexical;
 use crate::messages;
 use crate::spec::{element, AttrDef, AttrType, ContentDef, ElementDef, COMMON_ATTRS, XHTML_NS};
 
+/// The typed classification of a static violation: one variant per rule,
+/// carrying the rule's payload (the offending attribute, the authored value,
+/// the violated bound, …). The serde tag is the STABLE public `code`
+/// (kebab-case) the wire and editor diagnostics discriminate on; the
+/// canonical message is DERIVED from the payload (messages.rs), so code,
+/// payload, and text can never drift apart.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+#[serde(tag = "code", rename_all = "kebab-case")]
+pub enum ViolationKind {
+    /// Both the static and `bind:` forms of `attr` are authored.
+    MutuallyExclusiveAttr { attr: String },
+    /// A required attribute has no usable form (also: an empty `name`).
+    MissingRequiredAttr { attr: String },
+    /// The authored value fails the decimal lexical gate.
+    InvalidDecimal { attr: String, value: String },
+    /// The authored value fails the integer lexical gate.
+    InvalidInteger { attr: String, value: String },
+    /// The authored value fails the boolean lexical gate.
+    InvalidBoolean { attr: String, value: String },
+    /// The authored value is not one of the enum's `allowed` values.
+    InvalidEnum {
+        attr: String,
+        value: String,
+        allowed: Vec<String>,
+    },
+    /// The authored value fails the name-segment grammar.
+    InvalidName { attr: String, value: String },
+    /// The authored number is below the inclusive minimum.
+    ValueBelowMin {
+        attr: String,
+        value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
+        min: serde_json::Number,
+    },
+    /// The authored number is at or below the exclusive minimum.
+    ValueBelowExclusiveMin {
+        attr: String,
+        value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
+        min: serde_json::Number,
+    },
+    /// The authored number is above the inclusive maximum.
+    ValueAboveMax {
+        attr: String,
+        value: String,
+        #[cfg_attr(feature = "wasm", tsify(type = "number"))]
+        max: serde_json::Number,
+    },
+    /// The authored value fails the numeric-STRICT vector gate.
+    InvalidNumericVector { attr: String, value: String },
+    /// An unqualified attribute the spec does not declare.
+    UnknownAttr { attr: String },
+    /// An attribute under a namespace prefix other than `bind:`.
+    UnknownAttrPrefix { prefix: String },
+    /// A `bind:` attribute whose base is unknown or not runtime-capable.
+    UnknownRuntimeAttr { attr: String },
+    /// The element is outside the XHTML namespace.
+    WrongNamespace,
+    /// A direct child the content model excludes.
+    UnexpectedChild { child: String },
+    /// Non-whitespace text in an element-only content model.
+    UnexpectedText,
+    /// A content model requiring at least one child got none.
+    MissingRequiredChild { child: String },
+    /// The document element is not `sc-plugin`.
+    WrongRoot { root: String },
+}
+
 /// One static validation failure attached to the element that produced it,
 /// with the 1-based source position — the attribute's own qname for
-/// attribute rules, the element start otherwise.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+/// attribute rules, the offending child/text for content rules, the element
+/// start otherwise.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Violation {
     /// The authored local tag of the offending element.
     pub tag: String,
-    /// The canonical message without the `<tag>:` prefix.
-    pub message: String,
+    /// The typed classification (serialized nested: `{code, …payload}` —
+    /// the same shape the wasm export carries).
+    pub kind: ViolationKind,
     /// 1-based source line.
     pub line: u32,
     /// 1-based source column.
@@ -24,11 +95,56 @@ pub struct Violation {
 }
 
 impl Violation {
+    /// The canonical message without the `<tag>:` prefix, derived from the
+    /// kind's payload.
+    pub fn message(&self) -> String {
+        match &self.kind {
+            ViolationKind::MutuallyExclusiveAttr { attr } => messages::mutually_exclusive(attr),
+            ViolationKind::MissingRequiredAttr { attr } => messages::missing_required(attr),
+            ViolationKind::InvalidDecimal { attr, .. } => messages::decimal(attr),
+            ViolationKind::InvalidInteger { attr, .. } => messages::integer(attr),
+            ViolationKind::InvalidBoolean { attr, value } => messages::boolean(attr, value),
+            ViolationKind::InvalidEnum {
+                attr,
+                value,
+                allowed,
+            } => messages::enum_value(attr, allowed, value),
+            ViolationKind::InvalidName { attr, value } => messages::name_syntax(attr, value),
+            ViolationKind::ValueBelowMin { attr, value, min } => {
+                messages::minimum(attr, min, value)
+            }
+            ViolationKind::ValueBelowExclusiveMin { attr, value, min } => {
+                messages::exclusive_minimum(attr, min, value)
+            }
+            ViolationKind::ValueAboveMax { attr, value, max } => {
+                messages::maximum(attr, max, value)
+            }
+            ViolationKind::InvalidNumericVector { attr, value } => {
+                messages::numeric_vector(attr, value)
+            }
+            ViolationKind::UnknownAttr { attr } => messages::unknown_attribute(attr),
+            ViolationKind::UnknownAttrPrefix { prefix } => {
+                messages::unknown_namespace_prefix(prefix)
+            }
+            ViolationKind::UnknownRuntimeAttr { attr } => messages::unknown_runtime_attribute(attr),
+            ViolationKind::WrongNamespace => messages::xhtml_namespace(),
+            ViolationKind::UnexpectedChild { child } => messages::unexpected_child(child),
+            ViolationKind::UnexpectedText => messages::unexpected_text(),
+            ViolationKind::MissingRequiredChild { child } => {
+                messages::missing_required_child(child)
+            }
+            ViolationKind::WrongRoot { root } => messages::wrong_root(root),
+        }
+    }
+
     /// Render the canonical frontend-compatible error shape.
     pub fn render(&self) -> String {
         format!(
             "<{}>: {} ({}:{})",
-            self.tag, self.message, self.line, self.column
+            self.tag,
+            self.message(),
+            self.line,
+            self.column
         )
     }
 }
@@ -42,7 +158,9 @@ pub(crate) fn validate_root(root: Node, source: &str) -> Vec<Violation> {
         let mut violations = Vec::new();
         push_violation(
             tag,
-            messages::wrong_root(tag),
+            ViolationKind::WrongRoot {
+                root: tag.to_string(),
+            },
             pos_at(root, root.range().start),
             &mut violations,
         );
@@ -69,7 +187,7 @@ fn validate_element(node: Node, source: &str, violations: &mut Vec<Violation>) {
     if node.tag_name().namespace() != Some(XHTML_NS) {
         push_violation(
             tag,
-            messages::xhtml_namespace(),
+            ViolationKind::WrongNamespace,
             pos_at(node, node.range().start),
             violations,
         );
@@ -122,7 +240,9 @@ fn validate_spec_attributes(
         if let (Some((_, offset)), Some(_)) = (static_value, dynamic_value) {
             push_violation(
                 tag,
-                messages::mutually_exclusive(&attribute.name),
+                ViolationKind::MutuallyExclusiveAttr {
+                    attr: attribute.name.clone(),
+                },
                 pos_at(node, offset),
                 violations,
             );
@@ -133,7 +253,9 @@ fn validate_spec_attributes(
             if attribute.required && dynamic_value.is_none() {
                 push_violation(
                     tag,
-                    messages::missing_required(&attribute.name),
+                    ViolationKind::MissingRequiredAttr {
+                        attr: attribute.name.clone(),
+                    },
                     pos_at(node, node.range().start),
                     violations,
                 );
@@ -141,35 +263,54 @@ fn validate_spec_attributes(
             continue;
         };
 
-        if let Some(message) = validate_static_attribute(attribute, raw) {
-            push_violation(tag, message, pos_at(node, offset), violations);
+        if let Some(kind) = validate_static_attribute(attribute, raw) {
+            push_violation(tag, kind, pos_at(node, offset), violations);
         }
     }
 }
 
-fn validate_static_attribute(attribute: &AttrDef, raw: &str) -> Option<String> {
+fn validate_static_attribute(attribute: &AttrDef, raw: &str) -> Option<ViolationKind> {
+    let attr = || attribute.name.clone();
+    let value = || raw.to_string();
     match attribute.r#type {
         AttrType::Decimal if !lexical::xsd_decimal(raw) => {
-            return Some(messages::decimal(&attribute.name));
+            return Some(ViolationKind::InvalidDecimal {
+                attr: attr(),
+                value: value(),
+            });
         }
         AttrType::Integer if !lexical::xsd_integer(raw) => {
-            return Some(messages::integer(&attribute.name));
+            return Some(ViolationKind::InvalidInteger {
+                attr: attr(),
+                value: value(),
+            });
         }
         AttrType::Boolean if !lexical::xsd_boolean(raw) => {
-            return Some(messages::boolean(&attribute.name, raw));
+            return Some(ViolationKind::InvalidBoolean {
+                attr: attr(),
+                value: value(),
+            });
         }
         AttrType::Enum => {
             let values = attribute.values.as_deref().unwrap_or(&[]);
             if !values.iter().any(|value| value == raw) {
-                return Some(messages::enum_value(&attribute.name, values, raw));
+                return Some(ViolationKind::InvalidEnum {
+                    attr: attr(),
+                    value: value(),
+                    allowed: values.to_vec(),
+                });
             }
         }
         AttrType::Name if raw.is_empty() => {
-            // This mirrors the frontend's old requireProp behavior.
-            return Some(messages::missing_required(&attribute.name));
+            // This mirrors the frontend's old requireProp behavior: an empty
+            // name IS a missing one (same code, same message).
+            return Some(ViolationKind::MissingRequiredAttr { attr: attr() });
         }
         AttrType::Name if !lexical::name_segment(raw) => {
-            return Some(messages::name_syntax(&attribute.name, raw));
+            return Some(ViolationKind::InvalidName {
+                attr: attr(),
+                value: value(),
+            });
         }
         _ => {}
     }
@@ -178,17 +319,29 @@ fn validate_static_attribute(attribute: &AttrDef, raw: &str) -> Option<String> {
         let number = raw.parse::<f64>().unwrap_or(f64::NAN);
         if let Some(min) = &attribute.min {
             if number < number_value(min) {
-                return Some(messages::minimum(&attribute.name, min, raw));
+                return Some(ViolationKind::ValueBelowMin {
+                    attr: attr(),
+                    value: value(),
+                    min: min.clone(),
+                });
             }
         }
         if let Some(min) = &attribute.exclusive_min {
             if number <= number_value(min) {
-                return Some(messages::exclusive_minimum(&attribute.name, min, raw));
+                return Some(ViolationKind::ValueBelowExclusiveMin {
+                    attr: attr(),
+                    value: value(),
+                    min: min.clone(),
+                });
             }
         }
         if let Some(max) = &attribute.max {
             if number > number_value(max) {
-                return Some(messages::maximum(&attribute.name, max, raw));
+                return Some(ViolationKind::ValueAboveMax {
+                    attr: attr(),
+                    value: value(),
+                    max: max.clone(),
+                });
             }
         }
     }
@@ -197,7 +350,10 @@ fn validate_static_attribute(attribute: &AttrDef, raw: &str) -> Option<String> {
         && attribute.numeric
         && !numeric_vector_passes(raw)
     {
-        return Some(messages::numeric_vector(&attribute.name, raw));
+        return Some(ViolationKind::InvalidNumericVector {
+            attr: attr(),
+            value: value(),
+        });
     }
 
     None
@@ -241,7 +397,9 @@ fn validate_attribute_hygiene(
             if !known_spec_attribute && !common_attribute {
                 push_violation(
                     tag,
-                    messages::unknown_attribute(name),
+                    ViolationKind::UnknownAttr {
+                        attr: name.to_string(),
+                    },
                     pos_at(node, offset),
                     violations,
                 );
@@ -256,7 +414,9 @@ fn validate_attribute_hygiene(
         if prefix != "bind" {
             push_violation(
                 tag,
-                messages::unknown_namespace_prefix(prefix),
+                ViolationKind::UnknownAttrPrefix {
+                    prefix: prefix.to_string(),
+                },
                 pos_at(node, offset),
                 violations,
             );
@@ -272,7 +432,9 @@ fn validate_attribute_hygiene(
         if !runtime_attribute {
             push_violation(
                 tag,
-                messages::unknown_runtime_attribute(name),
+                ViolationKind::UnknownRuntimeAttr {
+                    attr: name.to_string(),
+                },
                 pos_at(node, offset),
                 violations,
             );
@@ -293,7 +455,9 @@ fn validate_content(node: Node, content: &ContentDef, violations: &mut Vec<Viola
         if !content.children.iter().any(|allowed| allowed == child_tag) {
             push_violation(
                 tag,
-                messages::unexpected_child(child_tag),
+                ViolationKind::UnexpectedChild {
+                    child: child_tag.to_string(),
+                },
                 pos_at(child, child.range().start),
                 violations,
             );
@@ -303,7 +467,7 @@ fn validate_content(node: Node, content: &ContentDef, violations: &mut Vec<Viola
         if let Some(text_child) = first_text_child(node) {
             push_violation(
                 tag,
-                messages::unexpected_text(),
+                ViolationKind::UnexpectedText,
                 pos_at(text_child, text_child.range().start),
                 violations,
             );
@@ -313,7 +477,9 @@ fn validate_content(node: Node, content: &ContentDef, violations: &mut Vec<Viola
         if let Some(required) = content.children.first() {
             push_violation(
                 tag,
-                messages::missing_required_child(required),
+                ViolationKind::MissingRequiredChild {
+                    child: required.clone(),
+                },
                 pos_at(node, node.range().start),
                 violations,
             );
@@ -361,13 +527,13 @@ fn number_value(number: &serde_json::Number) -> f64 {
 
 fn push_violation(
     tag: &str,
-    message: String,
+    kind: ViolationKind,
     (line, column): (u32, u32),
     violations: &mut Vec<Violation>,
 ) {
     violations.push(Violation {
         tag: tag.to_string(),
-        message,
+        kind,
         line,
         column,
     });
@@ -441,7 +607,11 @@ mod tests {
         };
         assert_eq!(
             validate_static_attribute(&min_half, "0"),
-            Some(r#""value" attribute must be ≥ 0.5 (got "0")"#.to_string())
+            Some(ViolationKind::ValueBelowMin {
+                attr: "value".to_string(),
+                value: "0".to_string(),
+                min: Number::from_f64(0.5).expect("finite number"),
+            })
         );
 
         let min_two = AttrDef {
@@ -450,7 +620,11 @@ mod tests {
         };
         assert_eq!(
             validate_static_attribute(&min_two, "1"),
-            Some(r#""value" attribute must be ≥ 2 (got "1")"#.to_string())
+            Some(ViolationKind::ValueBelowMin {
+                attr: "value".to_string(),
+                value: "1".to_string(),
+                min: Number::from(2),
+            })
         );
         assert_eq!(
             messages(r#"<sc-envelope value="x" minbreakpoints="1"/>"#),
@@ -596,6 +770,157 @@ mod tests {
             messages(r#"<sc-var name="x" value="1" bind:value="2"/>"#),
             vec![r#"<sc-var>: "value" and "bind:value" are mutually exclusive (1:95)"#]
         );
+    }
+
+    #[test]
+    fn every_code_is_pinned() {
+        // The serde tags are the STABLE public codes — renaming a variant
+        // must fail here, not silently change the wire.
+        let n = || Number::from(1);
+        let s = || "x".to_string();
+        let kinds: Vec<(ViolationKind, &str)> = vec![
+            (
+                ViolationKind::MutuallyExclusiveAttr { attr: s() },
+                "mutually-exclusive-attr",
+            ),
+            (
+                ViolationKind::MissingRequiredAttr { attr: s() },
+                "missing-required-attr",
+            ),
+            (
+                ViolationKind::InvalidDecimal {
+                    attr: s(),
+                    value: s(),
+                },
+                "invalid-decimal",
+            ),
+            (
+                ViolationKind::InvalidInteger {
+                    attr: s(),
+                    value: s(),
+                },
+                "invalid-integer",
+            ),
+            (
+                ViolationKind::InvalidBoolean {
+                    attr: s(),
+                    value: s(),
+                },
+                "invalid-boolean",
+            ),
+            (
+                ViolationKind::InvalidEnum {
+                    attr: s(),
+                    value: s(),
+                    allowed: vec![s()],
+                },
+                "invalid-enum",
+            ),
+            (
+                ViolationKind::InvalidName {
+                    attr: s(),
+                    value: s(),
+                },
+                "invalid-name",
+            ),
+            (
+                ViolationKind::ValueBelowMin {
+                    attr: s(),
+                    value: s(),
+                    min: n(),
+                },
+                "value-below-min",
+            ),
+            (
+                ViolationKind::ValueBelowExclusiveMin {
+                    attr: s(),
+                    value: s(),
+                    min: n(),
+                },
+                "value-below-exclusive-min",
+            ),
+            (
+                ViolationKind::ValueAboveMax {
+                    attr: s(),
+                    value: s(),
+                    max: n(),
+                },
+                "value-above-max",
+            ),
+            (
+                ViolationKind::InvalidNumericVector {
+                    attr: s(),
+                    value: s(),
+                },
+                "invalid-numeric-vector",
+            ),
+            (ViolationKind::UnknownAttr { attr: s() }, "unknown-attr"),
+            (
+                ViolationKind::UnknownAttrPrefix { prefix: s() },
+                "unknown-attr-prefix",
+            ),
+            (
+                ViolationKind::UnknownRuntimeAttr { attr: s() },
+                "unknown-runtime-attr",
+            ),
+            (ViolationKind::WrongNamespace, "wrong-namespace"),
+            (
+                ViolationKind::UnexpectedChild { child: s() },
+                "unexpected-child",
+            ),
+            (ViolationKind::UnexpectedText, "unexpected-text"),
+            (
+                ViolationKind::MissingRequiredChild { child: s() },
+                "missing-required-child",
+            ),
+            (ViolationKind::WrongRoot { root: s() }, "wrong-root"),
+        ];
+        // Compile-forcing exhaustiveness: a NEW variant fails this match until
+        // it lands in the table above with its pinned code.
+        fn pinned(kind: &ViolationKind) {
+            match kind {
+                ViolationKind::MutuallyExclusiveAttr { .. }
+                | ViolationKind::MissingRequiredAttr { .. }
+                | ViolationKind::InvalidDecimal { .. }
+                | ViolationKind::InvalidInteger { .. }
+                | ViolationKind::InvalidBoolean { .. }
+                | ViolationKind::InvalidEnum { .. }
+                | ViolationKind::InvalidName { .. }
+                | ViolationKind::ValueBelowMin { .. }
+                | ViolationKind::ValueBelowExclusiveMin { .. }
+                | ViolationKind::ValueAboveMax { .. }
+                | ViolationKind::InvalidNumericVector { .. }
+                | ViolationKind::UnknownAttr { .. }
+                | ViolationKind::UnknownAttrPrefix { .. }
+                | ViolationKind::UnknownRuntimeAttr { .. }
+                | ViolationKind::WrongNamespace
+                | ViolationKind::UnexpectedChild { .. }
+                | ViolationKind::UnexpectedText
+                | ViolationKind::MissingRequiredChild { .. }
+                | ViolationKind::WrongRoot { .. } => {}
+            }
+        }
+        assert_eq!(kinds.len(), 19, "every variant must appear in the table");
+        for (kind, code) in kinds {
+            pinned(&kind);
+            assert_eq!(serde_json::to_value(&kind).unwrap()["code"], code);
+        }
+    }
+
+    #[test]
+    fn violations_serialize_with_nested_code_payload_and_position() {
+        let violations = crate::validate_entry(&document(r#"<sc-slider value="1" size="xl"/>"#))
+            .expect("parses");
+        let value = serde_json::to_value(&violations[0]).expect("serializes");
+        assert_eq!(value["tag"], "sc-slider");
+        assert_eq!(value["kind"]["code"], "invalid-enum");
+        assert_eq!(value["kind"]["attr"], "size");
+        assert_eq!(value["kind"]["value"], "xl");
+        assert_eq!(
+            value["kind"]["allowed"],
+            serde_json::json!(["sm", "md", "lg"])
+        );
+        assert!(value["line"].is_u64() && value["column"].is_u64());
     }
 
     #[test]

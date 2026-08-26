@@ -17,7 +17,7 @@ spec attr (unless flagged `runtime: false`) accepts a
 static form, evaluated live and reactive on its sources; `getProp` then
 returns the evaluated value. Static validation lives in the shared Rust
 `src-tauri/crates/sc-validate` crate (native at upload, wasm via
-`@sc-app/validate` at `parseEntry`); the spec drives both that gate and
+`lib/plugins/validate` at `parseEntry`); the spec drives both that gate and
 `getProp` coercion. The engine now runs identity + the ONE extension hook
 `resolveRuntime(ctx)` — runtime construction: the recursion into the sc
 children where the element opens a level (`processChildren`) plus
@@ -59,7 +59,7 @@ internal/   engine/ (the parse ENGINE — index.ts: free process/
             instance-store backing for LITERAL state, reached via
             `_rootScNode`), ScInput (targetScState + commit — the writing
             half of inputs); spec.ts (bindAttr/COMMON_ATTRS + the
-            @sc-app/validate getSpec re-export — the wasm-served spec map)
+            lib/plugins/validate getSpec re-export — the wasm-served spec map)
 nodes/      elements owning scsynth nodes        (isNodeRuntime)
 synthdef/   the synth-graph declaration elements
 state/      named values binds can target        (isStateRuntime)

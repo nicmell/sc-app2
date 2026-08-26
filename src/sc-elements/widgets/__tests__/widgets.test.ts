@@ -9,7 +9,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
-import { validateEntry } from "@sc-app/validate";
+import { validateEntry } from "@/lib/plugins/validate";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";

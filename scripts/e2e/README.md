@@ -70,4 +70,6 @@ processRoot sequence. Byte-exact message pinning is the UNIT gate's job
 (src/sc-elements/__tests__/examples.test.ts).
 
 Interpolate values into `Runtime.evaluate` expressions with `js()`
-(JSON.stringify), never raw template strings.
+(JSON.stringify), never raw template strings. And never hand-roll ad-hoc
+CDP probes outside this framework — the pitfalls above (409 revive, tab
+reuse, socket drain) are exactly what one-off probes keep re-hitting.

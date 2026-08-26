@@ -126,6 +126,50 @@ cd src-tauri && cargo doc --no-deps --document-private-items --open
 - Transparency: nameless non-node containers (sc-if, sc-select,
   sc-radio-group) open no scope and no path segment — their contents parse
   into the enclosing level.
+- The wire is raw OSC bytes end to end (worker codec ⇄ WS ⇄ UDP, never
+  rewritten); the only intercepted families are `/scope/*` and `/clock/*`.
+
+## Cross-boundary sync points
+
+Change one side → sweep the other, same commit:
+
+- `router/error.rs` codes ⇄ `ApiErrorCode` (`src/lib/http`) — see
+  Conventions.
+- `core/clock.rs` ⇄ server-commands `commands/clock.ts` (ping/pong arg
+  layouts; only ping/pong are on the wire).
+- `scope/wire.rs` ⇄ the frontend's `parseScopeChunkArgs` (a Rust golden
+  byte test pins the encoding; the TS decoder has no test of its own).
+- `ELEMENTS` ⇄ constructor `REGISTRY` ⇄ spec.rs `SPEC_SOURCES` — see the
+  recipe (the wasm-specs vitest pins the bijection).
+- The committed wasm pkg — see Conventions; note even doc-comment changes
+  leak into the generated d.ts.
+- Each runtime `bad-*` fixture hits exactly one error path (table in
+  examples/README.md) — a new error path usually means a new fixture.
+
+## Gotchas (each has actually bitten)
+
+- macOS git is case-insensitive: `git rm todo.md` deletes `TODO.md`.
+- cargo fmt reflows comments/strings — scripted replacements silently
+  miss; always grep-verify they applied.
+- `yarn format` (prettier) rewrites markdown under `src`/`packages` —
+  run it before committing doc edits there (root/docs md is out of its
+  scope).
+- clap doc comments ARE `--help` output (no rustdoc markup there); angle
+  brackets also break rustdoc as unclosed HTML.
+- tsify can't flatten a Rust enum into a TS union — emits
+  `interface extends <union>`, silently degraded by skipLibCheck (which is
+  REQUIRED at app level: DOM + webworker stdlib conflict). Nest tagged
+  enums (the `kind` pattern).
+- `SC_APP_DIR=""` must act unset — env is read in the CLI dispatch, not
+  clap's `env` attr (which would pass the empty value through); one code
+  path owns the precedence.
+- Rust tests share one process-wide app root (`install_test_root`, first
+  caller wins): one test binary per written registry.
+- CatchPanicLayer sits INSIDE CorsLayer, or panic 500s lack CORS headers
+  (unreadable from the Tauri webview).
+- happy-dom has no top layer/layout — anything positional belongs in e2e;
+  `yarn test` runs three workspaces (app + synthdef-compiler +
+  ui-components).
 
 ## Migrating an sc-element (the recipe)
 

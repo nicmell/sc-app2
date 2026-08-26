@@ -87,3 +87,37 @@ one registry entry:
 - Button with icon: better centering; a loading button.
 - SCSS everywhere in the main app.
 - Strudel deps chunked (bundle size).
+
+## Docs finalization roadmap (toward a publishable project)
+
+The developer docs are current and audited; what a public release still
+needs is the USER-facing layer plus release hygiene. Suggested order:
+
+1. **License + release hygiene** (blocking anything public): add a
+   LICENSE (none exists), a `CONTRIBUTING.md` (dev setup = README quick
+   start + the two gates + `cargo doc`), and a versioning/changelog policy
+   — the moment something ships, the pre-release "break outright" policy
+   in CLAUDE.md must be rewritten.
+2. **Plugin-authoring guide** (the missing book): a `docs/authoring.md`
+   tutorial that builds one plugin end to end — bundle layout +
+   metadata.json, the entry root + namespaces, declaring a synthdef,
+   wiring inputs with `bind:`, the bind-order rule, uploading and reading
+   violation errors. The examples are the raw material; the guide narrates
+   them.
+3. **Generated element reference**: the specs already carry docs
+   (`$comment` fields) — generate a per-element attribute reference from
+   `specs/*.spec.json` at build time instead of hand-maintaining tables
+   (sc-elements/README keeps behavior prose; generated pages own the attr
+   lists). Same single-source move for the bind-expression grammar
+   (one authored reference page; the parser is the contract).
+4. **README polish for a public landing**: screenshots or a short demo
+   capture of the dashboard + scope + strudel; install story for
+   non-developers (packaged app) once packaging exists.
+5. **Docs site assembly**: promote docs/ to a browsable site (any static
+   generator) with README as front page, authoring guide + element
+   reference as the user track, architecture/scope/clock as the developer
+   track, and published rustdoc linked as the backend API reference.
+6. **Keep the audit discipline**: the CLAUDE.md documentation policy
+   (one owner per fact, same-commit prose, branch-close symbol sweep) is
+   what keeps all of the above from rotting — apply it to the new
+   user-facing layer from day one.

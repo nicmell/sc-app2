@@ -44,6 +44,9 @@ yarn build
 # Unit tests (the example plugins through the parse engine, happy-dom)
 yarn test
 
+# One-shot e2e: throwaway app root + full stack + the example harness
+yarn e2e
+
 # Rust check / unit tests
 cd src-tauri && cargo check && cargo test
 ```
@@ -740,14 +743,20 @@ cover protocol waiters, transport dispatch, per-concern observation, and
 heartbeat expiry.
 
 **End-to-end gate (the harness technique)**: when elements/parsers change,
-validate every example through the real stack: run
-`node scripts/validate-examples.mjs` against `yarn serve` + `yarn dev` +
-headless Chrome (`--remote-debugging-port=9222`). What it does:
+validate every example through the real stack: `yarn e2e` — one shot, no
+setup. scripts/e2e.mjs packages the examples, boots the WHOLE stack against
+a THROWAWAY app root (serve on a tempdir SC_APP_DIR + vite + scsynth via
+start-osc.sh + fresh-profile headless Chrome on :9222), runs
+scripts/validate-examples.mjs, and tears everything down — nothing touches
+appdir or the canonical root, and back-to-back runs are idempotent. (The
+harness stays runnable standalone against an already-running stack for
+iterating on one failing gate; it expects a SCRATCH root — uploads are not
+cleaned up.) What the harness does:
 
-1. **Upload gate** — zip each `examples/<dir>` and `POST /api/plugins`:
-   expect 201, except the upload fixtures `bad-metadata`, `bad-entry-xhtml`,
-   `bad-entry-schema`, `bad-asset-type`, `bad-asset-mismatch` → 400 with
-   their specific messages.
+1. **Upload gate** — POST each packaged `examples/dist/<name>.zip`
+   (`scripts/package-plugins.sh` is the ONE zipper): expect 201, except the
+   static fixtures (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec
+   ones) → 400 envelopes.
 2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
    (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>`, parse
    as **text/xml** (entries use self-closing tags; HTML parsing mis-nests them),
@@ -758,8 +767,7 @@ headless Chrome (`--remote-debugging-port=9222`). What it does:
    with its intentional resolveRuntime error (one per error path — see the
    `invalid/` table in examples/README.md). Any other failure is a migration
    bug — report it.
-3. **Cleanup** — DELETE the plugins the run uploaded, keeping the user's
-   registry as it was.
+3. The root is throwaway — no cleanup pass exists.
 
 ## Migration plan (old `sc-app/` → here)
 

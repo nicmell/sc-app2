@@ -80,3 +80,18 @@ pub fn load_layout(id: &Uuid) -> Option<serde_json::Value> {
     let raw = std::fs::read_to_string(layout_path(id)).ok()?;
     serde_json::from_str(&raw).ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn layout_save_load_round_trips_on_the_test_root() {
+        crate::core::config::install_test_root();
+        let id = uuid::Uuid::new_v4();
+        assert!(load_layout(&id).is_none());
+        let layout = serde_json::json!([{ "i": "box-1", "x": 0, "y": 0, "w": 4, "h": 3 }]);
+        save_layout(&id, &layout).expect("saves");
+        assert_eq!(load_layout(&id), Some(layout));
+    }
+}

@@ -59,6 +59,8 @@ mod tests {
     use super::*;
     use std::io::Write;
 
+    use crate::core::config;
+
     async fn body_json(response: Response) -> serde_json::Value {
         let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -68,6 +70,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_rejects_non_zip_with_the_envelope() {
+        config::install_test_root();
         let response = add(Bytes::from_static(b"not a zip")).await;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
         let body = body_json(response).await;
@@ -78,6 +81,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_ships_structured_violations_for_the_spec_gate() {
+        config::install_test_root();
         // An in-memory bundle: valid metadata + an entry violating the spec.
         let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
         let options = zip::write::SimpleFileOptions::default()

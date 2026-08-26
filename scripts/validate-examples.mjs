@@ -1,14 +1,16 @@
-// Example-plugin validation harness (documented in CLAUDE.md):
-// for each example dir — zip → POST /api/plugins (the upload gate), then,
-// if installed, an in-page probe over CDP: fetch the entry via the plugin API,
-// pass it through the Vite-served parseEntry (the frontend wasm gate), and run
-// its own processRoot() — the runtime validation.
-// Expected failures: bad-metadata / bad-entry-* / bad-asset-* at upload,
-// the remaining bad-* fixtures at runtime (one resolveRuntime error path
-// each — see examples/README.md). Anything else failing is a migration bug.
-import { execSync } from "node:child_process";
-import { mkdtempSync, readdirSync, existsSync } from "node:fs";
-import { tmpdir } from "node:os";
+// Example-plugin validation harness (documented in CLAUDE.md): for each
+// packaged example zip (examples/dist — run scripts/package-plugins.sh
+// first; `yarn e2e` orchestrates the whole stack) — POST /api/plugins (the
+// upload gate), then, if installed, an in-page probe over CDP: fetch the
+// entry via the plugin API, pass it through the Vite-served parseEntry (the
+// frontend wasm gate), and run its own processRoot() — the runtime
+// validation. Expected failures: bad-metadata / bad-entry-* / bad-asset-*
+// at upload, the remaining bad-* fixtures at runtime (one resolveRuntime
+// error path each — see examples/README.md). Anything else failing is a
+// migration bug. The server is expected to be a SCRATCH app root (yarn e2e
+// mints one): uploads are not cleaned up.
+import { readdirSync, existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 
 const REPO = new URL("..", import.meta.url).pathname;
@@ -90,11 +92,12 @@ const probeRuntime = (pluginId, entry) =>
   }
 })()`);
 
-const work = mkdtempSync(join(tmpdir(), "sc-examples-"));
 // Example sources live at examples/plugins/<category>/<plugin>, each marked
-// by its metadata.json (examples/dist holds the packaged zips).
+// by its metadata.json; the uploads come from the packaged zips in
+// examples/dist (flat, by name).
 const dirs = [];
 const SOURCES = join(REPO, "examples", "plugins");
+const DIST = join(REPO, "examples", "dist");
 for (const cat of readdirSync(SOURCES, { withFileTypes: true })
   .filter((d) => d.isDirectory() && !d.name.startsWith("."))
   .map((d) => d.name)) {
@@ -103,47 +106,39 @@ for (const cat of readdirSync(SOURCES, { withFileTypes: true })
   }
 }
 const rows = [];
-const uploadedIds = [];
-const preinstalled = await (await fetch(`${API}/api/plugins`)).json();
 
 for (const dir of dirs.sort()) {
   const name = basename(dir);
-  const pre = preinstalled.find(
-    (p) => p.name === name || (name === "default-plugin" && p.name === "default-dashboard"),
-  );
+  const zip = join(DIST, `${name}.zip`);
+  if (!existsSync(zip)) {
+    console.error(`missing ${zip} — run scripts/package-plugins.sh first`);
+    process.exit(1);
+  }
   let id, entry, uploadNote;
-  if (pre) {
-    ({ id, entry } = pre);
-    uploadNote = "pre-installed";
+  const resp = await fetch(`${API}/api/plugins`, {
+    method: "POST",
+    body: await readFile(zip),
+  });
+  if (resp.status === 201) {
+    const info = await resp.json();
+    ({ id, entry } = info);
+    uploadNote = "201";
   } else {
-    const zip = join(work, `${dir.replaceAll("/", "-")}.zip`);
-    execSync(`cd ${REPO}/examples/plugins/${dir} && zip -q -r ${zip} . -x '.*' '*/.*'`);
-    const resp = await fetch(`${API}/api/plugins`, {
-      method: "POST",
-      body: await (await import("node:fs/promises")).readFile(zip),
-    });
-    if (resp.status === 201) {
-      const info = await resp.json();
-      ({ id, entry } = info);
-      uploadedIds.push(id);
-      uploadNote = "201";
-    } else {
-      const text = await resp.text();
-      let msg;
-      try {
-        msg = String(JSON.parse(text).message).split("\n")[0].slice(0, 90);
-      } catch {
-        msg = text.split("\n")[0].slice(0, 90);
-      }
-      const expected = EXPECT_UPLOAD_FAIL.has(name);
-      rows.push({
-        dir,
-        upload: `${resp.status} ${expected ? "(expected)" : "*** UNEXPECTED ***"}`,
-        runtime: "-",
-        note: msg,
-      });
-      continue;
+    const text = await resp.text();
+    let msg;
+    try {
+      msg = String(JSON.parse(text).message).split("\n")[0].slice(0, 90);
+    } catch {
+      msg = text.split("\n")[0].slice(0, 90);
     }
+    const expected = EXPECT_UPLOAD_FAIL.has(name);
+    rows.push({
+      dir,
+      upload: `${resp.status} ${expected ? "(expected)" : "*** UNEXPECTED ***"}`,
+      runtime: "-",
+      note: msg,
+    });
+    continue;
   }
   if (EXPECT_UPLOAD_FAIL.has(name)) {
     rows.push({ dir, upload: `${uploadNote} *** EXPECTED 400 ***`, runtime: "-", note: "" });
@@ -160,11 +155,6 @@ for (const dir of dirs.sort()) {
       (ok ? (expectedFail ? " (expected)" : "") : " *** UNEXPECTED ***"),
     note: "",
   });
-}
-
-// cleanup the plugins this run uploaded
-for (const id of uploadedIds) {
-  await fetch(`${API}/api/plugins/${id}`, { method: "DELETE" });
 }
 
 console.log("\n=== example validation report ===");

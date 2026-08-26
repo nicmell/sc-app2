@@ -110,11 +110,9 @@ pub fn set_root(root: PathBuf) {
 }
 
 /// The app root. Falls back to a lazy env/canonical resolution for any path
-/// that runs before the dispatch installed it (unit tests, one-off calls).
-/// FOOTGUN for future persistence tests: a Rust test writing through a
-/// root-derived path without set_root lands in the CANONICAL dir — install
-/// a tempdir root first (planned as the shared test harness in the
-/// hermetic-tests step).
+/// that runs before the dispatch installed it (one-off calls). Tests that
+/// touch persistence MUST call [`install_test_root`] first, or they write
+/// into the developer's canonical dir.
 pub fn root() -> &'static std::path::Path {
     ROOT.get_or_init(|| resolve_root(None, std::env::var_os("SC_APP_DIR")))
 }
@@ -201,6 +199,16 @@ fn read(path: &std::path::Path, seed_when_missing: bool) -> AppConfig {
             AppConfig::default()
         }
     }
+}
+
+/// Point the WHOLE test process at a throwaway root (first caller wins —
+/// OnceLock semantics — so every persistence test shares one tempdir).
+/// Call it at the top of any test that writes through root-derived paths.
+#[cfg(test)]
+pub fn install_test_root() {
+    let dir = std::env::temp_dir().join(format!("sc-app2-test-root-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("test root");
+    set_root(dir);
 }
 
 #[cfg(test)]

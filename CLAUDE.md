@@ -30,7 +30,8 @@ yarn serve
 # scsynth + sclang/StrudelDirt for local dev (pre-req: yarn deps, once)
 yarn osc
 
-# Package every example (examples/plugins/* → examples/dist/*, gitignored)
+# Package every example (examples/plugins/*/* → examples/dist/<name>.zip,
+# flat, gitignored)
 # and bulk-import the zips into the dev app root (invalid fixtures fail by
 # design and are just logged; a RUNNING serve sees the result on its next
 # request — only the browser needs a reload). Known dev-only race: the CLI
@@ -282,9 +283,10 @@ cli/              mod.rs (clap definitions incl. the GLOBAL --app-dir/
                   serve.rs (the headless run mode),
                   gui.rs (the Tauri run mode: window + injected base URL),
                   plugin.rs (validate|add|remove|list — validate/add take
-                  any mix of zips and directories scanned RECURSIVELY for
-                  *.zip (sorted): per-zip failures are logged without
-                  blocking the rest, erroring only when nothing succeeds), config.rs (write|validate)
+                  any mix of zips and directories holding *.zip (flat,
+                  sorted; globs via the shell): per-zip failures are logged
+                  without blocking the rest, erroring only when nothing
+                  succeeds), config.rs (write|validate)
 core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   composition root both run modes call: config load + logger
                   init (the Server owns the flush guard) + bridge → scsynth

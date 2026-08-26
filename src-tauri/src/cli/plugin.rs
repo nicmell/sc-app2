@@ -11,13 +11,13 @@ use crate::core::plugin::manager;
 pub enum PluginCommand {
     /// Validate plugin bundles
     Validate {
-        /// Plugin zips, or directories scanned recursively for *.zip
+        /// Plugin zips, or directories containing *.zip (globs via the shell)
         #[arg(required = true)]
         paths: Vec<String>,
     },
     /// Validate and install plugin bundles
     Add {
-        /// Plugin zips, or directories scanned recursively for *.zip
+        /// Plugin zips, or directories containing *.zip (globs via the shell)
         #[arg(required = true)]
         paths: Vec<String>,
     },
@@ -32,12 +32,8 @@ pub enum PluginCommand {
 
 pub fn run(cmd: PluginCommand) -> Result<(), String> {
     match cmd {
-        PluginCommand::Validate { paths } => {
-            run_bundles(&paths, manager::validate_plugin, "valid")
-        }
-        PluginCommand::Add { paths } => {
-            run_bundles(&paths, manager::add_plugin, "added")
-        }
+        PluginCommand::Validate { paths } => run_bundles(&paths, manager::validate_plugin, "valid"),
+        PluginCommand::Add { paths } => run_bundles(&paths, manager::add_plugin, "added"),
         PluginCommand::Remove { name } => cmd_remove(&name),
         PluginCommand::List => cmd_list(),
     }
@@ -179,6 +175,33 @@ fn cmd_list() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expand_takes_files_and_flat_zip_directories_only() {
+        let root = std::env::temp_dir().join("sc-app2-test-expand");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("nested")).unwrap();
+        std::fs::write(root.join("b.zip"), "x").unwrap();
+        std::fs::write(root.join("a.zip"), "x").unwrap();
+        std::fs::write(root.join("notes.txt"), "x").unwrap();
+        std::fs::write(root.join("nested").join("deep.zip"), "x").unwrap();
+
+        let zips = expand(root.to_str().unwrap()).unwrap();
+        let names: Vec<_> = zips
+            .iter()
+            .map(|z| z.file_name().unwrap().to_string_lossy().to_string())
+            .collect();
+        // Flat + sorted: nested/deep.zip and notes.txt are NOT picked up.
+        assert_eq!(names, ["a.zip", "b.zip"]);
+
+        assert!(expand(root.join("nested").join("missing").to_str().unwrap()).is_err());
+        let empty = root.join("empty");
+        std::fs::create_dir_all(&empty).unwrap();
+        assert!(expand(empty.to_str().unwrap())
+            .unwrap_err()
+            .contains("no plugin zips"));
+        let _ = std::fs::remove_dir_all(&root);
+    }
 
     #[test]
     fn query_splits_name_and_version() {

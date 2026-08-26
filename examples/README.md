@@ -2,7 +2,7 @@
 
 Sources live at `examples/plugins/<category>/<name>/` (one plugin each:
 `metadata.json` + entry XHTML + optional assets), zipped verbatim into the
-gitignored `examples/dist/<category>/<name>.zip` by
+gitignored `examples/dist/<name>.zip` (flat) by
 `scripts/package-plugins.sh`; `yarn examples:sync` packages AND bulk-imports
 them into the dev app root (`plugin add examples/dist` — the `invalid/`
 fixtures fail by design and are just logged). They double as the

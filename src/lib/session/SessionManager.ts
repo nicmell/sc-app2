@@ -124,6 +124,9 @@ export class SessionManager {
       if (current === this.lastSavedLayout) return;
       put(`/api/session/${sessionId}`, JSON.stringify(current), {
         headers: { "content-type": "application/json" },
+        // The coalesced toast below is this call's dedicated surface (it
+        // also covers the 404 dead-session case the 5xx observer skips).
+        notify: false,
       }).then(
         () => {
           this.lastSavedLayout = current;

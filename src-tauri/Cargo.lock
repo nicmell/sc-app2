@@ -3204,6 +3204,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tokio",
+ "tower",
  "tower-http",
  "tracing",
  "tracing-appender",

@@ -19,7 +19,8 @@ export async function listPlugins(): Promise<PluginInfo[]> {
 
 export async function addPlugin(file: File): Promise<PluginInfo> {
   const buf = await file.arrayBuffer();
-  return (await post(PLUGINS_BASE, new Uint8Array(buf))).json();
+  // PluginList's violations Alert is the dedicated error surface.
+  return (await post(PLUGINS_BASE, new Uint8Array(buf), { notify: false })).json();
 }
 
 export async function removePlugin(id: string): Promise<void> {
@@ -36,7 +37,9 @@ export function parseEntry(text: string): ScPlugin {
 
 /** Load and process an authored plugin root while it is disconnected. */
 export async function loadPluginHost(plugin: PluginInfo): Promise<ScPlugin> {
-  const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`);
+  // PluginHost's inline error is the dedicated surface (N broken boxes must
+  // not each stack a toast).
+  const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`, { notify: false });
   const host = parseEntry(await res.text());
   host.processRoot();
   return host;

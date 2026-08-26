@@ -10,6 +10,7 @@
 
 import type { ValidationViolation } from "@sc-validate";
 import { HTTP_BASE_URL } from "@/constants/env";
+import { pushToast } from "@/stores/toasts";
 
 /** A `ws(s)://…` URL for a server path (e.g. `/ws?session=<id>`), derived from
  *  HTTP_BASE_URL (Tauri) or the page origin (browser). */
@@ -20,13 +21,40 @@ export function wsUrl(path: string): string {
   return url.href;
 }
 
-type RequestOptions = Omit<RequestInit, "method" | "body">;
+/** The stable backend error codes — a hand-maintained mirror of
+ *  src-tauri/src/core/router/error.rs (cross-referenced there; the parse
+ *  below checks only that `code` is a string, so the typing is an unchecked
+ *  pre-release cast). `session-busy`/`ws-session-required` are WS-handshake
+ *  rejections a browser WebSocket can never surface as an HttpError — listed
+ *  for completeness. */
+export type ApiErrorCode =
+  | "scsynth-unregistered"
+  | "session-unknown"
+  | "session-busy"
+  | "ws-session-required"
+  | "bad-request"
+  | "plugin-spec-violations"
+  | "plugin-invalid"
+  | "plugin-not-found"
+  | "plugin-path-forbidden"
+  | "not-found"
+  | "method-not-allowed"
+  | "bridge-closed"
+  | "scsynth-timeout"
+  | "internal";
+
+/** `notify: false` opts a call out of the global error toast — the rule:
+ *  a call site with a DEDICATED error surface (the loaders' RouteError
+ *  modal, PluginList's violations Alert, PluginHost's inline error, the
+ *  layout autosave's own coalesced toast) opts out; fire-and-forget calls
+ *  keep the backstop. */
+type RequestOptions = Omit<RequestInit, "method" | "body"> & { notify?: boolean };
 
 /** The backend's structured error envelope (router/error.rs): a stable
  *  kebab-case `code`, the human headline, and — for the plugin spec gate —
  *  the SAME tsify-generated violations the wasm gate returns. */
 interface ApiErrorBody {
-  code: string;
+  code: ApiErrorCode;
   message: string;
   violations?: ValidationViolation[];
 }
@@ -56,7 +84,7 @@ function parseApiError(body: string | undefined): ApiErrorBody | undefined {
  *  raw text body, or `"<status> <statusText>"`), `code` the stable backend
  *  identifier, `violations` the spec gate's structured list. */
 export class HttpError extends Error {
-  readonly code?: string;
+  readonly code?: ApiErrorCode;
   readonly violations?: ValidationViolation[];
 
   constructor(
@@ -77,9 +105,23 @@ async function request(
   body?: BodyInit | null,
   options?: RequestOptions,
 ): Promise<Response> {
-  const resp = await fetch(`${HTTP_BASE_URL}${path}`, { ...options, method, body });
-  if (!resp.ok)
-    throw new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
+  const { notify, ...init } = options ?? {};
+  const resp = await fetch(`${HTTP_BASE_URL}${path}`, { ...init, method, body });
+  if (!resp.ok) {
+    const error = new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
+    // The global backstop: UNEXPECTED server failures surface as a coalesced
+    // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
+    // form feedback). No code suffix in the key — different 5xx codes on
+    // one call should bump the same banner, not stack.
+    if (resp.status >= 500 && resp.status !== 503 && notify !== false) {
+      pushToast({
+        variant: "error",
+        key: `http:${method}:${path}`,
+        message: `${method} ${path}: ${error.message}`,
+      });
+    }
+    throw error;
+  }
   return resp;
 }
 

@@ -1,17 +1,20 @@
 //! The structured API error envelope: every JSON-API error body is
 //! `{code, message, violations?}` with the status on the response line —
 //! the frontend http client parses it into HttpError (code + headline +
-//! structured violations). Codes are a STABLE kebab-case contract.
+//! structured violations). Codes are a STABLE kebab-case contract, mirrored
+//! by the `ApiErrorCode` union in src/lib/http/index.ts — keep both in sync.
 //!
 //! Every server error speaks it: the route handlers (plugin/session/diag),
 //! the ws pre-upgrade rejections (unreadable by browser WebSockets, but
 //! honest for tools), unknown `/api/*` paths ([`api_not_found`]), malformed
-//! JSON bodies ([`ApiJson`]), and handler panics ([`panic_response`]). The
+//! JSON bodies ([`ApiJson`]) and unparsable path params ([`ApiPath`]), and
+//! handler panics ([`panic_response`]). The
 //! ONE deliberate plain-text exception: assets.rs's page-serving fallback —
 //! it serves documents, not API responses; the frontend http client's
 //! raw-text fallback covers it (and any proxy/glue-level body).
 
-use axum::extract::{FromRequest, Request};
+use axum::extract::{FromRequest, FromRequestParts, Request};
+use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
@@ -160,6 +163,30 @@ pub fn panic_response(payload: Box<dyn std::any::Any + Send + 'static>) -> Respo
     .into_response()
 }
 
+/// A Path extractor whose rejection (an unparsable param — e.g. a garbage
+/// UUID in a session URL) answers with the envelope instead of axum's
+/// plain-text default.
+pub struct ApiPath<T>(pub T);
+
+impl<S, T> FromRequestParts<S> for ApiPath<T>
+where
+    S: Send + Sync,
+    T: DeserializeOwned + Send,
+{
+    type Rejection = ApiError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        match axum::extract::Path::<T>::from_request_parts(parts, state).await {
+            Ok(axum::extract::Path(value)) => Ok(ApiPath(value)),
+            Err(rejection) => Err(ApiError::new(
+                rejection.status(),
+                "bad-request",
+                rejection.body_text(),
+            )),
+        }
+    }
+}
+
 /// A Json extractor whose rejection (malformed body, wrong content type)
 /// answers with the envelope instead of axum's plain-text default.
 pub struct ApiJson<T>(pub T);
@@ -202,6 +229,34 @@ mod tests {
         let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         assert_eq!(body["code"], "not-found");
         assert_eq!(body["message"], "no such API route: GET /api/nope");
+    }
+
+    #[tokio::test]
+    async fn garbage_path_params_answer_with_the_envelope() {
+        use tower::util::ServiceExt;
+        // A minimal router exercising the extractor the way session.rs does.
+        let app = axum::Router::new().route(
+            "/x/{id}",
+            axum::routing::get(|ApiPath(_id): ApiPath<uuid::Uuid>| async {
+                StatusCode::NO_CONTENT
+            }),
+        );
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/x/not-a-uuid")
+                    .body(axum::body::Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(body["code"], "bad-request");
+        assert!(body["message"].as_str().unwrap().contains("UUID"));
     }
 
     #[test]

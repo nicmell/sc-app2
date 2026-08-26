@@ -13,7 +13,7 @@
 //! explicitly (kept for future use). The session store and the id math live
 //! on [`Server`](crate::core::server) — this is just the transport.
 
-use axum::extract::{Path, State};
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -21,7 +21,7 @@ use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
 
-use super::error::{ApiError, ApiJson};
+use super::error::{ApiError, ApiJson, ApiPath};
 use crate::core::blocks::SessionBlock;
 use crate::core::layouts;
 use crate::core::server::Server;
@@ -96,7 +96,7 @@ async fn post_session(State(server): State<Server>) -> Response {
 
 /// Fetch a live session — or revive a saved one under the same id (fresh
 /// block), so a browser's stored session id restores its layout at boot.
-async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
+async fn get_session(State(server): State<Server>, ApiPath(id): ApiPath<Uuid>) -> Response {
     let layout = layouts::load_layout(&id);
     if let Some(block) = server.sessions().block(&id) {
         return Json(SessionInfo::new(&server, id, block, layout)).into_response();
@@ -116,7 +116,7 @@ async fn get_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Resp
 /// Save the session's dashboard layout (the frontend PUTs it periodically).
 async fn put_session(
     State(server): State<Server>,
-    Path(id): Path<Uuid>,
+    ApiPath(id): ApiPath<Uuid>,
     ApiJson(layout): ApiJson<serde_json::Value>,
 ) -> Response {
     if !server.sessions().contains(&id) {
@@ -128,7 +128,7 @@ async fn put_session(
     }
 }
 
-async fn delete_session(State(server): State<Server>, Path(id): Path<Uuid>) -> Response {
+async fn delete_session(State(server): State<Server>, ApiPath(id): ApiPath<Uuid>) -> Response {
     if !server.sessions().contains(&id) {
         return ApiError::session_unknown(&id).into_response();
     }

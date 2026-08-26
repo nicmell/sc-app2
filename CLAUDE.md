@@ -154,10 +154,15 @@ lib/                     non-React infrastructure
                          splitter every comma consumer uses)
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
                          HttpError (parses the backend's structured ApiError
-                         envelope — {code, message, violations?}, the
-                         violations typed by the SAME generated
-                         ValidationViolation shape as the wasm gate; raw-text
-                         bodies fall back verbatim)
+                         envelope — {code: ApiErrorCode, message,
+                         violations?}, the violations typed by the SAME
+                         generated ValidationViolation shape as the wasm
+                         gate; raw-text bodies fall back verbatim), and the
+                         global error observer: unexpected 5xx (never 503 —
+                         the loaders' quiet-retry domain — never 4xx) push a
+                         coalesced toast unless the call passes
+                         notify: false — the rule: a call site with a
+                         DEDICATED error surface opts out
   osc/                   the OSC endpoint (see lib/osc/README.md):
                          OscClient (global `oscClient`, plain-packet main-thread client,
                          owns /g_new of the session group + nextNodeId allocation,

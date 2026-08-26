@@ -72,12 +72,11 @@ deliberately does not** — see §3.
 `scope_buffer[scopeNum]`, configures it (`_size = maxFrames`,
 `_channels = len(inputArray)`), and writes the inputs **planar** into the
 slots — one contiguous run per channel, channel `c` at byte offset
-`c × _size × 4` within the slot (verified empirically: a stereo sine/saw tap
-shows the sine in the first `frames` floats and the saw in the next; the
-"interleaved lanes" of the same chunk correlate at 0.99, i.e. they are
-adjacent samples of one waveform). Because our taps bake
-`maxFrames = scopeFrames`, the per-channel stride equals the chunk's frame
-count and the slot is exactly `frames × channels` contiguous floats.
+`c × _size × 4` (verified empirically with a stereo sine/saw tap: sine in
+the first `frames` floats, saw in the next; interleaved-read lanes
+correlate at 0.99 — adjacent samples of one waveform). Our taps bake
+`maxFrames = scopeFrames`, so the per-channel stride equals the chunk's
+frame count: the slot is exactly `frames × channels` contiguous floats.
 It must run at **audio rate** — a control-rate ScopeOut2
 writes one value per 64-sample block and the scope looks frozen. When the
 synth is freed, the buffer is released (`_status` back to free).

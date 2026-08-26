@@ -25,25 +25,21 @@ sweep every usage in the repo (examples, tests, docs) in the same commit.
 
 ## Documentation policy
 
-Structure is the four buckets above (LLM directives / developer docs /
-implementation-adjacent READMEs / backlog). Maintenance rules:
+Four buckets: LLM directives (this file) / developer docs (docs/) /
+implementation-adjacent READMEs / backlog (TODO.md). Rules:
 
 - **One owner per fact; everything else points.** Attribute contracts →
-  the spec.json files. Constant rationale → the constant's doc comment.
-  Exact error messages → the tests that pin them. Pipeline reasoning →
-  `docs/*.md`. Directives and recipes → this file. Backlog → TODO.md.
-  Package/module shape and intent → the nearest README.
-- **Docs change in the SAME commit as the code they describe** — the
-  pre-release sweep policy explicitly includes prose.
-- **Mechanism-level docs live next to the code** (module headers, doc
-  comments): they ride the diff when the file changes. READMEs describe
-  shape and intent, never parameter lists (those drift). Rust mechanism
-  docs are rustdoc — `//!` headers with intra-doc links, browsed via
-  `cargo doc --no-deps --document-private-items --open`; the backend narrative (boot composition,
-  server-side session lifecycle, plugin pipeline) is architecture.md's
-  "Backend runtime" section.
-- **Before closing a branch**, grep all docs and comments for every symbol
-  the branch renamed or deleted — the cheap staleness sweep.
+  spec.json. Constant rationale → its doc comment. Exact error messages →
+  the pinning tests. Pipeline reasoning → docs/*.md. Module shape/intent →
+  the nearest README.
+- **Docs change in the same commit as the code** (the pre-release sweep
+  policy includes prose).
+- **Mechanism docs live next to the code** — they ride the diff. READMEs
+  never carry parameter lists (those drift). Rust mechanism docs are
+  rustdoc (`cargo doc --no-deps --document-private-items --open`); the
+  backend narrative is architecture.md's "Backend runtime".
+- **Before closing a branch**, grep docs/comments for every symbol the
+  branch renamed or deleted.
 
 ## Quick reference
 
@@ -217,75 +213,48 @@ further `sc-*` element:
 
 ## Validating example plugins (the two gates)
 
-**Unit gate (fast, run on every change)**: `yarn test` — vitest + happy-dom.
-Each suite lives in a `__tests__/` folder beside the unit under test
-(vite.config.ts `test.include` is `src/**/*.test.{ts,tsx}`), with the happy-dom
-setup + shared element-suite helpers in `src/lib/utils/test/` (`test-setup.ts`,
-`test-utils.ts`: `parsePlugin`/`mountPlugin` mounting, `installScsynthMock`/
-`autoRespond` load-pass scripting). Cross-cutting suites sit at their module's
-`__tests__/` (`src/sc-elements/__tests__/{examples,controls}.test.ts`,
-`src/sc-elements/widgets/__tests__/widgets.test.ts`). Tests AND the test
-scaffolding are type-checked by `tsc` (the whole `src` tree is in the build's
-tsconfig); `?raw`/`import.meta.glob` resolve through vite/client.
-`src/sc-elements/__tests__/examples.test.ts` loads every example entry via `import.meta.glob`,
-mounts the authored `<sc-plugin>` root (text/xml parse + whole-root `importNode`),
-and runs `host.processRoot()`. Functional examples must parse clean, and every parsed
-synthdef's collected params/specs must compile (a dedicated describe — the
-load pass compiles at /d_recv time, so the parse alone wouldn't prove it; the
-registry is plain data, happy-dom-safe); the
-runtime `bad-*` fixtures must fail with their **exact** message; plus
-structural assertions (resolved bind targets, runtime fields on the
-elements). The strudel editor stack (browser-only deps that won't import under
-happy-dom — @strudel/codemirror, @strudel/transpiler, @strudel/core) is aliased
-to inert stubs globally (vite.config.ts `test.alias` → `src/lib/utils/test/
-stubs/`); the codemirror stub records constructed editors in `strudelMirrors`
-for widgets.test.ts. Three upload fixtures (bad-metadata, bad-asset-type,
-bad-asset-mismatch) are backend-only validation and excluded here; the
-malformed/schema entry fixtures run through the static gate describe.
-`src/sc-elements/__tests__/controls.test.ts` adds the lifecycle gate (load pass
-send order, store seeding, /n_set wiring, unmount cleanup — against a scripted
-scsynth auto-responder through `handleReply`),
-`src/lib/synthdef/__tests__/compileSynthDef.test.ts` the compiler, and
-`src/lib/osc/__tests__/{OscClient,middleware,logging,errors,status,watchdog}.test.ts`
-cover protocol waiters, transport dispatch, per-concern observation, and
-heartbeat expiry.
+**Unit gate (fast, run on every change)**: `yarn test` — vitest +
+happy-dom. Suites live in `__tests__/` beside the unit under test
+(`test.include` = `src/**/*.test.{ts,tsx}`); happy-dom setup + shared
+helpers in `src/lib/utils/test/` (`parsePlugin`/`mountPlugin`,
+`installScsynthMock`/`autoRespond` load-pass scripting). Tests AND
+scaffolding are tsc-type-checked. The key suites:
+- `sc-elements/__tests__/examples.test.ts` — loads every example entry
+  (import.meta.glob), mounts the authored root, runs `host.processRoot()`.
+  Functional examples parse clean and every parsed synthdef compiles (a
+  dedicated describe — the load pass compiles at /d_recv time, so the parse
+  alone wouldn't prove it); runtime `bad-*` fixtures fail with their
+  **exact** message; plus structural assertions (bind targets, runtime
+  fields). Three upload fixtures (bad-metadata, bad-asset-type,
+  bad-asset-mismatch) are backend-only and excluded; malformed/schema entry
+  fixtures run through the static gate describe. The browser-only strudel
+  editor deps are aliased to inert stubs (vite.config.ts `test.alias`; the
+  codemirror stub records editors in `strudelMirrors` for widgets.test.ts).
+- `controls.test.ts` — the lifecycle gate (send order, store seeding,
+  /n_set wiring, unmount cleanup) against a scripted scsynth auto-responder.
+- `compileSynthDef.test.ts` — the compiler;
+  `lib/osc/__tests__/*` — waiters, transport dispatch, per-concern
+  observation, heartbeat expiry.
 
-**End-to-end gate**: `yarn e2e` — one shot, no setup. The scripts/e2e/
-framework (run.mjs entry + stack.mjs orchestration + cdp.mjs client +
-suites/) packages the examples, boots the WHOLE stack against a THROWAWAY
-app root (serve on a tempdir SC_APP_DIR + vite + scsynth via start-osc.sh +
-fresh-profile headless Chrome on :9222 — refusing to boot if UDP 57110 is
-already bound, so it can never adopt a developer's own scsynth), runs the
-suites, and tears down ONLY what it spawned (reverse-order process-group
-kills, no pkill). Back-to-back runs are idempotent; nothing touches appdir
-or the canonical root. Suites (selectable: `yarn e2e boot`; `yarn smoke` is
-the alias):
-- **boot** — the only real-browser coverage of the app's own story, four
-  coarse polls after a clean-slate tab (old tabs closed + localStorage
-  cleared, defeating the stale-session 409 revive race): the loading
-  fallback paints, the wasm validator initializes through the route loader,
-  a typed violation flows (kind.code + position), and the URL redirects to
-  /:uuid with LIVE scsynth status in the footer (the WS/OSC pipeline proof).
-- **examples** — the upload + runtime gates below.
-`--attach` runs the suites against an ALREADY-RUNNING dev stack (reusing a
-:9222 Chrome when present): fast iteration; uploads REPLACE same-named
-plugins in the attached root (add_plugin's name+version dedupe makes attach
-runs idempotent). What the examples suite does:
-
-1. **Upload gate** — POST each packaged `examples/dist/<name>.zip`
-   (`scripts/package-plugins.sh` is the ONE zipper; a fixture whose zip
-   failed to package fails loudly): expect 201, except the static fixtures
-   (`bad-metadata`, `bad-entry-*`, `bad-asset-*`, the spec ones) → 400
-   envelopes.
-2. **Runtime gate** — for each installed plugin, over CDP `Runtime.evaluate`
-   (with `awaitPromise`): fetch the entry via `/api/plugins/<id>/<entry>` and
-   run it through the Vite-served `parseEntry` (text/xml parse, authored-root
-   check, whole-root importNode + explicit upgrade while disconnected — ONE
-   shared implementation, PluginManager.ts) + `host.processRoot()`. PASS = no
-   throw; the runtime `bad-*` fixtures must FAIL, each with its intentional
-   resolveRuntime error (one per error path — see the `invalid/` table in
-   examples/README.md). Any other failure is a migration bug — report it.
-3. The root is throwaway — no cleanup pass exists.
+**End-to-end gate**: `yarn e2e` — one shot, no setup (design rationale:
+scripts/e2e/README.md). Packages the examples, boots the whole stack on a
+THROWAWAY app root (refusing to boot if UDP 57110 is already bound), runs
+the suites, tears down only what it spawned (scoped group kills, no pkill).
+Back-to-back runs are idempotent; nothing touches appdir or the canonical
+root. Suites (selectable: `yarn e2e boot`; `yarn smoke` = the alias):
+- **boot** — the only real-browser coverage of the app's own story: four
+  coarse polls after a clean-slate tab (loading fallback paints, wasm
+  validator initializes through the route loader, a typed violation flows
+  with kind.code + position, URL redirects to /:uuid with LIVE scsynth
+  status in the footer).
+- **examples** — the upload gate (POST each `examples/dist/<name>.zip`:
+  201, except the static fixtures → 400 envelopes) and the runtime gate
+  (over CDP, each installed plugin through the Vite-served `parseEntry` +
+  `host.processRoot()`; runtime `bad-*` fixtures must fail with their
+  intentional error — see examples/README.md's `invalid/` table; any other
+  failure is a migration bug).
+`--attach` runs against an ALREADY-RUNNING dev stack for fast iteration;
+uploads REPLACE same-named plugins (idempotent), no cleanup pass.
 
 ## The backlog
 

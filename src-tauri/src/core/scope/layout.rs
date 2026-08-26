@@ -137,9 +137,7 @@ pub fn find_scope_buffer_array(region: &MmapRegion) -> Result<ScopeBufferLayout,
 
 /// Find every scope_buffer-shaped structure: `_status` ∈ {0,1} and the
 /// `(_stage,_in,_out)` triple at +24/+28/+32 a permutation of {0,1,2}.
-/// Scan stride is 4 bytes: boost's segment allocator aligns allocations to
-/// at least 4, and a smaller stride would only re-test misaligned offsets
-/// the `i32` reads below reject anyway.
+/// 4-byte scan stride — boost's segment allocator aligns to at least 4.
 fn find_scope_buffer_candidates(bytes: &[u8]) -> Vec<usize> {
     let mut out = Vec::new();
     if bytes.len() < SB_OFF_STAGE + 12 {

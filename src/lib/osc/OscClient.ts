@@ -213,8 +213,8 @@ export class OscClient {
   }
 
   /** Return a slot to the allocator (scope tap torn down). Out-of-span and
-   *  double frees are silently ignored — unload paths can race a reconnect's
-   *  fresh span, and a stale index must not poison the free list. */
+   *  double frees are ignored — unload can race a reconnect's fresh span,
+   *  and a stale index must not poison the free list. */
   freeScopeIndex(index: number): void {
     if (index < this.scopeBase || index >= this.scopeBase + this.scopeCount) return;
     if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);

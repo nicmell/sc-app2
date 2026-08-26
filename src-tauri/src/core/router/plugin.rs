@@ -30,9 +30,8 @@ async fn list() -> Response {
     }
 }
 
-/// `POST /api/plugins` (raw zip body) → 201 PluginInfo; 400 envelope on a
-/// bad bundle (spec-gate failures carry structured `violations`), 500 on
-/// storage trouble.
+/// `POST /api/plugins` (raw zip body) → 201 PluginInfo; 400 on a bad
+/// bundle (spec-gate failures carry `violations`), 500 on storage trouble.
 async fn add(body: Bytes) -> Response {
     match manager::add_plugin(&body) {
         Ok(info) => (StatusCode::CREATED, Json(info)).into_response(),
@@ -49,9 +48,9 @@ async fn remove(Path(id): Path<String>) -> Response {
     }
 }
 
-/// `GET /api/plugins/{id}/{file}` → the file out of the zip (only the entry
-/// and declared assets; content type from the metadata declaration);
-/// 404/403 envelopes on undeclared/escaping paths.
+/// `GET /api/plugins/{id}/{file}` → the file out of the zip (entry +
+/// declared assets only, content type from metadata); 404/403 on
+/// undeclared/escaping paths.
 async fn serve_file(Path((id, file)): Path<(String, String)>) -> Response {
     match manager::read_plugin_file(&id, &file) {
         Ok((content_type, bytes)) => {

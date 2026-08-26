@@ -1,8 +1,8 @@
 //! Hand-rolled lexical gates for the static validator: the XSD lexical
 //! spaces the spec attribute types promise (decimal/integer/boolean) plus
-//! the one-bind-path-segment `name` syntax. Hand-rolled rather than regex
-//! so the wasm build stays dependency-light and the native and wasm gates
-//! share byte-identical acceptance.
+//! the one-bind-path-segment `name` syntax. Hand-rolled over regex to keep
+//! the wasm build dependency-light with byte-identical native/wasm
+//! acceptance.
 
 /// Match the XSD decimal lexical space the spec attribute types declare.
 pub fn xsd_decimal(input: &str) -> bool {

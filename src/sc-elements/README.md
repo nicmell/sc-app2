@@ -1,31 +1,26 @@
 # `src/sc-elements` — the plugin custom elements
 
-The Lit web components plugin HTML is built from. They follow the recipe in the
-root CLAUDE.md ("Migrating an sc-element"): declarative HTML attributes live
-in the sc-validate crate's authored `specs/<tag>.spec.json` (the spec IS the
-attribute contract — it also drives the shared Rust validator; the frontend
-reads the same map from the wasm module) and are read on
-demand via
-`getProp` (spec-coerced; only genuinely-reactive widget fields stay as Lit
-properties). A spec-declared `default` is applied by `getProp` when neither
-the static attr nor a settled bind supplies a value; undeclared attrs remain
-`undefined`, so forwarded props defer to the base widget's own default. Every
-spec attr (unless flagged `runtime: false`) accepts a
+The Lit web components plugin HTML is built from; the migration recipe is
+in the root CLAUDE.md. Declarative attributes live in the sc-validate
+crate's authored `specs/<tag>.spec.json` — the spec IS the attribute
+contract, driving both the shared Rust gate (native at upload, wasm at
+`parseEntry`) and `getProp` coercion; the frontend reads the same map from
+the wasm module. `getProp` reads attrs on demand (spec-coerced; only
+genuinely-reactive widget fields stay Lit properties), applies a
+spec-declared `default` when neither form supplies a value, and leaves
+undeclared attrs `undefined` so forwarded props defer to the base widget's
+own default. Every spec attr (unless `runtime: false`) accepts a
 `bind:`-namespaced sibling holding a bind expression (`bind:min="vars.lo"`,
 `bind:icon="s1.gate ? 'stop' : 'play'"`; entries declare
 `xmlns:bind="urn:sc-app:bind"` on the root) — mutually exclusive with the
-static form, evaluated live and reactive on its sources; `getProp` then
-returns the evaluated value. Static validation lives in the shared Rust
-`src-tauri/crates/sc-validate` crate (native at upload, wasm via
-`lib/plugins/validate` at `parseEntry`); the spec drives both that gate and
-`getProp` coercion. Violations are TYPED: each carries a nested `kind` — a
-stable kebab-case code plus a structured payload (attr/value/allowed/bound)
-— and a 1-based, attribute-precise line:column position; the TS shapes are
-generated from the Rust types by tsify and re-exported by
-`lib/plugins/validate` (`ViolationKind`, `ParseErrorCode`). The engine now runs identity + the ONE extension hook
-`resolveRuntime(ctx)` — runtime construction: the recursion into the sc
-children where the element opens a level (`processChildren`) plus
-bind/reference resolution. **The element IS the
+static form, evaluated live; `getProp` then returns the evaluated value.
+Violations are TYPED: a nested `kind` (stable kebab-case code + structured
+payload) plus a 1-based attribute-precise line:column; TS shapes are
+tsify-generated from the Rust types, re-exported by `lib/plugins/validate`
+(`ViolationKind`, `ParseErrorCode`). The engine runs identity + the ONE
+extension hook `resolveRuntime(ctx)` — recursion into the sc children
+where the element opens a level (`processChildren`) plus bind/reference
+resolution. **The element IS the
 runtime**: the runtime values are plain fields mutated in place (all plain fields
 on the `internal/` bases — `_rootScNode`/`_parentScNode` (live element
 references, not ids) + `basePath` + the

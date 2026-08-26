@@ -55,27 +55,22 @@ directions), and **UDP** (the same OSC bytes, to/from the audio peers).
 
 ```
 main.tsx                 boot: register sc-* elements, render <RouterProvider/>
-routes/                  the react-router DATA-MODE tree (router.tsx):
-                         ONE layout route "/:sessionId?" (OPTIONAL param)
-                         whose loader (routes/Layout layoutLoader) awaits
-                         initValidator() AND the session resolution
-                         concurrently (sessionLoader resolves stored/minted/
-                         revived ids and keeps the URL truthful; either
-                         failure hits RouteError, whose Retry re-runs the
-                         loader — init rejections aren't cached). Its element
-                         Layout is the app frame hosting ToastStack/
-                         ConnectionOverlay + the router-loading scrim, and
-                         owning connect()/disconnect() on its loader data
-                         → DashboardRoute (dashboard + <Outlet/>; the settings
-                         child SettingsRoute at /:sessionId/settings renders
-                         the drawer, open only once the session is connected —
-                         never over the connecting scrim / error modal)
-                         and PluginPage (/:sessionId/plugins/:pluginId — a
-                         full-screen STANDALONE <sc-plugin> instance with its
-                         own runtime map + scsynth group);
-                         RouteError is the loader-failure modal — copy derived
-                         from the error (HttpError = session wording, else the
-                         error's own message; Retry = same-path replace
+routes/                  the react-router DATA-MODE tree (router.tsx): ONE
+                         layout route "/:sessionId?" whose loader awaits
+                         initValidator() AND session resolution concurrently
+                         (sessionLoader resolves stored/minted/revived ids,
+                         keeps the URL truthful; init rejections aren't
+                         cached). Its element Layout is the app frame
+                         (ToastStack/ConnectionOverlay/loading scrim, owns
+                         connect()/disconnect() on its loader data) →
+                         DashboardRoute (dashboard + <Outlet/>; SettingsRoute
+                         at /settings renders the drawer, open only once
+                         connected — never over the scrim/error modal) and
+                         PluginPage (/:sessionId/plugins/:pluginId — a
+                         full-screen STANDALONE <sc-plugin> with its own
+                         runtime map + scsynth group). RouteError is the
+                         loader-failure modal (HttpError = session wording,
+                         else the error's message; Retry = same-path replace
                          navigation, re-runs loaders)
 components/              React shell: Dashboard grid, shared PluginHost (offline
                          fetch/parse/process/mount), plugin picker/list,
@@ -85,43 +80,33 @@ components/              React shell: Dashboard grid, shared PluginHost (offline
                          ui primitives; Retry revalidates the route loaders in
                          place), ui/ (the generic primitives: Modal with
                          title/description/actions slots, LoadingOverlay)
-sc-elements/             Lit elements used inside plugin HTML (see
-                         sc-elements/README.md for the per-element docs): nodes/ (plugin/group/synth),
-                         synthdef/ (synthdef/ugen), state/ (control/var),
-                         inputs/ (slider/knob/checkbox/switch/select/option/
-                         radio-group/radio/button/envelope), visuals/
+sc-elements/             Lit elements used inside plugin HTML (per-element
+                         docs: sc-elements/README.md): nodes/ (plugin/group/
+                         synth), synthdef/ (synthdef/ugen), state/ (control/
+                         var), inputs/ (slider/knob/checkbox/switch/select/
+                         option/radio-group/radio/button/envelope), visuals/
                          (display/if/text/flex/row/col), widgets/ (strudel/
-                         scope/console/keyboard). index.ts is the barrel +
-                         registerScElements(). internal/ is ALSO the runtime:
-                         the element IS the runtime — no item structures.
-                         engine/ is the parse ENGINE (index.ts: free
-                         process/processChildren over a cursor ctx —
-                         ScPlugin.processRoot builds the entry ctx); the
-                         ScElement base carries the common runtime fields +
-                         the two hooks; engine/validation.ts holds the
-                         static-coercion toolbox + failValidation and
-                         engine/resolution.ts the name/scope/bind-resolution
-                         helpers, both as plain functions; static validation
-                         AND the spec data live in the shared Rust sc-validate
-                         crate (violations carry a nested `kind` — a STABLE
-                         kebab-case code + typed payload
-                         (attr/value/allowed/bound) — plus 1-based
-                         line:column positions, attribute-precise; the TS
-                         shapes are GENERATED from the Rust types by tsify
-                         into the committed pkg d.ts, re-exported by
-                         @/lib/plugins/validate: the discriminated union on
-                         ValidationError.violations, classified parse
-                         failures on EntryParseError.parseError, for future
-                         editor diagnostics) (authored per-element specs/<tag>.spec.json
-                         files) — the frontend reads the spec map out of the
-                         wasm module (@/lib/plugins/validate getSpec, parsed at
-                         initValidator; internal/spec.ts re-exports it +
-                         bindAttr/COMMON_ATTRS);
-                         the category bases
-                         (sc-node/sc-state/sc-input)
-                         declare the category props + runtime values; each
-                         component overrides the void resolveRuntime() hook,
-                         mutating the element itself
+                         scope/console/keyboard). index.ts = barrel +
+                         registerScElements(). internal/ is ALSO the runtime
+                         (the element IS the runtime — no item structures):
+                         engine/ is the parse engine (free process/
+                         processChildren over a cursor ctx; ScPlugin.processRoot
+                         builds the entry ctx; validation.ts = static-coercion
+                         toolbox + failValidation, resolution.ts = name/scope/
+                         bind resolution — plain functions); the ScElement
+                         base carries the common runtime fields + hooks; the
+                         category bases (sc-node/sc-state/sc-input) the
+                         category props/values; each component overrides
+                         resolveRuntime(), mutating the element itself.
+                         Static validation AND spec data live in the shared
+                         Rust sc-validate crate (authored specs/<tag>.spec.json;
+                         violations carry a nested `kind` — stable kebab-case
+                         code + typed payload — and 1-based attribute-precise
+                         line:column; TS shapes tsify-GENERATED into the
+                         committed pkg d.ts, re-exported by
+                         @/lib/plugins/validate); the frontend reads the spec
+                         map from the wasm module (getSpec at initValidator;
+                         internal/spec.ts re-exports it + bindAttr/COMMON_ATTRS)
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, toasts, layout, plugins })
                          — the ONLY app-level store. Cross-module shapes come
@@ -151,56 +136,48 @@ lib/                     non-React infrastructure
                          literal (the STRICT static-`value` evaluator,
                          memoized), split (the paren-aware top-level comma
                          splitter every comma consumer uses)
-  http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
-                         HttpError (parses the backend's structured ApiError
-                         envelope — {code: ApiErrorCode, message,
-                         violations?}, the violations typed by the SAME
-                         generated ValidationViolation shape as the wasm
-                         gate; raw-text bodies fall back verbatim), and the
-                         global error observer: unexpected 5xx (never 503 —
-                         the loaders' quiet-retry domain — never 4xx) push a
-                         coalesced toast unless the call passes
-                         notify: false — the rule: a call site with a
-                         DEDICATED error surface opts out
-  osc/                   the OSC endpoint (see lib/osc/README.md):
-                         OscClient (global `oscClient`, plain-packet main-thread client,
-                         owns /g_new of the session group + nextNodeId allocation,
-                         the `connected` signal, and closes itself on critical
-                         transport failures; middleware.ts and middlewares/
-                         observe WorkerClient commands/events to own the osc
-                         store slice (tx/rx console log, /status.reply load,
-                         clock status) and push /fail–/late failures into the
-                         global toasts slice (stores/toasts), while watchdog.ts
-                         owns heartbeat expiry and exposes its status observer;
-                         AND the elements' scsynth command methods — every
+  http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL,
+                         wsUrl(), HttpError (parses the ApiError envelope —
+                         {code: ApiErrorCode, message, violations?}, the
+                         violations typed by the same generated shape as the
+                         wasm gate; raw-text bodies fall back verbatim), and
+                         the global error observer: unexpected 5xx (never 503
+                         — the loaders' quiet-retry domain — never 4xx) push
+                         a coalesced toast unless the call passes notify:
+                         false (the rule: a dedicated error surface opts out)
+  osc/                   the OSC endpoint (see lib/osc/README.md): OscClient
+                         (global `oscClient`, main-thread client — owns /g_new
+                         of the session group, nextNodeId allocation, the
+                         `connected` signal, closes itself on critical
+                         failures; plus the elements' command methods, every
                          sequenced send + reply wait: createGroup/createSynth
-                         (→ /n_go, returning the allocated node id),
-                         sendSynthDef (/d_recv + embedded /sync ack),
-                         freeGroup/freeSynthDef/freeSynth/setControl,
-                         subscribeClock(intervalMs, cb) + bridge-synced clockNow()
-                         (worker absolute-phase ticks; subscriptions survive
-                         reconnect/respawn — see clock.md),
-                         subscribeScope(…, onChunk) → {subId, off} (handler
-                         registered under the minted subId before the send;
-                         decoded chunks dispatch by subId from handleReply;
-                         off also stops the bridge stream) + the scope-slot
-                         allocator (allocScopeIndex/freeScopeIndex over the
-                         session's server-assigned span))
-                         → worker/WorkerClient.ts (global `workerClient`: the
+                         (→ /n_go, returns the node id), sendSynthDef
+                         (/d_recv + embedded /sync ack), freeGroup/
+                         freeSynthDef/freeSynth/setControl,
+                         subscribeClock(intervalMs, cb) + clockNow()
+                         (absolute-phase worker ticks, survive reconnect —
+                         see clock.md), subscribeScope(…, onChunk) →
+                         {subId, off} (handler registered before the send;
+                         chunks dispatch by subId from handleReply) and the
+                         scope-slot allocator over the session's span);
+                         middleware.ts + middlewares/ observe WorkerClient
+                         to own the osc slice (console log, /status.reply
+                         load, clock status) and toast /fail–/late;
+                         watchdog.ts owns heartbeat expiry
+                         → worker/WorkerClient.ts (global `workerClient`:
                            permanent-worker proxy, respawn-on-crash + status)
-                         → worker/worker.ts (Web Worker OSC endpoint: plain
-                           `{type:"osc", packet}` protocol ⇄ codec ⇄ bytes;
-                           `/clock/*` estimator + absolute-phase scheduler)
-                         → worker/transport.ts (raw in-worker WebSocket). The
-                           binary codec dependency is worker-only.
-  session/               SessionManager (global `session`): the LIVE-connection
-                         half — connect(info)/disconnect() (epoch-guarded, with
-                         a one-tick deferred disconnect so a StrictMode remount
-                         with the same loader info keeps the standing WS),
-                         observes oscClient's close (→ conn status), 10s layout
-                         autosave on worker clock ticks; resolveSession.ts: the route loaders —
-                         mint/revive over HTTP, localStorage ownership, the
-                         bounded 503 quiet-retry, the mint→redirect handoff
+                         → worker/worker.ts (Web Worker endpoint:
+                           `{type:"osc", packet}` ⇄ codec ⇄ bytes; the
+                           `/clock/*` estimator + tick scheduler)
+                         → worker/transport.ts (raw in-worker WebSocket).
+                           The binary codec dependency is worker-only.
+  session/               SessionManager (global `session`): the LIVE half —
+                         epoch-guarded connect(info)/disconnect() (one-tick
+                         deferred for StrictMode remounts), close → conn
+                         status, 10 s layout autosave on worker clock ticks;
+                         resolveSession.ts: the route loaders — mint/revive
+                         over HTTP, localStorage ownership, bounded 503
+                         quiet-retry, the mint→redirect handoff
   scope/                 scopeTapSynthDef: the ScopeOut2 tap def, compiled per
                          (channels, chunkSize) with inBus/scopeNum as controls.
                          No controller — each <sc-scope> element owns its tap
@@ -233,25 +210,23 @@ loader (`lib/session/resolveSession.ts` sessionLoader) owns resolution and
 every localStorage write:
 
 1. Resolution: a param-less URL replace-redirects to the stored
-   `localStorage["sc.session"]` id (or mints one via `POST /api/session` when
-   nothing is stored); with the param the loader `GET`s that id — **reviving** the saved session under
-   the same UUID (fresh node-id block, saved layout) — and a dead/unknown id
-   mints a fresh session and replace-redirects again (the minted info rides a
-   module-level handoff to the redirect target's loader, no re-GET). While
-   scsynth is unregistered the server answers 503 (it binds without waiting
-   for scsynth, so the GUI window opens regardless) and the loaders retry
-   quietly under the connecting fallback within the SCSYNTH_RETRY_LIMIT
-   budget (~5 s); exhaustion throws into RouteError, whose Retry is a
-   same-path replace navigation (re-runs the loaders, fresh budget).
+   `localStorage["sc.session"]` id (mints one via `POST /api/session` when
+   nothing is stored); with the param the loader `GET`s that id —
+   **reviving** it under the same UUID (fresh node-id block, saved layout) —
+   and a dead/unknown id mints fresh and replace-redirects again (the minted
+   info rides a module-level handoff to the redirect target's loader, no
+   re-GET). While scsynth is unregistered the server answers 503 and the
+   loaders retry quietly under the connecting fallback within the
+   SCSYNTH_RETRY_LIMIT budget (~5 s); exhaustion throws into RouteError,
+   whose Retry is a same-path replace navigation (fresh budget).
 2. Connection: Layout's effect hands the loader's SessionInfo to
    `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS
-   (in the worker) and sends `/g_new` — the session group lives **at the tail
-   of scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`
-   over the server-assigned block. A WS drop after connecting flips the status
-   slice to "error"; the ConnectionOverlay's Retry revalidates the loaders in
-   place (new info object → reconnect; a dead session revives-or-mints).
-   Child navigation (dashboard ↔ settings ↔ plugin page) never re-runs the
-   session loader, so it never reconnects.
+   (in the worker) and `/g_new`s the session group **at the tail of
+   scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`
+   over the server-assigned block. A WS drop flips the status slice to
+   "error"; the ConnectionOverlay's Retry revalidates the loaders in place
+   (new info object → reconnect; a dead session revives-or-mints). Child
+   navigation never re-runs the session loader, so it never reconnects.
 3. Every 10 s the SessionManager `PUT`s the layout to `/api/session/{id}` when it
    changed; the server stores it under the app data dir (see below).
 4. WS close (reload/quit) → the server ends the session and frees its group.
@@ -334,41 +309,36 @@ root-relative > `<root>/logs` — file logging is default-ON).
 
 ### Backend runtime
 
-(The narrative; mechanism details live in the module headers — browse them
-linked with `cargo doc --no-deps --document-private-items --open`.)
+(Narrative only; mechanism details are in the module headers —
+`cargo doc --no-deps --document-private-items --open`.)
 
-**Boot composition** — `core::start(config_path, log_dir)` is the ONE chain
-both run modes call: config load → logger init → `Bridge` (UDP peers +
-inbound broadcast fan-out; protocol-agnostic) → `Scsynth` supervisor riding
-on it (`/notify` registration for a clientID, 1 Hz `/status` heartbeat,
-re-registration after `MAX_STATUS_MISSES`, `/notify 0` on shutdown) →
-`Server` (the app-logic facade axum holds as State) → `router::listen`.
-The server binds WITHOUT waiting for scsynth — session routes answer 503
-(`scsynth-unregistered`) until the supervisor registers. A scsynth restart
-bumps the **registration generation**; per-generation caches (the scope SHM
-mapping) invalidate on it. The GUI mode runs the same chain, then builds the
-window with the bound port injected (`cli/gui.rs`).
+**Boot** — `core::start(config_path, log_dir)`, the one chain both run
+modes call: config → logger → `Bridge` (protocol-agnostic UDP peers +
+inbound broadcast fan-out) → `Scsynth` supervisor on it (`/notify`
+registration for a clientID, 1 Hz `/status` heartbeat, re-registration
+after `MAX_STATUS_MISSES`, `/notify 0` on shutdown) → `Server` (the
+app-logic facade, axum State) → `router::listen`. The server binds WITHOUT
+waiting for scsynth — session routes answer 503 (`scsynth-unregistered`)
+until registration. A scsynth restart bumps the registration generation,
+invalidating per-generation caches (the scope SHM mapping). GUI mode runs
+the same chain, then builds the window with the bound port injected.
 
-**Server-side session state machine** — a session id is CREATED
-(`POST /api/session`: uuid + a `blocks.rs` id-block; the layout only
-reaches `layouts.rs` once the client PUTs it) or REVIVED
-(`GET /api/session/{id}`: same uuid, FRESH block, saved layout); either
-way it is not yet live. The WS handshake
-(`/ws?session=<uuid>`) `attach`es it — unknown id → 404 envelope, already
-attached → 409 `session-busy` (one socket per session) — and from there the
-session lives exactly as long as the socket: close → `end_session` (free
-the scsynth group, recycle the block, forget the live entry; the SAVED
-layout survives). Shutdown drains all live sessions, freeing groups one by
-one, then unregisters.
+**Session state machine** — CREATED (`POST /api/session`: uuid + a
+`blocks.rs` id-block; layout reaches `layouts.rs` only on the client's
+first PUT) or REVIVED (`GET`: same uuid, FRESH block, saved layout) — not
+yet live either way. The WS handshake `attach`es it (unknown → 404, already
+attached → 409 `session-busy`; one socket per session); from there the
+session lives exactly as long as the socket: close → `end_session` frees
+the group, recycles the block, forgets the live entry — the saved layout
+survives. Shutdown drains all live sessions, then unregisters.
 
-**Plugin pipeline** (`plugin/manager.rs`, shared by the HTTP route and the
-CLI): zip parse → `metadata.json` field validation → the entry through the
-sc-validate spec gate (typed violations, the same wire shape the wasm gate
-emits) → asset checks (declared type vs sniffed image content) → write
-`<id>.zip` + registry update, dropping any prior copy of the same
-name+version (upload = replace). Everything is stateless fs over the app
-root — the CLI needs no server (dev-only accepted race: both rewrite
-plugins.json unlocked).
+**Plugin pipeline** (`plugin/manager.rs`, shared by HTTP route and CLI):
+zip parse → metadata validation → entry through the sc-validate spec gate
+(same wire shape as the wasm gate) → asset checks (declared vs sniffed
+image type) → write `<id>.zip` + registry, dropping any prior same
+name+version (upload = replace). Stateless fs over the app root — the CLI
+needs no server (accepted dev-only race: both rewrite plugins.json
+unlocked).
 
 ### Key constants
 
@@ -487,11 +457,10 @@ referenced before it is declared` when a bind names an in-scope element
    self-reference surfaces in the lexical fallback / DOM probe —
    `bad-circular-bind` pins the message).
 8. **Two validation gates** keep all of this honest: the shared Rust
-   `sc-validate` crate runs natively at upload and as wasm at frontend
-   `parseEntry` (multi-error, one per line), while `yarn vitest run` (the ONE
-   owner of the fixtures' exact messages — examples.test.ts) and the CDP
-   harness pin the frontend runtime and the full upload path in happy-dom
-   and a real browser — see "Validating example plugins" in CLAUDE.md.
+   `sc-validate` gate (invariant 5), plus `yarn vitest run` (the ONE owner
+   of the fixtures' exact messages — examples.test.ts) and the e2e suites
+   pinning the frontend runtime and the full upload path in happy-dom and a
+   real browser — see "Validating example plugins" in CLAUDE.md.
 
 ## Element status
 

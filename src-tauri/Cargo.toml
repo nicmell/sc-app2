@@ -36,7 +36,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync",
 axum = { version = "0.8", features = ["ws"] }
 # CORS for the loopback API: the GUI webview is always cross-origin to the
 # embedded server (tauri://localhost in prod, the Vite devUrl in dev).
-tower-http = { version = "0.6", features = ["cors"] }
+tower-http = { version = "0.6", features = ["cors", "catch-panic"] }
 
 # Content-type guessing for served frontend assets.
 mime_guess = "2"
@@ -70,3 +70,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg"]
 # Visible title-bar style, so no webview content renders under the bar.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSResponder"] }
+[dev-dependencies]
+# Router-level extractor tests (ApiPath rejection) drive the Router as a
+# tower Service — the version axum already depends on.
+tower = { version = "0.5", features = ["util"] }

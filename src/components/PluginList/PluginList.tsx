@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { Button, Alert, Empty, Flex } from "@/components/ui";
-import { useStore } from "@/stores/useStore";
+import { HttpError } from "@/lib/http";
 import { plugins, uploadPlugin, deletePlugin } from "@/stores/plugins";
+import { pushToast } from "@/stores/toasts";
+import { useStore } from "@/stores/useStore";
 import type { PluginInfo } from "@/types/api";
 import styles from "./PluginList.module.scss";
 
@@ -10,7 +12,7 @@ import styles from "./PluginList.module.scss";
 export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void }) {
   const installed = useStore(plugins);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,9 +21,24 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
     try {
       await uploadPlugin(file);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? err : new Error(String(err)));
     }
     e.target.value = "";
+  };
+
+  const onDelete = async (p: PluginInfo) => {
+    try {
+      await deletePlugin(p.id);
+    } catch (err) {
+      // 5xx already toasted by the http observer (which skips 503 — mirror
+      // that here); keep the local toast for everything else, including
+      // non-HttpError failures (fetch rejections never reach the observer).
+      if (err instanceof HttpError && err.status >= 500 && err.status !== 503) return;
+      pushToast({
+        variant: "error",
+        message: `failed to remove ${p.name}: ${err instanceof Error ? err.message : String(err)}`,
+      });
+    }
   };
 
   return (
@@ -49,7 +66,7 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
               iconOnly
               icon="x"
               label={`Remove ${p.name}`}
-              onClick={() => void deletePlugin(p.id)}
+              onClick={() => void onDelete(p)}
             />
           )}
         </Flex>
@@ -65,7 +82,18 @@ export function PluginList({ onSelect }: { onSelect?: (p: PluginInfo) => void })
           />
         </>
       )}
-      {error && <Alert variant="error">{error}</Alert>}
+      {error && (
+        <Alert variant="error">
+          {error.message}
+          {error instanceof HttpError && error.violations && (
+            <ul className={styles.violations}>
+              {error.violations.map((violation) => (
+                <li key={violation.message}>{violation.message}</li>
+              ))}
+            </ul>
+          )}
+        </Alert>
+      )}
     </Flex>
   );
 }

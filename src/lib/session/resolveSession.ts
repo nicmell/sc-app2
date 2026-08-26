@@ -15,28 +15,38 @@ import type { SessionInfo } from "@/types/api";
 import { generatePath, replace, type LoaderFunctionArgs } from "react-router";
 
 /** Mint a fresh session. The server allocates the group id + node range;
- *  503 = scsynth not registered (the bounded quiet-retry case). */
+ *  `scsynth-unregistered` 503 = the bounded quiet-retry case. Loader
+ *  failures surface in RouteError — no observer toast (notify: false). */
 async function createSession(): Promise<SessionInfo> {
-  return await (await post("/api/session")).json();
+  return await (await post("/api/session", null, { notify: false })).json();
 }
 
-/** Revive a stored session id (GET returns its info + saved layout), or
- *  `null` on failure — the caller falls back to minting a fresh one. A 503
- *  propagates instead: scsynth isn't registered, so the fallback POST would
- *  only burn a second registration long-poll to learn the same thing. */
+/** Revive a stored session id (GET returns its info + saved layout).
+ *  `null` — the mint fallback — ONLY when the envelope says the id can
+ *  never revive: `session-unknown` (no live entry, no saved layout) or
+ *  `bad-request` (a garbage id that is not a UUID). Everything else
+ *  RETHROWS: a transient 500 or network failure must not silently abandon
+ *  the stored session and its saved layout (it lands in RouteError, whose
+ *  Retry re-resolves the SAME id). */
 async function fetchSession(id: string): Promise<SessionInfo | null> {
   try {
-    return await (await get(`/api/session/${id}`)).json();
+    return await (await get(`/api/session/${id}`, { notify: false })).json();
   } catch (error) {
-    if (error instanceof HttpError && error.status === 503) throw error;
-    return null;
+    if (
+      error instanceof HttpError &&
+      (error.code === "session-unknown" || error.code === "bad-request")
+    ) {
+      return null;
+    }
+    throw error;
   }
 }
 
-/** Retry 503s quietly ("scsynth not registered yet" — the user simply hasn't
- *  started it) within the bounded budget; the router shows the loading
- *  fallback meanwhile. Exhaustion (or any other failure) throws into the route
- *  errorElement, whose Retry re-navigates with a fresh budget. */
+/** Retry the `scsynth-unregistered` envelope quietly (the user simply
+ *  hasn't started scsynth) within the bounded budget; the router shows the
+ *  loading fallback meanwhile. Code-STRICT: any other failure — including a
+ *  raw-text 503 from some hypothetical intermediary — throws into the route
+ *  errorElement immediately, whose Retry re-navigates with a fresh budget. */
 async function with503Retry<T>(fn: () => Promise<T>): Promise<T> {
   let attempts = 0;
   while (true) {
@@ -45,7 +55,7 @@ async function with503Retry<T>(fn: () => Promise<T>): Promise<T> {
     } catch (error) {
       if (
         !(error instanceof HttpError) ||
-        error.status !== 503 ||
+        error.code !== "scsynth-unregistered" ||
         attempts >= SCSYNTH_RETRY_LIMIT
       ) {
         throw error;

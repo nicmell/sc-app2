@@ -9,6 +9,7 @@
 
 pub mod assets;
 mod diag;
+mod error;
 mod plugin;
 mod session;
 mod ws;
@@ -58,7 +59,21 @@ pub fn router(server: Server, assets: Option<Arc<dyn AssetResolver>>) -> Router 
         .merge(ws::routes())
         .merge(plugin::routes())
         .merge(diag::routes())
+        // Unknown /api/* paths (and bare /api) get the JSON envelope, not
+        // the page fallback (production) or axum's empty 404 (dev); a wrong
+        // METHOD on a registered path gets the envelope's 405.
+        .route("/api", axum::routing::any(error::api_not_found))
+        .route("/api/{*rest}", axum::routing::any(error::api_not_found))
+        .method_not_allowed_fallback(error::method_not_allowed)
         .with_state(server)
+        // A handler panic becomes the envelope's opaque 500 instead of a
+        // connection reset / empty body. Added BEFORE the CORS layer (the
+        // last .layer() is outermost) so the substituted 500 still flows
+        // through CORS — without the headers, the cross-origin webview's
+        // fetch rejects and the envelope is unreadable.
+        .layer(tower_http::catch_panic::CatchPanicLayer::custom(
+            error::panic_response,
+        ))
         // The GUI webview is ALWAYS cross-origin to this server
         // (`tauri://localhost` in prod, the Vite devUrl in dev — only a
         // plain browser via the Vite proxy is same-origin), so without CORS

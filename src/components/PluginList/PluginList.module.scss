@@ -18,3 +18,13 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-mute);
 }
+
+/* The spec gate's structured violations, one display line each (they carry
+   their (line:col) position) — monospace so positions align. */
+.violations {
+  margin: var(--space-xs) 0 0;
+  padding-left: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}

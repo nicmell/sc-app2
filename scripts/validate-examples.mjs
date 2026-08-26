@@ -128,7 +128,13 @@ for (const dir of dirs.sort()) {
       uploadedIds.push(id);
       uploadNote = "201";
     } else {
-      const msg = (await resp.text()).split("\n")[0].slice(0, 90);
+      const text = await resp.text();
+      let msg;
+      try {
+        msg = String(JSON.parse(text).message).split("\n")[0].slice(0, 90);
+      } catch {
+        msg = text.split("\n")[0].slice(0, 90);
+      }
       const expected = EXPECT_UPLOAD_FAIL.has(name);
       rows.push({
         dir,

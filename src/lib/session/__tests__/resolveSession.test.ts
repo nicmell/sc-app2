@@ -47,6 +47,12 @@ function loadSession(sessionId?: string): Promise<unknown> {
   return sessionLoader({ params: { sessionId } } as unknown as LoaderFunctionArgs);
 }
 
+/** A REAL envelope body — the un-mocked HttpError parses it, so these cases
+ *  double as envelope integration coverage. */
+function apiError(status: number, statusText: string, code: string, message: string): HttpError {
+  return new HttpError(status, statusText, JSON.stringify({ code, message }));
+}
+
 /** Loader redirects are replace() Responses; assert the target. */
 function expectReplaceTo(result: unknown, location: string): void {
   expect(result).toBeInstanceOf(Response);
@@ -92,7 +98,9 @@ describe("sessionLoader with a session param", () => {
   });
 
   it("mints a fresh session when the URL's id is dead, then hands it off without a re-GET", async () => {
-    http.get.mockRejectedValue(new HttpError(404, "Not Found", "unknown session\n"));
+    http.get.mockRejectedValue(
+      apiError(404, "Not Found", "session-unknown", "session dead-1 not found"),
+    );
     http.post.mockResolvedValue(jsonResponse(info("fresh-2")));
     expectReplaceTo(await loadSession("dead-1"), "/fresh-2");
     expect(localStorage.getItem(SESSION_KEY)).toBe("fresh-2");
@@ -102,10 +110,15 @@ describe("sessionLoader with a session param", () => {
     expect(http.get).toHaveBeenCalledTimes(1); // only the dead id was ever GET
   });
 
-  it("retries 503s quietly within the budget, then throws to the errorElement", async () => {
+  it("retries the scsynth-unregistered envelope quietly within the budget, then throws", async () => {
     vi.useFakeTimers();
     http.get.mockRejectedValue(
-      new HttpError(503, "Service Unavailable", "scsynth not registered yet; retry\n"),
+      apiError(
+        503,
+        "Service Unavailable",
+        "scsynth-unregistered",
+        "scsynth not registered yet; retry",
+      ),
     );
     const pending = loadSession("url-1");
     const outcome = pending.then(
@@ -121,5 +134,47 @@ describe("sessionLoader with a session param", () => {
     // The 503 never falls back to minting — POST would just burn a second
     // registration long-poll.
     expect(http.post).not.toHaveBeenCalled();
+  });
+});
+
+describe("code-aware fallback precision", () => {
+  it("a transient 500 no longer abandons the stored session — it propagates", async () => {
+    localStorage.setItem(SESSION_KEY, "url-1");
+    http.get.mockRejectedValue(
+      apiError(500, "Internal Server Error", "internal", "plugins.json is corrupt"),
+    );
+    await expect(loadSession("url-1")).rejects.toMatchObject({ code: "internal" });
+    expect(http.post).not.toHaveBeenCalled();
+    expect(localStorage.getItem(SESSION_KEY)).toBe("url-1");
+  });
+
+  it("a non-HttpError failure (native-mode backend down) propagates, no mint", async () => {
+    http.get.mockRejectedValue(new TypeError("Load failed"));
+    await expect(loadSession("url-1")).rejects.toThrow("Load failed");
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  it("a raw-text 503 is NOT quiet-retried — code-strict throws immediately", async () => {
+    http.get.mockRejectedValue(new HttpError(503, "Service Unavailable", "proxy says no"));
+    await expect(loadSession("url-1")).rejects.toBeInstanceOf(HttpError);
+    expect(http.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("a 404 with a foreign code rethrows — the discriminator is the code, not the status", async () => {
+    http.get.mockRejectedValue(apiError(404, "Not Found", "not-found", "no such API route"));
+    await expect(loadSession("url-1")).rejects.toMatchObject({ code: "not-found" });
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  it("a bad-request 400 (garbage id) falls back to minting", async () => {
+    http.get.mockRejectedValue(
+      apiError(400, "Bad Request", "bad-request", "Invalid URL: Cannot parse ..."),
+    );
+    http.post.mockResolvedValue(jsonResponse(info("fresh-3")));
+    expectReplaceTo(await loadSession("not-a-uuid"), "/fresh-3");
+    // Consume the module-level mint handoff so it cannot leak into another
+    // test (beforeEach can't reset it).
+    const handed = (await loadSession("fresh-3")) as SessionInfo;
+    expect(handed.sessionId).toBe("fresh-3");
   });
 });

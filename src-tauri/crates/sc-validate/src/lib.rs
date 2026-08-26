@@ -7,7 +7,7 @@ mod spec;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 
-pub use rules::{Violation, ViolationKind};
+pub use rules::{ValidationViolation, Violation, ViolationKind};
 
 /// The classification of a document-level failure — the input never reached
 /// (or survived) the XML parser, so there are no per-element violations.

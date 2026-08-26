@@ -29,6 +29,7 @@ use axum::{Json, Router};
 use serde_json::{json, Value};
 use tokio::time::timeout;
 
+use super::error::ApiError;
 use crate::core::osc::{self, OscType};
 use crate::core::server::Server;
 
@@ -70,12 +71,18 @@ async fn nodetree(State(server): State<Server>) -> Response {
 
     match reply {
         Ok(Some(args)) => Json(parse_query_tree(&args)).into_response(),
-        Ok(None) => (StatusCode::BAD_GATEWAY, "bridge closed before reply\n").into_response(),
-        Err(_) => (
-            StatusCode::GATEWAY_TIMEOUT,
-            "no /g_queryTree.reply within 2s (scsynth down?)\n",
+        Ok(None) => ApiError::new(
+            StatusCode::BAD_GATEWAY,
+            "bridge-closed",
+            "bridge closed before reply",
         )
-            .into_response(),
+        .into_response(),
+        Err(_) => ApiError::new(
+            StatusCode::GATEWAY_TIMEOUT,
+            "scsynth-timeout",
+            "no /g_queryTree.reply within 2s (scsynth down?)",
+        )
+        .into_response(),
     }
 }
 

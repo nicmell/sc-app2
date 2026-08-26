@@ -20,6 +20,7 @@ import { put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
 import { appStore } from "@/stores/store";
+import { pushToast } from "@/stores/toasts";
 import type { SessionInfo } from "@/types/api";
 import type { BoxItem, ConnStatus } from "@/types/stores";
 
@@ -123,11 +124,23 @@ export class SessionManager {
       if (current === this.lastSavedLayout) return;
       put(`/api/session/${sessionId}`, JSON.stringify(current), {
         headers: { "content-type": "application/json" },
+        // The coalesced toast below is this call's dedicated surface (it
+        // also covers the 404 dead-session case the 5xx observer skips).
+        notify: false,
       }).then(
         () => {
           this.lastSavedLayout = current;
         },
-        (error) => console.warn("[session] layout save failed:", error),
+        (error: unknown) => {
+          console.warn("[session] layout save failed:", error);
+          // Coalesced (one toast, bumped count) — the autosave retries every
+          // tick, and a dead session/registry must not stack banners.
+          pushToast({
+            variant: "warn",
+            key: "session:layout-save",
+            message: `layout save failed: ${error instanceof Error ? error.message : String(error)}`,
+          });
+        },
       );
     }).off;
   }

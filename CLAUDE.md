@@ -153,7 +153,16 @@ lib/                     non-React infrastructure
                          memoized), split (the paren-aware top-level comma
                          splitter every comma consumer uses)
   http/                  get/post/put/patch/del prefixed with HTTP_BASE_URL, wsUrl(),
-                         HttpError (carries the response body, e.g. plugin validation errors)
+                         HttpError (parses the backend's structured ApiError
+                         envelope — {code: ApiErrorCode, message,
+                         violations?}, the violations typed by the SAME
+                         generated ValidationViolation shape as the wasm
+                         gate; raw-text bodies fall back verbatim), and the
+                         global error observer: unexpected 5xx (never 503 —
+                         the loaders' quiet-retry domain — never 4xx) push a
+                         coalesced toast unless the call passes
+                         notify: false — the rule: a call site with a
+                         DEDICATED error surface opts out
   osc/                   the OSC endpoint (see lib/osc/README.md):
                          OscClient (global `oscClient`, plain-packet main-thread client,
                          owns /g_new of the session group + nextNodeId allocation,
@@ -293,7 +302,13 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   SessionScopes — one session's subscriptions, span gating,
                   latest-only chunk staging, owned by the WS task; ws.rs
                   stays pure transport). See scope.md
-  router/         axum: session.rs (POST/GET-revive/PUT-layout/DELETE),
+  router/         axum: error.rs (the STRUCTURED ApiError envelope —
+                  {code, message, violations?} JSON with stable kebab-case
+                  codes — spoken by EVERY server error: handlers, ws
+                  handshake rejections, unknown-/api/* fallback, malformed
+                  JSON bodies via ApiJson, handler panics via
+                  CatchPanicLayer; only the assets page fallback stays
+                  text), session.rs (POST/GET-revive/PUT-layout/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
 ```

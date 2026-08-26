@@ -149,6 +149,38 @@ impl Violation {
     }
 }
 
+/// The violation WIRE shape — [`Violation`] plus the pre-rendered display
+/// line — shared by every consumer boundary: the wasm gate returns it (typed
+/// by tsify into the pkg d.ts) and the HTTP ApiError envelope embeds it, so
+/// the frontend reads ONE generated type either way.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
+pub struct ValidationViolation {
+    /// The authored local tag of the offending element.
+    pub tag: String,
+    /// The typed classification: `{code, …payload}`.
+    pub kind: ViolationKind,
+    /// 1-based source line.
+    pub line: u32,
+    /// 1-based source column.
+    pub column: u32,
+    /// The canonical display line: `<tag>: message (line:col)`.
+    pub message: String,
+}
+
+impl From<Violation> for ValidationViolation {
+    fn from(violation: Violation) -> Self {
+        let message = violation.render();
+        Self {
+            tag: violation.tag,
+            kind: violation.kind,
+            line: violation.line,
+            column: violation.column,
+            message,
+        }
+    }
+}
+
 /// Validate a document element using the generated specification. `source` is
 /// the document text the node was parsed from — needed to recover AUTHORED
 /// attribute qnames (`bind:min`), matching DOM getAttribute semantics.

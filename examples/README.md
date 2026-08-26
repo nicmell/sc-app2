@@ -103,7 +103,8 @@ targets a single error path in the sc-elements runtime
 | `bad-param-bind`         | `sc-synthdef resolveRuntime`              | `bind:value` is not allowed on a direct synthdef param `sc-control`; graph inputs inside `sc-ugen` use `bind:value` or `value`                                                                                                                                                                               |
 
 (The `spec gate` rows are STATIC fixtures: the sc-validate crate rejects
-them at upload (400, every violation one per line) AND at frontend
+them at upload (400 with the structured ApiError envelope — code
+`plugin-spec-violations` + the typed violations array) AND at frontend
 `parseEntry` — the unit suite (`examples.test.ts`) is the ONE owner of their
 exact, possibly multi-line, messages; native and wasm share the crate, so
 those pins cover both builds.)

@@ -18,12 +18,6 @@ import {
   ADDR_N_GO,
   ADDR_SYNCED,
   AddToTail,
-  CLOCK_STATUS_ADDRESS,
-  CLOCK_TICK_ADDRESS,
-  ClockStatus,
-  ClockTick,
-  clockSubscribe,
-  clockUnsubscribe,
   dFree,
   dRecv,
   gFreeAll,
@@ -127,8 +121,12 @@ export class OscClient {
       // Replayed subscriptions restart their tick phase — fine for a
       // crash-recovery path; consumers only rely on the cadence.
       for (const [id, sub] of this.clockSubs) {
-        workerClient.send(clockSubscribe(id, sub.intervalMs));
+        workerClient.command({ type: "clock-subscribe", id, intervalMs: sub.intervalMs });
       }
+    } else if (event.type === "clock-tick") {
+      this.clockSubs.get(event.id)?.cb();
+    } else if (event.type === "clock-status") {
+      if (Number.isFinite(event.offset)) this.clockOffset = event.offset;
     } else if (event.type === "osc") {
       walkPacket(event.packet, (message) => this.handleReply(message));
     } else if (event.type === "error") {
@@ -406,16 +404,17 @@ export class OscClient {
     };
   }
 
-  /** Start an absolute-phase tick stream in the worker. Unlike scope streams,
-   *  clock subscriptions survive socket reconnects and worker respawns. */
+  /** Start an absolute-phase tick stream in the worker (a typed protocol
+   *  service — never OSC, never the wire). Unlike scope streams, clock
+   *  subscriptions survive socket reconnects and worker respawns. */
   subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
     const id = this.nextClockSubId++;
     this.clockSubs.set(id, { intervalMs, cb });
-    workerClient.send(clockSubscribe(id, intervalMs));
+    workerClient.command({ type: "clock-subscribe", id, intervalMs });
     return {
       id,
       off: () => {
-        if (this.clockSubs.delete(id)) workerClient.send(clockUnsubscribe(id));
+        if (this.clockSubs.delete(id)) workerClient.command({ type: "clock-unsubscribe", id });
       },
     };
   }
@@ -431,20 +430,9 @@ export class OscClient {
   }
 
   /** Route an inbound reply to protocol consumers. Public for unit tests —
-   *  normally fed by worker packet events. */
+   *  normally fed by worker packet events. Clock ticks/status no longer pass
+   *  here — they are typed transport events, not OSC. */
   handleReply(reply: OscMessage): void {
-    if (reply.address === CLOCK_TICK_ADDRESS) {
-      this.clockSubs.get(ClockTick.id(reply))?.cb();
-      return;
-    }
-    if (reply.address === CLOCK_STATUS_ADDRESS) {
-      const offset = ClockStatus.offset(reply);
-      const rtt = ClockStatus.rtt(reply);
-      if (Number.isFinite(offset) && Number.isFinite(rtt)) {
-        this.clockOffset = offset;
-      }
-      return;
-    }
     // One-shot waiters first — the message still falls through to the
     // protocol routing below (transport middleware has already observed it).
     const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));

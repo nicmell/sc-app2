@@ -23,12 +23,14 @@ Two distinct problems share one solution:
 
 ## 2. Protocol
 
-All sync traffic is plain OSC messages. Like `/scope/*`, the `/clock/*` family
-is **bridge-internal**: the WS pump intercepts it before peer routing
-(`src-tauri/src/core/router/ws.rs`), and the strudel/scsynth peer regexes never
-match it. Vocabulary lives in `packages/server-commands/src/commands/clock.ts`
-⇄ `src-tauri/src/core/clock.rs` (the exact `/clock/pong` wire bytes are pinned
-byte-for-byte in both languages' test suites).
+Only ping/pong are OSC — the one part of the clock that actually crosses the
+wire. Like `/scope/*`, the `/clock/*` family is **bridge-internal**: the WS
+pump intercepts it before peer routing (`src-tauri/src/core/router/ws.rs`),
+and the strudel/scsynth peer regexes never match it. The wire vocabulary
+lives in `packages/server-commands/src/commands/clock.ts` ⇄
+`src-tauri/src/core/clock.rs` (the exact `/clock/pong` wire bytes are pinned
+byte-for-byte in both languages' test suites). Everything else — subscribe/
+unsubscribe/tick/status — is TYPED worker protocol, not OSC (below).
 
 ### Worker ⇄ bridge (over the session WebSocket)
 
@@ -45,20 +47,20 @@ seqs are ignored; the map clears on socket open/close. The bridge captures
 `srv` _before_ replying (ahead of any await, so send backpressure can't bias
 the timestamp) and answers inline on the same socket.
 
-### Webview ⇄ worker (postMessage, same `{type:"osc"}` envelope)
+### Webview ⇄ worker (typed transport messages — src/types/osc.d.ts)
 
 ```
-↓ /clock/subscribe    id:i  intervalMs:d  start a tick stream
-↓ /clock/unsubscribe  id:i
-↑ /clock/tick         id:i  n:i           one tick of stream `id`
-↑ /clock/status       offset:d  rtt:d     current estimate, for clockNow()
+↓ { type: "clock-subscribe",   id, intervalMs }   start a tick stream
+↓ { type: "clock-unsubscribe", id }
+↑ { type: "clock-tick",   id, n }                 one tick of stream `id`
+↑ { type: "clock-status", offset, rtt }           current estimate, for clockNow()
 ```
 
-These never reach the WebSocket: `worker.ts` intercepts `/clock/*` commands
-before the encode path and consumes `/clock/pong` before the post-up path.
-`OscClient.handleReply` routes ticks/status ahead of everything else and keeps
-them out of the OSC console log (the logging middleware's skip set — the
-same `/scope/chunk` treatment).
+First-class protocol, never OSC and never the WebSocket: the shared endpoint
+(`worker/endpoint.ts`) keys each PORT's streams by its own ids (nothing to
+collide across clients) and consumes `/clock/pong` beside the socket.
+`OscClient.handleTransportEvent` routes ticks/status as typed cases; the OSC
+console log never sees them structurally (it logs only `osc` frames).
 
 ## 3. Clock domains (the load-bearing rules)
 
@@ -105,12 +107,13 @@ window, and the derived watchdog cadence.
 
 ## 5. The tick scheduler
 
-`/clock/subscribe id interval` starts an absolute-phase stream: the worker
-stores `phase0 = performance.now()` and schedules each tick with
+`WorkerClock.subscribe(intervalMs, onTick)` starts an absolute-phase stream:
+the worker stores `phase0 = performance.now()` and schedules each tick with
 `setTimeout(max(0, phase0 + n·interval − now))` — drift from a late callback
 never accumulates (the next deadline is computed from the _phase_, not from
-"now + interval"). Ticks post up as `/clock/tick id n`; the main thread
-(`OscClient.clockSubs`) dispatches to the subscriber callback.
+"now + interval"). The endpoint posts each tick up as a typed `clock-tick`
+event to its subscribing port; the main thread (`OscClient.clockSubs`)
+dispatches to the subscriber callback.
 
 Lifecycle: streams are independent of the WebSocket — they keep ticking while
 disconnected (Strudel plays offline) and across reconnects. A crashed worker
@@ -147,7 +150,7 @@ when a worker crash silently kills the socket.
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription instead of `setInterval` — same behavior, unthrottled.
 
-**Diagnostics.** Every `/clock/status` lands in the osc store slice
+**Diagnostics.** Every `clock-status` event lands in the osc store slice
 (`useClockStatus()` → `{offset, rtt}`), so a broken estimator is visible
 rather than silently mistiming events.
 

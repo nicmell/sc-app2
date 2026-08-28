@@ -10,19 +10,23 @@
 //   - `close` is a LEAVE: the socket closes only when the LAST joined port
 //     leaves — safe because each WorkerClient already synthesizes its own
 //     close locally and never waits for a worker echo.
-//   - id spaces are NAT-translated so ports can't collide: every port mints
-//     scope subIds and clock ids from 1, so outbound /scope/subscribe ids
-//     are rewritten to endpoint-unique wire ids (and /scope/chunk rewritten
-//     back and routed ONLY to its owner — which also keeps the zero-copy
-//     buffer transfer single-consumer), while clock streams are keyed by an
-//     endpoint-unique id and ticks rewritten back for their subscriber.
-//     Clock NAT entries survive a socket close (subscriptions outlive
-//     sessions, exactly as before); scope NAT dies with the socket (each
+//   - the scope subId space is NAT-translated: /scope/* is REAL wire
+//     traffic (the Rust bridge's pinned contract), so ports minting subIds
+//     from 1 would collide — outbound /scope/subscribe ids are rewritten to
+//     endpoint-unique wire ids, and /scope/chunk is rewritten back and
+//     routed ONLY to its owner (which also keeps the zero-copy buffer
+//     transfer single-consumer). Scope NAT dies with the socket (each
 //     client re-mints subIds from 1 on its next connect).
+//   - the CLOCK is a typed worker service, not OSC: `clock-subscribe`/
+//     `clock-unsubscribe` commands and `clock-tick` events carry port-local
+//     ids and each port's streams are keyed separately, so there is nothing
+//     to NAT; `clock-status` broadcasts the estimator. Only ping/pong touch
+//     the wire (handled internally beside the socket). Clock streams
+//     survive a socket close — subscriptions outlive sessions.
 //
-// Everything else — inbound OSC, open/error/close lifecycle, /clock/status —
-// broadcasts to the joined ports (structured clone; only the targeted scope
-// chunks carry transferables). Single-socket by design: an `open` for a
+// Everything else — inbound OSC, open/error/close lifecycle — broadcasts to
+// the joined ports (structured clone; only the targeted scope chunks carry
+// transferables). Single-socket by design: an `open` for a
 // DIFFERENT url keeps today's dispose-and-reopen semantics (concurrent
 // different-session clients are a later step). ALSO deferred to the
 // allocation step: two clients on ONE session are not yet safe — node ids
@@ -35,12 +39,6 @@
 import { decode, encode } from "@sc-app/server-commands/codec";
 import {
   CLOCK_PONG_ADDRESS,
-  CLOCK_SUBSCRIBE_ADDRESS,
-  CLOCK_TICK_ADDRESS,
-  CLOCK_UNSUBSCRIBE_ADDRESS,
-  clockSubscribe,
-  clockTick,
-  clockUnsubscribe,
   isMessage,
   SCOPE_CHUNK_ADDRESS,
   SCOPE_SUBSCRIBE_ADDRESS,
@@ -65,8 +63,8 @@ export interface EndpointPort {
   opened: boolean;
   /** A liveness waiter is armed (one per port — see the `attach` command). */
   watched: boolean;
-  /** local clock id → endpoint-unique clock key (survives socket closes). */
-  clockNat: Map<number, number>;
+  /** port-local clock id → the stream's stop (survives socket closes). */
+  clockSubs: Map<number, () => void>;
   /** local scope subId → wire subId (dies with the socket). */
   scopeNat: Map<number, number>;
 }
@@ -92,17 +90,14 @@ export class OscEndpoint {
   /** The url of the current (connecting or open) socket. */
   private url: string | null = null;
   private nextWireSubId = 1;
-  private nextClockKey = 1;
   /** wire subId → owning port + its local subId (inbound chunk routing). */
   private readonly scopeRoutes = new Map<number, { port: EndpointPort; localId: number }>();
-  /** clock key → owning port + its local id (tick routing). */
-  private readonly clockRoutes = new Map<number, { port: EndpointPort; localId: number }>();
 
   constructor(options: EndpointOptions = {}) {
     this.transport = (options.createTransport ?? createWsTransport)();
     this.waitForLock = options.waitForLock ?? defaultWaitForLock;
     this.clock = new WorkerClock({
-      post: (message) => this.postClock(message),
+      onStatus: (offset, rtt) => this.broadcast({ type: "clock-status", offset, rtt }),
       sendPing: (message) => this.transport.send(encode(message)),
     });
     this.transport.onEvent((event) => {
@@ -136,7 +131,7 @@ export class OscEndpoint {
       post,
       opened: false,
       watched: false,
-      clockNat: new Map(),
+      clockSubs: new Map(),
       scopeNat: new Map(),
     };
     this.ports.add(port);
@@ -156,6 +151,21 @@ export class OscEndpoint {
         return;
       case "osc":
         this.outbound(port, command.packet);
+        return;
+      case "clock-subscribe":
+        // Replace-on-resubscribe, exactly the old semantics; ids are
+        // port-local so no cross-port bookkeeping exists at all.
+        port.clockSubs.get(command.id)?.();
+        port.clockSubs.set(
+          command.id,
+          this.clock.subscribe(command.intervalMs, (n) =>
+            port.post({ type: "clock-tick", id: command.id, n }),
+          ),
+        );
+        return;
+      case "clock-unsubscribe":
+        port.clockSubs.get(command.id)?.();
+        port.clockSubs.delete(command.id);
         return;
     }
   }
@@ -220,11 +230,8 @@ export class OscEndpoint {
   destroy(port: EndpointPort): void {
     if (!this.ports.has(port)) return;
     this.leave(port);
-    for (const key of port.clockNat.values()) {
-      this.clockRoutes.delete(key);
-      this.clock.handleCommand(clockUnsubscribe(key));
-    }
-    port.clockNat.clear();
+    for (const stop of port.clockSubs.values()) stop();
+    port.clockSubs.clear();
     this.ports.delete(port);
   }
 
@@ -232,39 +239,10 @@ export class OscEndpoint {
 
   private outbound(port: EndpointPort, packet: OscPacket): void {
     try {
-      // Only our code creates clock commands, always as bare messages;
-      // bundles deliberately remain ordinary transport traffic.
-      if (isMessage(packet) && packet.address.startsWith("/clock/")) {
-        this.clockCommand(port, packet);
-        return;
-      }
       const outbound = this.natOutbound(port, packet);
       if (outbound !== null) this.transport.send(encode(outbound));
     } catch (error) {
       port.post({ type: "error", message: error instanceof Error ? error.message : String(error) });
-    }
-  }
-
-  private clockCommand(port: EndpointPort, message: OscMessage): void {
-    if (message.address === CLOCK_SUBSCRIBE_ADDRESS) {
-      const localId = Number(message.args[0]);
-      // NAT into the endpoint-unique key space (ports all mint ids from
-      // their own counters); re-subscribing an existing local id reuses its
-      // key, so the clock's replace-on-subscribe behavior is preserved.
-      let key = port.clockNat.get(localId);
-      if (key === undefined) {
-        key = this.nextClockKey++;
-        port.clockNat.set(localId, key);
-        this.clockRoutes.set(key, { port, localId });
-      }
-      this.clock.handleCommand(clockSubscribe(key, Number(message.args[1])));
-    } else if (message.address === CLOCK_UNSUBSCRIBE_ADDRESS) {
-      const localId = Number(message.args[0]);
-      const key = port.clockNat.get(localId);
-      if (key === undefined) return;
-      port.clockNat.delete(localId);
-      this.clockRoutes.delete(key);
-      this.clock.handleCommand(clockUnsubscribe(key));
     }
   }
 
@@ -330,15 +308,6 @@ export class OscEndpoint {
     // Fan-out is structured-clone only — a buffer can move to ONE port, and
     // the high-rate blobs (scope chunks) never reach this path.
     this.broadcast({ type: "osc", packet });
-  }
-
-  private postClock(message: OscMessage): void {
-    if (message.address === CLOCK_TICK_ADDRESS) {
-      const route = this.clockRoutes.get(Number(message.args[0]));
-      route?.port.post({ type: "osc", packet: clockTick(route.localId, Number(message.args[1])) });
-      return;
-    }
-    this.broadcast({ type: "osc", packet: message }); // /clock/status
   }
 
   /** To the JOINED ports only — a port that never opened (or left) is not a

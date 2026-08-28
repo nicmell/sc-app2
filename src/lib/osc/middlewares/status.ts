@@ -2,8 +2,6 @@
 
 import {
   ADDR_STATUS_REPLY,
-  ClockStatus,
-  CLOCK_STATUS_ADDRESS,
   StatusReply,
   walkPacket,
   type OscMessage,
@@ -34,16 +32,14 @@ export const statusMiddleware: TransportMiddleware = {
     next(command);
   },
   event(event, next) {
-    if (event.type === "osc") {
+    if (event.type === "clock-status") {
+      if (Number.isFinite(event.offset) && Number.isFinite(event.rtt)) {
+        state.update((value) => ({ ...value, clock: { offset: event.offset, rtt: event.rtt } }));
+      }
+    } else if (event.type === "osc") {
       walkPacket(event.packet, (message) => {
         if (message.address === ADDR_STATUS_REPLY) {
           state.update((value) => ({ ...value, scsynthStatus: parseStatus(message) }));
-        } else if (message.address === CLOCK_STATUS_ADDRESS) {
-          const offset = ClockStatus.offset(message);
-          const rtt = ClockStatus.rtt(message);
-          if (Number.isFinite(offset) && Number.isFinite(rtt)) {
-            state.update((value) => ({ ...value, clock: { offset, rtt } }));
-          }
         }
       });
     }

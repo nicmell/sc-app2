@@ -8,8 +8,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { decode, encode } from "@sc-app/server-commands/codec";
 import {
-  CLOCK_TICK_ADDRESS,
-  clockSubscribe,
   isMessage,
   SCOPE_CHUNK_ADDRESS,
   scopeSubscribe,
@@ -84,9 +82,12 @@ function makePort(endpoint: OscEndpoint) {
 const oscEvents = (events: TransportEvent[]) =>
   events.filter((e) => e.type === "osc").map((e) => (e as { packet: OscPacket }).packet);
 
-/** Lifecycle events only — the clock broadcasts /clock/status osc frames on
- *  open/close, which these suites ignore. */
-const lifecycle = (events: TransportEvent[]) => events.filter((e) => e.type !== "osc");
+/** Lifecycle events only — the clock's typed status broadcasts (and any osc
+ *  frames) are ignored by these suites. */
+const lifecycle = (events: TransportEvent[]) =>
+  events.filter(
+    (e) => e.type === "open" || e.type === "close" || e.type === "error" || e.type === "respawn",
+  );
 
 const chunks = (events: TransportEvent[]) =>
   oscEvents(events).filter(
@@ -298,9 +299,7 @@ describe("OscEndpoint clock streams", () => {
   });
 
   const ticksFor = (events: TransportEvent[]) =>
-    oscEvents(events).filter(
-      (p) => isMessage(p) && p.address === CLOCK_TICK_ADDRESS,
-    ) as OscMessage[];
+    events.filter((e) => e.type === "clock-tick");
 
   it("keeps colliding local clock ids as separate per-port streams", () => {
     const { endpoint, transport } = makeEndpoint();
@@ -310,14 +309,14 @@ describe("OscEndpoint clock streams", () => {
     transport.emit({ type: "open" });
     open(endpoint, b.port);
 
-    endpoint.handle(a.port, { type: "osc", packet: clockSubscribe(1, 100) });
-    endpoint.handle(b.port, { type: "osc", packet: clockSubscribe(1, 100) });
+    endpoint.handle(a.port, { type: "clock-subscribe", id: 1, intervalMs: 100 });
+    endpoint.handle(b.port, { type: "clock-subscribe", id: 1, intervalMs: 100 });
     vi.advanceTimersByTime(100);
 
     expect(ticksFor(a.events)).toHaveLength(1);
     expect(ticksFor(b.events)).toHaveLength(1);
-    expect(ticksFor(a.events)[0].args[0]).toBe(1); // rewritten back to the local id
-    expect(ticksFor(b.events)[0].args[0]).toBe(1);
+    expect(ticksFor(a.events)[0].id).toBe(1); // each port's OWN id
+    expect(ticksFor(b.events)[0].id).toBe(1);
   });
 
   it("clock streams survive a leave; destroy() stops them for good", () => {
@@ -327,7 +326,7 @@ describe("OscEndpoint clock streams", () => {
     open(endpoint, a.port);
     transport.emit({ type: "open" });
     open(endpoint, b.port);
-    endpoint.handle(a.port, { type: "osc", packet: clockSubscribe(1, 100) });
+    endpoint.handle(a.port, { type: "clock-subscribe", id: 1, intervalMs: 100 });
 
     endpoint.handle(a.port, { type: "close" }); // leave — subscriptions outlive sessions
     vi.advanceTimersByTime(100);
@@ -346,12 +345,10 @@ describe("OscEndpoint clock streams", () => {
     transport.emit({ type: "open" });
 
     endpoint.handle(a.port, { type: "close" });
-    const statuses = oscEvents(a.events).filter(
-      (p) => isMessage(p) && p.address === "/clock/status",
-    ) as OscMessage[];
+    const statuses = a.events.filter((e) => e.type === "clock-status");
     // onOpen posts one reset, the leave posts the final zeroing reset.
     expect(statuses.length).toBeGreaterThanOrEqual(2);
-    expect(statuses[statuses.length - 1].args).toEqual([0, 0]);
+    expect(statuses[statuses.length - 1]).toMatchObject({ offset: 0, rtt: 0 });
   });
 
   it("a dying LAST port closes the socket through destroy()", () => {

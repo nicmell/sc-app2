@@ -20,24 +20,37 @@ export interface OscSession {
   scopeIndexCount: number;
 }
 
-/** What the transport is told to do (WorkerClient → worker). `attach` is
- *  sent once per port when the client wires it: `lockName` is the Web Lock
- *  the client HOLDS until its document dies (crash included) — the shared
- *  endpoint waits on that lock, and being granted it is the death signal
- *  that detaches the port (a MessagePort itself emits nothing when its
- *  context is gone). Orderly ends still ride `close`. */
+/** What the transport is told to do (WorkerClient → worker).
+ *
+ *  `attach` is sent once per port when the client wires it: `lockName` is
+ *  the Web Lock the client HOLDS until its document dies (crash included) —
+ *  the shared endpoint waits on that lock, and being granted it is the
+ *  death signal that detaches the port (a MessagePort itself emits nothing
+ *  when its context is gone). Orderly ends still ride `close`.
+ *
+ *  The clock messages are FIRST-CLASS protocol, not OSC: the tick scheduler
+ *  is a worker-side service (unthrottled timers) and only `/clock/ping`/
+ *  `/clock/pong` ever touch the wire (the pinned core/clock.rs contract) —
+ *  so `osc` frames carry exclusively real wire traffic. Ids are port-local;
+ *  the endpoint keys each port's streams separately. */
 export type TransportCommand =
   | { type: "attach"; lockName: string }
   | { type: "open"; url: string }
   | { type: "osc"; packet: OscPacket }
+  | { type: "clock-subscribe"; id: number; intervalMs: number }
+  | { type: "clock-unsubscribe"; id: number }
   | { type: "close" };
 
-/** What the transport reports (transport → worker → WorkerClient). A real
- *  socket close carries the WebSocket close code/reason for diagnostics; a
+/** What the transport reports (transport → worker → WorkerClient).
+ *  `clock-tick` goes only to the subscribing port (`id` is that port's own);
+ *  `clock-status` is the estimator's offset/rtt broadcast. A real socket
+ *  close carries the WebSocket close code/reason for diagnostics; a
  *  WorkerClient-synthesized close may carry the worker-crash reason. */
 export type TransportEvent =
   | { type: "open" }
   | { type: "respawn" }
   | { type: "osc"; packet: OscPacket }
+  | { type: "clock-tick"; id: number; n: number }
+  | { type: "clock-status"; offset: number; rtt: number }
   | { type: "error"; message: string }
   | { type: "close"; code?: number; reason?: string };

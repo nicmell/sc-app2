@@ -17,10 +17,7 @@ describe("status middleware", () => {
       },
       next,
     );
-    statusMiddleware.event!(
-      { type: "osc", packet: { address: "/clock/status", args: [12.5, 3] } },
-      next,
-    );
+    statusMiddleware.event!({ type: "clock-status", offset: 12.5, rtt: 3 }, next);
     expect(scsynthStatus.get()).toMatchObject({
       avgCpu: 12,
       peakCpu: 20,
@@ -31,10 +28,7 @@ describe("status middleware", () => {
   });
 
   it("resets only scsynth status on open and ignores respawn", () => {
-    statusMiddleware.event!(
-      { type: "osc", packet: { address: "/clock/status", args: [1, 2] } },
-      next,
-    );
+    statusMiddleware.event!({ type: "clock-status", offset: 1, rtt: 2 }, next);
     statusMiddleware.event!({ type: "respawn" }, next);
     statusMiddleware.command!({ type: "open", url: "ws://test" }, next);
     expect(scsynthStatus.get()).toBeNull();

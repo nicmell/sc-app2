@@ -1,21 +1,14 @@
-// The in-worker bridge-clock endpoint (docs/clock.md): the offset
-// estimator (chained ping loop → 8-sample min-RTT window, NTP's
-// clock-filter rule, published as /clock/status) and the tick scheduler
-// behind subscribeClock. Ticks fire at `phase0 + n × intervalMs` — each
-// timer re-aims at the absolute target, so setTimeout jitter never
+// The in-worker bridge-clock service (docs/clock.md): the offset estimator
+// (chained ping loop → 8-sample min-RTT window, NTP's clock-filter rule,
+// published through `onStatus`) and the tick scheduler behind
+// `subscribe(intervalMs, onTick)`. Ticks fire at `phase0 + n × intervalMs` —
+// each timer re-aims at the absolute target, so setTimeout jitter never
 // accumulates. In the worker so both survive main-thread jank; a socket
 // close resets the estimator but tick streams keep running (subscriptions
-// survive reconnect).
-import {
-  CLOCK_PONG_ADDRESS,
-  CLOCK_SUBSCRIBE_ADDRESS,
-  CLOCK_UNSUBSCRIBE_ADDRESS,
-  ClockPong,
-  clockPing,
-  clockStatus,
-  clockTick,
-  type OscMessage,
-} from "@sc-app/server-commands";
+// survive reconnect). Only ping/pong are OSC — they genuinely cross the
+// wire (the pinned core/clock.rs contract); everything else is a plain
+// callback API, consumed by the shared endpoint.
+import { clockPing, ClockPong, CLOCK_PONG_ADDRESS, type OscMessage } from "@sc-app/server-commands";
 import {
   CLOCK_PING_BURST_COUNT,
   CLOCK_PING_BURST_INTERVAL_MS,
@@ -33,16 +26,18 @@ interface TickStream {
   phase0: number;
   intervalMs: number;
   n: number;
+  onTick: (n: number) => void;
 }
 
 interface ClockOptions {
-  post: (message: OscMessage) => void;
+  /** The estimator's published offset/rtt (zeroed on open/close resets). */
+  onStatus: (offset: number, rtt: number) => void;
   sendPing: (message: OscMessage) => void;
   monotonicNow?: () => number;
 }
 
 export class WorkerClock {
-  private readonly post: ClockOptions["post"];
+  private readonly onStatus: ClockOptions["onStatus"];
   private readonly sendPing: ClockOptions["sendPing"];
   private readonly monotonicNow: () => number;
   private samples: ClockSample[] = [];
@@ -52,10 +47,10 @@ export class WorkerClock {
   private pending = new Map<number, number>();
   private pingTimer: ReturnType<typeof setTimeout> | null = null;
   private pingsSent = 0;
-  private ticks = new Map<number, TickStream>();
+  private readonly ticks = new Set<TickStream>();
 
-  constructor({ post, sendPing, monotonicNow = () => performance.now() }: ClockOptions) {
-    this.post = post;
+  constructor({ onStatus, sendPing, monotonicNow = () => performance.now() }: ClockOptions) {
+    this.onStatus = onStatus;
     this.sendPing = sendPing;
     this.monotonicNow = monotonicNow;
   }
@@ -64,7 +59,7 @@ export class WorkerClock {
     this.stopPinging();
     this.samples = [];
     this.pending.clear();
-    this.post(clockStatus(0, 0));
+    this.onStatus(0, 0);
     this.pingsSent = 0;
     this.pingLoop();
   }
@@ -73,7 +68,7 @@ export class WorkerClock {
     this.stopPinging();
     this.samples = [];
     this.pending.clear();
-    this.post(clockStatus(0, 0));
+    this.onStatus(0, 0);
   }
 
   onPong(message: OscMessage, d1: number): void {
@@ -94,23 +89,20 @@ export class WorkerClock {
     // so a small estimate change only shifts not-yet-stamped events; no
     // smoothing needed.
     const best = this.samples.reduce((a, b) => (b.rtt < a.rtt ? b : a));
-    this.post(clockStatus(best.offset, best.rtt));
+    this.onStatus(best.offset, best.rtt);
   }
 
-  handleCommand(message: OscMessage): void {
-    if (message.address === CLOCK_SUBSCRIBE_ADDRESS) {
-      const id = Number(message.args[0]);
-      const intervalMs = Number(message.args[1]);
-      if (!Number.isInteger(id) || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
-      this.unsubscribe(id);
-      // n=1: first tick one full interval after subscribe (tick 0 = phase0,
-      // the subscribe instant).
-      const stream: TickStream = { phase0: this.monotonicNow(), intervalMs, n: 1 };
-      this.ticks.set(id, stream);
-      this.schedule(id, stream);
-    } else if (message.address === CLOCK_UNSUBSCRIBE_ADDRESS) {
-      this.unsubscribe(Number(message.args[0]));
-    }
+  /** Start an absolute-phase tick stream (n=1 fires one full interval after
+   *  subscribe; tick 0 = phase0, the subscribe instant). Returns stop. */
+  subscribe(intervalMs: number, onTick: (n: number) => void): () => void {
+    if (!Number.isFinite(intervalMs) || intervalMs <= 0) return () => {};
+    const stream: TickStream = { phase0: this.monotonicNow(), intervalMs, n: 1, onTick };
+    this.ticks.add(stream);
+    this.schedule(stream);
+    return () => {
+      clearTimeout(stream.timer);
+      this.ticks.delete(stream);
+    };
   }
 
   /** One chained ping loop: the first CLOCK_PING_BURST_COUNT pings fire at
@@ -127,24 +119,17 @@ export class WorkerClock {
     this.pingTimer = setTimeout(() => this.pingLoop(), delay);
   }
 
-  private schedule(id: number, stream: TickStream): void {
+  private schedule(stream: TickStream): void {
     const next = stream.phase0 + stream.n * stream.intervalMs;
     stream.timer = setTimeout(
       () => {
-        if (this.ticks.get(id) !== stream) return;
-        this.post(clockTick(id, stream.n));
+        if (!this.ticks.has(stream)) return;
+        stream.onTick(stream.n);
         stream.n += 1;
-        this.schedule(id, stream);
+        this.schedule(stream);
       },
       Math.max(0, next - this.monotonicNow()),
     );
-  }
-
-  private unsubscribe(id: number): void {
-    const stream = this.ticks.get(id);
-    if (!stream) return;
-    clearTimeout(stream.timer);
-    this.ticks.delete(id);
   }
 
   private stopPinging(): void {

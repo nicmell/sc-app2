@@ -31,7 +31,7 @@ OscClient.handleReply ◄──────────────────�
 
 | Module                   | Responsibility                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `OscClient.ts`           | Global stateful protocol owner: lifecycle events, reply waiters, worker-clock subscriptions, node and scope allocation, command sequencing, and scope-chunk dispatch. `send()` and `handleReply()` use the plain `OscPacket` / `OscMessage` model from `@sc-app/server-commands`.                                                                                                                                        |
+| `OscClient.ts`           | Global stateful protocol owner: lifecycle events, reply waiters, typed worker-clock subscriptions, node and scope allocation, command sequencing, and scope-chunk dispatch. `send()` and `handleReply()` use the plain `OscPacket` / `OscMessage` model from `@sc-app/server-commands`.                                                                                                                                  |
 | `middleware.ts`          | Transport middleware contract and the reentrant, error-isolated command/event dispatcher. Lifecycle traffic is guaranteed to reach the terminal.                                                                                                                                                                                                                                                                         |
 | `middlewares/`           | Plain logging, error-toast, and status observers plus their sole registration site. They consume worker-protocol commands/events and own their respective OSC store fields.                                                                                                                                                                                                                                              |
 | `watchdog.ts`            | Heartbeat watchdog consuming the client's connected/clock seams and exposing a transport middleware that stamps `/status.reply`.                                                                                                                                                                                                                                                                                         |
@@ -46,19 +46,21 @@ OscClient.handleReply ◄──────────────────�
 Commands from `WorkerClient` are `{ type: "attach", lockName }` (once per
 port — the Web Lock the client holds until its document dies; its release is
 the endpoint's crash-death signal), `{ type: "open", url }`,
-`{ type: "close" }`, or `{ type: "osc", packet }`. Events back are `open`,
-`close`, `error`, `respawn` (dedicated fallback only), or the same
-`{ type: "osc", packet }` shape. Packets are plain messages
+`{ type: "close" }`, `{ type: "osc", packet }`, or the typed clock service
+(`{ type: "clock-subscribe", id, intervalMs }` / `{ type:
+"clock-unsubscribe", id }` — port-local ids, never OSC, never the wire).
+Events back are `open`, `close`, `error`, `respawn` (dedicated fallback
+only), `{ type: "clock-tick", id, n }` (to its subscriber only), `{ type:
+"clock-status", offset, rtt }`, or the same `{ type: "osc", packet }` shape. Packets are plain messages
 `{ address, args }` or bundles `{ timetag, packets }` and are structured-clone
 safe. Per port the semantics are exactly the old single-client contract; the
 sharing (join/leave, NAT) is invisible above the endpoint.
 
 The main-thread middleware registration order carries no correctness
-dependency: each current observer calls `next` synchronously. Tx logging skips
-`/clock/*`; rx logging skips scope chunks, clock tick/status, and
-`/status.reply`, while `/fail` and `/late` remain both logged and toasted. A
-future phase will apply the same contract inside the worker, starting by
-turning worker.ts's `/clock/*` interception into worker-side middleware.
+dependency: each current observer calls `next` synchronously. The log carries
+only `osc` frames (clock traffic is typed protocol, structurally unlogged);
+rx logging skips scope chunks and `/status.reply`, while `/fail` and `/late`
+remain both logged and toasted.
 
 Outbound packet-shaped arguments (notably `/d_recv`'s embedded `/sync`)
 become OSC blobs in the worker codec. Decode is intentionally asymmetric:
@@ -66,7 +68,7 @@ inbound blobs remain `Uint8Array` values. Bundle packets are walked on the
 main thread in wire order and each message feeds `handleReply` immediately.
 
 `/scope/*` and `/clock/*` are bridge-internal families and never route to UDP
-peers. Bare clock subscribe commands are intercepted before encoding; ping/pong
+peers. Clock subscriptions are typed protocol (never encoded); ping/pong
 uses the WebSocket so the offset estimate measures the transport that carries
 scheduled OSC. Ping carries `[seq:i]`; pong carries `[seq:i, srv:d]`, with the
 worker retaining the monotonic send time by sequence. Clock subscriptions continue while disconnected and are replayed

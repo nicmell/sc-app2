@@ -2,13 +2,8 @@
 // inside connect(), which is never called in this file.
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CLOCK_SUBSCRIBE_ADDRESS,
-  CLOCK_TICK_ADDRESS,
-  type OscMessage,
-  formatOscArg,
-  Synced,
-} from "@sc-app/server-commands";
+import { type OscMessage, formatOscArg, Synced } from "@sc-app/server-commands";
+import type { TransportEvent } from "@/types/osc";
 import { REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
@@ -20,33 +15,37 @@ const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage =>
   args,
 });
 
-describe("OscClient.handleReply", () => {
-  it("dispatches /clock/tick by id", () => {
+const transportEvent = (event: TransportEvent): void =>
+  (
+    oscClient as unknown as { handleTransportEvent(event: TransportEvent): void }
+  ).handleTransportEvent(event);
+
+describe("OscClient clock events", () => {
+  it("dispatches clock-tick by id", () => {
     const cb = vi.fn();
     const sub = oscClient.subscribeClock(100, cb);
-    oscClient.handleReply(oscMessage(CLOCK_TICK_ADDRESS, sub.id, 1));
+    transportEvent({ type: "clock-tick", id: sub.id, n: 1 });
     expect(cb).toHaveBeenCalledTimes(1);
     sub.off();
   });
 
-  it("mirrors /clock/status and applies its Date.now offset", () => {
+  it("mirrors clock-status and applies its Date.now offset", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
-    oscClient.handleReply(oscMessage("/clock/status", 12.5, 3));
+    transportEvent({ type: "clock-status", offset: 12.5, rtt: 3 });
     expect(oscClient.clockNow()).toBe(10_012.5);
   });
 });
 
 describe("OscClient clock lifecycle", () => {
   it("replays subscriptions after worker respawn", () => {
-    const send = vi.spyOn(workerClient, "send");
+    const command = vi.spyOn(workerClient, "command");
     const sub = oscClient.subscribeClock(250, () => {});
-    send.mockClear();
-    (
-      oscClient as unknown as { handleTransportEvent(event: { type: "respawn" }): void }
-    ).handleTransportEvent({ type: "respawn" });
-    expect(send).toHaveBeenCalledWith({
-      address: CLOCK_SUBSCRIBE_ADDRESS,
-      args: [sub.id, 250],
+    command.mockClear();
+    transportEvent({ type: "respawn" });
+    expect(command).toHaveBeenCalledWith({
+      type: "clock-subscribe",
+      id: sub.id,
+      intervalMs: 250,
     });
     sub.off();
   });

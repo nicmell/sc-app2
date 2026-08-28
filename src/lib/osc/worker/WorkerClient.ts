@@ -81,6 +81,12 @@ export class WorkerClient {
     this.dispatchCommand({ type: "osc", packet });
   }
 
+  /** Post a non-OSC protocol command (clock subscribe/unsubscribe) through
+   *  the same middleware chain. */
+  command(command: TransportCommand): void {
+    this.dispatchCommand(command);
+  }
+
   onEvent(cb: (event: TransportEvent) => void): void {
     this.notify = cb;
   }

@@ -10,7 +10,9 @@ const state = appStore.slice(SliceName.OSC);
 export const log = state.select((value) => value.log);
 let nextEntryId = 0;
 
-const skippedRx = new Set(["/scope/chunk", "/clock/tick", "/clock/status", ADDR_STATUS_REPLY]);
+// Clock ticks/status are typed transport events now (never `osc` frames),
+// so only the genuinely-OSC high-rate traffic needs skipping.
+const skippedRx = new Set(["/scope/chunk", ADDR_STATUS_REPLY]);
 
 function append(dir: "tx" | "rx", address: string, args: string[]): void {
   state.update((value) => ({
@@ -21,11 +23,11 @@ function append(dir: "tx" | "rx", address: string, args: string[]): void {
 
 export const loggingMiddleware: TransportMiddleware = {
   command(command, next) {
+    // Only `osc` frames are logged — clock commands are typed protocol and
+    // never reach the wire, so the log stays a faithful wire view.
     if (command.type === "osc") {
       walkPacket(command.packet, (message) => {
-        if (!message.address.startsWith("/clock/")) {
-          append("tx", message.address, message.args.map(formatOscArg));
-        }
+        append("tx", message.address, message.args.map(formatOscArg));
       });
     }
     next(command);

@@ -9,10 +9,9 @@ beforeEach(() => appStore.slice(SliceName.OSC).update((value) => ({ ...value, lo
 describe("logging middleware", () => {
   it("logs ordinary traffic and applies control-traffic parity", () => {
     loggingMiddleware.command!({ type: "osc", packet: { address: "/n_set", args: [1] } }, next);
-    loggingMiddleware.command!(
-      { type: "osc", packet: { address: "/clock/subscribe", args: [1] } },
-      next,
-    );
+    // Clock traffic is typed protocol, never `osc` — structurally unlogged.
+    loggingMiddleware.command!({ type: "clock-subscribe", id: 1, intervalMs: 100 }, next);
+    loggingMiddleware.event!({ type: "clock-tick", id: 1, n: 1 }, next);
     loggingMiddleware.event!(
       { type: "osc", packet: { address: "/fail", args: ["/x", "bad"] } },
       next,

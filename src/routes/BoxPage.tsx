@@ -30,8 +30,7 @@ export function BoxPage() {
   const status = useStatus();
   const [claim, setClaim] = useState<Claim>("pending");
 
-  const pluginId =
-    search.get("plugin") ?? info.data.boxes.find((box) => box.i === boxId)?.plugin;
+  const pluginId = search.get("plugin") ?? info.data.boxes.find((box) => box.i === boxId)?.plugin;
 
   useEffect(() => {
     if (status !== "connected" || !boxId || !pluginId) return;

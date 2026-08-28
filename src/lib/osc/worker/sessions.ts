@@ -33,7 +33,13 @@ import {
 } from "@sc-app/server-commands";
 import { LEAVE_GRACE_MS, NODE_ID_CHUNK } from "@/constants/osc";
 import type { BoxPresets } from "@/types/api";
-import type { OscSession, RpcRequest, RpcResult, TransportCommand, TransportEvent } from "@/types/osc";
+import type {
+  OscSession,
+  RpcRequest,
+  RpcResult,
+  TransportCommand,
+  TransportEvent,
+} from "@/types/osc";
 import { createWsTransport, type WorkerTransport } from "./transport";
 import { WorkerClock } from "./clock";
 
@@ -307,7 +313,10 @@ export class SessionHub {
       });
       conn.transport.send(encode(packet));
     } catch (error) {
-      client.post({ type: "error", message: error instanceof Error ? error.message : String(error) });
+      client.post({
+        type: "error",
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

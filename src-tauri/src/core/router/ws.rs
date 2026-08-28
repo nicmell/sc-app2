@@ -53,33 +53,13 @@ async fn ws_handler(
         )
         .into_response();
     };
-    // A session is owned by exactly one socket: a second tab shares the same
-    // localStorage id, and letting it attach would free the group under the
-    // first tab when either socket closes.
-    //
-    // TODO(multi-tab): rejecting is the stopgap. Two real solutions, checked
-    // for feasibility:
-    //
-    // 1. Per-tab sessions (preferred — works with the backend as-is): every
-    //    tab always POSTs a fresh session (own id, own WS, own group +
-    //    node-id block + scope index — the server already supports any
-    //    number of live sessions with disjoint blocks). What's missing is
-    //    only decoupling the *saved session data* from the live-session id:
-    //    fetch the data under the stored id without reviving it (or copy it
-    //    onto the fresh session at mint), and accept last-writer-wins on the
-    //    saved data + the stored id.
-    // 2. A frontend SharedWorker owning the one WebSocket across tabs.
-    //    Verified insufficient as a socket-only change: the per-connection
-    //    state (node-id allocator, /g_new group ownership, the scope-slot
-    //    span allocator, the session-data autosave) lives per-tab in
-    //    OscClient/SessionManager, so two tabs over one shared socket would
-    //    collide on node ids and the scope subscription and fight over the
-    //    session-data PUT. It only works if the allocator + OSC client core move
-    //    into the SharedWorker (tabs become thin views) — a much larger
-    //    refactor, also gated on SharedWorker availability in the embedders
-    //    (back in WKWebView only since Safari 16). Option 1 is the
-    //    pragmatic path; 2 pays off only if truly shared live state across
-    //    tabs is ever wanted.
+    // A session is owned by exactly one socket — and that socket is held by
+    // the frontend's SHARED worker, which every same-origin client (the
+    // dashboard, its box iframes, popped-out tabs) joins; see the repo's
+    // docs/multi-tab.md. Multi-tab therefore never trips this guard in
+    // practice: the 409 remains as the server-side invariant check (a second
+    // NON-shared client — another browser/profile, or the no-SharedWorker
+    // fallback in a second tab — must not free the group under the first).
     match server.sessions().attach(&id) {
         Err(()) => {
             return ApiError::session_unknown_because(&id, "expired or never created")

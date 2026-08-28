@@ -17,8 +17,8 @@ stack), `src/sc-elements/README.md` (per-element docs).
 │  app store: { session, osc, toasts, layout, presets, plugins }         │
 │        │ owned by singletons                                           │
 │  SessionManager ── OscClient                        [main thread]      │
-│        │ WorkerClient (permanent worker, postMessage protocol)         │
-│  ──────┼──────────────────────────────────────────────  [Web Worker]   │
+│        │ WorkerClient (SHARED worker port; dedicated fallback)         │
+│  ──────┼─────────────────────────────────────────  [SharedWorker]      │
 │        │ codec ⇄ raw WebSocket                                         │
 └────────┼───────────────────────────────────────────────────────────────┘
          │  ws://127.0.0.1:3000/ws?session=<uuid>   (binary OSC frames)
@@ -162,16 +162,28 @@ lib/                     non-React infrastructure
                          see clock.md), subscribeScope(…, onChunk) →
                          {subId, off} (handler registered before the send;
                          chunks dispatch by subId from handleReply) and the
-                         scope-slot allocator over the session's span);
+                         worker-side allocators (async alloc/free scope
+                         slots; chunked node ids) + the box claim/presets
+                         RPC seam (docs/multi-tab.md);
                          middleware.ts + middlewares/ observe WorkerClient
                          to own the osc slice (console log, /status.reply
                          load, clock status) and toast /fail–/late;
                          watchdog.ts owns heartbeat expiry
                          → worker/WorkerClient.ts (global `workerClient`:
-                           permanent-worker proxy, respawn-on-crash + status)
-                         → worker/worker.ts (Web Worker endpoint:
-                           `{type:"osc", packet}` ⇄ codec ⇄ bytes; the
-                           `/clock/*` estimator + tick scheduler)
+                           a SharedWorker PORT in production — one worker
+                           instance across the dashboard, box iframes, and
+                           popped tabs — or the dedicated fallback worker
+                           (same script) where SharedWorker is missing;
+                           join/leave membership + correlated rpc seam;
+                           close() = leave, locally synthesized)
+                         → worker/worker.ts (thin port dispatcher) over
+                           worker/sessions.ts (the SessionHub: one
+                           Connection per session id — socket + codec +
+                           WorkerClock, chunked node-id handout, scope-slot
+                           allocator, targeted scope/clock routing,
+                           one-time /g_new, exclusive box claims, live
+                           presets cache, Web-Locks death cleanup, grace
+                           close after the last member leaves)
                          → worker/transport.ts (raw in-worker WebSocket).
                            The binary codec dependency is worker-only.
   session/               SessionManager (global `session`): the LIVE half —
@@ -226,13 +238,20 @@ every localStorage write:
    SCSYNTH_RETRY_LIMIT budget (~5 s); exhaustion throws into RouteError,
    whose Retry is a same-path replace navigation (fresh budget).
 2. Connection: Layout's effect hands the loader's SessionInfo to
-   `session.connect(info)` → `oscClient.connect(wsUrl, block)` opens the WS
-   (in the worker) and `/g_new`s the session group **at the tail of
-   scsynth's root group 0**; synth ids come from `oscClient.nextNodeId()`
-   over the server-assigned block. A WS drop flips the status slice to
-   "error"; the ConnectionOverlay's Retry revalidates the loaders in place
-   (new info object → reconnect; a dead session revives-or-mints). Child
-   navigation never re-runs the session loader, so it never reconnects.
+   `session.connect(info, {primary})` → `oscClient.connect(wsUrl,
+   sessionId, block)` JOINS the session's one shared-worker connection
+   (docs/multi-tab.md): the first member's join opens the WS and the
+   WORKER `/g_new`s the session group **at the tail of scsynth's root
+   group 0**; later members (box iframes, popped tabs) attach to the
+   standing socket, each with its own node-id chunk
+   (`oscClient.nextNodeId()` stays synchronous, refilled at a watermark).
+   The socket closes LEAVE_GRACE_MS after the last member leaves — a
+   reload rejoins the live session. A WS drop flips every member's status
+   slice to "error"; the ConnectionOverlay's Retry revalidates the
+   loaders in place (new info object → reconnect; a dead session
+   revives-or-mints). Child navigation never re-runs the session loader,
+   so it never reconnects. Only the PRIMARY client (the dashboard) owns
+   the slices restore + autosave; box shells are secondary members.
 3. Every 10 s the SessionManager `PUT`s the session data (boxes + presets)
    to `/api/session/{id}` when either slice changed; the server stores it
    opaquely under the app data dir (see below). Presets flow back in on
@@ -637,7 +656,7 @@ app/synths/bindings/inputs/widgets/invalid).
 |---|---|---|
 | store → component | reactiveStore `select` views | notify only on `Object.is` change |
 | element ⇄ OscClient | command methods + `once(address, match)` waiters | replies matched in `handleReply` |
-| OscClient ⇄ worker | `postMessage` commands ↓ / events ↑ | inbound buffers transferred zero-copy |
+| OscClient ⇄ shared worker | `postMessage` join/leave/rpc/osc ↓, joined/rpc-reply/presets/osc ↑ | scope-chunk buffers transferred zero-copy to exactly their owning port; the rest broadcasts |
 | worker ⇄ Rust | WebSocket **binary frames = raw OSC packets** | bytes are never rewritten by either side |
 | WS pump ⇄ peers | UDP datagrams, address-routed by regex | `/scope/*` + `/clock/*` intercepted, never routed |
 | backend ⇄ scsynth SHM | mmap, read-only, triple-buffer `_stage` protocol | `/scope/chunk` args + BE f32 blob (golden-tested) |
@@ -694,7 +713,7 @@ session revives-or-mints).
 
 | Thing | Lives exactly as long as | Owner |
 |---|---|---|
-| WS worker | the page (respawned on crash) | `WorkerClient` |
+| Shared OSC worker | the last same-origin client (dedicated fallback: the page, respawned on crash) | `WorkerClient` |
 | WebSocket connection | one session | `OscClient` (closes itself on critical failures) |
 | Session (group + node-id block) | its WebSocket | Rust `Server` (ends on socket close) |
 | Session **identity** + data (boxes + presets) | until overwritten | localStorage + `<root>/sessions/<id>.json` |

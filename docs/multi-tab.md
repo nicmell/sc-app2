@@ -1,11 +1,14 @@
-# Multi-tab sessions — design (NOT implemented)
+# Multi-tab sessions — design
 
-Status: design, pre-implementation. The current behavior is the single-owner
-rule (`router/ws.rs`: a second tab on the same session gets a 409
-`session-busy`). This document replaces the option sketch in the ws.rs
-multi-tab TODO as the designed direction. Read `docs/architecture.md` first —
-this builds on the session lifecycle, the element architecture, and the
-content-hash element ids introduced by the presets feature.
+Status: milestones 1–2 are IMPLEMENTED (the SharedWorker transport —
+`src/lib/osc/worker/sessions.ts` — and the box route + iframe dashboard —
+`src/routes/BoxPage.tsx`, `/:sessionId/box/:boxId`), with phase-one
+exclusive box ownership. Still open: mirrors (milestone 3), wasm-module
+transfer, focus routing, and frame-aware e2e probing (milestone 4). The
+server keeps its one-socket-per-session 409 as the invariant guard; the
+shared worker simply never trips it. Read `docs/architecture.md` for the
+current-architecture reference — this document keeps the design rationale
+and the deferred roadmap.
 
 ## Goal
 
@@ -23,7 +26,8 @@ completely untouched; the session lives as long as the worker holds the
 socket and ends normally when the last client is gone.
 
 **2. A box is a first-class, addressable client of the session.** A new
-route `/:sessionId/:boxId` renders exactly one box's plugin. The dashboard
+route (`/:sessionId/box/:boxId` as shipped — the literal segment keeps
+it unambiguous vs settings/plugins) renders exactly one box's plugin. The dashboard
 stops mounting plugins directly and becomes a pure window manager laying
 out **iframes** whose `src` is that route. Every browsing context — a
 dashboard iframe, the same URL opened as a full tab, a popped-out window —
@@ -35,7 +39,7 @@ Together they collapse "multi-tab support" and "how the dashboard renders
 plugins" into one architecture: a tab is just a box client hosted
 elsewhere.
 
-## What blocks it today
+## What blocked it (pre-implementation state)
 
 - The server enforces **one WebSocket per session**; the second attach is
   rejected so it cannot free the group under the first tab.
@@ -82,11 +86,11 @@ the session normally.
 
 ### 4. The box route and the iframe dashboard
 
-- `/:sessionId/:boxId` — a slim box shell: resolves the session, joins the
+- `/:sessionId/box/:boxId` — a slim box shell: resolves the session, joins the
   shared connection, mounts ONE plugin host with that box identity. (The
   existing `/:sessionId/plugins/:pluginId` stays the per-PLUGIN preview;
   the new route is its per-INSTANCE sibling.)
-- The dashboard's panels become `<iframe src="/:sessionId/:boxId">`. The
+- The dashboard's panels become `<iframe src="/:sessionId/box/:boxId">`. The
   dashboard keeps owning the grid (layout slice, add/remove/assign) and the
   session-data autosave.
 

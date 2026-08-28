@@ -39,7 +39,10 @@ describe("errors middleware", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     errorsMiddleware.event!({ type: "error", message: "bad" }, next);
     pushToast({ message: "plugin upload failed", variant: "error" });
-    errorsMiddleware.command!({ type: "join", url: "ws://test", sessionId: "s1", session: SESSION }, next);
+    errorsMiddleware.command!(
+      { type: "join", url: "ws://test", sessionId: "s1", session: SESSION },
+      next,
+    );
     expect(toasts.get()).toHaveLength(1);
     expect(toasts.get()[0]).toMatchObject({ message: "plugin upload failed" });
   });

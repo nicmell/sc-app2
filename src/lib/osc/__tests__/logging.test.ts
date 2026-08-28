@@ -4,6 +4,13 @@ import { appStore } from "@/stores/store";
 import { log, loggingMiddleware } from "../middlewares/logging";
 
 const next = (): void => {};
+const SESSION = {
+  sessionGroupId: 1,
+  nodeIdBase: 100,
+  nodeIdCount: 100,
+  scopeIndexBase: 0,
+  scopeIndexCount: 8,
+};
 beforeEach(() => appStore.slice(SliceName.OSC).update((value) => ({ ...value, log: [] })));
 
 describe("logging middleware", () => {
@@ -27,7 +34,10 @@ describe("logging middleware", () => {
   it("ignores respawn and preserves the log on open", () => {
     loggingMiddleware.command!({ type: "osc", packet: { address: "/kept", args: [] } }, next);
     loggingMiddleware.event!({ type: "respawn" }, next);
-    loggingMiddleware.command!({ type: "open", url: "ws://test" }, next);
+    loggingMiddleware.command!(
+      { type: "join", url: "ws://test", sessionId: "s1", session: SESSION },
+      next,
+    );
     expect(log.get()).toHaveLength(1);
   });
 });

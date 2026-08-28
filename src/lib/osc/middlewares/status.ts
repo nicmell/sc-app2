@@ -30,7 +30,7 @@ function parseStatus(message: OscMessage): ScsynthStatus {
 
 export const statusMiddleware: TransportMiddleware = {
   command(command, next) {
-    if (command.type === "open") state.update((value) => ({ ...value, scsynthStatus: null }));
+    if (command.type === "join") state.update((value) => ({ ...value, scsynthStatus: null }));
     next(command);
   },
   event(event, next) {

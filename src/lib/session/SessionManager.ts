@@ -26,7 +26,7 @@ import { SliceName } from "@/constants/store";
 import { put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
-import { presets, setPresets } from "@/stores/presets";
+import { presets, setBoxPresets, setPresets } from "@/stores/presets";
 import { appStore } from "@/stores/store";
 import { pushToast } from "@/stores/toasts";
 import type { BoxPresets, SessionInfo } from "@/types/api";
@@ -43,6 +43,8 @@ export class SessionManager {
   /** The session-autosave worker-clock subscription + last saved references
    *  (one per slice — a tick saves when either moved). */
   private saveOff: (() => void) | null = null;
+  /** Unsubscribe from sibling clients' forwarded presets harvests. */
+  private presetsOff: (() => void) | null = null;
   private lastSavedBoxes: BoxItem[] | null = null;
   private lastSavedPresets: Record<string, BoxPresets> | null = null;
   /** The reentrancy guard — see the header. */
@@ -74,7 +76,7 @@ export class SessionManager {
     this.state.update((state) => ({ ...state, scsynthAddress: info.scsynthAddress }));
 
     try {
-      await oscClient.connect(wsUrl(`/ws?session=${info.sessionId}`), {
+      await oscClient.connect(wsUrl(`/ws?session=${info.sessionId}`), info.sessionId, {
         sessionGroupId: info.sessionGroupId,
         nodeIdBase: info.nodeIdBase,
         nodeIdCount: info.nodeIdCount,
@@ -102,6 +104,13 @@ export class SessionManager {
         if (this.epoch === epoch) this.setStatus("error");
       });
       this.startSessionAutosave(info.sessionId);
+      // Mirror sibling clients' live harvests (box iframes push through the
+      // shared worker) into the presets slice, so the dashboard's autosave
+      // persists them; setBoxPresets drops boxes outside this realm's
+      // layout, so the mirror is safe in every client.
+      this.presetsOff = oscClient.onBoxPresets((boxId, entry) =>
+        setBoxPresets(boxId, entry.plugin, entry.values),
+      );
       this.setStatus("connected");
     } catch {
       if (this.epoch === epoch) this.setStatus("error");
@@ -162,6 +171,8 @@ export class SessionManager {
   private teardown(): void {
     this.saveOff?.();
     this.saveOff = null;
+    this.presetsOff?.();
+    this.presetsOff = null;
     for (const [event, id] of this.subscriptions) oscClient.off(event, id);
     this.subscriptions = [];
     oscClient.close();

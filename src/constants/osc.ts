@@ -12,6 +12,23 @@ export const STATUS_REPLY_TIMEOUT_MS = 5_000;
  *  of wedging the plugin load. */
 export const REPLY_TIMEOUT_MS = 3_000;
 
+// ── shared-worker session membership (see docs/multi-tab.md) ──────────────
+
+/** Node ids handed to a joining client in one chunk — large enough that a
+ *  busy client rarely refills, small enough that a dozen clients fit the
+ *  session block comfortably. */
+export const NODE_ID_CHUNK = 512;
+/** Remaining-ids watermark that triggers the async refill prefetch — sized
+ *  so a full plugin load (a handful of ids) can't outrun the round-trip. */
+export const NODE_ID_REFILL_MARGIN = 64;
+/** Width of each client's scope/clock subscription-id space (ids are
+ *  `clientId * SUB_ID_SPACE + local`), so ids never collide across the
+ *  shared connection's clients. */
+export const SUB_ID_SPACE = 1_048_576; // 2^20
+/** How long the worker keeps the socket after the LAST client leaves — a
+ *  reload rejoins within this window and keeps the live session. */
+export const LEAVE_GRACE_MS = 5_000;
+
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
 /** Pings fired back-to-back on socket open so the offset estimator locks

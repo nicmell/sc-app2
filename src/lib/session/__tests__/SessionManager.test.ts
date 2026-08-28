@@ -13,6 +13,7 @@ const osc = vi.hoisted(() => ({
   on: vi.fn(() => 1),
   off: vi.fn(),
   subscribeClock: vi.fn(() => ({ id: 1, off: vi.fn() })),
+  onBoxPresets: vi.fn(() => () => {}),
 }));
 
 vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));
@@ -39,6 +40,7 @@ beforeEach(() => {
   osc.on.mockClear();
   osc.off.mockClear();
   osc.subscribeClock.mockClear();
+  osc.onBoxPresets.mockClear();
   appStore.update((state) => ({
     ...state,
     session: { status: "connecting", scsynthAddress: null },
@@ -52,13 +54,17 @@ describe("SessionManager", () => {
     const manager = new SessionManager();
     await manager.connect(info);
 
-    expect(osc.connect).toHaveBeenCalledWith(expect.stringContaining("session=session-1"), {
-      sessionGroupId: 10,
-      nodeIdBase: 100,
-      nodeIdCount: 20,
-      scopeIndexBase: 2,
-      scopeIndexCount: 4,
-    });
+    expect(osc.connect).toHaveBeenCalledWith(
+      expect.stringContaining("session=session-1"),
+      "session-1",
+      {
+        sessionGroupId: 10,
+        nodeIdBase: 100,
+        nodeIdCount: 20,
+        scopeIndexBase: 2,
+        scopeIndexCount: 4,
+      },
+    );
     expect(manager.status.get()).toBe("connected");
     expect(manager.scsynthAddress.get()).toBe("127.0.0.1:57110");
     manager.disconnect();

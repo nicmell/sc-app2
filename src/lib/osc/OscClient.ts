@@ -1,15 +1,18 @@
 // The app's OSC client consumes plain OSC packets from the worker, which owns
 // both the WebSocket and binary codec. The interface provides
-// (open/close/send/on/off/status), plus a promise-returning
-// `connect(url, session)`.
+// (close/send/on/off/status), plus a promise-returning
+// `connect(url, sessionId, session)`.
 //
-// One global instance (`oscClient`) serves the whole frontend — the Layout
-// route hands the loader-resolved SessionInfo to the SessionManager, which
-// starts the connection here, and consumers (the sc-elements, …) subscribe to
-// addresses directly. On connect the client creates the session's scsynth group itself
-// (`/g_new` at the tail of scsynth's root group — sessions always start
-// fresh; the bridge ends them when the WebSocket closes) and owns node-id
-// allocation from the session's server-assigned block (`nextNodeId`).
+// One instance (`oscClient`) serves this CLIENT — realm-local: the
+// dashboard, each box iframe, and each popped tab has its own, all members
+// of the session's ONE shared connection (the SharedWorker owns the socket
+// and the session-wide state; docs/multi-tab.md). `connect` JOINS that
+// connection: the worker creates the session group once per socket, hands
+// this client its node-id CHUNK (`nextNodeId` stays synchronous over it and
+// prefetches refills), and namespaces this client's scope/clock
+// subscription-id spaces by the joined clientId. Scope slots, box claims,
+// and the live presets cache are worker-side, reached over the correlated
+// RPC seam.
 //
 // Its public events expose transport lifecycle without coupling protocol
 // consumers to transport middleware concerns.
@@ -45,12 +48,13 @@ import {
   type OscPacket,
   walkPacket,
 } from "@sc-app/server-commands";
-import { REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { NODE_ID_REFILL_MARGIN, REPLY_TIMEOUT_MS, SUB_ID_SPACE } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { workerClient } from "./worker/WorkerClient";
 import { TRANSPORT_STATUS } from "./worker/transport";
-import type { OscSession, TransportEvent } from "@/types/osc";
+import type { BoxPresets } from "@/types/api";
+import type { OscSession, RpcRequest, TransportEvent } from "@/types/osc";
 
 /** A pending `once()` reply waiter, matched in `handleReply`. */
 interface ReplyWaiter {
@@ -83,27 +87,33 @@ export class OscClient {
    *  node-id allocator is armed. The plugins reload/unload on it. */
   readonly connected = this.state.select((s) => s.connected);
 
-  /** Next node id to hand out, within `[nodeIdBase, nodeIdEnd)`. */
+  /** Next node id to hand out, within the joined chunk `[nextId, endId)`;
+   *  `spareChunk` is the prefetched refill (see `nextNodeId`). */
   private nextId = 0;
   private endId = 0;
+  private spareChunk: { start: number; end: number } | null = null;
+  private refillPending = false;
   private groupId: number | null = null;
-  /** The session's scope-slot span (armed on connect) + free-list allocator. */
-  private scopeBase = 0;
-  private scopeCount = 0;
-  private scopeUsed = 0;
-  private freeScopeSlots: number[] = [];
-  /** Monotonic /scope/subscribe subId — never reused within a connection, so
-   *  a freed slot's late chunk can't be misattributed to a new subscriber. */
+  /** The one Web Lock this page holds — its release tells the worker this
+   *  client died. Acquired once, reused across reconnects. */
+  private lockName: string | undefined;
+  /** Monotonic /scope/subscribe subId in this client's space — never reused
+   *  within a connection, so a freed slot's late chunk can't be
+   *  misattributed to a new subscriber. */
   private nextSubId = 1;
   /** Pending one-shot reply waiters (FIFO per address+match). */
   private waiters: ReplyWaiter[] = [];
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** Clock subscriptions outlive socket sessions; worker respawn replays them. */
+  /** Clock subscriptions outlive socket sessions; every open (fresh
+   *  connection or worker respawn) replays them — the worker's re-subscribe
+   *  is idempotent. */
   private clockSubs = new Map<number, { intervalMs: number; cb: () => void }>();
   private nextClockSubId = 1;
   private clockOffset = 0;
+  /** Sibling clients' forwarded presets harvests (see `onBoxPresets`). */
+  private presetsListeners = new Set<(boxId: string, entry: BoxPresets) => void>();
 
   constructor() {
     workerClient.onEvent((event) => this.handleTransportEvent(event));
@@ -123,20 +133,33 @@ export class OscClient {
   }
 
   private handleTransportEvent(event: TransportEvent): void {
-    if (event.type === "respawn") {
-      // Replayed subscriptions restart their tick phase — fine for a
-      // crash-recovery path; consumers only rely on the cadence.
+    if (event.type === "respawn" || event.type === "open") {
+      // Replay the clock subscriptions on every (re)opened seam — a fresh
+      // shared connection has none of ours, and the worker's re-subscribe is
+      // idempotent for a surviving one. Replays restart their tick phase;
+      // consumers only rely on the cadence.
       for (const [id, sub] of this.clockSubs) {
         workerClient.send(clockSubscribe(id, sub.intervalMs));
       }
+      if (event.type === "open") this.emit("open");
+    } else if (event.type === "joined") {
+      // Membership granted (always before the connection's open): arm the
+      // node-id chunk and this client's subscription-id spaces.
+      this.nextId = event.nodes.start;
+      this.endId = event.nodes.end;
+      this.spareChunk = null;
+      this.refillPending = false;
+      this.nextSubId = event.clientId * SUB_ID_SPACE + 1;
+      this.nextClockSubId = event.clientId * SUB_ID_SPACE + 1;
+      this.scopeChunkSubs.clear(); // fresh subId space → drop leaked handlers
+    } else if (event.type === "presets") {
+      for (const listener of this.presetsListeners) listener(event.boxId, event.entry);
     } else if (event.type === "osc") {
       walkPacket(event.packet, (message) => this.handleReply(message));
     } else if (event.type === "error") {
       this.emit("error", new Error(event.message));
     } else if (event.type === "close") {
       this.emit("close", event);
-    } else if (event.type === "open") {
-      this.emit("open");
     }
   }
 
@@ -146,12 +169,13 @@ export class OscClient {
     }
   }
 
-  /** Open the WebSocket (via the worker) to `url`; once open, create the
-   *  session's group at the tail of scsynth's root group, arm the node-id
-   *  allocator over the session's block, and flag `connected` (which arms the
-   *  plugin reloads and the status watchdog). Resolves once the socket is
-   *  open; rejects on an error or close before that. */
-  connect(url: string, session: OscSession): Promise<void> {
+  /** JOIN the session's shared connection (the first member's join opens
+   *  the WebSocket; the worker creates the session group before broadcasting
+   *  open, so `connected` subscribers always allocate into an existing
+   *  group). The `joined` event — always ahead of open — arms the node-id
+   *  chunk and id spaces (see handleTransportEvent). Resolves once the
+   *  shared socket is open; rejects on an error or close before that. */
+  connect(url: string, sessionId: string, session: OscSession): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const offAll = () => {
         this.off("open", onOpen);
@@ -160,21 +184,7 @@ export class OscClient {
       };
       const onOpen = this.on("open", () => {
         offAll();
-        this.nextId = session.nodeIdBase;
-        this.endId = session.nodeIdBase + session.nodeIdCount;
         this.groupId = session.sessionGroupId;
-        this.scopeBase = session.scopeIndexBase;
-        this.scopeCount = session.scopeIndexCount;
-        this.scopeUsed = 0;
-        this.freeScopeSlots = [];
-        this.nextSubId = 1; // fresh subId space → drop any leaked handlers
-        this.scopeChunkSubs.clear();
-        // The session is freshly minted (it dies with the previous WebSocket),
-        // so its group never pre-exists: create it at the tail of scsynth's
-        // root group, after SuperDirt's output monitors.
-        this.send(gNewOne(session.sessionGroupId, AddToTail, 0));
-        // Flag readiness only after /g_new, so subscribers (plugin reloads)
-        // allocate and send into an existing group.
         this.state.update((s) => ({ ...s, connected: true }));
         resolve();
       });
@@ -186,8 +196,29 @@ export class OscClient {
         offAll();
         reject(new Error("websocket closed before open"));
       });
-      workerClient.open(url);
+      void this.acquireLock().then((lockName) =>
+        workerClient.join(url, sessionId, session, lockName),
+      );
     });
+  }
+
+  /** Acquire (once per page) the Web Lock whose release signals this
+   *  client's death to the worker. Held forever — the browser releases it
+   *  when the page dies, crash included. Resolves undefined where Web Locks
+   *  are unavailable (the dedicated-worker fallback needs no liveness). */
+  private async acquireLock(): Promise<string | undefined> {
+    if (this.lockName) return this.lockName;
+    const locks = navigator.locks as LockManager | undefined;
+    if (!locks) return undefined;
+    const name = `sc-osc-client-${Math.random().toString(36).slice(2)}`;
+    await new Promise<void>((acquired) => {
+      void locks.request(name, () => {
+        acquired();
+        return new Promise(() => {}); // hold until page death
+      });
+    });
+    this.lockName = name;
+    return name;
   }
 
   /** The session's scsynth group (created on connect) — plugin groups and
@@ -197,27 +228,28 @@ export class OscClient {
     return this.groupId;
   }
 
-  /** Allocate a scope-buffer slot from the session's server-assigned span
-   *  (freed slots are reused first). Throws before `connect` and when the
-   *  span is exhausted — more live scopes than the per-session budget. */
-  allocScopeIndex(): number {
-    if (this.scopeCount === 0) throw new Error("OscClient.allocScopeIndex: not connected");
-    const recycled = this.freeScopeSlots.pop();
-    if (recycled !== undefined) return recycled;
-    if (this.scopeUsed >= this.scopeCount) {
-      throw new Error(
-        `OscClient.allocScopeIndex: scope-slot block exhausted (${this.scopeCount} per session)`,
-      );
-    }
-    return this.scopeBase + this.scopeUsed++;
+  /** One correlated side-band request to the worker; throws the worker's
+   *  error message on a failed result. */
+  private async rpc(req: RpcRequest): Promise<unknown> {
+    const result = await workerClient.request(req);
+    if (!result.ok) throw new Error(`OscClient.${req.op}: ${result.error}`);
+    return result.value;
   }
 
-  /** Return a slot to the allocator (scope tap torn down). Out-of-span and
-   *  double frees are ignored — unload can race a reconnect's fresh span,
-   *  and a stale index must not poison the free list. */
+  /** Allocate a scope-buffer slot from the session's span — worker-side
+   *  (exact across the shared connection's clients; freed slots are reused
+   *  first). Rejects when not joined or the span is exhausted — more live
+   *  scopes than the per-session budget. */
+  async allocScopeIndex(): Promise<number> {
+    return (await this.rpc({ op: "alloc-scope" })) as number;
+  }
+
+  /** Return a slot to the worker's allocator (scope tap torn down).
+   *  Fire-and-forget; out-of-span and double frees are ignored worker-side —
+   *  unload can race a reconnect's fresh span, and a stale index must not
+   *  poison the free list. */
   freeScopeIndex(index: number): void {
-    if (index < this.scopeBase || index >= this.scopeBase + this.scopeCount) return;
-    if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);
+    void workerClient.request({ op: "free-scope", index }).catch(() => {});
   }
 
   /** Set a contiguous control-array run on a live node (/n_setn) — the
@@ -227,13 +259,39 @@ export class OscClient {
     this.send(nSetn(nodeId, [name, values.length, ...values]));
   }
 
-  /** Allocate the next node id from the session's server-assigned block.
-   *  Throws before `connect` and if the block is exhausted (a bug — the range
-   *  is far larger than any realistic session needs). */
+  /** Allocate the next node id from this client's joined chunk —
+   *  synchronous over the chunk, with an async refill prefetched at the
+   *  watermark so a full plugin load can't outrun the round-trip. Throws
+   *  before `connect` and if the chunk runs dry before a refill lands (a
+   *  bug — the chunk far exceeds any realistic burst). */
   nextNodeId(): number {
     if (this.endId === 0) throw new Error("OscClient.nextNodeId: not connected");
-    if (this.nextId >= this.endId) throw new Error("OscClient.nextNodeId: node-id block exhausted");
-    return this.nextId++;
+    if (this.nextId >= this.endId) {
+      if (!this.spareChunk) {
+        throw new Error("OscClient.nextNodeId: node-id block exhausted");
+      }
+      this.nextId = this.spareChunk.start;
+      this.endId = this.spareChunk.end;
+      this.spareChunk = null;
+    }
+    const id = this.nextId++;
+    if (this.endId - this.nextId < NODE_ID_REFILL_MARGIN) this.prefetchNodes();
+    return id;
+  }
+
+  /** Prefetch the next node-id chunk (at most one in flight; a failure just
+   *  retries on the next watermark hit). */
+  private prefetchNodes(): void {
+    if (this.refillPending || this.spareChunk) return;
+    this.refillPending = true;
+    void this.rpc({ op: "alloc-nodes" })
+      .then((chunk) => {
+        this.spareChunk = chunk as { start: number; end: number };
+      })
+      .catch(() => {})
+      .finally(() => {
+        this.refillPending = false;
+      });
   }
 
   /** Request an orderly transport close. The transport's synthesized close
@@ -418,6 +476,39 @@ export class OscClient {
         if (this.clockSubs.delete(id)) workerClient.send(clockUnsubscribe(id));
       },
     };
+  }
+
+  // ── shared-session box + presets seam (docs/multi-tab.md) ───────────────
+
+  /** Claim exclusive ownership of a box (phase-one ownership: one client
+   *  loads a box's plugin at a time). False = another live client holds it.
+   *  Claims release on `releaseBox`, leave, or client death. */
+  async claimBox(boxId: string): Promise<boolean> {
+    return ((await this.rpc({ op: "box-claim", boxId })) as { granted: boolean }).granted;
+  }
+
+  /** Release a box claim (fire-and-forget — death releases it anyway). */
+  releaseBox(boxId: string): void {
+    void workerClient.request({ op: "box-release", boxId }).catch(() => {});
+  }
+
+  /** Push a box's harvested presets to the worker's live cache; siblings
+   *  receive it via `onBoxPresets` (the dashboard mirrors it into its
+   *  presets slice for the autosave). */
+  putBoxPresets(boxId: string, entry: BoxPresets): void {
+    void workerClient.request({ op: "presets-put", boxId, entry }).catch(() => {});
+  }
+
+  /** The worker's live presets entry for a box — fresher than the saved
+   *  session data when a sibling harvested since the last autosave. */
+  async getBoxPresets(boxId: string): Promise<BoxPresets | null> {
+    return (await this.rpc({ op: "presets-get", boxId })) as BoxPresets | null;
+  }
+
+  /** Subscribe to sibling clients' forwarded presets harvests. */
+  onBoxPresets(cb: (boxId: string, entry: BoxPresets) => void): () => void {
+    this.presetsListeners.add(cb);
+    return () => this.presetsListeners.delete(cb);
   }
 
   /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */

@@ -4,6 +4,13 @@ import { appStore } from "@/stores/store";
 import { clock, scsynthStatus, statusMiddleware } from "../middlewares/status";
 
 const next = (): void => {};
+const SESSION = {
+  sessionGroupId: 1,
+  nodeIdBase: 100,
+  nodeIdCount: 100,
+  scopeIndexBase: 0,
+  scopeIndexCount: 8,
+};
 beforeEach(() =>
   appStore.slice(SliceName.OSC).update((value) => ({ ...value, scsynthStatus: null, clock: null })),
 );
@@ -36,7 +43,10 @@ describe("status middleware", () => {
       next,
     );
     statusMiddleware.event!({ type: "respawn" }, next);
-    statusMiddleware.command!({ type: "open", url: "ws://test" }, next);
+    statusMiddleware.command!(
+      { type: "join", url: "ws://test", sessionId: "s1", session: SESSION },
+      next,
+    );
     expect(scsynthStatus.get()).toBeNull();
     expect(clock.get()).toEqual({ offset: 1, rtt: 2 });
   });

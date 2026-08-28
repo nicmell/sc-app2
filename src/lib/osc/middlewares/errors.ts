@@ -21,9 +21,9 @@ export function pushOscToast(address: string, detail: string, variant: "error" |
 
 export const errorsMiddleware: TransportMiddleware = {
   command(command, next) {
-    // connect() has no throwing path before its synchronous open(), so this
+    // connect() has no throwing path before its synchronous join(), so this
     // preserves the former connecting-event reset timing.
-    if (command.type === "open") clearToasts((toast) => toast.key?.startsWith(KEY_PREFIX) ?? false);
+    if (command.type === "join") clearToasts((toast) => toast.key?.startsWith(KEY_PREFIX) ?? false);
     next(command);
   },
   event(event, next) {

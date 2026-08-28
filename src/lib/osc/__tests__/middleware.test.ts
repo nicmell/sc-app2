@@ -19,7 +19,7 @@ describe("composeDispatch", () => {
       ],
       () => seen.push("terminal"),
     );
-    dispatch({ type: "close" });
+    dispatch({ type: "leave" });
     expect(seen).toEqual(["a-in", "b", "terminal", "a-out"]);
   });
 
@@ -72,7 +72,7 @@ describe("composeDispatch", () => {
       [
         (event, next) => {
           seen.push("event-in");
-          commandDispatch({ type: "close" });
+          commandDispatch({ type: "leave" });
           next(event);
           seen.push("event-out");
         },

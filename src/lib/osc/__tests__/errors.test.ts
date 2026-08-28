@@ -9,6 +9,13 @@ import { errorsMiddleware } from "../middlewares/errors";
 import { workerClient } from "../worker/WorkerClient";
 
 const next = (): void => {};
+const SESSION = {
+  sessionGroupId: 1,
+  nodeIdBase: 100,
+  nodeIdCount: 100,
+  scopeIndexBase: 0,
+  scopeIndexCount: 8,
+};
 beforeEach(() => {
   vi.restoreAllMocks();
   appStore.slice(SliceName.TOASTS).set([]);
@@ -28,29 +35,31 @@ describe("errors middleware", () => {
     expect(toasts.get()).toHaveLength(1);
   });
 
-  it("resets its own toasts on open, leaving foreign toasts alone", () => {
+  it("resets its own toasts on join, leaving foreign toasts alone", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     errorsMiddleware.event!({ type: "error", message: "bad" }, next);
     pushToast({ message: "plugin upload failed", variant: "error" });
-    errorsMiddleware.command!({ type: "open", url: "ws://test" }, next);
+    errorsMiddleware.command!({ type: "join", url: "ws://test", sessionId: "s1", session: SESSION }, next);
     expect(toasts.get()).toHaveLength(1);
     expect(toasts.get()[0]).toMatchObject({ message: "plugin upload failed" });
   });
 
-  it("resets toasts through connect's real open-command chain", async () => {
+  it("resets toasts through connect's real join-command chain", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     errorsMiddleware.event!({ type: "error", message: "old" }, next);
     const post = vi
       .spyOn(workerClient as unknown as { post(command: unknown): void }, "post")
       .mockImplementation(() => {});
-    const connecting = oscClient.connect("ws://test", {
-      sessionGroupId: 1,
-      nodeIdBase: 100,
-      nodeIdCount: 100,
-      scopeIndexBase: 0,
-      scopeIndexCount: 8,
+    const connecting = oscClient.connect("ws://test", "s1", SESSION);
+    // The join posts after the (lock-free in happy-dom) acquire microtask.
+    await Promise.resolve();
+    expect(post).toHaveBeenCalledWith({
+      type: "join",
+      url: "ws://test",
+      sessionId: "s1",
+      session: SESSION,
+      lockName: undefined,
     });
-    expect(post).toHaveBeenCalledWith({ type: "open", url: "ws://test" });
     expect(toasts.get()).toEqual([]);
     (
       oscClient as unknown as { handleTransportEvent(event: { type: "close" }): void }

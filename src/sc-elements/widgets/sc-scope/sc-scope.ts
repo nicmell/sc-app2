@@ -62,7 +62,12 @@ export class ScScope extends ScElement {
     if (!this.isConnected || this.loaded) return;
     if (!live()) return;
 
-    const scopeIdx = oscClient.allocScopeIndex();
+    // Slot allocation is worker-side (shared across the session's clients).
+    const scopeIdx = await oscClient.allocScopeIndex();
+    if (!this.isConnected || !live()) {
+      oscClient.freeScopeIndex(scopeIdx);
+      return;
+    }
     let tapNodeId = 0;
     let stream: ReturnType<typeof oscClient.subscribeScope> | undefined;
     const release = () => {

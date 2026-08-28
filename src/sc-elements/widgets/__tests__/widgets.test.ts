@@ -40,24 +40,25 @@ const SCOPE_COUNT = 8;
 let sent: OscMessage[];
 let send: ReturnType<typeof installScsynthMock>["send"];
 
-/** Arm the private scope-slot allocator (normally done by connect()). */
+/** Emulate the worker-side scope-slot allocator (free-list over the span)
+ *  on the client seam — the real one lives in the shared worker
+ *  (sessions.ts), out of happy-dom's reach. */
 function armScopeAllocator(): void {
-  const c = oscClient as unknown as {
-    scopeBase: number;
-    scopeCount: number;
-    scopeUsed: number;
-    freeScopeSlots: number[];
-    nextSubId: number;
-  };
-  c.scopeBase = SCOPE_BASE;
-  c.scopeCount = SCOPE_COUNT;
-  c.scopeUsed = 0;
-  c.freeScopeSlots = [];
-  c.nextSubId = 1;
-}
-
-function disarmScopeAllocator(): void {
-  (oscClient as unknown as { scopeCount: number }).scopeCount = 0;
+  let used = 0;
+  const free: number[] = [];
+  vi.spyOn(oscClient, "allocScopeIndex").mockImplementation(() => {
+    const recycled = free.pop();
+    if (recycled !== undefined) return Promise.resolve(recycled);
+    if (used >= SCOPE_COUNT) {
+      return Promise.reject(new Error(`scope-slot block exhausted (${SCOPE_COUNT} per session)`));
+    }
+    return Promise.resolve(SCOPE_BASE + used++);
+  });
+  vi.spyOn(oscClient, "freeScopeIndex").mockImplementation((index: number) => {
+    if (index < SCOPE_BASE || index >= SCOPE_BASE + SCOPE_COUNT) return;
+    if (!free.includes(index)) free.push(index);
+  });
+  (oscClient as unknown as { nextSubId: number }).nextSubId = 1;
 }
 
 const mountXml = async (bodyXml: string): Promise<ScPlugin> =>
@@ -92,7 +93,6 @@ beforeEach(() => {
 
 afterEach(() => {
   document.body.replaceChildren();
-  disarmScopeAllocator();
 });
 
 describe("sc-scope", () => {
@@ -134,7 +134,7 @@ describe("sc-scope", () => {
     expect(scope.loaded).toBe(false);
     expect(sent.map((m) => [m.address, m.args[0]])).toContainEqual(["/n_free", staleTapId]);
     expect(sent.some((m) => m.address === "/scope/subscribe")).toBe(false);
-    const recycled = oscClient.allocScopeIndex();
+    const recycled = await oscClient.allocScopeIndex();
     expect(recycled).toBe(SCOPE_BASE);
     oscClient.freeScopeIndex(recycled);
   });

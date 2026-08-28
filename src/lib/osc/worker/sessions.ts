@@ -55,6 +55,9 @@ interface Client {
    *  /n_free) — freed on death so an orphaned client's synths don't play
    *  forever under the shared session. */
   groups: Set<number>;
+  /** Node-id chunks handed to this client — recycled on release (its nodes
+   *  are freed with its groups, so the ids are safe to reuse). */
+  chunks: Array<{ start: number; end: number }>;
   scopeSlots: Set<number>;
   scopeSubs: Set<number>;
   clockSubs: Set<number>;
@@ -70,6 +73,8 @@ interface Connection {
   clients: Map<number, Client>;
   /** Next node id past every handed-out chunk. */
   nodeCursor: number;
+  /** Chunks returned by leaving clients, reused before the cursor moves. */
+  freeChunks: Array<{ start: number; end: number }>;
   scopeUsed: number;
   freeScopeSlots: number[];
   scopeRoutes: Map<number, Client>;
@@ -111,6 +116,7 @@ export class SessionHub {
       post,
       conn: null,
       groups: new Set(),
+      chunks: [],
       scopeSlots: new Set(),
       scopeSubs: new Set(),
       clockSubs: new Set(),
@@ -150,11 +156,27 @@ export class SessionHub {
     client.id = this.nextClientId++;
     client.conn = conn;
     conn.clients.set(client.id, client);
+    let nodes: { start: number; end: number };
+    try {
+      nodes = this.allocNodes(conn, client);
+    } catch (error) {
+      // The client must not hang on a never-answered join: detach it and
+      // fail its connect() through the normal error → close seam.
+      conn.clients.delete(client.id);
+      client.conn = null;
+      if (conn.clients.size === 0) {
+        conn.graceTimer = setTimeout(() => this.closeConnection(conn), LEAVE_GRACE_MS);
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      client.post({ type: "error", message });
+      client.post({ type: "close", reason: message });
+      return;
+    }
     client.post({
       type: "joined",
       clientId: client.id,
       connected: conn.open,
-      nodes: this.allocNodes(conn),
+      nodes,
     });
     // A late joiner missed the connection's own open broadcast — replay it so
     // the client's status mirror and connect() promise see the same seam.
@@ -185,6 +207,7 @@ export class SessionHub {
       conn.clock.handleCommand(clockUnsubscribe(id));
     }
     for (const index of client.scopeSlots) this.freeScope(conn, index);
+    conn.freeChunks.push(...client.chunks);
     if (conn.open) {
       for (const groupId of client.groups) {
         conn.transport.send(encode(gFreeAll(groupId)));
@@ -194,20 +217,31 @@ export class SessionHub {
     for (const boxId of client.boxes) {
       if (conn.boxOwners.get(boxId) === client) conn.boxOwners.delete(boxId);
     }
-    client.groups.clear();
-    client.scopeSlots.clear();
-    client.scopeSubs.clear();
-    client.clockSubs.clear();
-    client.boxes.clear();
+    this.forgetClientState(client);
     if (conn.clients.size === 0) {
       conn.graceTimer = setTimeout(() => this.closeConnection(conn), LEAVE_GRACE_MS);
     }
   }
 
   private closeConnection(conn: Connection): void {
-    this.connections.delete(conn.sessionId);
+    // Identity-guarded: a stale grace timer must never unmap a successor
+    // connection registered under the same session id.
+    if (this.connections.get(conn.sessionId) === conn) {
+      this.connections.delete(conn.sessionId);
+    }
     conn.clock.onClose();
     conn.transport.close(); // emits nothing; the server ends the session on WS close
+  }
+
+  /** Drop everything tracked for a client WITHOUT wire sends — the shared
+   *  half of orderly release and the socket-close forget. */
+  private forgetClientState(client: Client): void {
+    client.groups.clear();
+    client.chunks = [];
+    client.scopeSlots.clear();
+    client.scopeSubs.clear();
+    client.clockSubs.clear();
+    client.boxes.clear();
   }
 
   // ── the connection (one per session id) ─────────────────────────────────
@@ -223,6 +257,7 @@ export class SessionHub {
       open: false,
       clients: new Map(),
       nodeCursor: session.nodeIdBase,
+      freeChunks: [],
       scopeUsed: 0,
       freeScopeSlots: [],
       scopeRoutes: new Map(),
@@ -257,11 +292,22 @@ export class SessionHub {
       } else {
         // Socket gone → the session is over for every member: broadcast the
         // one close, then forget the connection (a later join reopens fresh).
+        // Each member's tracked state is cleared HERE — a stale group/slot
+        // set must never replay its cleanup into a future connection (the
+        // server recycles freed block indices across sessions) — and a
+        // pending grace timer must not fire into a successor connection.
         conn.open = false;
         conn.clock.onClose();
         this.broadcast(conn, event);
+        if (conn.graceTimer !== null) {
+          clearTimeout(conn.graceTimer);
+          conn.graceTimer = null;
+        }
         this.connections.delete(conn.sessionId);
-        for (const member of conn.clients.values()) member.conn = null;
+        for (const member of conn.clients.values()) {
+          member.conn = null;
+          this.forgetClientState(member);
+        }
         conn.clients.clear();
       }
     });
@@ -363,7 +409,7 @@ export class SessionHub {
     switch (req.op) {
       case "alloc-nodes": {
         try {
-          return { ok: true, value: this.allocNodes(conn) };
+          return { ok: true, value: this.allocNodes(conn, client) };
         } catch (error) {
           return { ok: false, error: error instanceof Error ? error.message : String(error) };
         }
@@ -414,16 +460,24 @@ export class SessionHub {
 
   // ── allocators ──────────────────────────────────────────────────────────
 
-  /** Carve the next node-id chunk from the session block (the last chunk may
-   *  be short). Throws when the block is exhausted — a bug, the block is far
-   *  larger than any realistic session needs. */
-  private allocNodes(conn: Connection): { start: number; end: number } {
+  /** Hand out the next node-id chunk: a leaving client's recycled chunk
+   *  first, else carved from the session block (the last carve may be
+   *  short). Throws when the block is exhausted — join-churn recycling
+   *  makes that a genuine bug, not an uptime function. */
+  private allocNodes(conn: Connection, client: Client): { start: number; end: number } {
+    const recycled = conn.freeChunks.pop();
+    if (recycled) {
+      client.chunks.push(recycled);
+      return recycled;
+    }
     const blockEnd = conn.session.nodeIdBase + conn.session.nodeIdCount;
     if (conn.nodeCursor >= blockEnd) throw new Error("node-id block exhausted");
     const start = conn.nodeCursor;
     const end = Math.min(start + NODE_ID_CHUNK, blockEnd);
     conn.nodeCursor = end;
-    return { start, end };
+    const chunk = { start, end };
+    client.chunks.push(chunk);
+    return chunk;
   }
 
   /** Out-of-span and double frees are ignored — unload can race a

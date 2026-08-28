@@ -1,6 +1,12 @@
 /** Where the session id survives across app runs (shared by every tab). */
 export const SESSION_KEY = "sc.session";
 
+/** The worker-side claim key for the session's ONE writing (primary)
+ *  client — same exclusive-claim machinery as the boxes ("box-" ids can
+ *  never collide with it). The loser of the claim shows the session but
+ *  neither autosaves nor mirrors harvests. */
+export const PRIMARY_CLAIM = "session:primary";
+
 /** How often the session data (boxes + presets) is saved to the backend
  *  (when changed). */
 export const SESSION_SAVE_INTERVAL_MS = 10_000;

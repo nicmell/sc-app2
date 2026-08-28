@@ -95,8 +95,13 @@ export class OscClient {
   private refillPending = false;
   private groupId: number | null = null;
   /** The one Web Lock this page holds — its release tells the worker this
-   *  client died. Acquired once, reused across reconnects. */
-  private lockName: string | undefined;
+   *  client died. Acquired once (in-flight memoized), reused across
+   *  reconnects. */
+  private lockAcquired: Promise<string | undefined> | undefined;
+  /** Bumped by every connect() AND close(): a join queued behind the async
+   *  lock acquire must not fire after a close/newer connect superseded it
+   *  (a zombie membership would hold the socket with no manager). */
+  private connectEpoch = 0;
   /** Monotonic /scope/subscribe subId in this client's space — never reused
    *  within a connection, so a freed slot's late chunk can't be
    *  misattributed to a new subscriber. */
@@ -149,8 +154,12 @@ export class OscClient {
       this.endId = event.nodes.end;
       this.spareChunk = null;
       this.refillPending = false;
-      this.nextSubId = event.clientId * SUB_ID_SPACE + 1;
-      this.nextClockSubId = event.clientId * SUB_ID_SPACE + 1;
+      // Clamped into 31 bits — /scope/subscribe ids are wire-encoded as
+      // OSC int32. The modulo can only collide two LIVE clients 2047 join
+      // generations apart in one worker lifetime: accepted.
+      const base = ((event.clientId % 2047) + 1) * SUB_ID_SPACE;
+      this.nextSubId = base + 1;
+      this.nextClockSubId = base + 1;
       this.scopeChunkSubs.clear(); // fresh subId space → drop leaked handlers
     } else if (event.type === "presets") {
       for (const listener of this.presetsListeners) listener(event.boxId, event.entry);
@@ -196,29 +205,32 @@ export class OscClient {
         offAll();
         reject(new Error("websocket closed before open"));
       });
-      void this.acquireLock().then((lockName) =>
-        workerClient.join(url, sessionId, session, lockName),
-      );
+      const epoch = ++this.connectEpoch;
+      void this.acquireLock().then((lockName) => {
+        if (epoch === this.connectEpoch) workerClient.join(url, sessionId, session, lockName);
+      });
     });
   }
 
-  /** Acquire (once per page) the Web Lock whose release signals this
-   *  client's death to the worker. Held forever — the browser releases it
-   *  when the page dies, crash included. Resolves undefined where Web Locks
-   *  are unavailable (the dedicated-worker fallback needs no liveness). */
-  private async acquireLock(): Promise<string | undefined> {
-    if (this.lockName) return this.lockName;
-    const locks = navigator.locks as LockManager | undefined;
-    if (!locks) return undefined;
-    const name = `sc-osc-client-${Math.random().toString(36).slice(2)}`;
-    await new Promise<void>((acquired) => {
-      void locks.request(name, () => {
-        acquired();
-        return new Promise(() => {}); // hold until page death
+  /** Acquire (once per page, in-flight memoized) the Web Lock whose release
+   *  signals this client's death to the worker. Held forever — the browser
+   *  releases it when the page dies, crash included. Resolves undefined
+   *  where Web Locks are unavailable (the dedicated-worker fallback needs
+   *  no liveness). */
+  private acquireLock(): Promise<string | undefined> {
+    this.lockAcquired ??= (async () => {
+      const locks = navigator.locks as LockManager | undefined;
+      if (!locks) return undefined;
+      const name = `sc-osc-client-${Math.random().toString(36).slice(2)}`;
+      await new Promise<void>((acquired) => {
+        void locks.request(name, () => {
+          acquired();
+          return new Promise(() => {}); // hold until page death
+        });
       });
-    });
-    this.lockName = name;
-    return name;
+      return name;
+    })();
+    return this.lockAcquired;
   }
 
   /** The session's scsynth group (created on connect) — plugin groups and
@@ -294,10 +306,12 @@ export class OscClient {
       });
   }
 
-  /** Request an orderly transport close. The transport's synthesized close
-   *  event performs client teardown; sends triggered afterward are dropped,
-   *  and the bridge frees the session group when the WebSocket closes. */
+  /** Leave the shared connection (an orderly close for THIS client). The
+   *  synthesized close event performs teardown; sends triggered afterward
+   *  are dropped. Also supersedes a connect() still waiting on its lock —
+   *  its queued join must not create a zombie membership. */
   close(): void {
+    this.connectEpoch++;
     workerClient.close();
   }
 

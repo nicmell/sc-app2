@@ -21,7 +21,7 @@
 // slice, so each notifies independently and the React hooks read them via
 // useSyncExternalStore.
 
-import { SESSION_SAVE_INTERVAL_MS } from "@/constants/session";
+import { PRIMARY_CLAIM, SESSION_SAVE_INTERVAL_MS } from "@/constants/session";
 import { SliceName } from "@/constants/store";
 import { put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
@@ -52,6 +52,8 @@ export class SessionManager {
   /** The info of the current (pending or live) connection — connect() with
    *  the same object is a no-op, see the StrictMode note on disconnect(). */
   private currentInfo: SessionInfo | null = null;
+  /** The role of the current connection — a flip forces a reconnect. */
+  private currentPrimary: boolean | null = null;
   private disconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Connect this client to an already-resolved session (joining its shared
@@ -67,11 +69,14 @@ export class SessionManager {
     if (this.disconnectTimer !== null) {
       clearTimeout(this.disconnectTimer);
       this.disconnectTimer = null;
-      // StrictMode remount with the same loader data: keep the standing
-      // connection (see the header).
-      if (this.currentInfo === info) return;
+      // StrictMode remount with the same loader data AND role: keep the
+      // standing connection (see the header). A role flip (in-tab dashboard
+      // ↔ box-shell navigation) must fall through to a real reconnect —
+      // the old role's autosave/mirror must not outlive it.
+      if (this.currentInfo === info && this.currentPrimary === primary) return;
     }
     this.currentInfo = info;
+    this.currentPrimary = primary;
     const epoch = ++this.epoch;
     this.teardown();
     this.lastSavedBoxes = null;
@@ -111,14 +116,22 @@ export class SessionManager {
         if (this.epoch === epoch) this.setStatus("error");
       });
       if (primary) {
-        this.startSessionAutosave(info.sessionId);
-        // Mirror sibling clients' live harvests (box shells push through the
-        // shared worker) into the presets slice, so the dashboard's autosave
-        // persists them; setBoxPresets drops boxes outside this realm's
-        // layout, keeping the mirror safe.
-        this.presetsOff = oscClient.onBoxPresets((boxId, entry) =>
-          setBoxPresets(boxId, entry.plugin, entry.values),
-        );
+        // The WRITER role is worker-claimed (same exclusive machinery as the
+        // boxes): a second dashboard tab still shows the session, but only
+        // one client autosaves — alternating full-map PUTs from two tabs
+        // would be last-writer-wins data loss. Released on leave/death.
+        const isWriter = await oscClient.claimBox(PRIMARY_CLAIM).catch(() => false);
+        if (this.epoch !== epoch) return;
+        if (isWriter) {
+          this.startSessionAutosave(info.sessionId);
+          // Mirror sibling clients' live harvests (box shells push through
+          // the shared worker) into the presets slice, so the autosave
+          // persists them; setBoxPresets drops boxes outside this realm's
+          // layout, keeping the mirror safe.
+          this.presetsOff = oscClient.onBoxPresets((boxId, entry) =>
+            setBoxPresets(boxId, entry.plugin, entry.values),
+          );
+        }
       }
       this.setStatus("connected");
     } catch {
@@ -134,6 +147,7 @@ export class SessionManager {
     this.disconnectTimer = setTimeout(() => {
       this.disconnectTimer = null;
       this.currentInfo = null;
+      this.currentPrimary = null;
       this.epoch += 1;
       this.teardown();
     }, 0);

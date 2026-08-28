@@ -17,7 +17,7 @@ import { PluginHost } from "@/components/PluginHost";
 import { oscClient } from "@/lib/osc/OscClient";
 import { useStatus } from "@/stores/session";
 import { addBox, layout, setBoxPlugin } from "@/stores/layout";
-import { presets, setPresets } from "@/stores/presets";
+import { presets, removeBoxPresets, setBoxPresets } from "@/stores/presets";
 import type { SessionInfo } from "@/types/api";
 import styles from "./BoxPage.module.scss";
 
@@ -38,10 +38,10 @@ export function BoxPage() {
     let offHarvest: (() => void) | null = null;
     void (async () => {
       const granted = await oscClient.claimBox(boxId).catch(() => false);
-      if (cancelled) {
-        if (granted) oscClient.releaseBox(boxId);
-        return;
-      }
+      // Cancelled mid-claim: the cleanup's release was already posted (FIFO
+      // ahead of any successor's claim), so releasing AGAIN here would
+      // un-claim the successor — just stop.
+      if (cancelled) return;
       if (!granted) {
         setClaim("denied");
         return;
@@ -58,7 +58,11 @@ export function BoxPage() {
       } else {
         addBox({ i: boxId, x: 0, y: 0, w: 1, h: 1, plugin: pluginId });
       }
-      setPresets(entry ? { [boxId]: entry } : {});
+      // Targeted upsert, never a whole-map replace: an in-tab navigation can
+      // leave this realm holding the full session presets (see the primary
+      // handoff in SessionManager) — gutting it would autosave data loss.
+      if (entry && entry.plugin === pluginId) setBoxPresets(boxId, entry.plugin, entry.values);
+      else removeBoxPresets(boxId);
       // Forward every harvest (PluginHost writes the local slice) to the
       // worker's live cache; change-only, so the seed itself doesn't echo.
       offHarvest = presets.subscribe((map) => {

@@ -14,6 +14,7 @@ const osc = vi.hoisted(() => ({
   off: vi.fn(),
   subscribeClock: vi.fn(() => ({ id: 1, off: vi.fn() })),
   onBoxPresets: vi.fn(() => () => {}),
+  claimBox: vi.fn(() => Promise.resolve(true)),
 }));
 
 vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));

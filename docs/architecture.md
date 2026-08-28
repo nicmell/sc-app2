@@ -250,8 +250,11 @@ every localStorage write:
    slice to "error"; the ConnectionOverlay's Retry revalidates the
    loaders in place (new info object → reconnect; a dead session
    revives-or-mints). Child navigation never re-runs the session loader,
-   so it never reconnects. Only the PRIMARY client (the dashboard) owns
-   the slices restore + autosave; box shells are secondary members.
+   so it never reconnects. A PRIMARY client (any non-box route) restores
+   the slices; the WRITER role — autosave + harvest mirror — is
+   worker-claimed (PRIMARY_CLAIM, same exclusive machinery as the boxes),
+   so exactly one client PUTs per session; box shells are secondary
+   members.
 3. Every 10 s the SessionManager `PUT`s the session data (boxes + presets)
    to `/api/session/{id}` when either slice changed; the server stores it
    opaquely under the app data dir (see below). Presets flow back in on

@@ -159,6 +159,58 @@ describe("OscEndpoint membership", () => {
   });
 });
 
+describe("OscEndpoint membership after a socket death", () => {
+  it("clears every membership: a ghost port can't hold the refcount or hear a rejoin", () => {
+    const { endpoint, transport } = makeEndpoint();
+    const a = makePort(endpoint);
+    const b = makePort(endpoint);
+    open(endpoint, a.port);
+    transport.emit({ type: "open" });
+    open(endpoint, b.port);
+    transport.emit({ type: "close", code: 1006 }); // server died under both
+
+    open(endpoint, a.port); // only A reconnects
+    transport.emit({ type: "open" });
+    // B observed the death (mirror CLOSED) and never rejoined — the fresh
+    // session's open must not leak into it.
+    expect(lifecycle(b.events).filter((e) => e.type === "open")).toHaveLength(1);
+
+    endpoint.handle(a.port, { type: "close" }); // A is the ONLY member now
+    expect(transport.closes).toBe(1); // no ghost refcount from B
+  });
+
+  it("a connect failure (error then close) reaches the connecting port", () => {
+    const { endpoint, transport } = makeEndpoint();
+    const a = makePort(endpoint);
+    open(endpoint, a.port);
+    transport.emit({ type: "error", message: "refused" });
+    transport.emit({ type: "close", code: 1006 });
+
+    expect(lifecycle(a.events)).toEqual([
+      { type: "error", message: "refused" },
+      { type: "close", code: 1006 },
+    ]);
+  });
+
+  it("an open for a DIFFERENT url disposes and reopens (single socket)", () => {
+    const { endpoint, transport } = makeEndpoint();
+    const a = makePort(endpoint);
+    open(endpoint, a.port, "ws://one");
+    transport.emit({ type: "open" });
+    endpoint.handle(a.port, {
+      type: "osc",
+      packet: scopeSubscribe({ subId: 1, scope: 8, channels: 1, chunkSize: 1024 }),
+    });
+
+    open(endpoint, a.port, "ws://two");
+    expect(transport.openedUrls).toEqual(["ws://one", "ws://two"]);
+    // The takeover dropped the NAT: a chunk for the old wire id routes nowhere.
+    transport.emit({ type: "open" });
+    transport.emit({ type: "message", data: chunkFrame(1) });
+    expect(chunks(a.events)).toEqual([]);
+  });
+});
+
 describe("OscEndpoint scope NAT", () => {
   it("rewrites colliding local subIds to unique wire ids and routes chunks back", () => {
     const { endpoint, transport } = makeEndpoint();
@@ -285,6 +337,21 @@ describe("OscEndpoint clock streams", () => {
     endpoint.destroy(a.port); // idempotent
     vi.advanceTimersByTime(500);
     expect(ticksFor(a.events)).toHaveLength(1); // no ticks after removal
+  });
+
+  it("the LAST orderly leaver still receives the clock reset", () => {
+    const { endpoint, transport } = makeEndpoint();
+    const a = makePort(endpoint);
+    open(endpoint, a.port);
+    transport.emit({ type: "open" });
+
+    endpoint.handle(a.port, { type: "close" });
+    const statuses = oscEvents(a.events).filter(
+      (p) => isMessage(p) && p.address === "/clock/status",
+    ) as OscMessage[];
+    // onOpen posts one reset, the leave posts the final zeroing reset.
+    expect(statuses.length).toBeGreaterThanOrEqual(2);
+    expect(statuses[statuses.length - 1].args).toEqual([0, 0]);
   });
 
   it("a dying LAST port closes the socket through destroy()", () => {

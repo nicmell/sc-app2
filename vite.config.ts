@@ -35,7 +35,7 @@ export default defineConfig(() => ({
   // production, dedicated fallback) — SharedWorker + `type: "module"` needs
   // the ES output format (the classic-worker default is iife).
   worker: {
-    format: "es",
+    format: "es" as const,
   },
 
   // App styles are co-located CSS Modules (`*.module.scss`, imported as `styles`

@@ -24,9 +24,13 @@
 // broadcasts to the joined ports (structured clone; only the targeted scope
 // chunks carry transferables). Single-socket by design: an `open` for a
 // DIFFERENT url keeps today's dispose-and-reopen semantics (concurrent
-// different-session clients are a later step). Pure logic over an injected
-// transport — worker.ts is the thin dispatcher; the unit suite drives this
-// class directly.
+// different-session clients are a later step). ALSO deferred to the
+// allocation step: two clients on ONE session are not yet safe — node ids
+// and scope slots are still per-realm counters over the same block, and a
+// late joiner's client re-sends the session-group /g_new (a duplicate-node
+// /fail). This endpoint only makes such clients TRANSPORT-correct. Pure
+// logic over an injected transport — worker.ts is the thin dispatcher; the
+// unit suite drives this class directly.
 
 import { decode, encode } from "@sc-app/server-commands/codec";
 import {
@@ -117,6 +121,11 @@ export class OscEndpoint {
         this.url = null;
         this.dropScopeNat();
         this.broadcast(event);
+        // Every client's status mirror flips to CLOSED on this event and its
+        // close() early-returns from there — clear the memberships to match,
+        // or ghost `opened` flags would inflate the refcount forever (a
+        // rejoiner's open would also leak into dead members' mirrors).
+        for (const member of this.ports) member.opened = false;
       }
     });
   }
@@ -188,6 +197,11 @@ export class OscEndpoint {
    *  last joined port leaves. */
   private leave(port: EndpointPort): void {
     if (!port.opened) return;
+    const last = ![...this.ports].some((p) => p !== port && p.opened);
+    // The clock reset (offset/rtt → 0) must still reach the LEAVER — its
+    // store view and clockNow() would otherwise keep the stale offset — so
+    // it runs before the membership flag flips.
+    if (last) this.clock.onClose();
     port.opened = false;
     const open = this.transport.status() === TRANSPORT_STATUS.IS_OPEN;
     for (const wireId of port.scopeNat.values()) {
@@ -195,9 +209,8 @@ export class OscEndpoint {
       if (open) this.transport.send(encode(scopeUnsubscribe(wireId)));
     }
     port.scopeNat.clear();
-    if (![...this.ports].some((p) => p.opened)) {
+    if (last) {
       this.url = null;
-      this.clock.onClose();
       this.transport.close();
     }
   }
@@ -225,7 +238,8 @@ export class OscEndpoint {
         this.clockCommand(port, packet);
         return;
       }
-      this.transport.send(encode(this.natOutbound(port, packet)));
+      const outbound = this.natOutbound(port, packet);
+      if (outbound !== null) this.transport.send(encode(outbound));
     } catch (error) {
       port.post({ type: "error", message: error instanceof Error ? error.message : String(error) });
     }
@@ -255,8 +269,9 @@ export class OscEndpoint {
   }
 
   /** Rewrite a port-local scope subId to an endpoint-unique wire id (our
-   *  scope commands are always bare messages — bundles pass through). */
-  private natOutbound(port: EndpointPort, packet: OscPacket): OscPacket {
+   *  scope commands are always bare messages — bundles pass through); null
+   *  drops the packet. */
+  private natOutbound(port: EndpointPort, packet: OscPacket): OscPacket | null {
     if (!isMessage(packet)) return packet;
     if (packet.address === SCOPE_SUBSCRIBE_ADDRESS) {
       const localId = Number(packet.args[0]);
@@ -268,7 +283,9 @@ export class OscEndpoint {
     if (packet.address === SCOPE_UNSUBSCRIBE_ADDRESS) {
       const localId = Number(packet.args[0]);
       const wireId = port.scopeNat.get(localId);
-      if (wireId === undefined) return packet; // stale unsubscribe — harmless
+      // An unmapped unsubscribe is DROPPED, not passed through: the raw
+      // local id could collide with another port's live wire id.
+      if (wireId === undefined) return null;
       port.scopeNat.delete(localId);
       this.scopeRoutes.delete(wireId);
       return { address: packet.address, args: [wireId, ...packet.args.slice(1)] };

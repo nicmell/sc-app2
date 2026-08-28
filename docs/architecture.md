@@ -17,8 +17,8 @@ stack), `src/sc-elements/README.md` (per-element docs).
 │  app store: { session, osc, toasts, layout, presets, plugins }         │
 │        │ owned by singletons                                           │
 │  SessionManager ── OscClient                        [main thread]      │
-│        │ WorkerClient (permanent worker, postMessage protocol)         │
-│  ──────┼──────────────────────────────────────────────  [Web Worker]   │
+│        │ WorkerClient (SHARED worker port; dedicated fallback)         │
+│  ──────┼─────────────────────────────────────────  [SharedWorker]      │
 │        │ codec ⇄ raw WebSocket                                         │
 └────────┼───────────────────────────────────────────────────────────────┘
          │  ws://127.0.0.1:3000/ws?session=<uuid>   (binary OSC frames)
@@ -168,10 +168,19 @@ lib/                     non-React infrastructure
                          load, clock status) and toast /fail–/late;
                          watchdog.ts owns heartbeat expiry
                          → worker/WorkerClient.ts (global `workerClient`:
-                           permanent-worker proxy, respawn-on-crash + status)
-                         → worker/worker.ts (Web Worker endpoint:
-                           `{type:"osc", packet}` ⇄ codec ⇄ bytes; the
-                           `/clock/*` estimator + tick scheduler)
+                           a SharedWorker PORT in production — one worker
+                           instance across every same-origin client — or
+                           the dedicated fallback (same script); per-client
+                           close synthesis, pagehide close, the `attach`
+                           liveness lock, dedicated respawn-on-crash)
+                         → worker/worker.ts (thin dual-mode entry) over
+                           worker/endpoint.ts (the shared endpoint: one
+                           socket + one clock, N ports; open=join,
+                           close=leave with last-port socket close,
+                           scope-subId NAT + targeted chunk routing,
+                           per-port clock streams, Web-Locks death
+                           detection — the per-port protocol is the
+                           UNCHANGED single-client contract)
                          → worker/transport.ts (raw in-worker WebSocket).
                            The binary codec dependency is worker-only.
   session/               SessionManager (global `session`): the LIVE half —
@@ -637,7 +646,7 @@ app/synths/bindings/inputs/widgets/invalid).
 |---|---|---|
 | store → component | reactiveStore `select` views | notify only on `Object.is` change |
 | element ⇄ OscClient | command methods + `once(address, match)` waiters | replies matched in `handleReply` |
-| OscClient ⇄ worker | `postMessage` commands ↓ / events ↑ | inbound buffers transferred zero-copy |
+| OscClient ⇄ shared worker | `postMessage` commands ↓ / events ↑ (unchanged single-client protocol per port) | scope-chunk buffers transferred zero-copy to exactly their owning port; broadcasts are structured-clone |
 | worker ⇄ Rust | WebSocket **binary frames = raw OSC packets** | bytes are never rewritten by either side |
 | WS pump ⇄ peers | UDP datagrams, address-routed by regex | `/scope/*` + `/clock/*` intercepted, never routed |
 | backend ⇄ scsynth SHM | mmap, read-only, triple-buffer `_stage` protocol | `/scope/chunk` args + BE f32 blob (golden-tested) |
@@ -694,7 +703,7 @@ session revives-or-mints).
 
 | Thing | Lives exactly as long as | Owner |
 |---|---|---|
-| WS worker | the page (respawned on crash) | `WorkerClient` |
+| Shared OSC worker | the last same-origin client (dedicated fallback: the page, respawned on crash) | `WorkerClient` |
 | WebSocket connection | one session | `OscClient` (closes itself on critical failures) |
 | Session (group + node-id block) | its WebSocket | Rust `Server` (ends on socket close) |
 | Session **identity** + data (boxes + presets) | until overwritten | localStorage + `<root>/sessions/<id>.json` |

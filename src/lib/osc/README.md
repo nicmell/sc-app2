@@ -4,7 +4,12 @@ OSC communication is split at a plain-data boundary. The main thread owns app
 state and scsynth sequencing; the worker owns the WebSocket, binary codec, and
 backend-synchronized clock estimator/tick scheduler (see docs/clock.md at the repo
 root for the full sync design). Neither side exposes wire bytes across
-`postMessage`.
+`postMessage`. The worker is SHARED: one instance per origin serves every
+same-origin client (tabs today, plugin iframes next), each over its own
+MessagePort speaking the UNCHANGED single-client protocol — the shared
+endpoint (endpoint.ts) reinterprets it per port (open = join, close = leave,
+id spaces NAT-translated). Where SharedWorker is unavailable the SAME script
+runs as the classic per-page dedicated worker.
 
 ```text
 OscClient.send(OscPacket)                         main thread
@@ -30,18 +35,23 @@ OscClient.handleReply ◄──────────────────�
 | `middleware.ts`          | Transport middleware contract and the reentrant, error-isolated command/event dispatcher. Lifecycle traffic is guaranteed to reach the terminal.                                                                                                                                  |
 | `middlewares/`           | Plain logging, error-toast, and status observers plus their sole registration site. They consume worker-protocol commands/events and own their respective OSC store fields.                                                                                                       |
 | `watchdog.ts`            | Heartbeat watchdog consuming the client's connected/clock seams and exposing a transport middleware that stamps `/status.reply`.                                                                                                                                                  |
-| `worker/WorkerClient.ts` | Permanent main-thread worker proxy. It runs command/event middleware chains, posts plain packets, mirrors connection status, respawns a crashed worker, and synthesizes close events for orderly shutdown and worker crashes.                                                     |
-| `worker/worker.ts`       | OSC worker endpoint. It encodes outgoing packets, decodes incoming frames, intercepts worker-internal `/clock/*` commands/replies, reports codec failures, and transfers inbound blob buffers. The binary codec dependency is imported only here.                                 |
+| `worker/WorkerClient.ts` | Main-thread proxy over a SharedWorker port (or the fallback dedicated worker — same script). It runs command/event middleware chains, posts plain packets, mirrors THIS client's connection status, synthesizes close events (close = leave; the shared socket survives for other clients), sends the once-per-port `attach` liveness lock, closes on pagehide, and respawns a crashed dedicated worker. |
+| `worker/worker.ts`       | Thin dual-mode entry: wires every SharedWorker port (or the dedicated scope itself) onto the shared endpoint.                                                                                                                                                                    |
+| `worker/endpoint.ts`     | The shared endpoint: one WebSocket + one clock, N ports. Open-as-join (late joiners get the missed `open` replayed), close-as-leave (last port closes the socket), scope-subId NAT with targeted chunk routing (keeps the zero-copy transfer single-consumer), per-port clock streams, and the `attach` death waiter (Web Locks). Encodes/decodes beside the socket — the codec dependency is imported only worker-side. |
 | `worker/clock.ts`        | NTP-style bridge offset estimator over `Date.now()` plus monotonic absolute-phase tick streams. RTT and scheduling stay in the worker's `performance.now()` domain.                                                                                                               |
 | `worker/transport.ts`    | Raw in-worker WebSocket transport. Its private events carry byte frames and never cross the worker boundary directly.                                                                                                                                                             |
 
 ## Worker protocol
 
-Commands from `WorkerClient` are `{ type: "open", url }`, `{ type: "close" }`,
-or `{ type: "osc", packet }`. Events back are `open`, `close`, `error`, `respawn`, or the
-same `{ type: "osc", packet }` shape. Packets are plain messages
+Commands from `WorkerClient` are `{ type: "attach", lockName }` (once per
+port — the Web Lock the client holds until its document dies; its release is
+the endpoint's crash-death signal), `{ type: "open", url }`,
+`{ type: "close" }`, or `{ type: "osc", packet }`. Events back are `open`,
+`close`, `error`, `respawn` (dedicated fallback only), or the same
+`{ type: "osc", packet }` shape. Packets are plain messages
 `{ address, args }` or bundles `{ timetag, packets }` and are structured-clone
-safe.
+safe. Per port the semantics are exactly the old single-client contract; the
+sharing (join/leave, NAT) is invisible above the endpoint.
 
 The main-thread middleware registration order carries no correctness
 dependency: each current observer calls `next` synchronously. Tx logging skips

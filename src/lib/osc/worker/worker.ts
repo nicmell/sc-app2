@@ -1,75 +1,30 @@
 /// <reference lib="webworker" />
-// OSC Web Worker endpoint: plain packets cross postMessage; binary frames are
-// encoded/decoded here beside the WebSocket transport. The codec subpath is
-// the worker's only route to osc-js.
+// OSC worker entry — a thin port dispatcher over the shared OscEndpoint
+// (endpoint.ts owns the socket, codec, clock, and all per-port bookkeeping).
+// The SAME script serves both modes: as a SharedWorker (`onconnect`, one
+// endpoint port per MessagePort — the production path, shared by every
+// same-origin client), and as a dedicated worker (the no-SharedWorker
+// fallback: the page's own message seam is the single implicit port). Plain
+// packets cross postMessage; binary encode/decode lives endpoint-side — the
+// codec subpath is the worker's only route to osc-js.
 
-import { decode, encode } from "@sc-app/server-commands/codec";
-import { CLOCK_PONG_ADDRESS, isMessage, type OscPacket } from "@sc-app/server-commands";
-import type { TransportCommand, TransportEvent } from "@/types/osc";
-import { createWsTransport } from "./transport";
-import { WorkerClock } from "./clock";
+import type { TransportCommand } from "@/types/osc";
+import { OscEndpoint, type PostEvent } from "./endpoint";
 
-const transport = createWsTransport();
-const scope = self as unknown as DedicatedWorkerGlobalScope;
-const post = (event: TransportEvent, transfer?: Transferable[]) =>
-  scope.postMessage(event, { transfer });
-const clock = new WorkerClock({
-  post: (packet) => post({ type: "osc", packet }),
-  sendPing: (packet) => transport.send(encode(packet)),
-});
+const endpoint = new OscEndpoint();
 
-function collectBlobBuffers(packet: OscPacket, out: ArrayBuffer[]): void {
-  if ("timetag" in packet) {
-    for (const child of packet.packets) collectBlobBuffers(child, out);
-    return;
-  }
-  for (const arg of packet.args) {
-    if (arg instanceof Uint8Array) out.push(arg.buffer);
-  }
+function wire(post: PostEvent, target: { onmessage: ((ev: MessageEvent) => void) | null }): void {
+  const port = endpoint.attach(post);
+  target.onmessage = (ev: MessageEvent) => endpoint.handle(port, ev.data as TransportCommand);
 }
 
-transport.onEvent((event) => {
-  if (event.type !== "message") {
-    if (event.type === "open") clock.onOpen();
-    if (event.type === "close") clock.onClose();
-    post(event);
-    return;
-  }
-  try {
-    const packet = decode(new Uint8Array(event.data));
-    if (isMessage(packet) && packet.address === CLOCK_PONG_ADDRESS) {
-      clock.onPong(packet, Date.now());
-      return;
-    }
-    const transfer: ArrayBuffer[] = [];
-    collectBlobBuffers(packet, transfer);
-    post({ type: "osc", packet }, transfer);
-  } catch (error) {
-    post({ type: "error", message: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-scope.onmessage = (ev: MessageEvent<TransportCommand>) => {
-  const command = ev.data;
-  switch (command.type) {
-    case "open":
-      transport.open(command.url);
-      return;
-    case "close":
-      clock.onClose();
-      transport.close();
-      return;
-    case "osc":
-      try {
-        // Only our code creates clock commands, always as bare messages;
-        // bundles deliberately remain ordinary transport traffic.
-        if (isMessage(command.packet) && command.packet.address.startsWith("/clock/")) {
-          clock.handleCommand(command.packet);
-          return;
-        }
-        transport.send(encode(command.packet));
-      } catch (error) {
-        post({ type: "error", message: error instanceof Error ? error.message : String(error) });
-      }
-  }
-};
+if ("onconnect" in self) {
+  (self as unknown as SharedWorkerGlobalScope).onconnect = (ev: MessageEvent) => {
+    const port = ev.ports[0];
+    wire((event, transfer) => port.postMessage(event, { transfer: transfer ?? [] }), port);
+    port.start();
+  };
+} else {
+  const scope = self as unknown as DedicatedWorkerGlobalScope;
+  wire((event, transfer) => scope.postMessage(event, { transfer: transfer ?? [] }), scope);
+}

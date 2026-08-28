@@ -111,9 +111,11 @@ describe("OscClient.once", () => {
     });
     const close = vi.fn();
     const closeId = oscClient.on("close", close);
+    // happy-dom has no SharedWorker, so the fallback dedicated worker is the
+    // spawned target — its onerror is the crash seam under test.
     const worker = (
-      workerClient as unknown as { worker: Worker & { onerror: (event: ErrorEvent) => void } }
-    ).worker;
+      workerClient as unknown as { target: Worker & { onerror: (event: ErrorEvent) => void } }
+    ).target;
 
     worker.onerror(new ErrorEvent("error", { message: "boom" }));
 

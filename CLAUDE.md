@@ -118,8 +118,9 @@ cd src-tauri && cargo doc --no-deps --document-private-items --open
 - Bind-order constraint: bind targets must be declared BEFORE their
   references in DOM order — the bind graph is a DAG by construction, and
   the load pass runs in plain DOM order.
-- A live session lives exactly as long as its WebSocket; identity + layout
-  persist server-side under the app root.
+- A live session lives exactly as long as its WebSocket; identity + session
+  data (boxes + per-box presets, keyed by content-hash element ids) persist
+  server-side under the app root.
 - Spec data lives ONCE in `sc-validate`'s `specs/<tag>.spec.json`; the
   frontend reads it from the wasm module (`getSpec`); messages, codes, and
   positions are pinned byte-exact by the test suites.

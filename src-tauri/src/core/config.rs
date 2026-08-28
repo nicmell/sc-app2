@@ -133,7 +133,7 @@ pub fn plugins_registry_path() -> PathBuf {
     root().join("plugins.json")
 }
 
-/// Directory holding saved-session layout files (`<session id>.json`).
+/// Directory holding saved session-data files (`<session id>.json`).
 pub fn sessions_dir() -> PathBuf {
     root().join("sessions")
 }

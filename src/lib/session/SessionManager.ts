@@ -1,6 +1,7 @@
 // Owns the live-connection half of the session lifecycle and its UI-facing
 // state: connect the global `oscClient` to a resolved session, track the
-// connection status, and autosave the dashboard layout. Session RESOLUTION —
+// connection status, and autosave the session data (dashboard boxes +
+// per-box plugin presets). Session RESOLUTION —
 // localStorage identity, mint/revive over HTTP, the 503 retry budget — lives
 // in the route loaders (`@/lib/session/resolveSession`); Layout hands
 // the resolved SessionInfo to `connect()` and calls `disconnect()` on unmount.
@@ -20,14 +21,15 @@
 // slice, so each notifies independently and the React hooks read them via
 // useSyncExternalStore.
 
-import { LAYOUT_SAVE_INTERVAL_MS } from "@/constants/session";
+import { SESSION_SAVE_INTERVAL_MS } from "@/constants/session";
 import { SliceName } from "@/constants/store";
 import { put, wsUrl } from "@/lib/http";
 import { oscClient } from "@/lib/osc/OscClient";
 import { layout, setLayout } from "@/stores/layout";
+import { presets, setPresets } from "@/stores/presets";
 import { appStore } from "@/stores/store";
 import { pushToast } from "@/stores/toasts";
-import type { SessionInfo } from "@/types/api";
+import type { BoxPresets, SessionInfo } from "@/types/api";
 import type { BoxItem, ConnStatus } from "@/types/stores";
 
 export class SessionManager {
@@ -38,9 +40,11 @@ export class SessionManager {
 
   /** (event, id) pairs of our oscClient subscriptions, for teardown(). */
   private subscriptions: Array<["close", number]> = [];
-  /** The layout-autosave worker-clock subscription + last saved reference. */
+  /** The session-autosave worker-clock subscription + last saved references
+   *  (one per slice — a tick saves when either moved). */
   private saveOff: (() => void) | null = null;
-  private lastSavedLayout: BoxItem[] | null = null;
+  private lastSavedBoxes: BoxItem[] | null = null;
+  private lastSavedPresets: Record<string, BoxPresets> | null = null;
   /** The reentrancy guard — see the header. */
   private epoch = 0;
   /** The info of the current (pending or live) connection — connect() with
@@ -50,7 +54,7 @@ export class SessionManager {
 
   /** Connect the global OSC client to an already-resolved session (which
    *  creates the session group and owns node-id allocation), restore its saved
-   *  layout, watch for the connection's end, and start the periodic layout
+   *  session data, watch for the connection's end, and start the periodic
    *  save. Each call supersedes the previous one (epoch guard); HTTP failures
    *  never land here — the route loaders resolve the session first. */
   async connect(info: SessionInfo): Promise<void> {
@@ -64,7 +68,8 @@ export class SessionManager {
     this.currentInfo = info;
     const epoch = ++this.epoch;
     this.teardown();
-    this.lastSavedLayout = null;
+    this.lastSavedBoxes = null;
+    this.lastSavedPresets = null;
     this.setStatus("connecting");
     this.state.update((state) => ({ ...state, scsynthAddress: info.scsynthAddress }));
 
@@ -80,20 +85,23 @@ export class SessionManager {
       // tore the old socket down; closing here would kill the NEW connection.
       if (this.epoch !== epoch) return;
 
-      // Restore the saved layout only once connected: mounting a panel mounts
-      // its <sc-plugin>, which allocates node ids + creates its group — both
-      // need the live connection. Unconditional — a fresh session's empty
-      // layout must CLEAR a previous session's boxes (dead id → mint →
-      // redirect happens without a reload).
-      setLayout(info.layout);
-      this.lastSavedLayout = layout.get();
+      // Restore the saved session data only once connected: mounting a panel
+      // mounts its <sc-plugin>, which allocates node ids + creates its group
+      // — both need the live connection. Presets land FIRST — setLayout
+      // triggers the panel mounts that read them. Both unconditional — a
+      // fresh session's empty data must CLEAR a previous session's boxes and
+      // values (dead id → mint → redirect happens without a reload).
+      setPresets(info.data.presets);
+      setLayout(info.data.boxes);
+      this.lastSavedBoxes = layout.get();
+      this.lastSavedPresets = presets.get();
       // The close is the single end-of-session signal: the OscClient closes
       // itself on every critical failure (transport error, heartbeat
       // timeout), and an orderly server-side close lands here too.
       this.subscribe("close", () => {
         if (this.epoch === epoch) this.setStatus("error");
       });
-      this.startLayoutAutosave(info.sessionId);
+      this.startSessionAutosave(info.sessionId);
       this.setStatus("connected");
     } catch {
       if (this.epoch === epoch) this.setStatus("error");
@@ -113,31 +121,33 @@ export class SessionManager {
     }, 0);
   }
 
-  /** Periodically PUT the dashboard layout to the session endpoint (the server
-   *  stores it next to the plugins, see src-tauri core/layouts.rs). Skips ticks
-   *  where the layout hasn't changed since the last save; failures just retry
-   *  on the next tick. */
-  private startLayoutAutosave(sessionId: string): void {
-    this.saveOff = oscClient.subscribeClock(LAYOUT_SAVE_INTERVAL_MS, () => {
-      const current = layout.get();
-      if (current === this.lastSavedLayout) return;
-      put(`/api/session/${sessionId}`, JSON.stringify(current), {
+  /** Periodically PUT the session data (boxes + presets) to the session
+   *  endpoint (the server stores it opaquely, see src-tauri core/layouts.rs).
+   *  Skips ticks where neither slice moved since the last save; failures just
+   *  retry on the next tick. */
+  private startSessionAutosave(sessionId: string): void {
+    this.saveOff = oscClient.subscribeClock(SESSION_SAVE_INTERVAL_MS, () => {
+      const boxes = layout.get();
+      const boxPresets = presets.get();
+      if (boxes === this.lastSavedBoxes && boxPresets === this.lastSavedPresets) return;
+      put(`/api/session/${sessionId}`, JSON.stringify({ boxes, presets: boxPresets }), {
         headers: { "content-type": "application/json" },
         // The coalesced toast below is this call's dedicated surface (it
         // also covers the 404 dead-session case the 5xx observer skips).
         notify: false,
       }).then(
         () => {
-          this.lastSavedLayout = current;
+          this.lastSavedBoxes = boxes;
+          this.lastSavedPresets = boxPresets;
         },
         (error: unknown) => {
-          console.warn("[session] layout save failed:", error);
+          console.warn("[session] session save failed:", error);
           // Coalesced (one toast, bumped count) — the autosave retries every
           // tick, and a dead session/registry must not stack toasts.
           pushToast({
             variant: "warn",
-            key: "session:layout-save",
-            message: `layout save failed: ${error instanceof Error ? error.message : String(error)}`,
+            key: "session:data-save",
+            message: `session save failed: ${error instanceof Error ? error.message : String(error)}`,
           });
         },
       );

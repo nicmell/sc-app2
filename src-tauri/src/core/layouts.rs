@@ -1,10 +1,12 @@
-//! Saved dashboard layouts (NOT the live sessions — those are
-//! [`core::sessions`](crate::core::sessions)): the layout each session
-//! periodically PUTs, persisted in the app data dir next to the plugins —
-//! `sessions/<id>.json` holds the layout (opaque JSON; the server never
-//! interprets it) and `sessions.json` is the registry, mirroring the plugin
-//! one ([`crate::core::plugin::manager`]). Stateless fs functions, consumed by the
-//! `/api/session` router: a stored frontend id is revived from here at boot.
+//! Saved session data (NOT the live sessions — those are
+//! [`core::sessions`](crate::core::sessions)): the payload each session
+//! periodically PUTs — the dashboard boxes plus each box's plugin presets,
+//! persisted in the app data dir next to the plugins. `sessions/<id>.json`
+//! holds the payload (opaque JSON; the server never interprets it — the
+//! shape is the frontend's `SessionData`) and `sessions.json` is the
+//! registry, mirroring the plugin one ([`crate::core::plugin::manager`]).
+//! Stateless fs functions, consumed by the `/api/session` router: a stored
+//! frontend id is revived from here at boot.
 //!
 //! TODO: saved sessions grow without bound — a browser that clears its
 //! localStorage orphans its `<id>.json` + registry row forever. Prune by
@@ -17,7 +19,7 @@ use uuid::Uuid;
 
 use crate::core::config;
 
-/// One registry entry: a session with a saved layout.
+/// One registry entry: a session with saved data.
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SavedSessionInfo {
@@ -56,9 +58,9 @@ fn write_registry(sessions: &[SavedSessionInfo]) -> Result<(), String> {
     std::fs::write(&path, json).map_err(|e| e.to_string())
 }
 
-// ── layouts (sessions/<id>.json) ──────────────────────────────────
+// ── session data (sessions/<id>.json) ─────────────────────────────
 
-/// Write the session's layout file and upsert its registry entry.
+/// Write the session's data file and upsert its registry entry.
 pub fn save_layout(id: &Uuid, layout: &serde_json::Value) -> Result<(), String> {
     std::fs::create_dir_all(config::sessions_dir()).map_err(|e| e.to_string())?;
     let json = serde_json::to_string_pretty(layout).map_err(|e| e.to_string())?;
@@ -72,7 +74,7 @@ pub fn save_layout(id: &Uuid, layout: &serde_json::Value) -> Result<(), String> 
     write_registry(&registry)
 }
 
-/// The saved layout for `id`, if it's in the registry and its file parses.
+/// The saved data for `id`, if it's in the registry and its file parses.
 pub fn load_layout(id: &Uuid) -> Option<serde_json::Value> {
     if !read_registry().ok()?.iter().any(|s| s.id == *id) {
         return None;
@@ -90,8 +92,11 @@ mod tests {
         crate::core::config::install_test_root();
         let id = uuid::Uuid::new_v4();
         assert!(load_layout(&id).is_none());
-        let layout = serde_json::json!([{ "i": "box-1", "x": 0, "y": 0, "w": 4, "h": 3 }]);
-        save_layout(&id, &layout).expect("saves");
-        assert_eq!(load_layout(&id), Some(layout));
+        let data = serde_json::json!({
+            "boxes": [{ "i": "box-1", "x": 0, "y": 0, "w": 4, "h": 3 }],
+            "presets": {}
+        });
+        save_layout(&id, &data).expect("saves");
+        assert_eq!(load_layout(&id), Some(data));
     }
 }

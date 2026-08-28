@@ -10,6 +10,7 @@ import { get, post, del } from "@/lib/http";
 import { validateEntry } from "@/lib/plugins/validate";
 import type { ScPlugin } from "@/sc-elements";
 import type { PluginInfo } from "@/types/api";
+import type { StateValue } from "@/types/runtime";
 
 const PLUGINS_BASE = "/api/plugins";
 
@@ -35,12 +36,19 @@ export function parseEntry(text: string): ScPlugin {
   return root;
 }
 
-/** Load and process an authored plugin root while it is disconnected. */
-export async function loadPluginHost(plugin: PluginInfo): Promise<ScPlugin> {
+/** Load and process an authored plugin root while it is disconnected. The
+ *  identity seed and any resumed values must sit on the host BEFORE
+ *  processRoot — ids are minted and claims consumed during resolution. */
+export async function loadPluginHost(
+  plugin: PluginInfo,
+  options?: { resumed?: Record<string, StateValue> },
+): Promise<ScPlugin> {
   // PluginHost's inline error is the dedicated surface (N broken boxes must
   // not each stack a toast).
   const res = await get(`${PLUGINS_BASE}/${plugin.id}/${plugin.entry}`, { notify: false });
   const host = parseEntry(await res.text());
+  host.pluginId = plugin.id;
+  host.resumed = options?.resumed;
   host.processRoot();
   return host;
 }

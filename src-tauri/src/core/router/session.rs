@@ -6,12 +6,13 @@
 //! (`/g_new` at the tail of scsynth's root group) once its WebSocket is open,
 //! and the session ends when that WebSocket closes (see `router/ws.rs`).
 //!
-//! The dashboard layout is persisted server-side ([`crate::core::layouts`]):
-//! the frontend periodically `PUT`s it, and at boot `GET` either returns the
-//! live session or **revives** a saved one under the same id (fresh block) so
-//! the layout survives across app runs. `DELETE` ends a live session
-//! explicitly (kept for future use). The session store and the id math live
-//! on [`Server`](crate::core::server) — this is just the transport.
+//! The session data (dashboard boxes + per-box plugin presets, opaque to the
+//! server) is persisted server-side ([`crate::core::layouts`]): the frontend
+//! periodically `PUT`s it, and at boot `GET` either returns the live session
+//! or **revives** a saved one under the same id (fresh block) so the data
+//! survives across app runs. `DELETE` ends a live session explicitly (kept
+//! for future use). The session store and the id math live on
+//! [`Server`](crate::core::server) — this is just the transport.
 
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -39,7 +40,7 @@ pub fn routes() -> Router<Server> {
 /// What the session endpoints return: the id, the session's assigned group and
 /// node-id range (which the frontend allocates synth ids from), the scsynth
 /// address the bridge talks to (shown in the footer), and — on GET — the saved
-/// dashboard layout, if any.
+/// session data, if any.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SessionInfo {
@@ -55,9 +56,10 @@ struct SessionInfo {
     scope_index_count: i32,
     /// The `scsynth` peer's `host:port` from config (empty if unconfigured).
     scsynth_address: String,
-    /// The saved dashboard layout (opaque to the server); `[]` when none
-    /// exists, so the frontend can rely on it being an array.
-    layout: serde_json::Value,
+    /// The saved session data (opaque to the server — dashboard boxes +
+    /// per-box plugin presets); the empty shape when none exists, so the
+    /// frontend can rely on the object envelope.
+    data: serde_json::Value,
 }
 
 impl SessionInfo {
@@ -65,7 +67,7 @@ impl SessionInfo {
         server: &Server,
         id: Uuid,
         block: SessionBlock,
-        layout: Option<serde_json::Value>,
+        data: Option<serde_json::Value>,
     ) -> Self {
         Self {
             session_id: id,
@@ -75,7 +77,7 @@ impl SessionInfo {
             scope_index_base: block.scope_index_base,
             scope_index_count: block.scope_index_count,
             scsynth_address: server.scsynth_address().unwrap_or_default(),
-            layout: layout.unwrap_or_else(|| serde_json::json!([])),
+            data: data.unwrap_or_else(|| serde_json::json!({"boxes": [], "presets": {}})),
         }
     }
 }
@@ -95,34 +97,34 @@ async fn post_session(State(server): State<Server>) -> Response {
 }
 
 /// Fetch a live session — or revive a saved one under the same id (fresh
-/// block), so a browser's stored session id restores its layout at boot.
+/// block), so a browser's stored session id restores its data at boot.
 async fn get_session(State(server): State<Server>, ApiPath(id): ApiPath<Uuid>) -> Response {
-    let layout = layouts::load_layout(&id);
+    let data = layouts::load_layout(&id);
     if let Some(block) = server.sessions().block(&id) {
-        return Json(SessionInfo::new(&server, id, block, layout)).into_response();
+        return Json(SessionInfo::new(&server, id, block, data)).into_response();
     }
-    if layout.is_none() {
+    if data.is_none() {
         return ApiError::session_unknown(&id).into_response();
     }
     match server.create_session_with_id(id).await {
         Some(block) => {
             tracing::info!(session = %id, group = block.group_id, "session revived");
-            Json(SessionInfo::new(&server, id, block, layout)).into_response()
+            Json(SessionInfo::new(&server, id, block, data)).into_response()
         }
         None => ApiError::scsynth_unavailable().into_response(),
     }
 }
 
-/// Save the session's dashboard layout (the frontend PUTs it periodically).
+/// Save the session's data (the frontend PUTs it periodically).
 async fn put_session(
     State(server): State<Server>,
     ApiPath(id): ApiPath<Uuid>,
-    ApiJson(layout): ApiJson<serde_json::Value>,
+    ApiJson(data): ApiJson<serde_json::Value>,
 ) -> Response {
     if !server.sessions().contains(&id) {
         return ApiError::session_unknown(&id).into_response();
     }
-    match layouts::save_layout(&id, &layout) {
+    match layouts::save_layout(&id, &data) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal", e).into_response(),
     }

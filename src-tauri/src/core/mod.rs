@@ -18,7 +18,7 @@
 //! * [`sessions`] — per-client LIVE session store: node-id sub-block
 //!   allocation + liveness bookkeeping (the data structure; eviction is
 //!   driven by the WS layer — a session ends when its socket closes).
-//! * [`layouts`] — the SAVED dashboard layouts (persisted JSON).
+//! * [`layouts`] — the SAVED session data: boxes + presets (persisted JSON).
 //!
 //! The application shell:
 //! * [`server`] — the app-logic facade the router holds as axum `State`:

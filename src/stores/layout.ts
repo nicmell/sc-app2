@@ -4,6 +4,7 @@
 
 import { SliceName } from "@/constants/store";
 import { appStore } from "./store";
+import { removeBoxPresets } from "./presets";
 import type { BoxItem } from "@/types/stores";
 
 const store = appStore.slice(SliceName.LAYOUT);
@@ -27,8 +28,13 @@ export function addBox(box: BoxItem): void {
 
 export function removeBox(i: string): void {
   store.update((list) => list.filter((b) => b.i !== i));
+  removeBoxPresets(i);
 }
 
 export function setBoxPlugin(i: string, plugin: string): void {
+  const previous = store.get().find((b) => b.i === i)?.plugin;
   store.update((list) => list.map((b) => (b.i === i ? { ...b, plugin } : b)));
+  // Stale values must not follow the box across plugins (re-picking the same
+  // plugin keeps them — the mounted host doesn't remount).
+  if (previous !== plugin) removeBoxPresets(i);
 }

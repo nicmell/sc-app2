@@ -19,13 +19,7 @@ step depends on live inline; everything here is UNSTARTED unless noted.
      Float32Array) fed by an SHM scope-tap subscription.
    - A `/b_getn` reader + buffer WS stack is the fallback ONLY if reading
      actual buffer CONTENTS (vs the live signal) ever becomes necessary.
-3. **Persistence & presets** — extend the saved-session layout payload with
-   per-box `OverrideEntry[]` presets, marshalled as sparse diffs read from
-   the element's per-instance runtime store via the mounted host's name-path
-   walk — LITERAL keys only (derived values live on the elements and
-   recompute; a preset writing a bound key would create an orphan store
-   entry nothing reads).
-4. **Shell polish** — settings (grid size, latency); theme/options store
+3. **Shell polish** — settings (grid size, latency); theme/options store
    slice.
 
 ## Expression-language growth (`src/lib/expression/`)

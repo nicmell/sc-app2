@@ -11,26 +11,76 @@ import { ROUTES } from "@/constants/routes";
 import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { get, HttpError, post } from "@/lib/http";
 import { refreshPlugins } from "@/stores/plugins";
-import type { SessionInfo } from "@/types/api";
+import type { BoxPresets, SessionData, SessionInfo } from "@/types/api";
+import type { PresetEntry, StateValue } from "@/types/runtime";
 import { generatePath, replace, type LoaderFunctionArgs } from "react-router";
+
+const isStateValue = (v: unknown): v is StateValue =>
+  typeof v === "string" ||
+  typeof v === "number" ||
+  (Array.isArray(v) && v.every((n) => typeof n === "number"));
+
+/** Entry-deep presets normalization: the server stores the payload opaquely,
+ *  so a hand-edited or corrupt `sessions/<id>.json` can hold any shape —
+ *  malformed entries drop (fail closed to defaults) instead of crashing the
+ *  box they belong to. */
+function normalizePresets(raw: unknown): Record<string, BoxPresets> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, BoxPresets> = {};
+  for (const [i, entry] of Object.entries(raw as Record<string, unknown>)) {
+    if (!entry || typeof entry !== "object") continue;
+    const { plugin, values } = entry as Partial<BoxPresets>;
+    if (
+      typeof plugin !== "string" ||
+      !values ||
+      typeof values !== "object" ||
+      Array.isArray(values)
+    )
+      continue;
+    const kept: Record<string, PresetEntry> = {};
+    for (const [id, v] of Object.entries(values as Record<string, unknown>)) {
+      if (!v || typeof v !== "object") continue;
+      const { path, value } = v as Partial<PresetEntry>;
+      if (typeof path === "string" && isStateValue(value)) kept[id] = { path, value };
+    }
+    out[i] = { plugin, values: kept };
+  }
+  return out;
+}
+
+/** The server stores the session payload opaquely — normalize whatever comes
+ *  back (missing, pre-rename array, garbage) into a strict SessionData so the
+ *  rest of the frontend never defends. */
+function normalizeSession(info: SessionInfo): SessionInfo {
+  const raw = info.data as unknown;
+  const partial =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Partial<SessionData>) : {};
+  return {
+    ...info,
+    data: {
+      boxes: Array.isArray(partial.boxes) ? partial.boxes : [],
+      presets: normalizePresets(partial.presets),
+    },
+  };
+}
 
 /** Mint a fresh session. The server allocates the group id + node range;
  *  `scsynth-unregistered` 503 = the bounded quiet-retry case. Loader
  *  failures surface in RouteError — no observer toast (notify: false). */
 async function createSession(): Promise<SessionInfo> {
-  return await (await post("/api/session", null, { notify: false })).json();
+  return normalizeSession(await (await post("/api/session", null, { notify: false })).json());
 }
 
-/** Revive a stored session id (GET returns its info + saved layout).
+/** Revive a stored session id (GET returns its info + saved data).
  *  `null` — the mint fallback — ONLY when the envelope says the id can
- *  never revive: `session-unknown` (no live entry, no saved layout) or
+ *  never revive: `session-unknown` (no live entry, no saved data) or
  *  `bad-request` (a garbage id that is not a UUID). Everything else
  *  RETHROWS: a transient 500 or network failure must not silently abandon
- *  the stored session and its saved layout (it lands in RouteError, whose
+ *  the stored session and its saved data (it lands in RouteError, whose
  *  Retry re-resolves the SAME id). */
 async function fetchSession(id: string): Promise<SessionInfo | null> {
   try {
-    return await (await get(`/api/session/${id}`, { notify: false })).json();
+    return normalizeSession(await (await get(`/api/session/${id}`, { notify: false })).json());
   } catch (error) {
     if (
       error instanceof HttpError &&

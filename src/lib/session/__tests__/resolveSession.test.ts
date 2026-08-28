@@ -35,7 +35,7 @@ function info(sessionId: string): SessionInfo {
     scopeIndexBase: 2,
     scopeIndexCount: 4,
     scsynthAddress: "127.0.0.1:57110",
-    layout: [],
+    data: { boxes: [], presets: {} },
   };
 }
 

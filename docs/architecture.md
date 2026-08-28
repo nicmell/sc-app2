@@ -14,7 +14,7 @@ stack), `src/sc-elements/README.md` (per-element docs).
 │  React shell (Dashboard, overlay, toasts, footer, router)              │
 │  Lit sc-* elements (console, scope, strudel, keyboard, plugin trees)   │
 │        │ hooks / store subscriptions                                   │
-│  app store: { session, osc, toasts, layout, plugins } (reactiveStore)  │
+│  app store: { session, osc, toasts, layout, presets, plugins }         │
 │        │ owned by singletons                                           │
 │  SessionManager ── OscClient                        [main thread]      │
 │        │ WorkerClient (permanent worker, postMessage protocol)         │
@@ -108,14 +108,17 @@ sc-elements/             Lit elements used inside plugin HTML (per-element
                          map from the wasm module (getSpec at initValidator;
                          internal/spec.ts re-exports it + bindAttr/COMMON_ATTRS)
 stores/                  the single app store + slices and React hooks
-  store.ts               createStore({ session, osc, toasts, layout, plugins })
-                         — the ONLY app-level store. Cross-module shapes come
-                         from @/types (type-only by construction), so no
-                         runtime cycle with the singletons. Plugin runtime
-                         state is NOT a slice: each mounted <sc-plugin>
+  store.ts               createStore({ session, osc, toasts, layout, presets,
+                         plugins }) — the ONLY app-level store. Cross-module
+                         shapes come from @/types (type-only by construction),
+                         so no runtime cycle with the singletons. Plugin
+                         runtime state is NOT a slice: each mounted <sc-plugin>
                          instance owns a per-instance createStore (see
-                         "Runtime values" below)
-  layout.ts / plugins.ts / session.ts / osc.ts / toasts.ts / useStore.ts
+                         "Runtime values" below); the presets slice holds each
+                         box's HARVESTED snapshot of that store (id-keyed),
+                         saved with the layout and reseeded on remount
+  layout.ts / presets.ts / plugins.ts / session.ts / osc.ts / toasts.ts /
+  useStore.ts
 types/                   .d.ts domain shapes (type-only modules):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
@@ -174,7 +177,8 @@ lib/                     non-React infrastructure
   session/               SessionManager (global `session`): the LIVE half —
                          epoch-guarded connect(info)/disconnect() (one-tick
                          deferred for StrictMode remounts), close → conn
-                         status, 10 s layout autosave on worker clock ticks;
+                         status, 10 s session-data autosave (boxes + presets)
+                         on worker clock ticks;
                          resolveSession.ts: the route loaders — mint/revive
                          over HTTP, localStorage ownership, bounded 503
                          quiet-retry, the mint→redirect handoff
@@ -203,7 +207,9 @@ type-checked + `react-hooks`) via `yarn lint`; Prettier (`printWidth` 100) via
 ### Session lifecycle
 
 A **live session lives exactly as long as its WebSocket**; its **identity and
-dashboard layout persist** server-side:
+session data persist** server-side (the `SessionData` payload: the dashboard
+boxes + each box's plugin presets — the mounted host's literal runtime values
+keyed by element content-hash id, captured against the box's plugin id):
 
 The URL is the session's source of truth (`/:sessionId?`); the ONE route
 loader (`lib/session/resolveSession.ts` sessionLoader) owns resolution and
@@ -212,7 +218,7 @@ every localStorage write:
 1. Resolution: a param-less URL replace-redirects to the stored
    `localStorage["sc.session"]` id (mints one via `POST /api/session` when
    nothing is stored); with the param the loader `GET`s that id —
-   **reviving** it under the same UUID (fresh node-id block, saved layout) —
+   **reviving** it under the same UUID (fresh node-id block, saved data) —
    and a dead/unknown id mints fresh and replace-redirects again (the minted
    info rides a module-level handoff to the redirect target's loader, no
    re-GET). While scsynth is unregistered the server answers 503 and the
@@ -227,8 +233,14 @@ every localStorage write:
    "error"; the ConnectionOverlay's Retry revalidates the loaders in place
    (new info object → reconnect; a dead session revives-or-mints). Child
    navigation never re-runs the session loader, so it never reconnects.
-3. Every 10 s the SessionManager `PUT`s the layout to `/api/session/{id}` when it
-   changed; the server stores it under the app data dir (see below).
+3. Every 10 s the SessionManager `PUT`s the session data (boxes + presets)
+   to `/api/session/{id}` when either slice changed; the server stores it
+   opaquely under the app data dir (see below). Presets flow back in on
+   connect: the presets slice is filled BEFORE the layout, so a mounting
+   PluginHost seeds its host (`resumed` on the entry ctx, claimed and
+   consumed by each literal state element during resolution — unclaimed
+   entries are orphans, dropped with a warning); a box whose values were
+   captured against a different installed plugin id skips wholesale.
 4. WS close (reload/quit) → the server ends the session and frees its group.
    Server shutdown frees all live session groups one by one, then `/notify 0`.
 
@@ -266,8 +278,8 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
   clock.rs        the /clock/* wire contract — ping/pong encode/parse,
                   mirrored by server-commands' commands/clock.ts
   sessions.rs     LIVE-session store (Uuid → block, index recycling)
-  layouts.rs      SAVED dashboard layouts: sessions.json registry +
-                  sessions/<id>.json
+  layouts.rs      SAVED session data (opaque boxes + presets payload):
+                  sessions.json registry + sessions/<id>.json
   server.rs       the app-logic facade the router holds as axum State:
                   session mint/revive/end, the shared scope SHM handle
   config.rs       the APP ROOT (resolve_root/set_root/root: --app-dir >
@@ -291,7 +303,7 @@ core/             mod.rs also exports start(config_path, log_dir) — the ONE
                   handshake rejections, unknown-/api/* fallback, malformed
                   JSON bodies via ApiJson, handler panics via
                   CatchPanicLayer; only the assets page fallback stays
-                  text), session.rs (POST/GET-revive/PUT-layout/DELETE),
+                  text), session.rs (POST/GET-revive/PUT-data/DELETE),
                   ws.rs (per-socket OSC pump; /scope/* intercepted; ends the
                   session on close), plugin.rs, diag.rs, assets.rs
 ```
@@ -324,13 +336,13 @@ invalidating per-generation caches (the scope SHM mapping). GUI mode runs
 the same chain, then builds the window with the bound port injected.
 
 **Session state machine** — CREATED (`POST /api/session`: uuid + a
-`blocks.rs` id-block; layout reaches `layouts.rs` only on the client's
-first PUT) or REVIVED (`GET`: same uuid, FRESH block, saved layout) — not
-yet live either way. The WS handshake `attach`es it (unknown → 404, already
-attached → 409 `session-busy`; one socket per session); from there the
-session lives exactly as long as the socket: close → `end_session` frees
-the group, recycles the block, forgets the live entry — the saved layout
-survives. Shutdown drains all live sessions, then unregisters.
+`blocks.rs` id-block; session data reaches `layouts.rs` only on the
+client's first PUT) or REVIVED (`GET`: same uuid, FRESH block, saved data)
+— not yet live either way. The WS handshake `attach`es it (unknown → 404,
+already attached → 409 `session-busy`; one socket per session); from there
+the session lives exactly as long as the socket: close → `end_session`
+frees the group, recycles the block, forgets the live entry — the saved
+data survives. Shutdown drains all live sessions, then unregisters.
 
 **Plugin pipeline** (`plugin/manager.rs`, shared by HTTP route and CLI):
 zip parse → metadata validation → entry through the sc-validate spec gate
@@ -401,8 +413,11 @@ accessor`, lowered by `esbuild.target: "es2022"`); static validation lives
    structure at all — access from outside the DOM goes through the mounted
    `<sc-plugin>` hosts (each parsed tree hangs off its root via
    `_scChildren`; name paths resolve with `walkPath`). Anything _persisted_
-   (presets, layout) stays name-path-based; references are in-memory
-   runtime only.
+   is keyed by the deterministic content-hash element id (seeded by the
+   plugin id — see contentHash.ts; per-box presets carry the store paths as
+   debug metadata only), and the one in-memory id lookup is the plugin
+   host's resolution-built `stateIndex` (id → live literal-state element,
+   the harvest/rehydration seam); references stay in-memory runtime only.
 5. **Values that duplicate a reactive prop are unified, never copied**: no
    runtime `name`/`run`. The live VALUE is the exception that settled the
    other way: `value` is the plain declarative attribute mirror everywhere
@@ -434,7 +449,7 @@ parentNode, path}` — one shared object per sibling scope, the driver
    collecting each child into `_scChildren` as it completes). A parent collects ALL its children into
    the level scope and
    checks duplicate names BEFORE any child processes (each child mints its
-   deterministic path-chained hash id as it processes), with inner-scope
+   deterministic seeded path hash id as it processes), with inner-scope
    shadowing on name lookups.
 7. **Bind-order constraint (ENFORCED): bind targets must be declared BEFORE
    their references in DOM order.** Elements that have not yet been
@@ -682,7 +697,7 @@ session revives-or-mints).
 | WS worker | the page (respawned on crash) | `WorkerClient` |
 | WebSocket connection | one session | `OscClient` (closes itself on critical failures) |
 | Session (group + node-id block) | its WebSocket | Rust `Server` (ends on socket close) |
-| Session **identity** + layout | until overwritten | localStorage + `<root>/sessions/<id>.json` |
+| Session **identity** + data (boxes + presets) | until overwritten | localStorage + `<root>/sessions/<id>.json` |
 | Scope tap synth + subscription | the element's load/unload pass | each `<sc-scope>` |
 | OSC log | the page (survives reconnects) | logging middleware (`osc` slice, bounded 300) |
 | Toasts | until dismissed/auto-expire (coalesced by key) | `stores/toasts` (any producer) |

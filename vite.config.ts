@@ -31,6 +31,13 @@ export default defineConfig(() => ({
     target: "es2022",
   },
 
+  // The OSC worker script is built for BOTH constructors (SharedWorker in
+  // production, dedicated fallback) — SharedWorker + `type: "module"` needs
+  // the ES output format (the classic-worker default is iife).
+  worker: {
+    format: "es",
+  },
+
   // App styles are co-located CSS Modules (`*.module.scss`, imported as `styles`
   // in each component). camelCaseOnly exposes dashed class names as camelCase JS
   // keys only (`.grid-wrapper` → `styles.gridWrapper`). The ui-components package

@@ -54,12 +54,16 @@ export class SessionManager {
   private currentInfo: SessionInfo | null = null;
   private disconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Connect the global OSC client to an already-resolved session (which
-   *  creates the session group and owns node-id allocation), restore its saved
-   *  session data, watch for the connection's end, and start the periodic
-   *  save. Each call supersedes the previous one (epoch guard); HTTP failures
-   *  never land here — the route loaders resolve the session first. */
-  async connect(info: SessionInfo): Promise<void> {
+  /** Connect this client to an already-resolved session (joining its shared
+   *  worker connection), watch for the connection's end, and — for the
+   *  PRIMARY client (the dashboard) — restore the saved session data and
+   *  start the periodic save + the sibling-harvest mirror. A SECONDARY
+   *  client (a box shell) only joins: its BoxPage seeds its own slices, and
+   *  exactly one autosave writer exists per session. Each call supersedes
+   *  the previous one (epoch guard); HTTP failures never land here — the
+   *  route loaders resolve the session first. */
+  async connect(info: SessionInfo, options: { primary?: boolean } = {}): Promise<void> {
+    const primary = options.primary ?? true;
     if (this.disconnectTimer !== null) {
       clearTimeout(this.disconnectTimer);
       this.disconnectTimer = null;
@@ -87,30 +91,35 @@ export class SessionManager {
       // tore the old socket down; closing here would kill the NEW connection.
       if (this.epoch !== epoch) return;
 
-      // Restore the saved session data only once connected: mounting a panel
-      // mounts its <sc-plugin>, which allocates node ids + creates its group
-      // — both need the live connection. Presets land FIRST — setLayout
-      // triggers the panel mounts that read them. Both unconditional — a
-      // fresh session's empty data must CLEAR a previous session's boxes and
-      // values (dead id → mint → redirect happens without a reload).
-      setPresets(info.data.presets);
-      setLayout(info.data.boxes);
-      this.lastSavedBoxes = layout.get();
-      this.lastSavedPresets = presets.get();
+      if (primary) {
+        // Restore the saved session data only once connected: mounting a
+        // panel mounts its <sc-plugin>, which allocates node ids + creates
+        // its group — both need the live connection. Presets land FIRST —
+        // setLayout triggers the panel mounts that read them. Both
+        // unconditional — a fresh session's empty data must CLEAR a previous
+        // session's boxes and values (dead id → mint → redirect happens
+        // without a reload).
+        setPresets(info.data.presets);
+        setLayout(info.data.boxes);
+        this.lastSavedBoxes = layout.get();
+        this.lastSavedPresets = presets.get();
+      }
       // The close is the single end-of-session signal: the OscClient closes
       // itself on every critical failure (transport error, heartbeat
       // timeout), and an orderly server-side close lands here too.
       this.subscribe("close", () => {
         if (this.epoch === epoch) this.setStatus("error");
       });
-      this.startSessionAutosave(info.sessionId);
-      // Mirror sibling clients' live harvests (box iframes push through the
-      // shared worker) into the presets slice, so the dashboard's autosave
-      // persists them; setBoxPresets drops boxes outside this realm's
-      // layout, so the mirror is safe in every client.
-      this.presetsOff = oscClient.onBoxPresets((boxId, entry) =>
-        setBoxPresets(boxId, entry.plugin, entry.values),
-      );
+      if (primary) {
+        this.startSessionAutosave(info.sessionId);
+        // Mirror sibling clients' live harvests (box shells push through the
+        // shared worker) into the presets slice, so the dashboard's autosave
+        // persists them; setBoxPresets drops boxes outside this realm's
+        // layout, keeping the mirror safe.
+        this.presetsOff = oscClient.onBoxPresets((boxId, entry) =>
+          setBoxPresets(boxId, entry.plugin, entry.values),
+        );
+      }
       this.setStatus("connected");
     } catch {
       if (this.epoch === epoch) this.setStatus("error");

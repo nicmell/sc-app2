@@ -84,7 +84,7 @@ export interface HubOptions {
 
 const defaultWaitForLock = (name: string): Promise<void> => {
   const locks = (globalThis.navigator as Navigator | undefined)?.locks;
-  return locks ? locks.request(name, async () => undefined) : new Promise(() => {});
+  return locks ? locks.request(name, () => undefined) : new Promise(() => {});
 };
 
 export class SessionHub {
@@ -334,7 +334,7 @@ export class SessionHub {
         if (owner) {
           const transfer: ArrayBuffer[] = [];
           for (const arg of packet.args) {
-            if (arg instanceof Uint8Array) transfer.push(arg.buffer as ArrayBuffer);
+            if (arg instanceof Uint8Array) transfer.push(arg.buffer);
           }
           owner.post({ type: "osc", packet }, transfer);
         }

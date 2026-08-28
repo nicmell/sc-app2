@@ -22,6 +22,11 @@ interface PendingRpc {
   reject: (err: Error) => void;
 }
 
+/** Whether this browsing context runs the shared transport (the production
+ *  path) — the dashboard renders box IFRAMES only when true; the fallback
+ *  keeps the direct-mount panels. */
+export const sharedTransport = typeof SharedWorker !== "undefined";
+
 export class WorkerClient {
   /** The posting seam: a SharedWorker port or the fallback dedicated worker. */
   private target!: MessagePort | Worker;
@@ -117,7 +122,7 @@ export class WorkerClient {
   private spawn(): void {
     // Both literal constructions must stay inline for Vite's worker bundling
     // (they statically resolve to the SAME script).
-    if (typeof SharedWorker !== "undefined") {
+    if (sharedTransport) {
       const shared = new SharedWorker(new URL("./worker.ts", import.meta.url), {
         type: "module",
         name: "sc-osc",

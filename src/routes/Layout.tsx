@@ -16,6 +16,7 @@ import {
   Outlet,
   useLoaderData,
   useNavigation,
+  useParams,
   useRevalidator,
   type LoaderFunctionArgs,
 } from "react-router";
@@ -41,14 +42,19 @@ export async function layoutLoader(args: LoaderFunctionArgs) {
 
 export function Layout() {
   const info = useLoaderData<SessionInfo>();
+  // A matched box shell (/:sessionId/box/:boxId) is a SECONDARY session
+  // client: it joins the shared connection but leaves the layout/presets
+  // slices and the autosave to the primary (dashboard) client.
+  const { boxId } = useParams();
+  const primary = boxId === undefined;
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const loading = navigation.state === "loading" || revalidator.state === "loading";
 
   useEffect(() => {
-    void session.connect(info);
+    void session.connect(info, { primary });
     return () => session.disconnect();
-  }, [info]);
+  }, [info, primary]);
 
   return (
     <div className={styles.app}>

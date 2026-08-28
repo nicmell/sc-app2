@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { ROUTES } from "@/constants/routes";
+import { BoxPage } from "./BoxPage";
 import { DashboardRoute } from "./DashboardRoute";
 import { Layout, layoutLoader } from "./Layout";
 import { PluginPage } from "./PluginPage";
@@ -16,9 +17,13 @@ import { SettingsRoute } from "./SettingsRoute";
 // resolveSession). The settings child renders the drawer through
 // DashboardRoute's Outlet (over the still-mounted dashboard, open only once
 // the session is connected); plugins/:pluginId is the full-screen standalone
-// plugin instance.
+// plugin instance; box/:boxId is the BOX SHELL — one dashboard box as its
+// own session client (the dashboard's panel iframes and pop-out tabs load
+// it; docs/multi-tab.md). The root route's id feeds useRouteLoaderData in
+// the children.
 export const router = createBrowserRouter([
   {
+    id: "session",
     path: ROUTES.SESSION,
     loader: layoutLoader,
     element: <Layout />,
@@ -33,6 +38,7 @@ export const router = createBrowserRouter([
         ],
       },
       { path: ROUTES.SESSION_PLUGIN, element: <PluginPage /> },
+      { path: ROUTES.SESSION_BOX, element: <BoxPage /> },
     ],
   },
 ]);

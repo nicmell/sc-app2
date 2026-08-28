@@ -4,9 +4,13 @@
 //   • layout/geometry  → stores/layout (app-store slice, autosaved to the
 //     backend session by the SessionManager)
 //   • installed plugins → stores/plugins (mirrored from the Rust router)
-//   • panel content     → PluginHost (fetch entry XHTML, offline parse/upgrade,
-//     process + mount)
+//   • panel content     → an IFRAME onto the box-shell route (each box is its
+//     own session client through the shared worker; docs/multi-tab.md), or a
+//     direct PluginHost mount where SharedWorker is unavailable. Iframes
+//     swallow pointer events, so a grid drag/resize disables them until the
+//     gesture ends.
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { generatePath, useParams } from "react-router";
 import type { Layout } from "react-grid-layout";
 import { GridLayout, noCompactor, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -19,6 +23,8 @@ import { plugins } from "@/stores/plugins";
 import { session } from "@/stores/session";
 import type { PluginInfo } from "@/types/api";
 import { MARGIN, NUM_COLUMNS, NUM_ROWS } from "@/constants/layout";
+import { ROUTES } from "@/constants/routes";
+import { sharedTransport } from "@/lib/osc/worker/WorkerClient";
 import { computePlaceholders, isPlaceholder } from "@/components/Dashboard/utils";
 import { DashboardPanel, dragHandleClass } from "@/components/Dashboard/DashboardPanel";
 import { DashboardHeader } from "@/components/Dashboard/DashboardHeader";
@@ -57,6 +63,10 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
   const rowHeight = computeRowHeight(NUM_ROWS, viewportHeight);
 
   const [modalOpen, setModalOpen] = useState<BoxItem>();
+  const { sessionId } = useParams();
+  /** A drag/resize gesture is live — panel iframes must not swallow the
+   *  pointer (they get `pointer-events: none` for the duration). */
+  const [interacting, setInteracting] = useState(false);
 
   // The picker is a top-layer modal <dialog>; like the drawer (see App.tsx) it
   // would paint above the ConnectionOverlay's "connecting" scrim, so close it
@@ -115,7 +125,17 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         ) : plugin ? (
-          <PluginHost key={plugin.id} pluginId={plugin.id} boxId={item.i} />
+          sharedTransport && sessionId ? (
+            <iframe
+              key={plugin.id}
+              className={styles.boxFrame}
+              style={interacting ? { pointerEvents: "none" } : undefined}
+              title={plugin.name}
+              src={`${generatePath(ROUTES.SESSION_BOX, { sessionId, boxId: item.i })}?plugin=${plugin.id}`}
+            />
+          ) : (
+            <PluginHost key={plugin.id} pluginId={plugin.id} boxId={item.i} />
+          )
         ) : (
           <div className={styles.panelEmpty}>
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
@@ -153,8 +173,16 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
               gridConfig={{ cols: NUM_COLUMNS, rowHeight, margin: MARGIN }}
               compactor={{ ...noCompactor, allowOverlap: false, preventCollision: true }}
               dragConfig={{ handle: `.${dragHandleClass}` }}
-              onDragStop={(current) => syncLayout(current)}
-              onResizeStop={(current) => syncLayout(current)}
+              onDragStart={() => setInteracting(true)}
+              onResizeStart={() => setInteracting(true)}
+              onDragStop={(current) => {
+                setInteracting(false);
+                syncLayout(current);
+              }}
+              onResizeStop={(current) => {
+                setInteracting(false);
+                syncLayout(current);
+              }}
             >
               {items.map((item) => renderDashboardPanel(item))}
             </GridLayout>

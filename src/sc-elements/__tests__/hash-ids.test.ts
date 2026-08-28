@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { isParentRuntime } from "@/lib/utils/guards";
+import { parseEntry } from "@/lib/plugins/PluginManager";
 import { parsePlugin, wrapXml } from "@/lib/utils/test/test-utils";
 import { registerScElements, type ScElement, type ScPlugin } from "@/sc-elements";
 
@@ -45,7 +46,7 @@ describe("content-hash element ids", () => {
       </sc-group>
       <sc-display value="440"/>
     `);
-    expect(ids).toEqual(["1bc7d76dafaf04", "15a4cac0dc1f24", "1bc3a18fcf53d1", "126a1257cba237"]);
+    expect(ids).toEqual(["1933c7e76d6f01", "538905639b8ca", "d99f8018502d0", "1b7238d3f12ac3"]);
   });
 
   it("gives identical twin siblings different ids", () => {
@@ -65,6 +66,21 @@ describe("content-hash element ids", () => {
     const [first, second] = Array.from(host.querySelectorAll("sc-var"));
 
     expect(first.id).not.toBe(second.id);
+  });
+
+  it("prefixes the instance seed — same markup, different plugin, disjoint ids", () => {
+    const xml = wrapXml(`<sc-group name="voice"><sc-display value="1"/></sc-group>`);
+    const seeded = (seed: string) => {
+      const host = parseEntry(xml);
+      host.pluginId = seed;
+      host.processRoot();
+      return orderedIds(host);
+    };
+
+    const a = seeded("plugin-a");
+    expect(seeded("plugin-a")).toEqual(a); // deterministic per seed
+    expect(seeded("plugin-b").every((id, i) => id !== a[i])).toBe(true);
+    expect(seeded("").every((id, i) => id !== a[i])).toBe(true); // unseeded ≠ seeded
   });
 
   it("uses bare hex ids throughout the ordered tree", () => {

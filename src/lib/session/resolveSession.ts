@@ -11,26 +11,45 @@ import { ROUTES } from "@/constants/routes";
 import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { get, HttpError, post } from "@/lib/http";
 import { refreshPlugins } from "@/stores/plugins";
-import type { SessionInfo } from "@/types/api";
+import type { SessionData, SessionInfo } from "@/types/api";
 import { generatePath, replace, type LoaderFunctionArgs } from "react-router";
+
+/** The server stores the session payload opaquely — normalize whatever comes
+ *  back (missing, pre-rename array, garbage) into a strict SessionData so the
+ *  rest of the frontend never defends. */
+function normalizeSession(info: SessionInfo): SessionInfo {
+  const raw = info.data as unknown;
+  const partial =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Partial<SessionData>) : {};
+  return {
+    ...info,
+    data: {
+      boxes: Array.isArray(partial.boxes) ? partial.boxes : [],
+      presets:
+        partial.presets && typeof partial.presets === "object" && !Array.isArray(partial.presets)
+          ? partial.presets
+          : {},
+    },
+  };
+}
 
 /** Mint a fresh session. The server allocates the group id + node range;
  *  `scsynth-unregistered` 503 = the bounded quiet-retry case. Loader
  *  failures surface in RouteError — no observer toast (notify: false). */
 async function createSession(): Promise<SessionInfo> {
-  return await (await post("/api/session", null, { notify: false })).json();
+  return normalizeSession(await (await post("/api/session", null, { notify: false })).json());
 }
 
-/** Revive a stored session id (GET returns its info + saved layout).
+/** Revive a stored session id (GET returns its info + saved data).
  *  `null` — the mint fallback — ONLY when the envelope says the id can
- *  never revive: `session-unknown` (no live entry, no saved layout) or
+ *  never revive: `session-unknown` (no live entry, no saved data) or
  *  `bad-request` (a garbage id that is not a UUID). Everything else
  *  RETHROWS: a transient 500 or network failure must not silently abandon
- *  the stored session and its saved layout (it lands in RouteError, whose
+ *  the stored session and its saved data (it lands in RouteError, whose
  *  Retry re-resolves the SAME id). */
 async function fetchSession(id: string): Promise<SessionInfo | null> {
   try {
-    return await (await get(`/api/session/${id}`, { notify: false })).json();
+    return normalizeSession(await (await get(`/api/session/${id}`, { notify: false })).json());
   } catch (error) {
     if (
       error instanceof HttpError &&

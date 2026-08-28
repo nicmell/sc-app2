@@ -19,6 +19,7 @@ vi.mock("@/lib/osc/OscClient", () => ({ oscClient: osc }));
 
 import { SessionManager } from "@/lib/session/SessionManager";
 import { layout } from "@/stores/layout";
+import { presets } from "@/stores/presets";
 import { appStore } from "@/stores/store";
 
 const info: SessionInfo = {
@@ -29,7 +30,7 @@ const info: SessionInfo = {
   scopeIndexBase: 2,
   scopeIndexCount: 4,
   scsynthAddress: "127.0.0.1:57110",
-  layout: [],
+  data: { boxes: [], presets: {} },
 };
 
 beforeEach(() => {
@@ -93,16 +94,25 @@ describe("SessionManager", () => {
     manager.disconnect();
   });
 
-  it("resets the layout when a fresh session's layout is empty", async () => {
+  it("resets the session data when a fresh session's data is empty", async () => {
     const manager = new SessionManager();
     const boxes = [{ i: "box-1", x: 0, y: 0, w: 4, h: 4, plugin: "p1" }];
-    await manager.connect({ ...info, layout: boxes });
+    const boxPresets = {
+      "box-1": { plugin: "p1", values: { abc123: { path: "gain", value: 0.5 } } },
+    };
+    await manager.connect({ ...info, data: { boxes, presets: boxPresets } });
     expect(layout.get()).toEqual(boxes);
+    expect(presets.get()).toEqual(boxPresets);
 
-    // Dead id → mint → redirect hands a fresh session with an empty layout:
-    // the previous session's boxes must not survive onto it.
-    await manager.connect({ ...info, sessionId: "session-2", layout: [] });
+    // Dead id → mint → redirect hands a fresh session with empty data:
+    // the previous session's boxes and values must not survive onto it.
+    await manager.connect({
+      ...info,
+      sessionId: "session-2",
+      data: { boxes: [], presets: {} },
+    });
     expect(layout.get()).toEqual([]);
+    expect(presets.get()).toEqual({});
     manager.disconnect();
   });
 

@@ -1,5 +1,6 @@
-// The single app store. Every domain (session, dashboard layout, installed
-// plugins) is one top-level slice of this one `createStore` — modules
+// The single app store. Every domain (session, dashboard layout, per-box
+// presets, installed plugins) is one top-level slice of this one
+// `createStore` — modules
 // read/write their slice via `appStore.slice(key)` / `appStore.select(...)`,
 // and React subscribes through the hooks. There is no other `createStore` in
 // the app.
@@ -31,6 +32,7 @@ export const appStore = createStore<AppState>({
   session: initialSessionState,
   osc: initialOscState,
   layout: DEFAULT_LAYOUT,
+  presets: {},
   plugins: [],
   toasts: [],
 });

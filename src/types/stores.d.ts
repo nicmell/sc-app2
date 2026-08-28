@@ -3,7 +3,7 @@
 // carry runtime values, which makes the "no runtime imports into store.ts"
 // invariant structural.
 
-import type { PluginInfo } from "@/types/api";
+import type { BoxPresets, PluginInfo } from "@/types/api";
 
 /** A grid cell: react-grid-layout geometry + the assigned plugin id. */
 export interface BoxItem {
@@ -87,6 +87,9 @@ export interface AppState {
   /** Dashboard grid placement. Restored from / periodically saved to the
    *  backend's saved-session storage by the SessionManager. */
   layout: BoxItem[];
+  /** Per-box plugin presets — each mounted host's harvested literal state,
+   *  saved alongside the layout and reseeded into remounting hosts. */
+  presets: Record<string, BoxPresets>;
   /** Installed-plugin registry, mirrored from the Rust router. */
   plugins: PluginInfo[];
   /** The global toast stack — any module pushes via `stores/toasts`. */

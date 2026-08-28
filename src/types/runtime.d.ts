@@ -50,6 +50,14 @@ export interface PluginRuntime {
   runtime: Store<PluginRuntimeValues>;
 }
 
+/** One persisted literal-state value, keyed (in `BoxPresets.values`) by the
+ *  element's content-hash id; `path` is debug metadata only — the id is the
+ *  match key (see contentHash.ts for the id scheme). */
+export interface PresetEntry {
+  path: string;
+  value: StateValue;
+}
+
 /** One resolved runtime prop (`bind:min="vars.lo"`, `bind:value="osc.freq * 2"`):
  *  the live bind targets + the optional parsed expression over them. Every
  *  element carries `runtimeProps?: Record<name, RuntimeProp>` (keyed by the
@@ -81,11 +89,17 @@ export interface RuntimeContext {
    *  driver sets `index` and processes `siblings[index]`. */
   siblings: ScElement[];
   /** The driver-set cursor into `siblings` — also the position the
-   *  path-chained hash id is minted from. */
+   *  seeded path hash id is minted from. */
   index: number;
   /** The cumulative name-lookup chain (the level's siblings prefixed onto
    *  the enclosing scopes) — lookup only, unrelated to the cursor. */
   scope: ScElement[];
   parentNode?: ScParent;
   path: string[];
+  /** Resumed literal-state values (element id → value), claimed and
+   *  CONSUMED by `ScState.resolveRuntime` — a claimed entry is deleted, so
+   *  a re-resolution can never re-apply a stale value over a user edit.
+   *  Whatever survives the parse is an orphan (a value nothing claims) and
+   *  is dropped by `ScPlugin.processRoot`. */
+  resumed?: Record<string, StateValue>;
 }

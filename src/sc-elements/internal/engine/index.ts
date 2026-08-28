@@ -4,7 +4,7 @@
 // element (`ctx.scope` stays the cumulative name-lookup chain — the level
 // prefix coincides with `siblings`, but nothing contracts on that). The
 // engine owns everything positional and unconditional — identity (the
-// path-chained hash id), the shared runtime core, the re-entrancy guard,
+// seeded path hash id), the shared runtime core, the re-entrancy guard,
 // the duplicate-name integrity, and the canonical error shape. Static spec
 // validation happens in the shared Rust validator before the tree reaches the
 // engine; the elements provide the ONE extension hook (`resolveRuntime(ctx)`)
@@ -12,14 +12,15 @@
 
 import { contentHash } from "./contentHash";
 import { checkDuplicateNames, nameOf } from "./resolution";
+import { isPluginRuntime } from "@/lib/utils/guards";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import type { ScParent } from "@/sc-elements/internal/sc-parent";
 import type { RuntimeContext } from "@/types/runtime";
 
 /** Process the element at the cursor (`ctx.siblings[ctx.index]`):
  *  pre-register it (so re-entrant resolves of a mid-processing ancestor
- *  return it), assign the identity + shared runtime core (the path-chained
- *  hash id minted from the level owner's id + the cursor position,
+ *  return it), assign the identity + shared runtime core (the seeded path
+ *  hash id minted from the level path + the cursor position,
  *  `_rootScNode`/`basePath`/`_parentScNode` — the level owner; the OWNER
  *  collects the element into its `_scChildren` once processing completes,
  *  see `processChildren`), then run the element's runtime step,
@@ -33,10 +34,15 @@ export function process(ctx: RuntimeContext): ScElement {
   }
   ctx.nodes.add(el);
   try {
-    el.id = contentHash(el, ctx.parentNode?.id ?? "", ctx.index);
-    el._rootScNode = ctx.rootNode;
     el.basePath = ctx.path;
+    el._rootScNode = ctx.rootNode;
     el._parentScNode = ctx.parentNode;
+    el.id = contentHash(
+      el,
+      ctx.path.join("."),
+      ctx.index,
+      isPluginRuntime(ctx.rootNode) ? ctx.rootNode.pluginId : "",
+    );
     el.resolveRuntime(ctx);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -71,6 +77,7 @@ export function processChildren(parent: ScParent, ctx: RuntimeContext): void {
     parentNode: parent,
     path,
     index: 0,
+    resumed: ctx.resumed,
   };
   for (let i = 0; i < siblings.length; i++) {
     childCtx.index = i;

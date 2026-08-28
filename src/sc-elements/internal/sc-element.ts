@@ -37,7 +37,7 @@
 // intermediate before converging — accepted, each hop is Object.is-guarded.
 //
 // Not yet implemented (see the roadmap): the buffer family
-// (sc-buffer/sc-waveform), presets/overrides.
+// (sc-buffer/sc-waveform).
 
 import { LitElement } from "lit";
 import { evalExpr } from "@/lib/expression";
@@ -63,8 +63,8 @@ export function slotIndexOf(path: string): number | null {
 export abstract class ScElement extends LitElement {
   // ── Runtime values (assigned by `process`; plain fields, not reactive) ──
 
-  /** The parsed identity — the native DOM id; `process` mints the
-   *  path-chained hash (the browser reflects it to the attribute). */
+  /** The parsed identity — the native DOM id; `process` mints the seeded
+   *  path hash (the browser reflects it to the attribute). */
   declare id: string;
   /** The plugin root element this element was parsed under. */
   _rootScNode!: ScParent;

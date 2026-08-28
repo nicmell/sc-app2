@@ -26,7 +26,7 @@
 
 import type { Store } from "@/lib/utils/reactiveStore";
 import { isPluginRuntime } from "@/lib/utils/guards";
-import type { PluginRuntimeValues, StateValue } from "@/types/runtime";
+import type { PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
 export abstract class ScState extends ScElement {
@@ -45,8 +45,9 @@ export abstract class ScState extends ScElement {
 
   /** The element's key in the plugin's store map: the named ancestor path
    *  plus its own name (the plugin root contributes no segment). Literal
-   *  state only — derived state has no store key. */
-  protected get key(): string {
+   *  state only — derived state has no store key. Public — collectPresets
+   *  reads it to pair the persisted id with its debug path. */
+  get key(): string {
     return [...this.basePath, this.getProp("name") as string].join(".");
   }
 
@@ -54,6 +55,26 @@ export abstract class ScState extends ScElement {
    *  <sc-plugin> host for every parsed element (pinned by examples.test). */
   get #pluginRuntime(): Store<PluginRuntimeValues> | undefined {
     return isPluginRuntime(this._rootScNode) ? this._rootScNode.runtime : undefined;
+  }
+
+  /** Register in the plugin root's id index and claim this element's resumed
+   *  value: the claim writes the store key BEFORE the load pass, whose seed
+   *  guard then preserves it over the declarative default. The entry is
+   *  CONSUMED (deleted) — a re-resolution can never re-apply a stale value
+   *  over a later user edit. Derived state neither registers nor claims (no
+   *  store key); graph-plane state registers harmlessly — it never gets a
+   *  store value, so it can never have been harvested. */
+  resolveRuntime(ctx: RuntimeContext): void {
+    super.resolveRuntime(ctx);
+    if (this.derived) return;
+    const root = this._rootScNode;
+    if (!isPluginRuntime(root)) return;
+    root.stateIndex.set(this.id, this);
+    const value = ctx.resumed?.[this.id];
+    if (value !== undefined && ctx.resumed) {
+      delete ctx.resumed[this.id];
+      root.runtime.update((s) => ({ ...s, [this.key]: value }));
+    }
   }
 
   /** The internal write: Object.is-guarded store update, reporting whether

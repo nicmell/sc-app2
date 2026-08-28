@@ -115,7 +115,7 @@ export function Dashboard({ onToggleDrawer }: { onToggleDrawer: () => void }) {
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />
           </div>
         ) : plugin ? (
-          <PluginHost key={plugin.id} pluginId={plugin.id} />
+          <PluginHost key={plugin.id} pluginId={plugin.id} boxId={item.i} />
         ) : (
           <div className={styles.panelEmpty}>
             <Button size="sm" label="Select plugin" onClick={() => setModalOpen(item)} />

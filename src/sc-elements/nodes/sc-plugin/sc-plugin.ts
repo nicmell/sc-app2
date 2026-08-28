@@ -19,7 +19,8 @@ import { createStore, type Store } from "@/lib/utils/reactiveStore";
 import { process } from "@/sc-elements/internal/engine";
 import type { ScElement } from "@/sc-elements/internal/sc-element";
 import { ScNode } from "@/sc-elements/internal/sc-node";
-import type { PluginRuntimeValues } from "@/types/runtime";
+import type { ScState } from "@/sc-elements/internal/sc-state";
+import type { PluginRuntimeValues, PresetEntry, StateValue } from "@/types/runtime";
 import "./sc-plugin.scss";
 
 export class ScPlugin extends ScNode {
@@ -29,6 +30,24 @@ export class ScPlugin extends ScNode {
    *  pass, written by ScState.dispatchValue, read via _rootScNode by every
    *  descendant. Lives and dies with the element — a remount reseeds. */
   readonly runtime: Store<PluginRuntimeValues> = createStore({});
+
+  /** The content-hash seed — the installed plugin's id (set by
+   *  loadPluginHost BEFORE processRoot; empty when unseeded, e.g. unit
+   *  tests). Binds every element id to the exact installed source: a
+   *  re-upload mints a fresh plugin uuid, so stale persisted state fails
+   *  closed instead of hydrating the wrong element. */
+  pluginId = "";
+
+  /** Resumed literal-state values (element id → value), set by
+   *  loadPluginHost BEFORE processRoot and handed to the entry ctx: each
+   *  ScState claims (and consumes) its own entry during resolution; what
+   *  survives the parse is an orphan and is dropped here with a warning. */
+  resumed?: Record<string, StateValue>;
+
+  /** id → live literal-state element, registered during resolution
+   *  (ScState.resolveRuntime). In-memory only — the persisted vocabulary is
+   *  the id; the live reference never leaves the mount. */
+  readonly stateIndex = new Map<string, ScState>();
 
   /** Parse succeeded — there is a tree to (re)load. A parse failure is
    *  permanent for this mount; reload() never retries it. */
@@ -64,13 +83,48 @@ export class ScPlugin extends ScNode {
   }
 
   /** Process this authored root: the root is the single sibling of a
-   *  virtual top level, so it mints from an empty parent id at position 0,
-   *  like any other element. Returns the per-parse `nodes` set. */
+   *  virtual top level, so it mints from an empty path at position 0, like
+   *  any other element. Returns the per-parse `nodes` set. Resumed values
+   *  ride the ctx and are consumed by the state elements' claims; leftovers
+   *  are orphans (a stale id nothing claims) — dropped, never persisted
+   *  again (only claimed values ever reach the store). */
   processRoot(): Set<ScElement> {
     const nodes = new Set<ScElement>();
-    process({ rootNode: this, nodes, siblings: [this], scope: [this], path: [], index: 0 });
+    this.stateIndex.clear();
+    const resumed = this.resumed;
+    process({
+      rootNode: this,
+      nodes,
+      siblings: [this],
+      scope: [this],
+      path: [],
+      index: 0,
+      resumed,
+    });
     this.parsed = true; // only reached when the whole tree parsed clean
+    if (resumed) {
+      const orphans = Object.keys(resumed);
+      if (orphans.length) {
+        console.warn(`[sc-plugin] dropped ${orphans.length} unclaimed preset value(s):`, orphans);
+      }
+      this.resumed = undefined;
+    }
     return nodes;
+  }
+
+  /** Snapshot this instance's literal state for persistence: the runtime
+   *  store's values re-keyed by element id via the resolution-time index
+   *  (paths ride along as debug metadata). Graph-plane state never gets a
+   *  store value and orphan store keys (walkPath abuse) have no index entry
+   *  — both drop out, so the snapshot is exactly the claimable state. */
+  collectPresets(): Record<string, PresetEntry> {
+    const values = this.runtime.get();
+    const out: Record<string, PresetEntry> = {};
+    for (const [id, el] of this.stateIndex) {
+      const value = values[el.key];
+      if (value !== undefined) out[id] = { path: el.key, value };
+    }
+    return out;
   }
 
   /** Create the plugin's scsynth group — the group all of this plugin's

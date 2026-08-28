@@ -64,17 +64,17 @@ async fn ws_handler(
     //    tab always POSTs a fresh session (own id, own WS, own group +
     //    node-id block + scope index — the server already supports any
     //    number of live sessions with disjoint blocks). What's missing is
-    //    only decoupling the *saved layout* from the live-session id: fetch
-    //    the layout under the stored id without reviving it (or copy it onto
-    //    the fresh session at mint), and accept last-writer-wins on the
-    //    saved layout + the stored id.
+    //    only decoupling the *saved session data* from the live-session id:
+    //    fetch the data under the stored id without reviving it (or copy it
+    //    onto the fresh session at mint), and accept last-writer-wins on the
+    //    saved data + the stored id.
     // 2. A frontend SharedWorker owning the one WebSocket across tabs.
     //    Verified insufficient as a socket-only change: the per-connection
     //    state (node-id allocator, /g_new group ownership, the scope-slot
-    //    span allocator, the layout autosave) lives per-tab in
+    //    span allocator, the session-data autosave) lives per-tab in
     //    OscClient/SessionManager, so two tabs over one shared socket would
     //    collide on node ids and the scope subscription and fight over the
-    //    layout PUT. It only works if the allocator + OSC client core move
+    //    session-data PUT. It only works if the allocator + OSC client core move
     //    into the SharedWorker (tabs become thin views) — a much larger
     //    refactor, also gated on SharedWorker availability in the embedders
     //    (back in WKWebView only since Safari 16). Option 1 is the

@@ -25,7 +25,7 @@
 // rule as a parse error.
 
 import type { Store } from "@/lib/utils/reactiveStore";
-import { isPluginRuntime } from "@/lib/utils/guards";
+import { isNodeRuntime, isPluginRuntime } from "@/lib/utils/guards";
 import type { PluginRuntimeValues, RuntimeContext, StateValue } from "@/types/runtime";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 
@@ -62,11 +62,13 @@ export abstract class ScState extends ScElement {
    *  guard then preserves it over the declarative default. The entry is
    *  CONSUMED (deleted) — a re-resolution can never re-apply a stale value
    *  over a later user edit. Derived state neither registers nor claims (no
-   *  store key); graph-plane state registers harmlessly — it never gets a
-   *  store value, so it can never have been harvested. */
+   *  store key), and neither does graph-plane state (a control under
+   *  sc-synthdef/sc-ugen — same non-node-parent test the base bind
+   *  resolution uses): it never loads, so keeping it out of the index means
+   *  even a walkPath-abuse orphan store key can never be harvested. */
   resolveRuntime(ctx: RuntimeContext): void {
     super.resolveRuntime(ctx);
-    if (this.derived) return;
+    if (this.derived || (ctx.parentNode && !isNodeRuntime(ctx.parentNode))) return;
     const root = this._rootScNode;
     if (!isPluginRuntime(root)) return;
     root.stateIndex.set(this.id, this);

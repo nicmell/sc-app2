@@ -75,6 +75,14 @@ describe("per-session state resume", () => {
     expect(warn).toHaveBeenCalledOnce(); // the derived entry is an orphan
   });
 
+  it("graph-plane state stays out of the index (never harvested)", () => {
+    const { host } = parsePlugin(
+      wrapXml(`<sc-synthdef name="d"><sc-control name="p" value="1"/></sc-synthdef>`),
+    );
+
+    expect(host.stateIndex.size).toBe(0);
+  });
+
   it("collectPresets snapshots the store by id with debug paths", () => {
     const { host } = parsePlugin(MARKUP);
     const ids = fixtureIds();

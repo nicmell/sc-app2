@@ -16,8 +16,14 @@ export function setPresets(next: Record<string, BoxPresets>): void {
   store.set(next);
 }
 
-/** Replace one box's captured values (the mounted host's harvest). */
+/** Replace one box's captured values (the mounted host's harvest). Writes
+ *  only when the box is still in the layout with this exact plugin: a late
+ *  async harvest (a store notification racing a removeBox unmount, or an old
+ *  session's host outliving a session switch) must neither resurrect a
+ *  pruned entry nor write across sessions. */
 export function setBoxPresets(i: string, plugin: string, values: BoxPresets["values"]): void {
+  const box = appStore.get().layout.find((b) => b.i === i);
+  if (box?.plugin !== plugin) return;
   store.update((map) => ({ ...map, [i]: { plugin, values } }));
 }
 

@@ -11,8 +11,42 @@ import { ROUTES } from "@/constants/routes";
 import { SCSYNTH_RETRY_LIMIT, SCSYNTH_RETRY_MS, SESSION_KEY } from "@/constants/session";
 import { get, HttpError, post } from "@/lib/http";
 import { refreshPlugins } from "@/stores/plugins";
-import type { SessionData, SessionInfo } from "@/types/api";
+import type { BoxPresets, SessionData, SessionInfo } from "@/types/api";
+import type { PresetEntry, StateValue } from "@/types/runtime";
 import { generatePath, replace, type LoaderFunctionArgs } from "react-router";
+
+const isStateValue = (v: unknown): v is StateValue =>
+  typeof v === "string" ||
+  typeof v === "number" ||
+  (Array.isArray(v) && v.every((n) => typeof n === "number"));
+
+/** Entry-deep presets normalization: the server stores the payload opaquely,
+ *  so a hand-edited or corrupt `sessions/<id>.json` can hold any shape —
+ *  malformed entries drop (fail closed to defaults) instead of crashing the
+ *  box they belong to. */
+function normalizePresets(raw: unknown): Record<string, BoxPresets> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, BoxPresets> = {};
+  for (const [i, entry] of Object.entries(raw as Record<string, unknown>)) {
+    if (!entry || typeof entry !== "object") continue;
+    const { plugin, values } = entry as Partial<BoxPresets>;
+    if (
+      typeof plugin !== "string" ||
+      !values ||
+      typeof values !== "object" ||
+      Array.isArray(values)
+    )
+      continue;
+    const kept: Record<string, PresetEntry> = {};
+    for (const [id, v] of Object.entries(values as Record<string, unknown>)) {
+      if (!v || typeof v !== "object") continue;
+      const { path, value } = v as Partial<PresetEntry>;
+      if (typeof path === "string" && isStateValue(value)) kept[id] = { path, value };
+    }
+    out[i] = { plugin, values: kept };
+  }
+  return out;
+}
 
 /** The server stores the session payload opaquely — normalize whatever comes
  *  back (missing, pre-rename array, garbage) into a strict SessionData so the
@@ -25,10 +59,7 @@ function normalizeSession(info: SessionInfo): SessionInfo {
     ...info,
     data: {
       boxes: Array.isArray(partial.boxes) ? partial.boxes : [],
-      presets:
-        partial.presets && typeof partial.presets === "object" && !Array.isArray(partial.presets)
-          ? partial.presets
-          : {},
+      presets: normalizePresets(partial.presets),
     },
   };
 }

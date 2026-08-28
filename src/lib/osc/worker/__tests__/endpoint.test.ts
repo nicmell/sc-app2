@@ -64,8 +64,15 @@ function fakeTransport(): FakeTransport {
 
 function makeEndpoint() {
   const transport = fakeTransport();
-  const endpoint = new OscEndpoint({ createTransport: () => transport });
-  return { endpoint, transport };
+  const lockReleases = new Map<string, () => void>();
+  const endpoint = new OscEndpoint({
+    createTransport: () => transport,
+    waitForLock: (name) =>
+      new Promise<void>((resolve) => {
+        lockReleases.set(name, resolve);
+      }),
+  });
+  return { endpoint, transport, lockReleases };
 }
 
 function makePort(endpoint: OscEndpoint) {
@@ -292,5 +299,48 @@ describe("OscEndpoint clock streams", () => {
     const pings = transport.sent.filter((m) => m.address === "/clock/ping").length;
     vi.advanceTimersByTime(CLOCK_PING_INTERVAL_MS * 3);
     expect(transport.sent.filter((m) => m.address === "/clock/ping")).toHaveLength(pings);
+  });
+});
+
+describe("OscEndpoint liveness (attach)", () => {
+  it("a released lock destroys the port: streams stopped, socket closed when last", async () => {
+    const { endpoint, transport, lockReleases } = makeEndpoint();
+    const a = makePort(endpoint);
+    const b = makePort(endpoint);
+    endpoint.handle(a.port, { type: "attach", lockName: "lock-a" });
+    endpoint.handle(a.port, { type: "attach", lockName: "ignored-duplicate" });
+    open(endpoint, a.port);
+    transport.emit({ type: "open" });
+    open(endpoint, b.port);
+    endpoint.handle(a.port, {
+      type: "osc",
+      packet: scopeSubscribe({ subId: 1, scope: 8, channels: 1, chunkSize: 1024 }),
+    });
+
+    expect(lockReleases.has("ignored-duplicate")).toBe(false); // one waiter per port
+    lockReleases.get("lock-a")!();
+    await vi.waitFor(() => {
+      expect(
+        transport.sent.filter((m) => m.address === "/scope/unsubscribe").map((m) => m.args[0]),
+      ).toEqual([1]);
+    });
+    expect(transport.closes).toBe(0); // B still joined
+
+    endpoint.handle(b.port, { type: "close" });
+    expect(transport.closes).toBe(1);
+  });
+
+  it("death after an orderly close is a no-op", async () => {
+    const { endpoint, transport, lockReleases } = makeEndpoint();
+    const a = makePort(endpoint);
+    endpoint.handle(a.port, { type: "attach", lockName: "lock-a" });
+    open(endpoint, a.port);
+    transport.emit({ type: "open" });
+    endpoint.handle(a.port, { type: "close" });
+    expect(transport.closes).toBe(1);
+
+    lockReleases.get("lock-a")!();
+    await Promise.resolve();
+    expect(transport.closes).toBe(1); // no double close, no throw
   });
 });

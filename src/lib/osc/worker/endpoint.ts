@@ -59,6 +59,8 @@ export interface EndpointPort {
   post: PostEvent;
   /** Joined the session (open sent, close not yet) — the socket refcount. */
   opened: boolean;
+  /** A liveness waiter is armed (one per port — see the `attach` command). */
+  watched: boolean;
   /** local clock id → endpoint-unique clock key (survives socket closes). */
   clockNat: Map<number, number>;
   /** local scope subId → wire subId (dies with the socket). */
@@ -68,10 +70,19 @@ export interface EndpointPort {
 export interface EndpointOptions {
   /** Injectable transport factory (tests). */
   createTransport?: () => WorkerTransport;
+  /** Injectable liveness waiter: resolves when the named lock becomes
+   *  acquirable — i.e. the client holding it died. Defaults to Web Locks. */
+  waitForLock?: (name: string) => Promise<void>;
 }
+
+const defaultWaitForLock = (name: string): Promise<void> => {
+  const locks = (globalThis.navigator as Navigator | undefined)?.locks;
+  return locks ? locks.request(name, () => undefined) : new Promise(() => {});
+};
 
 export class OscEndpoint {
   private readonly transport: WorkerTransport;
+  private readonly waitForLock: (name: string) => Promise<void>;
   private readonly clock: WorkerClock;
   private readonly ports = new Set<EndpointPort>();
   /** The url of the current (connecting or open) socket. */
@@ -85,6 +96,7 @@ export class OscEndpoint {
 
   constructor(options: EndpointOptions = {}) {
     this.transport = (options.createTransport ?? createWsTransport)();
+    this.waitForLock = options.waitForLock ?? defaultWaitForLock;
     this.clock = new WorkerClock({
       post: (message) => this.postClock(message),
       sendPing: (message) => this.transport.send(encode(message)),
@@ -111,13 +123,22 @@ export class OscEndpoint {
 
   /** Register a port; feed its messages through handle(). */
   attach(post: PostEvent): EndpointPort {
-    const port: EndpointPort = { post, opened: false, clockNat: new Map(), scopeNat: new Map() };
+    const port: EndpointPort = {
+      post,
+      opened: false,
+      watched: false,
+      clockNat: new Map(),
+      scopeNat: new Map(),
+    };
     this.ports.add(port);
     return port;
   }
 
   handle(port: EndpointPort, command: TransportCommand): void {
     switch (command.type) {
+      case "attach":
+        this.watch(port, command.lockName);
+        return;
       case "open":
         this.open(port, command.url);
         return;
@@ -131,6 +152,16 @@ export class OscEndpoint {
   }
 
   // ── membership ──────────────────────────────────────────────────────────
+
+  /** Arm the liveness waiter: the client HOLDS `lockName` until its document
+   *  dies, so being granted the lock means the port's context is gone —
+   *  destroy() it (idempotent; an orderly close beforehand is fine). One
+   *  waiter per port; duplicates are ignored. */
+  private watch(port: EndpointPort, lockName: string): void {
+    if (port.watched) return;
+    port.watched = true;
+    void this.waitForLock(lockName).then(() => this.destroy(port));
+  }
 
   private open(port: EndpointPort, url: string): void {
     port.opened = true;

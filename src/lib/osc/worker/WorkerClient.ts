@@ -26,12 +26,34 @@ export class WorkerClient {
   constructor() {
     this.spawn();
     // The shared endpoint can't see a port die (MessagePort has no close
-    // event) — pagehide covers every ORDERLY end of this document (tab
-    // close, navigation, reload, iframe removal). Hard crashes are the
-    // liveness seam's job (the `attach` lock).
+    // event). Two nets, both shared-mode only (the dedicated fallback dies
+    // with its page): pagehide covers every ORDERLY end of this document
+    // (tab close, navigation, reload, iframe removal); the `attach` lock is
+    // the crash net — the browser releases a dead context's Web Locks, and
+    // the endpoint treats the release as this port's death.
     if (sharedTransport && typeof window !== "undefined") {
       window.addEventListener("pagehide", () => this.close());
+      void this.announce();
     }
+  }
+
+  /** Acquire this client's liveness lock, THEN send `attach` — the ordering
+   *  guarantees the endpoint's queued lock request can only be granted by
+   *  this document's death, never instantly. The lock is held forever (the
+   *  callback never resolves); the browser releases it with the document,
+   *  crash included. Skipped where Web Locks are unavailable — the port
+   *  then simply has no crash net, exactly the pre-liveness behavior. */
+  private async announce(): Promise<void> {
+    const locks = navigator.locks as LockManager | undefined;
+    if (!locks) return;
+    const lockName = `sc-osc-${crypto.randomUUID()}`;
+    await new Promise<void>((acquired) => {
+      void locks.request(lockName, () => {
+        acquired();
+        return new Promise(() => {}); // hold until page death
+      });
+    });
+    this.dispatchCommand({ type: "attach", lockName });
   }
 
   open(url: string): void {

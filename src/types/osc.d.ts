@@ -20,8 +20,14 @@ export interface OscSession {
   scopeIndexCount: number;
 }
 
-/** What the transport is told to do (WorkerClient → worker). */
+/** What the transport is told to do (WorkerClient → worker). `attach` is
+ *  sent once per port when the client wires it: `lockName` is the Web Lock
+ *  the client HOLDS until its document dies (crash included) — the shared
+ *  endpoint waits on that lock, and being granted it is the death signal
+ *  that detaches the port (a MessagePort itself emits nothing when its
+ *  context is gone). Orderly ends still ride `close`. */
 export type TransportCommand =
+  | { type: "attach"; lockName: string }
   | { type: "open"; url: string }
   | { type: "osc"; packet: OscPacket }
   | { type: "close" };

@@ -108,7 +108,11 @@ async function request(
   const { notify, ...init } = options ?? {};
   const resp = await fetch(`${HTTP_BASE_URL}${path}`, { ...init, method, body });
   if (!resp.ok) {
-    const error = new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
+    const error = new HttpError(
+      resp.status,
+      resp.statusText,
+      await resp.text().catch(() => String())
+    );
     // The global backstop: UNEXPECTED server failures surface as a coalesced
     // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
     // form feedback). No code suffix in the key — different 5xx codes on
@@ -125,7 +129,10 @@ async function request(
   return resp;
 }
 
-export function get(path: string, options?: RequestOptions): Promise<Response> {
+export function get(
+  path: string,
+  options?: RequestOptions
+): Promise<Response> {
   return request(path, "GET", null, options);
 }
 
@@ -145,6 +152,9 @@ export function put(
   return request(path, "PUT", body, options);
 }
 
-export function del(path: string, options?: RequestOptions): Promise<Response> {
+export function del(
+  path: string,
+  options?: RequestOptions
+): Promise<Response> {
   return request(path, "DELETE", null, options);
 }

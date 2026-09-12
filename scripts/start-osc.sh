@@ -6,9 +6,10 @@
 # Pre-flight refuses to start if either UDP port is occupied (usually a
 # leftover from a previous session).
 #
-# Wire: `yarn osc`. Pre-reqs: StrudelDirt + Vowel + Dirt-Samples quarks
-# installed in the SuperCollider support folder (Quarks.install). To attach
-# to an already-running scsynth instead, use `yarn strudeldirt`.
+# Wire: `yarn osc`. Pre-req: `yarn deps` (populates deps/ — pinned
+# submodules + the sc3-plugins release; the SuperCollider support folder
+# is NOT a dependency). To attach to an already-running scsynth instead,
+# use `yarn strudeldirt`.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -37,16 +38,12 @@ SCLANG="${SC_APP_SCLANG:-$(resolve_bin sclang /Applications/SuperCollider.app/Co
 export SC_APP_SCLANG="$SCLANG"
 
 # ── Pre-flight ───────────────────────────────────────────────────────
-case "$(uname -s)" in
-  Darwin*) SC_SUPPORT="$HOME/Library/Application Support/SuperCollider" ;;
-  Linux*)  SC_SUPPORT="$HOME/.local/share/SuperCollider" ;;
-  *)       SC_SUPPORT="" ;;
-esac
-SC_SUPPORT="${SC_APP_SUPPORT:-$SC_SUPPORT}"
-QUARKS="$SC_SUPPORT/downloaded-quarks"
-[ -d "$QUARKS/StrudelDirt" ]  || die "StrudelDirt quark missing at $QUARKS/StrudelDirt — run: Quarks.install(\"https://github.com/daslyfe/StrudelDirt.git\")"
-[ -d "$QUARKS/Dirt-Samples" ] || die "Dirt-Samples missing at $QUARKS/Dirt-Samples — run: Quarks.install(\"Dirt-Samples\")"
-[ -d "$QUARKS/Vowel" ]        || die "Vowel quark missing at $QUARKS/Vowel — run: Quarks.install(\"Vowel\")"
+DEPS="$REPO_ROOT/deps"
+# An uninitialized submodule is an EMPTY directory — test for content.
+need_dep() { [ -n "$(ls -A "$DEPS/$1" 2>/dev/null)" ] || die "$1 missing at $DEPS/$1 — run: yarn deps"; }
+need_dep StrudelDirt
+need_dep Dirt-Samples
+need_dep Vowel
 
 # Refuse to start if either UDP port is already *bound* (a listener).
 # A connected client (e.g. the sc-app2 bridge, whose socket is
@@ -74,7 +71,7 @@ case "$(uname -s)" in
   Darwin*)
     SC_STOCK_PLUGINS="${SC_APP_STOCK_PLUGINS:-/Applications/SuperCollider.app/Contents/Resources/plugins}"
     [ -d "$SC_STOCK_PLUGINS" ] || die "stock plugins dir not found at $SC_STOCK_PLUGINS"
-    SC3PLUGINS="$SC_SUPPORT/Extensions/SC3plugins"
+    SC3PLUGINS="$DEPS/sc3-plugins"
     if [ -d "$SC3PLUGINS" ]; then
       SCSYNTH_PLUGIN_ARGS=(-U "$SC_STOCK_PLUGINS:$SC3PLUGINS")
     else

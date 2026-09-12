@@ -31,7 +31,7 @@ oscClient.handleReply ◄──────────────────�
 | `middleware.ts`          | Transport middleware contract and the reentrant, error-isolated command/event dispatcher. Lifecycle traffic is guaranteed to reach the terminal.                                                                                                                                                                                                                                                                  |
 | `middlewares/`           | Plain logging, error-toast, and status observers plus their sole registration site. They consume worker-protocol commands/events and own their respective OSC store fields.                                                                                                                                                                                                                                       |
 | `WorkerClient.ts`        | Permanent main-thread worker proxy. It runs command/event middleware chains, posts plain packets, mirrors connection status, respawns a crashed worker, and synthesizes close events for orderly shutdown and worker crashes.                                                                                                                                                                                     |
-| `../worker/endpoint.ts`  | The `WorkerEndpoint`: the binary codec + the session watchdog. It encodes/decodes over the byte transport (the `at` metadata becomes the bundle timetag; inbound bundles flatten to messages, blob buffers collected for zero-copy transfer); the global clock's `/tr` tick stamps the composed `Watchdog` and every message posts up untouched. The codec dependency is imported only here.                      |
+| `../worker/endpoint.ts`  | The `WorkerEndpoint`: the binary codec + the session watchdog. It encodes/decodes over the byte transport (outbound messages encode as-is — nothing is scheduled; inbound bundles flatten to messages, blob buffers collected for zero-copy transfer); the global clock's `/tr` tick stamps the composed `Watchdog` and every message posts up untouched. The codec dependency is imported only here.             |
 | `../worker/transport.ts` | The byte `Transport` — ONLY the raw WebSocket: open/close/send bytes, open/frame/error/close events. No codec, no protocol.                                                                                                                                                                                                                                                                                       |
 | `../worker/worker.ts`    | Web Worker entry: thin glue composing the endpoint over the worker scope.                                                                                                                                                                                                                                                                                                                                         |
 | `../worker/watchdog.ts`  | The `Watchdog` — the session heartbeat on worker timers (never background-throttled, independent of the possibly-dead connection they watch): the endpoint stamps `markAlive()` on the global clock's `/tr` tick ONLY (a pong or `/status.reply` from a clock-less stack must not count), and staleness past `WATCHDOG_TIMEOUT_MS` fires `onDead` once — surfaced as a transport error, which closes the session. |
@@ -40,12 +40,12 @@ oscClient.handleReply ◄──────────────────�
 ## Worker protocol
 
 Commands from `WorkerClient` are `{ type: "open", url }`, `{ type: "close" }`,
-or `{ type: "osc", packet, at? }`. Events back are `open`, `close`, `error`,
+or `{ type: "osc", packet }`. Events back are `open`, `close`, `error`,
 `respawn`, or `{ type: "osc", packet }`. Packets are plain MESSAGES
-`{ address, args }` only — structured-clone safe, never bundles: outbound
-scheduling rides the `at` metadata (a bridge-time Unix-ms timetag the
-endpoint wraps into the OSC bundle at encode time), and inbound bundles are
-flattened to messages in wire order before posting up.
+`{ address, args }` only — structured-clone safe, never bundles: nothing
+outbound is scheduled (dirt events carry a relative delta IN the
+message), and inbound bundles are flattened to messages in wire order
+before posting up.
 
 The main-thread middleware registration order carries no correctness
 dependency: each current observer calls `next` synchronously. Tx logging skips

@@ -1,13 +1,14 @@
 // <sc-strudel> — the Strudel REPL: mounts a
-// StrudelMirror editor whose Hap onsets are emitted as `/dirt/play` bundles via
-// the session, with a status pill + Play/Stop controls. Light DOM so the
+// StrudelMirror editor whose Hap onsets are emitted as relative-delta
+// `/dirt/play/in` messages via the session, with a status pill +
+// Play/Stop controls. Light DOM so the
 // ui-components .strudel styles + <sc-base-chip>/<sc-base-button> + CodeMirror apply directly.
 //
 // Parametrized: `value` is the initial pattern code and supports the shared
 // ScInput `bind:value` seam (plain path = two-way; expression = read-only);
 // `orbit` stamps a default orbit onto every dirt event the pattern doesn't
 // route itself. The editor works offline, but unload() stops playback — a
-// disconnect would otherwise keep emitting /dirt/play into a dead socket.
+// disconnect would otherwise keep emitting dirt events into a dead socket.
 
 import { html } from "lit";
 import { ScInput } from "@/sc-elements/internal/sc-input";
@@ -27,12 +28,14 @@ const SAFETY_LOOKAHEAD_MS = 200;
 /** A SuperDirt event: a flat bag of params (`s`, `n`, `gain`, `note`, …). */
 type DirtEvent = Record<string, string | number>;
 
-/** Build a `/dirt/play` message: flat `[key, value, …]` args. Scheduling is
- *  `oscClient.sendIn`'s job — the widget never touches clock domains. */
-function dirtPlayMessage(event: DirtEvent): OscMessage {
-  const args: Array<string | number> = [];
+/** Build a `/dirt/play/in` message: the RELATIVE delta (ms) first, then
+ *  flat `[key, value, …]` pairs. The widget owns the whole scheduling
+ *  story in the audioTime domain — no wall clock anywhere on the musical
+ *  path (ScAppDirt converts the delta to the quark's latency). */
+function dirtPlayIn(deltaMs: number, event: DirtEvent): OscMessage {
+  const args: Array<string | number> = [deltaMs];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
-  return { address: "/dirt/play", args };
+  return { address: "/dirt/play/in", args };
 }
 
 const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the OSC bridge.
@@ -182,11 +185,12 @@ export class ScStrudel extends ScInput {
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
       // Target and "now" both in the audioTime domain (Cyclist's getTime),
-      // so the delta is consistent by construction — even pre-lock. The
-      // wall-clock conversion for StrudelDirt lives inside sendIn.
-      oscClient.sendIn(
-        dirtPlayMessage(event),
-        (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
+      // so the delta is consistent by construction — even pre-lock.
+      oscClient.dispatch(
+        dirtPlayIn(
+          (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
+          event,
+        ),
       );
     };
 

@@ -4,7 +4,7 @@
 // is transport.test.ts, the staleness timers watchdog.test.ts).
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { decode, encode } from "@sc-app/server-commands/codec";
-import { ADDR_TR, atDate, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
+import { ADDR_TR, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
 import { CLOCK_TRIGGER_ID, CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportEvent } from "@/types/osc";
 import { WorkerEndpoint, type TransportLike } from "../endpoint";
@@ -67,18 +67,13 @@ describe("WorkerEndpoint", () => {
     expect(errors()).toHaveLength(1);
   });
 
-  it("encodes sends, building the OSC bundle from the `at` metadata", () => {
+  it("encodes sends as plain messages — nothing outbound is scheduled", () => {
     const { endpoint, sent } = makeEndpoint();
-    endpoint.handleCommand({ type: "osc", packet: { address: "/dirt/play", args: [] } });
     endpoint.handleCommand({
       type: "osc",
-      packet: { address: "/dirt/play", args: [] },
-      at: 10_750,
+      packet: { address: "/dirt/play/in", args: [250.5, "s", "bd"] },
     });
-    expect(decode(sent[0])).toEqual({ address: "/dirt/play", args: [] });
-    expect(decode(sent[1])).toEqual(
-      decode(encode({ timetag: atDate(10_750), packets: [{ address: "/dirt/play", args: [] }] })),
-    );
+    expect(decode(sent[0])).toEqual({ address: "/dirt/play/in", args: [250.5, "s", "bd"] });
   });
 
   it("passes /clock/pong straight up — no interception, no clock code", () => {

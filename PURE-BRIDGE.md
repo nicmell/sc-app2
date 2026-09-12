@@ -151,25 +151,26 @@ Dirt-Samples sono submodule git (gitlink = versione; `shallow = true`;
 opt-in via `yarn deps`), sc3-plugins resta la release binaria pinnata.
 Gli script di start leggono SOLO `deps/`.
 
-### 3.2 Livello 1 — `/dirt/play` a delta relativo (scioglie AUDIO-CLOCK §5.2)
+### 3.2 Livello 1 — `/dirt/play/in` a delta relativo [LANDED]
 
-Un OSCdef repo-owned (`/dirt/playIn`, primo argomento = delta ms) salta
-il calcolo dal timetag assoluto: `~latency = delta/1000` direttamente,
-poi la stessa pipeline DirtEvent. Il frontend manda il delta che GIÀ
-calcola (`targetTimeSecs − audioTime()`), senza `sendIn`. Conseguenza:
-`sendIn`/timetag/`clock.now()` perdono l'ultimo consumatore → **il wire
-ping/pong, `core/clock.rs` e l'intercettazione muoiono** — lo step 5 di
-AUDIO-CLOCK si chiude per intero. Costo onesto: il delta consumato
-all'arrivo eredita il jitter di consegna uplink (il timetag assoluto lo
-assorbe fino al lookahead) — su loopback sono millisecondi contro un
-`server.latency` di 0.3 s; in serve-mode remoto serve il Livello 2.
+`ScAppDirt` (scripts/sc-classes) registra `/dirt/play/in`
+(`[deltaMs:f, k1, v1, …]`): `~latency = delta/1000` direttamente, poi la
+stessa pipeline DirtEvent via i soli accessor pubblici del quark. Il
+frontend manda il delta che GIÀ calcola (`targetTimeSecs − audioTime()`).
+`sendIn` e l'intera pipeline `at`/timetag del boundary sono morti (era
+l'unico produttore); AUDIO-CLOCK §5.2 risolto. Il wall clock resta come
+àncora NON musicale (header/diagnostica — §3.5). Costo onesto: il delta
+consumato all'arrivo eredita il jitter di consegna uplink (il timetag
+assoluto lo assorbiva fino al lookahead) — su loopback sono millisecondi
+contro un `server.latency` di 0.3 s; in serve-mode remoto serve il
+Livello 2.
 
 ### 3.3 Livello 2 — target audio-domain (la forma finale)
 
 Un `TickAnchor` sclang-side: OSCdef su `/tr` id 4242 (stream che sclang
 già riceve), mappa tick↔`thisThread.seconds` con ancora a residuo minimo
 su finestra (la versione minima del TickTracker: stesso host, gli basta).
-`/dirt/playIn` porta il target in **tempo audio** (lo stesso dominio di
+`/dirt/play/in` porta il target in **tempo audio** (lo stesso dominio di
 `audioTime()`), sclang lo converte in `~latency` con la SUA mappa.
 Frontend e sclang ancorati alla stessa timeline fisica — il cristallo del
 DAC; il wall clock esce dall'intera pipeline musicale: immune agli step
@@ -238,8 +239,10 @@ nell'arco, non assumere gratis.
 
 1. **[LANDED] Infrastruttura** (§3.1): directory estensioni + pin via
    submodule.
-2. **Livello 1** (§3.2) → sweep: morte di `sendIn`, del wire ping/pong,
-   di `core/clock.rs` e dell'intercettazione (step 5 chiuso).
+2. **[LANDED] Livello 1** (§3.2): morte di `sendIn` e dell'intera
+   pipeline `at`/timetag; il wire ping/pong RESTA come àncora wall NON
+   musicale — la sua migrazione in sclang (con morte di `core/clock.rs`
+   e dell'intercettazione) è il punto 5.
 3. **Client id 1:1** (§3.4) — indipendente, utile comunque.
 4. **Livello 2** (§3.3).
 5. **Responder sclang** (§3.5): solo se al punto 2 resta un consumatore

@@ -151,7 +151,15 @@ non-trivial third path; nothing below depends on it.
 
 ### 5.2 The StrudelDirt problem: our timetags are consumed by sclang
 
-Verified: the app's ONLY timetagged traffic is `/dirt/play`, and it is not
+> **RESOLVED at landing time** by the first resolution's stronger form:
+> `/dirt/play/in` carries a RELATIVE delta in the message (the repo's
+> `ScAppDirt` class converts it to the quark's latency), so NOTHING
+> musical consumes wall time anymore — no timetags, no bundles. The
+> slow wall anchor survives as a non-musical convenience (header clock,
+> diagnostics), answered by sclang (PURE-BRIDGE §3.5). The original
+> analysis below is kept as written.
+
+Verified: the app's ONLY timetagged traffic was `/dirt/play`, and it is not
 consumed by scsynth. The bridge routes `^/dirt(/|$)` to the "strudel" peer
 on UDP 57120, where **sclang running the StrudelDirt quark** (a
 SuperDirt-compatible implementation, mounted by `scripts/sc-startup.scd`)

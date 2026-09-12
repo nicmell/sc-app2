@@ -58,8 +58,9 @@ export const PHASE_RING_FRAMES = 8192;
 
 /** Nominal ping cadence — quantized to the tick metronome it rides (a
  *  ClockSync tick countdown, so pings flow only while ticks do). The
- *  ping/pong is ONLY the wall-time anchor for `sendIn` (StrudelDirt
- *  consumes wall-clock timetags — AUDIO-CLOCK.md §5.2); the metronome is
+ *  ping/pong is ONLY the wall anchor behind `clock.now()` — the header
+ *  clock and cross-host diagnostics; nothing musical (AUDIO-CLOCK.md
+ *  §5.2 is RESOLVED: dirt events carry a relative delta); the metronome is
  *  the audio clock's `/tr` above. Crystal drift is ~100 ppm, so a 2 s
  *  re-measure keeps the anchor within fractions of a millisecond. */
 export const CLOCK_PING_INTERVAL_MS = 2_000;

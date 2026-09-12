@@ -35,8 +35,8 @@ export class WorkerClient {
     this.dispatchEvent({ type: "close" });
   }
 
-  send(packet: OscMessage, at?: number): void {
-    this.dispatchCommand({ type: "osc", packet, at });
+  send(packet: OscMessage): void {
+    this.dispatchCommand({ type: "osc", packet });
   }
 
   onEvent(cb: (event: TransportEvent) => void): void {

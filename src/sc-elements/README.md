@@ -336,7 +336,7 @@ buffer-family migration.
 ### `<sc-strudel>`
 
 A Strudel editor whose patterns route to StrudelDirt through the OSC bridge
-(timetagged `/dirt/play` bundles). Optional `value` holds the initial pattern
+(relative-delta `/dirt/play/in` messages). Optional `value` holds the initial pattern
 code (the built-in pattern is used when absent); `\\n` in an XML attribute
 decodes to a real newline. A plain-path `bind:value` is two-way per keystroke,
 while an expression bind only drives the editor. Editor writes contain raw

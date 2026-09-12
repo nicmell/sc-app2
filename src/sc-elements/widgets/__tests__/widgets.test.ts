@@ -407,10 +407,13 @@ describe("sc-strudel", () => {
     sent.length = 0;
     out({ value: { s: "bd" } }, 0, 0, 1, 0);
     out({ value: { s: "sd", orbit: 5 } }, 0, 0, 1, 0);
-    const plays = sent.map((p) => flattenPacket(p)[0]).filter((m) => m.address === "/dirt/play");
+    const plays = sent.map((p) => flattenPacket(p)[0]).filter((m) => m.address === "/dirt/play/in");
     expect(plays).toHaveLength(2);
-    expect(plays[0].args).toEqual(["s", "bd", "orbit", "2"]);
-    expect(plays[1].args).toEqual(["s", "sd", "orbit", "5"]); // pattern's own orbit wins
+    // args[0] is the relative delta (ms) — its exact value tracks the real
+    // audioTime clock, so pin only its shape (flattened args are strings).
+    for (const play of plays) expect(Number.isFinite(Number(play.args[0]))).toBe(true);
+    expect(plays[0].args.slice(1)).toEqual(["s", "bd", "orbit", "2"]);
+    expect(plays[1].args.slice(1)).toEqual(["s", "sd", "orbit", "5"]); // pattern's own orbit wins
   });
 
   it("stops playback on unload (connection loss)", async () => {

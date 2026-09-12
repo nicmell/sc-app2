@@ -64,6 +64,8 @@ s.doWhenBooted({
     ~dirt.loadSoundFiles("SC_APP_DIRT_SAMPLES".getenv);
     ~dirt.start(57120, 0 ! 12);
     "StrudelDirt ready on UDP 57120".postln;
+    ScAppDirt.start(~dirt);
+    "/dirt/play/in ready (relative-delta events)".postln;
 }, 50, {
     "scsynth not reachable on 127.0.0.1:57110 after 10s.\n  Start it first: yarn osc (boots both scsynth + StrudelDirt).".error;
 });

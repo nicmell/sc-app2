@@ -1,11 +1,13 @@
-// The main-thread half of the app clock (docs/clock.md, AUDIO-CLOCK.md).
+// The app clock, whole (docs/clock.md, AUDIO-CLOCK.md) — measurement AND
+// consumption both live main-side now; the worker carries no clock code.
 // Two independent inbound streams, each owning one job:
 //
-// - Estimator (`onSample`, fed by the worker's raw `/clock/sample`s): the
-//   min-RTT filter over the sample window, `now()` = wall time + offset.
-//   Samples arrive already expressed in the shared `Date.now()` domain, so
-//   nothing measures here; living main-side, the estimate survives a
-//   worker respawn (only a socket close resets it).
+// - Estimator (`ping()`/`onPong`): this class ORIGINATES the /clock/ping
+//   (riding the metronome below — no timer of its own) and completes the
+//   round-trip when the pong flows back up, t0/t1 both in the main
+//   thread's `performance.now()`. The postMessage hops land in the RTT —
+//   accepted: at the slow anchor cadence the min-RTT filter over the
+//   sample window eats them. `now()` = wall time + offset.
 // - Metronome (`onTick`, fed by the AUDIO ENGINE's `/tr` ticks — the
 //   `__global_clock__` synth loaded by scripts/sc-startup.scd):
 //   `subscribe(intervalMs, cb)` registers a purely LOCAL listener fired
@@ -16,8 +18,13 @@
 //
 // Composed by OscClient.
 
-import { ClockSample, Tr, type OscMessage } from "@sc-app/server-commands";
-import { CLOCK_SAMPLE_WINDOW, CLOCK_TICK_FREQ_HZ, PHASE_RING_FRAMES } from "@/constants/osc";
+import { ClockPong, clockPing, Tr, type OscMessage } from "@sc-app/server-commands";
+import {
+  CLOCK_PING_INTERVAL_MS,
+  CLOCK_SAMPLE_WINDOW,
+  CLOCK_TICK_FREQ_HZ,
+  PHASE_RING_FRAMES,
+} from "@/constants/osc";
 import { SlewedClock } from "./SlewedClock";
 import { TickTracker } from "./TickTracker";
 import type { ClockStatus } from "@/types/stores";
@@ -37,14 +44,24 @@ interface Listener {
 interface ClockSyncOptions {
   /** Publish the current filtered estimate (the store's `clock` field). */
   publish: (clock: ClockStatus) => void;
+  /** Send one /clock/ping toward the bridge (OscClient.dispatch — the
+   *  open-guard is a second net: no pings while disconnected, consistent
+   *  with the ticks that pace them). */
+  sendPing: (message: OscMessage) => void;
 }
 
 export class ClockSync {
   private readonly publish: ClockSyncOptions["publish"];
+  private readonly sendPing: ClockSyncOptions["sendPing"];
   private samples: Sample[] = [];
   private offset = 0;
   private readonly listeners = new Map<number, Listener>();
   private nextListenerId = 1;
+  /** seq → send time (main performance.now). Stale entries linger until
+   *  reset — bounded by the ping cadence, accepted. */
+  private readonly pending = new Map<number, number>();
+  private sequence = 0;
+  private pingedSinceReset = false;
   /** The one-way audio-clock tracker fed by the ticks' phase payload. */
   private readonly tracker = new TickTracker({
     freqHz: CLOCK_TICK_FREQ_HZ,
@@ -53,8 +70,20 @@ export class ClockSync {
   /** The monotonic rate-disciplined timebase (Strudel's getTime). */
   private readonly slewed = new SlewedClock();
 
-  constructor({ publish }: ClockSyncOptions) {
+  constructor({ publish, sendPing }: ClockSyncOptions) {
     this.publish = publish;
+    this.sendPing = sendPing;
+    // The wall anchor rides the metronome itself: one ping per
+    // CLOCK_PING_INTERVAL_MS of ticks (plus an immediate first ping per
+    // connection, see onTick) — no timer of its own.
+    this.subscribe(CLOCK_PING_INTERVAL_MS, () => this.ping());
+  }
+
+  private ping(): void {
+    const seq = this.sequence++;
+    this.pending.set(seq, performance.now());
+    this.pingedSinceReset = true;
+    this.sendPing(clockPing(seq));
   }
 
   /** Register a tick-driven callback at (a quantization of) `intervalMs`.
@@ -72,17 +101,21 @@ export class ClockSync {
     };
   }
 
-  /** Fold one raw `/clock/sample` into the window and publish. NTP's
-   *  clock-filter rule — trust the minimum-delay sample in the window;
-   *  queueing delay only ever ADDS to rtt, so the fastest exchange carries
-   *  the least-biased offset. Consumers convert clock domains at stamp
-   *  time, so a small estimate change only shifts not-yet-stamped events;
-   *  no smoothing needed. The MEASUREMENT stream only — the metronome is
-   *  `onTick`. */
-  onSample(message: OscMessage): void {
-    const offset = ClockSample.offset(message);
-    const rtt = ClockSample.rtt(message);
-    if (!Number.isFinite(offset) || !Number.isFinite(rtt)) return;
+  /** One /clock/pong: complete the round-trip measured entirely on the
+   *  main thread (t0/t1 in this context's performance.now — the
+   *  postMessage hops land in rtt, and at the slow anchor cadence the
+   *  min-RTT filter eats them), fold the sample into the window and
+   *  publish. NTP's clock-filter rule — trust the minimum-delay sample in
+   *  the window; queueing delay only ever ADDS to rtt, so the fastest
+   *  exchange carries the least-biased offset. The MEASUREMENT stream
+   *  only — the metronome is `onTick`. */
+  onPong(message: OscMessage): void {
+    const t0 = this.pending.get(ClockPong.seq(message));
+    if (t0 === undefined) return; // stale or foreign
+    this.pending.delete(ClockPong.seq(message));
+    const rtt = performance.now() - t0;
+    const offset = ClockPong.serverTime(message) + rtt / 2 - Date.now();
+    if (!Number.isFinite(offset) || !Number.isFinite(rtt) || rtt < 0) return;
     this.samples.push({ offset, rtt });
     if (this.samples.length > CLOCK_SAMPLE_WINDOW) this.samples.shift();
     const best = this.samples.reduce((a, b) => (b.rtt < a.rtt ? b : a));
@@ -98,6 +131,9 @@ export class ClockSync {
    *  (`CLOCK_TICK_FREQ_HZ`). */
   onTick(message: OscMessage): void {
     this.tracker.onTick(Tr.value(message));
+    // First tick of a connection: anchor immediately instead of one ping
+    // interval later.
+    if (!this.pingedSinceReset) this.ping();
     // Aim the slewed timebase at the inverse of the measured skew (the
     // local clock RUNS at 1+skew vs the engine; the disciplined clock
     // compensates). Unlocked → back toward the plain local rate.
@@ -142,6 +178,8 @@ export class ClockSync {
   reset(): void {
     this.samples = [];
     this.offset = 0;
+    this.pending.clear();
+    this.pingedSinceReset = false;
     this.tracker.reset();
     this.slewed.setTargetRate(1); // glide back to the local rate — no step
     this.publish({ offset: 0, rtt: 0 });

@@ -1,17 +1,17 @@
 /**
- * Bridge clock protocol (see docs/clock.md) — three messages. Keep in sync
- * with src-tauri/src/core/clock.rs — the bridge answers pings; the sample
- * stays inside the frontend (worker → webview, never on the wire).
+ * Bridge clock protocol (see docs/clock.md) — the wall-time anchor pair.
+ * Keep in sync with src-tauri/src/core/clock.rs (the exact /clock/pong
+ * wire bytes are pinned in both languages' test suites).
  *
- * Worker ⇄ bridge (fast cadence while the socket is open):
- *   `/clock/ping  seq:i`        — seq echoes back; send time kept worker-side
- *   `/clock/pong  seq:i srv:d`  — srv = bridge Unix wall-clock ms
- * Worker → webview:
- *   `/clock/sample  offset:d rtt:d` — ONE raw sample per pong. It is BOTH the
- *                                     measurement (the main-thread ClockSync
- *                                     applies the min-RTT filter) and the
- *                                     main thread's metronome (sample-driven
- *                                     clock callbacks).
+ * Main ⇄ bridge (through the worker, no interception):
+ *   `/clock/ping  seq:i`        — sent by the MAIN thread on its tick
+ *                                 metronome; send time kept main-side
+ *   `/clock/pong  seq:i srv:d`  — srv = bridge Unix wall-clock ms; flows
+ *                                 back to OscClient.handleReply as an
+ *                                 ordinary message
+ *
+ * The postMessage boundary carries NO clock vocabulary at all; the
+ * metronome is the audio engine's /tr tick (AUDIO-CLOCK.md).
  */
 
 import type { OscArg, OscMessage } from "../types";
@@ -20,18 +20,10 @@ const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, 
 
 export const CLOCK_PING_ADDRESS = "/clock/ping";
 export const CLOCK_PONG_ADDRESS = "/clock/pong";
-export const CLOCK_SAMPLE_ADDRESS = "/clock/sample";
 
 export const clockPing = (seq: number): OscMessage => message(CLOCK_PING_ADDRESS, seq);
-export const clockSample = (offset: number, rtt: number): OscMessage =>
-  message(CLOCK_SAMPLE_ADDRESS, offset, rtt);
 
 export const ClockPong = {
   seq: (m: OscMessage): number => m.args[0] as number,
   serverTime: (m: OscMessage): number => m.args[1] as number,
-};
-
-export const ClockSample = {
-  offset: (m: OscMessage): number => Number(m.args[0]),
-  rtt: (m: OscMessage): number => Number(m.args[1]),
 };

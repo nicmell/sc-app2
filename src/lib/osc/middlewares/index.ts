@@ -7,7 +7,7 @@ import { statusMiddleware } from "./status";
 
 /** Register the transport observers. Tx logging skips `/clock/*`; scope
  * subscribe/unsubscribe remain logged. Rx logging skips `/scope/chunk`,
- * `/clock/sample`, and `/status.reply`; `/fail` and `/late` are both logged
+ * `/clock/pong`, and `/status.reply`; `/fail` and `/late` are both logged
  * and toasted. Registration order has no correctness dependency because
  * every observer calls next synchronously. */
 workerClient.use(loggingMiddleware);

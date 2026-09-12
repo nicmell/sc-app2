@@ -1,5 +1,5 @@
 // The app's OSC client — the main-thread protocol brain over the worker,
-// which owns the WebSocket, binary codec, and clock (its WorkerEndpoint stack).
+// which owns the WebSocket and binary codec (its WorkerEndpoint stack).
 // `dispatch(packet)` is the raw send; the scsynth command vocabulary, reply
 // waiters, node/scope allocation, and clock/scope subscriptions are thin
 // helpers over it. The class composes the WorkerClient it is constructed
@@ -20,7 +20,7 @@ import {
   ADDR_SYNCED,
   ADDR_TR,
   AddToTail,
-  CLOCK_SAMPLE_ADDRESS,
+  CLOCK_PONG_ADDRESS,
   Tr,
   dFree,
   dRecv,
@@ -96,14 +96,18 @@ export class OscClient {
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private readonly scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** The main-thread half of the app clock: min-RTT filtering of the
-   *  worker's raw samples + the tick-driven callback registry (the
-   *  metronome is the audio engine's /tr — see AUDIO-CLOCK.md). */
+  /** The whole app clock: it originates the /clock/ping (riding the tick
+   *  metronome), completes the round-trip on the pong, and runs the
+   *  tick-driven callback registry (the metronome is the audio engine's
+   *  /tr — see AUDIO-CLOCK.md). */
   private readonly clock: ClockSync;
 
   constructor(private readonly worker: WorkerClient) {
     this.clock = new ClockSync({
       publish: (clock) => this.state.update((s) => ({ ...s, clock })),
+      // dispatch's open-guard is a second net: no pings while disconnected,
+      // consistent with the ticks that pace them.
+      sendPing: (message) => this.dispatch(message),
     });
     worker.onEvent((event) => this.handleTransportEvent(event));
     // A transport error is critical: terminate the session by closing — the
@@ -462,8 +466,9 @@ export class OscClient {
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    if (reply.address === CLOCK_SAMPLE_ADDRESS) {
-      this.clock.onSample(reply);
+    if (reply.address === CLOCK_PONG_ADDRESS) {
+      // Internal to the clock loop — consumed before the waiters.
+      this.clock.onPong(reply);
       return;
     }
     // The audio engine's clock tick (the __global_clock__ synth) — the

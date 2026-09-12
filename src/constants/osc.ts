@@ -1,11 +1,13 @@
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
-/** How long the worker-side watchdog waits for a `/status.reply` before
- *  treating the connection as dead. The Rust bridge heartbeats scsynth at
- *  1 s and fans every reply out to us, so 5 s of silence mirrors its own
- *  missed-replies slack. */
-export const STATUS_REPLY_TIMEOUT_MS = 5_000;
+/** How much tick silence the worker-side watchdog tolerates before
+ *  declaring the session dead: the heartbeat is the global clock's `/tr`
+ *  (20 Hz), so 5 s = 100 missed ticks. This also ENFORCES the clock-synth
+ *  requirement — a stack that never loads `__global_clock__` gets a clean
+ *  close with a clear error instead of a zombie session with a silent
+ *  metronome. */
+export const WATCHDOG_TIMEOUT_MS = 5_000;
 
 /** How long a `once()` reply waiter holds out before rejecting — sequenced
  *  commands (`/d_recv` → `/synced`, `/s_new` → `/n_go`) fail loudly instead
@@ -60,4 +62,4 @@ export const CLOCK_SAMPLE_WINDOW = 8;
 /** Worker-side heartbeat watchdog poll cadence, derived: detection latency
  *  is the reply timeout plus at most one poll interval, so a fifth keeps it
  *  tight. */
-export const CLOCK_WATCHDOG_INTERVAL_MS = STATUS_REPLY_TIMEOUT_MS / 5;
+export const CLOCK_WATCHDOG_INTERVAL_MS = WATCHDOG_TIMEOUT_MS / 5;

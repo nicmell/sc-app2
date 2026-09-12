@@ -56,10 +56,19 @@ describe("oscClient.handleReply", () => {
     sub.off();
   });
 
-  it("folds /clock/sample into the estimate and applies its Date.now offset", () => {
+  it("anchors clockNow through the tick → ping → pong loop", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
-    // rtt 0.5 beats any sample the singleton's window still holds.
-    oscClient.handleReply(oscMessage("/clock/sample", 12.5, 0.5));
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
+    const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
+
+    oscClient.handleTransportEvent({ type: "close" }); // fresh clock: next tick pings
+    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    const ping = dispatch.mock.calls.find(([m]) => m.address === "/clock/ping")?.[0];
+    if (!ping) throw new Error("expected an anchor ping on the first tick");
+
+    mono += 0.5; // rtt 0.5 → offset = 10_012.25 + 0.25 − 10_000 = 12.5
+    oscClient.handleReply(oscMessage("/clock/pong", ping.args[0], 10_012.25));
     expect(oscClient.clockNow()).toBe(10_012.5);
   });
 });
@@ -161,9 +170,18 @@ describe("oscClient.sendIn", () => {
 
   it("stamps the bridge-time `at` metadata from a relative delta", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
-    // rtt 1 wins any earlier sample still in the window — offset 500 rules.
-    oscClient.handleReply(oscMessage("/clock/sample", 500, 1));
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
     const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
+
+    // The loop that fixes offset 500: reset → first tick pings → pong.
+    oscClient.handleTransportEvent({ type: "close" });
+    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    const ping = dispatch.mock.calls.find(([m]) => m.address === "/clock/ping")?.[0];
+    if (!ping) throw new Error("expected an anchor ping on the first tick");
+    mono += 1; // rtt 1 → offset = 10_499.5 + 0.5 − 10_000 = 500
+    oscClient.handleReply(oscMessage("/clock/pong", ping.args[0], 10_499.5));
+    dispatch.mockClear();
 
     oscClient.sendIn({ address: "/dirt/play", args: [] }, 250);
 

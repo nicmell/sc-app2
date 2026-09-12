@@ -47,7 +47,7 @@ export const PHASE_RING_FRAMES = 8192;
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
 /** Ping cadence while the socket is open. The ping/pong is now ONLY the
- *  wall-time anchor for `sendAt` (StrudelDirt consumes wall-clock
+ *  wall-time anchor for `sendIn` (StrudelDirt consumes wall-clock
  *  timetags — AUDIO-CLOCK.md §5.2); the metronome is the audio clock's
  *  `/tr` above. Crystal drift is ~100 ppm, so a 2 s re-measure keeps the
  *  anchor within fractions of a millisecond. */

@@ -245,14 +245,14 @@ export class OscClient {
     this.worker.send(packet, at);
   }
 
-  /** Dispatch `packet` scheduled at bridge time. `atMs` is the target in
-   *  the CALLER's `performance.now()` domain — this is the ONE place a
-   *  local monotonic target converts to a bridge-clock timetag (at offset 0
-   *  it degrades to the plain local stamp). Timetags are bridge time: a
-   *  scsynth on a different host than the bridge would need its own offset
-   *  (unsupported assumption). */
-  sendAt(packet: OscMessage, atMs: number): void {
-    this.dispatch(packet, Math.round(this.clock.now() + atMs - performance.now()));
+  /** Dispatch `packet` scheduled `inMs` from now. The delta is
+   *  domain-free for the caller (compute it in ANY consistent timebase —
+   *  rate error over a lookahead-sized delta is sub-µs); the conversion
+   *  to a bridge-time timetag happens here via `clockNow`. Timetags are
+   *  bridge time: a scsynth on a different host than the bridge would
+   *  need its own offset (unsupported assumption). */
+  sendIn(packet: OscMessage, inMs: number): void {
+    this.dispatch(packet, Math.round(this.clock.now() + inMs));
   }
 
   /** Subscribe to a connection event. Returns a subscription id for `off`. */
@@ -432,6 +432,14 @@ export class OscClient {
   /** One-way tracker diagnostics (lock, tick index, local-vs-audio skew). */
   tickInfo(): { locked: boolean; tickIndex: number | null; skewPpm: number | null } {
     return this.clock.tickInfo();
+  }
+
+  /** The monotonic, rate-disciplined timebase in seconds — Strudel's
+   *  getTime: engine rate when the tracker is locked, plain local rate
+   *  otherwise, NEVER a step (unlike `audioNow`, which chases the
+   *  absolute estimate and may refit). */
+  audioTime(): number {
+    return this.clock.audioTime();
   }
 
   /** Route a worker transport event. Public for unit tests — normally the

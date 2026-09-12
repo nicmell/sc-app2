@@ -124,6 +124,28 @@ describe("ClockSync tick-driven callbacks", () => {
     expect(sync.audioNow()).toBeNull();
   });
 
+  it("audioTime compensates the measured skew, without steps", () => {
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
+    mockNow(0);
+    const { sync } = makeSync();
+
+    // Local clock runs 200 ppm fast: tick arrivals stretch accordingly.
+    for (let i = 0; i < 64; i++) {
+      mono = i * 50 * (1 + 200e-6);
+      sync.onTick(trTick((i * 2205) % 8192));
+    }
+    expect(sync.tickInfo().locked).toBe(true);
+
+    mono += 20_000; // let the 50 ppm/s slew settle on the target
+    sync.audioTime();
+    const t0 = sync.audioTime();
+    mono += 1_000; // one real second
+    const rate = sync.audioTime() - t0; // seconds advanced per second
+    expect(rate).toBeGreaterThan(1 - 260e-6);
+    expect(rate).toBeLessThan(1 - 140e-6);
+  });
+
   it("samples are measurement only — they never fire listeners", () => {
     const advance = mockNow(0);
     const { sync } = makeSync();

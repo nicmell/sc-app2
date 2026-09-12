@@ -156,19 +156,18 @@ describe("oscClient.createSynth", () => {
   });
 });
 
-describe("oscClient.sendAt", () => {
+describe("oscClient.sendIn", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("stamps the bridge-time `at` metadata from a performance.now target", () => {
+  it("stamps the bridge-time `at` metadata from a relative delta", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
     // rtt 1 wins any earlier sample still in the window — offset 500 rules.
     oscClient.handleReply(oscMessage("/clock/sample", 500, 1));
-    vi.spyOn(performance, "now").mockReturnValue(2_000);
     const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
 
-    oscClient.sendAt({ address: "/dirt/play", args: [] }, 2_250);
+    oscClient.sendIn({ address: "/dirt/play", args: [] }, 250);
 
-    // clockNow (10_500) + atMs (2_250) − performance.now (2_000) = 10_750.
+    // clockNow (10_500) + inMs (250) = 10_750.
     expect(dispatch).toHaveBeenCalledWith({ address: "/dirt/play", args: [] }, 10_750);
   });
 });

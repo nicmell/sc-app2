@@ -1,12 +1,17 @@
 # The audio-clock transport — groundwork
 
-Status: **steps 1–2 of §6 LANDED** (the clock synth ships from
-`scripts/sc-startup.scd` and its `/tr` tick is the main thread's metronome
-— see `docs/clock.md` for the current state); steps 3–4 (one-way estimator
-math, ping retirement) remain proposals. Decisions fixed at landing time:
-**20 Hz** tick rate, **sc-startup ownership** (first-client-wins stays
-future work), **phase-only payload**, and a HARD switch — the stack must
-load the clock synth, there is no sample fallback for the callbacks.
+Status: **§6 steps 1–4 LANDED** — the clock synth ships from
+`scripts/sc-startup.scd`, its `/tr` tick is the main thread's metronome,
+ping/pong is demoted to the 2 s wall anchor, the one-way `TickTracker`
+exposes `audioNow()`/skew, and the rate-disciplined `SlewedClock` gives
+Strudel a step-free `getTime` locked to the engine rate (see
+`docs/clock.md` for the current state). Remaining: step 5's final sweep,
+gated on the §5.2 resolution. Decisions fixed at landing time: **20 Hz**
+tick rate, **sc-startup ownership** (first-client-wins stays future work),
+**phase-only payload**, a HARD metronome switch (no sample fallback), and
+**rate-only discipline** for the timebase — absolute cross-client phase
+alignment is a future shared-transport-origin protocol, not a clock
+property. §1–§5 below are the original groundwork, kept as written.
 
 ## 1. Where we are, and what is still wrong
 
@@ -155,7 +160,7 @@ wall clock, and the gain is laundered through it. Two resolutions, in
 increasing ambition:
 
 - **Keep a slow wall anchor.** Retain ping/pong at a relaxed cadence
-  (seconds) purely to calibrate bridge wall time for `sendAt`, while
+  (seconds) purely to calibrate bridge wall time for `sendIn`, while
   ticks own metronome/liveness/skew. Crystal drift is ~100 ppm, so even a
   once-a-minute calibration keeps the wall anchor within ~6 ms — well
   inside SuperDirt's own latency slack. This is the pragmatic hybrid.
@@ -237,7 +242,7 @@ session.
    wall-anchor cadence (`CLOCK_PING_INTERVAL_MS`), the sample window back
    to NTP's 8, the store publish un-throttled. `/clock/sample` SURVIVES as
    the measurement carrier — the original sketch overstated its death:
-   as long as `sendAt` stamps wall-clock timetags for StrudelDirt (§5.2),
+   as long as `sendIn` stamps wall-clock timetags for StrudelDirt (§5.2),
    the anchor needs a round-trip and a message to ride home on.
 4. **[DONE, tracker half] The one-way skew/anchor estimator** over the
    tick's phase payload: `lib/clock/TickTracker` unwraps the phase into an

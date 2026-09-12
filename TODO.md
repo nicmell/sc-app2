@@ -8,9 +8,9 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — steps 1–4 LANDED
    (the `__global_clock__` synth ships from sc-startup.scd; its `/tr`
    tick is the metronome; ping/pong demoted to a 2 s wall anchor).
-   Remaining: the slewed tick-domain getTime for Strudel (the TickTracker
-   already exposes audioNow/skew), and the final sweep gated on the
-   StrudelDirt resolution; obstacles tracked in the doc.
+   Remaining: only the final sweep, gated on the StrudelDirt resolution
+   (plus the shared-transport-origin idea for cross-client PHASE
+   alignment); obstacles tracked in the doc.
 1. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

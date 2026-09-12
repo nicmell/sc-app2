@@ -31,7 +31,7 @@ master (see AUDIO-CLOCK.md for the design's full arc):
   `subscribeClock` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the worker pings the
   bridge every 2 s while the socket is open — the wall-time anchor for
-  `sendAt`'s timetags — and each pong becomes one raw `/clock/sample` that
+  `sendIn`'s timetags — and each pong becomes one raw `/clock/sample` that
   ClockSync filters into the offset estimate.
 
 Deliberate consequences: nothing keeps time while disconnected — Strudel
@@ -87,8 +87,8 @@ custom SendReply address — AUDIO-CLOCK.md §5.1), so the tick is
 discriminated by trigger id: `handleReply` routes `CLOCK_TRIGGER_ID` to
 the metronome and lets every other `/tr` fall through to the waiters (a
 plugin's own SendTrig stays fully usable, and logged). The value is the
-clock synth's Phasor phase — unused today, the anchor for the one-way
-estimator of AUDIO-CLOCK.md step 3. The bridge fan-out broadcasts scsynth
+clock synth's Phasor phase — the one-way TickTracker's feed (§5). The
+bridge fan-out broadcasts scsynth
 traffic to every session, so ALL clients share the same ticks.
 
 ## 3. Clock domains (the load-bearing rules)
@@ -120,7 +120,7 @@ browser and bridge are different machines.
   socket, in the worker's monotonic domain, at the uniform
   `CLOCK_PING_INTERVAL_MS` (2 s) cadence: the first ping fires on start, so
   the first lock is still ≈ the first pong; after that the round-trip only
-  tracks crystal drift (~100 ppm) for `sendAt`'s wall-time anchor. Every
+  tracks crystal drift (~100 ppm) for `sendIn`'s wall-time anchor. Every
   accepted pong posts ONE raw `/clock/sample {offset, rtt}` up — offset
   already expressed over `Date.now()` (shared across contexts), so the
   sample crosses the postMessage boundary losslessly.
@@ -169,9 +169,19 @@ the client↔audio-clock skew), and the minimum residual anchors the mapping
 (one-way min-filter: delivery delay only ever adds).
 `oscClient.audioNow()` exposes the engine's estimated time in seconds
 (null until the ~1.6 s lock), `oscClient.tickInfo()` the diagnostics.
-Strudel's `getTime` does NOT consume this yet — the mapping refits per
-tick and carries no monotonicity guarantee (a slewed variant is future
-work; the math and rationale live in the module's doc comments).
+
+### The slewed audio timebase
+
+`audioNow` chases the absolute estimate and may step on refits — Cyclist
+cannot drink from it. `SlewedClock` (`src/lib/clock/SlewedClock.ts`) is
+the disciplined counterpart: a monotonic clock whose RATE slews toward
+the inverse of the measured skew with a bounded slope (±1000 ppm max
+adjustment, 50 ppm/s max change — a full swing absorbs in seconds, far
+inside the 200 ms lookahead), and glides back to the plain local rate on
+unlock. Rate-only by design: Cyclist consumes deltas, so the absolute
+offset is irrelevant (cross-client PHASE alignment is a future
+shared-transport-origin protocol). `oscClient.audioTime()` exposes it —
+always available, never a step.
 
 ## 6. Consumers
 
@@ -182,20 +192,24 @@ work; the math and rationale live in the module's doc comments).
    `repl()` → `Cyclist` → zyklus, which asks for 100 ms), so the pattern
    scheduler wakes on the audio engine's tick arrival — immune to
    background throttling.
-   `getTime` stays `performance.now()/1000`: **monotonic-local, deliberately
-   NOT bridge time** — an offset step entering Cyclist's phase math would
-   stall (backward) or drop haps (forward). On connection loss the plugin
-   unload pass stops playback (`unload()`); cleanup is structural:
+   `getTime` is `oscClient.audioTime()`: the slewed audio timebase —
+   **monotonic and step-free** (the Cyclist invariant: a backward step
+   would stall its phase math, a forward one would drop haps), locked to
+   the ENGINE's rate once the tracker locks, so the pattern grid keeps
+   the engine's tempo instead of the local crystal's. On connection loss
+   the plugin unload pass stops playback (`unload()`); cleanup is
+   structural:
    `disconnectedCallback → mirror.stop() → Cyclist.stop() → clearInterval`.
-2. _Stamping_: domains convert only at the moment the `/dirt/play` message
-   is dispatched — `oscClient.sendAt(message, targetTimeSecs·1000 +
-   SAFETY_LOOKAHEAD_MS)`, where `sendAt(packet, atMs)` computes the
-   bridge-time timetag `round(clockNow() + atMs − performance.now())` and
-   sends it as the `at` metadata beside the message (the worker endpoint
-   builds the OSC bundle at encode time). `sendAt` is the ONE
-   local-monotonic → bridge-time conversion point in the app; at offset 0
-   it degrades to exactly the pre-sync expression. The timetag is correct
-   because scsynth shares the bridge host clock.
+2. _Stamping_: the deadline is computed entirely in the audioTime domain
+   and shipped as a RELATIVE delta —
+   `oscClient.sendIn(message, (targetTimeSecs − audioTime())·1000 +
+   SAFETY_LOOKAHEAD_MS)`. `sendIn(packet, inMs)` converts to the
+   bridge-time timetag `round(clockNow() + inMs)` and sends it as the `at`
+   metadata beside the message (the worker endpoint builds the OSC bundle
+   at encode time): the ONE wall-clock conversion point in the app, and
+   the delta is domain-free for callers (rate error over a lookahead-sized
+   delta is sub-µs). The timetag is correct because scsynth shares the
+   bridge host clock.
 
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription — meaningful only while connected, which is exactly when the
@@ -251,4 +265,4 @@ all once the socket died.
   window (~3.2 s), shifting only not-yet-stamped timetags.
 - **Remote scsynth (≠ bridge host)**: unsupported assumption — timetags are
   stamped in _bridge_ time; a remote scsynth would need its own offset.
-  `sendAt`'s doc comment marks this.
+  `sendIn`'s doc comment marks this.

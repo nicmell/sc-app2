@@ -18,6 +18,7 @@
 
 import { ClockSample, Tr, type OscMessage } from "@sc-app/server-commands";
 import { CLOCK_SAMPLE_WINDOW, CLOCK_TICK_FREQ_HZ, PHASE_RING_FRAMES } from "@/constants/osc";
+import { SlewedClock } from "./SlewedClock";
 import { TickTracker } from "./TickTracker";
 import type { ClockStatus } from "@/types/stores";
 
@@ -49,6 +50,8 @@ export class ClockSync {
     freqHz: CLOCK_TICK_FREQ_HZ,
     ringFrames: PHASE_RING_FRAMES,
   });
+  /** The monotonic rate-disciplined timebase (Strudel's getTime). */
+  private readonly slewed = new SlewedClock();
 
   constructor({ publish }: ClockSyncOptions) {
     this.publish = publish;
@@ -95,6 +98,11 @@ export class ClockSync {
    *  (`CLOCK_TICK_FREQ_HZ`). */
   onTick(message: OscMessage): void {
     this.tracker.onTick(Tr.value(message));
+    // Aim the slewed timebase at the inverse of the measured skew (the
+    // local clock RUNS at 1+skew vs the engine; the disciplined clock
+    // compensates). Unlocked → back toward the plain local rate.
+    const skew = this.tracker.skewPpm;
+    this.slewed.setTargetRate(skew === null ? 1 : 1 / (1 + skew * 1e-6));
     const now = Date.now();
     for (const listener of this.listeners.values()) {
       if (now >= listener.nextDueAt) {
@@ -109,6 +117,13 @@ export class ClockSync {
    *  until the tracker locks. See TickTracker. */
   audioNow(): number | null {
     return this.tracker.audioNow();
+  }
+
+  /** The monotonic, rate-disciplined timebase (seconds) — always
+   *  available: engine rate when locked, plain local rate otherwise, and
+   *  every transition slews. Strudel's getTime. */
+  audioTime(): number {
+    return this.slewed.time();
   }
 
   /** Tracker diagnostics: lock state, absolute tick index, local-vs-audio
@@ -128,6 +143,7 @@ export class ClockSync {
     this.samples = [];
     this.offset = 0;
     this.tracker.reset();
+    this.slewed.setTargetRate(1); // glide back to the local rate — no step
     this.publish({ offset: 0, rtt: 0 });
   }
 

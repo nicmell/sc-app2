@@ -7,7 +7,7 @@
 //
 // This script just attaches and mounts StrudelDirt on UDP 57120. The
 // sample path comes from SC_APP_DIRT_SAMPLES (set by start-strudeldirt.sh
-// to deps/Dirt-Samples/*).
+// to the Dirt-Samples QUARK folder/*).
 
 (
 // scsynth option mirror + allocator rebuild. In attach mode sclang doesn't

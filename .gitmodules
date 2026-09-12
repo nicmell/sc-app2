@@ -1,0 +1,12 @@
+[submodule "deps/StrudelDirt"]
+	path = deps/StrudelDirt
+	url = https://github.com/daslyfe/StrudelDirt.git
+	shallow = true
+[submodule "deps/Vowel"]
+	path = deps/Vowel
+	url = https://github.com/supercollider-quarks/Vowel.git
+	shallow = true
+[submodule "deps/Dirt-Samples"]
+	path = deps/Dirt-Samples
+	url = https://github.com/tidalcycles/Dirt-Samples.git
+	shallow = true

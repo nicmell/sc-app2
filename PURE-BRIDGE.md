@@ -1,6 +1,8 @@
 # Il bridge puro — clock in sclang, StrudelDirt patchato, endpoint intelligenti
 
-Stato: **direzione decisa, nessun arco implementato** (TODO roadmap 1).
+Stato: **direzione decisa; §3.1 (infrastruttura: deps come submodule
+pinnati + la classlib sclang del repo) LANDED** — il resto non
+implementato (TODO roadmap 1).
 Documento in italiano per scelta. Compagni: `AUDIO-CLOCK.md` (il transport
 audio-clock, §5.2 è il gate che questo documento scioglie), `docs/clock.md`
 (lo stato corrente del clock). I fatti in §2 sono stati verificati su
@@ -103,20 +105,25 @@ protocolli evolvono.
 
 ### 2.3 StrudelDirt: deployment e comportamento
 
-- **Non è vendored né pinnato**: quark upstream `daslyfe/StrudelDirt`,
-  checkout pulito di `develop`, installato a mano in
-  `~/Library/Application Support/SuperCollider/downloaded-quarks`
-  (start-osc.sh lo pretende, non lo clona). Incoerenza esistente negli
-  script: `yarn deps` (setup-deps.sh) fetcha Dirt-Samples/Vowel/
-  sc3-plugins in `deps/` "per non dipendere dal quark folder di
-  sistema", ma start-strudeldirt.sh punta TUTTO al support folder di SC
-  (quark folder compreso) e ignora `deps/` — da riconciliare
-  nell'arco §3.1.
-- **Il repo controlla la classlib**: `start-strudeldirt.sh` GENERA la
-  config `-l` di sclang con `includePaths` espliciti (SCClassLibrary,
-  StrudelDirt, Vowel, SC3plugins) — aggiungere una directory di classi
-  del repo è una riga. Nessun fork da mantenere. L'e2e boota l'intero
-  `start-osc.sh`, quindi le estensioni entrano anche lì gratis.
+- **Vendoring [RISOLTO con §3.1]**: StrudelDirt, Vowel e Dirt-Samples
+  sono submodule git pinnati in `deps/` (StrudelDirt upstream
+  `daslyfe/StrudelDirt` @ `d75c45b`); `setup-deps.sh` = submodule init +
+  il fetch della release binaria sc3-plugins. Il support folder di SC
+  non è più una dipendenza (l'incoerenza storica setup-deps ⇄ start
+  script è chiusa).
+- **Il repo controlla la classlib [FATTO con §3.1]**:
+  `start-strudeldirt.sh` GENERA la config `-l` di sclang con
+  `includePaths` espliciti — oggi: SCClassLibrary, deps/StrudelDirt,
+  deps/Vowel, deps/sc3-plugins e `scripts/sc-classes/` (la classlib
+  repo-owned, classi `ScApp*`). Nessun fork da mantenere. L'e2e boota
+  l'intero `start-osc.sh`, quindi le estensioni entrano anche lì gratis.
+  Fatto scoperto implementando: sclang compila le dir `Extensions/` del
+  support folder IMPLICITAMENTE, a prescindere dagli `includePaths` —
+  senza contromisura, un SC3plugins ancora installato lì duplica ogni
+  classe di deps/sc3-plugins e la compilazione fallisce. La config
+  generata quindi le mette in `excludePaths` (user + system): è QUELLO,
+  non gli includePaths, a isolare davvero il nostro sclang
+  dall'installazione personale.
 - **Il timetag di `/dirt/play` è onorato dal CODICE di classe, non dal
   layer di ricezione**: `SuperDirt.sc` (playFunc) calcola
   `latency = time − thisThread.seconds` (clampa solo il caso >42 s a
@@ -134,13 +141,15 @@ protocolli evolvono.
 
 ## 3. Gli archi
 
-### 3.1 Infrastruttura: estensioni sclang repo-owned + pin del quark
+### 3.1 Infrastruttura: estensioni sclang repo-owned + pin [LANDED]
 
-Una directory del repo (es. `scripts/sc-classes/`) aggiunta agli
-`includePaths` generati. Le classi lì dentro compilano nella classlib e
-possono aggiungere OSCdef, subclassare o estendere (`+ SuperDirt {}`).
-Indipendentemente: **pinnare il commit del quark** negli script di
-start (oggi la riproducibilità dipende dall'upstream `develop`).
+`scripts/sc-classes/` è negli `includePaths` generati (le classi lì
+dentro compilano nella classlib e possono aggiungere OSCdef,
+subclassare o estendere `+ SuperDirt {}`; `ScApp.banner` è la prova di
+compilazione a ogni boot). Il pin è strutturale: StrudelDirt, Vowel e
+Dirt-Samples sono submodule git (gitlink = versione; `shallow = true`;
+opt-in via `yarn deps`), sc3-plugins resta la release binaria pinnata.
+Gli script di start leggono SOLO `deps/`.
 
 ### 3.2 Livello 1 — `/dirt/play` a delta relativo (scioglie AUDIO-CLOCK §5.2)
 
@@ -227,7 +236,8 @@ nell'arco, non assumere gratis.
 
 ## 4. Sequenza raccomandata
 
-1. **Infrastruttura** (§3.1): directory estensioni + pin del quark.
+1. **[LANDED] Infrastruttura** (§3.1): directory estensioni + pin via
+   submodule.
 2. **Livello 1** (§3.2) → sweep: morte di `sendIn`, del wire ping/pong,
    di `core/clock.rs` e dell'intercettazione (step 5 chiuso).
 3. **Client id 1:1** (§3.4) — indipendente, utile comunque.

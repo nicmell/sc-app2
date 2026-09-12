@@ -13,9 +13,11 @@ step depends on live inline; everything here is UNSTARTED unless noted.
    wire ping/pong pair + `core/clock.rs`, gated on the StrudelDirt
    resolution (plus the shared-transport-origin idea for cross-client
    PHASE alignment); obstacles tracked in the doc.
-1. **The pure bridge** (`PURE-BRIDGE.md`) — direction decided: the
-   bridge sheds every protocol role until it is routing + sessions only.
-   The arcs (design, verified facts, and sequencing live in the doc):
+1. **The pure bridge** (`PURE-BRIDGE.md`) — direction decided; §3.1
+   (deps as pinned submodules + the repo-owned sclang classlib
+   scripts/sc-classes) LANDED. The bridge sheds every protocol role
+   until it is routing + sessions only. The remaining arcs (design,
+   verified facts, and sequencing live in the doc):
    repo-owned StrudelDirt class extensions (relative-delta `/dirt/play`
    resolves AUDIO-CLOCK §5.2 → the wire ping/pong + core/clock.rs die,
    then audio-domain targets off the `/tr` sclang already receives);

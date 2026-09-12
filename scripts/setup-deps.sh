@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
-# Fetch StrudelDirt's runtime dependencies into deps/.
-#
-# StrudelDirt (a SuperDirt fork — installed as an sclang Quark, see
-# start-osc.sh) needs a few extra things. We fetch the minimum into a
-# single self-contained tree so we don't depend on a system-wide
-# SuperCollider quark folder:
+# Populate deps/ — THE runtime source tree for the audio stack
+# (start-osc.sh / start-strudeldirt.sh read nothing else; the
+# SuperCollider support folder is not a dependency).
 #
 #   deps/
-#     Dirt-Samples/   ← audio sample library, looked up by name
-#     Vowel/          ← quark used by the Dirt vowel module
-#     sc3-plugins/    ← UGen plugins for global effects (delay/reverb/…)
-#                       macOS: pre-built release; Linux: via apt
+#     StrudelDirt/    ← pinned git submodule (the SuperDirt fork sclang mounts)
+#     Vowel/          ← pinned git submodule (quark used by the Dirt vowel module)
+#     Dirt-Samples/   ← pinned git submodule (audio sample library, ~400 MB)
+#     sc3-plugins/    ← prebuilt binary release (UGen plugins for global
+#                       effects; macOS: pinned zip; Linux: via apt) — the
+#                       one non-submodule, and the one .gitignore entry
 #
-# Idempotent — re-running skips anything already present.
+# The source deps are git submodules so the pin IS the gitlink — visible
+# in diffs, updated by commit, no bespoke bookkeeping. They stay
+# uninitialized on a plain clone (only the audio stack needs them);
+# `shallow = true` keeps their history out.
+#
+# Idempotent — re-running aligns submodules to the pins and skips
+# anything already present.
 #
 # Wire: `yarn deps`
 set -euo pipefail
@@ -31,31 +36,26 @@ skip() { printf '  \033[33m·\033[0m %s\n' "$*"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$*" >&2; }
 die()  { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
-echo "fetching StrudelDirt dependencies into $DEPS"
+echo "populating $DEPS"
 echo
 
-# ── 1. Dirt-Samples (git clone, ~50 MB) ──────────────────────────────
-echo "[1/3] Dirt-Samples (audio sample library)"
-if [ -d "$DEPS/Dirt-Samples/.git" ]; then
-  skip "already present at $DEPS/Dirt-Samples"
+# ── 1. Source deps: the pinned submodules ────────────────────────────
+echo "[1/2] source deps (git submodules: StrudelDirt, Vowel, Dirt-Samples)"
+SUBMODULES=(deps/StrudelDirt deps/Vowel deps/Dirt-Samples)
+# A pinned SHA can sit behind a moved upstream tip, where a shallow
+# fetch may miss it — retry without --depth; the committed gitlink is
+# the truth either way.
+if git -C "$REPO_ROOT" submodule update --init --depth 1 -- "${SUBMODULES[@]}" 2>/dev/null; then
+  ok "submodules at their pins (shallow)"
 else
-  git clone --depth 1 https://github.com/tidalcycles/dirt-samples.git "$DEPS/Dirt-Samples"
-  ok "cloned"
+  warn "shallow init missed a pin — retrying with full history"
+  git -C "$REPO_ROOT" submodule update --init -- "${SUBMODULES[@]}"
+  ok "submodules at their pins"
 fi
 echo
 
-# ── 2. Vowel quark (git clone, tiny) ─────────────────────────────────
-echo "[2/3] Vowel quark"
-if [ -d "$DEPS/Vowel/.git" ]; then
-  skip "already present at $DEPS/Vowel"
-else
-  git clone --depth 1 https://github.com/supercollider-quarks/Vowel.git "$DEPS/Vowel"
-  ok "cloned"
-fi
-echo
-
-# ── 3. sc3-plugins (macOS pre-built; Linux via apt) ──────────────────
-echo "[3/3] sc3-plugins (needed for global effects)"
+# ── 2. sc3-plugins (macOS pre-built; Linux via apt) ──────────────────
+echo "[2/2] sc3-plugins (needed for global effects)"
 case "$(uname -s)" in
   Darwin*)
     if [ -d "$DEPS/sc3-plugins" ]; then

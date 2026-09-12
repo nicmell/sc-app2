@@ -15,8 +15,9 @@ dist-ssr
 # Turborepo cache
 .turbo
 
-# StrudelDirt runtime deps, fetched by `yarn deps` (Dirt-Samples, Vowel, sc3-plugins)
-/deps
+# The one non-submodule dep: sc3-plugins is a prebuilt binary release,
+# fetched by `yarn deps` (the source deps are pinned git submodules).
+/deps/sc3-plugins
 
 # Yarn
 .yarn/*

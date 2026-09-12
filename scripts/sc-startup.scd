@@ -7,7 +7,7 @@
 //
 // This script just attaches and mounts StrudelDirt on UDP 57120. The
 // sample path comes from SC_APP_DIRT_SAMPLES (set by start-strudeldirt.sh
-// to the Dirt-Samples QUARK folder/*).
+// to the repo's deps/Dirt-Samples/*). Pre-req: `yarn deps`.
 
 (
 // scsynth option mirror + allocator rebuild. In attach mode sclang doesn't
@@ -30,6 +30,10 @@ s.startAliveThread;
 
 // Wait up to ~10 s (50 ticks x 0.2 s) for scsynth's first /status reply.
 s.doWhenBooted({
+    // Proof the repo classlib (scripts/sc-classes) compiled into this
+    // sclang — visible in every boot log, the e2e's included.
+    ScApp.banner;
+
     // Register for async notifications and wait for /done /notify.
     s.notify;
     s.sync;

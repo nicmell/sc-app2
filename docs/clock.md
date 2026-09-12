@@ -28,7 +28,7 @@ master (see AUDIO-CLOCK.md for the design's full arc):
 - **The metronome is the AUDIO ENGINE itself**: the `__global_clock__`
   synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/tr` tick
   (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
-  `subscribeClock` callback fires off its arrival.
+  `clock.subscribe` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the MAIN thread pings
   the bridge riding that same metronome (one ping per 2 s of ticks, plus
   an immediate one on the first tick after connect) — the wall-time
@@ -106,7 +106,7 @@ of code:
   min-RTT filter eats them (§4).
 - **Offset** is expressed over `Date.now()`, the wall domain timetags
   start from: `offset = srv + rtt/2 − Date.now()@pong`, and
-  `clockNow() = Date.now() + offset`.
+  `clock.now() = Date.now() + offset`.
 
 In Tauri, bridge and webview share the host clock, so `offset ≈ 0 ± rtt/2` —
 that is also the explicit degraded mode (before the first pong, and while
@@ -141,7 +141,7 @@ Each `CLOCK_*` constant carries its own rationale where it is defined
 
 ## 5. Tick-driven clock callbacks
 
-`oscClient.subscribeClock(intervalMs, cb)` registers a purely LOCAL listener
+`oscClient.clock.subscribe(intervalMs, cb)` registers a purely LOCAL listener
 in ClockSync — nothing crosses the worker boundary. The registry counts
 TICKS, not wall time: a listener fires every
 `round(intervalMs / tickPeriod)` ticks, so intervals quantize to the tick
@@ -170,8 +170,8 @@ tolerance included; an unexplainable arrival means the engine restarted →
 resync and re-lock), arrivals regress against the tick grid (the slope is
 the client↔audio-clock skew), and the minimum residual anchors the mapping
 (one-way min-filter: delivery delay only ever adds).
-`oscClient.audioNow()` exposes the engine's estimated time in seconds
-(null until the ~1.6 s lock), `oscClient.tickInfo()` the diagnostics.
+`oscClient.clock.audioNow()` exposes the engine's estimated time in
+seconds (null until the ~1.6 s lock), `clock.tickInfo()` the diagnostics.
 
 ### The slewed audio timebase
 
@@ -183,7 +183,8 @@ adjustment, 50 ppm/s max change — a full swing absorbs in seconds, far
 inside the 200 ms lookahead), and glides back to the plain local rate on
 unlock. Rate-only by design: Cyclist consumes deltas, so the absolute
 offset is irrelevant (cross-client PHASE alignment is a future
-shared-transport-origin protocol). `oscClient.audioTime()` exposes it —
+shared-transport-origin protocol). `oscClient.clock.audioTime()` exposes
+it —
 always available, never a step.
 
 ## 6. Consumers
@@ -191,11 +192,11 @@ always available, never a step.
 **Strudel (`src/sc-elements/widgets/sc-strudel`).** Two independent hooks:
 
 1. _Scheduling_: per-element `setInterval`/`clearInterval` shims over
-   `oscClient.subscribeClock` are injected into `StrudelMirror` (forwarded to
+   `oscClient.clock.subscribe` are injected into `StrudelMirror` (forwarded to
    `repl()` → `Cyclist` → zyklus, which asks for 100 ms), so the pattern
    scheduler wakes on the audio engine's tick arrival — immune to
    background throttling.
-   `getTime` is `oscClient.audioTime()`: the slewed audio timebase —
+   `getTime` is `oscClient.clock.audioTime()`: the slewed audio timebase —
    **monotonic and step-free** (the Cyclist invariant: a backward step
    would stall its phase math, a forward one would drop haps), locked to
    the ENGINE's rate once the tracker locks, so the pattern grid keeps
@@ -207,7 +208,7 @@ always available, never a step.
    and shipped as a RELATIVE delta —
    `oscClient.sendIn(message, (targetTimeSecs − audioTime())·1000 +
    SAFETY_LOOKAHEAD_MS)`. `sendIn(packet, inMs)` converts to the
-   bridge-time timetag `round(clockNow() + inMs)` and sends it as the `at`
+   bridge-time timetag `round(clock.now() + inMs)` and sends it as the `at`
    metadata beside the message (the worker endpoint builds the OSC bundle
    at encode time): the ONE wall-clock conversion point in the app, and
    the delta is domain-free for callers (rate error over a lookahead-sized
@@ -219,7 +220,7 @@ subscription — meaningful only while connected, which is exactly when the
 clock synth ticks.
 
 **Header clock (`DashboardHeader`).** The bridge-time wall clock in the top
-bar: `clockNow()` re-read on a 1 s subscription, with the current offset
+bar: `clock.now()` re-read on a 1 s subscription, with the current offset
 beside it — the whole pipeline (ping loop + estimate) made visible. Hidden
 while disconnected.
 

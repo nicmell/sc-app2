@@ -40,7 +40,7 @@ export class SessionManager {
 
   /** (event, id) pairs of our osc subscriptions, for teardown(). */
   private subscriptions: Array<["close", number]> = [];
-  /** The session-autosave worker-clock subscription + last saved references
+  /** The session-autosave clock subscription + last saved references
    *  (one per slice — a tick saves when either moved). */
   private saveOff: (() => void) | null = null;
   private lastSavedBoxes: BoxItem[] | null = null;
@@ -126,7 +126,7 @@ export class SessionManager {
    *  Skips ticks where neither slice moved since the last save; failures just
    *  retry on the next tick. */
   private startSessionAutosave(sessionId: string): void {
-    this.saveOff = oscClient.subscribeClock(SESSION_SAVE_INTERVAL_MS, () => {
+    this.saveOff = oscClient.clock.subscribe(SESSION_SAVE_INTERVAL_MS, () => {
       const boxes = layout.get();
       const boxPresets = presets.get();
       if (boxes === this.lastSavedBoxes && boxPresets === this.lastSavedPresets) return;
@@ -151,7 +151,7 @@ export class SessionManager {
           });
         },
       );
-    }).off;
+    });
   }
 
   /** Shared teardown: stop the autosave, drop our subscriptions, and close

@@ -258,7 +258,8 @@ session.
    tick's phase payload: `lib/clock/TickTracker` unwraps the phase into an
    absolute tick index (loss-healing, restart-resyncing), regresses
    arrivals against the grid (skew in ppm), anchors on the minimum
-   residual, and exposes `oscClient.audioNow()` / `tickInfo()`. Strudel's
+   residual, and exposes `oscClient.clock.audioNow()` / `tickInfo()`.
+   Strudel's
    `getTime` in the tick domain stays DEFERRED: Cyclist needs a monotonic,
    step-free time source and the tracker refits per tick — switching it
    requires a designed slew.

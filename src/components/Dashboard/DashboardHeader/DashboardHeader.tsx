@@ -20,16 +20,15 @@ function formatBridgeTime(ms: number): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-/** The bridge-time wall clock, re-read on a 1 s worker tick stream — worker
- *  timers keep it honest even in a backgrounded window. */
+/** The bridge-time wall clock, re-read on a 1 s clock subscription — the
+ *  audio engine's /tr ticks arrive via postMessage, which is never
+ *  background-throttled, so it stays honest in an occluded window. */
 function useBridgeClock(): string {
-  const [time, setTime] = useState(() => formatBridgeTime(oscClient.clockNow()));
-  useEffect(() => {
-    const sub = oscClient.subscribeClock(1_000, () =>
-      setTime(formatBridgeTime(oscClient.clockNow())),
-    );
-    return sub.off;
-  }, []);
+  const [time, setTime] = useState(() => formatBridgeTime(oscClient.clock.now()));
+  useEffect(
+    () => oscClient.clock.subscribe(1_000, () => setTime(formatBridgeTime(oscClient.clock.now()))),
+    [],
+  );
   return time;
 }
 

@@ -18,10 +18,7 @@
 import {
   ADDR_N_GO,
   ADDR_SYNCED,
-  ADDR_TR,
   AddToTail,
-  CLOCK_PONG_ADDRESS,
-  Tr,
   dFree,
   dRecv,
   gFreeAll,
@@ -41,7 +38,7 @@ import {
   type DecodedScopeChunk,
   type OscMessage,
 } from "@sc-app/server-commands";
-import { CLOCK_TRIGGER_ID, REPLY_TIMEOUT_MS, TRANSPORT_STATUS } from "@/constants/osc";
+import { REPLY_TIMEOUT_MS, TRANSPORT_STATUS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { workerClient, type WorkerClient } from "./WorkerClient";
@@ -96,11 +93,12 @@ export class OscClient {
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private readonly scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** The whole app clock: it originates the /clock/ping (riding the tick
-   *  metronome), completes the round-trip on the pong, and runs the
-   *  tick-driven callback registry (the metronome is the audio engine's
-   *  /tr — see AUDIO-CLOCK.md). */
-  private readonly clock: ClockSync;
+  /** The whole app clock (docs/clock.md, AUDIO-CLOCK.md), exposed as-is —
+   *  the consumer surface is `subscribe`/`now`/`audioTime`/`audioNow`/
+   *  `tickInfo`; the routing and reset seams (`handleMessage`, `reset`)
+   *  belong to this class. One instance for the client's whole life:
+   *  reconnects reset it in place, never replace it. */
+  readonly clock: ClockSync;
 
   constructor(private readonly worker: WorkerClient) {
     this.clock = new ClockSync({
@@ -252,7 +250,7 @@ export class OscClient {
   /** Dispatch `packet` scheduled `inMs` from now. The delta is
    *  domain-free for the caller (compute it in ANY consistent timebase —
    *  rate error over a lookahead-sized delta is sub-µs); the conversion
-   *  to a bridge-time timetag happens here via `clockNow`. Timetags are
+   *  to a bridge-time timetag happens here via `clock.now()`. Timetags are
    *  bridge time: a scsynth on a different host than the bridge would
    *  need its own offset (unsupported assumption). */
   sendIn(packet: OscMessage, inMs: number): void {
@@ -412,47 +410,11 @@ export class OscClient {
     };
   }
 
-  /** Register a tick-driven clock callback at (a quantization of)
-   *  `intervalMs`. Purely local; it fires only while the audio engine's
-   *  `/tr` ticks flow — nothing keeps time while disconnected. */
-  subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
-    return this.clock.subscribe(intervalMs, cb);
-  }
-
-  /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */
-  clockNow(): number {
-    return this.clock.now();
-  }
-
-  /** The AUDIO ENGINE's current time in seconds, estimated one-way from
-   *  the global clock's phase payload (AUDIO-CLOCK.md) — null until the
-   *  tracker locks (~1.6 s after connect). The foundation for direct
-   *  scsynth scheduling; not yet consumed by Strudel (no monotonicity
-   *  guarantee across refits). */
-  audioNow(): number | null {
-    return this.clock.audioNow();
-  }
-
-  /** One-way tracker diagnostics (lock, tick index, local-vs-audio skew). */
-  tickInfo(): { locked: boolean; tickIndex: number | null; skewPpm: number | null } {
-    return this.clock.tickInfo();
-  }
-
-  /** The monotonic, rate-disciplined timebase in seconds — Strudel's
-   *  getTime: engine rate when the tracker is locked, plain local rate
-   *  otherwise, NEVER a step (unlike `audioNow`, which chases the
-   *  absolute estimate and may refit). */
-  audioTime(): number {
-    return this.clock.audioTime();
-  }
-
   /** Route a worker transport event. Public for unit tests — normally the
-   *  registered `worker.onEvent` sink. */
+   *  registered `worker.onEvent` sink. A respawn needs nothing restored:
+   *  all clock state lives here, main-side. */
   handleTransportEvent(event: TransportEvent): void {
-    if (event.type === "respawn") {
-      // Nothing to restore: the clock estimate lives here (main side) and
-      // the fresh worker resumes pinging on the next open.
-    } else if (event.type === "osc") {
+    if (event.type === "osc") {
       this.handleReply(event.packet);
     } else if (event.type === "error") {
       this.emit("error", new Error(event.message));
@@ -466,18 +428,9 @@ export class OscClient {
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    if (reply.address === CLOCK_PONG_ADDRESS) {
-      // Internal to the clock loop — consumed before the waiters.
-      this.clock.onPong(reply);
-      return;
-    }
-    // The audio engine's clock tick (the __global_clock__ synth) — the
-    // metronome, and the one-way tracker's phase feed. Foreign /tr ids
-    // fall through: plugins may SendTrig too.
-    if (reply.address === ADDR_TR && Tr.triggerId(reply) === CLOCK_TRIGGER_ID) {
-      this.clock.onTick(reply);
-      return;
-    }
+    // The clock families are internal to the clock loop — consumed before
+    // the waiters (foreign /tr ids fall through: plugins SendTrig too).
+    if (this.clock.handleMessage(reply)) return;
     // One-shot waiters first — the message still falls through to the
     // protocol routing below (transport middleware has already observed it).
     const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));

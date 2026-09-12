@@ -1,8 +1,7 @@
 // Transport packet logging middleware. Owns only the bounded OSC log view.
 
-import { ADDR_STATUS_REPLY, ADDR_TR, formatOscArg, type OscMessage } from "@sc-app/server-commands";
-import { CLOCK_TRIGGER_ID } from "@/constants/osc";
-import { MAX_LOG } from "@/constants/osc";
+import { ADDR_STATUS_REPLY, formatOscArg, type OscMessage } from "@sc-app/server-commands";
+import { isClockTick, MAX_LOG } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { TransportMiddleware } from "../middleware";
@@ -16,10 +15,7 @@ const skippedRx = new Set(["/scope/chunk", "/clock/pong", ADDR_STATUS_REPLY]);
 /** High-rate rx to keep out of the console: the skip set, plus the global
  *  clock's /tr ticks — but ONLY ours; a plugin's own SendTrig stays logged. */
 function skipRx(message: OscMessage): boolean {
-  return (
-    skippedRx.has(message.address) ||
-    (message.address === ADDR_TR && message.args[1] === CLOCK_TRIGGER_ID)
-  );
+  return skippedRx.has(message.address) || isClockTick(message);
 }
 
 function append(dir: "tx" | "rx", address: string, args: string[]): void {

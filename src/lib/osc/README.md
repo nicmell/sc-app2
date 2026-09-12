@@ -68,5 +68,5 @@ vocabulary. The METRONOME is the audio engine's own `/tr` tick (the
 `__global_clock__` synth, trigger id 4242 at 20 Hz — AUDIO-CLOCK.md),
 routed by trigger id in `handleReply` so a plugin's own SendTrig passes
 untouched. Clock callbacks fire only while connected and ticking (nothing
-keeps time offline; see docs/clock.md). `clockNow()` is wall time plus the
+keeps time offline; see docs/clock.md). `clock.now()` is wall time plus the
 latest estimated offset.

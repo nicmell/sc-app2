@@ -20,11 +20,18 @@
 //
 // Composed by OscClient.
 
-import { ClockPong, clockPing, Tr, type OscMessage } from "@sc-app/server-commands";
+import {
+  CLOCK_PONG_ADDRESS,
+  ClockPong,
+  clockPing,
+  Tr,
+  type OscMessage,
+} from "@sc-app/server-commands";
 import {
   CLOCK_PING_INTERVAL_MS,
   CLOCK_SAMPLE_WINDOW,
   CLOCK_TICK_FREQ_HZ,
+  isClockTick,
   PHASE_RING_FRAMES,
 } from "@/constants/osc";
 import { SlewedClock } from "./SlewedClock";
@@ -102,23 +109,36 @@ export class ClockSync {
    *  nothing crosses the worker boundary; fire COUNT must never be
    *  converted back to elapsed time (a lost tick slips the schedule by
    *  one period). */
-  subscribe(intervalMs: number, cb: () => void): { id: number; off: () => void } {
+  subscribe(intervalMs: number, cb: () => void): () => void {
     const id = this.nextListenerId++;
     const everyTicks = Math.max(1, Math.round(intervalMs / TICK_PERIOD_MS));
     this.listeners.set(id, { everyTicks, countdown: everyTicks, cb });
-    return {
-      id,
-      off: () => {
-        this.listeners.delete(id);
-      },
+    return () => {
+      this.listeners.delete(id);
     };
+  }
+
+  /** Route one inbound message: the clock families — the global clock's
+   *  /tr tick and /clock/pong — are consumed here (true); anything else,
+   *  including a plugin's own SendTrig on a foreign /tr id, returns false
+   *  and falls through to the caller's routing. */
+  handleMessage(message: OscMessage): boolean {
+    if (isClockTick(message)) {
+      this.onTick(message);
+      return true;
+    }
+    if (message.address === CLOCK_PONG_ADDRESS) {
+      this.onPong(message);
+      return true;
+    }
+    return false;
   }
 
   /** One /clock/pong: complete the round-trip against the in-flight slot
    *  (unknown or replayed seqs are ignored), fold the sample into the
    *  min-RTT window and publish. The MEASUREMENT stream only — the
    *  metronome is `onTick`. */
-  onPong(message: OscMessage): void {
+  private onPong(message: OscMessage): void {
     if (this.outstanding === null || this.outstanding.seq !== ClockPong.seq(message)) return;
     const rtt = performance.now() - this.outstanding.t0;
     this.outstanding = null;
@@ -137,7 +157,7 @@ export class ClockSync {
    *  anywhere: intervals quantize to the tick rate (`CLOCK_TICK_FREQ_HZ`)
    *  and a gap yields exactly the fires its ticks pay for — never a
    *  burst, and immune to wall-clock steps. */
-  onTick(message: OscMessage): void {
+  private onTick(message: OscMessage): void {
     this.tracker.onTick(Tr.value(message));
     if (this.ticksUntilPing <= 0) {
       this.ping();

@@ -186,20 +186,15 @@ export class ScStrudel extends ScInput {
       // wall-clock conversion for StrudelDirt lives inside sendIn.
       oscClient.sendIn(
         dirtPlayMessage(event),
-        (targetTimeSecs - oscClient.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
+        (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
       );
     };
 
-    const clockIntervals = new Map<number, () => void>();
-    const setInterval = (cb: () => void, ms: number): number => {
-      const sub = oscClient.subscribeClock(ms, cb);
-      clockIntervals.set(sub.id, sub.off);
-      return sub.id;
-    };
-    const clearInterval = (id: number): void => {
-      clockIntervals.get(id)?.();
-      clockIntervals.delete(id);
-    };
+    // The timer handle zyklus stores and hands back is the off closure
+    // itself — it never inspects it.
+    const setInterval = (cb: () => void, ms: number): (() => void) =>
+      oscClient.clock.subscribe(ms, cb);
+    const clearInterval = (off?: () => void): void => off?.();
 
     // A bind is seeded through syncFromState, not as constructor input: this
     // keeps the shared load-pass path observable and correct in both lifecycle
@@ -218,7 +213,7 @@ export class ScStrudel extends ScInput {
       // Cyclist invariant), locked to the ENGINE's rate once the tick
       // tracker locks — patterns keep the engine's tempo, not the local
       // crystal's (docs/clock.md).
-      getTime: () => oscClient.audioTime(),
+      getTime: () => oscClient.clock.audioTime(),
       prebake: () => ensureStrudelGlobals().then(() => undefined),
       bgFill: false,
       solo: false,

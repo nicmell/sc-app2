@@ -5,12 +5,18 @@
 // failures through the global toast stack, stores/toasts).
 
 import { useSyncExternalStore } from "react";
+import { SliceName } from "@/constants/store";
 import { log } from "@/lib/osc/middlewares/logging";
-import { clock, scsynthStatus } from "@/lib/osc/middlewares/status";
+import { scsynthStatus } from "@/lib/osc/middlewares/status";
+import { appStore } from "@/stores/store";
 import type { ClockStatus, LoggedEntry, ScsynthStatus } from "@/types/stores";
 
 export { log } from "@/lib/osc/middlewares/logging";
-export { clock, scsynthStatus } from "@/lib/osc/middlewares/status";
+export { scsynthStatus } from "@/lib/osc/middlewares/status";
+
+/** The clock-estimate view — its field is written by OscClient's ClockSync
+ *  (lib/clock), not by any middleware. */
+export const clock = appStore.slice(SliceName.OSC).select((value) => value.clock);
 
 /** Subscribe a React component to the bounded OSC log. */
 export function useOscLog(): LoggedEntry[] {

@@ -157,9 +157,10 @@ lib/                     non-React infrastructure
                          (→ /n_go, returns the node id), sendSynthDef
                          (/d_recv + embedded /sync ack), freeGroup/
                          freeSynthDef/freeSynth/setControl,
-                         subscribeClock(intervalMs, cb) + clockNow()
-                         (tick-driven callbacks, connected-only —
-                         see clock.md), subscribeScope(…, onChunk) →
+                         the exposed `clock` (ClockSync as-is:
+                         clock.subscribe + clock.now — tick-driven
+                         callbacks, connected-only, see clock.md) +
+                         sendIn(packet, inMs), subscribeScope(…, onChunk) →
                          {subId, off} (handler registered before the send;
                          chunks dispatch by subId from handleReply) and the
                          scope-slot allocator over the session's span);
@@ -185,10 +186,11 @@ lib/                     non-React infrastructure
                            onDead once, surfaced as a transport error).
                            The binary codec dependency is worker-only.
   clock/                 ClockSync — the WHOLE app clock (main thread,
-                         composed by OscClient): the tick-riding ping loop
-                         + min-RTT estimate behind clockNow, the
-                         tick-driven callback registry, TickTracker +
-                         SlewedClock; see docs/clock.md
+                         composed AND exposed by OscClient as `clock`):
+                         the tick-riding ping loop + min-RTT estimate
+                         behind clock.now(), the tick-counted callback
+                         registry, TickTracker + SlewedClock; see
+                         docs/clock.md
   session/               SessionManager (global `session`): the LIVE half —
                          epoch-guarded connect(info)/disconnect() (one-tick
                          deferred for StrictMode remounts), close → conn

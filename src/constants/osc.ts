@@ -1,3 +1,5 @@
+import { ADDR_TR, Tr, type OscMessage } from "@sc-app/server-commands";
+
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
@@ -33,11 +35,17 @@ export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_S
 
 /** SendTrig trigger id of the `__global_clock__` synth loaded by
  *  scripts/sc-startup.scd — its `/tr` ticks are the main thread's
- *  METRONOME (they drive every `subscribeClock` callback). Mirrored by the
- *  synthdef-compiler parity fixture. */
+ *  METRONOME (they drive every `clock.subscribe` callback). Mirrored by
+ *  the synthdef-compiler parity fixture. */
 export const CLOCK_TRIGGER_ID = 4242;
+/** THE clock-tick discriminator: the global clock's `/tr`, by trigger id.
+ *  One predicate, three consumers — ClockSync's routing, the rx-log skip,
+ *  the worker watchdog's markAlive stamp — so "exactly the global clock's
+ *  /tr" is single-sourced. */
+export const isClockTick = (message: OscMessage): boolean =>
+  message.address === ADDR_TR && Tr.triggerId(message) === CLOCK_TRIGGER_ID;
 /** The clock synth's tick rate. Must stay at or above TWICE the finest
- *  `subscribeClock` cadence a consumer asks for — zyklus asks the
+ *  `clock.subscribe` cadence a consumer asks for — zyklus asks the
  *  sc-strudel setInterval shim for 100 ms. The VALUE's owner is
  *  sc-startup.scd's `Impulse.kr` — keep the two in lockstep. */
 export const CLOCK_TICK_FREQ_HZ = 20;
@@ -56,9 +64,8 @@ export const PHASE_RING_FRAMES = 8192;
  *  re-measure keeps the anchor within fractions of a millisecond. */
 export const CLOCK_PING_INTERVAL_MS = 2_000;
 /** Recent-sample ring the estimate is picked from (min-RTT rule, applied
- *  by the main-thread ClockSync over the worker's raw samples) — 8 is
- *  NTP's clock-filter register size (~16 s of congestion memory at the
- *  2 s cadence). */
+ *  by ClockSync over its ping/pong samples) — 8 is NTP's clock-filter
+ *  register size (~16 s of congestion memory at the 2 s cadence). */
 export const CLOCK_SAMPLE_WINDOW = 8;
 /** Worker-side heartbeat watchdog poll cadence, derived: detection latency
  *  is the reply timeout plus at most one poll interval, so a fifth keeps it

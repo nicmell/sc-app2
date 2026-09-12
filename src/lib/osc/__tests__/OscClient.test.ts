@@ -15,61 +15,26 @@ const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage =>
 });
 
 describe("oscClient.handleReply", () => {
-  it("drives subscribeClock callbacks from the audio engine's /tr ticks", () => {
-    let now = 0;
-    vi.spyOn(Date, "now").mockImplementation(() => now);
+  // The clock MATH is pinned in lib/clock's suites; this file pins only the
+  // ROUTING seam: handleReply hands the clock families to clock.handleMessage
+  // and lets everything else fall through.
+  it("routes the global clock's /tr tick to the metronome", () => {
     const cb = vi.fn();
-    const sub = oscClient.subscribeClock(100, cb);
-    for (let i = 0; i < 4; i++) {
-      now += 50; // the 20 Hz tick cadence
-      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, (i * 2205) % 8192));
-    }
-    expect(cb).toHaveBeenCalledTimes(2); // 200 ms at a 100 ms interval
-    sub.off();
-  });
-
-  it("locks audioNow from the ticks' phase payload", () => {
-    let mono = 0;
-    vi.spyOn(performance, "now").mockImplementation(() => mono);
-    vi.spyOn(Date, "now").mockReturnValue(0);
-    oscClient.handleTransportEvent({ type: "close" }); // clean tracker
-    expect(oscClient.audioNow()).toBeNull();
-    for (let i = 0; i < 40; i++) {
-      mono = i * 50;
-      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, (i * 2205) % 8192));
-    }
-    expect(oscClient.tickInfo().locked).toBe(true);
-    expect(oscClient.audioNow()).not.toBeNull();
+    const off = oscClient.clock.subscribe(50, cb); // 1 tick at 20 Hz
+    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    expect(cb).toHaveBeenCalledTimes(1);
+    off();
   });
 
   it("lets foreign /tr ids fall through to the waiters", async () => {
-    let now = 0;
-    vi.spyOn(Date, "now").mockImplementation(() => now);
     const cb = vi.fn();
-    const sub = oscClient.subscribeClock(100, cb);
+    const off = oscClient.clock.subscribe(50, cb);
     const waited = oscClient.once("/tr", (m) => m.args[1] === 7);
 
-    now += 200;
     oscClient.handleReply(oscMessage("/tr", 50, 7, 0.25)); // a plugin's SendTrig
     await expect(waited).resolves.toMatchObject({ args: [50, 7, 0.25] });
     expect(cb).not.toHaveBeenCalled(); // foreign id is not the metronome
-    sub.off();
-  });
-
-  it("anchors clockNow through the tick → ping → pong loop", () => {
-    vi.spyOn(Date, "now").mockReturnValue(10_000);
-    let mono = 0;
-    vi.spyOn(performance, "now").mockImplementation(() => mono);
-    const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
-
-    oscClient.handleTransportEvent({ type: "close" }); // fresh clock: next tick pings
-    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
-    const ping = dispatch.mock.calls.find(([m]) => m.address === "/clock/ping")?.[0];
-    if (!ping) throw new Error("expected an anchor ping on the first tick");
-
-    mono += 0.5; // rtt 0.5 → offset = 10_012.25 + 0.25 − 10_000 = 12.5
-    oscClient.handleReply(oscMessage("/clock/pong", ping.args[0], 10_012.25));
-    expect(oscClient.clockNow()).toBe(10_012.5);
+    off();
   });
 });
 
@@ -185,7 +150,7 @@ describe("oscClient.sendIn", () => {
 
     oscClient.sendIn({ address: "/dirt/play", args: [] }, 250);
 
-    // clockNow (10_500) + inMs (250) = 10_750.
+    // clock.now() (10_500) + inMs (250) = 10_750.
     expect(dispatch).toHaveBeenCalledWith({ address: "/dirt/play", args: [] }, 10_750);
   });
 });

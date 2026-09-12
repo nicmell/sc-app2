@@ -11,8 +11,8 @@
 // WorkerClient boundary.
 
 import { decode, encode } from "@sc-app/server-commands/codec";
-import { ADDR_TR, atDate, Tr, walkPacket, type OscMessage } from "@sc-app/server-commands";
-import { CLOCK_TRIGGER_ID } from "@/constants/osc";
+import { atDate, walkPacket, type OscMessage } from "@sc-app/server-commands";
+import { isClockTick } from "@/constants/osc";
 import type { TransportCommand, TransportEvent } from "@/types/osc";
 import { Watchdog } from "./watchdog";
 import { Transport } from "./transport";
@@ -100,9 +100,7 @@ export class WorkerEndpoint {
         // The session heartbeat is EXACTLY the global clock's tick: only
         // the DSP graph computing proves the session alive (a pong or a
         // /status.reply from a clock-less stack must not).
-        if (message.address === ADDR_TR && Tr.triggerId(message) === CLOCK_TRIGGER_ID) {
-          this.watchdog.markAlive();
-        }
+        if (isClockTick(message)) this.watchdog.markAlive();
         this.post({ type: "osc", packet: message }, blobBuffers(message));
       });
     } catch (error) {

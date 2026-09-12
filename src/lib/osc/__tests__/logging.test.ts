@@ -18,9 +18,19 @@ describe("logging middleware", () => {
       next,
     );
     loggingMiddleware.event!({ type: "osc", packet: { address: "/status.reply", args: [] } }, next);
+    // The global clock's /tr (id 4242) is skipped; a plugin's own /tr is not.
+    loggingMiddleware.event!(
+      { type: "osc", packet: { address: "/tr", args: [99, 4242, 0.5] } },
+      next,
+    );
+    loggingMiddleware.event!(
+      { type: "osc", packet: { address: "/tr", args: [50, 7, 0.25] } },
+      next,
+    );
     expect(log.get().map(({ dir, address, args }) => [dir, address, args])).toEqual([
       ["tx", "/n_set", ["1"]],
       ["rx", "/fail", ["/x", "bad"]],
+      ["rx", "/tr", ["50", "7", "0.25"]],
     ]);
   });
 

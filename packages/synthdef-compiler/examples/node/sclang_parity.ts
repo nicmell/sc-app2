@@ -25,7 +25,9 @@ import {
   SinOsc,
 } from "../../src/builders/index.js";
 
-// ── Constants mirrored from src/constants/osc.ts ──────────────────────────
+// ── Constants mirrored by src/constants/osc.ts (CLOCK_TRIGGER_ID,
+// CLOCK_TICK_FREQ_HZ) and scripts/sc-startup.scd — this package stays
+// standalone, so the duplication is deliberate; keep them in lockstep. ──
 const PHASE_BUS = 1000;
 const SHARED_FRAMES = 8192;
 const CLOCK_TRIGGER_ID = 4242;
@@ -75,7 +77,7 @@ function fixtureGlobalClockPhase(): Fixture {
       const phase = Phasor.ar().trig(0).rate(1).start(0).end(SHARED_FRAMES).resetPos(0).build(def);
       Out.ar().bus(PHASE_BUS).channelsArray([phase]).build(def);
       const pkr = A2K.kr().in(phase).build(def);
-      const tick = Impulse.kr().freq(10).phase(0).build(def);
+      const tick = Impulse.kr().freq(20).phase(0).build(def);
       SendTrig.kr().in(tick).id(CLOCK_TRIGGER_ID).value(pkr).build(def);
       return def.toBytes();
     },

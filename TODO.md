@@ -5,10 +5,14 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 
 ## Roadmap (the big steps)
 
-0. **The audio-clock transport** — replace the ping/pong bridge clock with
-   a scsynth-emitted `/tr` tick (the `__global_clock__` synth): design,
-   verified integration facts, and obstacles (SendTrig-only compiler,
-   StrudelDirt timetag laundering, synth ownership) in `AUDIO-CLOCK.md`.
+0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — steps 1–4 LANDED,
+   step 5 PARTIAL (the `__global_clock__` synth ships from sc-startup.scd;
+   its `/tr` tick is the metronome AND the only liveness signal; the main
+   thread originates the 2 s wall-anchor ping riding the metronome; the
+   worker is clock-free — `/clock/sample` is gone). Remaining: only the
+   wire ping/pong pair + `core/clock.rs`, gated on the StrudelDirt
+   resolution (plus the shared-transport-origin idea for cross-client
+   PHASE alignment); obstacles tracked in the doc.
 1. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

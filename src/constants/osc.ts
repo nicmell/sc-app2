@@ -1,11 +1,15 @@
+import { ADDR_TR, Tr, type OscMessage } from "@sc-app/server-commands";
+
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
-/** How long the worker-side watchdog waits for a `/status.reply` before
- *  treating the connection as dead. The Rust bridge heartbeats scsynth at
- *  1 s and fans every reply out to us, so 5 s of silence mirrors its own
- *  missed-replies slack. */
-export const STATUS_REPLY_TIMEOUT_MS = 5_000;
+/** How much tick silence the worker-side watchdog tolerates before
+ *  declaring the session dead: the heartbeat is the global clock's `/tr`
+ *  (20 Hz), so 5 s = 100 missed ticks. This also ENFORCES the clock-synth
+ *  requirement — a stack that never loads `__global_clock__` gets a clean
+ *  close with a clear error instead of a zombie session with a silent
+ *  metronome. */
+export const WATCHDOG_TIMEOUT_MS = 5_000;
 
 /** How long a `once()` reply waiter holds out before rejecting — sequenced
  *  commands (`/d_recv` → `/synced`, `/s_new` → `/n_go`) fail loudly instead
@@ -27,21 +31,43 @@ export const TRANSPORT_STATUS = {
 
 export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_STATUS];
 
+// ── audio clock (see AUDIO-CLOCK.md) ──────────────────────────────────────
+
+/** SendTrig trigger id of the `__global_clock__` synth loaded by
+ *  scripts/sc-startup.scd — its `/tr` ticks are the main thread's
+ *  METRONOME (they drive every `clock.subscribe` callback). Mirrored by
+ *  the synthdef-compiler parity fixture. */
+export const CLOCK_TRIGGER_ID = 4242;
+/** THE clock-tick discriminator: the global clock's `/tr`, by trigger id.
+ *  One predicate, three consumers — ClockSync's routing, the rx-log skip,
+ *  the worker watchdog's markAlive stamp — so "exactly the global clock's
+ *  /tr" is single-sourced. */
+export const isClockTick = (message: OscMessage): boolean =>
+  message.address === ADDR_TR && Tr.triggerId(message) === CLOCK_TRIGGER_ID;
+/** The clock synth's tick rate. Must stay at or above TWICE the finest
+ *  `clock.subscribe` cadence a consumer asks for — zyklus asks the
+ *  sc-strudel setInterval shim for 100 ms. The VALUE's owner is
+ *  sc-startup.scd's `Impulse.kr` — keep the two in lockstep. */
+export const CLOCK_TICK_FREQ_HZ = 20;
+/** The clock synth's Phasor ring length in samples — the modulus of the
+ *  phase payload each `/tr` tick carries. Owner: sc-startup.scd's
+ *  `Phasor.ar(..., end: 8192)`; mirrored by the parity fixture. */
+export const PHASE_RING_FRAMES = 8192;
+
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
-/** Ping cadence while the socket is open. The per-pong `/clock/sample` is
- *  ALSO the main thread's metronome (sample-driven clock callbacks), so this
- *  must stay at or below HALF the finest consumer interval — zyklus asks
- *  the sc-strudel setInterval shim for 100 ms. It must still exceed the
- *  worst-case RTT so a ping never queues behind the previous one (queueing
- *  inflates its own RTT sample). */
-export const CLOCK_PING_INTERVAL_MS = 50;
-/** Recent-sample ring the estimate is picked from (min-RTT rule, applied by
- *  the main-thread ClockSync over the worker's raw samples). NTP's
- *  clock-filter register is 8 slow samples; at the 50 ms cadence the window
- *  must still span a few SECONDS of congestion, hence 64 (~3.2 s). */
-export const CLOCK_SAMPLE_WINDOW = 64;
+/** Nominal ping cadence — quantized to the tick metronome it rides (a
+ *  ClockSync tick countdown, so pings flow only while ticks do). The
+ *  ping/pong is ONLY the wall-time anchor for `sendIn` (StrudelDirt
+ *  consumes wall-clock timetags — AUDIO-CLOCK.md §5.2); the metronome is
+ *  the audio clock's `/tr` above. Crystal drift is ~100 ppm, so a 2 s
+ *  re-measure keeps the anchor within fractions of a millisecond. */
+export const CLOCK_PING_INTERVAL_MS = 2_000;
+/** Recent-sample ring the estimate is picked from (min-RTT rule, applied
+ *  by ClockSync over its ping/pong samples) — 8 is NTP's clock-filter
+ *  register size (~16 s of congestion memory at the 2 s cadence). */
+export const CLOCK_SAMPLE_WINDOW = 8;
 /** Worker-side heartbeat watchdog poll cadence, derived: detection latency
  *  is the reply timeout plus at most one poll interval, so a fifth keeps it
  *  tight. */
-export const CLOCK_WATCHDOG_INTERVAL_MS = STATUS_REPLY_TIMEOUT_MS / 5;
+export const CLOCK_WATCHDOG_INTERVAL_MS = WATCHDOG_TIMEOUT_MS / 5;

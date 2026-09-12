@@ -59,7 +59,7 @@ test("global_clock_phase: synthdef() matches low-level path", () => {
     const phase = g.Phasor.ar(0, 1, 0, 8192, 0);
     g.Out.ar(1000, phase);
     const pkr = g.A2K.kr(phase);
-    const tick = g.Impulse.kr(10, 0);
+    const tick = g.Impulse.kr(20, 0);
     g.SendTrig.kr(tick, 4242, pkr);
   });
 
@@ -67,7 +67,7 @@ test("global_clock_phase: synthdef() matches low-level path", () => {
   const phase = reference.addUgen("Phasor", "audio", [k(0), k(1), k(0), k(8192), k(0)], 1, 0);
   reference.addUgen("Out", "audio", [k(1000), u(phase)], 0, 0);
   const pkr = reference.addUgen("A2K", "control", [u(phase)], 1, 0);
-  const tick = reference.addUgen("Impulse", "control", [k(10), k(0)], 1, 0);
+  const tick = reference.addUgen("Impulse", "control", [k(20), k(0)], 1, 0);
   reference.addUgen("SendTrig", "control", [u(tick), k(4242), u(pkr)], 0, 0);
 
   expect(bytesEqual(sugared.toBytes(), reference.toBytes())).toBe(true);

@@ -1,5 +1,5 @@
 // The app's OSC client — the main-thread protocol brain over the worker,
-// which owns the WebSocket, binary codec, and clock (its WorkerEndpoint stack).
+// which owns the WebSocket and binary codec (its WorkerEndpoint stack).
 // `dispatch(packet)` is the raw send; the scsynth command vocabulary, reply
 // waiters, node/scope allocation, and clock/scope subscriptions are thin
 // helpers over it. The class composes the WorkerClient it is constructed
@@ -19,7 +19,6 @@ import {
   ADDR_N_GO,
   ADDR_SYNCED,
   AddToTail,
-  CLOCK_SAMPLE_ADDRESS,
   dFree,
   dRecv,
   gFreeAll,
@@ -94,13 +93,19 @@ export class OscClient {
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private readonly scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** The main-thread half of the bridge clock: min-RTT filtering of the
-   *  worker's raw samples + the sample-driven callback registry. */
-  private readonly clock: ClockSync;
+  /** The whole app clock (docs/clock.md, AUDIO-CLOCK.md), exposed as-is —
+   *  the consumer surface is `subscribe`/`now`/`audioTime`/`audioNow`/
+   *  `tickInfo`; the routing and reset seams (`handleMessage`, `reset`)
+   *  belong to this class. One instance for the client's whole life:
+   *  reconnects reset it in place, never replace it. */
+  readonly clock: ClockSync;
 
   constructor(private readonly worker: WorkerClient) {
     this.clock = new ClockSync({
       publish: (clock) => this.state.update((s) => ({ ...s, clock })),
+      // dispatch's open-guard is a second net: no pings while disconnected,
+      // consistent with the ticks that pace them.
+      sendPing: (message) => this.dispatch(message),
     });
     worker.onEvent((event) => this.handleTransportEvent(event));
     // A transport error is critical: terminate the session by closing — the
@@ -242,14 +247,14 @@ export class OscClient {
     this.worker.send(packet, at);
   }
 
-  /** Dispatch `packet` scheduled at bridge time. `atMs` is the target in
-   *  the CALLER's `performance.now()` domain — this is the ONE place a
-   *  local monotonic target converts to a bridge-clock timetag (at offset 0
-   *  it degrades to the plain local stamp). Timetags are bridge time: a
-   *  scsynth on a different host than the bridge would need its own offset
-   *  (unsupported assumption). */
-  sendAt(packet: OscMessage, atMs: number): void {
-    this.dispatch(packet, Math.round(this.clock.now() + atMs - performance.now()));
+  /** Dispatch `packet` scheduled `inMs` from now. The delta is
+   *  domain-free for the caller (compute it in ANY consistent timebase —
+   *  rate error over a lookahead-sized delta is sub-µs); the conversion
+   *  to a bridge-time timetag happens here via `clock.now()`. Timetags are
+   *  bridge time: a scsynth on a different host than the bridge would
+   *  need its own offset (unsupported assumption). */
+  sendIn(packet: OscMessage, inMs: number): void {
+    this.dispatch(packet, Math.round(this.clock.now() + inMs));
   }
 
   /** Subscribe to a connection event. Returns a subscription id for `off`. */
@@ -405,25 +410,11 @@ export class OscClient {
     };
   }
 
-  /** Register a sample-driven clock callback at (a quantization of)
-   *  `intervalMs`. Purely local; it fires only while the socket is open and
-   *  `/clock/sample`s flow — nothing keeps time while disconnected. */
-  subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
-    return this.clock.subscribe(intervalMs, cb);
-  }
-
-  /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */
-  clockNow(): number {
-    return this.clock.now();
-  }
-
   /** Route a worker transport event. Public for unit tests — normally the
-   *  registered `worker.onEvent` sink. */
+   *  registered `worker.onEvent` sink. A respawn needs nothing restored:
+   *  all clock state lives here, main-side. */
   handleTransportEvent(event: TransportEvent): void {
-    if (event.type === "respawn") {
-      // Nothing to restore: the clock estimate lives here (main side) and
-      // the fresh worker resumes pinging on the next open.
-    } else if (event.type === "osc") {
+    if (event.type === "osc") {
       this.handleReply(event.packet);
     } else if (event.type === "error") {
       this.emit("error", new Error(event.message));
@@ -437,10 +428,9 @@ export class OscClient {
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    if (reply.address === CLOCK_SAMPLE_ADDRESS) {
-      this.clock.onSample(reply);
-      return;
-    }
+    // The clock families are internal to the clock loop — consumed before
+    // the waiters (foreign /tr ids fall through: plugins SendTrig too).
+    if (this.clock.handleMessage(reply)) return;
     // One-shot waiters first — the message still falls through to the
     // protocol routing below (transport middleware has already observed it).
     const waiter = this.waiters.find((w) => w.address === reply.address && w.match(reply));

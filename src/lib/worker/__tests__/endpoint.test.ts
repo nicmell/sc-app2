@@ -1,18 +1,11 @@
 // The WorkerEndpoint: the codec, the message-only postMessage boundary
-// (at-metadata bundling out, bundle flattening in), and the /clock/*
-// routing — against a fake byte transport (raw socket lifecycle is
-// transport.test.ts, the timers clock.test.ts).
+// (at-metadata bundling out, bundle flattening in), and the tick-stamped
+// session watchdog — against a fake byte transport (raw socket lifecycle
+// is transport.test.ts, the staleness timers watchdog.test.ts).
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { decode, encode } from "@sc-app/server-commands/codec";
-import {
-  atDate,
-  CLOCK_PING_ADDRESS,
-  CLOCK_PONG_ADDRESS,
-  CLOCK_SAMPLE_ADDRESS,
-  type OscMessage,
-  type OscPacket,
-} from "@sc-app/server-commands";
-import { CLOCK_WATCHDOG_INTERVAL_MS, STATUS_REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { ADDR_TR, atDate, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
+import { CLOCK_TRIGGER_ID, CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportEvent } from "@/types/osc";
 import { WorkerEndpoint, type TransportLike } from "../endpoint";
 import type { WireEvent } from "../transport";
@@ -50,7 +43,7 @@ describe("WorkerEndpoint", () => {
     expect(events).toHaveLength(0);
   });
 
-  it("surfaces stale heartbeats as a transport error (worker-side watchdog)", () => {
+  it("counts ONLY the global clock's /tr as a heartbeat", () => {
     vi.useFakeTimers();
     let mono = 0;
     vi.spyOn(performance, "now").mockImplementation(() => mono);
@@ -58,14 +51,18 @@ describe("WorkerEndpoint", () => {
     const errors = () => events.filter(({ event }) => event.type === "error");
 
     emit({ type: "open" });
-    // A fresh /status.reply keeps the watchdog quiet…
-    mono += STATUS_REPLY_TIMEOUT_MS;
-    frame({ address: "/status.reply", args: [1, 2, 3, 4, 0, 0, 0, 48_000, 48_000] });
+    // The global clock's tick keeps the watchdog quiet…
+    mono += WATCHDOG_TIMEOUT_MS;
+    frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS);
     expect(errors()).toHaveLength(0);
 
-    // …silence past the timeout kills the session, once.
-    mono += STATUS_REPLY_TIMEOUT_MS + 1;
+    // …but pongs, /status.reply, and foreign /tr ids do NOT: only the DSP
+    // graph computing proves the session alive.
+    mono += WATCHDOG_TIMEOUT_MS + 1;
+    frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    frame({ address: "/status.reply", args: [1, 2, 3, 4, 0, 0, 0, 48_000, 48_000] });
+    frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID + 1, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS * 10);
     expect(errors()).toHaveLength(1);
   });
@@ -84,20 +81,19 @@ describe("WorkerEndpoint", () => {
     );
   });
 
-  it("feeds the sampler on open and consumes its pong into a /clock/sample", () => {
-    vi.useFakeTimers(); // the open event starts the ping loop
+  it("passes /clock/pong straight up — no interception, no clock code", () => {
+    vi.useFakeTimers(); // the open event arms the watchdog timer
     const { events, sent, frame, emit } = makeEndpoint();
 
     emit({ type: "open" });
-    // The sampler's ping goes out encoded on the ordinary send path.
+    // Open sends nothing: the ping originates on the MAIN thread.
     expect(events.map(({ event }) => event)).toEqual([{ type: "open" }]);
-    expect(sent).toHaveLength(1);
-    expect((decode(sent[0]) as OscMessage).address).toBe(CLOCK_PING_ADDRESS);
+    expect(sent).toHaveLength(0);
 
     frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
-    const sample = events.at(-1)?.event;
-    if (sample?.type !== "osc") throw new Error("expected sample");
-    expect(sample.packet.address).toBe(CLOCK_SAMPLE_ADDRESS);
+    const pong = events.at(-1)?.event;
+    if (pong?.type !== "osc") throw new Error("expected pong");
+    expect(pong.packet).toEqual({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
   });
 
   it("decodes frames, flattening bundles to messages with blob transferables", () => {

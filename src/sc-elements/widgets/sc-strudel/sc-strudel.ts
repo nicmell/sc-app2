@@ -28,7 +28,7 @@ const SAFETY_LOOKAHEAD_MS = 200;
 type DirtEvent = Record<string, string | number>;
 
 /** Build a `/dirt/play` message: flat `[key, value, …]` args. Scheduling is
- *  `oscClient.sendAt`'s job — the widget never touches clock domains. */
+ *  `oscClient.sendIn`'s job — the widget never touches clock domains. */
 function dirtPlayMessage(event: DirtEvent): OscMessage {
   const args: Array<string | number> = [];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
@@ -181,21 +181,20 @@ export class ScStrudel extends ScInput {
       // the event itself (`.orbit(n)` wins).
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
-      // Cyclist stays entirely in the monotonic performance.now() domain;
-      // sendAt converts to bridge time at the stamp.
-      oscClient.sendAt(dirtPlayMessage(event), targetTimeSecs * 1000 + SAFETY_LOOKAHEAD_MS);
+      // Target and "now" both in the audioTime domain (Cyclist's getTime),
+      // so the delta is consistent by construction — even pre-lock. The
+      // wall-clock conversion for StrudelDirt lives inside sendIn.
+      oscClient.sendIn(
+        dirtPlayMessage(event),
+        (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
+      );
     };
 
-    const clockIntervals = new Map<number, () => void>();
-    const setInterval = (cb: () => void, ms: number): number => {
-      const sub = oscClient.subscribeClock(ms, cb);
-      clockIntervals.set(sub.id, sub.off);
-      return sub.id;
-    };
-    const clearInterval = (id: number): void => {
-      clockIntervals.get(id)?.();
-      clockIntervals.delete(id);
-    };
+    // The timer handle zyklus stores and hands back is the off closure
+    // itself — it never inspects it.
+    const setInterval = (cb: () => void, ms: number): (() => void) =>
+      oscClient.clock.subscribe(ms, cb);
+    const clearInterval = (off?: () => void): void => off?.();
 
     // A bind is seeded through syncFromState, not as constructor input: this
     // keeps the shared load-pass path observable and correct in both lifecycle
@@ -210,7 +209,11 @@ export class ScStrudel extends ScInput {
       transpiler,
       setInterval,
       clearInterval,
-      getTime: () => performance.now() / 1000,
+      // The rate-disciplined audio timebase: monotonic and step-free (the
+      // Cyclist invariant), locked to the ENGINE's rate once the tick
+      // tracker locks — patterns keep the engine's tempo, not the local
+      // crystal's (docs/clock.md).
+      getTime: () => oscClient.clock.audioTime(),
       prebake: () => ensureStrudelGlobals().then(() => undefined),
       bgFill: false,
       solo: false,

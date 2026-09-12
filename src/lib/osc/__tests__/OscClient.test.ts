@@ -3,7 +3,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type OscMessage, formatOscArg, Synced } from "@sc-app/server-commands";
-import { REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { CLOCK_TRIGGER_ID, REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
 import { workerClient } from "@/lib/osc/WorkerClient";
@@ -15,24 +15,26 @@ const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage =>
 });
 
 describe("oscClient.handleReply", () => {
-  it("drives subscribeClock callbacks from the /clock/sample stream", () => {
-    let now = 0;
-    vi.spyOn(Date, "now").mockImplementation(() => now);
+  // The clock MATH is pinned in lib/clock's suites; this file pins only the
+  // ROUTING seam: handleReply hands the clock families to clock.handleMessage
+  // and lets everything else fall through.
+  it("routes the global clock's /tr tick to the metronome", () => {
     const cb = vi.fn();
-    const sub = oscClient.subscribeClock(100, cb);
-    for (let i = 0; i < 4; i++) {
-      now += 50; // the worker's sample cadence
-      oscClient.handleReply(oscMessage("/clock/sample", 0, 1));
-    }
-    expect(cb).toHaveBeenCalledTimes(2); // 200 ms at a 100 ms interval
-    sub.off();
+    const off = oscClient.clock.subscribe(50, cb); // 1 tick at 20 Hz
+    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    expect(cb).toHaveBeenCalledTimes(1);
+    off();
   });
 
-  it("folds /clock/sample into the estimate and applies its Date.now offset", () => {
-    vi.spyOn(Date, "now").mockReturnValue(10_000);
-    // rtt 0.5 beats any sample the singleton's window still holds.
-    oscClient.handleReply(oscMessage("/clock/sample", 12.5, 0.5));
-    expect(oscClient.clockNow()).toBe(10_012.5);
+  it("lets foreign /tr ids fall through to the waiters", async () => {
+    const cb = vi.fn();
+    const off = oscClient.clock.subscribe(50, cb);
+    const waited = oscClient.once("/tr", (m) => m.args[1] === 7);
+
+    oscClient.handleReply(oscMessage("/tr", 50, 7, 0.25)); // a plugin's SendTrig
+    await expect(waited).resolves.toMatchObject({ args: [50, 7, 0.25] });
+    expect(cb).not.toHaveBeenCalled(); // foreign id is not the metronome
+    off();
   });
 });
 
@@ -128,19 +130,27 @@ describe("oscClient.createSynth", () => {
   });
 });
 
-describe("oscClient.sendAt", () => {
+describe("oscClient.sendIn", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("stamps the bridge-time `at` metadata from a performance.now target", () => {
+  it("stamps the bridge-time `at` metadata from a relative delta", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
-    // rtt 1 wins any earlier sample still in the window — offset 500 rules.
-    oscClient.handleReply(oscMessage("/clock/sample", 500, 1));
-    vi.spyOn(performance, "now").mockReturnValue(2_000);
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
     const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
 
-    oscClient.sendAt({ address: "/dirt/play", args: [] }, 2_250);
+    // The loop that fixes offset 500: reset → first tick pings → pong.
+    oscClient.handleTransportEvent({ type: "close" });
+    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    const ping = dispatch.mock.calls.find(([m]) => m.address === "/clock/ping")?.[0];
+    if (!ping) throw new Error("expected an anchor ping on the first tick");
+    mono += 1; // rtt 1 → offset = 10_499.5 + 0.5 − 10_000 = 500
+    oscClient.handleReply(oscMessage("/clock/pong", ping.args[0], 10_499.5));
+    dispatch.mockClear();
 
-    // clockNow (10_500) + atMs (2_250) − performance.now (2_000) = 10_750.
+    oscClient.sendIn({ address: "/dirt/play", args: [] }, 250);
+
+    // clock.now() (10_500) + inMs (250) = 10_750.
     expect(dispatch).toHaveBeenCalledWith({ address: "/dirt/play", args: [] }, 10_750);
   });
 });

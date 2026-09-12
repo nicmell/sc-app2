@@ -1,9 +1,23 @@
 # The audio-clock transport — groundwork
 
-Status: **proposal**, written against the post-refactor OSC stack (the
-three-message bridge clock documented in `docs/clock.md`). Nothing here is
-implemented; this document is the design basis for the next clock, with the
-verified integration facts and the known obstacles collected in one place.
+Status: **§6 steps 1–4 LANDED, step 5 PARTIAL** — the clock synth ships
+from `scripts/sc-startup.scd`, its `/tr` tick is the main thread's
+metronome AND the session's only liveness signal, ping/pong is demoted to
+the 2 s wall anchor originated by the MAIN thread (riding the metronome),
+`/clock/sample` is gone and the worker carries zero clock code (only the
+tick-stamped `Watchdog`), the one-way `TickTracker` exposes
+`audioNow()`/skew, and the rate-disciplined `SlewedClock` gives Strudel a
+step-free `getTime` locked to the engine rate (see `docs/clock.md` for
+the current state). Remaining: step 5's wire half (the ping/pong pair +
+`core/clock.rs`), gated on the §5.2 resolution. Decisions fixed at
+landing time: **20 Hz** tick rate, **sc-startup ownership**
+(first-client-wins stays future work), **phase-only payload**, a HARD
+metronome switch (no sample fallback), **rate-only discipline** for the
+timebase — absolute cross-client phase alignment is a future
+shared-transport-origin protocol, not a clock property — and
+**tick-only liveness** (no `/status.reply` floor — §5.4 was decided the
+other way: the clock-synth requirement is enforced, not worked around).
+§1–§5 below are the original groundwork, kept as written.
 
 ## 1. Where we are, and what is still wrong
 
@@ -152,7 +166,7 @@ wall clock, and the gain is laundered through it. Two resolutions, in
 increasing ambition:
 
 - **Keep a slow wall anchor.** Retain ping/pong at a relaxed cadence
-  (seconds) purely to calibrate bridge wall time for `sendAt`, while
+  (seconds) purely to calibrate bridge wall time for `sendIn`, while
   ticks own metronome/liveness/skew. Crystal drift is ~100 ppm, so even a
   once-a-minute calibration keeps the wall anchor within ~6 ms — well
   inside SuperDirt's own latency slack. This is the pragmatic hybrid.
@@ -184,12 +198,19 @@ continues should re-install the clock synth rather than kill the session.
 
 ### 5.4 Watchdog false positives
 
-Today's rule — any non-pong inbound message marks the session alive —
-already generalizes correctly: ticks count as liveness automatically. But
-if ticks become the ONLY liveness source, an accidentally-freed clock
-synth would look like a dead server. Keep `/status.reply` as the liveness
-floor (it is supervisor-driven and free), and treat "status alive but
-ticks stale" as the re-install trigger from §5.3.
+> **Decided at landing time — the OPPOSITE way.** Liveness is the global
+> clock's `/tr` tick ONLY: one signal, one meaning — the DSP graph
+> computing IS the session being alive. An accidentally-freed (or never
+> loaded) clock synth gets a clean close with a clear error within
+> `WATCHDOG_TIMEOUT_MS` instead of a zombie session with a silent
+> metronome: the clock-synth requirement, enforced. The original
+> paragraph below is kept for the record; §5.3's re-install idea remains
+> open as a RECOVERY path, not a liveness fallback.
+
+Original consideration: any non-pong inbound message marks the session
+alive; if ticks become the ONLY liveness source, an accidentally-freed
+clock synth would look like a dead server. Keeping `/status.reply` as a
+liveness floor was the alternative — rejected.
 
 ### 5.5 Arrival jitter and loss
 
@@ -221,19 +242,37 @@ session.
 
 ## 6. Migration sketch
 
-1. **Install the clock synth** (ownership per §5.3) and let `/tr` id 4242
-   flow — it already reaches every client through the fan-out; add the
-   `/tr`-by-id routing and log-skip on the frontend.
-2. **Feed `ClockSync` from ticks**: the callback registry and watchdog
-   staleness switch their trigger from `/clock/sample` to the tick; the
-   estimator gains the one-way skew/anchor math (regression + min
-   residual).
-3. **Retire the fast ping loop**: ping/pong drops to the slow wall-anchor
-   cadence (or to Tauri-only, where offset ≈ 0 makes even that optional);
-   `/clock/sample` disappears; `WorkerClock` shrinks to (almost) nothing.
-4. **Sweep the corpse**: delete the leftover `/clock/*` vocabulary, the
-   worker clock module, and — the first time this repo gets to say it —
-   the Rust-side clock code, contract test and all.
+1. **[DONE] Install the clock synth** (ownership per §5.3: sc-startup.scd)
+   and let `/tr` id 4242 flow — it already reaches every client through
+   the fan-out; the `/tr`-by-id routing and log-skip live in
+   `OscClient.handleReply` and the logging middleware.
+2. **[DONE, callbacks half] Feed `ClockSync` from ticks**: the callback
+   registry fires from `onTick` (`/tr`), samples are measurement-only
+   (watchdog liveness already counts any non-pong inbound message, ticks
+   included). The one-way skew/anchor math on the tick's phase payload is
+   step 3.
+3. **[DONE] Retire the fast ping loop**: ping/pong dropped to the 2 s
+   wall-anchor cadence (`CLOCK_PING_INTERVAL_MS`), the sample window back
+   to NTP's 8, the store publish un-throttled.
+4. **[DONE, tracker half] The one-way skew/anchor estimator** over the
+   tick's phase payload: `lib/clock/TickTracker` unwraps the phase into an
+   absolute tick index (loss-healing, restart-resyncing), regresses
+   arrivals against the grid (skew in ppm), anchors on the minimum
+   residual, and exposes `oscClient.clock.audioNow()` / `tickInfo()`.
+   Strudel's
+   `getTime` in the tick domain stays DEFERRED: Cyclist needs a monotonic,
+   step-free time source and the tracker refits per tick — switching it
+   requires a designed slew.
+5. **[PARTIAL] Sweep the corpse**: `/clock/sample` is DEAD — the ping
+   originates on the MAIN thread (ClockSync, riding the tick metronome
+   with an immediate first-tick anchor), the pong flows back up as an
+   ordinary message, the postMessage boundary carries no clock vocabulary,
+   and the worker's clock module is reduced to the tick-stamped
+   `Watchdog` (liveness = `/tr` id 4242 only, per §5.4's decision). The
+   REMAINDER — the wire ping/pong pair, `core/clock.rs`, and the `ws.rs`
+   interception (contract test and all) — stays gated on §5.2 resolving
+   toward the direct-scsynth path: as long as `sendIn` stamps wall-clock
+   timetags for StrudelDirt, the anchor needs a round-trip.
 
 Each step is independently shippable and independently revertible; step 1
 alone already delivers the global multi-client transport.

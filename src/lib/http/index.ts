@@ -108,7 +108,11 @@ async function request(
   const { notify, ...init } = options ?? {};
   const resp = await fetch(`${HTTP_BASE_URL}${path}`, { ...init, method, body });
   if (!resp.ok) {
-    const error = new HttpError(resp.status, resp.statusText, await resp.text().catch(() => ""));
+    const error = new HttpError(
+      resp.status,
+      resp.statusText,
+      await resp.text().catch(() => String()),
+    );
     // The global backstop: UNEXPECTED server failures surface as a coalesced
     // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
     // form feedback). No code suffix in the key — different 5xx codes on

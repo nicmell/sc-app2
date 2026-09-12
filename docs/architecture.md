@@ -157,9 +157,10 @@ lib/                     non-React infrastructure
                          (→ /n_go, returns the node id), sendSynthDef
                          (/d_recv + embedded /sync ack), freeGroup/
                          freeSynthDef/freeSynth/setControl,
-                         subscribeClock(intervalMs, cb) + clockNow()
-                         (sample-driven callbacks, connected-only —
-                         see clock.md), subscribeScope(…, onChunk) →
+                         the exposed `clock` (ClockSync as-is:
+                         clock.subscribe + clock.now — tick-driven
+                         callbacks, connected-only, see clock.md) +
+                         sendIn(packet, inMs), subscribeScope(…, onChunk) →
                          {subId, off} (handler registered before the send;
                          chunks dispatch by subId from handleReply) and the
                          scope-slot allocator over the session's span);
@@ -173,22 +174,23 @@ lib/                     non-React infrastructure
                          rest of the OSC endpoint):
                          → worker.ts (Web Worker entry: thin glue
                            composing the endpoint over the worker scope)
-                         → endpoint.ts (`WorkerEndpoint`: codec ⇄ bytes +
-                           protocol routing — at-metadata bundling out,
-                           bundle flattening + blob transfer in, the
-                           pong consumed into `/clock/sample`, any other
-                           inbound message feeding the watchdog; composes
-                           transport + clock)
+                         → endpoint.ts (`WorkerEndpoint`: codec ⇄ bytes —
+                           at-metadata bundling out, bundle flattening +
+                           blob transfer in; the global clock's /tr tick
+                           stamps the watchdog, every message posts up;
+                           composes transport + watchdog)
                          → transport.ts (`Transport`: ONLY the raw
                            WebSocket — bytes in/out)
-                         → clock.ts (`WorkerClock`: the 50 ms ping loop →
-                           raw `/clock/sample` per pong + the heartbeat
-                           watchdog on worker timers).
+                         → watchdog.ts (`Watchdog`: tick-stamped session
+                           heartbeat on worker timers — staleness fires
+                           onDead once, surfaced as a transport error).
                            The binary codec dependency is worker-only.
-  clock/                 ClockSync — the bridge clock's main-thread half
-                         (min-RTT filtering of the worker's raw samples,
-                         clockNow, sample-driven callback registry),
-                         composed by OscClient; see docs/clock.md
+  clock/                 ClockSync — the WHOLE app clock (main thread,
+                         composed AND exposed by OscClient as `clock`):
+                         the tick-riding ping loop + min-RTT estimate
+                         behind clock.now(), the tick-counted callback
+                         registry, TickTracker + SlewedClock; see
+                         docs/clock.md
   session/               SessionManager (global `session`): the LIVE half —
                          epoch-guarded connect(info)/disconnect() (one-tick
                          deferred for StrictMode remounts), close → conn
@@ -676,7 +678,6 @@ scsynth UDP → Peer recv task → shared broadcast (Bridge fan-out)
   → every WS pump → binary frame → worker (zero-copy) → decode:
       OscClient.handleReply → once-waiters (createSynth's /n_go gate, …)
       middlewares (stores/osc): /status.reply → scsynthStatus (footer)
-                                 (the worker watchdog stamped it already)
       errors middleware: /fail, /late → coalesced toast (stores/toasts)
                                         + rx log (sc-console)
       /scope/chunk → the subscribing <sc-scope>'s handler (by subId)
@@ -700,7 +701,9 @@ zip → POST /api/plugins (or `sc-app2 plugin add`) → manager validation
 ```
 
 **Heartbeat & failure**: supervisor `/status` at 1 Hz → `/status.reply`
-fan-out → footer + the WORKER-side watchdog (5 s, worker timers). scsynth
+fan-out → footer. The session heartbeat is the global clock's `/tr` tick,
+stamping the WORKER-side watchdog (5 s = 100 missed ticks, worker
+timers — clock.md §7). scsynth (or just the clock synth)
 dies → watchdog posts a transport error → toast + OscClient closes → WS
 close → server `end_session` → status
 `"error"` → ConnectionOverlay's Retry revalidates the route loaders (a dead

@@ -1,5 +1,4 @@
-// SCSynth load status middleware. Owns the scsynthStatus view; the `clock`
-// view's field is written by OscClient's ClockSync (lib/clock), not here.
+// SCSynth load status middleware. Owns the scsynthStatus view.
 
 import { ADDR_STATUS_REPLY, StatusReply, type OscMessage } from "@sc-app/server-commands";
 import { SliceName } from "@/constants/store";
@@ -9,7 +8,6 @@ import type { TransportMiddleware } from "../middleware";
 
 const state = appStore.slice(SliceName.OSC);
 export const scsynthStatus = state.select((value) => value.scsynthStatus);
-export const clock = state.select((value) => value.clock);
 
 function parseStatus(message: OscMessage): ScsynthStatus {
   return {

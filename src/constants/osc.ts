@@ -48,11 +48,12 @@ export const PHASE_RING_FRAMES = 8192;
 
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
-/** Ping cadence while the socket is open. The ping/pong is now ONLY the
- *  wall-time anchor for `sendIn` (StrudelDirt consumes wall-clock
- *  timetags — AUDIO-CLOCK.md §5.2); the metronome is the audio clock's
- *  `/tr` above. Crystal drift is ~100 ppm, so a 2 s re-measure keeps the
- *  anchor within fractions of a millisecond. */
+/** Nominal ping cadence — quantized to the tick metronome it rides (a
+ *  ClockSync tick countdown, so pings flow only while ticks do). The
+ *  ping/pong is ONLY the wall-time anchor for `sendIn` (StrudelDirt
+ *  consumes wall-clock timetags — AUDIO-CLOCK.md §5.2); the metronome is
+ *  the audio clock's `/tr` above. Crystal drift is ~100 ppm, so a 2 s
+ *  re-measure keeps the anchor within fractions of a millisecond. */
 export const CLOCK_PING_INTERVAL_MS = 2_000;
 /** Recent-sample ring the estimate is picked from (min-RTT rule, applied
  *  by the main-thread ClockSync over the worker's raw samples) — 8 is

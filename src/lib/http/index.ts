@@ -111,7 +111,7 @@ async function request(
     const error = new HttpError(
       resp.status,
       resp.statusText,
-      await resp.text().catch(() => String())
+      await resp.text().catch(() => String()),
     );
     // The global backstop: UNEXPECTED server failures surface as a coalesced
     // toast (503 is the loaders' quiet-retry domain; 4xx is caller-owned
@@ -129,10 +129,7 @@ async function request(
   return resp;
 }
 
-export function get(
-  path: string,
-  options?: RequestOptions
-): Promise<Response> {
+export function get(path: string, options?: RequestOptions): Promise<Response> {
   return request(path, "GET", null, options);
 }
 
@@ -152,9 +149,6 @@ export function put(
   return request(path, "PUT", body, options);
 }
 
-export function del(
-  path: string,
-  options?: RequestOptions
-): Promise<Response> {
+export function del(path: string, options?: RequestOptions): Promise<Response> {
   return request(path, "DELETE", null, options);
 }

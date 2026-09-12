@@ -64,13 +64,15 @@ is the tick-stamped watchdog (§7).
 ← /clock/pong  seq:i  srv:d   srv = bridge SystemTime, UNIX ms as f64
 ```
 
-The ping is _stateful_, not echo-based: ClockSync records `seq → t0`
-(`performance.now()` at send) in a pending map, so no timestamp needs a
-round-trip and the only double on the wire is Rust-encoded (osc-js decodes
-type `d` natively — the TS codec never needs to encode one). Stale or unknown
-seqs are ignored; the map clears on reset. The bridge captures `srv`
-_before_ replying (ahead of any await, so send backpressure can't bias the
-timestamp) and answers inline on the same socket.
+The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
+ping (`seq` + `performance.now()` at send — at the slow cadence pings are
+strictly sequential, so a new ping simply overwrites a lost one's slot),
+so no timestamp needs a round-trip and the only double on the wire is
+Rust-encoded (osc-js decodes type `d` natively — the TS codec never needs
+to encode one). Stale or unknown seqs are ignored; the slot clears on
+reset. The bridge captures `srv` _before_ replying (ahead of any await, so
+send backpressure can't bias the timestamp) and answers inline on the same
+socket.
 
 ### scsynth → everyone (the metronome)
 
@@ -115,12 +117,12 @@ browser and bridge are different machines.
 
 `src/lib/clock/ClockSync.ts` (composed by OscClient) owns the whole loop:
 
-- **Measurement**: an internal `subscribe(CLOCK_PING_INTERVAL_MS, …)`
-  sends one ping per 2 s of ticks, plus an immediate ping on the FIRST
-  tick after reset — the anchor lands right after connect instead of one
-  interval later. Riding the metronome means no timer of its own, and
-  pings flow only while ticks do: a dead stack stops measuring by
-  construction. The pending map completes `rtt`/`offset` per §3; after
+- **Measurement**: a tick countdown in `onTick` sends one ping every
+  `PING_EVERY_TICKS` ticks (2 s nominal) and starts at zero, so a
+  fresh/reset clock anchors on the FIRST tick of the connection instead
+  of one interval later. Riding the metronome means no timer of its own,
+  and pings flow only while ticks do: a dead stack stops measuring by
+  construction. The in-flight slot completes `rtt`/`offset` per §3; after
   the first anchor the round-trip only tracks crystal drift (~100 ppm)
   for `sendIn`'s wall-time anchor.
 - **Filtering**: samples fold into a ring of `CLOCK_SAMPLE_WINDOW` (8 —
@@ -130,8 +132,9 @@ browser and bridge are different machines.
   delay only ever _adds_ to RTT, so the fastest exchange carries the
   least-biased offset. No smoothing/slew: consumers convert domains only at
   stamp time (§6), so an estimate change merely shifts not-yet-stamped
-  events. A socket close resets the estimate. Every sample publishes to
-  the store (at 0.5 Hz no throttle is needed).
+  events. A socket close resets the estimate (the store's `clock` goes
+  back to null — unanchored, not a fake zero measurement). Every sample
+  publishes to the store (at 0.5 Hz no throttle is needed).
 
 Each `CLOCK_*` constant carries its own rationale where it is defined
 (`src/constants/osc.ts`, the "bridge clock" block).
@@ -139,12 +142,15 @@ Each `CLOCK_*` constant carries its own rationale where it is defined
 ## 5. Tick-driven clock callbacks
 
 `oscClient.subscribeClock(intervalMs, cb)` registers a purely LOCAL listener
-in ClockSync — nothing crosses the worker boundary. On every `/tr` tick: a
-listener fires when `Date.now()` passes its `nextDueAt`, then re-aims one
-interval ahead, with NO catch-up (a long gap — disconnect, engine hiccup —
-yields one fire and a realign, never a burst). Intervals therefore quantize
-to the tick cadence (`CLOCK_TICK_FREQ_HZ`, 20 Hz = 50 ms); every consumer
-tolerates that (zyklus asks for 100 ms, everything else is ≥1 s).
+in ClockSync — nothing crosses the worker boundary. The registry counts
+TICKS, not wall time: a listener fires every
+`round(intervalMs / tickPeriod)` ticks, so intervals quantize to the tick
+cadence (`CLOCK_TICK_FREQ_HZ`, 20 Hz = 50 ms) and every consumer tolerates
+that (zyklus asks for 100 ms, everything else is ≥1 s). No wall clock
+anywhere in the metronome: a gap yields exactly the fires its ticks pay
+for (a burst is impossible by construction, and a wall-clock step cannot
+park the schedule). The corollary: fire COUNT must never be converted
+back to elapsed time — a lost tick slips every later fire by one period.
 
 Lifecycle: callbacks fire only while the socket is open and the clock synth
 ticks — by design, nothing keeps time while disconnected, and the metronome
@@ -218,8 +224,8 @@ beside it — the whole pipeline (ping loop + estimate) made visible. Hidden
 while disconnected.
 
 **Diagnostics.** ClockSync publishes every new estimate into the osc store
-slice (`useClockStatus()` → `{offset, rtt}`), so a broken estimator is
-visible rather than silently mistiming events.
+slice (`useClockStatus()` → `{offset, rtt}`, null while unanchored), so a
+broken estimator is visible rather than silently mistiming events.
 
 ## 7. The heartbeat watchdog (worker-side)
 
@@ -252,6 +258,9 @@ a main-thread watchdog would detect late in an occluded window.
 - **Bridge hiccup while connected**: ticks pause; Cyclist misses wakes.
   Beyond the ~200 ms lookahead this is an audible gap — the accepted trade
   for a wire-driven metronome (no idle traffic, no separate tick stream).
+  A LOST tick (UDP) is the milder cousin: every later fire slips by one
+  50 ms period — zyklus's lookahead absorbs a couple of consecutive
+  losses on the localhost hop.
 - **Worker crash**: respawn; the synthesized close resets the estimate,
   and on the next open the first tick re-anchors (the ping originates
   main-side — the fresh worker carries no clock state at all); listener
@@ -263,7 +272,8 @@ a main-thread watchdog would detect late in an occluded window.
   automatically is AUDIO-CLOCK.md §5.3 territory (future); today the fix
   is restarting the stack.
 - **Wall-clock step (NTP adjust, suspend/resume)**: RTT is monotonic and
-  unaffected; the offset estimate re-converges as the pre-step samples age
+  unaffected, and the metronome counts ticks — no listener can be parked
+  by a step; the offset estimate re-converges as the pre-step samples age
   out of the window (at most ~16 s), shifting only not-yet-stamped
   timetags.
 - **Remote scsynth (≠ bridge host)**: unsupported assumption — timetags are

@@ -39,6 +39,10 @@ export const CLOCK_TRIGGER_ID = 4242;
  *  sc-strudel setInterval shim for 100 ms. The VALUE's owner is
  *  sc-startup.scd's `Impulse.kr` — keep the two in lockstep. */
 export const CLOCK_TICK_FREQ_HZ = 20;
+/** The clock synth's Phasor ring length in samples — the modulus of the
+ *  phase payload each `/tr` tick carries. Owner: sc-startup.scd's
+ *  `Phasor.ar(..., end: 8192)`; mirrored by the parity fixture. */
+export const PHASE_RING_FRAMES = 8192;
 
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 

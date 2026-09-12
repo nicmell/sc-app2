@@ -239,9 +239,14 @@ session.
    the measurement carrier — the original sketch overstated its death:
    as long as `sendAt` stamps wall-clock timetags for StrudelDirt (§5.2),
    the anchor needs a round-trip and a message to ride home on.
-4. **The one-way skew/anchor estimator** over the tick's phase payload
-   (phase unwrap → tick index; arrival-vs-grid regression → client↔audio
-   skew; min residual → anchor; Strudel `getTime` in the tick domain).
+4. **[DONE, tracker half] The one-way skew/anchor estimator** over the
+   tick's phase payload: `lib/clock/TickTracker` unwraps the phase into an
+   absolute tick index (loss-healing, restart-resyncing), regresses
+   arrivals against the grid (skew in ppm), anchors on the minimum
+   residual, and exposes `oscClient.audioNow()` / `tickInfo()`. Strudel's
+   `getTime` in the tick domain stays DEFERRED: Cyclist needs a monotonic,
+   step-free time source and the tracker refits per tick — switching it
+   requires a designed slew.
 5. **Sweep the corpse** — only reachable if §5.2 resolves toward the
    direct-scsynth path: then the `/clock/*` vocabulary, the worker clock
    module, and the Rust-side clock code (contract test and all) can go.

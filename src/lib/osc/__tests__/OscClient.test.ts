@@ -22,10 +22,24 @@ describe("oscClient.handleReply", () => {
     const sub = oscClient.subscribeClock(100, cb);
     for (let i = 0; i < 4; i++) {
       now += 50; // the 20 Hz tick cadence
-      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 123.5));
+      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, (i * 2205) % 8192));
     }
     expect(cb).toHaveBeenCalledTimes(2); // 200 ms at a 100 ms interval
     sub.off();
+  });
+
+  it("locks audioNow from the ticks' phase payload", () => {
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
+    vi.spyOn(Date, "now").mockReturnValue(0);
+    oscClient.handleTransportEvent({ type: "close" }); // clean tracker
+    expect(oscClient.audioNow()).toBeNull();
+    for (let i = 0; i < 40; i++) {
+      mono = i * 50;
+      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, (i * 2205) % 8192));
+    }
+    expect(oscClient.tickInfo().locked).toBe(true);
+    expect(oscClient.audioNow()).not.toBeNull();
   });
 
   it("lets foreign /tr ids fall through to the waiters", async () => {

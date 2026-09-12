@@ -16,8 +16,9 @@
 //
 // Composed by OscClient.
 
-import { ClockSample, type OscMessage } from "@sc-app/server-commands";
-import { CLOCK_SAMPLE_WINDOW } from "@/constants/osc";
+import { ClockSample, Tr, type OscMessage } from "@sc-app/server-commands";
+import { CLOCK_SAMPLE_WINDOW, CLOCK_TICK_FREQ_HZ, PHASE_RING_FRAMES } from "@/constants/osc";
+import { TickTracker } from "./TickTracker";
 import type { ClockStatus } from "@/types/stores";
 
 interface Sample {
@@ -43,6 +44,11 @@ export class ClockSync {
   private offset = 0;
   private readonly listeners = new Map<number, Listener>();
   private nextListenerId = 1;
+  /** The one-way audio-clock tracker fed by the ticks' phase payload. */
+  private readonly tracker = new TickTracker({
+    freqHz: CLOCK_TICK_FREQ_HZ,
+    ringFrames: PHASE_RING_FRAMES,
+  });
 
   constructor({ publish }: ClockSyncOptions) {
     this.publish = publish;
@@ -81,12 +87,14 @@ export class ClockSync {
     this.publish({ offset: best.offset, rtt: best.rtt });
   }
 
-  /** One `/tr` tick from the audio engine's `__global_clock__` synth — the
-   *  METRONOME: run the due callbacks. Each listener fires when `now`
-   *  passes its `nextDueAt`, then re-aims one interval ahead — with NO
-   *  catch-up (a long gap yields one fire and a realign, never a burst).
-   *  Intervals quantize to the tick rate (`CLOCK_TICK_FREQ_HZ`). */
-  onTick(): void {
+  /** One `/tr` tick from the audio engine's `__global_clock__` synth: feed
+   *  the one-way tracker with the phase payload, then run the METRONOME —
+   *  each listener fires when `now` passes its `nextDueAt`, then re-aims
+   *  one interval ahead, with NO catch-up (a long gap yields one fire and
+   *  a realign, never a burst). Intervals quantize to the tick rate
+   *  (`CLOCK_TICK_FREQ_HZ`). */
+  onTick(message: OscMessage): void {
+    this.tracker.onTick(Tr.value(message));
     const now = Date.now();
     for (const listener of this.listeners.values()) {
       if (now >= listener.nextDueAt) {
@@ -97,11 +105,29 @@ export class ClockSync {
     }
   }
 
-  /** Back to the unlocked estimate (socket closed — no samples coming).
+  /** The audio engine's current time in seconds (one-way estimate) — null
+   *  until the tracker locks. See TickTracker. */
+  audioNow(): number | null {
+    return this.tracker.audioNow();
+  }
+
+  /** Tracker diagnostics: lock state, absolute tick index, local-vs-audio
+   *  clock skew. */
+  tickInfo(): { locked: boolean; tickIndex: number | null; skewPpm: number | null } {
+    return {
+      locked: this.tracker.locked,
+      tickIndex: this.tracker.tickIndex,
+      skewPpm: this.tracker.skewPpm,
+    };
+  }
+
+  /** Back to the unlocked estimate (socket closed — no samples coming);
+   *  the tick tracker re-locks from scratch on reconnect (~1.6 s).
    *  Listeners stay registered: their lifecycle belongs to the consumers. */
   reset(): void {
     this.samples = [];
     this.offset = 0;
+    this.tracker.reset();
     this.publish({ offset: 0, rtt: 0 });
   }
 

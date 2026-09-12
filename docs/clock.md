@@ -156,6 +156,23 @@ time instead of lying about it. Listener registrations belong to the
 consumers (mount/unmount), survive reconnects and worker respawns for free
 (they are plain main-side state), and need no replay.
 
+### The one-way tick tracker
+
+The same ticks also carry the Phasor's phase, and `TickTracker`
+(`src/lib/clock/TickTracker.ts`, composed by ClockSync) turns that payload
+into a measurable time source: the phase delta is unwrapped into an
+absolute tick index (self-healing through UDP loss — the index is derived
+from the inter-arrival time and VERIFIED against the phase, block-quantized
+tolerance included; an unexplainable arrival means the engine restarted →
+resync and re-lock), arrivals regress against the tick grid (the slope is
+the client↔audio-clock skew), and the minimum residual anchors the mapping
+(one-way min-filter: delivery delay only ever adds).
+`oscClient.audioNow()` exposes the engine's estimated time in seconds
+(null until the ~1.6 s lock), `oscClient.tickInfo()` the diagnostics.
+Strudel's `getTime` does NOT consume this yet — the mapping refits per
+tick and carries no monotonicity guarantee (a slewed variant is future
+work; the math and rationale live in the module's doc comments).
+
 ## 6. Consumers
 
 **Strudel (`src/sc-elements/widgets/sc-strudel`).** Two independent hooks:

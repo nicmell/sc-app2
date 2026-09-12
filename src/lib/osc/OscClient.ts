@@ -420,6 +420,20 @@ export class OscClient {
     return this.clock.now();
   }
 
+  /** The AUDIO ENGINE's current time in seconds, estimated one-way from
+   *  the global clock's phase payload (AUDIO-CLOCK.md) — null until the
+   *  tracker locks (~1.6 s after connect). The foundation for direct
+   *  scsynth scheduling; not yet consumed by Strudel (no monotonicity
+   *  guarantee across refits). */
+  audioNow(): number | null {
+    return this.clock.audioNow();
+  }
+
+  /** One-way tracker diagnostics (lock, tick index, local-vs-audio skew). */
+  tickInfo(): { locked: boolean; tickIndex: number | null; skewPpm: number | null } {
+    return this.clock.tickInfo();
+  }
+
   /** Route a worker transport event. Public for unit tests — normally the
    *  registered `worker.onEvent` sink. */
   handleTransportEvent(event: TransportEvent): void {
@@ -445,9 +459,10 @@ export class OscClient {
       return;
     }
     // The audio engine's clock tick (the __global_clock__ synth) — the
-    // metronome. Foreign /tr ids fall through: plugins may SendTrig too.
+    // metronome, and the one-way tracker's phase feed. Foreign /tr ids
+    // fall through: plugins may SendTrig too.
     if (reply.address === ADDR_TR && Tr.triggerId(reply) === CLOCK_TRIGGER_ID) {
-      this.clock.onTick();
+      this.clock.onTick(reply);
       return;
     }
     // One-shot waiters first — the message still falls through to the

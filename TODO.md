@@ -5,12 +5,12 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 
 ## Roadmap (the big steps)
 
-0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — steps 1–3 LANDED
+0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — steps 1–4 LANDED
    (the `__global_clock__` synth ships from sc-startup.scd; its `/tr`
    tick is the metronome; ping/pong demoted to a 2 s wall anchor).
-   Remaining: the one-way skew/anchor estimator over the tick's phase
-   payload, and the final sweep gated on the StrudelDirt resolution;
-   obstacles tracked in the doc.
+   Remaining: the slewed tick-domain getTime for Strudel (the TickTracker
+   already exposes audioNow/skew), and the final sweep gated on the
+   StrudelDirt resolution; obstacles tracked in the doc.
 1. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

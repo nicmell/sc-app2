@@ -1,15 +1,16 @@
-// The app's OSC client consumes plain OSC packets from the worker, which owns
-// both the WebSocket and binary codec. The interface provides
-// (open/close/send/on/off/status), plus a promise-returning
-// `connect(url, session)`.
+// The app's OSC client — the main-thread protocol brain over the worker,
+// which owns the WebSocket, binary codec, and clock (its WorkerEndpoint stack).
+// `dispatch(packet)` is the raw send; the scsynth command vocabulary, reply
+// waiters, node/scope allocation, and clock/scope subscriptions are thin
+// helpers over it. The class composes the WorkerClient it is constructed
+// with; one global instance (`oscClient`) serves the whole frontend.
 //
-// One global instance (`oscClient`) serves the whole frontend — the Layout
-// route hands the loader-resolved SessionInfo to the SessionManager, which
-// starts the connection here, and consumers (the sc-elements, …) subscribe to
-// addresses directly. On connect the client creates the session's scsynth group itself
-// (`/g_new` at the tail of scsynth's root group — sessions always start
-// fresh; the bridge ends them when the WebSocket closes) and owns node-id
-// allocation from the session's server-assigned block (`nextNodeId`).
+// The Layout route hands the loader-resolved SessionInfo to the
+// SessionManager, which starts the connection here. On connect the client
+// creates the session's scsynth group itself (`/g_new` at the tail of
+// scsynth's root group — sessions always start fresh; the bridge ends them
+// when the WebSocket closes) and owns node-id allocation from the session's
+// server-assigned block.
 //
 // Its public events expose transport lifecycle without coupling protocol
 // consumers to transport middleware concerns.
@@ -18,12 +19,7 @@ import {
   ADDR_N_GO,
   ADDR_SYNCED,
   AddToTail,
-  CLOCK_STATUS_ADDRESS,
-  CLOCK_TICK_ADDRESS,
-  ClockStatus,
-  ClockTick,
-  clockSubscribe,
-  clockUnsubscribe,
+  CLOCK_SAMPLE_ADDRESS,
   dFree,
   dRecv,
   gFreeAll,
@@ -42,14 +38,12 @@ import {
   Synced,
   type DecodedScopeChunk,
   type OscMessage,
-  type OscPacket,
-  walkPacket,
 } from "@sc-app/server-commands";
-import { REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { REPLY_TIMEOUT_MS, TRANSPORT_STATUS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
-import { workerClient } from "./worker/WorkerClient";
-import { TRANSPORT_STATUS } from "./worker/transport";
+import { workerClient, type WorkerClient } from "./WorkerClient";
+import { ClockSync } from "@/lib/clock/ClockSync";
 import type { OscSession, TransportEvent } from "@/types/osc";
 
 /** A pending `once()` reply waiter, matched in `handleReply`. */
@@ -99,45 +93,30 @@ export class OscClient {
   private waiters: ReplyWaiter[] = [];
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
-  private scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** Clock subscriptions outlive socket sessions; worker respawn replays them. */
-  private clockSubs = new Map<number, { intervalMs: number; cb: () => void }>();
-  private nextClockSubId = 1;
-  private clockOffset = 0;
+  private readonly scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
+  /** The main-thread half of the bridge clock: min-RTT filtering of the
+   *  worker's raw samples + the sample-driven callback registry. */
+  private readonly clock: ClockSync;
 
-  constructor() {
-    workerClient.onEvent((event) => this.handleTransportEvent(event));
-    // A transport error is critical: terminate the session
-    // by closing — the bridge frees the session group on WS close. Pre-open
-    // failures belong to connect()'s promise, so only close an open socket.
+  constructor(private readonly worker: WorkerClient) {
+    this.clock = new ClockSync({
+      publish: (clock) => this.state.update((s) => ({ ...s, clock })),
+    });
+    worker.onEvent((event) => this.handleTransportEvent(event));
+    // A transport error is critical: terminate the session by closing — the
+    // bridge frees the session group on WS close. Pre-open failures belong
+    // to connect()'s promise, so only close an open socket.
     this.on("error", () => {
-      if (this.status() === TRANSPORT_STATUS.IS_OPEN) this.close();
+      if (this.worker.status() === TRANSPORT_STATUS.IS_OPEN) this.close();
     });
     this.on("close", () => {
       // Whatever the reason, no reply is coming anymore: fail pending
       // waiters now instead of letting them run out their timeouts, and let
       // connected subscribers tear down from the single transport seam.
       this.rejectWaiters(new Error("OscClient.once: connection closed"));
+      this.clock.reset();
       this.state.update((s) => ({ ...s, connected: false }));
     });
-  }
-
-  private handleTransportEvent(event: TransportEvent): void {
-    if (event.type === "respawn") {
-      // Replayed subscriptions restart their tick phase — fine for a
-      // crash-recovery path; consumers only rely on the cadence.
-      for (const [id, sub] of this.clockSubs) {
-        workerClient.send(clockSubscribe(id, sub.intervalMs));
-      }
-    } else if (event.type === "osc") {
-      walkPacket(event.packet, (message) => this.handleReply(message));
-    } else if (event.type === "error") {
-      this.emit("error", new Error(event.message));
-    } else if (event.type === "close") {
-      this.emit("close", event);
-    } else if (event.type === "open") {
-      this.emit("open");
-    }
   }
 
   private emit<E extends ClientEvent>(event: E, ...args: ClientEventArgs[E]): void {
@@ -146,11 +125,21 @@ export class OscClient {
     }
   }
 
-  /** Open the WebSocket (via the worker) to `url`; once open, create the
-   *  session's group at the tail of scsynth's root group, arm the node-id
-   *  allocator over the session's block, and flag `connected` (which arms the
-   *  plugin reloads and the status watchdog). Resolves once the socket is
-   *  open; rejects on an error or close before that. */
+  /** Fail every pending waiter (connection gone — no replies are coming). */
+  private rejectWaiters(err: Error): void {
+    const pending = this.waiters;
+    this.waiters = [];
+    for (const w of pending) {
+      clearTimeout(w.timer);
+      w.reject(err);
+    }
+  }
+
+  /** Open the WebSocket (via the worker) to `url`; once open, arm the session
+   *  (`armSession`), create its group at the tail of scsynth's root group,
+   *  and flag `connected` (which arms the plugin reloads and the status
+   *  watchdog). Resolves once the socket is open; rejects on an error or
+   *  close before that. */
   connect(url: string, session: OscSession): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const offAll = () => {
@@ -160,19 +149,11 @@ export class OscClient {
       };
       const onOpen = this.on("open", () => {
         offAll();
-        this.nextId = session.nodeIdBase;
-        this.endId = session.nodeIdBase + session.nodeIdCount;
-        this.groupId = session.sessionGroupId;
-        this.scopeBase = session.scopeIndexBase;
-        this.scopeCount = session.scopeIndexCount;
-        this.scopeUsed = 0;
-        this.freeScopeSlots = [];
-        this.nextSubId = 1; // fresh subId space → drop any leaked handlers
-        this.scopeChunkSubs.clear();
+        this.armSession(session);
         // The session is freshly minted (it dies with the previous WebSocket),
         // so its group never pre-exists: create it at the tail of scsynth's
         // root group, after SuperDirt's output monitors.
-        this.send(gNewOne(session.sessionGroupId, AddToTail, 0));
+        this.dispatch(gNewOne(session.sessionGroupId, AddToTail, 0));
         // Flag readiness only after /g_new, so subscribers (plugin reloads)
         // allocate and send into an existing group.
         this.state.update((s) => ({ ...s, connected: true }));
@@ -186,8 +167,23 @@ export class OscClient {
         offAll();
         reject(new Error("websocket closed before open"));
       });
-      workerClient.open(url);
+      this.worker.open(url);
     });
+  }
+
+  /** Arm the allocators over a session's server-assigned blocks and reset the
+   *  per-connection subscription state. Called by `connect` on socket open;
+   *  also the unit tests' seam for simulating a connected session. */
+  armSession(session: OscSession): void {
+    this.nextId = session.nodeIdBase;
+    this.endId = session.nodeIdBase + session.nodeIdCount;
+    this.groupId = session.sessionGroupId;
+    this.scopeBase = session.scopeIndexBase;
+    this.scopeCount = session.scopeIndexCount;
+    this.scopeUsed = 0;
+    this.freeScopeSlots = [];
+    this.nextSubId = 1; // fresh subId space → drop any leaked handlers
+    this.scopeChunkSubs.clear();
   }
 
   /** The session's scsynth group (created on connect) — plugin groups and
@@ -220,19 +216,14 @@ export class OscClient {
     if (!this.freeScopeSlots.includes(index)) this.freeScopeSlots.push(index);
   }
 
-  /** Set a contiguous control-array run on a live node (/n_setn) — the
-   *  live-envelope update. Sent to a GROUP, scsynth fans it out to every
-   *  synth inside that carries the named control. */
-  setControln(nodeId: number, name: string, values: readonly number[]): void {
-    this.send(nSetn(nodeId, [name, values.length, ...values]));
-  }
-
   /** Allocate the next node id from the session's server-assigned block.
    *  Throws before `connect` and if the block is exhausted (a bug — the range
    *  is far larger than any realistic session needs). */
   nextNodeId(): number {
     if (this.endId === 0) throw new Error("OscClient.nextNodeId: not connected");
-    if (this.nextId >= this.endId) throw new Error("OscClient.nextNodeId: node-id block exhausted");
+    if (this.nextId >= this.endId) {
+      throw new Error("OscClient.nextNodeId: node-id block exhausted");
+    }
     return this.nextId++;
   }
 
@@ -240,14 +231,25 @@ export class OscClient {
    *  event performs client teardown; sends triggered afterward are dropped,
    *  and the bridge frees the session group when the WebSocket closes. */
   close(): void {
-    workerClient.close();
+    this.worker.close();
   }
 
-  /** Pack and send an OSC message/bundle over the worker's WebSocket. Dropped
-   *  while not open. */
-  send(packet: OscPacket): void {
-    if (this.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    workerClient.send(packet);
+  /** THE dispatch function: send an OSC message over the worker's WebSocket
+   *  (dropped while not open). `at` schedules it — a bridge-time Unix-ms
+   *  timetag the worker endpoint wraps into an OSC bundle at encode time. */
+  dispatch(packet: OscMessage, at?: number): void {
+    if (this.worker.status() !== TRANSPORT_STATUS.IS_OPEN) return;
+    this.worker.send(packet, at);
+  }
+
+  /** Dispatch `packet` scheduled at bridge time. `atMs` is the target in
+   *  the CALLER's `performance.now()` domain — this is the ONE place a
+   *  local monotonic target converts to a bridge-clock timetag (at offset 0
+   *  it degrades to the plain local stamp). Timetags are bridge time: a
+   *  scsynth on a different host than the bridge would need its own offset
+   *  (unsupported assumption). */
+  sendAt(packet: OscMessage, atMs: number): void {
+    this.dispatch(packet, Math.round(this.clock.now() + atMs - performance.now()));
   }
 
   /** Subscribe to a connection event. Returns a subscription id for `off`. */
@@ -264,9 +266,9 @@ export class OscClient {
 
   /** Wait for one inbound reply on `address` satisfying `match`. Resolves
    *  with the message; rejects after `timeoutMs` or when the connection
-   *  closes. Register BEFORE the `send()` that prompts the reply — the reply
-   *  can race in otherwise. One matching reply resolves exactly one waiter
-   *  (FIFO). The sequenced-command primitive under the command methods
+   *  closes. Register BEFORE the `dispatch()` that prompts the reply — the
+   *  reply can race in otherwise. One matching reply resolves exactly one
+   *  waiter (FIFO). The sequenced-command primitive under the command methods
    *  below (`/d_recv` → `/synced`, `/s_new`–`/g_new` → `/n_go`). */
   once(
     address: string,
@@ -288,42 +290,32 @@ export class OscClient {
     });
   }
 
-  /** Fail every pending waiter (connection gone — no replies are coming). */
-  private rejectWaiters(err: Error): void {
-    const pending = this.waiters;
-    this.waiters = [];
-    for (const w of pending) {
-      clearTimeout(w.timer);
-      w.reject(err);
-    }
-  }
-
   // ── scsynth command methods ─────────────────────────────────────────────
   //
-  // The sc-elements' whole OSC vocabulary: every sequenced send + its reply
-  // wait lives here (node ids allocated internally), the elements only await
-  // the returned promises. Fire-and-forget teardown stays void.
+  // The sc-elements' whole OSC vocabulary: every sequenced dispatch + its
+  // reply wait lives here (node ids allocated internally), the elements only
+  // await the returned promises. Fire-and-forget teardown stays void.
 
   /** Create a group at the tail of `targetId`; resolves with the new node id
    *  once its `/n_go` confirms. */
   async createGroup(targetId: number): Promise<number> {
     const nodeId = this.nextNodeId();
     const reply = this.once(ADDR_N_GO, (m) => NodeEvent.nodeId(m) === nodeId);
-    this.send(gNewOne(nodeId, AddToTail, targetId));
+    this.dispatch(gNewOne(nodeId, AddToTail, targetId));
     await reply;
     return nodeId;
   }
 
   /** Free a group's contents, then the group node itself. */
   freeGroup(groupId: number): void {
-    this.send(gFreeAll(groupId));
-    this.send(nFree(groupId));
+    this.dispatch(gFreeAll(groupId));
+    this.dispatch(nFree(groupId));
   }
 
   /** Pause (0) / resume (1) a node — fire-and-forget (/n_run has no reply;
    *  the node-lifecycle notifications ride /notify). */
   setNodeRun(nodeId: number, flag: 0 | 1): void {
-    this.send(nRunOne(nodeId, flag));
+    this.dispatch(nRunOne(nodeId, flag));
   }
 
   /** Install a compiled synthdef; resolves once its embedded `/sync`
@@ -332,13 +324,13 @@ export class OscClient {
   async sendSynthDef(bytes: Uint8Array): Promise<void> {
     const syncId = this.nextNodeId();
     const reply = this.once(ADDR_SYNCED, (m) => Synced.syncId(m) === syncId);
-    this.send(dRecv(bytes, sync(syncId)));
+    this.dispatch(dRecv(bytes, sync(syncId)));
     await reply;
   }
 
   /** Remove an installed synthdef by name. */
   freeSynthDef(name: string): void {
-    this.send(dFree(name));
+    this.dispatch(dFree(name));
   }
 
   /** Create a synth at the tail of `targetId` with ALL its controls baked
@@ -359,7 +351,7 @@ export class OscClient {
     for (const { index, values } of arrayControls) {
       values.forEach((value, i) => pairs.push([index + i, value]));
     }
-    this.send(sNewPairs(defName, nodeId, AddToTail, targetId, pairs));
+    this.dispatch(sNewPairs(defName, nodeId, AddToTail, targetId, pairs));
     try {
       await reply;
     } catch (err) {
@@ -375,12 +367,19 @@ export class OscClient {
 
   /** Set one control on a live node. */
   setControl(nodeId: number, name: string, value: number): void {
-    this.send(nSet(nodeId, { [name]: value }));
+    this.dispatch(nSet(nodeId, { [name]: value }));
+  }
+
+  /** Set a contiguous control-array run on a live node (/n_setn) — the
+   *  live-envelope update. Sent to a GROUP, scsynth fans it out to every
+   *  synth inside that carries the named control. */
+  setControln(nodeId: number, name: string, values: readonly number[]): void {
+    this.dispatch(nSetn(nodeId, [name, values.length, ...values]));
   }
 
   /** Free a single node (a scope tap's teardown). */
   freeSynth(nodeId: number): void {
-    this.send(nFree(nodeId));
+    this.dispatch(nFree(nodeId));
   }
 
   /** Start a scope-slot chunk stream (the bridge intercepts the message —
@@ -397,52 +396,49 @@ export class OscClient {
   ): { subId: number; off: () => void } {
     const subId = this.nextSubId++;
     this.scopeChunkSubs.set(subId, onChunk);
-    this.send(scopeSubscribe({ subId, scope, channels, chunkSize }));
+    this.dispatch(scopeSubscribe({ subId, scope, channels, chunkSize }));
     return {
       subId,
       off: () => {
-        if (this.scopeChunkSubs.delete(subId)) this.send(scopeUnsubscribe(subId));
+        if (this.scopeChunkSubs.delete(subId)) this.dispatch(scopeUnsubscribe(subId));
       },
     };
   }
 
-  /** Start an absolute-phase tick stream in the worker. Unlike scope streams,
-   *  clock subscriptions survive socket reconnects and worker respawns. */
+  /** Register a sample-driven clock callback at (a quantization of)
+   *  `intervalMs`. Purely local; it fires only while the socket is open and
+   *  `/clock/sample`s flow — nothing keeps time while disconnected. */
   subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
-    const id = this.nextClockSubId++;
-    this.clockSubs.set(id, { intervalMs, cb });
-    workerClient.send(clockSubscribe(id, intervalMs));
-    return {
-      id,
-      off: () => {
-        if (this.clockSubs.delete(id)) workerClient.send(clockUnsubscribe(id));
-      },
-    };
+    return this.clock.subscribe(intervalMs, cb);
   }
 
   /** Bridge-wall-clock milliseconds. Offset is zero before sync/disconnected. */
   clockNow(): number {
-    return Date.now() + this.clockOffset;
+    return this.clock.now();
   }
 
-  /** Connection status (a `TRANSPORT_STATUS` value). */
-  status(): number {
-    return workerClient.status();
+  /** Route a worker transport event. Public for unit tests — normally the
+   *  registered `worker.onEvent` sink. */
+  handleTransportEvent(event: TransportEvent): void {
+    if (event.type === "respawn") {
+      // Nothing to restore: the clock estimate lives here (main side) and
+      // the fresh worker resumes pinging on the next open.
+    } else if (event.type === "osc") {
+      this.handleReply(event.packet);
+    } else if (event.type === "error") {
+      this.emit("error", new Error(event.message));
+    } else if (event.type === "close") {
+      this.emit("close", event);
+    } else if (event.type === "open") {
+      this.emit("open");
+    }
   }
 
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    if (reply.address === CLOCK_TICK_ADDRESS) {
-      this.clockSubs.get(ClockTick.id(reply))?.cb();
-      return;
-    }
-    if (reply.address === CLOCK_STATUS_ADDRESS) {
-      const offset = ClockStatus.offset(reply);
-      const rtt = ClockStatus.rtt(reply);
-      if (Number.isFinite(offset) && Number.isFinite(rtt)) {
-        this.clockOffset = offset;
-      }
+    if (reply.address === CLOCK_SAMPLE_ADDRESS) {
+      this.clock.onSample(reply);
       return;
     }
     // One-shot waiters first — the message still falls through to the
@@ -471,7 +467,8 @@ export class OscClient {
   }
 }
 
-/** The one OSC client for the whole frontend. The WebSocket only opens on the
- *  first `connect` (the permanent worker behind it is spawned by the
- *  WorkerClient module at import). */
-export const oscClient = new OscClient();
+/** The one OSC client for the whole frontend, composed over the global
+ *  WorkerClient (the WebSocket only opens on the first `connect`; the
+ *  permanent worker behind it is spawned by the WorkerClient module at
+ *  import). */
+export const oscClient = new OscClient(workerClient);

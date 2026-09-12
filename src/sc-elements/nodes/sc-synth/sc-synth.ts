@@ -3,7 +3,7 @@
 // the nearest ancestor group (the plugin group) — sequentially AFTER the
 // bound synthdef, which the bind-order constraint places earlier in the DOM.
 
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { isControlRuntime } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
 import { resolveSynthDefRef } from "@/sc-elements/internal/engine/resolution";

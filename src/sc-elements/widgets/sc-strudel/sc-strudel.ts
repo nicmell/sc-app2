@@ -16,9 +16,9 @@ import type { StateValue } from "@/types/runtime";
 // is dynamically imported in mountEditor() so it stays out of the boot bundle.
 import type { StrudelMirror } from "@strudel/codemirror";
 import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
-import { atDate, type OscPacket } from "@sc-app/server-commands";
+import type { OscMessage } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { session } from "@/stores/session";
 import styles from "./sc-strudel.module.scss";
 
@@ -27,15 +27,12 @@ const SAFETY_LOOKAHEAD_MS = 200;
 /** A SuperDirt event: a flat bag of params (`s`, `n`, `gain`, `note`, …). */
 type DirtEvent = Record<string, string | number>;
 
-/** Build a `/dirt/play` bundle: flat `[key, value, …]` args, scheduled at
- *  `timetagMs` (a wall-clock ms timestamp converted to NTP by the worker codec). */
-function dirtPlayBundle(event: DirtEvent, timetagMs: number): OscPacket {
+/** Build a `/dirt/play` message: flat `[key, value, …]` args. Scheduling is
+ *  `oscClient.sendAt`'s job — the widget never touches clock domains. */
+function dirtPlayMessage(event: DirtEvent): OscMessage {
   const args: Array<string | number> = [];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
-  return {
-    timetag: atDate(timetagMs),
-    packets: [{ address: "/dirt/play", args }],
-  };
+  return { address: "/dirt/play", args };
 }
 
 const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the OSC bridge.
@@ -184,12 +181,9 @@ export class ScStrudel extends ScInput {
       // the event itself (`.orbit(n)` wins).
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
-      // scsynth and the bridge share a host clock. Cyclist stays entirely in
-      // the monotonic performance.now() domain; convert only while stamping.
-      const timetag = Math.round(
-        oscClient.clockNow() + targetTimeSecs * 1000 - performance.now() + SAFETY_LOOKAHEAD_MS,
-      );
-      oscClient.send(dirtPlayBundle(event, timetag));
+      // Cyclist stays entirely in the monotonic performance.now() domain;
+      // sendAt converts to bridge time at the stamp.
+      oscClient.sendAt(dirtPlayMessage(event), targetTimeSecs * 1000 + SAFETY_LOOKAHEAD_MS);
     };
 
     const clockIntervals = new Map<number, () => void>();

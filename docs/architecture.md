@@ -149,7 +149,7 @@ lib/                     non-React infrastructure
                          a coalesced toast unless the call passes notify:
                          false (the rule: a dedicated error surface opts out)
   osc/                   the OSC endpoint (see lib/osc/README.md): OscClient
-                         (global `oscClient`, main-thread client — owns /g_new
+                         (global `oscClient`, the main-thread protocol brain — owns /g_new
                          of the session group, nextNodeId allocation, the
                          `connected` signal, closes itself on critical
                          failures; plus the elements' command methods, every
@@ -158,27 +158,42 @@ lib/                     non-React infrastructure
                          (/d_recv + embedded /sync ack), freeGroup/
                          freeSynthDef/freeSynth/setControl,
                          subscribeClock(intervalMs, cb) + clockNow()
-                         (absolute-phase worker ticks, survive reconnect —
+                         (sample-driven callbacks, connected-only —
                          see clock.md), subscribeScope(…, onChunk) →
                          {subId, off} (handler registered before the send;
                          chunks dispatch by subId from handleReply) and the
                          scope-slot allocator over the session's span);
                          middleware.ts + middlewares/ observe WorkerClient
                          to own the osc slice (console log, /status.reply
-                         load, clock status) and toast /fail–/late;
-                         watchdog.ts owns heartbeat expiry
-                         → worker/WorkerClient.ts (global `workerClient`:
-                           permanent-worker proxy, respawn-on-crash + status)
-                         → worker/worker.ts (Web Worker endpoint:
-                           `{type:"osc", packet}` ⇄ codec ⇄ bytes; the
-                           `/clock/*` estimator + tick scheduler)
-                         → worker/transport.ts (raw in-worker WebSocket).
+                         load) and toast /fail–/late;
+                         WorkerClient.ts (global `workerClient`:
+                         permanent-worker proxy, respawn-on-crash + status)
+  worker/                the code that RUNS in the OSC Web Worker
+                         (documented in lib/osc/README.md alongside the
+                         rest of the OSC endpoint):
+                         → worker.ts (Web Worker entry: thin glue
+                           composing the endpoint over the worker scope)
+                         → endpoint.ts (`WorkerEndpoint`: codec ⇄ bytes +
+                           protocol routing — at-metadata bundling out,
+                           bundle flattening + blob transfer in, the
+                           pong consumed into `/clock/sample`, any other
+                           inbound message feeding the watchdog; composes
+                           transport + clock)
+                         → transport.ts (`Transport`: ONLY the raw
+                           WebSocket — bytes in/out)
+                         → clock.ts (`WorkerClock`: the 50 ms ping loop →
+                           raw `/clock/sample` per pong + the heartbeat
+                           watchdog on worker timers).
                            The binary codec dependency is worker-only.
+  clock/                 ClockSync — the bridge clock's main-thread half
+                         (min-RTT filtering of the worker's raw samples,
+                         clockNow, sample-driven callback registry),
+                         composed by OscClient; see docs/clock.md
   session/               SessionManager (global `session`): the LIVE half —
                          epoch-guarded connect(info)/disconnect() (one-tick
                          deferred for StrictMode remounts), close → conn
                          status, 10 s session-data autosave (boxes + presets)
-                         on worker clock ticks;
+                         on clock callbacks (connected-only);
                          resolveSession.ts: the route loaders — mint/revive
                          over HTTP, localStorage ownership, bounded 503
                          quiet-retry, the mint→redirect handoff
@@ -505,8 +520,8 @@ referenced before it is declared` when a bind names an in-scope element
 over `_scChildren` in strict DOM order, each child
 fully awaited before the next (no reactive depsReady gates; the bind-order
 constraint makes DOM order a valid dependency order, so /d_recv's ack always
-precedes the dependent /s_new). The elements never touch `send`/`once`
-directly — every sequenced send + its reply wait is an OscClient command
+precedes the dependent /s_new). The elements never touch `dispatch`/`once`
+directly — every sequenced send + its reply wait is an osc command
 method (createGroup/createSynth/sendSynthDef/…, node ids allocated
 internally), built on `oscClient.once(address, match)` (waiters matched in
 `handleReply` — also the unit-test seam), registered before the send.
@@ -648,7 +663,7 @@ app/synths/bindings/inputs/widgets/invalid).
 **Outbound command** (e.g. `<sc-plugin>` creating its group):
 
 ```
-ScPlugin load pass → oscClient.createGroup() → send(gNewOne(...))
+ScPlugin load pass → oscClient.createGroup() → dispatch(gNewOne(...))
   → tx appended to osc.log (sc-console) → worker codec pack
   → postMessage(transfer) → worker ws.send → axum ws pump
   → peek_address("/g_new") → Bridge → regex match "scsynth" peer → UDP
@@ -661,7 +676,7 @@ scsynth UDP → Peer recv task → shared broadcast (Bridge fan-out)
   → every WS pump → binary frame → worker (zero-copy) → decode:
       OscClient.handleReply → once-waiters (createSynth's /n_go gate, …)
       middlewares (stores/osc): /status.reply → scsynthStatus (footer)
-                                 + watchdog re-arm
+                                 (the worker watchdog stamped it already)
       errors middleware: /fail, /late → coalesced toast (stores/toasts)
                                         + rx log (sc-console)
       /scope/chunk → the subscribing <sc-scope>'s handler (by subId)
@@ -685,8 +700,9 @@ zip → POST /api/plugins (or `sc-app2 plugin add`) → manager validation
 ```
 
 **Heartbeat & failure**: supervisor `/status` at 1 Hz → `/status.reply`
-fan-out → footer + frontend watchdog (5 s). scsynth dies → watchdog fires →
-toast + `oscClient.close()` → WS close → server `end_session` → status
+fan-out → footer + the WORKER-side watchdog (5 s, worker timers). scsynth
+dies → watchdog posts a transport error → toast + OscClient closes → WS
+close → server `end_session` → status
 `"error"` → ConnectionOverlay's Retry revalidates the route loaders (a dead
 session revives-or-mints).
 

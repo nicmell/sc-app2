@@ -59,7 +59,7 @@ exactly that worker into a `SharedWorker`:
 - N `MessagePort`s, one per client (the dashboard, each box iframe, popped
   tabs). Inbound OSC fans out to every port; sends funnel in.
 - Each client's `OscClient` becomes a thin multiplexer over its port — the
-  public seams (`send`, waiters, `connected`, `subscribeClock`) keep their
+  public seams (`dispatch`, waiters, `connected`, `subscribeClock`) keep their
   signatures. The FIRST client to connect a session id opens the WS; later
   clients JOIN the standing connection and receive its current state.
 

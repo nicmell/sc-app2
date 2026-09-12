@@ -25,7 +25,7 @@ import { html } from "lit";
 import type { DecodedScopeChunk } from "@sc-app/server-commands";
 import { compileScopeTapSynthDef, scopeTapSynthDefName } from "@/lib/scope/scopeTapSynthDef";
 import { findTriggerOffset } from "@/lib/scope/trigger";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { ScElement } from "@/sc-elements/internal/sc-element";
 import styles from "./sc-scope.module.scss";
 

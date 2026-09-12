@@ -38,7 +38,7 @@ export class SessionManager {
   readonly status = this.state.select((state) => state.status);
   readonly scsynthAddress = this.state.select((state) => state.scsynthAddress);
 
-  /** (event, id) pairs of our oscClient subscriptions, for teardown(). */
+  /** (event, id) pairs of our osc subscriptions, for teardown(). */
   private subscriptions: Array<["close", number]> = [];
   /** The session-autosave worker-clock subscription + last saved references
    *  (one per slice — a tick saves when either moved). */

@@ -279,7 +279,7 @@ scaffolding are tsc-type-checked. The key suites:
   /n_set wiring, unmount cleanup) against a scripted scsynth auto-responder.
 - `compileSynthDef.test.ts` — the compiler;
   `lib/osc/__tests__/*` — waiters, transport dispatch, per-concern
-  observation, heartbeat expiry.
+  observation (heartbeat expiry now lives in lib/worker clock.test).
 
 **End-to-end gate**: `yarn e2e` — one shot, no setup (design rationale:
 scripts/e2e/README.md). Packages the examples, boots the whole stack on a

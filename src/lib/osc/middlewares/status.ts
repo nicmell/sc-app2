@@ -1,13 +1,7 @@
-// SCSynth load and bridge-clock status middleware. Owns the two status views.
+// SCSynth load status middleware. Owns the scsynthStatus view; the `clock`
+// view's field is written by OscClient's ClockSync (lib/clock), not here.
 
-import {
-  ADDR_STATUS_REPLY,
-  ClockStatus,
-  CLOCK_STATUS_ADDRESS,
-  StatusReply,
-  walkPacket,
-  type OscMessage,
-} from "@sc-app/server-commands";
+import { ADDR_STATUS_REPLY, StatusReply, type OscMessage } from "@sc-app/server-commands";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import type { ScsynthStatus } from "@/types/stores";
@@ -34,18 +28,8 @@ export const statusMiddleware: TransportMiddleware = {
     next(command);
   },
   event(event, next) {
-    if (event.type === "osc") {
-      walkPacket(event.packet, (message) => {
-        if (message.address === ADDR_STATUS_REPLY) {
-          state.update((value) => ({ ...value, scsynthStatus: parseStatus(message) }));
-        } else if (message.address === CLOCK_STATUS_ADDRESS) {
-          const offset = ClockStatus.offset(message);
-          const rtt = ClockStatus.rtt(message);
-          if (Number.isFinite(offset) && Number.isFinite(rtt)) {
-            state.update((value) => ({ ...value, clock: { offset, rtt } }));
-          }
-        }
-      });
+    if (event.type === "osc" && event.packet.address === ADDR_STATUS_REPLY) {
+      state.update((value) => ({ ...value, scsynthStatus: parseStatus(event.packet) }));
     }
     next(event);
   },

@@ -14,7 +14,7 @@
 
 import { html } from "lit";
 import { state } from "lit/decorators.js";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { createStore, type Store } from "@/lib/utils/reactiveStore";
 import { process } from "@/sc-elements/internal/engine";
 import type { ScElement } from "@/sc-elements/internal/sc-element";

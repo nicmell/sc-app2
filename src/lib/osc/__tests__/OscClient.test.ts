@@ -1,18 +1,12 @@
-// Importing OscClient is side-effect-free here: the WS worker only spawns
-// inside connect(), which is never called in this file.
+// Importing the dispatch module is side-effect-free here: the WS worker only
+// spawns inside connect(), which is never called in this file.
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CLOCK_SUBSCRIBE_ADDRESS,
-  CLOCK_TICK_ADDRESS,
-  type OscMessage,
-  formatOscArg,
-  Synced,
-} from "@sc-app/server-commands";
+import { type OscMessage, formatOscArg, Synced } from "@sc-app/server-commands";
 import { REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
-import { workerClient } from "@/lib/osc/worker/WorkerClient";
+import { workerClient } from "@/lib/osc/WorkerClient";
 import { appStore } from "@/stores/store";
 
 const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage => ({
@@ -20,39 +14,29 @@ const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage =>
   args,
 });
 
-describe("OscClient.handleReply", () => {
-  it("dispatches /clock/tick by id", () => {
+describe("oscClient.handleReply", () => {
+  it("drives subscribeClock callbacks from the /clock/sample stream", () => {
+    let now = 0;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
     const cb = vi.fn();
     const sub = oscClient.subscribeClock(100, cb);
-    oscClient.handleReply(oscMessage(CLOCK_TICK_ADDRESS, sub.id, 1));
-    expect(cb).toHaveBeenCalledTimes(1);
+    for (let i = 0; i < 4; i++) {
+      now += 50; // the worker's sample cadence
+      oscClient.handleReply(oscMessage("/clock/sample", 0, 1));
+    }
+    expect(cb).toHaveBeenCalledTimes(2); // 200 ms at a 100 ms interval
     sub.off();
   });
 
-  it("mirrors /clock/status and applies its Date.now offset", () => {
+  it("folds /clock/sample into the estimate and applies its Date.now offset", () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
-    oscClient.handleReply(oscMessage("/clock/status", 12.5, 3));
+    // rtt 0.5 beats any sample the singleton's window still holds.
+    oscClient.handleReply(oscMessage("/clock/sample", 12.5, 0.5));
     expect(oscClient.clockNow()).toBe(10_012.5);
   });
 });
 
-describe("OscClient clock lifecycle", () => {
-  it("replays subscriptions after worker respawn", () => {
-    const send = vi.spyOn(workerClient, "send");
-    const sub = oscClient.subscribeClock(250, () => {});
-    send.mockClear();
-    (
-      oscClient as unknown as { handleTransportEvent(event: { type: "respawn" }): void }
-    ).handleTransportEvent({ type: "respawn" });
-    expect(send).toHaveBeenCalledWith({
-      address: CLOCK_SUBSCRIBE_ADDRESS,
-      args: [sub.id, 250],
-    });
-    sub.off();
-  });
-});
-
-describe("OscClient.once", () => {
+describe("oscClient.once", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -91,11 +75,7 @@ describe("OscClient.once", () => {
     appStore.slice(SliceName.OSC).update((s) => ({ ...s, connected: true }));
     const reply = oscClient.once("/synced");
     const expectation = expect(reply).rejects.toThrow("OscClient.once: connection closed");
-    (
-      oscClient as unknown as {
-        handleTransportEvent(event: { type: "close"; reason?: string }): void;
-      }
-    ).handleTransportEvent({ type: "close", reason: "remote close" });
+    oscClient.handleTransportEvent({ type: "close", reason: "remote close" });
     await expectation;
     expect(oscClient.connected.get()).toBe(false);
   });
@@ -125,7 +105,7 @@ describe("OscClient.once", () => {
   });
 });
 
-describe("OscClient.createSynth", () => {
+describe("oscClient.createSynth", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -133,7 +113,7 @@ describe("OscClient.createSynth", () => {
 
   it("frees the allocated node when the /n_go ack times out (no untracked drones)", async () => {
     const sent: OscMessage[] = [];
-    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OscMessage));
+    vi.spyOn(oscClient, "dispatch").mockImplementation((p) => sent.push(p));
     vi.spyOn(oscClient, "nextNodeId").mockImplementation(() => 4242);
     vi.useFakeTimers();
     const create = oscClient.createSynth("sine", 1, { freq: 440 });
@@ -148,10 +128,27 @@ describe("OscClient.createSynth", () => {
   });
 });
 
-describe("OscClient.setControln", () => {
+describe("oscClient.sendAt", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("stamps the bridge-time `at` metadata from a performance.now target", () => {
+    vi.spyOn(Date, "now").mockReturnValue(10_000);
+    // rtt 1 wins any earlier sample still in the window — offset 500 rules.
+    oscClient.handleReply(oscMessage("/clock/sample", 500, 1));
+    vi.spyOn(performance, "now").mockReturnValue(2_000);
+    const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
+
+    oscClient.sendAt({ address: "/dirt/play", args: [] }, 2_250);
+
+    // clockNow (10_500) + atMs (2_250) − performance.now (2_000) = 10_750.
+    expect(dispatch).toHaveBeenCalledWith({ address: "/dirt/play", args: [] }, 10_750);
+  });
+});
+
+describe("oscClient.setControln", () => {
   it("sends /n_setn with the named contiguous run", () => {
     const sent: OscMessage[] = [];
-    vi.spyOn(oscClient, "send").mockImplementation((p) => sent.push(p as OscMessage));
+    vi.spyOn(oscClient, "dispatch").mockImplementation((p) => sent.push(p));
     oscClient.setControln(2001, "shape", [0, 3, 2, -99, 1, 0.5]);
     expect(sent).toHaveLength(1);
     expect(sent[0].address).toBe("/n_setn");

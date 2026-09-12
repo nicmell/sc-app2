@@ -5,7 +5,7 @@
 
 import { ELEMENTS } from "@/constants/sc-elements";
 import { compileSynthDef, type UgenSpec } from "@/lib/synthdef/compileSynthDef";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { isControlRuntime, typeOf } from "@/lib/utils/guards";
 import type { RuntimeContext } from "@/types/runtime";
 import { failValidation } from "@/sc-elements/internal/engine/validation";
@@ -28,7 +28,7 @@ function collectControlParams(children: readonly ScElement[]): Record<string, nu
 
 /** Collect an element's <sc-control> children into name → ref-or-literal
  *  strings — the shape consumed by the synthdef graph compiler. The
- *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"osc.1"`) is read raw
+ *  graph-input REFERENCE (`bind:value="lfo"`, `"a, b"`, `"oscClient.1"`) is read raw
  *  (never resolved on the state graph; the base resolveRuntime skips these
  *  children); an empty reference counts as absent — the parse-time error beats
  *  a junk "" reaching the compiler at /d_recv time. */

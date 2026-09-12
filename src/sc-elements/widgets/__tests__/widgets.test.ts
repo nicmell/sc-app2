@@ -1,7 +1,7 @@
 // Widget lifecycle + parametrization gate: sc-scope's per-element tap (bus/
 // channels → tap synthdef + scope-slot subscription, through the load/unload
 // pass) and sc-strudel's value/bind:value code flow + orbit stamping. Same
-// scripted-scsynth recipe as controls.test.ts: oscClient.send is mocked into
+// scripted-scsynth recipe as controls.test.ts: oscClient.dispatch is mocked into
 // an auto-responder feeding the real handleReply, so the sequenced commands
 // gate exactly as against a live server. The scope-slot allocator is armed
 // directly on the client (connect() needs a live worker).
@@ -21,6 +21,7 @@ import {
   mountPlugin,
   parsePlugin,
   wrapXml,
+  FIRST_NODE_ID,
   SESSION_GROUP,
 } from "@/lib/utils/test/test-utils";
 // @strudel/codemirror is aliased to this recording stub globally
@@ -40,24 +41,27 @@ const SCOPE_COUNT = 8;
 let sent: OscMessage[];
 let send: ReturnType<typeof installScsynthMock>["send"];
 
-/** Arm the private scope-slot allocator (normally done by connect()). */
+/** Arm the scope-slot allocator through the public seam (normally done by
+ *  connect()). Node ids and sessionGroupId are overridden by
+ *  installScsynthMock's spies. */
 function armScopeAllocator(): void {
-  const c = oscClient as unknown as {
-    scopeBase: number;
-    scopeCount: number;
-    scopeUsed: number;
-    freeScopeSlots: number[];
-    nextSubId: number;
-  };
-  c.scopeBase = SCOPE_BASE;
-  c.scopeCount = SCOPE_COUNT;
-  c.scopeUsed = 0;
-  c.freeScopeSlots = [];
-  c.nextSubId = 1;
+  oscClient.armSession({
+    sessionGroupId: SESSION_GROUP,
+    nodeIdBase: FIRST_NODE_ID,
+    nodeIdCount: 100,
+    scopeIndexBase: SCOPE_BASE,
+    scopeIndexCount: SCOPE_COUNT,
+  });
 }
 
 function disarmScopeAllocator(): void {
-  (oscClient as unknown as { scopeCount: number }).scopeCount = 0;
+  oscClient.armSession({
+    sessionGroupId: SESSION_GROUP,
+    nodeIdBase: FIRST_NODE_ID,
+    nodeIdCount: 100,
+    scopeIndexBase: SCOPE_BASE,
+    scopeIndexCount: 0,
+  });
 }
 
 const mountXml = async (bodyXml: string): Promise<ScPlugin> =>

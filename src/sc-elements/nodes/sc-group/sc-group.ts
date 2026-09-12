@@ -10,7 +10,7 @@
 // group's wholesale /g_freeAll (the sc-synth precedent — a per-group free
 // would only add double-free /fail noise).
 
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { ScNode } from "@/sc-elements/internal/sc-node";
 
 export class ScGroup extends ScNode {

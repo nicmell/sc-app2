@@ -20,7 +20,7 @@
 // state still updates).
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import type { StateValue } from "@/types/runtime";
 import { ScState } from "@/sc-elements/internal/sc-state";
 

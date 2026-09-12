@@ -1,10 +1,10 @@
 // Main-thread proxy to the OSC worker. The permanent worker owns the
 // WebSocket and codec; this side only posts and receives plain packet data.
 
-import type { OscPacket } from "@sc-app/server-commands";
+import type { OscMessage } from "@sc-app/server-commands";
 import type { TransportCommand, TransportEvent } from "@/types/osc";
-import { composeDispatch, type TransportMiddleware } from "../middleware";
-import { TRANSPORT_STATUS, type TransportStatus } from "./transport";
+import { composeDispatch, type TransportMiddleware } from "./middleware";
+import { TRANSPORT_STATUS, type TransportStatus } from "@/constants/osc";
 
 export class WorkerClient {
   private worker: Worker;
@@ -35,8 +35,8 @@ export class WorkerClient {
     this.dispatchEvent({ type: "close" });
   }
 
-  send(packet: OscPacket): void {
-    this.dispatchCommand({ type: "osc", packet });
+  send(packet: OscMessage, at?: number): void {
+    this.dispatchCommand({ type: "osc", packet, at });
   }
 
   onEvent(cb: (event: TransportEvent) => void): void {
@@ -60,7 +60,7 @@ export class WorkerClient {
 
   private spawn(): Worker {
     // The literal construction must stay inline for Vite's worker bundling.
-    const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(new URL("../worker/worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (ev: MessageEvent<TransportEvent>) => {
       const event = ev.data;
       if (event.type === "open") this.socketStatus = TRANSPORT_STATUS.IS_OPEN;

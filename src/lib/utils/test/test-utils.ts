@@ -75,7 +75,7 @@ export function autoRespond(msg: OscMessage): void {
   }
 }
 
-/** Install the scsynth-facing spies for a load-pass test: oscClient.send into
+/** Install the scsynth-facing spies for a load-pass test: oscClient.dispatch into
  *  a recording auto-responder, plus deterministic node ids and session group.
  *  Returns the recorded sends and the `send` spy (re-mock it to script a
  *  stalled or partial server). Spies auto-restore between tests via the
@@ -85,8 +85,8 @@ export function installScsynthMock(): {
   send: MockInstance<(packet: OscPacket) => void>;
 } {
   const sent: OscMessage[] = [];
-  const send = vi.spyOn(oscClient, "send").mockImplementation((packet) => {
-    const msg = packet as OscMessage;
+  const send = vi.spyOn(oscClient, "dispatch").mockImplementation((packet) => {
+    const msg = packet;
     sent.push(msg);
     autoRespond(msg);
   });

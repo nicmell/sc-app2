@@ -9,8 +9,6 @@ import { log } from "@/lib/osc/middlewares/logging";
 import { clock, scsynthStatus } from "@/lib/osc/middlewares/status";
 import type { ClockStatus, LoggedEntry, ScsynthStatus } from "@/types/stores";
 
-// Re-export the singleton so app imports go through the store layer.
-export { oscClient } from "@/lib/osc/OscClient";
 export { log } from "@/lib/osc/middlewares/logging";
 export { clock, scsynthStatus } from "@/lib/osc/middlewares/status";
 

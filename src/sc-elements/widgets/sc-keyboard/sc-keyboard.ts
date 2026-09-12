@@ -22,7 +22,7 @@
 import { html } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { isNodeRuntime } from "@/lib/utils/guards";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import type { RuntimeContext } from "@/types/runtime";
 import { resolveSynthDefRef } from "@/sc-elements/internal/engine/resolution";
 import { failValidation } from "@/sc-elements/internal/engine/validation";

@@ -5,7 +5,7 @@
 // synthdef reference on top.
 
 import { isNodeRuntime } from "@/lib/utils/guards";
-import { oscClient } from "@/stores/osc";
+import { oscClient } from "@/lib/osc/OscClient";
 import { ScParent } from "@/sc-elements/internal/sc-parent";
 
 export abstract class ScNode extends ScParent {

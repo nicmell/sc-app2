@@ -1,6 +1,6 @@
 // The functional-element lifecycle gate: example-plugin through the parse
 // engine AND the sequential load pass, against a scripted scsynth. The
-// oscClient's send is mocked into an auto-responder that acknowledges each
+// oscClient.dispatch is mocked into an auto-responder that acknowledges each
 // sequenced command through the real handleReply (so `once()` waiters gate
 // the pipeline exactly as against a live server): /g_new → /n_go,
 // /d_recv → its embedded /sync completion → /synced, /s_new → /n_go.
@@ -117,10 +117,7 @@ afterEach(() => {
 const setConnected = (connected: boolean) =>
   appStore.update((s) => ({ ...s, osc: { ...s.osc, connected } }));
 
-const closeTransport = () =>
-  (
-    oscClient as unknown as { handleTransportEvent(event: { type: "close" }): void }
-  ).handleTransportEvent({ type: "close" });
+const closeTransport = () => oscClient.handleTransportEvent({ type: "close" });
 
 describe("load pass", () => {
   it("seeds exactly the enabled literal controls' defaults, keyed by full path", async () => {

@@ -1,5 +1,5 @@
 // SessionManager connection-lifecycle unit test: connect() against a mocked
-// oscClient (no worker involved) — the loader-provided allocation reaches the
+// osc (no worker involved) — the loader-provided allocation reaches the
 // client verbatim, the epoch guard abandons a connect superseded by
 // disconnect() mid-await, and a transport failure flips the slice to "error".
 // Session resolution (mint/revive/503 budget) is resolveSession.test.ts.

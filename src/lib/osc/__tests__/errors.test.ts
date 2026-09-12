@@ -6,7 +6,7 @@ import { pushToast, toasts } from "@/stores/toasts";
 import { oscClient } from "../OscClient";
 import "../middlewares";
 import { errorsMiddleware } from "../middlewares/errors";
-import { workerClient } from "../worker/WorkerClient";
+import { workerClient } from "@/lib/osc/WorkerClient";
 
 const next = (): void => {};
 beforeEach(() => {
@@ -52,9 +52,7 @@ describe("errors middleware", () => {
     });
     expect(post).toHaveBeenCalledWith({ type: "open", url: "ws://test" });
     expect(toasts.get()).toEqual([]);
-    (
-      oscClient as unknown as { handleTransportEvent(event: { type: "close" }): void }
-    ).handleTransportEvent({ type: "close" });
+    oscClient.handleTransportEvent({ type: "close" });
     await expect(connecting).rejects.toThrow("websocket closed before open");
   });
 });

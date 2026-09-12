@@ -5,6 +5,10 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 
 ## Roadmap (the big steps)
 
+0. **The audio-clock transport** — replace the ping/pong bridge clock with
+   a scsynth-emitted `/tr` tick (the `__global_clock__` synth): design,
+   verified integration facts, and obstacles (SendTrig-only compiler,
+   StrudelDirt timetag laundering, synth ownership) in `AUDIO-CLOCK.md`.
 1. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

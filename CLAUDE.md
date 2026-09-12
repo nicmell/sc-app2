@@ -26,6 +26,9 @@ sweep every usage in the repo (examples, tests, docs) in the same commit.
 - `PURE-BRIDGE.md` — the pure-bridge direction (Italian): clock handling
   to sclang, repo-owned StrudelDirt extensions, session client ids,
   verified SC-internals facts + the recommended sequence.
+- `UGENS.md` — the UGen analysis (Italian): custom-UGen candidates
+  (tiered, with the toolchain gate) + the sc3-plugins → compiler-registry
+  adoption shortlist.
 - `TODO.md` — the backlog (roadmap steps, follow-ups, accepted deferrals).
 
 ## Documentation policy

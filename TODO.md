@@ -83,6 +83,10 @@ one registry entry:
   (element, target) if N-prop single-source elements ever hurt.
 - **Registry-driven variadic-input flags** (replace the hardcoded
   ARRAY_INPUTS set) and rate inference for AUTHORED ugens.
+- **UGens: sc3-plugins registry batch + custom candidates** — analysis,
+  tiers and the proposed first batch live in `UGENS.md` (JPverb/
+  MoogLadder/MdaPiano/LoopBuf/Tartini…; ScAppTick + ScAppWaveWriter as
+  the toolchain gate).
 
 ## Error/HTTP plane
 

@@ -32,10 +32,6 @@ interface Listener {
   nextDueAt: number;
 }
 
-/** Store publishes are throttled to this — the estimate refreshes at the
- *  50 ms sample cadence, but no consumer needs 20 Hz re-renders. */
-const PUBLISH_THROTTLE_MS = 500;
-
 interface ClockSyncOptions {
   /** Publish the current filtered estimate (the store's `clock` field). */
   publish: (clock: ClockStatus) => void;
@@ -45,7 +41,6 @@ export class ClockSync {
   private readonly publish: ClockSyncOptions["publish"];
   private samples: Sample[] = [];
   private offset = 0;
-  private lastPublishAt = -Infinity;
   private readonly listeners = new Map<number, Listener>();
   private nextListenerId = 1;
 
@@ -68,13 +63,13 @@ export class ClockSync {
     };
   }
 
-  /** Fold one raw `/clock/sample` into the window and publish (throttled).
-   *  NTP's clock-filter rule — trust the minimum-delay sample in the
-   *  window; queueing delay only ever ADDS to rtt, so the fastest exchange
-   *  carries the least-biased offset. Consumers convert clock domains at
-   *  stamp time, so a small estimate change only shifts not-yet-stamped
-   *  events; no smoothing needed. The MEASUREMENT stream only — the
-   *  metronome is `onTick`. */
+  /** Fold one raw `/clock/sample` into the window and publish. NTP's
+   *  clock-filter rule — trust the minimum-delay sample in the window;
+   *  queueing delay only ever ADDS to rtt, so the fastest exchange carries
+   *  the least-biased offset. Consumers convert clock domains at stamp
+   *  time, so a small estimate change only shifts not-yet-stamped events;
+   *  no smoothing needed. The MEASUREMENT stream only — the metronome is
+   *  `onTick`. */
   onSample(message: OscMessage): void {
     const offset = ClockSample.offset(message);
     const rtt = ClockSample.rtt(message);
@@ -83,12 +78,7 @@ export class ClockSync {
     if (this.samples.length > CLOCK_SAMPLE_WINDOW) this.samples.shift();
     const best = this.samples.reduce((a, b) => (b.rtt < a.rtt ? b : a));
     this.offset = best.offset;
-
-    const now = Date.now();
-    if (now - this.lastPublishAt >= PUBLISH_THROTTLE_MS) {
-      this.lastPublishAt = now;
-      this.publish({ offset: best.offset, rtt: best.rtt });
-    }
+    this.publish({ offset: best.offset, rtt: best.rtt });
   }
 
   /** One `/tr` tick from the audio engine's `__global_clock__` synth — the
@@ -112,7 +102,6 @@ export class ClockSync {
   reset(): void {
     this.samples = [];
     this.offset = 0;
-    this.lastPublishAt = -Infinity;
     this.publish({ offset: 0, rtt: 0 });
   }
 

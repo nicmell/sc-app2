@@ -233,12 +233,18 @@ session.
    (watchdog liveness already counts any non-pong inbound message, ticks
    included). The one-way skew/anchor math on the tick's phase payload is
    step 3.
-3. **Retire the fast ping loop**: ping/pong drops to the slow wall-anchor
-   cadence (or to Tauri-only, where offset ≈ 0 makes even that optional);
-   `/clock/sample` disappears; `WorkerClock` shrinks to (almost) nothing.
-4. **Sweep the corpse**: delete the leftover `/clock/*` vocabulary, the
-   worker clock module, and — the first time this repo gets to say it —
-   the Rust-side clock code, contract test and all.
+3. **[DONE] Retire the fast ping loop**: ping/pong dropped to the 2 s
+   wall-anchor cadence (`CLOCK_PING_INTERVAL_MS`), the sample window back
+   to NTP's 8, the store publish un-throttled. `/clock/sample` SURVIVES as
+   the measurement carrier — the original sketch overstated its death:
+   as long as `sendAt` stamps wall-clock timetags for StrudelDirt (§5.2),
+   the anchor needs a round-trip and a message to ride home on.
+4. **The one-way skew/anchor estimator** over the tick's phase payload
+   (phase unwrap → tick index; arrival-vs-grid regression → client↔audio
+   skew; min residual → anchor; Strudel `getTime` in the tick domain).
+5. **Sweep the corpse** — only reachable if §5.2 resolves toward the
+   direct-scsynth path: then the `/clock/*` vocabulary, the worker clock
+   module, and the Rust-side clock code (contract test and all) can go.
 
 Each step is independently shippable and independently revertible; step 1
 alone already delivers the global multi-client transport.

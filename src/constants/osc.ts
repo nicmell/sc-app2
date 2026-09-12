@@ -42,16 +42,17 @@ export const CLOCK_TICK_FREQ_HZ = 20;
 
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
-/** Ping cadence while the socket is open — the estimator's sample rate
- *  (the metronome is the audio clock's `/tr` above). Must exceed the
- *  worst-case RTT so a ping never queues behind the previous one (queueing
- *  inflates its own RTT sample). */
-export const CLOCK_PING_INTERVAL_MS = 50;
-/** Recent-sample ring the estimate is picked from (min-RTT rule, applied by
- *  the main-thread ClockSync over the worker's raw samples). NTP's
- *  clock-filter register is 8 slow samples; at the 50 ms cadence the window
- *  must still span a few SECONDS of congestion, hence 64 (~3.2 s). */
-export const CLOCK_SAMPLE_WINDOW = 64;
+/** Ping cadence while the socket is open. The ping/pong is now ONLY the
+ *  wall-time anchor for `sendAt` (StrudelDirt consumes wall-clock
+ *  timetags — AUDIO-CLOCK.md §5.2); the metronome is the audio clock's
+ *  `/tr` above. Crystal drift is ~100 ppm, so a 2 s re-measure keeps the
+ *  anchor within fractions of a millisecond. */
+export const CLOCK_PING_INTERVAL_MS = 2_000;
+/** Recent-sample ring the estimate is picked from (min-RTT rule, applied
+ *  by the main-thread ClockSync over the worker's raw samples) — 8 is
+ *  NTP's clock-filter register size (~16 s of congestion memory at the
+ *  2 s cadence). */
+export const CLOCK_SAMPLE_WINDOW = 8;
 /** Worker-side heartbeat watchdog poll cadence, derived: detection latency
  *  is the reply timeout plus at most one poll interval, so a fifth keeps it
  *  tight. */

@@ -92,8 +92,8 @@ export class WorkerClock {
     this.post(clockSample(srv + rtt / 2 - d1, rtt));
   }
 
-  /** One chained ping loop at the uniform fast cadence (first lock ≈ the
-   *  first pong). */
+  /** One chained ping loop — the wall-time anchor cadence (first ping fires
+   *  immediately, so the first lock is still ≈ the first pong). */
   private pingLoop(): void {
     const seq = this.sequence++;
     this.pending.set(seq, this.monotonicNow());

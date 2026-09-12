@@ -34,19 +34,17 @@ describe("ClockSync estimate", () => {
     expect(published[0]).toEqual({ offset: 30, rtt: 20 });
   });
 
-  it("throttles publishes but publishes immediately after reset", () => {
+  it("publishes every sample and resets to the unlocked estimate", () => {
     const advance = mockNow(10_000);
     const { sync, published } = makeSync();
 
     sync.onSample(clockSample(30, 20));
-    advance(50);
-    sync.onSample(clockSample(30, 20));
-    expect(published).toHaveLength(1); // second sample inside the throttle window
-
-    advance(500);
+    advance(550);
     sync.onSample(clockSample(12.5, 3));
-    expect(published).toHaveLength(2);
-    expect(published.at(-1)).toEqual({ offset: 12.5, rtt: 3 });
+    expect(published).toEqual([
+      { offset: 30, rtt: 20 },
+      { offset: 12.5, rtt: 3 },
+    ]);
 
     sync.reset();
     expect(sync.now()).toBe(10_550);

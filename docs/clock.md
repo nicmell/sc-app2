@@ -30,9 +30,9 @@ master (see AUDIO-CLOCK.md for the design's full arc):
   (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
   `subscribeClock` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the worker pings the
-  bridge at a fast fixed cadence while the socket is open, and each pong
-  becomes one raw `/clock/sample` that ClockSync filters into the offset
-  estimate.
+  bridge every 2 s while the socket is open — the wall-time anchor for
+  `sendAt`'s timetags — and each pong becomes one raw `/clock/sample` that
+  ClockSync filters into the offset estimate.
 
 Deliberate consequences: nothing keeps time while disconnected — Strudel
 stops with the session (its `unload()` already stops playback on the
@@ -52,7 +52,7 @@ byte-for-byte in both languages' test suites).
 ### Worker ⇄ bridge (over the session WebSocket)
 
 ```
-→ /clock/ping  seq:i          every CLOCK_PING_INTERVAL_MS (50 ms), socket open
+→ /clock/ping  seq:i          every CLOCK_PING_INTERVAL_MS (2 s), socket open
 ← /clock/pong  seq:i  srv:d   srv = bridge SystemTime, UNIX ms as f64
 ```
 
@@ -118,21 +118,23 @@ browser and bridge are different machines.
 
 - **Measurement** (`src/lib/worker/clock.ts`, `WorkerClock`) — beside the
   socket, in the worker's monotonic domain, at the uniform
-  `CLOCK_PING_INTERVAL_MS` (50 ms) cadence (first lock ≈ the first pong; no
-  burst needed). Every accepted pong posts ONE raw `/clock/sample
-  {offset, rtt}` up — offset already expressed over `Date.now()` (shared
-  across contexts), so the sample crosses the postMessage boundary
-  losslessly.
+  `CLOCK_PING_INTERVAL_MS` (2 s) cadence: the first ping fires on start, so
+  the first lock is still ≈ the first pong; after that the round-trip only
+  tracks crystal drift (~100 ppm) for `sendAt`'s wall-time anchor. Every
+  accepted pong posts ONE raw `/clock/sample {offset, rtt}` up — offset
+  already expressed over `Date.now()` (shared across contexts), so the
+  sample crosses the postMessage boundary losslessly.
 - **Filtering** (`src/lib/clock/ClockSync.ts`, main thread, composed by
-  OscClient) — folds samples into a ring of `CLOCK_SAMPLE_WINDOW` (64,
-  ~3.2 s at the 50 ms cadence), and the estimate is simply the
+  OscClient) — folds samples into a ring of `CLOCK_SAMPLE_WINDOW` (8 —
+  NTP's clock-filter register, ~16 s at the 2 s cadence), and the estimate
+  is simply the
   **minimum-RTT sample's offset** — NTP's clock-filter insight: queueing
   delay only ever _adds_ to RTT, so the fastest exchange carries the
   least-biased offset. No smoothing/slew: consumers convert domains only at
   stamp time (§6), so an estimate change merely shifts not-yet-stamped
   events. Living main-side, the estimate SURVIVES a worker respawn; only a
-  socket close resets it. Store publishes are throttled (~500 ms) — the
-  estimate refreshes at 50 ms but no consumer needs 20 Hz re-renders.
+  socket close resets it. Every sample publishes to the store (at 0.5 Hz
+  no throttle is needed).
 
 Each `CLOCK_*` constant carries its own rationale where it is defined
 (`src/constants/osc.ts`, the "bridge clock" block).

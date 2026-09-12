@@ -3,7 +3,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type OscMessage, formatOscArg, Synced } from "@sc-app/server-commands";
-import { REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { CLOCK_TRIGGER_ID, REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
 import { workerClient } from "@/lib/osc/WorkerClient";
@@ -15,16 +15,30 @@ const oscMessage = (address: string, ...args: OscMessage["args"]): OscMessage =>
 });
 
 describe("oscClient.handleReply", () => {
-  it("drives subscribeClock callbacks from the /clock/sample stream", () => {
+  it("drives subscribeClock callbacks from the audio engine's /tr ticks", () => {
     let now = 0;
     vi.spyOn(Date, "now").mockImplementation(() => now);
     const cb = vi.fn();
     const sub = oscClient.subscribeClock(100, cb);
     for (let i = 0; i < 4; i++) {
-      now += 50; // the worker's sample cadence
-      oscClient.handleReply(oscMessage("/clock/sample", 0, 1));
+      now += 50; // the 20 Hz tick cadence
+      oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 123.5));
     }
     expect(cb).toHaveBeenCalledTimes(2); // 200 ms at a 100 ms interval
+    sub.off();
+  });
+
+  it("lets foreign /tr ids fall through to the waiters", async () => {
+    let now = 0;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const cb = vi.fn();
+    const sub = oscClient.subscribeClock(100, cb);
+    const waited = oscClient.once("/tr", (m) => m.args[1] === 7);
+
+    now += 200;
+    oscClient.handleReply(oscMessage("/tr", 50, 7, 0.25)); // a plugin's SendTrig
+    await expect(waited).resolves.toMatchObject({ args: [50, 7, 0.25] });
+    expect(cb).not.toHaveBeenCalled(); // foreign id is not the metronome
     sub.off();
   });
 

@@ -8,7 +8,8 @@ import { expect, test } from "vitest";
 import { SynthDef, k, u } from "../src/index.js";
 import { A2K, BufWr, Impulse, In, Out, Phasor, SendTrig, SinOsc } from "../src/builders/index.js";
 
-// Constants mirrored from src/constants/osc.ts — same values as the Rust example.
+// Constants mirrored by src/constants/osc.ts and scripts/sc-startup.scd —
+// deliberate duplication, this package stays standalone; keep in lockstep.
 const PHASE_BUS = 1000;
 const SHARED_FRAMES = 8192;
 const CLOCK_TRIGGER_ID = 4242;
@@ -69,7 +70,7 @@ function buildClockTyped(): Uint8Array {
   const phase = Phasor.ar().trig(0).rate(1).start(0).end(SHARED_FRAMES).resetPos(0).build(def);
   Out.ar().bus(PHASE_BUS).channelsArray([phase]).build(def);
   const pkr = A2K.kr().in(phase).build(def);
-  const tick = Impulse.kr().freq(10).phase(0).build(def);
+  const tick = Impulse.kr().freq(20).phase(0).build(def);
   SendTrig.kr().in(tick).id(CLOCK_TRIGGER_ID).value(pkr).build(def);
   return def.toBytes();
 }
@@ -79,7 +80,7 @@ function buildClockLowLevel(): Uint8Array {
   const phase = def.addUgen("Phasor", "audio", [k(0), k(1), k(0), k(SHARED_FRAMES), k(0)], 1, 0);
   def.addUgen("Out", "audio", [k(PHASE_BUS), u(phase)], 0, 0);
   const pkr = def.addUgen("A2K", "control", [u(phase)], 1, 0);
-  const tick = def.addUgen("Impulse", "control", [k(10), k(0)], 1, 0);
+  const tick = def.addUgen("Impulse", "control", [k(20), k(0)], 1, 0);
   def.addUgen("SendTrig", "control", [u(tick), k(CLOCK_TRIGGER_ID), u(pkr)], 0, 0);
   return def.toBytes();
 }

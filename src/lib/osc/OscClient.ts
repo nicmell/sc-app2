@@ -18,8 +18,10 @@
 import {
   ADDR_N_GO,
   ADDR_SYNCED,
+  ADDR_TR,
   AddToTail,
   CLOCK_SAMPLE_ADDRESS,
+  Tr,
   dFree,
   dRecv,
   gFreeAll,
@@ -39,7 +41,7 @@ import {
   type DecodedScopeChunk,
   type OscMessage,
 } from "@sc-app/server-commands";
-import { REPLY_TIMEOUT_MS, TRANSPORT_STATUS } from "@/constants/osc";
+import { CLOCK_TRIGGER_ID, REPLY_TIMEOUT_MS, TRANSPORT_STATUS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { appStore } from "@/stores/store";
 import { workerClient, type WorkerClient } from "./WorkerClient";
@@ -94,8 +96,9 @@ export class OscClient {
   /** /scope/chunk handlers keyed by subId (one per loaded sc-scope) — the
    *  decoded chunk dispatches straight to its subscriber from handleReply. */
   private readonly scopeChunkSubs = new Map<number, (chunk: DecodedScopeChunk) => void>();
-  /** The main-thread half of the bridge clock: min-RTT filtering of the
-   *  worker's raw samples + the sample-driven callback registry. */
+  /** The main-thread half of the app clock: min-RTT filtering of the
+   *  worker's raw samples + the tick-driven callback registry (the
+   *  metronome is the audio engine's /tr — see AUDIO-CLOCK.md). */
   private readonly clock: ClockSync;
 
   constructor(private readonly worker: WorkerClient) {
@@ -405,9 +408,9 @@ export class OscClient {
     };
   }
 
-  /** Register a sample-driven clock callback at (a quantization of)
-   *  `intervalMs`. Purely local; it fires only while the socket is open and
-   *  `/clock/sample`s flow — nothing keeps time while disconnected. */
+  /** Register a tick-driven clock callback at (a quantization of)
+   *  `intervalMs`. Purely local; it fires only while the audio engine's
+   *  `/tr` ticks flow — nothing keeps time while disconnected. */
   subscribeClock(intervalMs: number, cb: () => void): { id: number; off: () => void } {
     return this.clock.subscribe(intervalMs, cb);
   }
@@ -439,6 +442,12 @@ export class OscClient {
   handleReply(reply: OscMessage): void {
     if (reply.address === CLOCK_SAMPLE_ADDRESS) {
       this.clock.onSample(reply);
+      return;
+    }
+    // The audio engine's clock tick (the __global_clock__ synth) — the
+    // metronome. Foreign /tr ids fall through: plugins may SendTrig too.
+    if (reply.address === ADDR_TR && Tr.triggerId(reply) === CLOCK_TRIGGER_ID) {
+      this.clock.onTick();
       return;
     }
     // One-shot waiters first — the message still falls through to the

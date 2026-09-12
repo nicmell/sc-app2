@@ -56,16 +56,16 @@ describe("ClockSync estimate", () => {
   });
 });
 
-describe("ClockSync sample-driven callbacks", () => {
-  it("fires listeners at their cadence, quantized to sample arrival", () => {
+describe("ClockSync tick-driven callbacks", () => {
+  it("fires listeners at their cadence, quantized to tick arrival", () => {
     const advance = mockNow(0);
     const { sync } = makeSync();
     const cb = vi.fn();
     sync.subscribe(100, cb);
 
     for (let i = 0; i < 8; i++) {
-      advance(50); // 50 ms sample cadence
-      sync.onSample(clockSample(0, 1));
+      advance(50); // the 20 Hz tick cadence
+      sync.onTick();
     }
     // 400 ms elapsed at a 100 ms interval → 4 fires.
     expect(cb).toHaveBeenCalledTimes(4);
@@ -77,15 +77,15 @@ describe("ClockSync sample-driven callbacks", () => {
     const cb = vi.fn();
     sync.subscribe(100, cb);
 
-    advance(1_000); // long stall (disconnect, bridge hiccup)
-    sync.onSample(clockSample(0, 1));
+    advance(1_000); // long stall (disconnect, engine hiccup)
+    sync.onTick();
     expect(cb).toHaveBeenCalledTimes(1);
 
     advance(50);
-    sync.onSample(clockSample(0, 1));
+    sync.onTick();
     expect(cb).toHaveBeenCalledTimes(1); // realigned: next due a full interval later
     advance(50);
-    sync.onSample(clockSample(0, 1));
+    sync.onTick();
     expect(cb).toHaveBeenCalledTimes(2);
   });
 
@@ -101,8 +101,21 @@ describe("ClockSync sample-driven callbacks", () => {
     subA.off(); // second off is a no-op
     sync.reset(); // listeners survive the estimate reset
     advance(100);
-    sync.onSample(clockSample(0, 1));
+    sync.onTick();
     expect(a).not.toHaveBeenCalled();
     expect(b).toHaveBeenCalledTimes(1);
+  });
+
+  it("samples are measurement only — they never fire listeners", () => {
+    const advance = mockNow(0);
+    const { sync } = makeSync();
+    const cb = vi.fn();
+    sync.subscribe(100, cb);
+
+    for (let i = 0; i < 8; i++) {
+      advance(50);
+      sync.onSample(clockSample(0, 1));
+    }
+    expect(cb).not.toHaveBeenCalled();
   });
 });

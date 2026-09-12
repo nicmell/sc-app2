@@ -1,9 +1,12 @@
 # The audio-clock transport — groundwork
 
-Status: **proposal**, written against the post-refactor OSC stack (the
-three-message bridge clock documented in `docs/clock.md`). Nothing here is
-implemented; this document is the design basis for the next clock, with the
-verified integration facts and the known obstacles collected in one place.
+Status: **steps 1–2 of §6 LANDED** (the clock synth ships from
+`scripts/sc-startup.scd` and its `/tr` tick is the main thread's metronome
+— see `docs/clock.md` for the current state); steps 3–4 (one-way estimator
+math, ping retirement) remain proposals. Decisions fixed at landing time:
+**20 Hz** tick rate, **sc-startup ownership** (first-client-wins stays
+future work), **phase-only payload**, and a HARD switch — the stack must
+load the clock synth, there is no sample fallback for the callbacks.
 
 ## 1. Where we are, and what is still wrong
 
@@ -221,13 +224,15 @@ session.
 
 ## 6. Migration sketch
 
-1. **Install the clock synth** (ownership per §5.3) and let `/tr` id 4242
-   flow — it already reaches every client through the fan-out; add the
-   `/tr`-by-id routing and log-skip on the frontend.
-2. **Feed `ClockSync` from ticks**: the callback registry and watchdog
-   staleness switch their trigger from `/clock/sample` to the tick; the
-   estimator gains the one-way skew/anchor math (regression + min
-   residual).
+1. **[DONE] Install the clock synth** (ownership per §5.3: sc-startup.scd)
+   and let `/tr` id 4242 flow — it already reaches every client through
+   the fan-out; the `/tr`-by-id routing and log-skip live in
+   `OscClient.handleReply` and the logging middleware.
+2. **[DONE, callbacks half] Feed `ClockSync` from ticks**: the callback
+   registry fires from `onTick` (`/tr`), samples are measurement-only
+   (watchdog liveness already counts any non-pong inbound message, ticks
+   included). The one-way skew/anchor math on the tick's phase payload is
+   step 3.
 3. **Retire the fast ping loop**: ping/pong drops to the slow wall-anchor
    cadence (or to Tauri-only, where offset ≈ 0 makes even that optional);
    `/clock/sample` disappears; `WorkerClock` shrinks to (almost) nothing.

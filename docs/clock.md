@@ -1,4 +1,4 @@
-# Bridge clock synchronization & the sample-driven scheduler
+# Bridge clock synchronization & the tick-driven scheduler
 
 How the app keeps ONE timebase across the webview, the OSC worker, the Rust
 bridge, and scsynth — with a three-message protocol. Companion to
@@ -22,14 +22,22 @@ Two distinct problems share one solution:
    "bridge time" — the clock of the machine running the bridge and scsynth —
    available everywhere timetags are stamped.
 
-One message solves both at once: the worker pings the bridge at a fast fixed
-cadence while the socket is open, and each pong becomes one raw
-`/clock/sample` posted to the main thread. The sample stream is
-simultaneously the **measurement** (ClockSync filters it into the offset
-estimate) and the **metronome** (clock callbacks fire off sample arrival).
-Deliberate consequence: nothing keeps time while disconnected — Strudel
+Two inbound streams solve the two problems, each owned by its natural
+master (see AUDIO-CLOCK.md for the design's full arc):
+
+- **The metronome is the AUDIO ENGINE itself**: the `__global_clock__`
+  synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/tr` tick
+  (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
+  `subscribeClock` callback fires off its arrival.
+- **The measurement is the ping/pong round-trip**: the worker pings the
+  bridge at a fast fixed cadence while the socket is open, and each pong
+  becomes one raw `/clock/sample` that ClockSync filters into the offset
+  estimate.
+
+Deliberate consequences: nothing keeps time while disconnected — Strudel
 stops with the session (its `unload()` already stops playback on the
-connection loss).
+connection loss) — and the stack MUST load the clock synth: without it the
+callbacks stay silent (hard requirement, no sample fallback).
 
 ## 2. Protocol — three messages
 
@@ -67,6 +75,21 @@ thread; the sample is what crosses. `OscClient.handleReply` routes samples
 ahead of everything else and the logging middleware skips them (the same
 `/scope/chunk` treatment). There are no downward clock messages at all: the
 subscription registry is purely main-side (§5).
+
+### scsynth → everyone (the metronome)
+
+```
+← /tr  nodeId:i 4242:i phase:f   the __global_clock__ synth, 20 Hz
+```
+
+`/tr` is scsynth's fixed SendTrig address (the compiler cannot encode a
+custom SendReply address — AUDIO-CLOCK.md §5.1), so the tick is
+discriminated by trigger id: `handleReply` routes `CLOCK_TRIGGER_ID` to
+the metronome and lets every other `/tr` fall through to the waiters (a
+plugin's own SendTrig stays fully usable, and logged). The value is the
+clock synth's Phasor phase — unused today, the anchor for the one-way
+estimator of AUDIO-CLOCK.md step 3. The bridge fan-out broadcasts scsynth
+traffic to every session, so ALL clients share the same ticks.
 
 ## 3. Clock domains (the load-bearing rules)
 
@@ -114,20 +137,22 @@ browser and bridge are different machines.
 Each `CLOCK_*` constant carries its own rationale where it is defined
 (`src/constants/osc.ts`, the "bridge clock" block).
 
-## 5. Sample-driven clock callbacks
+## 5. Tick-driven clock callbacks
 
 `oscClient.subscribeClock(intervalMs, cb)` registers a purely LOCAL listener
-in ClockSync — nothing crosses the worker boundary. On every sample: a
+in ClockSync — nothing crosses the worker boundary. On every `/tr` tick: a
 listener fires when `Date.now()` passes its `nextDueAt`, then re-aims one
-interval ahead, with NO catch-up (a long gap — disconnect, bridge hiccup —
+interval ahead, with NO catch-up (a long gap — disconnect, engine hiccup —
 yields one fire and a realign, never a burst). Intervals therefore quantize
-to the 50 ms sample cadence; every consumer tolerates that (zyklus asks for
-100 ms, everything else is ≥1 s).
+to the tick cadence (`CLOCK_TICK_FREQ_HZ`, 20 Hz = 50 ms); every consumer
+tolerates that (zyklus asks for 100 ms, everything else is ≥1 s).
 
-Lifecycle: callbacks fire only while the socket is open and samples flow —
-by design, nothing keeps time while disconnected. Listener registrations
-belong to the consumers (mount/unmount), survive reconnects and worker
-respawns for free (they are plain main-side state), and need no replay.
+Lifecycle: callbacks fire only while the socket is open and the clock synth
+ticks — by design, nothing keeps time while disconnected, and the metronome
+IS the audio engine: a stalled DSP graph visibly stalls the app's sense of
+time instead of lying about it. Listener registrations belong to the
+consumers (mount/unmount), survive reconnects and worker respawns for free
+(they are plain main-side state), and need no replay.
 
 ## 6. Consumers
 
@@ -136,7 +161,8 @@ respawns for free (they are plain main-side state), and need no replay.
 1. _Scheduling_: per-element `setInterval`/`clearInterval` shims over
    `oscClient.subscribeClock` are injected into `StrudelMirror` (forwarded to
    `repl()` → `Cyclist` → zyklus, which asks for 100 ms), so the pattern
-   scheduler wakes on sample arrival — immune to background throttling.
+   scheduler wakes on the audio engine's tick arrival — immune to
+   background throttling.
    `getTime` stays `performance.now()/1000`: **monotonic-local, deliberately
    NOT bridge time** — an offset step entering Cyclist's phase math would
    stall (backward) or drop haps (forward). On connection loss the plugin
@@ -153,8 +179,8 @@ respawns for free (they are plain main-side state), and need no replay.
    because scsynth shares the bridge host clock.
 
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
-subscription — meaningful only while connected, which is exactly when
-samples flow.
+subscription — meaningful only while connected, which is exactly when the
+clock synth ticks.
 
 **Header clock (`DashboardHeader`).** The bridge-time wall clock in the top
 bar: `clockNow()` re-read on a 1 s subscription, with the current offset
@@ -185,7 +211,7 @@ all once the socket died.
 
 ## 8. Failure modes
 
-- **No pong / bridge down**: offset stays 0 (local time); no samples → no
+- **No pong / bridge down**: offset stays 0 (local time); no ticks → no
   clock callbacks; within `STATUS_REPLY_TIMEOUT_MS` the watchdog closes the
   session.
 - **Disconnect**: pings stop, estimate resets to 0, callbacks stop; the
@@ -197,6 +223,10 @@ all once the socket died.
 - **Worker crash**: respawn; the estimate survives (it lives main-side) and
   the fresh worker resumes pinging on the next open; listener registrations
   are main-side state and need no replay.
+- **Clock synth dead, scsynth alive**: callbacks stall while /status.reply
+  keeps the session open — the visible symptom is a frozen header clock.
+  Re-installing the synth is AUDIO-CLOCK.md §5.3/§5.4 territory (future);
+  today the fix is restarting the stack.
 - **Wall-clock step (NTP adjust, suspend/resume)**: RTT is monotonic and
   unaffected; the offset estimate re-converges within at most the 64-sample
   window (~3.2 s), shifting only not-yet-stamped timetags.

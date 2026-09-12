@@ -1,16 +1,18 @@
-// The main-thread half of the bridge clock (docs/clock.md): pure math over
-// the worker's raw `/clock/sample` stream, which is BOTH the measurement
-// and the metronome —
+// The main-thread half of the app clock (docs/clock.md, AUDIO-CLOCK.md).
+// Two independent inbound streams, each owning one job:
 //
-// - Estimator: the min-RTT filter over the sample window, `now()` = wall
-//   time + offset. Samples arrive already expressed in the shared
-//   `Date.now()` domain, so nothing measures here; living main-side, the
-//   estimate survives a worker respawn (only a socket close resets it).
-// - Sample-driven callbacks: `subscribe(intervalMs, cb)` registers a purely
-//   LOCAL listener fired from sample arrival (postMessage delivery is not
-//   background-throttled). Callbacks therefore run only while the socket is
-//   open and samples flow — by design: nothing keeps time while
-//   disconnected.
+// - Estimator (`onSample`, fed by the worker's raw `/clock/sample`s): the
+//   min-RTT filter over the sample window, `now()` = wall time + offset.
+//   Samples arrive already expressed in the shared `Date.now()` domain, so
+//   nothing measures here; living main-side, the estimate survives a
+//   worker respawn (only a socket close resets it).
+// - Metronome (`onTick`, fed by the AUDIO ENGINE's `/tr` ticks — the
+//   `__global_clock__` synth loaded by scripts/sc-startup.scd):
+//   `subscribe(intervalMs, cb)` registers a purely LOCAL listener fired
+//   from tick arrival (postMessage delivery is not background-throttled).
+//   Callbacks therefore run only while the socket is open and the clock
+//   synth ticks — by design: nothing keeps time while disconnected, and
+//   the stack MUST load the clock synth.
 //
 // Composed by OscClient.
 
@@ -51,9 +53,10 @@ export class ClockSync {
     this.publish = publish;
   }
 
-  /** Register a sample-driven callback at (a quantization of) `intervalMs`.
+  /** Register a tick-driven callback at (a quantization of) `intervalMs`.
    *  Purely local — nothing crosses the worker boundary; the callback fires
-   *  only while samples flow (socket open). */
+   *  only while the audio engine's `/tr` ticks flow (socket open + clock
+   *  synth running). */
   subscribe(intervalMs: number, cb: () => void): { id: number; off: () => void } {
     const id = this.nextListenerId++;
     this.listeners.set(id, { intervalMs, cb, nextDueAt: Date.now() + intervalMs });
@@ -65,18 +68,13 @@ export class ClockSync {
     };
   }
 
-  /** Fold one raw `/clock/sample` into the window, publish (throttled), and
-   *  run the due callbacks.
-   *
-   *  Estimate: NTP's clock-filter rule — trust the minimum-delay sample in
-   *  the window; queueing delay only ever ADDS to rtt, so the fastest
-   *  exchange carries the least-biased offset. Consumers convert clock
-   *  domains at stamp time, so a small estimate change only shifts
-   *  not-yet-stamped events; no smoothing needed.
-   *
-   *  Callbacks: each listener fires when `now` passes its `nextDueAt`, then
-   *  re-aims one interval ahead — with NO catch-up (a long gap yields one
-   *  fire and a realign, never a burst). */
+  /** Fold one raw `/clock/sample` into the window and publish (throttled).
+   *  NTP's clock-filter rule — trust the minimum-delay sample in the
+   *  window; queueing delay only ever ADDS to rtt, so the fastest exchange
+   *  carries the least-biased offset. Consumers convert clock domains at
+   *  stamp time, so a small estimate change only shifts not-yet-stamped
+   *  events; no smoothing needed. The MEASUREMENT stream only — the
+   *  metronome is `onTick`. */
   onSample(message: OscMessage): void {
     const offset = ClockSample.offset(message);
     const rtt = ClockSample.rtt(message);
@@ -91,7 +89,15 @@ export class ClockSync {
       this.lastPublishAt = now;
       this.publish({ offset: best.offset, rtt: best.rtt });
     }
+  }
 
+  /** One `/tr` tick from the audio engine's `__global_clock__` synth — the
+   *  METRONOME: run the due callbacks. Each listener fires when `now`
+   *  passes its `nextDueAt`, then re-aims one interval ahead — with NO
+   *  catch-up (a long gap yields one fire and a realign, never a burst).
+   *  Intervals quantize to the tick rate (`CLOCK_TICK_FREQ_HZ`). */
+  onTick(): void {
+    const now = Date.now();
     for (const listener of this.listeners.values()) {
       if (now >= listener.nextDueAt) {
         listener.cb();

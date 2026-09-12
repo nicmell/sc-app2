@@ -35,7 +35,7 @@ oscClient.handleReply ◄──────────────────�
 | `../worker/transport.ts` | The byte `Transport` — ONLY the raw WebSocket: open/close/send bytes, open/frame/error/close events. No codec, no protocol.                                                                                                                                                                                                                                                                |
 | `../worker/worker.ts`    | Web Worker entry: thin glue composing the endpoint over the worker scope.                                                                                                                                                                                                                                                                                                                  |
 | `../worker/clock.ts`     | The `WorkerClock` — the bridge clock's worker half: the uniform 50 ms ping loop and pending map beside the socket, posting ONE raw `/clock/sample` per accepted pong (RTT stays in the worker's `performance.now()` domain), plus the heartbeat watchdog on worker timers (stale inbound traffic → onDead, surfaced as a transport error; the pong deliberately does not count).           |
-| `../clock/ClockSync.ts`  | The clock's FILTERING half, on the main thread (composed by OscClient): the min-RTT sample window, `now()`, the throttled store publish, and the sample-driven callback registry (purely local — callbacks fire only while samples flow; the estimate survives a worker respawn).                                                                                                          |
+| `../clock/ClockSync.ts`  | The clock's main-thread half (composed by OscClient): the min-RTT sample window, `now()`, the throttled store publish, and the TICK-driven callback registry — the metronome is the audio engine's `/tr` (id 4242, 20 Hz); callbacks fire only while it ticks. The estimate survives a worker respawn.                                                                                     |
 
 ## Worker protocol
 
@@ -63,6 +63,9 @@ peers. Ping/pong uses the WebSocket so the offset estimate measures the
 transport that carries scheduled OSC: ping carries `[seq:i]` every 50 ms
 while the socket is open; pong carries `[seq:i, srv:d]`, with the worker
 retaining the monotonic send time by sequence. The per-pong `/clock/sample`
-is both the measurement and the main thread's metronome — clock callbacks
-fire only while connected (nothing keeps time offline; see docs/clock.md).
-`clockNow()` is wall time plus the latest estimated offset.
+is the measurement; the main thread's METRONOME is the audio engine's own
+`/tr` tick (the `__global_clock__` synth, trigger id 4242 at 20 Hz —
+AUDIO-CLOCK.md), routed by trigger id in `handleReply` so a plugin's own
+SendTrig passes untouched. Clock callbacks fire only while connected and
+ticking (nothing keeps time offline; see docs/clock.md). `clockNow()` is
+wall time plus the latest estimated offset.

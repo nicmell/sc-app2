@@ -27,12 +27,23 @@ export const TRANSPORT_STATUS = {
 
 export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_STATUS];
 
+// ── audio clock (see AUDIO-CLOCK.md) ──────────────────────────────────────
+
+/** SendTrig trigger id of the `__global_clock__` synth loaded by
+ *  scripts/sc-startup.scd — its `/tr` ticks are the main thread's
+ *  METRONOME (they drive every `subscribeClock` callback). Mirrored by the
+ *  synthdef-compiler parity fixture. */
+export const CLOCK_TRIGGER_ID = 4242;
+/** The clock synth's tick rate. Must stay at or above TWICE the finest
+ *  `subscribeClock` cadence a consumer asks for — zyklus asks the
+ *  sc-strudel setInterval shim for 100 ms. The VALUE's owner is
+ *  sc-startup.scd's `Impulse.kr` — keep the two in lockstep. */
+export const CLOCK_TICK_FREQ_HZ = 20;
+
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
-/** Ping cadence while the socket is open. The per-pong `/clock/sample` is
- *  ALSO the main thread's metronome (sample-driven clock callbacks), so this
- *  must stay at or below HALF the finest consumer interval — zyklus asks
- *  the sc-strudel setInterval shim for 100 ms. It must still exceed the
+/** Ping cadence while the socket is open — the estimator's sample rate
+ *  (the metronome is the audio clock's `/tr` above). Must exceed the
  *  worst-case RTT so a ping never queues behind the previous one (queueing
  *  inflates its own RTT sample). */
 export const CLOCK_PING_INTERVAL_MS = 50;

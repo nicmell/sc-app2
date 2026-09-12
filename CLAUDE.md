@@ -23,6 +23,9 @@ sweep every usage in the repo (examples, tests, docs) in the same commit.
 - `scripts/e2e/README.md` — the e2e framework's design decisions.
 - `AUDIO-CLOCK.md` — the audio-clock transport proposal (the next clock:
   scsynth-emitted ticks; design basis + known obstacles).
+- `PURE-BRIDGE.md` — the pure-bridge direction (Italian): clock handling
+  to sclang, repo-owned StrudelDirt extensions, session client ids,
+  verified SC-internals facts + the recommended sequence.
 - `TODO.md` — the backlog (roadmap steps, follow-ups, accepted deferrals).
 
 ## Documentation policy

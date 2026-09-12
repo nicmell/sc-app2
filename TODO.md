@@ -13,48 +13,15 @@ step depends on live inline; everything here is UNSTARTED unless noted.
    wire ping/pong pair + `core/clock.rs`, gated on the StrudelDirt
    resolution (plus the shared-transport-origin idea for cross-client
    PHASE alignment); obstacles tracked in the doc.
-1. **The pure bridge** (direction, decided): the bridge sheds every
-   protocol ROLE until it is routing + sessions only. The arcs, each its
-   own feasibility pass:
-   - **StrudelDirt via repo-owned class extensions** (no fork:
-     start-strudeldirt.sh already generates the sclang `-l` config — add a
-     repo classes dir to its includePaths; pin the quark commit in the
-     start script regardless). First: accept RELATIVE-delta `/dirt/play`
-     (kills the wall anchor → AUDIO-CLOCK §5.2 resolved; the wire
-     ping/pong + core/clock.rs die outright). Then: AUDIO-DOMAIN targets —
-     sclang is a `s.notify` client and already RECEIVES the 20 Hz `/tr`
-     (currently dropped): a sclang-side tick anchor maps audio-time
-     targets to `makeBundle` latency, one engine timeline end to end.
-     Cost to verify: a delta consumed at arrival inherits uplink jitter
-     that an absolute timetag absorbs up to the lookahead.
-   - **Clock handling moves to sclang** (only if some wall anchor must
-     survive the above): a repo-owned OSCdef answers `/clock/ping` via a
-     config-only peer route. Constraints mapped: the reply must originate
-     from sclang's langPort (connected peer sockets drop foreign
-     sources); the pong rides the shared fan-out, so the wire grows a
-     client id (next arc) and the frontend filters; `srv` =
-     `Date.getDate.rawSeconds` (sub-µs, reads system_clock live — NOT
-     the 20 s-resynced timetag offset), encoded as split ints (sclang's
-     NetAddr emits float32 — a raw f64 Unix-ms quantizes to ~2 min);
-     gLangMutex serializes the responder behind SuperDirt (asymmetric
-     srv bias min-RTT cannot remove) and the anchor dies with sclang.
-     Deletes ws.rs's interception arm + core/clock.rs (byte test
-     included).
-   - **Session ↔ client id, 1:1**: mint a small per-session client id
-     beside the node-id block (core/blocks.rs) and carry it in
-     SessionInfo — pings/pongs and any future per-session traffic on the
-     shared fan-out become attributable WITHOUT bridge-side filtering.
-   - **Scope without the bridge**: replace the SHM pipeline + `/scope/*`
-     family with frontend-PACED buffer readback (`/b_getn` — `/b_read`
-     is the disk loader) timed by the synced audio clock. Honest
-     obstacles before committing: `/b_getn` reply-size and UDP datagram
-     bounds, ~190 KB/s per 2-ch scope at today's chunk cadence, loss
-     handling — the SHM design exists because of exactly these; needs a
-     real feasibility pass, not a swap.
-   - **Further sync investigations**: LinkClock (Ableton Link — tempo +
-     beat-phase across apps and machines; a candidate transport for the
-     shared-transport-origin idea); scsynth's `actualSampleRate` from
-     /status.reply as a rate feed refining the tick tracker.
+1. **The pure bridge** (`PURE-BRIDGE.md`) — direction decided: the
+   bridge sheds every protocol role until it is routing + sessions only.
+   The arcs (design, verified facts, and sequencing live in the doc):
+   repo-owned StrudelDirt class extensions (relative-delta `/dirt/play`
+   resolves AUDIO-CLOCK §5.2 → the wire ping/pong + core/clock.rs die,
+   then audio-domain targets off the `/tr` sclang already receives);
+   session ↔ client id 1:1; the sclang clock responder as the plan-B
+   wall anchor; scope without the bridge (gated on a `/b_getn`
+   feasibility pass); LinkClock + actualSampleRate investigations.
 2. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

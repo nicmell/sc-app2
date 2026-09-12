@@ -31,7 +31,6 @@
 
 pub mod blocks;
 pub mod bridge;
-pub mod clock;
 pub mod config;
 pub mod layouts;
 pub mod logger;

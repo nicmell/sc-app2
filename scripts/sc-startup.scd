@@ -34,6 +34,11 @@ s.doWhenBooted({
     // sclang — visible in every boot log, the e2e's included.
     ScApp.banner;
 
+    // The wall-clock anchor: answers /clock/ping (routed here by the
+    // bridge's clock peer). No server dependency — register first.
+    ScAppClock.start;
+    "clock responder ready (/clock/ping -> /clock/pong)".postln;
+
     // Register for async notifications and wait for /done /notify.
     s.notify;
     s.sync;

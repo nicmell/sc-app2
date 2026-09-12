@@ -58,12 +58,12 @@ inbound blobs remain `Uint8Array` values. Each inbound message feeds
 `handleReply` directly (any wire bundle was already flattened in the
 endpoint).
 
-`/scope/*` and `/clock/*` are bridge-internal families and never route to UDP
-peers. Ping/pong uses the WebSocket so the offset estimate measures the
-transport that carries scheduled OSC: ping carries `[seq:i]` (one per 2 s
-of ticks, originated by ClockSync on the MAIN thread and sent down the
-ordinary path); pong carries `[seq:i, srv:d]` and flows back up as an
-ordinary message to `handleReply` — the postMessage boundary has NO clock
+`/scope/*` is the one bridge-internal family; `/clock/*` routes to the
+"clock" peer (sclang's ScAppClock on 57120) like any other traffic. Ping
+carries `[clientId:i, seq:i]` (one per 2 s of ticks, originated by
+ClockSync on the MAIN thread); the pong `[clientId:i, seq:i, secs:i,
+fracMs:f]` rides the shared fan-out back to every session and is picked
+out by clientId in `handleReply` — the postMessage boundary has NO clock
 vocabulary. The METRONOME is the audio engine's own `/tr` tick (the
 `__global_clock__` synth, trigger id 4242 at 20 Hz — AUDIO-CLOCK.md),
 routed by trigger id in `handleReply` so a plugin's own SendTrig passes

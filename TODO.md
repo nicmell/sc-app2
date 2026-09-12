@@ -5,25 +5,22 @@ step depends on live inline; everything here is UNSTARTED unless noted.
 
 ## Roadmap (the big steps)
 
-0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — steps 1–4 LANDED,
-   step 5 PARTIAL (the `__global_clock__` synth ships from sc-startup.scd;
-   its `/tr` tick is the metronome AND the only liveness signal; the main
-   thread originates the 2 s wall-anchor ping riding the metronome; the
-   worker is clock-free — `/clock/sample` is gone). Remaining: only the
-   wire ping/pong pair + `core/clock.rs`, gated on the StrudelDirt
-   resolution (plus the shared-transport-origin idea for cross-client
-   PHASE alignment); obstacles tracked in the doc.
-1. **The pure bridge** (`PURE-BRIDGE.md`) — direction decided; §3.1
-   (deps as pinned submodules + the repo-owned sclang classlib
-   scripts/sc-classes) LANDED. The bridge sheds every protocol role
-   until it is routing + sessions only. The remaining arcs (design,
-   verified facts, and sequencing live in the doc):
-   repo-owned StrudelDirt class extensions (relative-delta `/dirt/play`
-   resolves AUDIO-CLOCK §5.2 → the wire ping/pong + core/clock.rs die,
-   then audio-domain targets off the `/tr` sclang already receives);
-   session ↔ client id 1:1; the sclang clock responder as the plan-B
-   wall anchor; scope without the bridge (gated on a `/b_getn`
-   feasibility pass); LinkClock + actualSampleRate investigations.
+0. **The audio-clock transport** (`AUDIO-CLOCK.md`) — ALL steps LANDED:
+   the `__global_clock__` synth ships from sc-startup.scd, its `/tr`
+   tick is the metronome AND the only liveness signal, dirt events carry
+   a relative delta (`/dirt/play/in` — §5.2 resolved), and Rust carries
+   zero clock code (the surviving ping/pong is sclang's non-musical wall
+   anchor). Still open: the shared-transport-origin idea for
+   cross-client PHASE alignment (see also PURE-BRIDGE §3.7 LinkClock).
+1. **The pure bridge** (`PURE-BRIDGE.md`) — §3.1 (submodule deps + the
+   repo-owned sclang classlib), §3.2 (relative-delta `/dirt/play/in`)
+   and §3.5 (the sclang clock responder — the wall anchor kept as a
+   non-musical convenience) LANDED: the bridge no longer owns the clock
+   role. Remaining arcs (design and sequencing in the doc): audio-domain
+   targets off the `/tr` sclang already receives (§3.3); session ↔
+   client id 1:1 (§3.4 — replaces ClockSync's provisional random id);
+   scope without the bridge (gated on a `/b_getn` feasibility pass);
+   LinkClock + actualSampleRate investigations.
 2. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

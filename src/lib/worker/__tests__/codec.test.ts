@@ -23,20 +23,23 @@ describe("OSC worker codec", () => {
     });
   });
 
-  it("encodes clock ping as an int-only message", () => {
-    const bytes = encode(clockPing(7));
-    expect(new TextDecoder().decode(bytes)).toContain(",i");
-    expect(decode(bytes)).toEqual({ address: "/clock/ping", args: [7] });
+  it("encodes clock ping as an int-pair message", () => {
+    const bytes = encode(clockPing(41, 7));
+    expect(new TextDecoder().decode(bytes)).toContain(",ii");
+    expect(decode(bytes)).toEqual({ address: "/clock/ping", args: [41, 7] });
   });
 
-  it("decodes the Rust clock pong double fixture", () => {
+  it("decodes the sclang clock pong fixture (keep in sync with ScAppClock.sc)", () => {
+    // [clientId:i=7, seq:i=3, secs:i=1_700_000_000, fracMs:f=250.5] — the
+    // split encoding NetAddr can emit (no OSC doubles in sclang).
     const bytes = new Uint8Array([
-      0x2f, 0x63, 0x6c, 0x6f, 0x63, 0x6b, 0x2f, 0x70, 0x6f, 0x6e, 0x67, 0x00, 0x2c, 0x69, 0x64,
-      0x00, 0x00, 0x00, 0x00, 0x07, 0x42, 0x78, 0xbc, 0xfe, 0x56, 0x80, 0x08, 0x00,
+      0x2f, 0x63, 0x6c, 0x6f, 0x63, 0x6b, 0x2f, 0x70, 0x6f, 0x6e, 0x67, 0x00, 0x2c, 0x69, 0x69,
+      0x69, 0x66, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x03, 0x65, 0x53,
+      0xf1, 0x00, 0x43, 0x7a, 0x80, 0x00,
     ]);
     expect(decode(bytes)).toEqual({
       address: "/clock/pong",
-      args: [7, 1_700_000_000_000.5],
+      args: [7, 3, 1_700_000_000, 250.5],
     });
   });
 

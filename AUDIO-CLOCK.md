@@ -1,16 +1,16 @@
 # The audio-clock transport — groundwork
 
-Status: **§6 steps 1–4 LANDED, step 5 PARTIAL** — the clock synth ships
-from `scripts/sc-startup.scd`, its `/tr` tick is the main thread's
-metronome AND the session's only liveness signal, ping/pong is demoted to
-the 2 s wall anchor originated by the MAIN thread (riding the metronome),
-`/clock/sample` is gone and the worker carries zero clock code (only the
-tick-stamped `Watchdog`), the one-way `TickTracker` exposes
-`audioNow()`/skew, and the rate-disciplined `SlewedClock` gives Strudel a
-step-free `getTime` locked to the engine rate (see `docs/clock.md` for
-the current state). Remaining: step 5's wire half (the ping/pong pair +
-`core/clock.rs`), gated on the §5.2 resolution. Decisions fixed at
-landing time: **20 Hz** tick rate, **sc-startup ownership**
+Status: **§6 COMPLETE (steps 1–5 LANDED)** — the clock synth ships from
+`scripts/sc-startup.scd`, its `/tr` tick is the main thread's metronome
+AND the session's only liveness signal, dirt events carry a RELATIVE
+delta (`/dirt/play/in`, resolving §5.2 — nothing musical consumes wall
+time), the worker and Rust carry ZERO clock code (`core/clock.rs` and
+the ws.rs interception are gone; the surviving ping/pong is sclang's
+non-musical wall anchor, `ScAppClock` behind an ordinary "clock" peer
+route — PURE-BRIDGE §3.5), the one-way `TickTracker` exposes
+`audioNow()`/skew, and the rate-disciplined `SlewedClock` gives Strudel
+a step-free `getTime` locked to the engine rate (see `docs/clock.md` for
+the current state). Decisions fixed at landing time: **20 Hz** tick rate, **sc-startup ownership**
 (first-client-wins stays future work), **phase-only payload**, a HARD
 metronome switch (no sample fallback), **rate-only discipline** for the
 timebase — absolute cross-client phase alignment is a future
@@ -271,16 +271,18 @@ session.
    `getTime` in the tick domain stays DEFERRED: Cyclist needs a monotonic,
    step-free time source and the tracker refits per tick — switching it
    requires a designed slew.
-5. **[PARTIAL] Sweep the corpse**: `/clock/sample` is DEAD — the ping
+5. **[DONE] Sweep the corpse**: `/clock/sample` is DEAD — the ping
    originates on the MAIN thread (ClockSync, riding the tick metronome
    with an immediate first-tick anchor), the pong flows back up as an
    ordinary message, the postMessage boundary carries no clock vocabulary,
    and the worker's clock module is reduced to the tick-stamped
-   `Watchdog` (liveness = `/tr` id 4242 only, per §5.4's decision). The
-   REMAINDER — the wire ping/pong pair, `core/clock.rs`, and the `ws.rs`
-   interception (contract test and all) — stays gated on §5.2 resolving
-   toward the direct-scsynth path: as long as `sendIn` stamps wall-clock
-   timetags for StrudelDirt, the anchor needs a round-trip.
+   `Watchdog` (liveness = `/tr` id 4242 only, per §5.4's decision).
+   §5.2 resolved via the relative-delta `/dirt/play/in` (nothing musical
+   consumes wall time), so `core/clock.rs` and the `ws.rs` interception
+   are GONE — Rust carries zero clock code. The wire ping/pong pair
+   survives DELIBERATELY as a non-musical wall anchor (header clock,
+   cross-host diagnostics), answered by sclang's `ScAppClock`
+   (PURE-BRIDGE §3.5) through an ordinary "clock" peer route.
 
 Each step is independently shippable and independently revertible; step 1
 alone already delivers the global multi-client transport.

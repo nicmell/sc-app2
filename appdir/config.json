@@ -10,6 +10,11 @@
       "name": "strudel",
       "pattern": "^/dirt(/|$)",
       "target": "127.0.0.1:57120"
+    },
+    {
+      "name": "clock",
+      "pattern": "^/clock(/|$)",
+      "target": "127.0.0.1:57120"
     }
   ]
 }

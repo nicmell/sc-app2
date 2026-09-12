@@ -12,10 +12,11 @@ const PING_TICKS = Math.round(CLOCK_PING_INTERVAL_MS / (1000 / CLOCK_TICK_FREQ_H
 /** A global-clock /tr message (nodeId, trigger id 4242, phase). */
 const trTick = (phase = 0): OscMessage => ({ address: "/tr", args: [99, 4242, phase] });
 
-/** A bridge /clock/pong (seq echoed, srv = bridge Unix wall-clock ms). */
-const pong = (seq: number, serverTime: number): OscMessage => ({
+/** An sclang /clock/pong (clientId+seq echoed; the wall timestamp split
+ *  as [secs:i, fracMs:f] — serverTime here is Unix ms for readability). */
+const pong = (clientId: number, seq: number, serverTime: number): OscMessage => ({
   address: CLOCK_PONG_ADDRESS,
-  args: [seq, serverTime],
+  args: [clientId, seq, Math.floor(serverTime / 1000), serverTime % 1000],
 });
 
 function makeSync() {
@@ -25,11 +26,12 @@ function makeSync() {
     publish: (c) => published.push(c),
     sendPing: (m) => pings.push(m),
   });
-  const lastSeq = () => pings.at(-1)!.args[0] as number;
+  const clientId = () => pings.at(-1)!.args[0] as number;
+  const lastSeq = () => pings.at(-1)!.args[1] as number;
   const ticks = (n: number) => {
     for (let i = 0; i < n; i++) sync.handleMessage(trTick());
   };
-  return { sync, published, pings, lastSeq, ticks };
+  return { sync, published, pings, clientId, lastSeq, ticks };
 }
 
 /** Mock Date.now once and drive it forward through the test. */
@@ -50,7 +52,7 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
   it("pings on the FIRST tick, then every PING_TICKS; min-RTT rules", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(100);
-    const { sync, published, pings, lastSeq, ticks } = makeSync();
+    const { sync, published, pings, clientId, lastSeq, ticks } = makeSync();
 
     // First tick of the connection → immediate anchor ping.
     sync.handleMessage(trTick());
@@ -59,7 +61,7 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
 
     // 20 ms round-trip; srv says the bridge is 30 ms ahead at midpoint.
     advancePerf(20);
-    sync.handleMessage(pong(lastSeq(), 10_020));
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_020));
     expect(published[0]).toEqual({ offset: 30, rtt: 20 });
     expect(sync.now()).toBe(10_030);
 
@@ -67,36 +69,51 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
     ticks(PING_TICKS); // the countdown rides the metronome → ping #2
     expect(pings).toHaveLength(2);
     advancePerf(80);
-    sync.handleMessage(pong(lastSeq(), 10_960)); // offset would be 1000
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_960)); // offset would be 1000
     expect(sync.now()).toBe(10_030);
 
     // …a faster exchange wins immediately.
     ticks(PING_TICKS);
     expect(pings).toHaveLength(3);
     advancePerf(3);
-    sync.handleMessage(pong(lastSeq(), 10_011)); // offset 11 + 1.5 = 12.5
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_011)); // offset 11 + 1.5 = 12.5
     expect(sync.now()).toBe(10_012.5);
   });
 
   it("ignores unknown and replayed pongs", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(0);
-    const { sync, published, lastSeq } = makeSync();
+    const { sync, published, clientId, lastSeq } = makeSync();
 
     sync.handleMessage(trTick());
-    sync.handleMessage(pong(999, 10_000)); // never pinged
+    sync.handleMessage(pong(clientId(), 999, 10_000)); // never pinged
     expect(published).toHaveLength(0);
 
     advancePerf(10);
-    sync.handleMessage(pong(lastSeq(), 10_010));
-    sync.handleMessage(pong(lastSeq(), 99_999)); // replay: the slot was consumed
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_010));
+    sync.handleMessage(pong(clientId(), lastSeq(), 99_999)); // replay: the slot was consumed
+    expect(published).toHaveLength(1);
+  });
+
+  it("ignores another client's pong (same seq, different clientId)", () => {
+    mockNow(10_000);
+    const advancePerf = mockPerf(0);
+    const { sync, published, clientId, lastSeq } = makeSync();
+
+    sync.handleMessage(trTick());
+    advancePerf(10);
+    // The fan-out broadcasts every session's pongs — a foreign id with a
+    // matching seq must not complete OUR round-trip.
+    sync.handleMessage(pong(clientId() ^ 1, lastSeq(), 10_010));
+    expect(published).toHaveLength(0);
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_010));
     expect(published).toHaveLength(1);
   });
 
   it("reset unanchors (publishes null) and re-pings on the next first tick", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(0);
-    const { sync, published, pings, lastSeq } = makeSync();
+    const { sync, published, pings, clientId, lastSeq } = makeSync();
 
     sync.handleMessage(trTick());
     const staleSeq = lastSeq();
@@ -104,13 +121,13 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
     expect(published.at(-1)).toBeNull();
 
     advancePerf(10);
-    sync.handleMessage(pong(staleSeq, 10_010)); // slot cleared — dead on arrival
+    sync.handleMessage(pong(clientId(), staleSeq, 10_010)); // slot cleared — dead on arrival
     expect(published).toHaveLength(1);
 
     sync.handleMessage(trTick()); // fresh connection → immediate ping again
     expect(pings).toHaveLength(2);
     advancePerf(4);
-    sync.handleMessage(pong(lastSeq(), 10_009)); // fresh lock publishes right away
+    sync.handleMessage(pong(clientId(), lastSeq(), 10_009)); // fresh lock publishes right away
     expect(published.at(-1)).toEqual({ offset: 11, rtt: 4 });
   });
 });
@@ -204,13 +221,13 @@ describe("ClockSync tick-driven callbacks", () => {
   it("pongs are measurement only — they never fire listeners", () => {
     mockNow(0);
     mockPerf(0);
-    const { sync, lastSeq } = makeSync();
+    const { sync, clientId, lastSeq } = makeSync();
     const cb = vi.fn();
     sync.subscribe(100, cb);
 
     sync.handleMessage(trTick()); // arms the anchor ping (1 of the 2 ticks due)
     expect(cb).not.toHaveBeenCalled();
-    sync.handleMessage(pong(lastSeq(), 500));
+    sync.handleMessage(pong(clientId(), lastSeq(), 500));
     expect(cb).not.toHaveBeenCalled();
   });
 });

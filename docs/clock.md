@@ -1,8 +1,9 @@
 # Bridge clock synchronization & the tick-driven scheduler
 
-How the app keeps ONE timebase across the webview, the OSC worker, the Rust
-bridge, and scsynth — with a three-message protocol. Companion to
-`scope.md` (the other bridge-internal protocol family).
+How the app keeps ONE timebase across the webview, the OSC worker,
+sclang, and scsynth — with a three-message protocol the bridge only
+routes. Companion to `scope.md` (the one remaining bridge-internal
+protocol family).
 
 ## 1. The problem
 
@@ -45,35 +46,41 @@ ENFORCED, not just assumed.
 
 ## 2. Protocol — two wire messages and a tick
 
-All sync traffic is plain OSC messages. Like `/scope/*`, the `/clock/*`
-family is **bridge-internal**: the WS pump intercepts the ping before peer
-routing (`src-tauri/src/core/router/ws.rs`), and the strudel/scsynth peer
-regexes never match it. Vocabulary lives in
+All sync traffic is plain OSC messages. The `/clock/*` family is an
+ORDINARY peer route: the bridge's "clock" peer forwards it to sclang on
+UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes)
+answers — the bridge never interprets it (only `/scope/*` remains
+bridge-internal). Vocabulary lives in
 `packages/server-commands/src/commands/clock.ts` ⇄
-`src-tauri/src/core/clock.rs` (the exact `/clock/pong` wire bytes are pinned
-byte-for-byte in both languages' test suites). The postMessage boundary
-carries NO clock vocabulary at all: the ping goes down the ordinary send
-path, the pong comes back up as an ordinary message (`OscClient.handleReply`
-consumes it ahead of the waiters; the logging middleware skips it — the
-same `/scope/chunk` treatment), and the worker's only clock-adjacent job
-is the tick-stamped watchdog (§7).
+`scripts/sc-classes/ScAppClock.sc` (the pong's wire layout is pinned by
+the codec.test.ts fixture). The postMessage boundary carries NO clock
+vocabulary at all: the ping goes down the ordinary send path, the pong
+comes back up as an ordinary message (`OscClient.handleReply` consumes it
+ahead of the waiters; the logging middleware skips it — the same
+`/scope/chunk` treatment), and the worker's only clock-adjacent job is
+the tick-stamped watchdog (§7).
 
-### Main ⇄ bridge (through the worker, no interception)
+### Main ⇄ sclang (routed by the bridge, no interception)
 
 ```
-→ /clock/ping  seq:i          one per CLOCK_PING_INTERVAL_MS (2 s) of ticks
-← /clock/pong  seq:i  srv:d   srv = bridge SystemTime, UNIX ms as f64
+→ /clock/ping  clientId:i seq:i             one per 2 s of ticks
+← /clock/pong  clientId:i seq:i secs:i fracMs:f
 ```
 
 The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
 ping (`seq` + `performance.now()` at send — at the slow cadence pings are
-strictly sequential, so a new ping simply overwrites a lost one's slot),
-so no timestamp needs a round-trip and the only double on the wire is
-Rust-encoded (osc-js decodes type `d` natively — the TS codec never needs
-to encode one). Stale or unknown seqs are ignored; the slot clears on
-reset. The bridge captures `srv` _before_ replying (ahead of any await, so
-send backpressure can't bias the timestamp) and answers inline on the same
-socket.
+strictly sequential, so a new ping simply overwrites a lost one's slot).
+Peer replies ride the bridge's broadcast fan-out to EVERY session, so the
+echoed `clientId` (random 31-bit per ClockSync, provisional until
+sessions carry a server-minted id) is what picks OUR pongs out; foreign
+ids, stale and unknown seqs are ignored, and the slot clears on reset.
+The timestamp is `Date.getDate.rawSeconds` — a live system_clock read —
+split into integer Unix seconds + float32 fractional ms because sclang's
+NetAddr cannot emit an OSC double (f64 Unix-ms squeezed into float32
+would quantize to ~2 minutes; secs in int32 rolls over in 2038 —
+accepted). The responder runs in sclang's single interpreter thread
+(gLangMutex), so its service time can bias `srv` under load — accepted at
+the 0.5 Hz cadence for a non-musical anchor.
 
 ### scsynth → everyone (the metronome)
 
@@ -253,7 +260,8 @@ a main-thread watchdog would detect late in an occluded window.
 
 - **No ticks / bridge down**: offset stays 0 (local time); no clock
   callbacks (and so no pings either); within `WATCHDOG_TIMEOUT_MS` the
-  watchdog closes the session.
+  watchdog closes the session. sclang dying is the same story: ticks,
+  pongs and the clock synth share its fate — one signal, one death.
 - **Disconnect**: ticks stop, so pings stop with them; the estimate resets
   to 0, callbacks stop; the plugin unload pass stops Strudel playback (by
   design — nothing keeps time offline).

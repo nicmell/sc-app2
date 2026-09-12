@@ -60,7 +60,7 @@ describe("WorkerEndpoint", () => {
     // …but pongs, /status.reply, and foreign /tr ids do NOT: only the DSP
     // graph computing proves the session alive.
     mono += WATCHDOG_TIMEOUT_MS + 1;
-    frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    frame({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
     frame({ address: "/status.reply", args: [1, 2, 3, 4, 0, 0, 0, 48_000, 48_000] });
     frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID + 1, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS * 10);
@@ -85,10 +85,10 @@ describe("WorkerEndpoint", () => {
     expect(events.map(({ event }) => event)).toEqual([{ type: "open" }]);
     expect(sent).toHaveLength(0);
 
-    frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    frame({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
     const pong = events.at(-1)?.event;
     if (pong?.type !== "osc") throw new Error("expected pong");
-    expect(pong.packet).toEqual({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    expect(pong.packet).toEqual({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
   });
 
   it("decodes frames, flattening bundles to messages with blob transferables", () => {

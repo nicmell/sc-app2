@@ -10,6 +10,10 @@ import type { OscMessage } from "@sc-app/server-commands";
 
 /** A session's scsynth allocation, as `OscClient.connect` consumes it. */
 export interface OscSession {
+  /** The session's client id on the app's own wire — the clock ping
+   *  carries it, and it picks this session's pongs out of the shared
+   *  fan-out. Server-minted (the 1-based session index). */
+  clientId: number;
   /** The session's group — created by `connect` at the tail of scsynth's root group. */
   sessionGroupId: number;
   /** First node id this session may allocate. */

@@ -75,6 +75,7 @@ export class SessionManager {
 
     try {
       await oscClient.connect(wsUrl(`/ws?session=${info.sessionId}`), {
+        clientId: info.clientId,
         sessionGroupId: info.sessionGroupId,
         nodeIdBase: info.nodeIdBase,
         nodeIdCount: info.nodeIdCount,

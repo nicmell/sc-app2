@@ -45,6 +45,10 @@ pub fn routes() -> Router<Server> {
 #[serde(rename_all = "camelCase")]
 struct SessionInfo {
     session_id: Uuid,
+    /// The session's client id on the app's own wire (the clock ping
+    /// carries it; peer replies broadcast to every session, so it is the
+    /// attribution). The 1-based session index — see `blocks::SessionBlock`.
+    client_id: i32,
     session_group_id: i32,
     node_id_base: i32,
     node_id_count: i32,
@@ -71,6 +75,7 @@ impl SessionInfo {
     ) -> Self {
         Self {
             session_id: id,
+            client_id: block.client_id,
             session_group_id: block.group_id,
             node_id_base: block.node_base,
             node_id_count: block.node_count,

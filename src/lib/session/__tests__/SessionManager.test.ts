@@ -24,6 +24,7 @@ import { appStore } from "@/stores/store";
 
 const info: SessionInfo = {
   sessionId: "session-1",
+  clientId: 1,
   sessionGroupId: 10,
   nodeIdBase: 100,
   nodeIdCount: 20,
@@ -53,6 +54,7 @@ describe("SessionManager", () => {
     await manager.connect(info);
 
     expect(osc.connect).toHaveBeenCalledWith(expect.stringContaining("session=session-1"), {
+      clientId: 1,
       sessionGroupId: 10,
       nodeIdBase: 100,
       nodeIdCount: 20,

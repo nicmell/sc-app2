@@ -41,6 +41,9 @@ export interface SessionData {
  *  plus (on GET) the saved session data. */
 export interface SessionInfo {
   sessionId: string;
+  /** The session's client id on the app's own wire (clock pings) —
+   *  server-minted, unique among live sessions. */
+  clientId: number;
   /** scsynth group this session's synths must live under — allocated by the
    *  server, created by the OscClient once the WS is open. */
   sessionGroupId: number;

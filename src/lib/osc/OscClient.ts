@@ -180,6 +180,7 @@ export class OscClient {
    *  per-connection subscription state. Called by `connect` on socket open;
    *  also the unit tests' seam for simulating a connected session. */
   armSession(session: OscSession): void {
+    this.clock.setClientId(session.clientId);
     this.nextId = session.nodeIdBase;
     this.endId = session.nodeIdBase + session.nodeIdCount;
     this.groupId = session.sessionGroupId;

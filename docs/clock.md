@@ -71,8 +71,9 @@ The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
 ping (`seq` + `performance.now()` at send — at the slow cadence pings are
 strictly sequential, so a new ping simply overwrites a lost one's slot).
 Peer replies ride the bridge's broadcast fan-out to EVERY session, so the
-echoed `clientId` (random 31-bit per ClockSync, provisional until
-sessions carry a server-minted id) is what picks OUR pongs out; foreign
+echoed `clientId` (server-minted per session — the session index,
+carried by SessionInfo and armed into ClockSync at connect) is what
+picks OUR pongs out; foreign
 ids, stale and unknown seqs are ignored, and the slot clears on reset.
 The timestamp is `Date.getDate.rawSeconds` — a live system_clock read —
 split into integer Unix seconds + float32 fractional ms because sclang's

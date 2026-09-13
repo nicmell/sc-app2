@@ -1,14 +1,11 @@
 // The one-way audio-clock tracker, driven by synthetic tick streams that
-// reproduce the real signal shape: per-tick phase advance quantized to
-// scsynth's 64-sample control blocks (alternating deltas around
-// sampleRate/freq), local-clock skew, one-sided delivery jitter, UDP
-// drops, and phase-base jumps.
+// reproduce the real signal shape: absolute self-locating indexes
+// (PulseCount), local-clock skew, one-sided delivery jitter, UDP drops,
+// and index resets (engine/synth restart, f32 rollover degradation).
 import { describe, expect, it } from "vitest";
 import { TickTracker } from "../TickTracker";
 
-const SR = 44_100;
 const FREQ = 20;
-const RING = 8_192;
 const PERIOD_MS = 1000 / FREQ;
 
 interface StreamOptions {
@@ -18,38 +15,43 @@ interface StreamOptions {
   jitter?: (i: number) => number;
   /** Tick indexes never delivered (UDP loss). */
   drops?: Set<number>;
-  /** Phase-base offset applied from tick `at` on (engine restart). */
-  baseJump?: { at: number; offset: number };
+  /** From tick `at` on, the payload index restarts from 1 (PulseCount
+   *  reset — engine or synth restart). */
+  restart?: { at: number };
+  /** The payload index of the first tick (PulseCount starts at 1; the
+   *  engine may have run for days before we connect). */
+  firstIndex?: number;
   count: number;
 }
 
-/** Produce (phase, arrivalMs) pairs like the real engine: the tick fires
- *  on the control block nearest i·SR/FREQ, so consecutive phase deltas
- *  alternate (34/35 blocks at 44.1 kHz / 20 Hz). */
-function makeStream({ skew = 0, jitter = () => 0, drops, baseJump, count }: StreamOptions) {
-  const out: Array<{ phase: number; arrival: number }> = [];
+/** Produce (index, arrivalMs) pairs like the real engine: the payload
+ *  carries the ABSOLUTE tick index, arrivals pace the local clock. */
+function makeStream({
+  skew = 0,
+  jitter = () => 0,
+  drops,
+  restart,
+  firstIndex = 1,
+  count,
+}: StreamOptions) {
+  const out: Array<{ index: number; arrival: number }> = [];
   for (let i = 0; i < count; i++) {
     if (drops?.has(i)) continue;
-    let samples = Math.round((i * SR) / FREQ / 64) * 64;
-    if (baseJump && i >= baseJump.at) samples += baseJump.offset;
+    const index = restart && i >= restart.at ? 1 + (i - restart.at) : firstIndex + i;
     out.push({
-      phase: ((samples % RING) + RING) % RING,
+      index,
       arrival: 1_000 + i * PERIOD_MS * (1 + skew) + jitter(i),
     });
   }
   return out;
 }
 
-function drive(stream: Array<{ phase: number; arrival: number }>) {
+function drive(stream: Array<{ index: number; arrival: number }>) {
   let now = 0;
-  const tracker = new TickTracker({
-    freqHz: FREQ,
-    ringFrames: RING,
-    monotonicNow: () => now,
-  });
-  for (const { phase, arrival } of stream) {
+  const tracker = new TickTracker({ freqHz: FREQ, monotonicNow: () => now });
+  for (const { index, arrival } of stream) {
     now = arrival;
-    tracker.onTick(phase);
+    tracker.onTick(index);
   }
   return { tracker, setNow: (v: number) => (now = v) };
 }
@@ -73,6 +75,7 @@ describe("TickTracker", () => {
     expect(tracker.locked).toBe(false);
     expect(tracker.audioNow()).toBeNull();
     expect(tracker.skewPpm).toBeNull();
+    expect(tracker.audioNowTicksAbsolute()).toBeNull();
   });
 
   it("measures local-clock skew against the audio grid", () => {
@@ -92,46 +95,58 @@ describe("TickTracker", () => {
     expect(Math.abs(tracker.skewPpm!)).toBeLessThan(300);
   });
 
-  it("derives the index through UDP drops — audioNow never jumps", () => {
+  it("sails through UDP drops — the index is self-locating", () => {
     const drops = new Set([40, 41, 42, 80, 120, 121, 122, 123, 124, 125, 126]);
-    const stream = makeStream({ count: 200, drops });
-    const { tracker } = drive(stream);
+    const { tracker } = drive(makeStream({ count: 200, drops }));
 
     expect(tracker.locked).toBe(true);
-    expect(tracker.tickIndex).toBe(199); // absolute, not a delivery count
+    expect(tracker.tickIndex).toBe(199); // absolute distance, not a delivery count
     expect(Math.abs(tracker.skewPpm!)).toBeLessThan(20);
   });
 
-  it("resyncs on a phase-base jump (engine restart) and re-locks", () => {
-    const stream = makeStream({ count: 128, baseJump: { at: 64, offset: 1_111 } });
+  it("projects now onto the ABSOLUTE tick axis (the /dirt/play/at domain)", () => {
+    // The engine ran for a while before we connected: indexes start high.
+    const stream = makeStream({ count: 64, firstIndex: 500_000 });
+    const { tracker, setNow } = drive(stream);
+
+    expect(tracker.locked).toBe(true);
+    const last = stream.at(-1)!;
+    setNow(last.arrival);
+    expect(tracker.audioNowTicksAbsolute()!).toBeCloseTo(last.index, 0);
+    setNow(last.arrival + PERIOD_MS); // one period later → one tick further
+    expect(tracker.audioNowTicksAbsolute()! - last.index).toBeCloseTo(1, 1);
+  });
+
+  it("resyncs on a backward index (engine restart) and re-locks", () => {
+    const stream = makeStream({ count: 128, restart: { at: 64 } });
     const { tracker } = drive(stream);
 
-    // Re-locked on the new base: index counts from the jump, not from 0.
+    // Re-locked on the new base: index counts from the restart, not from 0.
     expect(tracker.locked).toBe(true);
     expect(tracker.tickIndex).toBe(63);
     expect(Math.abs(tracker.skewPpm!)).toBeLessThan(20);
   });
 
-  it("reset() clears the lock; the rate estimate lets it re-lock cleanly", () => {
+  it("reset() clears the lock and re-locks cleanly on the next stream", () => {
     const stream = makeStream({ count: 96 });
     let now = 0;
-    const tracker = new TickTracker({ freqHz: FREQ, ringFrames: RING, monotonicNow: () => now });
-    for (const { phase, arrival } of stream.slice(0, 48)) {
+    const tracker = new TickTracker({ freqHz: FREQ, monotonicNow: () => now });
+    for (const { index, arrival } of stream.slice(0, 48)) {
       now = arrival;
-      tracker.onTick(phase);
+      tracker.onTick(index);
     }
     expect(tracker.locked).toBe(true);
     tracker.reset();
     expect(tracker.locked).toBe(false);
     expect(tracker.audioNow()).toBeNull();
-    for (const { phase, arrival } of stream.slice(48)) {
+    for (const { index, arrival } of stream.slice(48)) {
       now = arrival;
-      tracker.onTick(phase);
+      tracker.onTick(index);
     }
     expect(tracker.locked).toBe(true);
   });
 
-  it("ignores non-finite phases", () => {
+  it("ignores non-finite indexes", () => {
     const { tracker } = drive(makeStream({ count: 40 }));
     const before = tracker.tickIndex;
     tracker.onTick(Number.NaN);

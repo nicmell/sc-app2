@@ -176,7 +176,7 @@ lib/                     non-React infrastructure
                            composing the endpoint over the worker scope)
                          → endpoint.ts (`WorkerEndpoint`: codec ⇄ bytes —
                            plain-message encode out, bundle flattening +
-                           blob transfer in; the global clock's /tr tick
+                           blob transfer in; the global clock's tick
                            stamps the watchdog, every message posts up;
                            composes transport + watchdog)
                          → transport.ts (`Transport`: ONLY the raw
@@ -701,7 +701,7 @@ zip → POST /api/plugins (or `sc-app2 plugin add`) → manager validation
 ```
 
 **Heartbeat & failure**: supervisor `/status` at 1 Hz → `/status.reply`
-fan-out → footer. The session heartbeat is the global clock's `/tr` tick,
+fan-out → footer. The session heartbeat is the global clock's `/clock/tick`,
 stamping the WORKER-side watchdog (5 s = 100 missed ticks, worker
 timers — clock.md §7). scsynth (or just the clock synth)
 dies → watchdog posts a transport error → toast + OscClient closes → WS

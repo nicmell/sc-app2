@@ -1,7 +1,7 @@
 // The app clock, whole (docs/clock.md, AUDIO-CLOCK.md) — measurement AND
 // consumption both live main-side; the worker carries no clock code.
-// Everything is paced by ONE stream, the audio engine's `/tr` ticks (the
-// `__global_clock__` synth loaded by scripts/sc-startup.scd):
+// Everything is paced by ONE stream, the audio engine's `/clock/tick`s
+// (the `__global_clock__` synth loaded by scripts/sc-startup.scd):
 //
 // - Metronome (`onTick`): `subscribe(intervalMs, cb)` registers a purely
 //   LOCAL listener that fires every `round(intervalMs / tickPeriod)` TICKS
@@ -11,7 +11,8 @@
 //   and the clock synth ticks — by design: nothing keeps time while
 //   disconnected, and the stack MUST load the clock synth.
 // - Estimator (`ping()`/`onPong`): a tick countdown ORIGINATES the
-//   /clock/ping (one per PING_EVERY_TICKS, 2 s nominal; a fresh/reset
+//   /clock/ntp/ping (optional — CLOCK_NTP_ENABLED; one per
+//   PING_EVERY_TICKS, 2 s nominal; a fresh/reset
 //   clock fires on the FIRST tick so the anchor lands right after
 //   connect) and the pong — answered by sclang's ScAppClock, riding the
 //   shared fan-out, picked out by clientId — completes the round-trip,
@@ -26,15 +27,15 @@ import {
   CLOCK_PONG_ADDRESS,
   ClockPong,
   clockPing,
-  Tr,
+  ClockTick,
   type OscMessage,
 } from "@sc-app/server-commands";
 import {
+  CLOCK_NTP_ENABLED,
   CLOCK_PING_INTERVAL_MS,
   CLOCK_SAMPLE_WINDOW,
   CLOCK_TICK_FREQ_HZ,
   isClockTick,
-  PHASE_RING_FRAMES,
 } from "@/constants/osc";
 import { SlewedClock } from "./SlewedClock";
 import { TickTracker } from "./TickTracker";
@@ -59,7 +60,7 @@ interface ClockSyncOptions {
   /** Publish the current filtered estimate (the store's `clock` field);
    *  null = no anchor (fresh or reset — nothing measured yet). */
   publish: (clock: ClockStatus | null) => void;
-  /** Send one /clock/ping toward the bridge (OscClient.dispatch — the
+  /** Send one /clock/ntp/ping toward the bridge (OscClient.dispatch — the
    *  open-guard is a second net: no pings while disconnected, consistent
    *  with the ticks that pace them). */
   sendPing: (message: OscMessage) => void;
@@ -83,11 +84,8 @@ export class ClockSync {
   /** Ticks until the next anchor ping; 0 fires on the NEXT tick, so a
    *  fresh/reset clock anchors on the first tick of the connection. */
   private ticksUntilPing = 0;
-  /** The one-way audio-clock tracker fed by the ticks' phase payload. */
-  private readonly tracker = new TickTracker({
-    freqHz: CLOCK_TICK_FREQ_HZ,
-    ringFrames: PHASE_RING_FRAMES,
-  });
+  /** The one-way audio-clock tracker fed by the ticks' absolute index. */
+  private readonly tracker = new TickTracker({ freqHz: CLOCK_TICK_FREQ_HZ });
   /** The monotonic rate-disciplined timebase (Strudel's getTime). */
   private readonly slewed = new SlewedClock();
 
@@ -130,10 +128,10 @@ export class ClockSync {
     };
   }
 
-  /** Route one inbound message: the clock families — the global clock's
-   *  /tr tick and /clock/pong — are consumed here (true); anything else,
-   *  including a plugin's own SendTrig on a foreign /tr id, returns false
-   *  and falls through to the caller's routing. */
+  /** Route one inbound message: the clock family — /clock/tick and
+   *  /clock/ntp/pong — is consumed here (true); anything else (every /tr —
+   *  they all belong to plugins now) returns false and falls through to
+   *  the caller's routing. */
   handleMessage(message: OscMessage): boolean {
     if (isClockTick(message)) {
       this.onTick(message);
@@ -146,7 +144,7 @@ export class ClockSync {
     return false;
   }
 
-  /** One /clock/pong: complete the round-trip against the in-flight slot
+  /** One /clock/ntp/pong: complete the round-trip against the in-flight slot
    *  (unknown or replayed seqs are ignored), fold the sample into the
    *  min-RTT window and publish. The MEASUREMENT stream only — the
    *  metronome is `onTick`. */
@@ -163,20 +161,23 @@ export class ClockSync {
     this.publish({ offset: best.offset, rtt: best.rtt });
   }
 
-  /** One `/tr` tick from the audio engine's `__global_clock__` synth: feed
-   *  the one-way tracker with the phase payload, run the anchor-ping
+  /** One `/clock/tick` from the audio engine's `__global_clock__` synth:
+   *  feed the one-way tracker with the absolute index, run the anchor-ping
    *  countdown, aim the slewed timebase, then run the METRONOME — each
    *  listener fires when its tick countdown runs out. No wall clock
    *  anywhere: intervals quantize to the tick rate (`CLOCK_TICK_FREQ_HZ`)
    *  and a gap yields exactly the fires its ticks pay for — never a
    *  burst, and immune to wall-clock steps. */
   private onTick(message: OscMessage): void {
-    this.tracker.onTick(Tr.value(message));
-    if (this.ticksUntilPing <= 0) {
-      this.ping();
-      this.ticksUntilPing = PING_EVERY_TICKS;
+    this.tracker.onTick(ClockTick.tick(message));
+    // The wall anchor is optional — header-only convenience.
+    if (CLOCK_NTP_ENABLED) {
+      if (this.ticksUntilPing <= 0) {
+        this.ping();
+        this.ticksUntilPing = PING_EVERY_TICKS;
+      }
+      this.ticksUntilPing--;
     }
-    this.ticksUntilPing--;
     // Aim the slewed timebase at the inverse of the measured skew (the
     // local clock RUNS at 1+skew vs the engine; the disciplined clock
     // compensates). Unlocked → back toward the plain local rate.
@@ -194,6 +195,18 @@ export class ClockSync {
    *  until the tracker locks. See TickTracker. */
   audioNow(): number | null {
     return this.tracker.audioNow();
+  }
+
+  /** An ABSOLUTE audio-domain target `deltaMs` from now, as (tick index,
+   *  fraction) on the shared /clock/tick axis — the /dirt/play/at
+   *  payload. Null until the tracker locks (~1.6 s after connect);
+   *  callers fall back to the relative /dirt/play/in. */
+  audioTarget(deltaMs: number): { tick: number; frac: number } | null {
+    const nowTicks = this.tracker.audioNowTicksAbsolute();
+    if (nowTicks === null) return null;
+    const target = nowTicks + (deltaMs / 1000) * CLOCK_TICK_FREQ_HZ;
+    const tick = Math.floor(target);
+    return { tick, frac: target - tick };
   }
 
   /** The monotonic, rate-disciplined timebase (seconds) — always

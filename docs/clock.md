@@ -27,9 +27,9 @@ Two inbound streams solve the two problems, each owned by its natural
 master (see AUDIO-CLOCK.md for the design's full arc):
 
 - **The metronome is the AUDIO ENGINE itself**: the `__global_clock__`
-  synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/tr` tick
-  (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
-  `clock.subscribe` callback fires off its arrival.
+  synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/clock/tick`
+  straight from the sample domain, carrying its ABSOLUTE tick index;
+  every `clock.subscribe` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the MAIN thread pings
   riding that same metronome (one ping per 2 s of ticks, plus an
   immediate one on the first tick after connect) — the wall-time anchor
@@ -48,8 +48,9 @@ ENFORCED, not just assumed.
 
 All sync traffic is plain OSC messages. The `/clock/*` family is an
 ORDINARY peer route: the bridge's "clock" peer forwards it to sclang on
-UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes)
-answers — the bridge never interprets it (only `/scope/*` remains
+UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes — the
+sclang mirror of ClockSync: it owns the synth, the tick anchor and the
+NTP responder in one class) answers — the bridge never interprets it (only `/scope/*` remains
 bridge-internal). Vocabulary lives in
 `packages/server-commands/src/commands/clock.ts` ⇄
 `scripts/sc-classes/ScAppClock.sc` (the pong's wire layout is pinned by
@@ -60,12 +61,17 @@ ahead of the waiters; the logging middleware skips it — the same
 `/scope/chunk` treatment), and the worker's only clock-adjacent job is
 the tick-stamped watchdog (§7).
 
-### Main ⇄ sclang (routed by the bridge, no interception)
+### Main ⇄ sclang (routed by the bridge, no interception — OPTIONAL)
 
 ```
-→ /clock/ping  clientId:i seq:i             one per 2 s of ticks
-← /clock/pong  clientId:i seq:i secs:i fracMs:f
+→ /clock/ntp/ping  clientId:i seq:i             one per 2 s of ticks
+← /clock/ntp/pong  clientId:i seq:i secs:i fracMs:f
 ```
+
+The whole exchange is a CONVENIENCE: nothing musical consumes the wall
+estimate (header clock + Δ diagnostic only), and `CLOCK_NTP_ENABLED`
+(constants/osc.ts) turns the pings off entirely — the header then shows
+local time and Δ stays hidden.
 
 The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
 ping (`seq` + `performance.now()` at send — at the slow cadence pings are
@@ -86,17 +92,21 @@ the 0.5 Hz cadence for a non-musical anchor.
 ### scsynth → everyone (the metronome)
 
 ```
-← /tr  nodeId:i 4242:i phase:f   the __global_clock__ synth, 20 Hz
+← /clock/tick  nodeId:i replyId:i tick:f phase:f   __global_clock__, 20 Hz
 ```
 
-`/tr` is scsynth's fixed SendTrig address (the compiler cannot encode a
-custom SendReply address — AUDIO-CLOCK.md §5.1), so the tick is
-discriminated by trigger id: `handleReply` routes `CLOCK_TRIGGER_ID` to
-the metronome and lets every other `/tr` fall through to the waiters (a
-plugin's own SendTrig stays fully usable, and logged). The value is the
-clock synth's Phasor phase — the one-way TickTracker's feed (§5). The
-bridge fan-out broadcasts scsynth
-traffic to every session, so ALL clients share the same ticks.
+The synth is sclang-authored, so SendReply's custom address is available
+(the old "SendTrig-only" constraint was the COMPILER's — AUDIO-CLOCK
+§5.1, superseded): the tick is discriminated by ADDRESS, and `/tr`
+belongs entirely to the plugins (always routed to the waiters, always
+logged). `tick` is the ABSOLUTE index (`PulseCount` — f32-exact to
+`TICK_COUNT_EXACT` = 2^24 ≈ 9.7 days of engine uptime; beyond, the
+tracker treats the degradation as a restart and resyncs); a
+non-increasing index means the engine or synth restarted. `phase` is the
+Phasor's position in its 8192 ring, mirroring bus 1000 (not consumed by
+the tracker today). The bridge fan-out broadcasts scsynth traffic to
+every session, so ALL clients (sclang's own anchor included) count the
+same self-locating timeline.
 
 ## 3. Clock domains (the load-bearing rules)
 
@@ -170,14 +180,13 @@ consumers (mount/unmount), survive reconnects and worker respawns for free
 
 ### The one-way tick tracker
 
-The same ticks also carry the Phasor's phase, and `TickTracker`
-(`src/lib/clock/TickTracker.ts`, composed by ClockSync) turns that payload
-into a measurable time source: the phase delta is unwrapped into an
-absolute tick index (self-healing through UDP loss — the index is derived
-from the inter-arrival time and VERIFIED against the phase, block-quantized
-tolerance included; an unexplainable arrival means the engine restarted →
-resync and re-lock), arrivals regress against the tick grid (the slope is
-the client↔audio-clock skew), and the minimum residual anchors the mapping
+`TickTracker` (`src/lib/clock/TickTracker.ts`, composed by ClockSync)
+turns the tick stream into a measurable time source. The payload's index
+is ABSOLUTE and self-locating, so there is nothing to unwrap or heal: a
+UDP drop is just a missing point, and only a non-increasing index
+(engine/synth restart, or the 2^24 f32 rollover) forces a resync.
+Arrivals regress against the index grid (the slope is the
+client↔audio-clock skew), and the minimum residual anchors the mapping
 (one-way min-filter: delivery delay only ever adds).
 `oscClient.clock.audioNow()` exposes the engine's estimated time in
 seconds (null until the ~1.6 s lock), `clock.tickInfo()` the diagnostics.
@@ -214,15 +223,17 @@ always available, never a step.
    structural:
    `disconnectedCallback → mirror.stop() → Cyclist.stop() → clearInterval`.
 2. _Stamping_: the deadline is computed entirely in the audioTime domain
-   and shipped as a RELATIVE delta IN the message —
-   `/dirt/play/in [deltaMs, …pairs]` with
-   `deltaMs = (targetTimeSecs − audioTime())·1000 + SAFETY_LOOKAHEAD_MS`;
-   the repo's `ScAppDirt` class (scripts/sc-classes) converts it to the
-   quark's `~latency` on arrival. NO wall-clock conversion anywhere on
-   the musical path — no timetags, no bundles, and an NTP step cannot
-   shift an event. The delta is domain-free for the caller (rate error
-   over a lookahead-sized delta is sub-µs); its delivery jitter rides
-   inside SuperDirt's 0.3 s scheduling latency.
+   (`deltaMs = (targetTimeSecs − audioTime())·1000 +
+   SAFETY_LOOKAHEAD_MS`) and, once the tracker locks, anchored to the
+   ABSOLUTE tick axis: `/dirt/play/at [tick, frac, …pairs]` via
+   `clock.audioTarget(deltaMs)` — sclang's `ScAppTickAnchor`
+   (scripts/sc-classes) converts the target in ITS own domain, both ends
+   counting the same self-locating /clock/tick stream, so delivery
+   jitter cannot move the event. Pre-lock (~1.6 s after connect) the
+   delta travels relative instead — `/dirt/play/in [deltaMs, …pairs]`,
+   consumed at arrival by `ScAppDirt`. NO wall-clock conversion anywhere
+   on the musical path — no timetags, no bundles, and an NTP step cannot
+   shift an event.
 
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription — meaningful only while connected, which is exactly when the
@@ -239,8 +250,8 @@ broken estimator is visible rather than silently mistiming events.
 
 ## 7. The heartbeat watchdog (worker-side)
 
-The session heartbeat is EXACTLY the global clock's `/tr` tick: the worker
-endpoint stamps `markAlive()` only on `ADDR_TR` with `CLOCK_TRIGGER_ID`,
+The session heartbeat is EXACTLY the global clock's `/clock/tick`: the
+worker endpoint stamps `markAlive()` only on that address,
 and a worker-timer poll (`CLOCK_WATCHDOG_INTERVAL_MS`) fires `onDead` once
 when `WATCHDOG_TIMEOUT_MS` (5 s = 100 missed ticks) passes without one.
 One signal, one meaning — the DSP graph computing IS the session being

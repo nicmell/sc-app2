@@ -12,13 +12,11 @@ step depends on live inline; everything here is UNSTARTED unless noted.
    zero clock code (the surviving ping/pong is sclang's non-musical wall
    anchor). Still open: the shared-transport-origin idea for
    cross-client PHASE alignment (see also PURE-BRIDGE §3.7 LinkClock).
-1. **The pure bridge** (`PURE-BRIDGE.md`) — §3.1 (submodule deps + the
-   repo-owned sclang classlib), §3.2 (relative-delta `/dirt/play/in`),
-   §3.5 (the sclang clock responder — the wall anchor kept as a
-   non-musical convenience) and §3.4 (session ↔ client id 1:1, the
-   session index in SessionInfo) LANDED: the bridge no longer owns the
-   clock role. Remaining arcs (design and sequencing in the doc): audio-domain
-   targets off the `/tr` sclang already receives (§3.3);
+1. **The pure bridge** (`PURE-BRIDGE.md`) — §3.1–§3.5 LANDED: the
+   bridge no longer owns the clock role, the tick is the absolute-index
+   SendReply `/clock/tick`, the music travels in the audio domain
+   (`/dirt/play/at` + the `/in` pre-lock fallback), sessions carry
+   their client id. Remaining arcs (design and sequencing in the doc):
    scope without the bridge (gated on a `/b_getn` feasibility pass);
    LinkClock + actualSampleRate investigations.
 2. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`

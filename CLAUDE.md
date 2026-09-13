@@ -144,9 +144,10 @@ Change one side → sweep the other, same commit:
 
 - `router/error.rs` codes ⇄ `ApiErrorCode` (`src/lib/http`) — see
   Conventions.
-- `scripts/sc-classes/ScAppClock.sc` ⇄ server-commands
-  `commands/clock.ts` (ping/pong arg layouts; the pong's wire shape is
-  pinned by the codec.test.ts fixture).
+- `scripts/sc-classes/*.sc` ⇄ server-commands `commands/clock.ts`
+  (the /clock family's arg layouts: ScAppClock's pong is pinned by the
+  codec.test.ts fixture; sc-startup's SendReply tick feeds ClockTick)
+  and ⇄ sc-strudel (the /dirt/play/in|at payloads ScAppDirt consumes).
 - `scope/wire.rs` ⇄ the frontend's `parseScopeChunkArgs` (a Rust golden
   byte test pins the encoding; the TS decoder has no test of its own).
 - `ELEMENTS` ⇄ constructor `REGISTRY` ⇄ spec.rs `SPEC_SOURCES` — see the

@@ -4,8 +4,8 @@
 // is transport.test.ts, the staleness timers watchdog.test.ts).
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { decode, encode } from "@sc-app/server-commands/codec";
-import { ADDR_TR, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
-import { CLOCK_TRIGGER_ID, CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";
+import { CLOCK_PONG_ADDRESS, CLOCK_TICK_ADDRESS, type OscPacket } from "@sc-app/server-commands";
+import { CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportEvent } from "@/types/osc";
 import { WorkerEndpoint, type TransportLike } from "../endpoint";
 import type { WireEvent } from "../transport";
@@ -43,7 +43,7 @@ describe("WorkerEndpoint", () => {
     expect(events).toHaveLength(0);
   });
 
-  it("counts ONLY the global clock's /tr as a heartbeat", () => {
+  it("counts ONLY the global clock's /clock/tick as a heartbeat", () => {
     vi.useFakeTimers();
     let mono = 0;
     vi.spyOn(performance, "now").mockImplementation(() => mono);
@@ -53,16 +53,16 @@ describe("WorkerEndpoint", () => {
     emit({ type: "open" });
     // The global clock's tick keeps the watchdog quiet…
     mono += WATCHDOG_TIMEOUT_MS;
-    frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID, 123] });
+    frame({ address: CLOCK_TICK_ADDRESS, args: [1000, -1, 7, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS);
     expect(errors()).toHaveLength(0);
 
-    // …but pongs, /status.reply, and foreign /tr ids do NOT: only the DSP
+    // …but pongs, /status.reply, and plugin /tr do NOT: only the DSP
     // graph computing proves the session alive.
     mono += WATCHDOG_TIMEOUT_MS + 1;
     frame({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
     frame({ address: "/status.reply", args: [1, 2, 3, 4, 0, 0, 0, 48_000, 48_000] });
-    frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID + 1, 123] });
+    frame({ address: "/tr", args: [1000, 7, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS * 10);
     expect(errors()).toHaveLength(1);
   });
@@ -76,7 +76,7 @@ describe("WorkerEndpoint", () => {
     expect(decode(sent[0])).toEqual({ address: "/dirt/play/in", args: [250.5, "s", "bd"] });
   });
 
-  it("passes /clock/pong straight up — no interception, no clock code", () => {
+  it("passes /clock/ntp/pong straight up — no interception, no clock code", () => {
     vi.useFakeTimers(); // the open event arms the watchdog timer
     const { events, sent, frame, emit } = makeEndpoint();
 

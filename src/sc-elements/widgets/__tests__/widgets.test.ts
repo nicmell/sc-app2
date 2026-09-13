@@ -409,6 +409,8 @@ describe("sc-strudel", () => {
     sent.length = 0;
     out({ value: { s: "bd" } }, 0, 0, 1, 0);
     out({ value: { s: "sd", orbit: 5 } }, 0, 0, 1, 0);
+    // The tracker never locks in unit tests → audioTarget is null and the
+    // relative /in fallback carries the events.
     const plays = sent.map((p) => flattenPacket(p)[0]).filter((m) => m.address === "/dirt/play/in");
     expect(plays).toHaveLength(2);
     // args[0] is the relative delta (ms) — its exact value tracks the real
@@ -416,6 +418,25 @@ describe("sc-strudel", () => {
     for (const play of plays) expect(Number.isFinite(Number(play.args[0]))).toBe(true);
     expect(plays[0].args.slice(1)).toEqual(["s", "bd", "orbit", "2"]);
     expect(plays[1].args.slice(1)).toEqual(["s", "sd", "orbit", "5"]); // pattern's own orbit wins
+  });
+
+  it("ships /dirt/play/at once the clock offers an absolute target", async () => {
+    const host = await mountXml('<sc-strudel orbit="3"></sc-strudel>');
+    await (host.querySelector("sc-strudel") as ScStrudel).updateComplete;
+    const out = strudelMirrors[0].opts.defaultOutput as (
+      hap: { value: unknown },
+      d: number,
+      du: number,
+      cps: number,
+      t: number,
+    ) => void;
+    vi.spyOn(oscClient.clock, "audioTarget").mockReturnValue({ tick: 10_043, frac: 0.25 });
+
+    sent.length = 0;
+    out({ value: { s: "bd" } }, 0, 0, 1, 0);
+    const plays = sent.map((p) => flattenPacket(p)[0]).filter((m) => m.address === "/dirt/play/at");
+    expect(plays).toHaveLength(1);
+    expect(plays[0].args).toEqual(["10043", "0.25", "s", "bd", "orbit", "3"]);
   });
 
   it("stops playback on unload (connection loss)", async () => {

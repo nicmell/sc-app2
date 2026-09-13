@@ -10,10 +10,10 @@ const state = appStore.slice(SliceName.OSC);
 export const log = state.select((value) => value.log);
 let nextEntryId = 0;
 
-const skippedRx = new Set(["/scope/chunk", "/clock/pong", ADDR_STATUS_REPLY]);
+const skippedRx = new Set(["/scope/chunk", "/clock/ntp/pong", ADDR_STATUS_REPLY]);
 
-/** High-rate rx to keep out of the console: the skip set, plus the global
- *  clock's /tr ticks — but ONLY ours; a plugin's own SendTrig stays logged. */
+/** High-rate rx to keep out of the console: the skip set, plus the
+ *  global clock's /clock/tick (a plugin's own /tr always logs). */
 function skipRx(message: OscMessage): boolean {
   return skippedRx.has(message.address) || isClockTick(message);
 }

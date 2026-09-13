@@ -1,6 +1,6 @@
 // The session heartbeat watchdog, on worker timers (unthrottled in
 // background, independent of the possibly-dead connection it watches).
-// The heartbeat is the GLOBAL CLOCK's /tr tick (AUDIO-CLOCK.md): the
+// The heartbeat is the GLOBAL CLOCK's /clock/tick (AUDIO-CLOCK.md): the
 // endpoint stamps `markAlive()` on every tick it sees; a worker-timer poll
 // fires `onDead` once when the ticks go stale. One signal, one meaning —
 // the DSP graph computing IS the session being alive; a stack that never
@@ -44,7 +44,7 @@ export class Watchdog {
     this.timer = null;
   }
 
-  /** Stamp one live heartbeat (the global clock's /tr, per the endpoint). */
+  /** Stamp one live heartbeat (the global clock's /clock/tick, per the endpoint). */
   markAlive(): void {
     this.lastAliveAt = this.monotonicNow();
   }

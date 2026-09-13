@@ -125,7 +125,15 @@ Checked against the tree at the time of writing:
 
 ## 5. The obstacles — honestly
 
-### 5.1 The synthdef-compiler cannot say `SendReply`
+### 5.1 [SUPERSEDED] The synthdef-compiler cannot say `SendReply`
+
+> **Superseded at landing time**: the constraint was the COMPILER's, and
+> since PURE-BRIDGE §3.1 the production clock synth is sclang-authored —
+> SendReply IS available. The tick moved to `/clock/tick
+> [tickCount, phase]` (PulseCount = absolute, self-locating index), the
+> parity fixture keeps the historical SendTrig graph as compiler
+> coverage, and `/tr` belongs entirely to the plugins. The original
+> analysis below is kept as written.
 
 `SendReply` — the ugen that would let us pick a custom reply address like
 `/clock/tick` — takes its `cmdName` as a **string**, and the compiler has
@@ -207,7 +215,7 @@ continues should re-install the clock synth rather than kill the session.
 ### 5.4 Watchdog false positives
 
 > **Decided at landing time — the OPPOSITE way.** Liveness is the global
-> clock's `/tr` tick ONLY: one signal, one meaning — the DSP graph
+> clock's tick ONLY (today `/clock/tick`): one signal, one meaning — the DSP graph
 > computing IS the session being alive. An accidentally-freed (or never
 > loaded) clock synth gets a clean close with a clear error within
 > `WATCHDOG_TIMEOUT_MS` instead of a zombie session with a silent

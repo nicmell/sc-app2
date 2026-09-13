@@ -9,10 +9,14 @@ afterEach(() => vi.restoreAllMocks());
 /** The anchor-ping cadence in ticks (2 s at 20 Hz = 40). */
 const PING_TICKS = Math.round(CLOCK_PING_INTERVAL_MS / (1000 / CLOCK_TICK_FREQ_HZ));
 
-/** A global-clock /tr message (nodeId, trigger id 4242, phase). */
-const trTick = (phase = 0): OscMessage => ({ address: "/tr", args: [99, 4242, phase] });
+/** A global-clock /clock/tick (SendReply layout: nodeId, replyId, then
+ *  the values — absolute tick index + phase). */
+const clockTick = (index: number, phase = 0): OscMessage => ({
+  address: "/clock/tick",
+  args: [99, -1, index, phase],
+});
 
-/** An sclang /clock/pong (clientId+seq echoed; the wall timestamp split
+/** An sclang /clock/ntp/pong (clientId+seq echoed; the wall timestamp split
  *  as [secs:i, fracMs:f] — serverTime here is Unix ms for readability). */
 const pong = (clientId: number, seq: number, serverTime: number): OscMessage => ({
   address: CLOCK_PONG_ADDRESS,
@@ -29,10 +33,12 @@ function makeSync() {
   sync.setClientId(41); // the server-minted id, armed before any tick
   const clientId = () => pings.at(-1)!.args[0] as number;
   const lastSeq = () => pings.at(-1)!.args[1] as number;
+  let tickN = 0;
+  const tick = () => sync.handleMessage(clockTick(++tickN));
   const ticks = (n: number) => {
-    for (let i = 0; i < n; i++) sync.handleMessage(trTick());
+    for (let i = 0; i < n; i++) tick();
   };
-  return { sync, published, pings, clientId, lastSeq, ticks };
+  return { sync, published, pings, clientId, lastSeq, tick, ticks };
 }
 
 /** Mock Date.now once and drive it forward through the test. */
@@ -53,10 +59,10 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
   it("pings on the FIRST tick, then every PING_TICKS; min-RTT rules", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(100);
-    const { sync, published, pings, clientId, lastSeq, ticks } = makeSync();
+    const { sync, published, pings, clientId, lastSeq, tick, ticks } = makeSync();
 
     // First tick of the connection → immediate anchor ping.
-    sync.handleMessage(trTick());
+    tick();
     expect(pings).toHaveLength(1);
     expect(pings[0].address).toBe(CLOCK_PING_ADDRESS);
 
@@ -84,9 +90,9 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
   it("ignores unknown and replayed pongs", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(0);
-    const { sync, published, clientId, lastSeq } = makeSync();
+    const { sync, published, clientId, lastSeq, tick } = makeSync();
 
-    sync.handleMessage(trTick());
+    tick();
     sync.handleMessage(pong(clientId(), 999, 10_000)); // never pinged
     expect(published).toHaveLength(0);
 
@@ -99,9 +105,9 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
   it("ignores another client's pong (same seq, different clientId)", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(0);
-    const { sync, published, clientId, lastSeq } = makeSync();
+    const { sync, published, clientId, lastSeq, tick } = makeSync();
 
-    sync.handleMessage(trTick());
+    tick();
     advancePerf(10);
     // The fan-out broadcasts every session's pongs — a foreign id with a
     // matching seq must not complete OUR round-trip.
@@ -114,9 +120,9 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
   it("reset unanchors (publishes null) and re-pings on the next first tick", () => {
     mockNow(10_000);
     const advancePerf = mockPerf(0);
-    const { sync, published, pings, clientId, lastSeq } = makeSync();
+    const { sync, published, pings, clientId, lastSeq, tick } = makeSync();
 
-    sync.handleMessage(trTick());
+    tick();
     const staleSeq = lastSeq();
     sync.reset();
     expect(published.at(-1)).toBeNull();
@@ -125,7 +131,7 @@ describe("ClockSync estimate (the tick → ping → pong loop)", () => {
     sync.handleMessage(pong(clientId(), staleSeq, 10_010)); // slot cleared — dead on arrival
     expect(published).toHaveLength(1);
 
-    sync.handleMessage(trTick()); // fresh connection → immediate ping again
+    tick(); // fresh connection → immediate ping again
     expect(pings).toHaveLength(2);
     advancePerf(4);
     sync.handleMessage(pong(clientId(), lastSeq(), 10_009)); // fresh lock publishes right away
@@ -150,18 +156,18 @@ describe("ClockSync tick-driven callbacks", () => {
     mockNow(0);
     let mono = 0;
     vi.spyOn(performance, "now").mockImplementation(() => mono);
-    const { sync } = makeSync();
+    const { sync, tick } = makeSync();
     const cb = vi.fn();
     sync.subscribe(100, cb); // every 2 ticks
 
-    sync.handleMessage(trTick());
+    tick();
     expect(cb).not.toHaveBeenCalled();
     mono += 10_000; // long stall (disconnect, engine hiccup, wall step)
-    sync.handleMessage(trTick());
+    tick();
     expect(cb).toHaveBeenCalledTimes(1); // the 2nd tick, however late — one fire
-    sync.handleMessage(trTick());
+    tick();
     expect(cb).toHaveBeenCalledTimes(1);
-    sync.handleMessage(trTick());
+    tick();
     expect(cb).toHaveBeenCalledTimes(2);
   });
 
@@ -189,7 +195,7 @@ describe("ClockSync tick-driven callbacks", () => {
     expect(sync.audioNow()).toBeNull();
     for (let i = 0; i < 40; i++) {
       mono = i * 50;
-      sync.handleMessage(trTick((i * 2205) % 8192));
+      sync.handleMessage(clockTick(i + 1, (i * 2205) % 8192));
     }
     expect(sync.tickInfo().locked).toBe(true);
     expect(sync.audioNow()).not.toBeNull();
@@ -206,7 +212,7 @@ describe("ClockSync tick-driven callbacks", () => {
     // Local clock runs 200 ppm fast: tick arrivals stretch accordingly.
     for (let i = 0; i < 64; i++) {
       mono = i * 50 * (1 + 200e-6);
-      sync.handleMessage(trTick((i * 2205) % 8192));
+      sync.handleMessage(clockTick(i + 1, (i * 2205) % 8192));
     }
     expect(sync.tickInfo().locked).toBe(true);
 
@@ -219,14 +225,34 @@ describe("ClockSync tick-driven callbacks", () => {
     expect(rate).toBeLessThan(1 - 140e-6);
   });
 
+  it("audioTarget is null pre-lock, then lands deltaMs ahead on the absolute axis", () => {
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
+    mockNow(0);
+    const { sync } = makeSync();
+
+    expect(sync.audioTarget(200)).toBeNull();
+    // Indexes start high — the engine ran before we connected.
+    for (let i = 0; i < 40; i++) {
+      mono = i * 50;
+      sync.handleMessage(clockTick(10_000 + i));
+    }
+    const target = sync.audioTarget(200)!; // 200 ms = 4 ticks at 20 Hz
+    expect(target).not.toBeNull();
+    const absolute = target.tick + target.frac;
+    expect(absolute).toBeCloseTo(10_000 + 39 + 4, 0);
+    expect(target.frac).toBeGreaterThanOrEqual(0);
+    expect(target.frac).toBeLessThan(1);
+  });
+
   it("pongs are measurement only — they never fire listeners", () => {
     mockNow(0);
     mockPerf(0);
-    const { sync, clientId, lastSeq } = makeSync();
+    const { sync, clientId, lastSeq, tick } = makeSync();
     const cb = vi.fn();
     sync.subscribe(100, cb);
 
-    sync.handleMessage(trTick()); // arms the anchor ping (1 of the 2 ticks due)
+    tick(); // arms the anchor ping (1 of the 2 ticks due)
     expect(cb).not.toHaveBeenCalled();
     sync.handleMessage(pong(clientId(), lastSeq(), 500));
     expect(cb).not.toHaveBeenCalled();

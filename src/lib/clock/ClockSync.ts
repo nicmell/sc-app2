@@ -77,10 +77,9 @@ export class ClockSync {
   private outstanding: { seq: number; t0: number } | null = null;
   private sequence = 0;
   /** Picks OUR pongs out of the shared fan-out (every peer reply
-   *  broadcasts to every session). Random 31-bit — stays positive in the
-   *  wire's int32; provisional until sessions carry a server-minted
-   *  client id (PURE-BRIDGE §3.4). */
-  private readonly clientId = crypto.getRandomValues(new Uint32Array(1))[0] >>> 1;
+   *  broadcasts to every session). Server-minted per session (the session
+   *  index), armed by OscClient before any tick can ping. */
+  private clientId = 0;
   /** Ticks until the next anchor ping; 0 fires on the NEXT tick, so a
    *  fresh/reset clock anchors on the first tick of the connection. */
   private ticksUntilPing = 0;
@@ -95,6 +94,12 @@ export class ClockSync {
   constructor({ publish, sendPing }: ClockSyncOptions) {
     this.publish = publish;
     this.sendPing = sendPing;
+  }
+
+  /** Adopt the session's server-minted client id (armSession). Pings and
+   *  the pong filter use it from the next exchange on. */
+  setClientId(id: number): void {
+    this.clientId = id;
   }
 
   private ping(): void {

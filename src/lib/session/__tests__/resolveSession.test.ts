@@ -29,6 +29,7 @@ import { sessionLoader } from "@/lib/session/resolveSession";
 function info(sessionId: string): SessionInfo {
   return {
     sessionId,
+    clientId: 1,
     sessionGroupId: 10,
     nodeIdBase: 100,
     nodeIdCount: 20,

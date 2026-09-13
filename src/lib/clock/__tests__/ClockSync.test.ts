@@ -26,6 +26,7 @@ function makeSync() {
     publish: (c) => published.push(c),
     sendPing: (m) => pings.push(m),
   });
+  sync.setClientId(41); // the server-minted id, armed before any tick
   const clientId = () => pings.at(-1)!.args[0] as number;
   const lastSeq = () => pings.at(-1)!.args[1] as number;
   const ticks = (n: number) => {

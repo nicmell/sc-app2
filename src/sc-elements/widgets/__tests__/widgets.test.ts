@@ -46,6 +46,7 @@ let send: ReturnType<typeof installScsynthMock>["send"];
  *  installScsynthMock's spies. */
 function armScopeAllocator(): void {
   oscClient.armSession({
+    clientId: 1,
     sessionGroupId: SESSION_GROUP,
     nodeIdBase: FIRST_NODE_ID,
     nodeIdCount: 100,
@@ -56,6 +57,7 @@ function armScopeAllocator(): void {
 
 function disarmScopeAllocator(): void {
   oscClient.armSession({
+    clientId: 1,
     sessionGroupId: SESSION_GROUP,
     nodeIdBase: FIRST_NODE_ID,
     nodeIdCount: 100,

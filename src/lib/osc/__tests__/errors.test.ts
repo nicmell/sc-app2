@@ -44,6 +44,7 @@ describe("errors middleware", () => {
       .spyOn(workerClient as unknown as { post(command: unknown): void }, "post")
       .mockImplementation(() => {});
     const connecting = oscClient.connect("ws://test", {
+      clientId: 1,
       sessionGroupId: 1,
       nodeIdBase: 100,
       nodeIdCount: 100,

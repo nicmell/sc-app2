@@ -4,9 +4,9 @@ Stato: **§3.1 (infrastruttura), §3.2 (delta `/dirt/play/in`) e §3.5
 (responder clock in sclang, promosso a piano A: il wall clock resta come
 àncora non musicale) LANDED** — il bridge non possiede più il ruolo
 clock (`core/clock.rs` e l'intercettazione sono morti; `/clock/*` è un
-peer route ordinario). Restano §3.3 (audio-domain), §3.4 (client id
-server-minted — oggi random 31-bit per ClockSync), §3.6 (scope), §3.7
-(TODO roadmap 1).
+peer route ordinario). Con §3.4 LANDED (il client id
+è l'indice di sessione, in SessionInfo, armato in ClockSync al connect)
+restano §3.3 (audio-domain), §3.6 (scope), §3.7 (TODO roadmap 1).
 Documento in italiano per scelta. Compagni: `AUDIO-CLOCK.md` (il transport
 audio-clock, §5.2 è il gate che questo documento scioglie), `docs/clock.md`
 (lo stato corrente del clock). I fatti in §2 sono stati verificati su
@@ -186,10 +186,12 @@ NTP, e il jitter uplink torna assorbito (il target è assoluto nel dominio
 audio). È la chiusura naturale di AUDIO-CLOCK: un solo clock, il motore,
 condiviso end-to-end.
 
-### 3.4 Session ↔ client id, 1:1
+### 3.4 Session ↔ client id, 1:1 [LANDED]
 
-Un piccolo client id per sessione, mintato accanto al blocco node-id
-(`core/blocks.rs`) e portato in `SessionInfo`. Ogni traffico per-sessione
+Il client id È l'indice di sessione (1-based, free-list: unico tra
+sessioni vive, stesso modello di collisione dei blocchi node-id) —
+esposto da `SessionBlock`/`SessionInfo` e armato in ClockSync via
+`armSession`. Ogni traffico per-sessione
 sul fan-out condiviso diventa attribuibile SENZA filtri nel bridge: il
 ping lo porta, il pong lo echoa, il frontend filtra il suo. Utile a
 prescindere dall'arco clock (qualunque protocollo futuro sul fan-out ha
@@ -199,8 +201,9 @@ lo stesso problema).
 
 Il wall clock resta (header, diagnostica cross-host), gestito da
 `ScAppClock` (scripts/sc-classes). Design come mappato, con due
-aggiustamenti al landing: il clientId provvisorio è mintato dal frontend
-(random 31-bit per ClockSync) in attesa di §3.4, e il wire è
+aggiustamenti al landing: il clientId era mintato provvisoriamente dal
+frontend fino a §3.4 (oggi è l'id server-minted della sessione), e il
+wire è
 `[clientId, seq]` / `[clientId, seq, secs, fracMs]`:
 
 ```supercollider
@@ -254,7 +257,7 @@ nell'arco, non assumere gratis.
    pipeline `at`/timetag; il wire ping/pong RESTA come àncora wall NON
    musicale — la sua migrazione in sclang (con morte di `core/clock.rs`
    e dell'intercettazione) è il punto 5.
-3. **Client id 1:1** (§3.4) — indipendente, utile comunque.
+3. **[LANDED] Client id 1:1** (§3.4).
 4. **Livello 2** (§3.3).
 5. **[LANDED] Responder sclang** (§3.5): landato col punto 2 — decisione
    utente di tenere il wall clock come àncora non musicale; morti

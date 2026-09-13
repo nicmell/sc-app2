@@ -40,6 +40,13 @@ const _: () = assert!(
 /// the frontend allocates from.
 #[derive(Debug, Clone, Copy)]
 pub struct SessionBlock {
+    /// The session's client id on the APP's own wire (clock pings, any
+    /// future per-session traffic on the shared fan-out) — simply the
+    /// 1-based session index, so it is unique among LIVE sessions (the
+    /// free-list recycles it with the same collision model as the node
+    /// blocks). NOT scsynth's client id (`cid`) — that one is the
+    /// bridge's login, shared by every session.
+    pub client_id: i32,
     /// Group id for this session (also the start of its sub-block).
     pub group_id: i32,
     /// First synth node id the frontend may allocate.
@@ -69,6 +76,7 @@ impl SessionBlock {
 pub fn session_block(cid: i32, index: u32) -> SessionBlock {
     let group_id = (cid << ID_SHIFT) + (index as i32) * SESSION_SPAN;
     SessionBlock {
+        client_id: index as i32,
         group_id,
         node_base: group_id + 1,
         node_count: SESSION_SPAN - 1,

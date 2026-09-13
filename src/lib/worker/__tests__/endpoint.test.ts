@@ -4,7 +4,7 @@
 // is transport.test.ts, the staleness timers watchdog.test.ts).
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { decode, encode } from "@sc-app/server-commands/codec";
-import { ADDR_TR, atDate, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
+import { ADDR_TR, CLOCK_PONG_ADDRESS, type OscPacket } from "@sc-app/server-commands";
 import { CLOCK_TRIGGER_ID, CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";
 import type { TransportEvent } from "@/types/osc";
 import { WorkerEndpoint, type TransportLike } from "../endpoint";
@@ -60,25 +60,20 @@ describe("WorkerEndpoint", () => {
     // …but pongs, /status.reply, and foreign /tr ids do NOT: only the DSP
     // graph computing proves the session alive.
     mono += WATCHDOG_TIMEOUT_MS + 1;
-    frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    frame({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
     frame({ address: "/status.reply", args: [1, 2, 3, 4, 0, 0, 0, 48_000, 48_000] });
     frame({ address: ADDR_TR, args: [1000, CLOCK_TRIGGER_ID + 1, 123] });
     vi.advanceTimersByTime(CLOCK_WATCHDOG_INTERVAL_MS * 10);
     expect(errors()).toHaveLength(1);
   });
 
-  it("encodes sends, building the OSC bundle from the `at` metadata", () => {
+  it("encodes sends as plain messages — nothing outbound is scheduled", () => {
     const { endpoint, sent } = makeEndpoint();
-    endpoint.handleCommand({ type: "osc", packet: { address: "/dirt/play", args: [] } });
     endpoint.handleCommand({
       type: "osc",
-      packet: { address: "/dirt/play", args: [] },
-      at: 10_750,
+      packet: { address: "/dirt/play/in", args: [250.5, "s", "bd"] },
     });
-    expect(decode(sent[0])).toEqual({ address: "/dirt/play", args: [] });
-    expect(decode(sent[1])).toEqual(
-      decode(encode({ timetag: atDate(10_750), packets: [{ address: "/dirt/play", args: [] }] })),
-    );
+    expect(decode(sent[0])).toEqual({ address: "/dirt/play/in", args: [250.5, "s", "bd"] });
   });
 
   it("passes /clock/pong straight up — no interception, no clock code", () => {
@@ -90,10 +85,10 @@ describe("WorkerEndpoint", () => {
     expect(events.map(({ event }) => event)).toEqual([{ type: "open" }]);
     expect(sent).toHaveLength(0);
 
-    frame({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    frame({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
     const pong = events.at(-1)?.event;
     if (pong?.type !== "osc") throw new Error("expected pong");
-    expect(pong.packet).toEqual({ address: CLOCK_PONG_ADDRESS, args: [0, 1_000] });
+    expect(pong.packet).toEqual({ address: CLOCK_PONG_ADDRESS, args: [41, 0, 1_000, 0.5] });
   });
 
   it("decodes frames, flattening bundles to messages with blob transferables", () => {

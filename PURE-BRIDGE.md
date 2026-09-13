@@ -1,8 +1,12 @@
 # Il bridge puro — clock in sclang, StrudelDirt patchato, endpoint intelligenti
 
-Stato: **direzione decisa; §3.1 (infrastruttura: deps come submodule
-pinnati + la classlib sclang del repo) LANDED** — il resto non
-implementato (TODO roadmap 1).
+Stato: **§3.1 (infrastruttura), §3.2 (delta `/dirt/play/in`) e §3.5
+(responder clock in sclang, promosso a piano A: il wall clock resta come
+àncora non musicale) LANDED** — il bridge non possiede più il ruolo
+clock (`core/clock.rs` e l'intercettazione sono morti; `/clock/*` è un
+peer route ordinario). Restano §3.3 (audio-domain), §3.4 (client id
+server-minted — oggi random 31-bit per ClockSync), §3.6 (scope), §3.7
+(TODO roadmap 1).
 Documento in italiano per scelta. Compagni: `AUDIO-CLOCK.md` (il transport
 audio-clock, §5.2 è il gate che questo documento scioglie), `docs/clock.md`
 (lo stato corrente del clock). I fatti in §2 sono stati verificati su
@@ -14,11 +18,12 @@ sua fonte.
 
 Il bridge Rust deve diventare **routing + sessioni e basta**: ogni
 "cervello di protocollo" appartiene agli endpoint — il frontend da un
-lato, sclang dall'altro. Oggi il bridge possiede tre ruoli che non sono
-routing:
+lato, sclang dall'altro. All'apertura di questo documento il bridge
+possedeva tre ruoli che non sono routing:
 
 1. il **responder del clock** (`/clock/ping` intercettato nel pump WS,
-   `core/clock.rs` risponde con SystemTime);
+   `core/clock.rs` rispondeva con SystemTime) — **PERSO [§3.5 LANDED]**:
+   oggi `/clock/*` è un peer route ordinario e risponde sclang;
 2. i **propri messaggi verso scsynth** (la registrazione `/notify`,
    l'heartbeat `/status` a 1 Hz del supervisor);
 3. la **pipeline scope** (lettore SHM + la famiglia `/scope/*` +
@@ -33,6 +38,9 @@ messaggio è più piccolo, più testabile e non va toccato quando i
 protocolli evolvono.
 
 ## 2. Fatti verificati
+
+(Fotografia all'epoca dell'indagine — dove un arco landed ha superato lo
+stato descritto, il punto lo dichiara.)
 
 ### 2.1 I clock dei tre processi
 
@@ -151,25 +159,26 @@ Dirt-Samples sono submodule git (gitlink = versione; `shallow = true`;
 opt-in via `yarn deps`), sc3-plugins resta la release binaria pinnata.
 Gli script di start leggono SOLO `deps/`.
 
-### 3.2 Livello 1 — `/dirt/play` a delta relativo (scioglie AUDIO-CLOCK §5.2)
+### 3.2 Livello 1 — `/dirt/play/in` a delta relativo [LANDED]
 
-Un OSCdef repo-owned (`/dirt/playIn`, primo argomento = delta ms) salta
-il calcolo dal timetag assoluto: `~latency = delta/1000` direttamente,
-poi la stessa pipeline DirtEvent. Il frontend manda il delta che GIÀ
-calcola (`targetTimeSecs − audioTime()`), senza `sendIn`. Conseguenza:
-`sendIn`/timetag/`clock.now()` perdono l'ultimo consumatore → **il wire
-ping/pong, `core/clock.rs` e l'intercettazione muoiono** — lo step 5 di
-AUDIO-CLOCK si chiude per intero. Costo onesto: il delta consumato
-all'arrivo eredita il jitter di consegna uplink (il timetag assoluto lo
-assorbe fino al lookahead) — su loopback sono millisecondi contro un
-`server.latency` di 0.3 s; in serve-mode remoto serve il Livello 2.
+`ScAppDirt` (scripts/sc-classes) registra `/dirt/play/in`
+(`[deltaMs:f, k1, v1, …]`): `~latency = delta/1000` direttamente, poi la
+stessa pipeline DirtEvent via i soli accessor pubblici del quark. Il
+frontend manda il delta che GIÀ calcola (`targetTimeSecs − audioTime()`).
+`sendIn` e l'intera pipeline `at`/timetag del boundary sono morti (era
+l'unico produttore); AUDIO-CLOCK §5.2 risolto. Il wall clock resta come
+àncora NON musicale (header/diagnostica — §3.5). Costo onesto: il delta
+consumato all'arrivo eredita il jitter di consegna uplink (il timetag
+assoluto lo assorbiva fino al lookahead) — su loopback sono millisecondi
+contro un `server.latency` di 0.3 s; in serve-mode remoto serve il
+Livello 2.
 
 ### 3.3 Livello 2 — target audio-domain (la forma finale)
 
 Un `TickAnchor` sclang-side: OSCdef su `/tr` id 4242 (stream che sclang
 già riceve), mappa tick↔`thisThread.seconds` con ancora a residuo minimo
 su finestra (la versione minima del TickTracker: stesso host, gli basta).
-`/dirt/playIn` porta il target in **tempo audio** (lo stesso dominio di
+`/dirt/play/in` porta il target in **tempo audio** (lo stesso dominio di
 `audioTime()`), sclang lo converte in `~latency` con la SUA mappa.
 Frontend e sclang ancorati alla stessa timeline fisica — il cristallo del
 DAC; il wall clock esce dall'intera pipeline musicale: immune agli step
@@ -186,10 +195,13 @@ ping lo porta, il pong lo echoa, il frontend filtra il suo. Utile a
 prescindere dall'arco clock (qualunque protocollo futuro sul fan-out ha
 lo stesso problema).
 
-### 3.5 Il responder clock in sclang (piano B)
+### 3.5 Il responder clock in sclang [LANDED — promosso a piano A]
 
-Solo se dopo il Livello 1/2 un'àncora wall deve ancora sopravvivere (es.
-l'orologio dell'header in serve-mode remoto). Design mappato:
+Il wall clock resta (header, diagnostica cross-host), gestito da
+`ScAppClock` (scripts/sc-classes). Design come mappato, con due
+aggiustamenti al landing: il clientId provvisorio è mintato dal frontend
+(random 31-bit per ClockSync) in attesa di §3.4, e il wire è
+`[clientId, seq]` / `[clientId, seq, secs, fracMs]`:
 
 ```supercollider
 // scripts/sc-classes/ — repo-owned
@@ -238,13 +250,15 @@ nell'arco, non assumere gratis.
 
 1. **[LANDED] Infrastruttura** (§3.1): directory estensioni + pin via
    submodule.
-2. **Livello 1** (§3.2) → sweep: morte di `sendIn`, del wire ping/pong,
-   di `core/clock.rs` e dell'intercettazione (step 5 chiuso).
+2. **[LANDED] Livello 1** (§3.2): morte di `sendIn` e dell'intera
+   pipeline `at`/timetag; il wire ping/pong RESTA come àncora wall NON
+   musicale — la sua migrazione in sclang (con morte di `core/clock.rs`
+   e dell'intercettazione) è il punto 5.
 3. **Client id 1:1** (§3.4) — indipendente, utile comunque.
 4. **Livello 2** (§3.3).
-5. **Responder sclang** (§3.5): solo se al punto 2 resta un consumatore
-   wall reale. Farlo prima del punto 2 significherebbe costruire in
-   sclang una cosa da demolire.
+5. **[LANDED] Responder sclang** (§3.5): landato col punto 2 — decisione
+   utente di tenere il wall clock come àncora non musicale; morti
+   `core/clock.rs` e l'intercettazione, `/clock/*` è un peer ordinario.
 
 Go/no-go del punto 2: misurare il jitter di consegna uplink reale
 (loopback e serve-mode) contro il margine `server.latency`; se il remoto

@@ -144,8 +144,9 @@ Change one side → sweep the other, same commit:
 
 - `router/error.rs` codes ⇄ `ApiErrorCode` (`src/lib/http`) — see
   Conventions.
-- `core/clock.rs` ⇄ server-commands `commands/clock.ts` (ping/pong arg
-  layouts; only ping/pong are on the wire).
+- `scripts/sc-classes/ScAppClock.sc` ⇄ server-commands
+  `commands/clock.ts` (ping/pong arg layouts; the pong's wire shape is
+  pinned by the codec.test.ts fixture).
 - `scope/wire.rs` ⇄ the frontend's `parseScopeChunkArgs` (a Rust golden
   byte test pins the encoding; the TS decoder has no test of its own).
 - `ELEMENTS` ⇄ constructor `REGISTRY` ⇄ spec.rs `SPEC_SOURCES` — see the

@@ -13,10 +13,12 @@
 // - Estimator (`ping()`/`onPong`): a tick countdown ORIGINATES the
 //   /clock/ping (one per PING_EVERY_TICKS, 2 s nominal; a fresh/reset
 //   clock fires on the FIRST tick so the anchor lands right after
-//   connect) and the pong completes the round-trip, t0/t1 both in the
-//   main thread's `performance.now()`. The postMessage hops land in the
-//   RTT — accepted: at the slow anchor cadence the min-RTT filter over
-//   the sample window eats them. `now()` = wall time + offset.
+//   connect) and the pong — answered by sclang's ScAppClock, riding the
+//   shared fan-out, picked out by clientId — completes the round-trip,
+//   t0/t1 both in the main thread's `performance.now()`. The hops land
+//   in the RTT — accepted: at the slow anchor cadence the min-RTT
+//   filter over the sample window eats them. `now()` = wall time +
+//   offset.
 //
 // Composed by OscClient.
 
@@ -74,6 +76,11 @@ export class ClockSync {
    *  overwrites a lost one's slot. */
   private outstanding: { seq: number; t0: number } | null = null;
   private sequence = 0;
+  /** Picks OUR pongs out of the shared fan-out (every peer reply
+   *  broadcasts to every session). Random 31-bit — stays positive in the
+   *  wire's int32; provisional until sessions carry a server-minted
+   *  client id (PURE-BRIDGE §3.4). */
+  private readonly clientId = crypto.getRandomValues(new Uint32Array(1))[0] >>> 1;
   /** Ticks until the next anchor ping; 0 fires on the NEXT tick, so a
    *  fresh/reset clock anchors on the first tick of the connection. */
   private ticksUntilPing = 0;
@@ -93,7 +100,7 @@ export class ClockSync {
   private ping(): void {
     const seq = this.sequence++;
     this.outstanding = { seq, t0: performance.now() };
-    this.sendPing(clockPing(seq));
+    this.sendPing(clockPing(this.clientId, seq));
   }
 
   /** The minimum-delay sample in the window — NTP's clock-filter rule:
@@ -139,6 +146,7 @@ export class ClockSync {
    *  min-RTT window and publish. The MEASUREMENT stream only — the
    *  metronome is `onTick`. */
   private onPong(message: OscMessage): void {
+    if (ClockPong.clientId(message) !== this.clientId) return; // another session's pong
     if (this.outstanding === null || this.outstanding.seq !== ClockPong.seq(message)) return;
     const rtt = performance.now() - this.outstanding.t0;
     this.outstanding = null;

@@ -62,7 +62,8 @@ fn default_port() -> u16 {
 }
 
 /// Starter peers, seeded when `config.json` declares none: scsynth (its command
-/// surface) and strudel/SuperDirt (dirt).
+/// surface), strudel/SuperDirt (dirt), and the clock responder (sclang's
+/// ScAppClock, on the same langPort as strudel).
 fn default_peers() -> Vec<PeerConfig> {
     vec![
         PeerConfig {
@@ -74,9 +75,17 @@ fn default_peers() -> Vec<PeerConfig> {
         },
         PeerConfig {
             name: "strudel".into(),
-            // `/scope/*` and `/clock/*` are bridge-internal (intercepted in
-            // the WS pump), so neither is routed to a peer here.
+            // `/scope/*` stays bridge-internal (intercepted in the WS pump)
+            // and is never routed to a peer.
             pattern: r"^/dirt(/|$)".into(),
+            target: "127.0.0.1:57120".into(),
+        },
+        PeerConfig {
+            name: "clock".into(),
+            // Answered by sclang's ScAppClock (scripts/sc-classes) — the
+            // reply must originate from 57120, the connect()ed socket
+            // drops any other source.
+            pattern: r"^/clock(/|$)".into(),
             target: "127.0.0.1:57120".into(),
         },
     ]
@@ -282,7 +291,7 @@ mod tests {
         // …and the seeded file parses back to the same defaults.
         let reread = read(&path, false);
         assert_eq!(reread.port, DEFAULT_PORT);
-        assert_eq!(reread.peers.len(), 2);
+        assert_eq!(reread.peers.len(), 3);
         std::fs::remove_file(&path).ok();
     }
 
@@ -309,7 +318,7 @@ mod tests {
             .iter()
             .map(|p| p.name.clone())
             .collect();
-        assert_eq!(names, vec!["scsynth", "strudel"]);
+        assert_eq!(names, vec!["scsynth", "strudel", "clock"]);
         std::fs::remove_file(path).ok();
     }
 
@@ -317,7 +326,7 @@ mod tests {
     fn empty_peers_seeds_defaults() {
         let path = tmp("empty-peers");
         std::fs::write(&path, r#"{ "peers": [] }"#).unwrap();
-        assert_eq!(load(Some(path.clone())).peers.len(), 2);
+        assert_eq!(load(Some(path.clone())).peers.len(), 3);
         std::fs::remove_file(path).ok();
     }
 

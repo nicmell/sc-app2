@@ -240,21 +240,10 @@ export class OscClient {
   }
 
   /** THE dispatch function: send an OSC message over the worker's WebSocket
-   *  (dropped while not open). `at` schedules it — a bridge-time Unix-ms
-   *  timetag the worker endpoint wraps into an OSC bundle at encode time. */
-  dispatch(packet: OscMessage, at?: number): void {
+   *  (dropped while not open). */
+  dispatch(packet: OscMessage): void {
     if (this.worker.status() !== TRANSPORT_STATUS.IS_OPEN) return;
-    this.worker.send(packet, at);
-  }
-
-  /** Dispatch `packet` scheduled `inMs` from now. The delta is
-   *  domain-free for the caller (compute it in ANY consistent timebase —
-   *  rate error over a lookahead-sized delta is sub-µs); the conversion
-   *  to a bridge-time timetag happens here via `clock.now()`. Timetags are
-   *  bridge time: a scsynth on a different host than the bridge would
-   *  need its own offset (unsupported assumption). */
-  sendIn(packet: OscMessage, inMs: number): void {
-    this.dispatch(packet, Math.round(this.clock.now() + inMs));
+    this.worker.send(packet);
   }
 
   /** Subscribe to a connection event. Returns a subscription id for `off`. */

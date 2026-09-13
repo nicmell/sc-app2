@@ -1,8 +1,9 @@
 # Bridge clock synchronization & the tick-driven scheduler
 
-How the app keeps ONE timebase across the webview, the OSC worker, the Rust
-bridge, and scsynth — with a three-message protocol. Companion to
-`scope.md` (the other bridge-internal protocol family).
+How the app keeps ONE timebase across the webview, the OSC worker,
+sclang, and scsynth — with a three-message protocol the bridge only
+routes. Companion to `scope.md` (the one remaining bridge-internal
+protocol family).
 
 ## 1. The problem
 
@@ -15,12 +16,12 @@ Two distinct problems share one solution:
    Worker timers are exempt, and postMessage delivery to the main thread is
    NOT timer-throttled — so the worker keeps time and the main thread is
    woken by its messages.
-2. **A shared timebase.** Outgoing OSC bundles carry NTP timetags that scsynth
-   executes sample-accurately against _its_ host clock. As long as the webview
-   runs on the same machine, `Date.now()` agrees with that clock; a remote
-   browser session (the `serve` mode over a network) does not. The app needs
-   "bridge time" — the clock of the machine running the bridge and scsynth —
-   available everywhere timetags are stamped.
+2. **A shared timebase.** The header clock shows the AUDIO HOST's wall
+   time, and cross-host diagnostics want frontend events comparable with
+   host logs. In Tauri `Date.now()` IS that clock; a remote browser
+   session (the `serve` mode over a network) needs the offset measured.
+   Nothing musical consumes wall time (dirt events carry a relative
+   delta — §6), so the anchor is a convenience, not a timing path.
 
 Two inbound streams solve the two problems, each owned by its natural
 master (see AUDIO-CLOCK.md for the design's full arc):
@@ -30,11 +31,12 @@ master (see AUDIO-CLOCK.md for the design's full arc):
   (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
   `clock.subscribe` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the MAIN thread pings
-  the bridge riding that same metronome (one ping per 2 s of ticks, plus
-  an immediate one on the first tick after connect) — the wall-time
-  anchor for `sendIn`'s timetags; the pong flows back up as an ordinary
-  message and ClockSync completes the round-trip and filters the offset
-  estimate.
+  riding that same metronome (one ping per 2 s of ticks, plus an
+  immediate one on the first tick after connect) — the wall-time anchor
+  behind `clock.now()` (the header clock and cross-host diagnostics;
+  nothing MUSICAL consumes wall time anymore); the pong flows back up as
+  an ordinary message and ClockSync completes the round-trip and filters
+  the offset estimate.
 
 Deliberate consequences: nothing keeps time while disconnected — Strudel
 stops with the session (its `unload()` already stops playback on the
@@ -44,35 +46,41 @@ ENFORCED, not just assumed.
 
 ## 2. Protocol — two wire messages and a tick
 
-All sync traffic is plain OSC messages. Like `/scope/*`, the `/clock/*`
-family is **bridge-internal**: the WS pump intercepts the ping before peer
-routing (`src-tauri/src/core/router/ws.rs`), and the strudel/scsynth peer
-regexes never match it. Vocabulary lives in
+All sync traffic is plain OSC messages. The `/clock/*` family is an
+ORDINARY peer route: the bridge's "clock" peer forwards it to sclang on
+UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes)
+answers — the bridge never interprets it (only `/scope/*` remains
+bridge-internal). Vocabulary lives in
 `packages/server-commands/src/commands/clock.ts` ⇄
-`src-tauri/src/core/clock.rs` (the exact `/clock/pong` wire bytes are pinned
-byte-for-byte in both languages' test suites). The postMessage boundary
-carries NO clock vocabulary at all: the ping goes down the ordinary send
-path, the pong comes back up as an ordinary message (`OscClient.handleReply`
-consumes it ahead of the waiters; the logging middleware skips it — the
-same `/scope/chunk` treatment), and the worker's only clock-adjacent job
-is the tick-stamped watchdog (§7).
+`scripts/sc-classes/ScAppClock.sc` (the pong's wire layout is pinned by
+the codec.test.ts fixture). The postMessage boundary carries NO clock
+vocabulary at all: the ping goes down the ordinary send path, the pong
+comes back up as an ordinary message (`OscClient.handleReply` consumes it
+ahead of the waiters; the logging middleware skips it — the same
+`/scope/chunk` treatment), and the worker's only clock-adjacent job is
+the tick-stamped watchdog (§7).
 
-### Main ⇄ bridge (through the worker, no interception)
+### Main ⇄ sclang (routed by the bridge, no interception)
 
 ```
-→ /clock/ping  seq:i          one per CLOCK_PING_INTERVAL_MS (2 s) of ticks
-← /clock/pong  seq:i  srv:d   srv = bridge SystemTime, UNIX ms as f64
+→ /clock/ping  clientId:i seq:i             one per 2 s of ticks
+← /clock/pong  clientId:i seq:i secs:i fracMs:f
 ```
 
 The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
 ping (`seq` + `performance.now()` at send — at the slow cadence pings are
-strictly sequential, so a new ping simply overwrites a lost one's slot),
-so no timestamp needs a round-trip and the only double on the wire is
-Rust-encoded (osc-js decodes type `d` natively — the TS codec never needs
-to encode one). Stale or unknown seqs are ignored; the slot clears on
-reset. The bridge captures `srv` _before_ replying (ahead of any await, so
-send backpressure can't bias the timestamp) and answers inline on the same
-socket.
+strictly sequential, so a new ping simply overwrites a lost one's slot).
+Peer replies ride the bridge's broadcast fan-out to EVERY session, so the
+echoed `clientId` (random 31-bit per ClockSync, provisional until
+sessions carry a server-minted id) is what picks OUR pongs out; foreign
+ids, stale and unknown seqs are ignored, and the slot clears on reset.
+The timestamp is `Date.getDate.rawSeconds` — a live system_clock read —
+split into integer Unix seconds + float32 fractional ms because sclang's
+NetAddr cannot emit an OSC double (f64 Unix-ms squeezed into float32
+would quantize to ~2 minutes; secs in int32 rolls over in 2038 —
+accepted). The responder runs in sclang's single interpreter thread
+(gLangMutex), so its service time can bias `srv` under load — accepted at
+the 0.5 Hz cadence for a non-musical anchor.
 
 ### scsynth → everyone (the metronome)
 
@@ -98,7 +106,7 @@ of code:
 | ----------------------------- | --------------------------------------------- | ---------------------------------------------- |
 | `performance.now()`           | monotonic, sub-ms, context-local              | RTT (main thread), watchdog staleness (worker) |
 | `Date.now()`                  | shared across window/worker, steppable, ~1 ms | carrying the offset across the thread boundary |
-| bridge `SystemTime` (UNIX ms) | scsynth's host clock                          | the target domain — timetags                   |
+| audio-host wall clock (UNIX ms) | the machine running the audio stack           | the offset's far end — header/diagnostics      |
 
 - **RTT** is measured entirely in the MAIN thread's monotonic domain:
   `rtt = performance.now()@pong − t0`. The postMessage hops to and from
@@ -124,7 +132,7 @@ browser and bridge are different machines.
   and pings flow only while ticks do: a dead stack stops measuring by
   construction. The in-flight slot completes `rtt`/`offset` per §3; after
   the first anchor the round-trip only tracks crystal drift (~100 ppm)
-  for `sendIn`'s wall-time anchor.
+  for `clock.now()`'s wall anchor.
 - **Filtering**: samples fold into a ring of `CLOCK_SAMPLE_WINDOW` (8 —
   NTP's clock-filter register, ~16 s at the 2 s cadence), and the estimate
   is simply the
@@ -205,15 +213,15 @@ always available, never a step.
    structural:
    `disconnectedCallback → mirror.stop() → Cyclist.stop() → clearInterval`.
 2. _Stamping_: the deadline is computed entirely in the audioTime domain
-   and shipped as a RELATIVE delta —
-   `oscClient.sendIn(message, (targetTimeSecs − audioTime())·1000 +
-   SAFETY_LOOKAHEAD_MS)`. `sendIn(packet, inMs)` converts to the
-   bridge-time timetag `round(clock.now() + inMs)` and sends it as the `at`
-   metadata beside the message (the worker endpoint builds the OSC bundle
-   at encode time): the ONE wall-clock conversion point in the app, and
-   the delta is domain-free for callers (rate error over a lookahead-sized
-   delta is sub-µs). The timetag is correct because scsynth shares the
-   bridge host clock.
+   and shipped as a RELATIVE delta IN the message —
+   `/dirt/play/in [deltaMs, …pairs]` with
+   `deltaMs = (targetTimeSecs − audioTime())·1000 + SAFETY_LOOKAHEAD_MS`;
+   the repo's `ScAppDirt` class (scripts/sc-classes) converts it to the
+   quark's `~latency` on arrival. NO wall-clock conversion anywhere on
+   the musical path — no timetags, no bundles, and an NTP step cannot
+   shift an event. The delta is domain-free for the caller (rate error
+   over a lookahead-sized delta is sub-µs); its delivery jitter rides
+   inside SuperDirt's 0.3 s scheduling latency.
 
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription — meaningful only while connected, which is exactly when the
@@ -252,7 +260,8 @@ a main-thread watchdog would detect late in an occluded window.
 
 - **No ticks / bridge down**: offset stays 0 (local time); no clock
   callbacks (and so no pings either); within `WATCHDOG_TIMEOUT_MS` the
-  watchdog closes the session.
+  watchdog closes the session. sclang dying is the same story: ticks,
+  pongs and the clock synth share its fate — one signal, one death.
 - **Disconnect**: ticks stop, so pings stop with them; the estimate resets
   to 0, callbacks stop; the plugin unload pass stops Strudel playback (by
   design — nothing keeps time offline).
@@ -277,6 +286,6 @@ a main-thread watchdog would detect late in an occluded window.
   by a step; the offset estimate re-converges as the pre-step samples age
   out of the window (at most ~16 s), shifting only not-yet-stamped
   timetags.
-- **Remote scsynth (≠ bridge host)**: unsupported assumption — timetags are
-  stamped in _bridge_ time; a remote scsynth would need its own offset.
-  `sendIn`'s doc comment marks this.
+- **Remote scsynth (≠ bridge host)**: unsupported assumption — the audio
+  stack (scsynth + sclang) and the bridge share one host; a split would
+  need its own offset story.

@@ -5,7 +5,6 @@
  */
 
 /** OSC atomic types we use on the wire: int32, float32, string, blob. */
-import type { Timetag } from "./timetag";
 
 /** OSC atomic values used by the app. Packet-shaped outbound args are encoded
  *  as OSC blobs by the codec; decoded blobs remain Uint8Array values. */
@@ -17,7 +16,9 @@ export interface OscMessage {
 }
 
 export interface OscBundle {
-  timetag: Timetag;
+  /** JS ms since the Unix epoch (osc-js converts to NTP). Inbound only —
+   *  the app never encodes bundles; scsynth may send them. */
+  timetag: number;
   packets: OscPacket[];
 }
 

@@ -130,31 +130,6 @@ describe("oscClient.createSynth", () => {
   });
 });
 
-describe("oscClient.sendIn", () => {
-  afterEach(() => vi.restoreAllMocks());
-
-  it("stamps the bridge-time `at` metadata from a relative delta", () => {
-    vi.spyOn(Date, "now").mockReturnValue(10_000);
-    let mono = 0;
-    vi.spyOn(performance, "now").mockImplementation(() => mono);
-    const dispatch = vi.spyOn(oscClient, "dispatch").mockImplementation(() => {});
-
-    // The loop that fixes offset 500: reset → first tick pings → pong.
-    oscClient.handleTransportEvent({ type: "close" });
-    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
-    const ping = dispatch.mock.calls.find(([m]) => m.address === "/clock/ping")?.[0];
-    if (!ping) throw new Error("expected an anchor ping on the first tick");
-    mono += 1; // rtt 1 → offset = 10_499.5 + 0.5 − 10_000 = 500
-    oscClient.handleReply(oscMessage("/clock/pong", ping.args[0], 10_499.5));
-    dispatch.mockClear();
-
-    oscClient.sendIn({ address: "/dirt/play", args: [] }, 250);
-
-    // clock.now() (10_500) + inMs (250) = 10_750.
-    expect(dispatch).toHaveBeenCalledWith({ address: "/dirt/play", args: [] }, 10_750);
-  });
-});
-
 describe("oscClient.setControln", () => {
   it("sends /n_setn with the named contiguous run", () => {
     const sent: OscMessage[] = [];

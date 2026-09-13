@@ -1,17 +1,18 @@
 // The worker-side protocol endpoint: the binary codec over the byte
 // Transport, plus the composed session Watchdog — everything else passes
 // straight through. The postMessage boundary carries plain MESSAGES only
-// and NO clock vocabulary at all: outbound, the `at` metadata becomes the
-// OSC bundle timetag here at encode time; inbound, bundles flatten to
-// messages in wire order before posting up, and the global clock's /tr
-// tick (the session heartbeat) additionally stamps the watchdog. The
+// and NO clock vocabulary at all: outbound messages encode as-is (nothing
+// is scheduled — dirt events carry a relative delta IN the message);
+// inbound, bundles flatten to messages in wire order before posting up,
+// and the global clock's /tr tick (the session heartbeat) stamps the
+// watchdog. The
 // codec subpath is the worker's only route to osc-js. worker.ts is the
 // thin entry composing the endpoint over the worker scope; OscClient
 // (main thread) is the protocol brain on the other side of the
 // WorkerClient boundary.
 
 import { decode, encode } from "@sc-app/server-commands/codec";
-import { atDate, walkPacket, type OscMessage } from "@sc-app/server-commands";
+import { walkPacket, type OscMessage } from "@sc-app/server-commands";
 import { isClockTick } from "@/constants/osc";
 import type { TransportCommand, TransportEvent } from "@/types/osc";
 import { Watchdog } from "./watchdog";
@@ -75,13 +76,8 @@ export class WorkerEndpoint {
         this.transport.close();
         return;
       case "osc": {
-        const { packet, at } = command;
         try {
-          // `at` (a bridge-time Unix-ms timetag) becomes the OSC bundle
-          // here — the one place the wire's scheduling shape is built.
-          this.transport.send(
-            encode(at !== undefined ? { timetag: atDate(at), packets: [packet] } : packet),
-          );
+          this.transport.send(encode(command.packet));
         } catch (error) {
           this.post({
             type: "error",

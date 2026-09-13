@@ -160,7 +160,7 @@ lib/                     non-React infrastructure
                          the exposed `clock` (ClockSync as-is:
                          clock.subscribe + clock.now — tick-driven
                          callbacks, connected-only, see clock.md) +
-                         sendIn(packet, inMs), subscribeScope(…, onChunk) →
+                         subscribeScope(…, onChunk) →
                          {subId, off} (handler registered before the send;
                          chunks dispatch by subId from handleReply) and the
                          scope-slot allocator over the session's span);
@@ -175,7 +175,7 @@ lib/                     non-React infrastructure
                          → worker.ts (Web Worker entry: thin glue
                            composing the endpoint over the worker scope)
                          → endpoint.ts (`WorkerEndpoint`: codec ⇄ bytes —
-                           at-metadata bundling out, bundle flattening +
+                           plain-message encode out, bundle flattening +
                            blob transfer in; the global clock's /tr tick
                            stamps the watchdog, every message posts up;
                            composes transport + watchdog)

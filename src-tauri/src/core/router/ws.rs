@@ -3,9 +3,9 @@
 //! `/ws?session=<uuid>` validates the session, then upgrades to a bridge
 //! between one browser/webview and the OSC [`Bridge`](crate::core::bridge):
 //! uplink binary frames are dispatched to the matching peer; peer replies (from
-//! the bridge's fan-out) are written back. Bridge-internal `/scope/*` and
-//! `/clock/*` frames are intercepted before peer routing. `/scope/*` is
-//! claimed for the session's [`SessionScopes`] instead of routed — all scope semantics
+//! the bridge's fan-out) are written back. Bridge-internal `/scope/*`
+//! frames are intercepted before peer routing — claimed for the
+//! session's [`SessionScopes`] instead of routed; all scope semantics
 //! (subscriptions, span gating, chunk staging) live in [`crate::core::scope`]; this
 //! loop only routes frames and ferries bytes.
 //!
@@ -27,7 +27,6 @@ use crate::core::blocks::SessionBlock;
 use crate::core::osc::peek_address;
 use crate::core::scope::{self, SessionScopes};
 use crate::core::server::Server;
-use crate::core::{clock, osc};
 
 /// The `/ws` route.
 pub fn routes() -> Router<Server> {
@@ -126,24 +125,7 @@ async fn run_ws(server: &Server, block: SessionBlock, mut socket: WebSocket) {
             msg = socket.recv() => match msg {
                 Some(Ok(Message::Binary(bytes))) => {
                     match peek_address(bytes.as_ref()) {
-                        // Bridge-internal families are claimed, never routed.
-                        Some(clock::CLOCK_PING) => {
-                            let srv = clock::unix_ms();
-                            let Some(seq) = osc::decode_message(bytes.as_ref())
-                                .as_ref()
-                                .and_then(clock::parse_ping)
-                            else {
-                                tracing::warn!("malformed /clock/ping ignored");
-                                continue;
-                            };
-                            if socket
-                                .send(Message::Binary(clock::encode_pong(seq, srv).into()))
-                                .await
-                                .is_err()
-                            {
-                                break;
-                            }
-                        }
+                        // The bridge-internal scope family is claimed, never routed.
                         Some(scope::SCOPE_SUBSCRIBE) => {
                             let shm = server.scope_shm().await;
                             scopes.subscribe(bytes.as_ref(), shm);

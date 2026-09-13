@@ -235,6 +235,13 @@ always available, never a step.
    on the musical path — no timetags, no bundles, and an NTP step cannot
    shift an event.
 
+**The Conductor (`src/lib/conductor`).** The session's musical time
+shares the timebase: its cycle/seconds position is
+`base + (audioTime() − anchor) · cps` — Cyclist's own math on the SAME
+`audioTime()` the patterns schedule against, so header position and
+pattern grid agree by construction. The header repaints it on a 100 ms
+clock subscription while playing.
+
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription — meaningful only while connected, which is exactly when the
 clock synth ticks.

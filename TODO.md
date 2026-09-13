@@ -19,12 +19,12 @@ step depends on live inline; everything here is UNSTARTED unless noted.
    their client id. Remaining arcs (design and sequencing in the doc):
    scope without the bridge (gated on a `/b_getn` feasibility pass);
    LinkClock + actualSampleRate investigations.
-2. **The Conductor** (`CONDUCTOR.md`) — the header DAW transport +
-   two-way BPM metronome over a session-level musical-time module
-   (cycles on the audio timebase; Strudel pause via cps=0). Design
-   complete and verified, unstarted. Follow-up spike: NeoCyclist
-   (setCycle/phase alignment — gated on its time-source respecting our
-   getTime).
+2. **The Conductor** (`CONDUCTOR.md`) — LANDED: the header podium
+   (play/pause/stop + BPM metronome) over the session-level
+   musical-time module (cycles on the audio timebase; the exact Strudel
+   pause via cps=0; two-way tempo through the setCps wrap). Still open:
+   the NeoCyclist spike (setCycle/phase alignment — gated on its
+   time-source respecting our getTime).
 3. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.

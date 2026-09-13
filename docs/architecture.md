@@ -109,7 +109,7 @@ sc-elements/             Lit elements used inside plugin HTML (per-element
                          internal/spec.ts re-exports it + bindAttr/COMMON_ATTRS)
 stores/                  the single app store + slices and React hooks
   store.ts               createStore({ session, osc, toasts, layout, presets,
-                         plugins }) — the ONLY app-level store. Cross-module
+                         plugins, conductor }) — the ONLY app-level store. Cross-module
                          shapes come from @/types (type-only by construction),
                          so no runtime cycle with the singletons. Plugin
                          runtime state is NOT a slice: each mounted <sc-plugin>
@@ -118,7 +118,7 @@ stores/                  the single app store + slices and React hooks
                          box's HARVESTED snapshot of that store (id-keyed),
                          saved with the layout and reseeded on remount
   layout.ts / presets.ts / plugins.ts / session.ts / osc.ts / toasts.ts /
-  useStore.ts
+  conductor.ts / useStore.ts
 types/                   .d.ts domain shapes (type-only modules):
                          stores.d.ts (app state), api.d.ts (HTTP payloads),
                          osc.d.ts (transport), sc-elements.d.ts (JSX tags),
@@ -191,6 +191,14 @@ lib/                     non-React infrastructure
                          behind clock.now(), the tick-counted callback
                          registry, TickTracker + SlewedClock; see
                          docs/clock.md
+  conductor/             Conductor (global `conductor`): the session's
+                         MUSICAL time — transport state (play/pause/stop
+                         over `/n_run` on the session group, which boots
+                         PAUSED), tempo (cps internally, BPM display),
+                         and the position in cycles advanced on
+                         `clock.audioTime()` with Cyclist's own math;
+                         pauses Strudel exactly via the widgets'
+                         cps=0 seam. See CONDUCTOR.md
   session/               SessionManager (global `session`): the LIVE half —
                          epoch-guarded connect(info)/disconnect() (one-tick
                          deferred for StrictMode remounts), close → conn

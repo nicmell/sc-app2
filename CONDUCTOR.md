@@ -1,10 +1,11 @@
 # Il Conductor — tempo musicale, transport e metronomo
 
-Stato: **design concordato, NIENTE implementato** — questo documento è
-l'handoff completo (fatti verificati + decisioni + disegno) per
-l'implementazione. Il branch `feat/transport` precedente è stato
-SCARTATO (main non lo contiene); le sue lezioni sono qui. In italiano
-per scelta. Compagni: `docs/clock.md` (il clock fisico), `PURE-BRIDGE.md`.
+Stato: **LANDED** (branch `feat/conductor` — modulo, boot in pausa,
+seam Strudel, podium nell'header). Questo documento resta il record dei
+fatti verificati + decisioni; i §7-8 registrano piano e delta finali.
+Il branch `feat/transport` precedente è stato SCARTATO (main non lo
+contiene); le sue lezioni sono qui. In italiano per scelta. Compagni:
+`docs/clock.md` (il clock fisico), `PURE-BRIDGE.md`.
 
 ## 1. Obiettivo
 
@@ -185,3 +186,29 @@ Branch nuovo da main, ~3 commit:
 
 Vincoli permanenti: implementazione personale (niente delega ad altri
 modelli), branch dedicato, plan mode per fase, merge --no-ff su main.
+
+## 8. Delta di implementazione (rispetto al §6-7)
+
+Com'è atterrato davvero, dove i nomi o i dettagli differiscono:
+
+- Modulo: `src/lib/conductor/Conductor.ts` (singleton `conductor`,
+  side-effect import in `main.tsx`); slice `SliceName.CONDUCTOR`
+  `{ state, cps, cycleBase, secondsBase, anchorAudioTime }`; hook React
+  `useConductor()` in `src/stores/conductor.ts`.
+- Seam ScStrudel: metodi `conductorFreeze()` / `conductorResume()` /
+  `conductorSetCps(v)` (+ `schedulerSetCps` privato con la guardia di
+  rientranza `settingCps`); il flag di freeze è `frozenCps` (il cps vivo
+  salvato) e fa da gate anti-NaN nel `defaultOutput`; `unload()` fa il
+  restore PRIMA di `mirror.stop()`. Il wrap two-way è installato subito
+  dopo `new StrudelMirror(...)` e ignora i nostri set e v ≤ 0; il mirror
+  nuovo adotta subito il tempo di sessione (`conductorSetCps`).
+- `BEATS_PER_CYCLE` (4) e gli helper `cpsToBpm`/`bpmToCps` vivono sul
+  modulo conductor (non in constants) — il BPM è SOLO display.
+- Header: il podium (`ConductorPodium` in DashboardHeader) compare solo
+  da connesso: toggle play/pausa + stop (disabled da stopped), posizione
+  `cicli · M:SS.d` (mono, min-width), input BPM draft-buffered con
+  commit su blur/Enter, repaint a 100 ms via `clock.subscribe` solo in
+  playing.
+- Il reset a disconnect conserva il TEMPO (cps) e azzera il resto —
+  scelta deliberata: il tempo è un'impostazione di sessione, la
+  posizione no.

@@ -19,10 +19,16 @@ step depends on live inline; everything here is UNSTARTED unless noted.
    their client id. Remaining arcs (design and sequencing in the doc):
    scope without the bridge (gated on a `/b_getn` feasibility pass);
    LinkClock + actualSampleRate investigations.
-2. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
+2. **The Conductor** (`CONDUCTOR.md`) — the header DAW transport +
+   two-way BPM metronome over a session-level musical-time module
+   (cycles on the audio timebase; Strudel pause via cps=0). Design
+   complete and verified, unstarted. Follow-up spike: NeoCyclist
+   (setCycle/phase alignment — gated on its time-source respecting our
+   getTime).
+3. **Honor `run="false"`** on sc-synth/sc-group: the create-then-`/n_run 0`
    sequence after the create ack. The plumbing exists (`setRunning` on
    sc-node, `OscClient.setNodeRun`); only the load-pass honoring is missing.
-3. **Buffer family** — designed around the SHM transport (no `/b_getn`, no
+4. **Buffer family** — designed around the SHM transport (no `/b_getn`, no
    global-clock machinery; the bus-based sc-scope already covers live-signal
    viewing — but see roadmap 1's scope arc for the pure-bridge
    alternative, which would revisit this):
@@ -34,7 +40,7 @@ step depends on live inline; everything here is UNSTARTED unless noted.
      Float32Array) fed by an SHM scope-tap subscription.
    - A `/b_getn` reader + buffer WS stack is the fallback ONLY if reading
      actual buffer CONTENTS (vs the live signal) ever becomes necessary.
-4. **Shell polish** — settings (grid size, latency); theme/options store
+5. **Shell polish** — settings (grid size, latency); theme/options store
    slice.
 
 ## Expression-language growth (`src/lib/expression/`)

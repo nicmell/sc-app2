@@ -159,6 +159,10 @@ export class OscClient {
         // so its group never pre-exists: create it at the tail of scsynth's
         // root group, after SuperDirt's output monitors.
         this.dispatch(gNewOne(session.sessionGroupId, AddToTail, 0));
+        // DAW-pure boot (CONDUCTOR.md): the group starts PAUSED — the
+        // plugins load into it with their voices born frozen; the
+        // conductor's play starts everything on one block.
+        this.dispatch(nRunOne(session.sessionGroupId, 0));
         // Flag readiness only after /g_new, so subscribers (plugin reloads)
         // allocate and send into an existing group.
         this.state.update((s) => ({ ...s, connected: true }));

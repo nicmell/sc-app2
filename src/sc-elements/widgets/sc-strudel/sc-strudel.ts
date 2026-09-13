@@ -20,6 +20,7 @@ import { ensureStrudelGlobals } from "@/lib/strudel/prebake";
 import type { OscMessage } from "@sc-app/server-commands";
 import type { ConnStatus } from "@/types/stores";
 import { oscClient } from "@/lib/osc/OscClient";
+import { conductor } from "@/lib/conductor/Conductor";
 import { session } from "@/stores/session";
 import styles from "./sc-strudel.module.scss";
 
@@ -126,8 +127,57 @@ export class ScStrudel extends ScInput {
 
   /** Stop playback on the connection-loss unload — the editor stays mounted
    *  (it works offline); only the event stream dies with the socket. */
+  /** Non-null while the conductor's pause holds this mirror frozen —
+   *  the saved value is the cps to restore, and the flag gates
+   *  defaultOutput (frozen exactly on an onset, Cyclist re-emits that
+   *  hap each tick with NaN timing — CONDUCTOR.md §4). */
+  private frozenCps: number | null = null;
+  /** Re-entrancy guard: our own scheduler.setCps calls must not bounce
+   *  back through the wrap as "the pattern changed the tempo". */
+  private settingCps = false;
+
+  /** Conductor seam: freeze = setCps(0) — the only EXACT Strudel pause
+   *  (Cyclist re-anchors on a cps change; Δt·0 keeps lastEnd still). */
+  conductorFreeze(): void {
+    if (!this.playing || !this.mirror || this.frozenCps !== null) return;
+    this.frozenCps = this.mirror.repl.scheduler.cps;
+    this.schedulerSetCps(0);
+  }
+
+  conductorResume(): void {
+    if (this.frozenCps === null) return;
+    this.frozenCps = null;
+    this.schedulerSetCps(conductor.cps);
+  }
+
+  /** Session tempo push (header or another widget's setcps). While
+   *  frozen the new tempo lands at resume. */
+  conductorSetCps(cps: number): void {
+    if (this.frozenCps !== null) {
+      this.frozenCps = cps;
+      return;
+    }
+    this.schedulerSetCps(cps);
+  }
+
+  private schedulerSetCps(cps: number): void {
+    if (!this.mirror) return;
+    this.settingCps = true;
+    try {
+      this.mirror.repl.scheduler.setCps(cps);
+    } finally {
+      this.settingCps = false;
+    }
+  }
+
   unload(): void {
     super.unload();
+    // Leave the scheduler clean for the next evaluate (stop() is a
+    // rewind, not a pause).
+    if (this.frozenCps !== null) {
+      this.schedulerSetCps(this.frozenCps);
+      this.frozenCps = null;
+    }
     if (this.playing) void this.mirror?.stop();
   }
 
@@ -198,6 +248,9 @@ export class ScStrudel extends ScInput {
       // so the delta is consistent by construction — even pre-lock. Once
       // the tracker locks, the delta anchors to the ABSOLUTE tick axis
       // (/at); before that, it travels relative (/in).
+      // Frozen (conductor pause): a hap pinned on an onset would
+      // re-emit every tick with NaN timing — drop everything.
+      if (this.frozenCps !== null) return;
       const deltaMs = (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS;
       const target = oscClient.clock.audioTarget(deltaMs);
       oscClient.dispatch(target ? dirtPlayAt(target, event) : dirtPlayIn(deltaMs, event));
@@ -246,6 +299,18 @@ export class ScStrudel extends ScInput {
         this.bridgeEditorStyles();
       },
     });
+
+    // The conductor's two-way tempo seam: wrap the scheduler's setCps —
+    // forward, then (unless it was OUR write or the pause's 0) report a
+    // pattern-authored setcps() as the new SESSION tempo. Then adopt
+    // the current session tempo on this fresh mirror.
+    const scheduler = this.mirror.repl.scheduler;
+    const forward = scheduler.setCps.bind(scheduler);
+    scheduler.setCps = (cps: number) => {
+      forward(cps);
+      if (!this.settingCps && cps > 0) conductor.onCpsFromStrudel(cps);
+    };
+    this.conductorSetCps(conductor.cps);
     this.editorRoot = root;
     root.addEventListener("input", this.onEditorInput);
     if (this.runtimeProps?.value) this.syncFromState(this.runtimeValue("value"));

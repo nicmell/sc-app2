@@ -15,10 +15,23 @@ export interface StrudelMirrorStub {
   clear: ReturnType<typeof vi.fn>;
   evaluate: ReturnType<typeof vi.fn>;
   setCode: ReturnType<typeof vi.fn>;
+  repl: { scheduler: { cps: number; setCps: (cps: number) => void } };
 }
 
 /** Every StrudelMirror constructed during the current test file, in order.
  *  Reset it in beforeEach (`strudelMirrors.length = 0`) where it's asserted. */
+/** A live-ish scheduler fake: setCps stores the value (the wrap and
+ *  the conductor freeze/restore tests read it back). */
+function makeScheduler() {
+  const scheduler = {
+    cps: 0.5,
+    setCps: vi.fn((cps: number) => {
+      scheduler.cps = cps;
+    }),
+  };
+  return scheduler;
+}
+
 export const strudelMirrors: StrudelMirrorStub[] = [];
 
 export class StrudelMirror implements StrudelMirrorStub {
@@ -31,6 +44,7 @@ export class StrudelMirror implements StrudelMirrorStub {
   setCode = vi.fn((code: string) => {
     this.code = code;
   });
+  repl = { scheduler: makeScheduler() };
   constructor(opts: Record<string, any>) {
     this.opts = opts;
     this.code = opts.initialCode ?? "";

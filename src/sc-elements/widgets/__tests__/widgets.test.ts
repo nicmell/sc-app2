@@ -10,6 +10,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 import { flattenPacket, type OscMessage } from "@sc-app/server-commands";
 import { validateEntry } from "@/lib/plugins/validate";
+import { conductor } from "@/lib/conductor/Conductor";
 import { oscClient } from "@/lib/osc/OscClient";
 import { registerScElements, type ScPlugin } from "@/sc-elements";
 import type { ScKeyboard } from "@/sc-elements/widgets/sc-keyboard";
@@ -418,6 +419,33 @@ describe("sc-strudel", () => {
     for (const play of plays) expect(Number.isFinite(Number(play.args[0]))).toBe(true);
     expect(plays[0].args.slice(1)).toEqual(["s", "bd", "orbit", "2"]);
     expect(plays[1].args.slice(1)).toEqual(["s", "sd", "orbit", "5"]); // pattern's own orbit wins
+  });
+
+  it("conductorFreeze pauses via cps=0 and resume restores the SESSION tempo", async () => {
+    const host = await mountXml("<sc-strudel></sc-strudel>");
+    const el = host.querySelector("sc-strudel") as ScStrudel;
+    await el.updateComplete;
+    const scheduler = strudelMirrors[0].repl.scheduler;
+    conductor.setCps(0.6);
+    expect(scheduler.cps).toBe(0.6); // pushed to the fresh mirror
+
+    strudelMirrors[0].opts.onToggle?.(true); // playing
+    el.conductorFreeze();
+    expect(scheduler.cps).toBe(0); // the exact Strudel pause
+    el.conductorResume();
+    expect(scheduler.cps).toBe(0.6);
+  });
+
+  it("a pattern's setcps reaches the conductor through the wrap — no echo loops", async () => {
+    const host = await mountXml("<sc-strudel></sc-strudel><sc-strudel></sc-strudel>");
+    for (const el of host.querySelectorAll("sc-strudel")) await (el as ScStrudel).updateComplete;
+    const [a, b] = strudelMirrors.map((m) => m.repl.scheduler);
+
+    a.setCps(0.75); // "the pattern" authored a tempo
+    expect(conductor.cps).toBe(0.75);
+    expect(b.cps).toBe(0.75); // propagated to the other mirror
+    // Our propagation writes must not have bounced back as new sessions.
+    expect(a.cps).toBe(0.75);
   });
 
   it("ships /dirt/play/at once the clock offers an absolute target", async () => {

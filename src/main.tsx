@@ -4,6 +4,7 @@
 // components adopt only a font-free subset (the shadow base, foundations/shadow.scss), so
 // the fonts are never duplicated into a shadow CSSResult.
 import "@sc-app/ui-components";
+import "@/lib/conductor/Conductor";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router/dom";

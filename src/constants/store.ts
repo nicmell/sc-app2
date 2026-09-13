@@ -5,4 +5,5 @@ export const SliceName = {
   LAYOUT: "layout",
   PRESETS: "presets",
   PLUGINS: "plugins",
+  CONDUCTOR: "conductor",
 } as const;

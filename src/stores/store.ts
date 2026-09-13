@@ -12,7 +12,7 @@
 
 import { DEFAULT_LAYOUT } from "@/constants/layout";
 import { createStore } from "@/lib/utils/reactiveStore";
-import type { AppState, OscState, SessionState } from "@/types/stores";
+import type { AppState, ConductorState, OscState, SessionState } from "@/types/stores";
 
 /** Initial session slice. */
 const initialSessionState: SessionState = {
@@ -28,6 +28,16 @@ const initialOscState: OscState = {
   log: [],
 };
 
+/** The Conductor starts idle at Strudel's default tempo (cps 0.5 =
+ *  120 BPM at 4 beats per cycle). */
+const initialConductorState: ConductorState = {
+  state: "stopped",
+  cps: 0.5,
+  cycleBase: 0,
+  secondsBase: 0,
+  anchorAudioTime: null,
+};
+
 export const appStore = createStore<AppState>({
   session: initialSessionState,
   osc: initialOscState,
@@ -35,4 +45,5 @@ export const appStore = createStore<AppState>({
   presets: {},
   plugins: [],
   toasts: [],
+  conductor: initialConductorState,
 });

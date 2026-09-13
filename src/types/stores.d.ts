@@ -80,6 +80,19 @@ export interface OscState {
 }
 
 /** The single app store's root state — one slice per domain. */
+/** The Conductor's musical time (lib/conductor — see CONDUCTOR.md):
+ *  session transport state, tempo (cps internally; the header displays
+ *  BPM), and the cycle/seconds position bases re-anchored on every
+ *  state or tempo change (position = base + (audioTime − anchor) · cps
+ *  while playing). */
+export interface ConductorState {
+  state: "stopped" | "playing" | "paused";
+  cps: number;
+  cycleBase: number;
+  secondsBase: number;
+  anchorAudioTime: number | null;
+}
+
 export interface AppState {
   session: SessionState;
   /** OSC transport observations (console log, scsynth load, clock). */
@@ -94,4 +107,6 @@ export interface AppState {
   plugins: PluginInfo[];
   /** The global toast stack — any module pushes via `stores/toasts`. */
   toasts: ToastEntry[];
+  /** The session's musical time (lib/conductor). */
+  conductor: ConductorState;
 }

@@ -44,23 +44,29 @@ s.doWhenBooted({
     s.sync;
 
     // The global audio clock (AUDIO-CLOCK.md): the engine broadcasts its
-    // own timeline — Phasor phase on bus 1000, a 20 Hz /tr (trigger id
-    // 4242) carrying the phase. Grafo and constants are pinned by the
-    // synthdef-compiler parity fixture (global_clock_phase.scd); the
-    // frontend mirrors id + rate in src/constants/osc.ts. Head of the
-    // root group: session groups sit at its tail, so their teardown can
-    // never touch it. `.send(s)` (not `.add`) — attach mode.
+    // own timeline — Phasor phase on bus 1000, a 20 Hz SendReply
+    // /clock/tick carrying [tickCount, phase]. PulseCount makes the
+    // index ABSOLUTE (f32-exact to 2^24 ticks ≈ 9.7 days at 20 Hz;
+    // beyond that the frontend tracker resyncs as if restarted), so
+    // every consumer shares the timeline's origin by construction. The
+    // frontend mirrors address + rate in src/constants/osc.ts; sclang's
+    // own ScAppTickAnchor consumes the same stream. Head of the root
+    // group: session groups sit at its tail, so their teardown can
+    // never touch it. `.send(s)` (not `.add`) — attach mode. (SendReply
+    // is available because THIS graph is sclang-authored; the
+    // synthdef-compiler cannot express it — its parity fixture keeps
+    // the historical SendTrig graph as compiler coverage.)
     SynthDef(\__global_clock__, {
         var phase, pkr, tick;
         phase = Phasor.ar(0, 1, 0, 8192, 0);
         Out.ar(1000, phase);
         pkr = A2K.kr(phase);
         tick = Impulse.kr(20, 0);
-        SendTrig.kr(tick, 4242, pkr);
+        SendReply.kr(tick, '/clock/tick', [PulseCount.kr(tick), pkr]);
     }).send(s);
     s.sync;
     Synth.new(\__global_clock__, nil, RootNode(s), \addToHead);
-    "global clock running (20 Hz, /tr id 4242)".postln;
+    "global clock running (20 Hz, /clock/tick)".postln;
 
     // 12 orbits routing to bus 0 (stereo). StrudelDirt exposes the same
     // `SuperDirt` class as upstream SuperDirt. Listens on UDP 57120 — the

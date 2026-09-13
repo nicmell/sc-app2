@@ -1,11 +1,11 @@
-import { ADDR_TR, Tr, type OscMessage } from "@sc-app/server-commands";
+import { CLOCK_TICK_ADDRESS, type OscMessage } from "@sc-app/server-commands";
 
 /** Max OSC-log entries kept in memory (oldest dropped). */
 export const MAX_LOG = 300;
 
 /** How much tick silence the worker-side watchdog tolerates before
- *  declaring the session dead: the heartbeat is the global clock's `/tr`
- *  (20 Hz), so 5 s = 100 missed ticks. This also ENFORCES the clock-synth
+ *  declaring the session dead: the heartbeat is the global clock's
+ *  `/clock/tick` (20 Hz), so 5 s = 100 missed ticks. This also ENFORCES the clock-synth
  *  requirement — a stack that never loads `__global_clock__` gets a clean
  *  close with a clear error instead of a zombie session with a silent
  *  metronome. */
@@ -33,21 +33,22 @@ export type TransportStatus = (typeof TRANSPORT_STATUS)[keyof typeof TRANSPORT_S
 
 // ── audio clock (see AUDIO-CLOCK.md) ──────────────────────────────────────
 
-/** SendTrig trigger id of the `__global_clock__` synth loaded by
- *  scripts/sc-startup.scd — its `/tr` ticks are the main thread's
- *  METRONOME (they drive every `clock.subscribe` callback). Mirrored by
- *  the synthdef-compiler parity fixture. */
-export const CLOCK_TRIGGER_ID = 4242;
-/** THE clock-tick discriminator: the global clock's `/tr`, by trigger id.
- *  One predicate, three consumers — ClockSync's routing, the rx-log skip,
- *  the worker watchdog's markAlive stamp — so "exactly the global clock's
- *  /tr" is single-sourced. */
-export const isClockTick = (message: OscMessage): boolean =>
-  message.address === ADDR_TR && Tr.triggerId(message) === CLOCK_TRIGGER_ID;
+/** THE clock-tick discriminator: the global clock's `/clock/tick`
+ *  (SendReply — a plain address match; `/tr` belongs entirely to the
+ *  plugins now). One predicate, three consumers — ClockSync's routing,
+ *  the rx-log skip, the worker watchdog's markAlive stamp — so "exactly
+ *  the global clock's tick" is single-sourced. */
+export const isClockTick = (message: OscMessage): boolean => message.address === CLOCK_TICK_ADDRESS;
+/** PulseCount's tick index stays f32-EXACT up to here (2^24 ticks ≈ 9.7
+ *  days of engine uptime at 20 Hz); beyond, the tracker sees the
+ *  degraded steps as a restart and resyncs. Owner: sc-startup.scd's
+ *  SendReply graph. */
+export const TICK_COUNT_EXACT = 1 << 24;
 /** The clock synth's tick rate. Must stay at or above TWICE the finest
  *  `clock.subscribe` cadence a consumer asks for — zyklus asks the
  *  sc-strudel setInterval shim for 100 ms. The VALUE's owner is
- *  sc-startup.scd's `Impulse.kr` — keep the two in lockstep. */
+ *  sc-startup.scd's `Impulse.kr` (feeding the /clock/tick SendReply) —
+ *  keep the two in lockstep. */
 export const CLOCK_TICK_FREQ_HZ = 20;
 /** The clock synth's Phasor ring length in samples — the modulus of the
  *  phase payload each `/tr` tick carries. Owner: sc-startup.scd's
@@ -61,7 +62,7 @@ export const PHASE_RING_FRAMES = 8192;
  *  ping/pong is ONLY the wall anchor behind `clock.now()` — the header
  *  clock and cross-host diagnostics; nothing musical (AUDIO-CLOCK.md
  *  §5.2 is RESOLVED: dirt events carry a relative delta); the metronome is
- *  the audio clock's `/tr` above. Crystal drift is ~100 ppm, so a 2 s
+ *  the audio clock's `/clock/tick` above. Crystal drift is ~100 ppm, so a 2 s
  *  re-measure keeps the anchor within fractions of a millisecond. */
 export const CLOCK_PING_INTERVAL_MS = 2_000;
 /** Recent-sample ring the estimate is picked from (min-RTT rule, applied

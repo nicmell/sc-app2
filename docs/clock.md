@@ -27,9 +27,9 @@ Two inbound streams solve the two problems, each owned by its natural
 master (see AUDIO-CLOCK.md for the design's full arc):
 
 - **The metronome is the AUDIO ENGINE itself**: the `__global_clock__`
-  synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/tr` tick
-  (trigger id `CLOCK_TRIGGER_ID`) straight from the sample domain; every
-  `clock.subscribe` callback fires off its arrival.
+  synth (loaded by `scripts/sc-startup.scd`) emits a 20 Hz `/clock/tick`
+  straight from the sample domain, carrying its ABSOLUTE tick index;
+  every `clock.subscribe` callback fires off its arrival.
 - **The measurement is the ping/pong round-trip**: the MAIN thread pings
   riding that same metronome (one ping per 2 s of ticks, plus an
   immediate one on the first tick after connect) — the wall-time anchor
@@ -86,17 +86,21 @@ the 0.5 Hz cadence for a non-musical anchor.
 ### scsynth → everyone (the metronome)
 
 ```
-← /tr  nodeId:i 4242:i phase:f   the __global_clock__ synth, 20 Hz
+← /clock/tick  nodeId:i replyId:i tick:f phase:f   __global_clock__, 20 Hz
 ```
 
-`/tr` is scsynth's fixed SendTrig address (the compiler cannot encode a
-custom SendReply address — AUDIO-CLOCK.md §5.1), so the tick is
-discriminated by trigger id: `handleReply` routes `CLOCK_TRIGGER_ID` to
-the metronome and lets every other `/tr` fall through to the waiters (a
-plugin's own SendTrig stays fully usable, and logged). The value is the
-clock synth's Phasor phase — the one-way TickTracker's feed (§5). The
-bridge fan-out broadcasts scsynth
-traffic to every session, so ALL clients share the same ticks.
+The synth is sclang-authored, so SendReply's custom address is available
+(the old "SendTrig-only" constraint was the COMPILER's — AUDIO-CLOCK
+§5.1, superseded): the tick is discriminated by ADDRESS, and `/tr`
+belongs entirely to the plugins (always routed to the waiters, always
+logged). `tick` is the ABSOLUTE index (`PulseCount` — f32-exact to
+`TICK_COUNT_EXACT` = 2^24 ≈ 9.7 days of engine uptime; beyond, the
+tracker treats the degradation as a restart and resyncs); a
+non-increasing index means the engine or synth restarted. `phase` is the
+Phasor's position in its 8192 ring, mirroring bus 1000 (not consumed by
+the tracker today). The bridge fan-out broadcasts scsynth traffic to
+every session, so ALL clients (sclang's own anchor included) count the
+same self-locating timeline.
 
 ## 3. Clock domains (the load-bearing rules)
 
@@ -170,14 +174,13 @@ consumers (mount/unmount), survive reconnects and worker respawns for free
 
 ### The one-way tick tracker
 
-The same ticks also carry the Phasor's phase, and `TickTracker`
-(`src/lib/clock/TickTracker.ts`, composed by ClockSync) turns that payload
-into a measurable time source: the phase delta is unwrapped into an
-absolute tick index (self-healing through UDP loss — the index is derived
-from the inter-arrival time and VERIFIED against the phase, block-quantized
-tolerance included; an unexplainable arrival means the engine restarted →
-resync and re-lock), arrivals regress against the tick grid (the slope is
-the client↔audio-clock skew), and the minimum residual anchors the mapping
+`TickTracker` (`src/lib/clock/TickTracker.ts`, composed by ClockSync)
+turns the tick stream into a measurable time source. The payload's index
+is ABSOLUTE and self-locating, so there is nothing to unwrap or heal: a
+UDP drop is just a missing point, and only a non-increasing index
+(engine/synth restart, or the 2^24 f32 rollover) forces a resync.
+Arrivals regress against the index grid (the slope is the
+client↔audio-clock skew), and the minimum residual anchors the mapping
 (one-way min-filter: delivery delay only ever adds).
 `oscClient.clock.audioNow()` exposes the engine's estimated time in
 seconds (null until the ~1.6 s lock), `clock.tickInfo()` the diagnostics.
@@ -239,8 +242,8 @@ broken estimator is visible rather than silently mistiming events.
 
 ## 7. The heartbeat watchdog (worker-side)
 
-The session heartbeat is EXACTLY the global clock's `/tr` tick: the worker
-endpoint stamps `markAlive()` only on `ADDR_TR` with `CLOCK_TRIGGER_ID`,
+The session heartbeat is EXACTLY the global clock's `/clock/tick`: the
+worker endpoint stamps `markAlive()` only on that address,
 and a worker-timer poll (`CLOCK_WATCHDOG_INTERVAL_MS`) fires `onDead` once
 when `WATCHDOG_TIMEOUT_MS` (5 s = 100 missed ticks) passes without one.
 One signal, one meaning — the DSP graph computing IS the session being

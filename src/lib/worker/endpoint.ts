@@ -4,7 +4,7 @@
 // and NO clock vocabulary at all: outbound messages encode as-is (nothing
 // is scheduled — dirt events carry a relative delta IN the message);
 // inbound, bundles flatten to messages in wire order before posting up,
-// and the global clock's /tr tick (the session heartbeat) stamps the
+// and the global clock's /clock/tick (the session heartbeat) stamps the
 // watchdog. The
 // codec subpath is the worker's only route to osc-js. worker.ts is the
 // thin entry composing the endpoint over the worker scope; OscClient
@@ -93,9 +93,10 @@ export class WorkerEndpoint {
       // Inbound bundles flatten to messages in wire order — bundles never
       // cross the postMessage boundary.
       walkPacket(decode(new Uint8Array(data)), (message) => {
-        // The session heartbeat is EXACTLY the global clock's tick: only
-        // the DSP graph computing proves the session alive (a pong or a
-        // /status.reply from a clock-less stack must not).
+        // The session heartbeat is EXACTLY the global clock's
+        // /clock/tick: only the DSP graph computing proves the session
+        // alive (a pong or a /status.reply from a clock-less stack must
+        // not).
         if (isClockTick(message)) this.watchdog.markAlive();
         this.post({ type: "osc", packet: message }, blobBuffers(message));
       });

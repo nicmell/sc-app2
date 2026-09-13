@@ -25,9 +25,11 @@ import {
   SinOsc,
 } from "../../src/builders/index.js";
 
-// ── Constants mirrored by src/constants/osc.ts (CLOCK_TRIGGER_ID,
-// CLOCK_TICK_FREQ_HZ) and scripts/sc-startup.scd — this package stays
-// standalone, so the duplication is deliberate; keep them in lockstep. ──
+// ── HISTORICAL clock graph, kept as COMPILER coverage: the production
+// synth (scripts/sc-startup.scd) moved to SendReply /clock/tick — which
+// this compiler cannot express (no string args) — so this SendTrig
+// variant no longer mirrors it. PHASE_BUS/SHARED_FRAMES still match
+// sc-startup + src/constants/osc.ts (PHASE_RING_FRAMES). ──
 const PHASE_BUS = 1000;
 const SHARED_FRAMES = 8192;
 const CLOCK_TRIGGER_ID = 4242;

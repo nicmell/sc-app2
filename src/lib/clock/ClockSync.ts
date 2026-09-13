@@ -1,7 +1,7 @@
 // The app clock, whole (docs/clock.md, AUDIO-CLOCK.md) — measurement AND
 // consumption both live main-side; the worker carries no clock code.
-// Everything is paced by ONE stream, the audio engine's `/tr` ticks (the
-// `__global_clock__` synth loaded by scripts/sc-startup.scd):
+// Everything is paced by ONE stream, the audio engine's `/clock/tick`s
+// (the `__global_clock__` synth loaded by scripts/sc-startup.scd):
 //
 // - Metronome (`onTick`): `subscribe(intervalMs, cb)` registers a purely
 //   LOCAL listener that fires every `round(intervalMs / tickPeriod)` TICKS
@@ -26,7 +26,7 @@ import {
   CLOCK_PONG_ADDRESS,
   ClockPong,
   clockPing,
-  Tr,
+  ClockTick,
   type OscMessage,
 } from "@sc-app/server-commands";
 import {
@@ -34,7 +34,6 @@ import {
   CLOCK_SAMPLE_WINDOW,
   CLOCK_TICK_FREQ_HZ,
   isClockTick,
-  PHASE_RING_FRAMES,
 } from "@/constants/osc";
 import { SlewedClock } from "./SlewedClock";
 import { TickTracker } from "./TickTracker";
@@ -83,11 +82,8 @@ export class ClockSync {
   /** Ticks until the next anchor ping; 0 fires on the NEXT tick, so a
    *  fresh/reset clock anchors on the first tick of the connection. */
   private ticksUntilPing = 0;
-  /** The one-way audio-clock tracker fed by the ticks' phase payload. */
-  private readonly tracker = new TickTracker({
-    freqHz: CLOCK_TICK_FREQ_HZ,
-    ringFrames: PHASE_RING_FRAMES,
-  });
+  /** The one-way audio-clock tracker fed by the ticks' absolute index. */
+  private readonly tracker = new TickTracker({ freqHz: CLOCK_TICK_FREQ_HZ });
   /** The monotonic rate-disciplined timebase (Strudel's getTime). */
   private readonly slewed = new SlewedClock();
 
@@ -130,10 +126,10 @@ export class ClockSync {
     };
   }
 
-  /** Route one inbound message: the clock families — the global clock's
-   *  /tr tick and /clock/pong — are consumed here (true); anything else,
-   *  including a plugin's own SendTrig on a foreign /tr id, returns false
-   *  and falls through to the caller's routing. */
+  /** Route one inbound message: the clock family — /clock/tick and
+   *  /clock/pong — is consumed here (true); anything else (every /tr —
+   *  they all belong to plugins now) returns false and falls through to
+   *  the caller's routing. */
   handleMessage(message: OscMessage): boolean {
     if (isClockTick(message)) {
       this.onTick(message);
@@ -163,15 +159,15 @@ export class ClockSync {
     this.publish({ offset: best.offset, rtt: best.rtt });
   }
 
-  /** One `/tr` tick from the audio engine's `__global_clock__` synth: feed
-   *  the one-way tracker with the phase payload, run the anchor-ping
+  /** One `/clock/tick` from the audio engine's `__global_clock__` synth:
+   *  feed the one-way tracker with the absolute index, run the anchor-ping
    *  countdown, aim the slewed timebase, then run the METRONOME — each
    *  listener fires when its tick countdown runs out. No wall clock
    *  anywhere: intervals quantize to the tick rate (`CLOCK_TICK_FREQ_HZ`)
    *  and a gap yields exactly the fires its ticks pay for — never a
    *  burst, and immune to wall-clock steps. */
   private onTick(message: OscMessage): void {
-    this.tracker.onTick(Tr.value(message));
+    this.tracker.onTick(ClockTick.tick(message));
     if (this.ticksUntilPing <= 0) {
       this.ping();
       this.ticksUntilPing = PING_EVERY_TICKS;

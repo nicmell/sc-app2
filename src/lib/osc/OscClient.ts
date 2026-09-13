@@ -418,8 +418,8 @@ export class OscClient {
   /** Route an inbound reply to protocol consumers. Public for unit tests —
    *  normally fed by worker packet events. */
   handleReply(reply: OscMessage): void {
-    // The clock families are internal to the clock loop — consumed before
-    // the waiters (foreign /tr ids fall through: plugins SendTrig too).
+    // The clock family is internal to the clock loop — consumed before
+    // the waiters (every /tr falls through: they belong to plugins).
     if (this.clock.handleMessage(reply)) return;
     // One-shot waiters first — the message still falls through to the
     // protocol routing below (transport middleware has already observed it).

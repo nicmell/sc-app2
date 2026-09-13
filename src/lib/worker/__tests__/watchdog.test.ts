@@ -1,5 +1,5 @@
 // The session heartbeat watchdog: markAlive-driven staleness detection on
-// worker timers. The heartbeat SOURCE (the global clock's /tr) is the
+// worker timers. The heartbeat SOURCE (the global clock's /clock/tick) is the
 // endpoint's concern — endpoint.test.ts.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CLOCK_WATCHDOG_INTERVAL_MS, WATCHDOG_TIMEOUT_MS } from "@/constants/osc";

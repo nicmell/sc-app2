@@ -3,7 +3,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type OscMessage, formatOscArg, Synced } from "@sc-app/server-commands";
-import { CLOCK_TRIGGER_ID, REPLY_TIMEOUT_MS } from "@/constants/osc";
+import { REPLY_TIMEOUT_MS } from "@/constants/osc";
 import { SliceName } from "@/constants/store";
 import { oscClient } from "@/lib/osc/OscClient";
 import { workerClient } from "@/lib/osc/WorkerClient";
@@ -18,22 +18,22 @@ describe("oscClient.handleReply", () => {
   // The clock MATH is pinned in lib/clock's suites; this file pins only the
   // ROUTING seam: handleReply hands the clock families to clock.handleMessage
   // and lets everything else fall through.
-  it("routes the global clock's /tr tick to the metronome", () => {
+  it("routes the global clock's /clock/tick to the metronome", () => {
     const cb = vi.fn();
     const off = oscClient.clock.subscribe(50, cb); // 1 tick at 20 Hz
-    oscClient.handleReply(oscMessage("/tr", 99, CLOCK_TRIGGER_ID, 0));
+    oscClient.handleReply(oscMessage("/clock/tick", 99, -1, 1, 0));
     expect(cb).toHaveBeenCalledTimes(1);
     off();
   });
 
-  it("lets foreign /tr ids fall through to the waiters", async () => {
+  it("lets every /tr fall through to the waiters — they belong to plugins", async () => {
     const cb = vi.fn();
     const off = oscClient.clock.subscribe(50, cb);
     const waited = oscClient.once("/tr", (m) => m.args[1] === 7);
 
     oscClient.handleReply(oscMessage("/tr", 50, 7, 0.25)); // a plugin's SendTrig
     await expect(waited).resolves.toMatchObject({ args: [50, 7, 0.25] });
-    expect(cb).not.toHaveBeenCalled(); // foreign id is not the metronome
+    expect(cb).not.toHaveBeenCalled(); // /tr is never the metronome
     off();
   });
 });

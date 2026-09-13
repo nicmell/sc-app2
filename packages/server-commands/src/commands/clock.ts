@@ -7,6 +7,11 @@
  *   `/clock/ping  clientId:i seq:i`
  *   `/clock/pong  clientId:i seq:i secs:i fracMs:f`
  *
+ * scsynth → everyone (the __global_clock__ synth's SendReply, 20 Hz):
+ *   `/clock/tick  nodeId:i replyId:i tick:f phase:f`
+ * `tick` is the ABSOLUTE tick index (PulseCount — f32-exact to 2^24);
+ * `phase` the Phasor's position in its 8192 ring, mirrored on bus 1000.
+ *
  * clientId/seq are echoed verbatim: peer replies ride the bridge's
  * broadcast fan-out to EVERY session, so the id is what lets a client
  * pick out its own pongs. The timestamp is split into integer Unix
@@ -23,9 +28,16 @@ const message = (address: string, ...args: OscArg[]): OscMessage => ({ address, 
 
 export const CLOCK_PING_ADDRESS = "/clock/ping";
 export const CLOCK_PONG_ADDRESS = "/clock/pong";
+export const CLOCK_TICK_ADDRESS = "/clock/tick";
 
 export const clockPing = (clientId: number, seq: number): OscMessage =>
   message(CLOCK_PING_ADDRESS, clientId, seq);
+
+/** SendReply layout: `[nodeId, replyId, ...values]` — values from index 2. */
+export const ClockTick = {
+  tick: (m: OscMessage): number => m.args[2] as number,
+  phase: (m: OscMessage): number => m.args[3] as number,
+};
 
 export const ClockPong = {
   clientId: (m: OscMessage): number => m.args[0] as number,

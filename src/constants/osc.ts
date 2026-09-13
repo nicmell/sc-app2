@@ -57,6 +57,11 @@ export const PHASE_RING_FRAMES = 8192;
 
 // ── bridge clock (see docs/clock.md) ──────────────────────────────────────
 
+/** The NTP-style wall anchor is a CONVENIENCE, not a timing path: it
+ *  feeds only the header clock (`clock.now()`) and the Δ diagnostic —
+ *  nothing musical consumes wall time. False = zero /clock/ntp traffic;
+ *  the header falls back to local time and Δ stays hidden. */
+export const CLOCK_NTP_ENABLED = true;
 /** Nominal ping cadence — quantized to the tick metronome it rides (a
  *  ClockSync tick countdown, so pings flow only while ticks do). The
  *  ping/pong is ONLY the wall anchor behind `clock.now()` — the header

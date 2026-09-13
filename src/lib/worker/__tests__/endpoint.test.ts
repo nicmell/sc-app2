@@ -76,7 +76,7 @@ describe("WorkerEndpoint", () => {
     expect(decode(sent[0])).toEqual({ address: "/dirt/play/in", args: [250.5, "s", "bd"] });
   });
 
-  it("passes /clock/pong straight up — no interception, no clock code", () => {
+  it("passes /clock/ntp/pong straight up — no interception, no clock code", () => {
     vi.useFakeTimers(); // the open event arms the watchdog timer
     const { events, sent, frame, emit } = makeEndpoint();
 

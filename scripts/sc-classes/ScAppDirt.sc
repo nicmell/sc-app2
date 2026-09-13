@@ -8,7 +8,8 @@
 // Wire:
 //   /dirt/play/in  delta:f  k1 v1 …          delta in ms from arrival
 //   /dirt/play/at  tick:i frac:f  k1 v1 …    ABSOLUTE audio-domain target
-// `/at` converts through ScAppTickAnchor (the shared /clock/tick axis) —
+// `/at` converts through ScAppClock's tick anchor (the shared
+// /clock/tick axis) —
 // delivery jitter does not move the event; `/in` is the pre-lock
 // fallback and the simple path.
 ScAppDirt {
@@ -17,7 +18,7 @@ ScAppDirt {
             this.play(dirt, msg[1] / 1000, msg[2..]);
         }, '/dirt/play/in');
         OSCdef(\scAppDirtPlayAt, { |msg|
-            var latency = ScAppTickAnchor.latencyFor(msg[1], msg[2]);
+            var latency = ScAppClock.latencyFor(msg[1], msg[2]);
             if(latency.isNil) {
                 "ScAppDirt: /dirt/play/at before any /clock/tick — using 0.2".warn;
                 latency = 0.2;

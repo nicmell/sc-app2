@@ -11,7 +11,8 @@
 //   and the clock synth ticks — by design: nothing keeps time while
 //   disconnected, and the stack MUST load the clock synth.
 // - Estimator (`ping()`/`onPong`): a tick countdown ORIGINATES the
-//   /clock/ping (one per PING_EVERY_TICKS, 2 s nominal; a fresh/reset
+//   /clock/ntp/ping (optional — CLOCK_NTP_ENABLED; one per
+//   PING_EVERY_TICKS, 2 s nominal; a fresh/reset
 //   clock fires on the FIRST tick so the anchor lands right after
 //   connect) and the pong — answered by sclang's ScAppClock, riding the
 //   shared fan-out, picked out by clientId — completes the round-trip,
@@ -30,6 +31,7 @@ import {
   type OscMessage,
 } from "@sc-app/server-commands";
 import {
+  CLOCK_NTP_ENABLED,
   CLOCK_PING_INTERVAL_MS,
   CLOCK_SAMPLE_WINDOW,
   CLOCK_TICK_FREQ_HZ,
@@ -58,7 +60,7 @@ interface ClockSyncOptions {
   /** Publish the current filtered estimate (the store's `clock` field);
    *  null = no anchor (fresh or reset — nothing measured yet). */
   publish: (clock: ClockStatus | null) => void;
-  /** Send one /clock/ping toward the bridge (OscClient.dispatch — the
+  /** Send one /clock/ntp/ping toward the bridge (OscClient.dispatch — the
    *  open-guard is a second net: no pings while disconnected, consistent
    *  with the ticks that pace them). */
   sendPing: (message: OscMessage) => void;
@@ -127,7 +129,7 @@ export class ClockSync {
   }
 
   /** Route one inbound message: the clock family — /clock/tick and
-   *  /clock/pong — is consumed here (true); anything else (every /tr —
+   *  /clock/ntp/pong — is consumed here (true); anything else (every /tr —
    *  they all belong to plugins now) returns false and falls through to
    *  the caller's routing. */
   handleMessage(message: OscMessage): boolean {
@@ -142,7 +144,7 @@ export class ClockSync {
     return false;
   }
 
-  /** One /clock/pong: complete the round-trip against the in-flight slot
+  /** One /clock/ntp/pong: complete the round-trip against the in-flight slot
    *  (unknown or replayed seqs are ignored), fold the sample into the
    *  min-RTT window and publish. The MEASUREMENT stream only — the
    *  metronome is `onTick`. */
@@ -168,11 +170,14 @@ export class ClockSync {
    *  burst, and immune to wall-clock steps. */
   private onTick(message: OscMessage): void {
     this.tracker.onTick(ClockTick.tick(message));
-    if (this.ticksUntilPing <= 0) {
-      this.ping();
-      this.ticksUntilPing = PING_EVERY_TICKS;
+    // The wall anchor is optional — header-only convenience.
+    if (CLOCK_NTP_ENABLED) {
+      if (this.ticksUntilPing <= 0) {
+        this.ping();
+        this.ticksUntilPing = PING_EVERY_TICKS;
+      }
+      this.ticksUntilPing--;
     }
-    this.ticksUntilPing--;
     // Aim the slewed timebase at the inverse of the measured skew (the
     // local clock RUNS at 1+skew vs the engine; the disciplined clock
     // compensates). Unlocked → back toward the plain local rate.

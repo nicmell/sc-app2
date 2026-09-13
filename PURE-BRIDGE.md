@@ -211,11 +211,11 @@ wire è
 // scripts/sc-classes/ — repo-owned
 OSCdef(\scAppClockPing, { |msg, time, addr|
     var d = Date.getDate.rawSeconds;           // system_clock live, sub-µs
-    addr.sendMsg('/clock/pong',
+    addr.sendMsg('/clock/ntp/pong',
         msg[1], msg[2],                        // clientId, seq (echo)
         d.trunc.asInteger,                     // secs:i
         (d.frac * 1000));                      // fracMs:f
-}, '/clock/ping');
+}, '/clock/ntp/ping');
 ```
 
 - Peer nuovo in config: `^/clock(/|$)` → `127.0.0.1:57120` (il langPort:

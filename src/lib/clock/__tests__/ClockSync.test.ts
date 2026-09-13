@@ -16,7 +16,7 @@ const clockTick = (index: number, phase = 0): OscMessage => ({
   args: [99, -1, index, phase],
 });
 
-/** An sclang /clock/pong (clientId+seq echoed; the wall timestamp split
+/** An sclang /clock/ntp/pong (clientId+seq echoed; the wall timestamp split
  *  as [secs:i, fracMs:f] — serverTime here is Unix ms for readability). */
 const pong = (clientId: number, seq: number, serverTime: number): OscMessage => ({
   address: CLOCK_PONG_ADDRESS,

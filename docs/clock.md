@@ -48,8 +48,9 @@ ENFORCED, not just assumed.
 
 All sync traffic is plain OSC messages. The `/clock/*` family is an
 ORDINARY peer route: the bridge's "clock" peer forwards it to sclang on
-UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes)
-answers — the bridge never interprets it (only `/scope/*` remains
+UDP 57120, where the repo-owned `ScAppClock` (scripts/sc-classes — the
+sclang mirror of ClockSync: it owns the synth, the tick anchor and the
+NTP responder in one class) answers — the bridge never interprets it (only `/scope/*` remains
 bridge-internal). Vocabulary lives in
 `packages/server-commands/src/commands/clock.ts` ⇄
 `scripts/sc-classes/ScAppClock.sc` (the pong's wire layout is pinned by
@@ -60,12 +61,17 @@ ahead of the waiters; the logging middleware skips it — the same
 `/scope/chunk` treatment), and the worker's only clock-adjacent job is
 the tick-stamped watchdog (§7).
 
-### Main ⇄ sclang (routed by the bridge, no interception)
+### Main ⇄ sclang (routed by the bridge, no interception — OPTIONAL)
 
 ```
-→ /clock/ping  clientId:i seq:i             one per 2 s of ticks
-← /clock/pong  clientId:i seq:i secs:i fracMs:f
+→ /clock/ntp/ping  clientId:i seq:i             one per 2 s of ticks
+← /clock/ntp/pong  clientId:i seq:i secs:i fracMs:f
 ```
+
+The whole exchange is a CONVENIENCE: nothing musical consumes the wall
+estimate (header clock + Δ diagnostic only), and `CLOCK_NTP_ENABLED`
+(constants/osc.ts) turns the pings off entirely — the header then shows
+local time and Δ stays hidden.
 
 The ping is _stateful_, not echo-based: ClockSync keeps the ONE in-flight
 ping (`seq` + `performance.now()` at send — at the slow cadence pings are

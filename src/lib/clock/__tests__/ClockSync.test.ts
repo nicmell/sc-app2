@@ -225,6 +225,26 @@ describe("ClockSync tick-driven callbacks", () => {
     expect(rate).toBeLessThan(1 - 140e-6);
   });
 
+  it("audioTarget is null pre-lock, then lands deltaMs ahead on the absolute axis", () => {
+    let mono = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => mono);
+    mockNow(0);
+    const { sync } = makeSync();
+
+    expect(sync.audioTarget(200)).toBeNull();
+    // Indexes start high — the engine ran before we connected.
+    for (let i = 0; i < 40; i++) {
+      mono = i * 50;
+      sync.handleMessage(clockTick(10_000 + i));
+    }
+    const target = sync.audioTarget(200)!; // 200 ms = 4 ticks at 20 Hz
+    expect(target).not.toBeNull();
+    const absolute = target.tick + target.frac;
+    expect(absolute).toBeCloseTo(10_000 + 39 + 4, 0);
+    expect(target.frac).toBeGreaterThanOrEqual(0);
+    expect(target.frac).toBeLessThan(1);
+  });
+
   it("pongs are measurement only — they never fire listeners", () => {
     mockNow(0);
     mockPerf(0);

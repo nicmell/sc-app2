@@ -25,8 +25,12 @@ fixture esiste già).
 
 ### Tier 1 — giustificano da soli la toolchain
 
-1. **`ScAppTick`** — il tick del global clock con address custom e
-   payload ricco: `/scapp/tick [index:i, sampleTime:d]`.
+1. **[SUPERATO] `ScAppTick`** — il tick con address custom e payload
+   ricco. Realizzato SENZA toolchain: il synth è sclang-authored, quindi
+   SendReply è disponibile — `/clock/tick [PulseCount, phase]` consegna
+   address custom e indice assoluto (vedi PURE-BRIDGE §3.3). Resta qui
+   come storia; il payload double (sample time nativo) resterebbe
+   l'unico residuo che solo un UGen può dare. Testo originale:
    Il vincolo che ha plasmato il design del clock è AUDIO-CLOCK §5.1:
    il compiler non codifica SendReply (address string), quindi SendTrig
    — UN float32, address `/tr` fisso, discriminazione per trigger id,

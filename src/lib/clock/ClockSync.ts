@@ -192,6 +192,18 @@ export class ClockSync {
     return this.tracker.audioNow();
   }
 
+  /** An ABSOLUTE audio-domain target `deltaMs` from now, as (tick index,
+   *  fraction) on the shared /clock/tick axis — the /dirt/play/at
+   *  payload. Null until the tracker locks (~1.6 s after connect);
+   *  callers fall back to the relative /dirt/play/in. */
+  audioTarget(deltaMs: number): { tick: number; frac: number } | null {
+    const nowTicks = this.tracker.audioNowTicksAbsolute();
+    if (nowTicks === null) return null;
+    const target = nowTicks + (deltaMs / 1000) * CLOCK_TICK_FREQ_HZ;
+    const tick = Math.floor(target);
+    return { tick, frac: target - tick };
+  }
+
   /** The monotonic, rate-disciplined timebase (seconds) — always
    *  available: engine rate when locked, plain local rate otherwise, and
    *  every transition slews. Strudel's getTime. */

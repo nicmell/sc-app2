@@ -1,12 +1,13 @@
 # Il bridge puro — clock in sclang, StrudelDirt patchato, endpoint intelligenti
 
-Stato: **§3.1 (infrastruttura), §3.2 (delta `/dirt/play/in`) e §3.5
-(responder clock in sclang, promosso a piano A: il wall clock resta come
-àncora non musicale) LANDED** — il bridge non possiede più il ruolo
-clock (`core/clock.rs` e l'intercettazione sono morti; `/clock/*` è un
-peer route ordinario). Con §3.4 LANDED (il client id
-è l'indice di sessione, in SessionInfo, armato in ClockSync al connect)
-restano §3.3 (audio-domain), §3.6 (scope), §3.7 (TODO roadmap 1).
+Stato: **§3.1–§3.5 LANDED** — il bridge non possiede più il ruolo clock
+(`core/clock.rs` e l'intercettazione sono morti; `/clock/*` è un peer
+route ordinario risposto da sclang), il tick è il SendReply
+`/clock/tick` con indice ASSOLUTO (PulseCount — il vincolo §5.1 era del
+compiler, superato dall'authorship sclang), la musica viaggia in
+dominio audio (`/dirt/play/at` con fallback `/in` pre-lock), il client
+id è l'indice di sessione. Restano §3.6 (scope) e §3.7 (TODO
+roadmap 1).
 Documento in italiano per scelta. Compagni: `AUDIO-CLOCK.md` (il transport
 audio-clock, §5.2 è il gate che questo documento scioglie), `docs/clock.md`
 (lo stato corrente del clock). I fatti in §2 sono stati verificati su
@@ -173,7 +174,7 @@ assoluto lo assorbiva fino al lookahead) — su loopback sono millisecondi
 contro un `server.latency` di 0.3 s; in serve-mode remoto serve il
 Livello 2.
 
-### 3.3 Livello 2 — target audio-domain (la forma finale)
+### 3.3 Livello 2 — target audio-domain [LANDED]
 
 Un `TickAnchor` sclang-side: OSCdef su `/tr` id 4242 (stream che sclang
 già riceve), mappa tick↔`thisThread.seconds` con ancora a residuo minimo
@@ -258,7 +259,8 @@ nell'arco, non assumere gratis.
    musicale — la sua migrazione in sclang (con morte di `core/clock.rs`
    e dell'intercettazione) è il punto 5.
 3. **[LANDED] Client id 1:1** (§3.4).
-4. **Livello 2** (§3.3).
+4. **[LANDED] Livello 2** (§3.3) — via SendReply `/clock/tick`
+   (indice assoluto), non via UGen custom.
 5. **[LANDED] Responder sclang** (§3.5): landato col punto 2 — decisione
    utente di tenere il wall clock come àncora non musicale; morti
    `core/clock.rs` e l'intercettazione, `/clock/*` è un peer ordinario.

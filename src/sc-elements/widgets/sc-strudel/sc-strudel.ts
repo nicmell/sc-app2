@@ -29,13 +29,23 @@ const SAFETY_LOOKAHEAD_MS = 200;
 type DirtEvent = Record<string, string | number>;
 
 /** Build a `/dirt/play/in` message: the RELATIVE delta (ms) first, then
- *  flat `[key, value, …]` pairs. The widget owns the whole scheduling
- *  story in the audioTime domain — no wall clock anywhere on the musical
- *  path (ScAppDirt converts the delta to the quark's latency). */
+ *  flat `[key, value, …]` pairs — the pre-lock fallback (consumed at
+ *  arrival, so delivery jitter shifts the event; fine on loopback). */
 function dirtPlayIn(deltaMs: number, event: DirtEvent): OscMessage {
   const args: Array<string | number> = [deltaMs];
   for (const [k, v] of Object.entries(event)) args.push(k, v);
   return { address: "/dirt/play/in", args };
+}
+
+/** Build a `/dirt/play/at` message: an ABSOLUTE target on the shared
+ *  /clock/tick axis (tick index + fraction), then the pairs — sclang's
+ *  ScAppTickAnchor converts it in ITS domain, so delivery jitter cannot
+ *  move the event. The widget owns the whole scheduling story in the
+ *  audio domain — no wall clock anywhere on the musical path. */
+function dirtPlayAt(target: { tick: number; frac: number }, event: DirtEvent): OscMessage {
+  const args: Array<string | number> = [target.tick, target.frac];
+  for (const [k, v] of Object.entries(event)) args.push(k, v);
+  return { address: "/dirt/play/at", args };
 }
 
 const DEFAULT_CODE = `// Strudel — patterns route through StrudelDirt via the OSC bridge.
@@ -185,13 +195,12 @@ export class ScStrudel extends ScInput {
       const orbit = this.getProp("orbit") as number | undefined;
       if (orbit !== undefined && event.orbit === undefined) event.orbit = orbit;
       // Target and "now" both in the audioTime domain (Cyclist's getTime),
-      // so the delta is consistent by construction — even pre-lock.
-      oscClient.dispatch(
-        dirtPlayIn(
-          (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS,
-          event,
-        ),
-      );
+      // so the delta is consistent by construction — even pre-lock. Once
+      // the tracker locks, the delta anchors to the ABSOLUTE tick axis
+      // (/at); before that, it travels relative (/in).
+      const deltaMs = (targetTimeSecs - oscClient.clock.audioTime()) * 1000 + SAFETY_LOOKAHEAD_MS;
+      const target = oscClient.clock.audioTarget(deltaMs);
+      oscClient.dispatch(target ? dirtPlayAt(target, event) : dirtPlayIn(deltaMs, event));
     };
 
     // The timer handle zyklus stores and hands back is the off closure

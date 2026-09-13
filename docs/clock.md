@@ -217,15 +217,17 @@ always available, never a step.
    structural:
    `disconnectedCallback → mirror.stop() → Cyclist.stop() → clearInterval`.
 2. _Stamping_: the deadline is computed entirely in the audioTime domain
-   and shipped as a RELATIVE delta IN the message —
-   `/dirt/play/in [deltaMs, …pairs]` with
-   `deltaMs = (targetTimeSecs − audioTime())·1000 + SAFETY_LOOKAHEAD_MS`;
-   the repo's `ScAppDirt` class (scripts/sc-classes) converts it to the
-   quark's `~latency` on arrival. NO wall-clock conversion anywhere on
-   the musical path — no timetags, no bundles, and an NTP step cannot
-   shift an event. The delta is domain-free for the caller (rate error
-   over a lookahead-sized delta is sub-µs); its delivery jitter rides
-   inside SuperDirt's 0.3 s scheduling latency.
+   (`deltaMs = (targetTimeSecs − audioTime())·1000 +
+   SAFETY_LOOKAHEAD_MS`) and, once the tracker locks, anchored to the
+   ABSOLUTE tick axis: `/dirt/play/at [tick, frac, …pairs]` via
+   `clock.audioTarget(deltaMs)` — sclang's `ScAppTickAnchor`
+   (scripts/sc-classes) converts the target in ITS own domain, both ends
+   counting the same self-locating /clock/tick stream, so delivery
+   jitter cannot move the event. Pre-lock (~1.6 s after connect) the
+   delta travels relative instead — `/dirt/play/in [deltaMs, …pairs]`,
+   consumed at arrival by `ScAppDirt`. NO wall-clock conversion anywhere
+   on the musical path — no timetags, no bundles, and an NTP step cannot
+   shift an event.
 
 **Layout autosave (`SessionManager`).** The 10 s layout `PUT` rides a clock
 subscription — meaningful only while connected, which is exactly when the

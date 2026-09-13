@@ -36,6 +36,14 @@ import type { ScPlugin } from "@/sc-elements/nodes/sc-plugin/sc-plugin";
 import type { ScStrudel } from "@/sc-elements/widgets/sc-strudel/sc-strudel";
 import type { ConductorState } from "@/types/stores";
 
+/** The BPM display convention: 1 cycle = 1 bar in 4/4 (Strudel's own
+ *  `setcpm(bpm/4)` idiom) — bpm = cps · 60 · BEATS_PER_CYCLE. Display
+ *  only; the internal unit is ALWAYS cps. */
+export const BEATS_PER_CYCLE = 4;
+
+export const cpsToBpm = (cps: number): number => cps * 60 * BEATS_PER_CYCLE;
+export const bpmToCps = (bpm: number): number => bpm / (60 * BEATS_PER_CYCLE);
+
 const IDLE: Omit<ConductorState, "cps"> = {
   state: "stopped",
   cycleBase: 0,

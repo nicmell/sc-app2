@@ -19,6 +19,10 @@ declare module "@strudel/codemirror" {
     });
     evaluate(start?: boolean): Promise<void>;
     stop(): Promise<void>;
+    /** The core repl — the scheduler carries the LIVE cps (patterns can
+     *  setcps); sc-strudel wraps setCps for the conductor's two-way
+     *  tempo seam. */
+    repl: { scheduler: { cps: number; setCps(cps: number): void } };
     clear(): void;
     code: string;
     setCode(code: string): void;

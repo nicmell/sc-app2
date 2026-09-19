@@ -24,3 +24,39 @@
 .spacer {
   flex: 1;
 }
+
+.podium {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.position {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  /* Widest expected "CC.c · M:SS.d" — keep the buttons from shifting. */
+  min-width: 11ch;
+}
+
+.bpm {
+  width: 4.5ch;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2px 4px;
+  text-align: right;
+  appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+  }
+}
+
+.bpmLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+}

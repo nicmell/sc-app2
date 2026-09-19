@@ -26,9 +26,9 @@ sweep every usage in the repo (examples, tests, docs) in the same commit.
 - `PURE-BRIDGE.md` — the pure-bridge direction (Italian): clock handling
   to sclang, repo-owned StrudelDirt extensions, session client ids,
   verified SC-internals facts + the recommended sequence.
-- `CONDUCTOR.md` — the musical-time module design (Italian): the DAW
-  transport + two-way BPM metronome — verified scsynth/Strudel facts,
-  the cps=0 pause mechanism, decisions and the implementation plan.
+- `CONDUCTOR.md` — the musical-time module (Italian, LANDED): the DAW
+  header + two-way BPM metronome — verified scsynth/Strudel facts,
+  the cps=0 pause mechanism, decisions and the implementation record.
 - `UGENS.md` — the UGen analysis (Italian): custom-UGen candidates
   (tiered, with the toolchain gate) + the sc3-plugins → compiler-registry
   adoption shortlist.
